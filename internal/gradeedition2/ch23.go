@@ -30,6 +30,7 @@ const recallFact = "The quartz zephyr migration selected copper ferry because th
 type recallSuite struct {
 	bin, dir, skills, gui, data string
 	next                        int
+	launch                      func(recallOpts) recallOut
 }
 
 func recallChecks(bin, dataRoot string, timeout bool) contextResult {
@@ -79,6 +80,9 @@ func (s *recallSuite) run(files map[string]string, o recallOpts) recallOut {
 	}
 	if o.judge == "" {
 		o.judge = "unreadable judgment"
+	}
+	if s.launch != nil {
+		return s.launch(o)
 	}
 	return recallLaunch(s.bin, s.skills, s.gui, o)
 }

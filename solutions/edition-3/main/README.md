@@ -1,4 +1,62 @@
-# Edition 3 — Chapter 22 C# locally verified
+# Edition 3 — Chapter 27 Goals locally complete
+
+Main includes the reviewed Chapter 27 Goals implementation and selected-Agent GUI.
+`../ch27` preserves the source-only endpoint; Chapter 23 and earlier endpoints remain
+unchanged. This is local implementation/verification, not live-provider acceptance.
+
+Goals is explicitly skill-granted, session-local and actor-owned. Fresh file text
+enters ordinary requests; opt-in idle reminders reuse normal admission. Status and
+controls use the selected Agent, not browser-owned scheduling. Off retains the file
+and its instructions; Clear/unload removes session configuration without deleting it.
+Successful delegated submission disables reminders before publishing completion.
+
+Final behavior: seven Goals groups, three child-completion groups and 304 shared
+groups pass. The selected-Agent socket test and isolated browser/actual-GUI exercise
+pass, with two local requests and a joined clean host exit. Final CLI/GUI builds are
+clean. The manuscript and assembled source/test/prose review are complete. See the
+TOP of `docs/edition-3-csharp-progress.md` for exact evidence and retained failures.
+
+Chapter 24's live OAuth/cache decision remains open; no workaround was presumed.
+Chapter 26 remains incomplete pending Bill's decision on a faithful C# Noise
+implementation dependency. No cryptographic source, package or protocol substitution
+was added. The final epilogue follows this boundary; neither pending integration is
+credited by the Goals result.
+
+## Preserved Chapter 23 foundation
+
+Chapter 23's C# implementation, teaching manuscript and assembled source/test/prose
+review are complete within the local verification scope. `../ch23` preserves the
+source-only endpoint; main remains the continuing workspace. Chapter 22 and earlier
+endpoints are unchanged.
+
+Recall uses independent lazy indexes over fresh rooted corpora, separate replayable
+Human/data attachments, retained-source deduplication, and an optional same-provider
+stateless judge. The actor joins and rechecks before publication. Skills retains an
+explicit read-only source without expanding file-tool authority. Memory and recall
+share durable Agent-home settings; GUI acknowledgment follows save and next-turn
+application, while admitted turns keep their captured policy.
+
+The existing shared suite passed 297 groups. The isolated GUI/browser and CLI restart
+exercise made four local requests, showing retired-fact retrieval, retained follow-up,
+and saved disabled recall after restart. The executable scope passed 70/70 across
+seven complete rows, with 30 points explicitly ungraded: nineteen joined CLI sessions,
+37 recorded local peer requests plus a held timeout exchange outside the recorder.
+Final review changed only an index ownership comment and a snippet-limit UI label;
+final actual CLI/GUI builds are clean. Earlier behavioral results are reused, not
+relabeled as a new full regression. No live relevance, OAuth, billing, native Linux,
+audible speech or human-accessibility success is claimed.
+
+Chapter 24's independent manuscript/decision work is complete; Bill authorized
+continuing the later chapters while he is away. Joint real OAuth and a bounded live cache probe remain deferred, not
+passed. Current official documentation still specifies public Responses for that
+OAuth flow. No workaround is implemented or presumed necessary; Chapter 24 is
+optional and does not block the Gateway foundation. Chapter 25 is now a completed
+historical interlude, with no code change or new endpoint. Chapter 26 Gateway is
+incomplete: its Noise-KK transport needs an approved supported cryptographic
+dependency on macOS/.NET 10. No Gateway code or dependency was added. Independent
+Chapter 27 Goals is locally complete independently; those two integration decisions remain deferred.
+Exact evidence, retained failures and limits are in the TOP of
+`docs/edition-3-csharp-progress.md`.
 
 C# 14 / .NET 10. Common declares the core vocabulary, persistent fields,
 relationships and cross-module operations. Functional directories implement the
@@ -28,8 +86,13 @@ focused worker checks and clean actual hosts. The earlier broad regression and
 executable grade predate that prompt-only correction and are not relabeled.
 Detailed evidence and the next chapter are in `docs/edition-3-csharp-progress.md`.
 
-Memory policy lives in `<Agent home>/settings.json`, separate from the GUI's shared
-appearance preferences. Startup reads it before loading enabled bands. The GUI's
+Memory and recall policy live in `<Agent home>/settings.json`, separate from the
+GUI's shared appearance preferences. Startup reads both before loading enabled bands
+or admitting recall. Version 1 memory-only files remain readable with default recall;
+new saves include both sections. `SaveRecallSettingsAsync` saves before publishing the
+next-turn policy; `SetRecallSettings` remains in-memory only. Saving either section
+preserves the other saved section, not an unrelated transient override. Disabling
+recall does not delete files or remove earlier attached context. The GUI's
 selected-Agent memory form saves enable/budget/high/low policy for conversation and
 all five memory bands; sizes are UTF-8 bytes, and zero means the band default.
 Disable retires request entries but preserves files; re-enable reads current bytes.

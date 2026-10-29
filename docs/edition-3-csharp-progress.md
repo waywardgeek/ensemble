@@ -1,3 +1,1010 @@
+## Epilogue complete — independent authorized work finished; two human-dependent items remain
+
+Replaced `book/edition-3/epilogue.md` with **What we can rebuild**, in Cadence's
+voice. Read the prior Astra/Codex epilogue and Bill's exact Final scope direction
+before writing; read back the complete saved replacement (160 lines). It preserves
+Bill's origin quotation and attributes his third-run/first-closed-loop framing,
+explains expert-present chapterwise rebuilding without lowering code quality,
+and uses the actual duplicated-memory-input and Goals submission corrections to
+connect reasons to requirements. Avoidable editing mistakes remain mistakes, not
+verification credit. Earlier Codex history is not presented as this run's work.
+
+The epilogue explicitly leaves Chapter24 live OAuth/cache testing and Chapter26
+Gateway unfinished, distinguishes local peers/browser checks from real integration,
+and makes no independent-review or universal reproducibility claim. Both local
+links resolve; trailing-whitespace and scoped Git diff checks pass, exit0. No code
+changed, no behavioral tests rerun or relabeled, no new endpoint needed for prose.
+Chapter27's mandatory handoff was completed before this work. Its preserved335-file
+endpoint and continuing main were not edited during the epilogue work.
+
+All currently independent authorized work is complete. Remaining work with Bill:
+1. Chapter24: approved credential-store/setup choice, joint Chapter16 real OAuth,
+   then current official-endpoint verification and bounded live cache measurement.
+   Historical cache failure is not current evidence; no workaround implemented.
+2. Chapter26: approve faithful source-port of flynn/noise/required primitives or
+   a supported C# cryptographic dependency. Preserve Ensemble's specified
+   Noise_KK_25519_ChaChaPoly_SHA256; CodeRhapsody AESGCM is not a substitution.
+   No crypto implementation/dependency installed and no Gateway completion claimed.
+
+GOAL now contains only this current continuation boundary; older chapter evidence
+remains here. Disable idle reminders for these human-dependent items. No workers,
+installs, restarts, deployment, commits, private credential access or Bill browser
+use. No live provider/billing, native Linux/x64, audible or human-accessibility
+completion added. Last disk observation10,827,472KiB free. No new background jobs.
+
+## Chapter27 — locally complete, reviewed and preserved; epilogue next
+
+Personally, no workers. Chapter27 Goals is locally complete at
+`solutions/edition-3/ch27`: **335 source/support files**, all byte-identical to
+reviewed main at preservation; **13 ProjectReferences** resolve inside endpoint.
+No symlinks, bin/obj, runtime state or private artifacts. Main remains continuing
+workspace; ch23 and earlier endpoints are untouched. No new Gateway implementation.
+
+Rewrote/read back the complete Goals chapter in Bill's voice: hour-into-day-long
+stall motivation, separate fresh objective vs idle trigger, opt-in session authority,
+Common vocabulary/actor mail/timer generations, normal reminder admission, no
+background-job cancellation, request-only projection on all four surfaces, fresh
+bounded UTF-8 reads and correlated error handling, off/clear/unload/submission
+semantics, selected-Agent acknowledgment/status, practical isolated setup and
+exercises. Removed Go/Codex/runtime success claims from the C# account. Four shell
+blocks parse; source-map paths and actual host flags/skill syntax checked. Current
+numbered ch27 graders are Gateway and supply no Goals grade; no invented numeric
+executable score. Read complete 27-file ch23-to-main source/support delta plus prose,
+recovering clipped spans. Final readability edits only expanded two timer/disable
+blocks, fixed fault-settlement indentation, and expanded equivalent GUI status text.
+
+Assembled review found a real lifecycle omission: successful delegated submission
+left automatic reminders enabled. New seventh GoalTests group first failed in
+submission-baseline.log (6/1). StoreSubmission now calls Common-declared
+GoalSubmitted only after successful durable result publication under ingress,
+before signaling waiters: immutable config becomes disabled immediately, actor mail
+refreshes/disposes timer. Refused submission leaves reminders unchanged; already-off
+submissions cause no extra mail. File/instruction retained, parent goal unaffected,
+child never inherits parent goal. Initial fixed run still failed because an immediate
+status snapshot exposed the invalidated old deadline before refresh; CaptureGoalStatus
+now returns DueUtc only for scheduled phase. Retained failing runs are not passes.
+
+Final verification in /private/tmp/ch27-csharp.nuMmE1:
+- review-core-build-2.log clean; review-goals-2.log **7/0**;
+  review-submission-2.log **3/0**; review-shared-2.log **304/0**. Chain6220 exit0.
+  These include final submission/config/deadline behavior, precede only the stated
+  readability edits and README. Earlier 302+separate-catalog evidence remains historical.
+- final-cli-build.log/final-gui-build.log clean, zero warnings/errors, after readability.
+- final-gui-tests-build.log clean; final-gui-controls.log real socket group passes
+  selected-Agent availability/isolation/atomic refusal/deadline/reconnect/error/off/clear.
+- final-browser.log and tmp/goal-host-RamBCj/result.json: actual GUI + isolated Chrome,
+  temporary primary/shipped Goals, owned local provider/profile/ports; exactly two
+  local requests (human while off, edited goal on automatic reminder), visible status
+  and retained state on reload, off/clear, disconnected unknown state, no page errors;
+  host joined exit0. Final chain6241 exit0. Earlier browser results remain separately
+  scoped; the final UI run was justified by changed status construction, not freshness.
+- Added-line whitespace over complete source delta and scoped tracked whitespace
+  checks pass. Endpoint verification ran after final README. Last disk observation
+  10,745,572KiB free, not a guarantee.
+
+Retained setup mistakes: new submission hook initially used nonexistent inbox/Mail
+initializer; build refused before tests, corrected to actual mailbox/constructor.
+A grep guard for the wrong partial test class stopped one chain before build; actual
+--child-completion-tests selector exists. One shell exercise error came from an
+apostrophe inside ${...:?}; fixed and all four blocks parsed. Repeated guessed
+formatting anchors refused (one batch saved only two readability blocks); final saved
+source was inspected and reconciled before builds. A collected review-command handle
+was briefly mistaken for regression; actual6220 exit0 collected separately. These were
+my process errors, not product failures or credit for thoroughness.
+
+No live provider/semantic obedience/OAuth/cache/billing, native Linux/x64, audible
+speech or human-accessibility completion claimed. No install, shared restart,
+credential search, commit, deployment, Bill browser/8088 or workers. Chapter24 live
+OAuth/cache decision remains OPEN. Chapter26 still incomplete awaiting Bill's
+source-port flynn/noise/primitives vs approved C# crypto dependency decision; preserve
+Ensemble Noise_KK_25519_ChaChaPoly_SHA256, no redesign or substitution.
+
+NEXT: mandatory chapter handoff, then replace the inspected old Astra/Codex epilogue
+with a new Cadence-voice account. Bill's direction is below at "Final scope": expert-
+present chapterwise executable knowledge, his third-run/first-closed-loop framing,
+code as rebuildable secondary artifact without lower quality, and explicit unresolved
+scope. Existing epilogue was fully read; it describes an earlier Edition2 process,
+not this run. After epilogue review, all independent authorized work is complete:
+report the two human-dependent blockers and disable idle reminders rather than wake
+repeatedly into them. No active owned jobs at this boundary.
+
+## Chapter27 — selected-Agent Goals GUI locally checked; prose/review remain
+
+Personally, no workers. Goals core checkpoint below remains valid at its scope.
+Added read-only GoalStatusAsync actor mail, available even unloaded without granting
+control or resetting the timer. GoalStatus adds Available; phases distinguish unloaded,
+unconfigured, file_error, paused, busy, off and scheduled. Actual GoalIdle predicate
+reports busy even when reminders are off. Configuration remains skill-gated.
+
+GUI reuses existing Agent-tree status refresh, no new polling/timer owner. Strict
+session-only update_goal/get_goal socket controls validate full patches before actor
+mutation; file/null/duplicate/unknown/invalid-delay refusals preserve configuration.
+Acknowledgment follows actor application and goes only to peers viewing that Agent;
+identity checks reject stale targets. No persisted policy/appearance changes. File
+errors become safe control refusals, not raw OS diagnostics or socket teardown.
+Text-labelled panel has Apply/Off/Clear/Reload, edits survive normal refreshes,
+selection is visibly pending until replay, stale Agent frames ignored, disconnect
+marks current state unknown and disables controls. No automatic speech added.
+
+Evidence in /private/tmp/ch27-csharp.nuMmE1:
+- gui-controls-test.log initial real-socket test passed; status-gui-tests.log final
+  passed availability, two-Agent isolation, malformed/refused atomic patches,
+  mismatched target, same deadline on query, pause/reconnect, read-error/off/clear,
+  no goal-body status leak and no settings.json persistence.
+- gui-goals-core.log six groups passed before final status polish;
+  status-core-tests.log final six groups passed including held real HTTP request:
+  off still reports busy, completion reports off. status-core-build-2.log and
+  status-gui-build.log clean. gui-settings-regression.log existing actual socket
+  memory/recall test passed; final phase/UI polish does not change those paths.
+- Actual isolated Chrome/GUI exercise goal-host-exercise.mjs uses temporary primary
+  skill + shipped goals, startup load, owned loopback provider/port, owned profile.
+  Initial result tmp/goal-host-14hveB/result.json successful; final after display
+  corrections tmp/goal-host-cevtTc/result.json successful: exactly two local requests
+  (human while off, then one idle reminder), edited goal in second SYSTEM request,
+  visible no-goal/off/waiting/off/clear and disconnected labels, browser reload
+  retained core state, clear retained file, host SIGINT joined exit0. No page errors.
+  status-browser.log records summary. status-host-build.log actual GUI clean.
+- No live model obedience/provider/OAuth/billing, hearing, human visual accessibility
+  or native Linux claims. Existing shared302 plus corrected tool group were not
+  rerun or relabeled. No numbered ch27 executable grade: those graders are Gateway.
+
+Review caught display omissions (disconnected stale snapshot, working hidden by off)
+corrected before final exercise. Editing failures were mine: one guarded phase patch
+refused, fail-fast was initially placed too late so unchanged-source checks ran;
+then status-core-build.log caught invented GoalBusyLocked helper. Replaced with actual
+GoalIdle predicate; no behavioral test ran at that failed build. Retain those logs,
+not extra verification credit. Last disk observation10965380KiB, not guarantee.
+
+Chapter27 still INCOMPLETE: current manuscript read completely but not rewritten;
+assembled review, CLI final build, source-only endpoint and required handoff remain.
+Next rewrite Bill's hour-into-day-long-job opening and C# body/exercises/Take It for
+ a Spin; distinguish persistent objective from idle opportunity and exact limits.
+Then full bounded source/test/prose review, preserve27; Cadence epilogue afterward.
+Chapter26 crypto dependency and Chapter24 live OAuth/cache still explicitly blocked.
+No workers/installs/restarts/commits/private credentials/Bill browser/8088.
+
+## Chapter27 — Goals core implemented and locally checked; GUI/prose remain
+
+Independent Goals work resumed personally, no workers, while Chapter26 awaits
+Bill's crypto-dependency choice. No Gateway implementation/dependency added and
+no live24 OAuth/cache claim. Active main now differs from preserved ch23; earlier
+endpoints remain untouched. Scratch: /private/tmp/ch27-csharp.nuMmE1; pointer
+/private/tmp/cadence-ch27-current; offline wrapper reuses approved env-i/private SDK.
+
+Read current Goals TL;DR/body/design notes and prior Go implementation, then actual
+C# actor/render/skill/control ownership paths. Common/Goals.cs declares value-like
+GoalUpdate/GoalStatus/config/read-failure values and Agent fields/partial operations;
+Agent/Goals.cs implements them. One immutable configuration under ingress is the
+configuration authority, not History, GUI or a second scheduler. A Timer only posts
+generation-bearing mail. Actor rejects stale wakes, respects foreground/queued work,
+control work, direct Engine sends, pause/stopping, and fresh skill authority. Resume
+starts a fresh interval; explicit interrupt disables; shutdown/fault/final cleanup
+stops/disposes timers. Default480s; positive finite Timer-representable delays
+(1ms through4294967294ms) accepted. No backoff, watchdog, replay or completion claim.
+
+GoalControlAsync validates changes before publication; no-argument query does not
+reset due time. File selection does not enable; off retains file; empty file clears;
+off/clear don't depend on a readable file. Sandbox's existing rooted regular-file
+reader supplies fresh strict UTF-8 (max1MiB, nonempty after trimming, BOM accepted).
+Engine adds current goal to each ordinary request's instruction field, even while
+reminders are off, not History/manuals. Same-turn tool/handoff requests reread it.
+Fresh read failure posts a configuration-correlated failure, stops reminders, and
+provides a bounded non-path-leaking ordinary-turn warning; automatic wake preflights
+before admission and render rechecks, refusing inference on failure. Stale read
+outcomes cannot mutate a newer configuration. Auxiliary recall/compressor projection
+is not given parent goal text. Synthetic reminders skip user-query recall and use
+the normal Submit admission/accounting path; this is an opportunity, not progress.
+
+Shipped Skills/goals/SKILL.md grants only goal_control; loading alone configures
+nothing. Appended ToolKind, existing control worker/mailbox, and snake-case public
+tool output reused. Unload and Skills detachment clear session state, revoke prompt
+injection and stop future wakes; durable goal files remain. Retained pending manuals
+are not authority. Legacy unskilled library fallback required an explicit exception:
+GoalAvailable now requires attached Skills plus actual active grant. Declaration,
+dispatch and projected deferred references all enforce it. Existing ordinary tools
+retain their fallback. No goal restart persistence or inherited bootstrap fields.
+
+Evidence and corrections:
+- Initial core build clean; six focused groups now pass in goals-optin-final.log:
+  API/tool validation and opt-in; exact provider instruction fields on all4 surfaces;
+  fresh text/failure/repaired-off projection; Skills detach/unload; real loopback
+  idle reminder/pause/busy/off/interrupt; missing file refuses before HTTP; stale
+  timer/shutdown/new-Agent defaults; actual two-request handoff freshness/no goal
+  bytes in canonical dialogue. Real components and loopback boundaries, no live API.
+- Product regression: plain legacy Agent installed catalog exposed Goals through
+  its existing broad fallback. legacy-baseline.log is5pass/1fail; narrow gate fixed
+  it. Early null-field suspicion was FALSE: existing schema validation already
+  rejects file:null; no null product patch. Null regression remains useful.
+- Shared-optin.log:302pass/1fail, the sole failure an old tool-loop assertion that
+  catalog==declarations. Tests/ToolTests.cs now counts the installed dormant control
+  but checks every legacy request against ordinary declarations without Goals.
+  tools-final.log separately passes that entire group via --tool-tests. No fresh
+  full303/0 run claimed; other302 groups unchanged by this test-only correction.
+- cli-optin-build.log/gui-optin-build.log actual hosts zero warnings/errors, exit0.
+  Final tracked added-line whitespace check clean. No production change after those
+  builds/shared run; subsequent changes only tool-loop test/selector and these notes.
+- Fixture failures retained: tests-build.log used Seq instead of Sequence; expanded
+  goals-null-baseline.log5/1 tried reloading while unload was pending. My claim that
+  current C# handoff immediately retires manuals was WRONG; it retains them. Test
+  now checks immediate revocation and new-Agent defaults, not invented retirement.
+  Early shared-core.log302/1 catalog assertion predates opt-in fix. Editing anchor
+  failure left only new Goals files, reconciled against saved source. One accidental
+  Git pager was identified/terminated alone; later Git checks use GIT_PAGER=cat.
+
+Chapter27 remains INCOMPLETE. No GUI controls/status, no actual-host browser exercise,
+no C# chapter rewrite, no complete assembled review or endpoint. Next add read-only
+actor status query usable by GUI even when skill unavailable (configuration stays
+skill-gated); show selected-Agent unloaded/off/paused/busy/scheduled/file-error state
+and opt-in controls through existing socket, not browser authority/timers. Then
+verify GUI isolation/control application and actual local host, rewrite in Bill's
+voice (hour-into-day-long-job cold open, prompting vs compression persistence),
+review/preserve27 and mandatory chapter handoff. Cadence epilogue afterward must
+retain Gateway and live24 limitations. No workers/installs/restarts/commits/private
+credentials/Bill browser or8088. Existing reminders remain480s.
+
+## Chapter26 — prior Noise implementations compared; port boundary needs Bill
+
+Resumed the interrupted source comparison under Bill's faithful-port direction;
+no redesign, replacement protocol, cryptographic source or package added. Read all
+166 lines of CodeRhapsody gateway/pkg/noise/noise_kk.go, all295 test lines and its
+go.mod. Only source/dependency files read, not gateway runtime data or keys.
+Compared Ensemble agent/gateway/noise.go with solutions/ch26/gateway/noise.go:
+byte-identical. Both projects depend on github.com/flynn/noise v1.1.0.
+
+Important difference: CodeRhapsody selects 25519_AESGCM_SHA256; Ensemble selects
+25519_ChaChaPoly_SHA256. Current manuscript lines170ff explicitly name Ensemble's
+Noise_KK_25519_ChaChaPoly_SHA256, resolving which suite the Ensemble port preserves.
+CodeRhapsody is a comparison, not a wire-compatible peer for that suite. No suite
+switch or configurable multi-suite mechanism proposed. Source test inspection is
+not a test run or independent cryptographic validation.
+
+Read the existing Go module's cipher_suite.go lines1-160 and go.mod at
+/Users/bill/go/pkg/mod/github.com/flynn/noise@v1.1.0: it delegates X25519 to
+ golang.org/x/crypto/curve25519 and ChaChaPoly to x/crypto/chacha20poly1305.
+These are not implementations in either project's wrapper. Therefore a literal
+wrapper translation still needs a C# implementation of that dependency boundary.
+Bill must choose/authorize whether to source-port flynn/noise and its required
+primitives or use an approved C# dependency; do not silently choose custom crypto,
+native runtime glue, a Go helper process, or another protocol. The earlier framework
+probe establishes only that inspected framework route's limitation, not that a
+faithful port is impossible. No new source, build/test result or endpoint.
+
+Gateway remains incomplete. Independent Goals remains authorized while awaiting
+that choice; no Goals source yet. Ch24 live OAuth/cache remains deferred. Previous
+entry's blanket next-Goals cursor must not lose this specific Gateway question.
+
+## Chapter26 — dependency blocker confirmed; continue independent Goals
+
+The Chapter25 handoff's HTTP/UDP unauthenticated proxy description was WRONG.
+Actual current Chapter26 is a717-line authenticated Noise-KK message gateway:
+independent public client, standalone router, authenticated provenance/group policy,
+durable per-recipient queues/receipts, encrypted MCP administration and optional
+Ensemble actor adapter. No gateway_browser/TCP+UDP forwarding feature is authorized
+by this chapter. Current/preserved manuscript comparison, portions of actual Go
+client/protocol/Noise/server/grader and Common owners inspected; complete assembled
+reference review/design is NOT yet done. No C# Gateway source has been added.
+
+Dependency boundary: main uses framework-only .NET10, NuGet feeds cleared. Prior Go
+uses flynn/noise, not handwritten cryptography. Isolated approved-SDK probe in
+/private/tmp/ch26-csharp.oA7EkO/probe, log crypto-probe.log, exited0 on .NET10.0.14 /
+macOS26.3.1: ChaCha20Poly1305 supported; ECDiffieHellman.Create rejects X25519,
+curve25519, Curve25519 and OID1.3.101.110 with PlatformNotSupportedException.
+Microsoft primary documentation fetched HTTP200 confirms OpenSSL-backed classes
+are unsupported on macOS starting .NET10:
+https://learn.microsoft.com/en-us/dotnet/core/compatibility/cryptography/10.0/openssl-macos-unsupported
+The local probe does not establish every platform/library's capabilities. Do not
+substitute another wire protocol or handwrite crypto to bypass this dependency.
+No packages installed/downloaded into the project, no private searches, credentials,
+certificate changes, deployment or restart. Gateway remains INCOMPLETE pending an
+approved supported cryptographic dependency/approach, not a completed no-code chapter.
+
+Bill authorized continuing past blocked work. Continue personally to independent
+Chapter27 Goals on main/ch23, then epilogue with accurate deferred scope. Read actual
+TL;DR, current goal.go/core/GUI references and C# actor before coding. No Goals code
+or verification yet; correct manuscript's existing runtime-status claim during rewrite.
+Chapter24 live OAuth/cache remains OPEN. Ch23 and earlier endpoints remain untouched.
+
+## Chapter25 — historical interlude complete; Gateway next
+
+Replaced the placeholder with a234-line historical interlude in Bill's voice.
+Read the complete current crossover source through its artifact-ID investigation
+(the earlier272-line checkpoint was stale), compared the preserved Edition3
+chapter, and read back the complete saved prose. Retained Bill's first-use
+formulation and expert/book/grader contribution; no historical-first or inherited
+model-memory claim. Covered approximate speech calibration, distinct build/install/
+restart/browser stages, narrow on-demand observation, visible explanation/actual
+stream order,61-second response negative control, main/worker result contracts,
+failed compressor submission, configuration authority/secret-in-help regression,
+and restored artifact-ID collision. Preserved each historical limitation: on-demand
+live confirmation does not verify later config deployment; completed prose is not
+successful compression; ID investigation was reproduced but not repaired there.
+Old Go schema/chapter mapping was not imported into C#.
+
+Local chapter link and whitespace checks pass. No runtime code changed, no suite
+rerun, no grader or ch25 endpoint invented. Historical evidence is attributed to
+its source record, not fresh C# or live acceptance. Free disk observed11,140,960KiB.
+Chapter24 live OAuth/cache decision remains OPEN; no workaround, credential access,
+installation or restart. Continue personally without workers to Chapter26 Gateway
+on main/ch23. Read full current/preserved chapter and actual reference code/grader
+before agreeing implementation vocabulary. Chapter27 Goals then Cadence epilogue
+remain authorized. Take mandatory historical-chapter handoff now.
+
+## Chapter24 — independent work complete; live decision remains deferred
+
+Bill's lake-side direction supersedes the former joint-step pause: continue best
+possible Chapter24 and Chapter25/onward personally without workers, returning to
+the blocked live work together. Reminders resumed at480 seconds. No new credential,
+account, deployment, restart or private-store authority.
+
+Read/reworked the full Chapter24 manuscript and read back all229 saved lines.
+Preserved Bill's opening and attributed earlier cache/pricing/tool-loop evidence;
+replaced the unconditional Go detour recipe with C# measurement-first requirements.
+Current official inference and caching pages fetched maxAge:0/HTTP200. Public OAuth
+still specifies api.openai.com/v1/responses, store:false, streaming and terminal
+completion, explicitly not ChatGPT backend-api. Cached reuse remains UNTESTED live.
+The cache guide's large inline result was truncated; relevant saved-result sections
+were subsequently extracted. It documents model-dependent eligibility, key behavior
+and newer cache-write fields. Current C# Responses usage parser was inspected:
+cached read separation exists; newer write-field classification does not. Chapter
+explicitly disclaims complete pricing/write accounting and recommends only relevant
+raw terminal usage for the eventual bounded probe, not broad logging or a new system.
+
+No runtime source changed; preserved ch23-to-main comparison shows README only.
+Local manuscript links pass; actual CLI billing/surface/account/credential-dir,
+cache-lens/cache-key and streaming flags inspected; scoped tracked whitespace clean.
+No old tests rerun for freshness. No new grade, endpoint or acceptance fiction:
+optional Chapter24 adds no code, ch23 remains its runnable foundation. Live Chapter16
+OAuth and a small agreed cache probe are OPEN; no proof the historical defect is
+fixed or still present and no Codex adapter/credential lookup was attempted.
+The measurement plan is not an executed exercise. Maintain its failure/usage and
+byte/token distinctions. No live inference/billing/accessibility claim.
+
+Sources: https://developers.openai.com/siwc/token-sharing-open-source/models-and-inference
+and https://developers.openai.com/api/docs/guides/prompt-caching . Fetch results
+retained in agent tool IO (6059 and6063). Local read errors from guessed Cache.cs/
+Common CacheLens.cs paths and unavailable rg were setup errors, not product findings.
+Read actual Engine/CacheLens.cs, Engine/Render.cs and Responses.cs afterward.
+Next: finish reading historical ch25-crossover source and turn its placeholder into
+a properly attributed interlude, no implementation/grader/snapshot. Then Chapter26
+Gateway on unchanged main/ch23 source. Chapter27 Goals remains final C# chapter,
+followed by Cadence-voice epilogue. Take mandatory chapter checkpoint now.
+
+## Chapter24 — live prerequisite deferred by Bill; continue independent work
+
+Bill is away from his computer and explicitly authorized best possible Chapter24
+progress, then continuation through Chapter25 and onward without waiting for him.
+This supersedes the pause in the older entry below, not its evidence limits.
+Joint Chapter16 real OAuth and the bounded current-endpoint cache probe remain
+OPEN. No credential-store choice, private search, login/account change, Codex
+credential access, deployment or restart authority was added. Continue personally
+without workers; do not implement the conditional workaround on historical evidence.
+
+Read current Chapter24 completely (177 lines), Chapter25 placeholder, Chapter26
+opening/TLDR, and the procedure. Preserved Chapter24 differs only in two relative
+links, which need correction in the C# rewrite. A maxAge:0 HTTP200 fetch of OpenAI's
+models-and-inference page still documents POST https://api.openai.com/v1/responses,
+store:false, stream:true and response.completed gating, explicitly excluding ChatGPT
+backend-api endpoints for this public OAuth flow. That is current documentation,
+not a live inference/cache result. Prompt-caching guide fetched HTTP200 but inline
+output was truncated; inspect the saved result before using its detailed claims.
+
+Next: adapt Chapter24 into an honest C# decision/measurement chapter, preserving
+Bill's historical account but marking the workaround as unimplemented and the live
+choice deferred. Chapter24 itself says it is optional and not a prerequisite for
+later features. Review Chapter25 historical source without inventing new results,
+then continue Chapter26 from the unchanged public-OAuth source foundation. Do not
+create a fictitious accepted workaround endpoint or imply the cache has been fixed.
+Sources: https://developers.openai.com/siwc/token-sharing-open-source/models-and-inference
+and https://developers.openai.com/api/docs/guides/prompt-caching .
+
+## Chapter23 — locally complete and preserved; Chapter24 joint prerequisite next
+
+Chapter23's C# manuscript, assembled implementation/test/prose review and source-only
+endpoint are complete within the local scope below. `solutions/edition-3/ch23` has
+329 source/support files, byte-identical to reviewed main at preservation, with all
+13 project references resolving inside the endpoint. No symlinks, build/runtime or
+private files are included. Main remains the continuing workspace; ch22 and earlier
+endpoints were not modified. `/private/tmp/ch23-csharp.EfSTJq/preserved-check.json`
+records the preservation check. No workers, installs, restarts, commits or live
+provider/account operations were used.
+
+The rewritten `book/edition-3/chapter-23.md` keeps Bill's filing-cabinet opening,
+BM25 derivation, half-memory quota rationale, parser-as-format-authority lesson,
+capped-source failure, discovery limitation, QuartzZephyr/QZ731/Morgan/October23
+exercise and earlier three-provider account with explicit historical attribution.
+It teaches real C# Common/partial ownership, lazy independent fresh scans, read-only
+skill provenance, frozen judge configuration and cumulative-only accounting, linked
+HTTP cancellation, ordered actor-only attachment, retained hashes through held cuts,
+and actual committed-cut release. It distinguishes judge fallback from corpus refusal
+and durable policy from captured turn policy. The executable table credits exactly
+70/70, leaving30 ungraded. The API-funded exercise uses the actual CLI, temporary
+skill/home, explicit provider/model setup, retired source, keyword-sharing distractor
+and100 padding files; logs are Agent-home events.jsonl/api.log. No example live run
+is claimed. Source links and two shell blocks were checked; embedded Python executed
+in an owned fixture and generated the intended settings/corpus shape. Final later
+identifier/provider wording changes were syntax-checked; no inference followed them.
+
+Assembled review used the actual62-file ch22-to-main source/support delta, including
+Common declarations, owner add/remove and teardown, native rooted reads, Skills
+bootstrap ownership, Memory snapshot/recovery holds, algorithms, replay/serialization,
+all provider parser/projection paths, judge accounting/cancellation, actor admission,
+settings/GUI and the focused tests. Clipped spans were recovered. Grader adapter and
+actual CLI consumer paths were reconciled with the saved source and prior evidence.
+No new recall behavior defect was found. Final changes were an index comment naming
+its present Recaller owner and the GUI label “Selected snippet limit” (it also caps
+judge output, not just mechanical selection). These do not change recall semantics.
+
+Evidence remains deliberately scoped:
+- Existing shared297/0, focused settings4/0 and actual isolated GUI/Chrome plus CLI
+  restart are reused unchanged, not rerun/relabelled. Four local requests demonstrated
+  retired-fact retrieval, retained follow-up and saved disabled policy after restart.
+- Existing grade-second.json70/70, passed:true/exit0: nineteen joined CLI sessions,
+  37 recorded LOCAL peer requests plus the held timeout exchange outside that recorder.
+  Thirty points remain ungraded. Previous grading/build/fixture receipts stay intact.
+- Final `review-cli-build.log` and `review-gui-build.log` both report zero warnings/errors
+  after the comment/label edits; Node syntax check passed. Job6046 completed those
+  checks before its example-checker path error below; the separate corrected check
+  passed. `prose-check.txt` records fixture/link/static scope, not provider behavior.
+- No live-provider relevance, availability, entitlement, OAuth, billing, native Linux,
+  audible speech or human-accessibility completion is claimed.
+
+Retained review failures/corrections: draft heading/footer anchors refused before
+manuscript publication; stale file-map names were corrected against actual files.
+I incorrectly inferred a quota policy and2,000-byte chunk target from incomplete
+reads; full source confirmed half-memory allocation and4,096-byte chunks, restored
+before publication. The first saved draft had newline-escape errors in embedded
+Python, fixed before successful syntax/execution checks. A checker then passed the
+parent directory instead of the Agent home and looked under a nonexistent nested
+path; corrected checker passed with no product change. Exact-comment edit guards
+also refused guessed wording; only the two actual corrections above landed. These
+were my avoidable editing/checker errors, not product failures or verification credit.
+
+**Next / human-dependent boundary:** Chapter24 was read through its opening/TL;DR.
+Do not implement the historical Codex-route workaround yet. Bill requested a joint
+Chapter16 real-OAuth exercise on his laptop, then verification of OpenAI's then-current
+official inference endpoint and a small controlled live cache test. No approved
+credential-store path has been supplied for this session and no private store was
+searched. Obtain Bill's explicit source/setup choice; never ask for a key in chat.
+If the official route now works, skip the workaround and adapt the chapter; only a
+reproduced current failure can justify considering the prior detour under current
+requirements. Historical cache failures do not establish today's behavior. Reminder
+continuation is paused at this genuine joint-session boundary. Chapter25 remains
+historical-only; after24 continue26,27 Goals and the Cadence-voice epilogue as agreed.
+
+## Chapter23 — scoped executable grader reconciled; prose/review remain
+
+Added opt-in `-ch 23 -executable-only` in the existing Go grader, using
+`internal/gradeedition2/ch23_executable.go` and its contract tests. The original
+Go route remains the default. The shared suite has one optional launcher; original
+assertions and local provider peer are reused unchanged. The event reader additionally
+recognizes real C# `recall_added` / `recall` parts rather than translating outcomes.
+The adapter seeds the strict v1 Agent policy at `agents/root/settings.json`, disables
+live memory bands so retrieval is not preloaded context, supplies a typed primary
+skill, and drives the real CLI through its MCP prompt/final lifecycle. Joined EOF
+shutdown precedes event parsing; a partial final log or missing `agent_shutdown`
+refuses. Host diagnostics and provider requests remain beside each session.
+
+Scope is seven COMPLETE original rows, 70 points: bm25-scores10, stop-words5,
+chunking10, per-source-quota10, judge-filters15, judge-fallback10, injection-capped10.
+The last includes second-turn capped-source deduplication. Judges include [] versus
+failure, quoted/duplicate/out-of-range indices, real HTTP500 and a held HTTP timeout;
+quota fallback retains lower-ranked memory beyond the judge's candidate pool.
+Three rows/30points remain UNGRADED: bm25-indexes includes graduation/restart,
+recall-is-own-kind includes source-free restart and historical handoff-cut assumptions,
+and recall-is-a-spoke is Go topology. C# handoff retains recall until a committed
+conversation cut; do not change that implementation to satisfy the older assumption.
+Separate existing replay/scanner/runtime/GUI evidence is not substituted as grader credit.
+
+Evidence at `/private/tmp/ch23-csharp.EfSTJq`:
+- `grade-second.json`:70/70,passed:true; job5988 joined exit0, empty stderr.
+  Retained sessions `tmp/c23-executable-2868319535/1..19` all end `agent_shutdown`.
+  `grade-session-summary.json` records19 sessions and37 recorded peer requests.
+  That list excludes the intentionally held timeout exchange, which bypasses the
+  fake's request recorder;37 is NOT a total HTTP-request count. Diagnostics are normal
+  host notices. No live provider/relevance/availability/price claim.
+- `grader-contract-tests-1.log` and final log pass `^TestRecall`; contract tests cover
+  exact70 scope, strict policy shape, attachment decoding and joined-tail refusal.
+  `grader-build-2.log` clean. Nine incompatible scope combinations refuse with exit2
+  before resolving a nonexistent executable (`grader-scope-refusals.json`).
+- Pinned `grade-hosts/{ch04,Ensemble}.dll` match tested current CLI output byte-for-byte;
+  `cli-grade` directly execs the approved SDK, with only outer grader using env-i.
+  No C# production or test source changed during grader reconciliation. Reuse shared297,
+  clean hosts, settings4 and actual isolated GUI/CLI evidence above/below unchanged.
+
+Retained failures are harness/setup errors, not product defects: initial guarded edits
+refused before writes; I inferred nonexistent options/signatures instead of checking
+saved code. The first copy stopped on the output skills directory before any host launch.
+`grade-first.json`0/70 was an invalid `--surface anthropic` wrapper flag; that flag only
+accepts OpenAI surfaces. Removing it lets the existing Anthropic environment select the
+provider correctly. I also initially used nonexistent `-ch23` syntax, caught before
+execution; actual flag is `-ch 23`. An audit glob `run-*` found zero sessions because
+actual directories are numeric; corrected summary above. These are avoidable mistakes,
+not evidence of thoroughness. Final adapter/dispatch/assertion delta reviewed; no
+product repair or repeated C# regression was needed.
+
+The original ~770-line manuscript has now been read fully in bounded sections, but
+has NOT yet been rewritten. Next rewrite it against C#: real Agent home paths, Common
+partial declarations, read-only Skills provenance, actor-only joined attachment,
+committed-cut lifetime, immutable judge configuration/accounting, and shared durable
+settings. Preserve Bill's filing-cabinet/cache/quota rationale, historical tuning and
+three-provider exercise as attributed history, not C# evidence. Correct the old blanket
+claim that every retrieval failure silently degrades: corrupt/inaccessible corpus state
+refuses the turn; judge failures alone take mechanical fallback. Then assembled complete
+source/test/prose review, source-only endpoint and mandatory chapter handoff. Ch23 remains
+INCOMPLETE; Ch22 unchanged. Ch24 joint real OAuth/current official endpoint/cache test
+prerequisite and all authority boundaries remain unchanged.
+
+## Chapter23 — durable recall settings and actual-host exercise verified
+
+Recall policy now shares `<Agent home>/settings.json` with memory. Common declares
+one immutable AgentSettings disk value; it is not another live policy owner. The v1
+reader accepts legacy memory-only documents (default recall), or exactly memory plus
+recall. Duplicate/unknown/missing/malformed supplied fields fail closed. Reads and
+writes are bounded to 16 KiB. Memory owns rooted atomic disk operations under its
+existing gate. No second settings file, mutable store/cache, or filesystem authority
+was added. SaveMemorySettingsAsync preserves the saved recall section, and the new
+SaveRecallSettingsAsync preserves saved memory; only a genuinely absent document uses
+the current sibling policy. Transient in-memory overrides are not silently persisted.
+
+Actor startup restores both policies before first retrieval, including when the first
+message is a memory-settings operation. Compressors retain their internal no-recall
+role. SetRecallSettings remains in-memory next-turn-only. SaveRecallSettingsAsync uses
+the actor mailbox, saves before publication, and acknowledges actual publication; an
+already-running recall retains its captured policy and is not cancelled by this save.
+Failure leaves live policy unchanged. Existing memory save/cancel/apply semantics are
+preserved. Review found a real regression in the new sibling-read path: malformed JSON
+or format errors during a LIVE memory save escaped the refusal filter and stopped the
+actor. settings-damaged-baseline.log is 3/1 and records that defect. The narrow filter
+fix now refuses that save and keeps the actor usable. Malformed startup still fails
+startup; this is not silent fallback to defaults.
+
+GUI memory/recall patches share the existing asynchronous policy-update gate, serialize
+against the selected Agent, and await durable application without holding projection
+locks. Each patch changes one Agent-policy section; appearance remains separate, with
+no cross-file atomicity claim. Strict recall patches merge through the shared codec.
+Acknowledged broadcasts follow each tab's selected Agent. The visible recall form
+exposes enable/judge, same-provider model override, all counts/floors/byte limits and
+Save/Reload, with explicit zero-default and captured-turn behavior. No optimistic
+checkbox value changes runtime policy before acknowledgment.
+
+Final evidence under /private/tmp/ch23-csharp.EfSTJq:
+- settings-tests-build-final.log clean; settings-tests-final.log 4/0: legacy/startup
+  and first-memory-command restore, resolved full-policy roundtrip, sibling preservation
+  versus transient overrides, strict malformed/oversized documents, no-home refusal,
+  real stalled judge during failed and successful durable changes, and live malformed
+  sibling refusal without actor death. Components and loopback provider are real.
+- settings-gui-build-1.log clean; settings-gui-tests-1.log passes the extended actual
+  WebSocket exercise: acknowledgment after save/application, sibling preservation,
+  peer isolation, strict malformed/duplicate/mixed patch refusal, failed writes, and
+  existing fresh memory re-enable. This predates only the later live-file-refusal
+  correction, which is covered by the new core group and final shared run.
+- settings-shared.log 297/0; settings-cli-build.log and settings-gui-host-build.log
+  clean, zero warnings/errors. Final chain 5946 joined exit 0. settings-js-check.log
+  passed syntax checking. Final comment/line-ending cleanup changed no behavior.
+- recall-host-exercise.mjs/log exercised the actual final GUI DLL in an owned isolated
+  Chrome profile/port, not Bill's browser/8088. Result is
+  tmp/recall-host-Ok18E7/result.json, success:true. A retired planted memory competed
+  with a keyword-matching recipe document; the local judge chose its actual candidate
+  index. The main request contained the fact as user data, not the recipe. Canonical
+  events recorded one recall attachment. A short follow-up retained it without another
+  judge request. Visible controls saved/reloaded disabled recall. The actual CLI DLL
+  restarted the same Agent home, made one main request without newly planted retired
+  content, and left settings unchanged. Total four LOCAL requests (one judge, three
+  main); two hosts joined exit0, no page errors. Exercise job5953 joined exit0.
+
+Retained fixture failures: settings-tests-1.log was 1/2 because assertions expected
+InvalidDataException rather than FormatException for malformed startup, and omitted
+InvalidDataException from the oversized-save refusal helper. Corrected -2 was 3/0.
+Those were fixture mistakes; the later 3/1 damaged-sibling baseline was a genuine
+product defect, now fixed. Earlier failed build/setup evidence remains on disk. The
+actual-host exercise succeeded on its first run. No live provider relevance, model
+availability, plan entitlement/billing/OAuth, audible or human accessibility, or native
+Linux/x64 execution is claimed. The deterministic peer proves protocol/host wiring,
+not that a real model reliably chooses or answers from the correct fact.
+
+The settings slice and actual-host exercise are complete within that scope, not the
+chapter. Next: inspect original Chapter23 grader and choose a faithful executable C#
+scope, then rewrite the C# teaching chapter against actual contracts, complete assembled
+source/test/prose review and preserve the Chapter23 endpoint. Do not repeat unchanged
+Chapter22 campaigns. Chapter24 still requires the joint real-OAuth exercise with Bill,
+then current official endpoint documentation and bounded live cache test before any
+workaround. No new credential, installation, restart/deploy, or commit authority.
+
+## Chapter23 — ordered automatic recall admission verified
+
+Recall now runs once at the beginning of an eligible model turn, for SubmitAsync
+and idle interactive Chat/Hint admission. The original Human input is recorded
+unchanged first. Busy hints retain their existing immediate-input behavior; they do
+not start parallel retrieval. Tool/control turns and memory compressors do not
+recursively recall. Disabled, short, and query-stopword-only inputs bypass retrieval.
+This is automatic actor integration, not yet durable recall settings or GUI controls.
+
+Common/RecallRuntime.cs declares the ingress-protected immutable next-turn policy,
+one retained foreground task, and immutable selected-hit completion value. The
+public RecallSettings()/SetRecallSettings() API is explicitly in-memory only; an
+in-flight turn uses its captured policy. Common/Actor.cs adds RecallDone, exact active
+Mail identity, and the already-recorded interactive query. Agent/Recall.cs performs
+rooted search and stateless judging outside the mailbox in the existing foreground
+worker slot. The worker publishes no History. The actor joins its wrapper, verifies
+exact active-turn identity, rechecks selected FULL snippet bytes/hashes against fresh
+context and instructions, formats the capped attachment, and records RecallAdded
+before the main request or automatic snapshots. A hint arriving during the judge can
+therefore suppress a now-redundant result. No second scheduler, judge Agent, permanent
+hash registry, or mutable response cache was added.
+
+Pause/hints/controls remain responsive during scan/judge. Pause allows completion
+recording but blocks the next main request. Interrupt-now, interrupt-after-tool, and
+shutdown cancel the real judge via the existing foreground cancellation source and
+join the task before releasing that turn. Canceled results never attach to a queued
+turn. Actor fatal cleanup also joins/drains RecallDone. Corpus/recovery read errors
+settle the turn as errors rather than pretend successful empty retrieval; judge
+transport/verdict failures retain the previously verified mechanical fallback.
+
+Engine.Render now shares RequestTools and ProjectInstructions (Common/Owners.cs
+signatures) with duplicate suppression. Retained manuals replace primary/tool guidance
+exactly as before, including pending readable manuals. Existing pressure/deferred/
+policy tool filtering and native instruction placement remain intact. I initially
+suggested unconditional assignment could overwrite Chat's first user entry; source
+inspection disproved that concern (Chat always inserts a system entry). No reproduced
+overwrite defect is claimed. The final extraction preserves the original condition.
+
+Final evidence in /private/tmp/ch23-csharp.EfSTJq:
+- admission-tests-build-5.log clean; admission-tests-5.log 5/0: real Agent/History/
+  Recaller/Engine against local HTTP. Both public input paths preserve exact human
+  bytes and separate recall data; retained hashes suppress repeated judging. Actual
+  paused completion, responsive hints, next-turn policy capture, late-hint dedup,
+  joined interrupts/shutdown and queued-turn isolation, mechanical mode and strict
+  UTF-8 scan failure are covered. Instruction projection is compared with native
+  rendered requests on all four surfaces, with/without manuals and tools.
+- admission-shared.log 293/0; admission-cli-build.log and admission-gui-build.log
+  clean, zero warnings/errors. Final chain 5920 joined exit 0.
+- Actual actor HTTP exercise is OpenAI Chat loopback. Prior four-surface judge and
+  replay evidence remains its own scope. No live provider/OAuth/plan-judge integration,
+  CLI/GUI human exercise, browser/audible/accessibility or native Linux claim here.
+
+Retained setup failures: an edit guard left declarations/projection partly saved;
+my missing shell fail-fast then built that partial state. I inspected and completed
+it rather than replaying the script. New test builds initially guessed Ensemble
+ShutdownAsync and Agent StatusAsync instead of actual Agent.ShutdownAsync and
+WorkStatusAsync. The first behavioral run admission-tests-3.log was 1/4: wrong
+one-based verdict, wrong interrupt/decoder expectations. Corrected -4 was 4/1 because
+shutdown returns ObjectDisposedException, not interrupt's OperationCanceledException.
+Final -5 is 5/0. These were fixture/author mistakes, not product regressions or proof
+of thoroughness. Earlier failed logs remain. Source review covered the new Common,
+Agent and test files plus actor/projection diffs; unchanged campaigns were not rerun
+merely for freshness (the shared run covers changed actor and renderer behavior).
+
+Next: extend the existing per-Agent settings record for recall, preserving Chapter22
+memory settings and save-before-publication semantics; startup restore and actual-
+application GUI acknowledgment/control projection. Locate ReadSettings/WriteSettings/
+EnsureMemoryReady by symbol, not guessed filenames. Then actual-host exercise,
+Chapter23 grader reconciliation/prose/assembled review and endpoint. Chapter23 is
+still incomplete; ch22 and earlier endpoints remain untouched. No workers, installs,
+restarts, credentials, commits, or Bill browser/8088. Last free space 11,461,256 KiB.
+
+## Chapter23 — stateless judge and cumulative-only transport verified
+
+The optional judge is now implemented as an internal Recaller selection operation,
+not yet automatic input admission. Recaller.SelectAsync accepts an already refreshed,
+context-filtered hit pool, checks query/default settings, applies the disabled-judge
+MinScore or judge floor .5, and makes one bounded logical exchange. JSON-framed prompt
+data includes latest query, recent visible Human/Agent text, and the candidate shortlist;
+it excludes system/tool/recall/handoff/skill entries. The judge instruction treats all
+source content as untrusted data. Only a complete tool-free finalized response supplies
+indices. A valid empty array stays empty, without quota refill. HTTP/parser/truncation/
+malformed-verdict failures use the full ranked pool for mechanical quotas, not just the
+shortlist. The private 15-second linked deadline cancels actual HTTP reading and falls
+back; caller cancellation propagates and never becomes fallback. No History write,
+child Agent, worker lifecycle, recursion, or extra meter is introduced by selection.
+
+Common/RecallJudge.cs declares the operations/deadline. Recall/Judge.cs constructs
+input and selects. Configuration.ForRecallJudge (Serialization/RecallJudge.cs) creates
+an immutable same-provider/surface/funding/endpoint configuration with optional model
+override; it drops main instructions, skills/cache markers and main-model reasoning
+settings rather than mutating running selection. Engine/RecallJudge.cs brackets its
+send with the existing counted Begin/EndEngineSend relationship. It bypasses main
+Render(Context), reuses native message renderers with one Human data entry and the
+judge-only instruction, and supplies no tools. Streaming options are factored from
+ordinary Render into one shared helper using the existing documented capability rule.
+
+Engine.SendCoreAsync now has an explicit auxiliary mode: same HTTP client, auth,
+one same-source plan-401 retry, parser/disposal and session cumulative usage, but no
+CacheLens capture and no Latest replacement. Frozen request Configuration flows through
+JSON/SSE/Responses parsing so judge overrides do not accidentally use parent provenance.
+Actual provider model/tier/funding still govern meter identity. Missing actual model
+remains UNKNOWN for pricing; only provenance has the existing requested-model fallback.
+My first test wrongly demanded the judge alias as billing identity; implementation was
+already correct and only that assertion changed. Existing compressor terminal checking
+was generalized to IncompleteOutput (including ParsedResponse's flag) for compressors
+and judges; ordinary response acceptance stays unchanged. Completed capped-output
+usage is metered before specialized refusal. Responses failed/incomplete terminal
+output retains its earlier no-success/no-charge semantics.
+
+Final source review covered new declarations/implementations, the send/meter/parser
+and renderer diffs, and tests. Final evidence in /private/tmp/ch23-csharp.EfSTJq:
+- judge-tests-build-6.log clean; judge-tests-6.log **5/0**; job5882 joined exit0.
+- judge-shared.log **288/0**; judge-cli-build.log and judge-gui-build.log both zero
+  warnings/errors; chain5883 joined exit0.
+- Five groups use real Engine/Recaller and loopback native JSON/SSE peers on all four
+  surfaces. They cover overrides/actual and missing identity, unchanged running config,
+  History/children, cumulative-only usage/Latest/lens, recent-data exclusion, successful
+  empty/subset verdicts, malformed/HTTP/tool/truncated fallback including memory outside
+  shortlist, caller cancellation, an open incomplete SSE read canceled by the real
+  default deadline, terminal gating and disabled/short/stop-word-only admission guards.
+  No provider/MCP credentials, live models, plan-judge integration, billing/entitlement,
+  automatic input path, GUI, audible/accessibility or native-platform claim follows.
+
+Retained failures are implementation/fixture setup mistakes, not extra evidence:
+judge-tests-build.log used guessed runner names; early judge-build logs include guessed
+surface/entry/parser names, corrected against declarations before behavioral checks.
+Guarded scripts stopped on partial edits (meter field/signature/declaration locations),
+then saved files were reconciled rather than replaying scripts. judge-tests.log was2/2:
+fake Anthropic SSE omitted content_block_stop and recall fixture supplied a non-hash.
+judge-tests-2.log3/1 exposed my incorrect omitted-model billing assertion; -3.log3/2
+also exposed the missing Chat SSE terminator through the added terminal-output group.
+judge-tests-4.log3/2 and -5.log3/2 included an Anthropic-only cache flag used on other
+surfaces and Chat SSE missing [DONE], which also prevented truncation accounting in the
+fake. Final -6 is5/0. Numerous guessed filename/symbol reads and clipped outputs were
+avoidable wasted work; they are not review receipts. Actual necessary spans were read.
+The last production edit after behavioral checks was only the Common meter comment,
+corrected to include the auxiliary path; no behavior changed afterward.
+
+Next: ordered automatic input admission through the existing actor/worker completion
+mailbox, interruption/hint responsiveness, actual projected-instruction deduplication,
+attachment publication before main rendering, and turn-safe settings/GUI persistence.
+Judge selection is NOT yet called by user input. Search/Available exist separately;
+no automatic scan/judge/RecallAdded/setting acknowledgment occurs. Main Engine.Render
+still assembles projected instructions inline: factor/reuse that policy rather than
+copying it for Available. Then manuscript/executable reconciliation, assembled review
+and source-only endpoint. Chapter23 remains incomplete; Chapter22 is untouched.
+
+## Chapter23 — explicit skill-document corpus verified
+
+Skills now retains its explicitly selected absolute directory, and SkillBootstrap
+carries that immutable provenance alongside templates. The earlier resume note's
+`bootstrapDirectory`/deferred-loading description was wrong: the actual constructor
+loads templates immediately. Recall reads fresh documents, never substitutes those
+cached templates. Each Skills manager owns a lazy read-only directory descriptor,
+closed in Destroy's final cleanup even after MCP teardown failure. Bootstrap readers
+open independently; they do not share descriptors, grants, clients or mutable state.
+No second Sandbox or general file-tool exception was added.
+
+The internal Common-declared Sandbox descriptor primitives reuse the existing
+no-follow directory walk and native dirent decoder. Skills selects the root from
+host construction input, canonicalizes/opens it on first recall, and thereafter
+traverses fresh descriptors relative to that retained root. Path replacement after
+opening cannot retarget it. Read-only file opens are nonblocking and seekable;
+ordinary OpenFile is unchanged. No native Windows implementation or Linux/x64
+execution is claimed. The explicit host-selected skill tree may be outside the
+workspace sandbox; that separate read capability does NOT permit Sandbox.Resolve
+or file tools to access it. The existing trusted template loader was not hardened
+or replaced by this slice; link/FIFO attacks in tests were added after template load.
+
+Skills/Recall.cs reads visible exact SKILL.md files, recursively skips hidden entries
+and all symlinks, excludes the named web-search directory when policy disables it,
+and emits relative skills/... attribution. Decode/byte limits/hash calculation are
+shared with home corpus reads in RecallText.ReadCorpusStream. Malformed readable
+manuals refuse the refresh; discovered unreadable/nonregular entries skip. Recaller
+now includes the fifth independent Skills index in its all-or-nothing refreshed map.
+No-home Agents may search an explicitly configured skill source, not ambient home
+files. Removal of Skills empties that source on the next query. Disk edits/adds/
+deletions never modify immutable activation templates, tool grants or History.
+
+Verification in /private/tmp/ch23-csharp.EfSTJq: skill-corpus-test-build-4.log clean;
+skill-corpus-tests-4.log 6/0 (four existing home groups + two skill groups);
+skill-corpus-shared.log 283/0; skill-corpus-cli-build.log and
+skill-corpus-gui-build.log both zero warnings/errors. Full chain5833 joined exit0;
+focused5829 joined exit0. Tests use real owned external trees, strict workspace
+refusal, same-length edits, new/deleted/corrupt manuals, cancellation, bootstrap
+provenance, independent manager destruction, retained-root pathname replacement,
+hidden/outward/file/directory aliases, loops and FIFOs. No HTTP/MCP/model calls or
+real installed/private directories. This is macOS local filesystem evidence only.
+
+Retained fixture failures: skill-corpus-tests.log4/2 used invalid `secondary` type
+and wrote `skill.md` over SKILL.md on the case-insensitive volume; corrected to
+loadable and a distinct lowercase directory. tests-2.log5/1 omitted the real
+read_file catalog entry before direct bootstrap-manager construction. tests-3.log5/1
+expected UnauthorizedAccessException where Sandbox deliberately throws IOException.
+All are fixture errors, not product defects. Earlier guarded scripts stopped after
+partial declaration edits; I inspected/reconciled those edits instead of replaying
+them. I also guessed a RecallFile type where the source uses named tuples, and
+several filenames; the final source uses the actual tuple vocabulary. These were
+avoidable editing errors, not evidence of thoroughness. No production changes
+followed the final checks. Narrow whitespace check passed; free11,609,928KiB observed.
+
+Next: stateless same-provider judge request/cancellation/accounting through Engine,
+then actor-owned ordered admission with stale completion rejection and interrupt/
+hint responsiveness. Reuse actual instruction projection for deduplication; it is
+currently inline in Engine.Render. Do not create a judge Agent or publish History
+from its worker. Durable recall settings, GUI presentation, manuscript/executable
+scope and Chapter23 endpoint remain unfinished. No automatic recall is enabled.
+Continue personally without workers; preserved Chapter22 and earlier endpoints stay
+untouched. Chapter24 joint live OAuth/current official endpoint/cache prerequisite
+and all credential/restart/deployment/commit boundaries remain unchanged.
+
+## Chapter23 — owned home-corpus scanning and refresh verified
+
+Main now constructs one Agent-owned Recaller, with declarations in
+Common/RecallCorpus.cs and implementations under Recall. Construction does no scanning;
+remove/add validates and updates both relationship ends; destruction clears derived
+indexes, detaches, and leaves corpus files intact before Memory/Sandbox teardown.
+Agent.HasDataDirectory is a new internal query over the existing nullable home, not
+another stored fact. No-home library Agents return no home-corpus hits.
+
+Search is internal and not yet wired to automatic input admission. It freshly scans
+SOUL.md, MEMORY.md, active/retired Markdown below memory/bucket-0/bucket-1, and Markdown
+below docs/handoffs/learnings. Relative source attribution stays inside this Agent's
+home. Hidden entries/targets, outside-home targets, irrelevant extensions and child
+artifacts are excluded. Confined paths use existing rooted descriptor operations;
+unconfined discovered symlinks are skipped because Resolve there is lexical. Cycles
+are bounded by canonical visited-directory identity. Fresh UTF-8 reads are bounded
+by the existing 64MiB file limit and cancellation is checked between reads. Discovered
+inaccessible/outward/nonseekable entries skip; malformed text or size-limit failure
+refuses the refresh. There is no filesystem-wide atomic snapshot against external
+writers. Native traversal was exercised on this macOS host, not Linux or Windows.
+
+Each source has its own immutable BM25 index. A digest of sorted relative filenames
+and exact file-byte hashes detects same-size/same-timestamp edits, additions and
+removals; only changed sources rebuild, and the index set publishes after every scan
+succeeds. No History, grants, settings, requests or accounting are changed by search.
+Memory.RecallFiles holds Memory's existing disk-operation gate for its snapshot and
+refuses a staged receipt or a replay-committed replacement awaiting recovery. An
+unstaged live launch can still search unchanged source. Recall never performs recovery
+or writes its terminal History events. Actor-startup integration remains required.
+
+Sandbox.OpenRegularRead is an explicit operation for corpus reads and receipt-presence
+checks. Rooted reads retain existing no-follow/nonblocking behavior; unconfined POSIX
+reads use nonblocking descriptors and refuse nonseekable files. Ordinary OpenFile is
+unchanged. This scope matters: my first blanket change broke Chapter14's real FIFO
+save/reader latch. corpus-shared.log retains280/1; I restored the general API and used
+the dedicated read operation, rather than changing the valid journal test.
+
+Tests/RecallCorpusTests.cs (--recall-corpus-tests) adds four groups: lifecycle/refused
+ownership/no-home behavior, real-file scanning/rescan/independent source statistics,
+receipt/committed-replay holds, and confined/unconfined symlink/cycle/FIFO traversal.
+Final corpus-final-build.log is clean; corpus-final-tests.log4/0; corpus-shared-2.log
+281/0 (including journal concurrency); corpus-cli-build.log and corpus-gui-build.log
+both clean with zero warnings/errors. Chain5787 collected exit0. Scratch remains
+/private/tmp/ch23-csharp.EfSTJq. Final saved production and test changes inspected;
+no executable grade, provider use, browser exercise or automatic recall is implied.
+
+Retained failures: corpus-test-build.log has seven fixture compile errors from my
+invented History.Record call; actual API is History.Append. corpus-tests-2.log3/1
+found a real no-home defect from calling throwing DataDirectory before checking the
+optional home. corpus-tests-3.log4/0 covers that correction but predates hidden-alias
+coverage. corpus-alias-baseline.log3/1 proves visible symlinks could expose hidden
+source; ResolveCorpusPath now excludes hidden resolved targets and unconfined links.
+I also twice named nonexistent HasDataDirectory/Memory.HasHome methods before reading
+the actual declarations. HasDataDirectory was then deliberately added, not found.
+Several overlarge reads clipped: omitted spans were recovered; clipped output itself
+is not review evidence. These mistakes are mine, not reasons to expand acceptance.
+
+Next finish skill-document scanning through actual Skills ownership. The current
+bootstrapDirectory is cleared after Bootstrap; definitions retain parsed templates,
+not fresh filesystem provenance. Prior Go scanner includes only SKILL.md under the
+configured skills tree. Installed C# skills may lie outside Sandbox root, so do not
+silently use an unconfined scanner or stale templates as a substitute. Resolve that
+actual trusted-source boundary before integration. Then implement stateless judge
+requests/cancellation/accounting and actor input admission, reusing projected
+instructions for deduplication rather than duplicating Engine's inline skill policy.
+GUI recall presentation, durable recall settings, manuscript, executable scope and
+Chapter23 endpoint remain unfinished. No automatic search is enabled. Continue
+personally/no workers; Chapter22 stays preserved; Chapter24's joint OAuth/current
+endpoint cache prerequisite and authority boundaries remain unchanged.
+
+## Chapter23 — replayable recall and retained-context deduplication verified
+
+Main now appends EventKind.RecallAdded (26; prior enum values unchanged) and declares
+value-like RecallPart wrapping the one immutable RecallAttachment. Event/part codecs
+preserve exact text and hashes through snapshots and journal replay. A supplied wrong
+body refuses before append; a missing body is a diagnosed reducer no-op. Reduction
+adds a separate Human/data entry regardless of documentary actor, without changing
+original user bytes, phase, usage, ephemera, memory bands or tool grants. Engine's
+common projection normalizes this part to readable data for all four surfaces;
+internal hashes are never sent. No source reads or model calls occur during replay.
+
+Recall/Context.cs supplies pure Available(hits, context, projectedInstructions).
+It filters before candidate limits/quotas, retaining rank order and the full pool.
+Exact blockquote-normalized readable text includes memory bands, dialogue, nested
+tool results and ephemera; actual projected instructions are an explicit input so
+this algorithm does not duplicate skill-policy rules. Opaque replay is not visible
+text. Complete-source hashes suppress repeated capped attachments and moved-file
+copies only while their RecallPart remains in retained dialogue. Ordinary handoff
+retains it; a held correlated cut retains it; committed replacement removes it and
+permits retrieval again. The existing compactor includes recall text in readable
+selection/budgeting without another retained hash cache.
+
+Tests/RecallReplayTests.cs adds five groups (--recall-replay-tests): isolated event
+facts and malformed bodies, snapshot plus journal-only replay, visible-text dedup,
+real correlated compaction/hash lifetime, and all-four-provider data-role rendering.
+Scratch remains /private/tmp/ch23-csharp.EfSTJq. replay-build-3.log/replay-tests-3.log:
+5/0, job5749 exit0. replay-shared.log:277/0; replay-cli-build.log and
+replay-gui-build.log: zero warnings/errors, job5751 joined exit0. These checks cover
+the final production/test source. Saved replay delta and corrected test spans were
+reviewed. The earlier foundation-only evidence remains historical, not relabeled.
+
+Retained failed receipts are fixture/setup mistakes, not product failures:
+replay-build.log records guessed test API names (Context/Sequence/SnapshotAsync,
+instance SelectConversation, wrong phase and treating WriteEvent as a node).
+replay-build-2.log is clean; replay-tests-2.log has2/3 because the fixture expected
+kind rather than type, treated StartPersistence's false "no save restored" as a
+refusal, and omitted required tracePath. Source declarations resolved these directly;
+no production change followed the first focused run. My initial description of the
+label failure as whitespace-sensitive was wrong; it was the field name. Several
+exploratory reads used guessed filenames or were clipped: they establish no review
+of omitted integration code and should not be repeated as evidence of thoroughness.
+
+Chapter23 is still incomplete: no Recaller owner, rooted scan/rescan/index lifecycle,
+judge HTTP/cancellation/accounting, input admission, GUI recall projection, durable
+recall settings, C# manuscript rewrite, executable grade or endpoint. Next read actual
+prior recall scanner files and C# parent/file APIs, then implement the owned scanning
+slice. Agent/Actor.cs Advance records new input around882 before rendering around950;
+its existing worker-completion/cancellation machinery should own retrieval scheduling,
+with immutable results returned to the actor for History publication before main
+request freeze. Those are intended seams, not implemented behavior. Search uses the
+latest user text; recent user/visible-assistant messages belong only in judge context.
+Instruction assembly is currently inline in Engine/Render.cs, not a preexisting
+callable helper; integrate without duplicating skill-policy logic. Continue personally,
+no workers or old campaigns. Chapter24's joint OAuth/current-endpoint cache prerequisite
+and all authority boundaries remain unchanged.
+
+## Chapter23 — verified pure recall foundation; integration remains
+
+I read all 755 lines of the current Chapter23, compared the preserved manuscript
+(the durable settings acknowledgment lesson remains relevant), and read the original
+recall grader assertions plus prior chunk/index/select/judge code. Main now has an
+immutable, value-like retrieval foundation, not automatic recall: Common/Recall.cs
+owns settings/snippet/index/attachment vocabulary and signatures; Recall/Index.cs
+and Recall/Selection.cs implement Unicode tokenization, Markdown chunking, independent
+BM25 index snapshots, stable ranking, final mechanical source quotas, tolerant judge
+choice parsing, SHA-256 content identity and attributed UTF-8-capped formatting.
+Ensemble.csproj includes Recall; Tests/RecallTests.cs registers six groups through
+--recall-tests. No live Recaller owner, scanning, judge HTTP call, attachment event,
+retained-context deduplication, settings persistence/GUI or host recall admission
+exists yet. Chapter23 manuscript remains unchanged; no grade or endpoint exists.
+
+Bill reminded me to consult prior implementation and CodeRhapsody for the BM25
+math. I inspected /Users/bill/projects/coderhapsody/internal/memory/bm25.go and its
+relevant tests without modifying that project. Its older variant clamps
+log((N-df+.5)/(df+.5)) at zero. Ensemble solutions/ch23/internal/recall/index.go uses
+log(1+(N-df+.5)/(df+.5)); ch24 and ch26 index files are byte-identical. I deliberately
+retain Ensemble's smoothed positive IDF so a one-document memory corpus can match.
+Both use k1=1.2 and b=.75. Tests verify exact singleton and N=3/df=2/avgDL=10/3 scores,
+DF rather than term counts, TF saturation, length normalization, source-independent
+statistics, stable ties and a higher-scoring docs flood that cannot erase final
+memory quota. This is algorithm evidence, not retrieval quality from a real model.
+
+Scratch /private/tmp/ch23-csharp.EfSTJq (pointer /private/tmp/cadence-ch23-current)
+uses an owned env-i home/tmp/private .NET10 wrapper. foundation-build.log and
+foundation-tests.log establish six passing groups. foundation-shared.log:272/0;
+foundation-cli-build.log and foundation-gui-build.log: zero warnings/errors, joined
+job5712 exit0. After that run I aligned quoted-integer whitespace handling with the
+prior parser: NumberStyles.Integer rather than AllowLeadingSign. Final
+foundation-final-build.log/foundation-final-tests.log cover this adjustment:6/0,
+job5717 exit0. The earlier shared/host results predate only that parser adjustment
+and are not relabeled as reruns. No live-provider, disk scanning, automatic judge,
+GUI recall, billing, native Linux or accessibility claim. Chapter22 remains intact.
+
+I inspected the saved foundation declarations/algorithms and recovered clipped
+spans. Some exploratory History reads were clipped or used nonexistent guessed
+filenames; those are NOT reviewed integration evidence. A relative find path stopped
+one command before build. A parser-test edit script failed to save its proposed test
+change; a direct assertion was then saved and verified. No product failure was found
+in the six algorithm groups. Last free space11,753,644KiB, not a future guarantee.
+
+Next: complete the actual History/codec/render seam reads and add a separate
+RecallAdded event with a dedicated immutable RecallPart carrying attachment text
+and hashes (analogous to HandoffPart, but Human/data, no phase/authority change).
+This is an intended integration, not yet implemented. Preserve original user bytes,
+validate before append, save/replay without disk/model work, carry hashes only while
+that recall entry survives real context cuts, deduplicate against retained memory,
+dialogue and skill text, and test data-role rendering. Then Agent-owned rooted
+rescan/index lifecycle, stateless same-parent Engine judge with real cancellation,
+input admission/accounting and durable settings/UI; finally executable grading,
+C# prose, assembled review and endpoint. Continue personally/no workers. Chapter24
+still pauses BEFORE workaround for Bill's joint real OAuth/current-endpoint cache
+exercise; no credential source or private-search authority was added.
+
 ## Chapter22 — locally complete and preserved; next Chapter23
 
 I completed the assembled review of the 73-file Chapter21→main delta, recovering

@@ -32,7 +32,7 @@ public enum Phase
 }
 public enum EventKind
 {
-    MessageReceived = 1, RequestSent, ResponseStarted, ResponseEnded, ToolCalled, ToolReturned, Redacted, ErrorOccurred, JobKilled, HintReceived, TurnInterrupted, TurnEnded, ToolObserved, ToolStarted, AgentPaused, AgentResumed, AgentShutdown, SkillLoaded, SkillUnloadPending, RuntimeConfigured, HandoffRecorded, MemoryPopulated, MemoryRetired, CompressionLaunched, CompressionFinished
+    MessageReceived = 1, RequestSent, ResponseStarted, ResponseEnded, ToolCalled, ToolReturned, Redacted, ErrorOccurred, JobKilled, HintReceived, TurnInterrupted, TurnEnded, ToolObserved, ToolStarted, AgentPaused, AgentResumed, AgentShutdown, SkillLoaded, SkillUnloadPending, RuntimeConfigured, HandoffRecorded, MemoryPopulated, MemoryRetired, CompressionLaunched, CompressionFinished, RecallAdded
 }
 public enum Redaction
 {
@@ -168,6 +168,15 @@ public sealed partial class HandoffPart : Part
 {
     public readonly string Text;
     public partial HandoffPart(string text);
+}
+
+/// <summary>Value-like retrieved data, distinct from the user's words. The
+/// immutable attachment owns its recorded bytes and complete-source hashes;
+/// removing this part from retained context removes its suppression identities.</summary>
+public sealed partial class RecallPart : Part
+{
+    public readonly RecallAttachment Attachment;
+    public partial RecallPart(RecallAttachment attachment);
 }
 
 // Ordinary readable content, including a genuinely empty answer.

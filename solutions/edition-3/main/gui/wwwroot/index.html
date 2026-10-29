@@ -67,6 +67,21 @@
 <p>Low watermark must be positive and no greater than high watermark after defaults resolve. A relevant policy change cancels and joins pending compression before acknowledgment.</p>
 <button type="submit">Save memory settings</button>
 <button id="memory-settings-reload" type="button">Reload acknowledged settings</button>
+</form></details><details id="recall-settings"><summary>Selected Agent’s recall</summary>
+<form id="recall-settings-form">
+<p>Saved in this Agent’s settings, applied to future turns. An in-flight recall keeps its captured policy. Disabling recall does not delete files or remove earlier attachments.</p>
+<label><input id="recall-enabled" type="checkbox"> Recall enabled</label>
+<label><input id="recall-judge-enabled" type="checkbox"> Use model judge</label>
+<label>Judge model <input id="recall-judge_model" type="text" placeholder="Current model"></label>
+<p>Empty model uses the current model; an override stays on the same provider and funding route. Availability is not guaranteed. Zero numeric values select defaults. Judge mode uses a 0.5 candidate floor; snippet quotas and the score below apply only to mechanical selection or fallback.</p>
+<label>Mechanical score floor <input id="recall-min_score" type="number" min="0" step="any" required></label>
+<label>Selected snippet limit <input id="recall-max_snippets" type="number" min="0" max="2147483647" step="1" required></label>
+<label>Minimum query length (Unicode characters) <input id="recall-min_query_length" type="number" min="0" max="2147483647" step="1" required></label>
+<label>Judge candidate limit <input id="recall-candidates" type="number" min="0" max="2147483647" step="1" required></label>
+<label>Recent messages for judge <input id="recall-context_messages" type="number" min="0" max="2147483647" step="1" required></label>
+<label>Attachment limit (UTF-8 bytes) <input id="recall-max_recall_bytes" type="number" min="0" max="2147483647" step="1" required></label>
+<button type="submit">Save recall settings</button>
+<button id="recall-settings-reload" type="button">Reload acknowledged settings</button>
 </form></details><p id="funding-source" role="status">Connecting to selected model and funding source…</p><div id="model-controls">
   <label for="model-choice">Session model</label>
   <select id="model-choice" aria-describedby="model-help" disabled></select>
@@ -103,6 +118,19 @@
   <p>Catalog results are a snapshot for the entered account label. Availability does not imply renderer support or a price. Listing does not select a model or change billing.</p>
 </details>
 </header>
+<section aria-label="Selected Agent goal">
+<p id="goal-status" role="status">Goal: waiting for Agent status</p>
+<details id="goal-controls"><summary>Selected Agent’s goal controls</summary>
+<p>Session only. Load the goals skill first. Off retains the goal instructions; Clear removes them. Neither means completed.</p>
+<form id="goal-form">
+<label>Goal file <input id="goal-file" type="text" autocomplete="off"></label>
+<label>Idle delay (seconds) <input id="goal-delay" type="number" min="0.001" max="4294967.294" step="any" value="480"></label>
+<label><input id="goal-enabled" type="checkbox">Enable idle reminders</label>
+<button id="goal-apply" type="submit">Apply goal</button>
+<button id="goal-off" type="button">Reminders off</button>
+<button id="goal-clear" type="button">Clear goal</button>
+<button id="goal-reload" type="button">Reload acknowledged goal</button>
+</form></details></section>
 <main id="transcript" aria-label="Conversation"></main><p id="notice" role="status"></p>
 <form id="compose"><label for="prompt">Message or hint</label><textarea id="prompt" rows="3" placeholder="Enter sends; Shift+Enter adds a line; Ctrl+Enter or Alt+H sends a hint"></textarea>
 <div class="controls"><button id="send" type="submit">Send message</button><button id="hint" type="button">Send hint</button></div></form>

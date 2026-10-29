@@ -6,6 +6,11 @@ public sealed partial class Engine
 {
     public partial JsonObject Render(Context context, string requestInstruction)
     {
+        return Render(context, requestInstruction, false);
+    }
+
+    internal partial JsonObject Render(Context context, string requestInstruction, bool automaticGoalReminder)
+    {
         var config = Parent().Configuration();
         var entries = Project(context, config, out var cacheBoundary, out var ephemeral);
         var request = config.Vendor switch
@@ -28,29 +33,14 @@ public sealed partial class Engine
                 request.Remove("max_completion_tokens");
             }
         }
-        if (!config.DisableStreaming && config.Vendor != Vendor.Gemini
-            && (config.Surface == Surface.Responses
-                || (LookupModel(config.Vendor, config.Model, out var features) && features.Stream)))
-        {
-            request["stream"] = true;
-            if (config.Surface == Surface.ChatCompletions)
-            {
-                request["stream_options"] = new JsonObject { ["include_usage"] = true };
-            }
-        }
+        AddStreamingOptions(request, config);
         var skills = context.Dialogue.SelectMany(entry => entry.Parts).OfType<SkillPart>().ToArray();
         var enabled = context.EnabledTools(config);
         var eager = context.Dialogue.FirstOrDefault(entry => entry.Parts.Any(part => part is SkillPart))?
             .Parts.OfType<SkillPart>().Where(skill => !skill.Pending && config.AllowsSkill(skill.Name))
             .SelectMany(skill => skill.Tools).ToHashSet(StringComparer.Ordinal) ?? enabled.ToHashSet(StringComparer.Ordinal);
         bool deferred = config.DeferredTools && skills.Length > 0 && Parent().SkillManager() is not null;
-        IReadOnlySet<string> declared = deferred
-            ? Parent().SkillManager()!.CatalogTools(context).ToHashSet(StringComparer.Ordinal)
-            : enabled;
-        var tools = Parent().Tools().Where(tool => Parent().AllowsMemoryTool(tool.Name())
-            && config.AllowsTool(tool.Name())
-            && !Parent().IsAutomaticTool(tool.Name())
-            && ((skills.Length == 0 && Parent().SkillManager() is null) || declared.Contains(tool.Name()))).ToArray();
+        var tools = RequestTools(context, config);
         if (tools.Length > 0)
         {
             var declarations = new JsonArray();
@@ -68,37 +58,6 @@ public sealed partial class Engine
                 }
                 declarations.Add(declaration);
             }
-            string instruction = config.PrimaryInstructions
-                + "\n\nBefore each tool batch, give a concise user-visible explanation of what you will do and why. "
-                + "Use the declared tools to inspect and change the workspace. "
-                + "Report tool failures honestly; do not invent results. "
-                + "Shell state does not persist between calls. "
-                + "Every ordinary tool returns a job report. "
-                + "A running job is not failure: retain its handle and use wait_for_job. "
-                + "Polling delay never cancels work. "
-                + "send_input submits a line to a PTY and adds newline if missing. "
-                + "Only kill_job or shutdown cancels work. "
-                + "tool_limits sets observation options for the very next call, including controls, which reports consumption. "
-                + "Full output is retained at output_path; inline truncation does not stop the job.";
-            if (config.Vendor == Vendor.Anthropic)
-            {
-                request["system"] = instruction;
-            }
-            else if (config.Surface == Surface.Responses)
-            {
-                request["instructions"] = instruction;
-            }
-            else if (config.Vendor == Vendor.OpenAI)
-            {
-                request["messages"]![0]!["content"] = instruction;
-            }
-            else
-            {
-                request["systemInstruction"] = new JsonObject
-                {
-                    ["parts"] = new JsonArray(TextBlock(instruction, false))
-                };
-            }
             request["tools"] = config.Vendor == Vendor.Gemini
                 ? new JsonArray(new JsonObject { ["functionDeclarations"] = declarations })
                 : config.Billing == BillingMode.ChatGptPlan
@@ -111,10 +70,9 @@ public sealed partial class Engine
                     })
                     : declarations;
         }
-        if (skills.Length > 0)
+        if (tools.Length > 0 || skills.Length > 0)
         {
-            string instructions = string.Join("\n\n", skills.OrderByDescending(skill => skill.Primary)
-                .Select(skill => skill.Body));
+            string instructions = ProjectInstructions(context, config, tools.Length > 0);
             if (config.Vendor == Vendor.Anthropic)
             {
                 request["system"] = instructions;
@@ -134,6 +92,11 @@ public sealed partial class Engine
                     ["parts"] = new JsonArray(TextBlock(instructions, false))
                 };
             }
+        }
+        string goal = Parent().GoalInstruction(automaticGoalReminder);
+        if (goal.Length != 0)
+        {
+            requestInstruction = requestInstruction.Length == 0 ? goal : requestInstruction + "\n\n" + goal;
         }
         if (requestInstruction.Length > 0)
         {
@@ -182,6 +145,55 @@ public sealed partial class Engine
         return request;
     }
 
+    internal partial string ProjectInstructions(Context context)
+    {
+        var config = Parent().Configuration();
+        return ProjectInstructions(context, config, RequestTools(context, config).Length > 0);
+    }
+
+    private partial string ProjectInstructions(Context context, Configuration config, bool hasTools)
+    {
+        var skills = context.Dialogue.SelectMany(entry => entry.Parts).OfType<SkillPart>().ToArray();
+        // Retained manuals replace primary/tool guidance exactly as in Render.
+        // Pending manuals remain readable even when their grants are revoked.
+        if (skills.Length > 0)
+        {
+            return string.Join("\n\n", skills.OrderByDescending(skill => skill.Primary)
+                .Select(skill => skill.Body));
+        }
+        if (!hasTools)
+        {
+            return config.PrimaryInstructions;
+        }
+        return config.PrimaryInstructions
+            + "\n\nBefore each tool batch, give a concise user-visible explanation of what you will do and why. "
+            + "Use the declared tools to inspect and change the workspace. "
+            + "Report tool failures honestly; do not invent results. "
+            + "Shell state does not persist between calls. "
+            + "Every ordinary tool returns a job report. "
+            + "A running job is not failure: retain its handle and use wait_for_job. "
+            + "Polling delay never cancels work. "
+            + "send_input submits a line to a PTY and adds newline if missing. "
+            + "Only kill_job or shutdown cancels work. "
+            + "tool_limits sets observation options for the very next call, including controls, which reports consumption. "
+            + "Full output is retained at output_path; inline truncation does not stop the job.";
+    }
+
+    private partial Tool[] RequestTools(Context context, Configuration config)
+    {
+        var skills = context.Dialogue.SelectMany(entry => entry.Parts).OfType<SkillPart>().ToArray();
+        var enabled = context.EnabledTools(config);
+        bool deferred = config.DeferredTools && skills.Length > 0 && Parent().SkillManager() is not null;
+        IReadOnlySet<string> declared = deferred
+            ? Parent().SkillManager()!.CatalogTools(context).ToHashSet(StringComparer.Ordinal)
+            : enabled;
+        return Parent().Tools().Where(tool => Parent().AllowsMemoryTool(tool.Name())
+            && (tool.Name() != "goal_control" || Parent().GoalAvailable(context))
+            && config.AllowsTool(tool.Name())
+            && !Parent().IsAutomaticTool(tool.Name())
+            && ((skills.Length == 0 && Parent().SkillManager() is null) || declared.Contains(tool.Name()))).ToArray();
+    }
+
     // Correlate occurrences, not globally unique IDs: vendors may reuse an ID in a
     // later completed exchange. Refuse ambiguous/foreign results instead of guessing.
     // This disposable projection moves complete result groups ahead of interleaved
@@ -216,6 +228,7 @@ public sealed partial class Engine
                     var projectedResult = new ToolResultPart(result.CallID, result.Parts,
                         result.IsError, result.Job, result.ToolReferences.Where(name =>
                             Parent().AllowsMemoryTool(name) && config.AllowsTool(name)
+                            && (name != "goal_control" || Parent().GoalAvailable(context))
                             && !revoked.Contains(name)));
                     results.Add((match.Index, result.CallID), projectedResult);
                 }
@@ -248,7 +261,12 @@ public sealed partial class Engine
         {
             var entry = entries[i];
             var retained = entry.Parts.Where(p => p is not ToolResultPart)
-                .Select(p => p is HandoffPart note ? new TextPart(note.Text) : p).ToArray();
+                .Select(p => p switch
+                {
+                    HandoffPart note => new TextPart(note.Text),
+                    RecallPart recall => new TextPart(recall.Attachment.Text),
+                    _ => p
+                }).ToArray();
             if (retained.Length > 0)
             {
                 var retainedEntry = new Entry(entry.Seq, entry.Actor, retained);

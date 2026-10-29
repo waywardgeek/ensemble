@@ -74,6 +74,109 @@ static string Wire(Vendor vendor, Context context, string model = "model-a")
 }
 try
 {
+    if (args is ["--tool-tests"])
+    {
+        await AsyncCase("Chapter 3 tools and loop", () => ToolTests.Run(temp));
+        Console.WriteLine($"{passed} passed, {failures} failed");
+        return failures == 0 ? 0 : 1;
+    }
+    if (args is ["--goal-tests"] || args.Length == 0)
+    {
+        await AsyncCase("goals opt-in configuration and tool contract", () => MeterTests.GoalsConfiguration(temp));
+        await AsyncCase("goals fresh projection and unload", () => MeterTests.GoalsProjection(temp));
+        await AsyncCase("goals timer pause busy off interrupt", () => MeterTests.GoalsTimer(temp));
+        await AsyncCase("goals terminal submission and independent child", () => MeterTests.GoalsSubmission(temp));
+        await AsyncCase("goals unreadable automatic wake", () => MeterTests.GoalsMissingWake(temp));
+        await AsyncCase("goals stale timer unload and teardown", () => MeterTests.GoalsStaleTimer(temp));
+        await AsyncCase("goals same-turn handoff freshness", () => MeterTests.GoalsHandoff(temp));
+        if (args is ["--goal-tests"])
+        {
+            Console.WriteLine($"{passed} passed, {failures} failed");
+            return failures == 0 ? 0 : 1;
+        }
+    }
+    if (args is ["--recall-tests"] || args.Length == 0)
+    {
+        CheckCase("recall settings and immutable values", RecallTests.Values);
+        CheckCase("recall Unicode tokens and Markdown chunks", RecallTests.Chunks);
+        CheckCase("recall BM25 scoring and independent corpora", RecallTests.Scoring);
+        CheckCase("recall final mechanical quotas", RecallTests.Quotas);
+        CheckCase("recall tolerant judge choices", RecallTests.Judge);
+        CheckCase("recall attributed UTF8 byte cap", RecallTests.Formatting);
+        if (args is ["--recall-tests"])
+        {
+            Console.WriteLine($"{passed} passed, {failures} failed");
+            return failures == 0 ? 0 : 1;
+        }
+    }
+    if (args is ["--recall-corpus-tests"] || args.Length == 0)
+    {
+        CheckCase("recall owner lifecycle", () => RecallCorpusTests.Ownership(temp));
+        CheckCase("recall corpus refresh", () => RecallCorpusTests.ScanAndRefresh(temp));
+        CheckCase("recall recovery holds", () => RecallCorpusTests.Recovery(temp));
+        CheckCase("recall rooted and nonregular traversal", () => RecallCorpusTests.Filesystem(temp));
+        CheckCase("recall skill source ownership and refresh", () => RecallCorpusTests.SkillDocuments(temp));
+        CheckCase("recall skill read boundary", () => RecallCorpusTests.SkillFilesystem(temp));
+        if (args is ["--recall-corpus-tests"])
+        {
+            Console.WriteLine($"{passed} passed, {failures} failed");
+            return failures == 0 ? 0 : 1;
+        }
+    }
+    if (args is ["--recall-settings-tests"] || args.Length == 0)
+    {
+        await AsyncCase("recall settings persistence and sibling preservation", () => MeterTests.RecallSettingsPersistence(temp));
+        await AsyncCase("recall settings strict codec and startup", () => MeterTests.RecallSettingsCodec(temp));
+        await AsyncCase("recall durable next-turn policy and save refusal", () => MeterTests.RecallSettingsDuringTurn(temp));
+        await AsyncCase("damaged settings sibling refuses without stopping actor", () => MeterTests.RecallSettingsDamagedSibling(temp));
+        if (args is ["--recall-settings-tests"])
+        {
+            Console.WriteLine($"{passed} passed, {failures} failed");
+            return failures == 0 ? 0 : 1;
+        }
+    }
+
+    if (args is ["--recall-runtime-tests"] || args.Length == 0)
+    {
+        await AsyncCase("recall ordered turn admission and retained deduplication", () => MeterTests.RecallAdmission(temp));
+        await AsyncCase("recall responsive pause hints and final deduplication", () => MeterTests.RecallResponsive(temp));
+        await AsyncCase("recall joined interrupt shutdown and next-turn isolation", () => MeterTests.RecallInterruption(temp));
+        await AsyncCase("recall mechanical admission and scan failure", () => MeterTests.RecallGuards(temp));
+        CheckCase("recall shared instruction projection", MeterTests.RecallInstructionProjection);
+        if (args is ["--recall-runtime-tests"])
+        {
+            Console.WriteLine($"{passed} passed, {failures} failed");
+            return failures == 0 ? 0 : 1;
+        }
+    }
+
+    if (args is ["--recall-judge-tests"] || args.Length == 0)
+    {
+        await AsyncCase("recall judge native transport and accounting isolation", () => MeterTests.RecallJudgeTransport(temp));
+        await AsyncCase("recall judge verdict and full-pool fallback", MeterTests.RecallJudgeSelection);
+        await AsyncCase("recall judge HTTP cancellation and deadline", MeterTests.RecallJudgeCancellation);
+        await AsyncCase("recall judge terminal output gate", MeterTests.RecallJudgeTerminal);
+        await AsyncCase("recall judge mechanical and admission guards", MeterTests.RecallJudgeMechanical);
+        if (args is ["--recall-judge-tests"])
+        {
+            Console.WriteLine($"{passed} passed, {failures} failed");
+            return failures == 0 ? 0 : 1;
+        }
+    }
+
+    if (args is ["--recall-replay-tests"] || args.Length == 0)
+    {
+        CheckCase("recall event isolation and validation", RecallReplayTests.Replay);
+        CheckCase("recall snapshot and journal replay", () => RecallReplayTests.Persistence(temp));
+        CheckCase("recall retained text suppression", RecallReplayTests.Deduplication);
+        CheckCase("recall hash lifetime across commit", RecallReplayTests.Lifetime);
+        CheckCase("recall provider data roles", RecallReplayTests.Rendering);
+        if (args is ["--recall-replay-tests"])
+        {
+            Console.WriteLine($"{passed} passed, {failures} failed");
+            return failures == 0 ? 0 : 1;
+        }
+    }
     if (args is ["--memory-settings-tests"] || args.Length == 0)
     {
         await AsyncCase("memory settings persistence", () => MeterTests.MemorySettingsPersistence(temp));

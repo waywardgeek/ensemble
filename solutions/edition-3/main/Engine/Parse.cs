@@ -7,10 +7,10 @@ public sealed partial class Engine
 {
     public partial ImmutableArray<Event> Parse(int status, string body)
     {
-        return ParseResponse(status, body, out _);
+        return ParseResponse(Parent().Configuration(), status, body, out _);
     }
 
-    private partial ImmutableArray<Event> ParseResponse(int status, string body, out UsageIdentity? billing)
+    private partial ImmutableArray<Event> ParseResponse(Configuration config, int status, string body, out UsageIdentity? billing)
     {
         billing = null;
         if (status < 200 || status >= 300)
@@ -22,7 +22,6 @@ public sealed partial class Engine
         {
             using var document = JsonDocument.Parse(body);
             var root = document.RootElement;
-            var config = Parent().Configuration();
             // A reply's model identity is more precise than a routing alias.
             var modelField = config.Vendor == Vendor.Gemini ? "modelVersion" : "model";
             var model = GetString(root, modelField, config.ResolvedModel);

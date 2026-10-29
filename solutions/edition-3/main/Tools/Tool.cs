@@ -36,7 +36,7 @@ public sealed partial class Tool
         parent.AddTool(this);
     }
 
-    public partial bool IsControl() => kind is ToolKind.WaitForJob or ToolKind.SendInput or ToolKind.KillJob or ToolKind.ToolLimits or ToolKind.LoadSkill or ToolKind.UnloadSkill or ToolKind.MicroHandoff or ToolKind.KeepToolResults;
+    public partial bool IsControl() => kind is ToolKind.WaitForJob or ToolKind.SendInput or ToolKind.KillJob or ToolKind.ToolLimits or ToolKind.LoadSkill or ToolKind.UnloadSkill or ToolKind.MicroHandoff or ToolKind.KeepToolResults or ToolKind.GoalControl;
     internal partial bool IsHandoff() => kind == ToolKind.MicroHandoff;
     internal partial bool IsKeepResults() => kind == ToolKind.KeepToolResults;
 
@@ -241,6 +241,13 @@ public sealed partial class Tool
                 description = "Wait for selected direct children to submit. Omitted or empty agent_ids selects all current children. Pending questions yield a running Job; answer them and wait_for_job on that same handle. Submission is not a shutdown barrier.";
                 Field("agent_ids", "array", "Direct child IDs, captured when the join starts.");
                 properties["agent_ids"]!["items"] = new JsonObject { ["type"] = "string" };
+                break;
+            case ToolKind.GoalControl:
+                name = "goal_control";
+                description = "Query or configure the session goal file and optional idle reminders. Off retains goal instructions; empty file clears. No completion or progress guarantee.";
+                Field("file", "string", "Goal file; empty clears. Read freshly for each request.");
+                Field("enabled", "boolean", "Enable or disable idle reminders. Loading the skill does not enable them.");
+                Field("idle_seconds", "number", "Finite positive timer delay; default 480 seconds.");
                 break;
             case ToolKind.AgentStatus:
                 name = "agent_status";

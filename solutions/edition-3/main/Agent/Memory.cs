@@ -48,11 +48,13 @@ public sealed partial class Agent
                 throw new InvalidOperationException("Memory recovery must complete before changing settings.");
             }
             ReadMemoryChanges(message.MemorySettings!, startup: !memoryReady);
-            Memory().WriteSettings(message.MemorySettings!);
+            var saved = Memory().ReadSettings();
+            Memory().WriteSettings(new AgentSettings(message.MemorySettings!,
+                saved?.Recall ?? RecallSettings()));
             return true;
         }
         catch (Exception error) when (error is IOException or InvalidDataException or UnauthorizedAccessException
-            or ArgumentException or InvalidOperationException)
+            or ArgumentException or InvalidOperationException or FormatException or System.Text.Json.JsonException)
         {
             message.Reply!.TrySetException(error);
             return false;
@@ -90,15 +92,20 @@ public sealed partial class Agent
         RecoverMemory();
         // Internal compressors retain their deliberately disabled policy.
         // Transient library Agents have no implicit filesystem configuration.
-        var desired = dataDirectory is null || memoryCompressor
-            ? MemorySettings() : Memory().ReadSettings() ?? MemorySettings();
+        var saved = dataDirectory is null || memoryCompressor ? null : Memory().ReadSettings();
+        var desired = saved?.Memory ?? MemorySettings();
         var changes = ReadMemoryChanges(desired, startup: true);
         PublishMemorySettings(desired, changes);
+        if (saved is not null)
+        {
+            SetRecallSettings(saved.Recall);
+        }
     }
 
     private partial void ApplyMemorySettings(Mail message)
     {
         ImmutableArray<Event> changes;
+        RecallSettings? startupRecall = null;
         var desired = message.MemorySettings!;
         if (!memoryReady)
         {
@@ -110,6 +117,10 @@ public sealed partial class Agent
         {
             // Read every required file before recording anything. A malformed
             // or unreadable newly enabled band must not partly apply policy.
+            if (!memoryReady && dataDirectory is not null && !memoryCompressor)
+            {
+                startupRecall = Memory().ReadSettings()?.Recall;
+            }
             changes = ReadMemoryChanges(desired, startup: !memoryReady);
         }
         catch (Exception error)
@@ -120,6 +131,10 @@ public sealed partial class Agent
         // Recording failures are fatal to the actor, not a successful settings
         // update. The loop settles this reply and drains other admitted work.
         PublishMemorySettings(desired, changes);
+        if (startupRecall is not null)
+        {
+            SetRecallSettings(startupRecall);
+        }
         message.Reply!.TrySetResult("");
     }
 

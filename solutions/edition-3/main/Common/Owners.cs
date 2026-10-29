@@ -191,6 +191,11 @@ public sealed partial class Engine
     // Build a disposable request. Refuse unsupported media or ambiguous calls
     // locally; do not consume ephemera or alter recorded events.
     public partial JsonObject Render(Context context, string requestInstruction = "");
+    // The exact primary/manual/tool guidance used by Render, before request-only
+    // pressure instructions. Recall uses it without rendering or sending a request.
+    internal partial string ProjectInstructions(Context context);
+    private partial string ProjectInstructions(Context context, Configuration config, bool hasTools);
+    private partial Tool[] RequestTools(Context context, Configuration config);
 
     // Normalize a completed HTTP reply into unnumbered events. Invalid replies
     // become safe error facts, never raw remote bodies or invented completions.
@@ -204,7 +209,7 @@ public sealed partial class Engine
         Action<Chunk>? onChunk = null);
 
     private partial Task<ParsedResponse> SendCoreAsync(Configuration config, string requestBody,
-        CancellationToken cancellation, Action<Chunk>? onChunk);
+        CancellationToken cancellation, Action<Chunk>? onChunk, bool auxiliary = false);
 
     // Keep credential failures token-free on initial acquisition and 401 renewal.
     private partial Task<string> PlanBearerAsync(string? rejectedBearer, CancellationToken cancellation);

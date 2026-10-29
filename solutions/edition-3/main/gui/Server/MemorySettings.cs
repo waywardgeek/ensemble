@@ -10,6 +10,7 @@ public static partial class Gui
     {
         var result = Settings(preferences, agent.MaxToolRounds(), agent.ContextByteBudget());
         result["memory"] = JsonCodec.WriteMemorySettings(agent.MemorySettings());
+        result["recall"] = JsonCodec.WriteRecallSettings(agent.RecallSettings());
         return result;
     }
 

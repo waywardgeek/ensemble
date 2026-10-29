@@ -1,209 +1,375 @@
-# Chapter 27: Goals
+# Chapter 27 — Goals
 
-> **Development status.** Implemented and locally tested in the current runtime under Bill’s explicit self-coding and self-review exception. This is not a deployment or an executed student Chapter 27.
+I would give Ensemble a job that ought to keep it occupied for most of a day. An hour later, it could be sitting there doing nothing. Codex had done the same thing. Neither program was necessarily broken. The model had finished a response, but the job was not finished. Work resumed when I noticed and poked it.
 
-## TL;DR
+I did not want to spend the day being the agent's timer.
 
-Give an Agent an editable goal file and an optional idle reminder. These are different mechanisms. The goal supplies direction on every model request. The timer supplies another opportunity to act after a turn has ended.
+There was a second problem. A long job can pass through many context compressions. The model may retain the latest debugging detail and lose the reason it was debugging in the first place. Another poke is not enough if the agent no longer has a reliable statement of what it is supposed to accomplish.
 
-- Put the configured goal in SYSTEM on every request. Keep the primary instructions and loaded skill manuals in place. Read the file afresh. Editing the file changes the next request without rewriting History or asking a summary to remember the goal.
-- Make the feature explicitly opt-in through a loadable `goals` skill. Loading it exposes `goal_control`; it neither configures a goal nor starts a timer. The control is absent from default declarations and dispatch grants.
-- Let `goal_control` select a file, turn reminders on or off, and set `idle_seconds`. With no fields it reports status. The default delay is eight minutes. Turning reminders off keeps the goal in SYSTEM; clearing the file selection removes it. Disabling must work even if the file has disappeared.
-- The Agent's existing filesystem owner reads the file. Do not bypass its sandbox. A missing or empty goal is an explicit error, not proof of completion. Stop automatic reminders on that error. Ordinary human requests receive a labelled SYSTEM notice so the agent can help repair or clear the configuration, rather than silently working without its goal.
-- Start one timer with the same delay each time the Agent becomes idle: no active turn and no queued ordinary input. Background jobs or children may still be running. On expiry, post a message to the normal actor event loop; do not call the Engine or replay commands from a timer callback.
-- Have the automatic message ask the Agent to inspect the goal and actual progress, continue unfinished authorized work, or turn reminders off and explain why it needs the human. Label the message as automatic. Do not invent a new human instruction or duplicate the goal text in conversation.
-- A normal response or a failed request may return to idle and begin another full delay. An active request is not idle merely because it is quiet. Pause suspends reminders; resuming begins a fresh delay. Explicit Interrupt disables them. Clearing, unloading the skill, or shutting down invalidates queued timer callbacks.
-- Keep configuration local to this Agent and this process. Children and restarted Agents do not silently inherit enabled reminders. The goal file survives, but the first version is not a durable scheduler.
-- Show a text-labelled goal indicator in the GUI for the selected Agent. Distinguish no goal, working, waiting, paused, reminders off, and error. Replay the current state on reconnect. The GUI observes the core timer; it does not own another one. Off does not mean completed.
+Goals addresses these two problems separately:
 
-This is not a task tree, a network watchdog, or automatic command retry. It helps an idle Agent resume useful work. It cannot rescue an Agent whose request remains active forever, guarantee good judgment, or authorize effects that the human has not permitted.
+1. Keep the agreed objective in a file and read its current contents into every ordinary model request.
+2. Optionally give an idle Agent another turn in which to inspect its state and decide what to do next.
 
-## 27.1 Why “please continue” became a feature
+The first mechanism preserves an objective across compression. The second supplies an opportunity to continue. Neither guarantees progress, correct judgment, or permission to act.
 
-Bill kept having to say “please continue.” The agent would finish a response while an authorized assignment still had work left. A useful progress report had become an accidental stopping point. Stronger instructions helped describe the desired behavior, but instructions cannot run themselves after a turn ends.
+> **C# edition boundary.** This chapter builds on the locally verified Chapter 23 implementation. Chapter 24's real OAuth/cache decision remains open, Chapter 25 is a historical interlude, and Chapter 26's Noise dependency remains unresolved. Goals does not depend on the optional cache detour or Gateway. Completing this chapter must not silently mark either of those integrations complete.
 
-We also discussed requests that might have failed or stopped making progress. Those cases need care. During the preceding chapter work, I twice treated quiet observations as evidence that a student had stopped, while Bill reported that it was still running. That was my judgment error. A timer does not make the earlier diagnosis correct.
+## §27.0 TL;DR — What to Build
 
-This feature handles an Agent that has actually become idle. It gives that Agent another opportunity to inspect the work. A request that remains active, however quiet its output, stays active. Detecting and repairing a stuck request would be a different feature with different risks.
+Build an opt-in, session-local Goals feature on the existing Agent actor. Do not add a scheduler service, a goal database, a second model conversation, or a browser-owned timer.
 
-The design began with more machinery: durable scheduling state, recovery behavior, and eventually a proposed escalating reminder interval. We reduced it to a file, an explicit control, and one timer owned by the existing actor. Bill chose a fixed eight-minute interval. There is no backoff counter, task hierarchy, or second scheduler to explain.
+### The control
 
-## 27.2 Put the goal somewhere editable
+Install the `goals` skill as a loadable skill. It grants one tool, `goal_control`:
 
-A goal file carries the continuing assignment outside the conversation. Ordinary file tools can update it, and conversation compaction does not need to preserve a special immortal message. The Agent reads the configured file when it renders each request.
+| Field | Meaning |
+|---|---|
+| `file` | Goal-file path. Omitted means unchanged; an empty string clears configuration. |
+| `enabled` | Whether idle reminders are enabled. Omitted means unchanged. |
+| `idle_seconds` | Positive finite idle delay, default 480 seconds. |
 
-A useful goal describes the work and its boundaries. For example:
+Calling the tool without fields reports status. Loading the skill grants the control but creates no file and enables no reminders. Discovery is not activation. The ordinary legacy library catalog must not accidentally grant this new tool just because it permits older tools without a Skills manager.
+
+The public C# operations are:
+
+```csharp
+await agent.GoalControlAsync(new GoalUpdate(
+    File: goalPath,
+    Enabled: true,
+    IdleSeconds: 480));
+
+GoalStatus observed = await agent.GoalStatusAsync();
+
+// Stop reminders without removing instructions or claiming completion.
+await agent.GoalControlAsync(new GoalUpdate(Enabled: false));
+
+// Remove the goal from this session. Do not delete the user's file.
+await agent.GoalControlAsync(new GoalUpdate(File: ""));
+```
+
+Configuration requires an active Goals grant. `GoalStatusAsync` is read-only and can report that the skill is unloaded. Neither form of status query restarts the idle deadline.
+
+### The file and request
+
+Use the Agent's existing Sandbox for file access. Validate a newly selected file before publishing the configuration. Read it again on each ordinary request, including another request in the same tool loop. Do not cache its text in Skills, History, or the GUI.
+
+The C# implementation accepts nonblank, strictly decoded UTF-8 text up to one MiB. It rejects directories, nonregular streams, invalid bytes, and paths outside the Agent's confinement. Selecting an invalid file leaves the previous configuration unchanged.
+
+A configured file supplies request instructions even when reminders are off. Clearing the file or unloading Goals removes that injection. A fresh Agent starts without the previous session's configuration, and a child does not inherit its parent's goal.
+
+If an existing configured file becomes unreadable, disable reminders and expose a stable error. Ordinary human work can proceed with an explanation of the file problem. An automatic wake must not send inference without its goal. Off and Clear must remain usable when the file is missing.
+
+### The idle reminder
+
+Default to eight minutes. The timer callback only posts actor mail carrying a generation token. It does not call the provider, append History, or execute tools.
+
+The actor accepts the wake only if the token is current, the configuration is enabled, the Goals grant remains active, and the Agent is still idle. Active foreground work, admitted turns, controls, startup work, and direct Engine sends prevent an automatic wake. Independent Jobs can remain alive; the reminder instructs the model to inspect them rather than cancel or duplicate them.
+
+Pause suspends the timer. Resume starts a fresh interval. Interrupt disables reminders, even when there is no active turn. Shutdown, actor failure, successful delegated submission, unload, and destruction must not leave a later automatic turn behind.
+
+### The GUI
+
+Show the selected Agent's status, not the host actor's status by accident. Distinguish unloaded, unconfigured, working, waiting for a reminder, paused, reminders off, and file error. Show disconnected or switching state honestly rather than presenting an old observation as current.
+
+Provide labelled Apply, Reminders off, Clear, and Reload controls. Acknowledgment means the actor applied the update. The browser must not optimistically claim success when a checkbox changes. These controls are session-local; they do not write the durable memory/recall policy or appearance preferences.
+
+## §27.1 Write an Objective, Not a Repeated Command
+
+A useful goal file tells the agent what remains, how to recognize completion, and where its authority ends:
 
 ```markdown
-Finish the local parser correction and its focused regression test.
-Inspect the current diff and any running job before starting another command.
-Do not install, restart, publish, or change unrelated files.
-When the correction is verified, turn reminders off and explain the result.
-If a consequential decision needs Bill, turn reminders off and ask him.
+# Goal — finish the parser correction
+
+The parser accepts a malformed trailing record. Reproduce that defect with
+an owned local fixture, correct it, and review the complete changed call path.
+
+Done means the failing case passes, the relevant existing tests still pass,
+and the explanation describes the actual behavior and remaining limits.
+
+Do not install packages, modify credentials, restart the running application,
+or commit changes. Preserve unrelated work. If a healthy test job is already
+running, observe that job rather than launching another copy.
+
+Disable reminders when finished or genuinely blocked on a human decision.
 ```
 
-That file supplies direction, not evidence that a command ran or a test passed. If it says “the test is probably still running,” the Agent still needs to inspect the actual job. A stale note is particularly dangerous when the last action had an external effect: repeating a request can spend money, send a second message, or overwrite useful work.
+“Run the tests again” is not a good long-running objective. It does not tell the agent whether the first test process is still running, whether a failure is already understood, or whether another run would answer a useful question.
 
-The existing Sandbox owns these reads. Configuring a goal does not create another filesystem authority, bypass a rooted path check, or grant a missing tool. The path has the same meaning as other Agent-directed file paths. A rejected outside path or symlink leaves the previous configuration intact.
+The ordinary file tools write and edit the document. `goal_control` only names it and controls the reminder. Keeping these responsibilities separate avoids turning a small control tool into another document store.
 
-Only the file is durable in this first implementation. The selected path, enabled flag, and timer are per-Agent session state. A child does not inherit them, and restarting the process does not silently restore them. That is a useful safety boundary: finding yesterday's goal file is not enough to resume yesterday's authority.
+The path is not the objective. The file's current bytes are. A handoff can replace working conversation without erasing those bytes. On the next request, the renderer reads the file again.
 
-## 27.3 Make activation explicit
+That does not make the file magical. It can be stale, badly written, or missing. Keep it short enough to understand, update it when the work changes, and do not put secrets in a document that will be sent to the model.
 
-The `goals` skill exposes `goal_control`. Listing the skill as available does not load it; loading it does not select a file or enable a timer. Legacy Agents do not gain a callable control just because its implementation was compiled into the program.
+## §27.2 Keep the State on the Agent
 
-After creating a goal file through the ordinary file tools, an Agent can load the skill and configure it:
+`Common/Goals.cs` declares the vocabulary and operations. `Agent/Goals.cs` implements them as another partial section of the same Agent type.
 
-```json
-{"name":"goals"}
+The persistent runtime state is small:
+
+- One immutable `GoalConfiguration`, synchronized by the Agent's ingress lock.
+- One actor-owned timer, deadline, and generation number.
+- Immutable update, status, and read-failure values passed across the existing boundaries.
+
+The configuration contains the path, enabled flag, interval, and last safe diagnostic. It does not contain goal text. `GoalStatus` is an observation of those facts and the Agent's actual activity, not another mutable configuration owner.
+
+This feature does not need a relationship-bearing `GoalManager`. It has no independent lifetime: it belongs to the Agent's session. The existing Agent already owns admission, pause, interruption, shutdown, Skills, History, and Sandbox. Reach those services through that Agent rather than copying them into a callback bag.
+
+Configuration runs through the actor mailbox. Validate the complete proposed update before publishing it. A bad interval or unreadable replacement file must not partly change an otherwise working goal.
+
+The timer accepts a finite interval of at least one millisecond and no more than 4,294,967.294 seconds, matching the chosen .NET timer's millisecond range. Those are implementation bounds, not useful recommendations. Eight minutes is the default; a two-second interval belongs in an owned test, not an unattended production job.
+
+Unloading a skill has two distinct effects in this system: its authority is revoked immediately, while its old manual can remain in canonical History pending later retirement. Goals uses the current grant, not the presence of an old manual. Unload also clears its session configuration and timer. Removing the Skills relationship does the same without deleting the goal file.
+
+## §27.3 Preserve the Goal Across Requests, Not as Transcript Copies
+
+The renderer already projects primary instructions, tool policy, retained manuals, and request-only pressure guidance. Goal text joins that request-only instruction projection.
+
+The four supported surfaces place it in their real instruction channels:
+
+| Surface | Placement |
+|---|---|
+| OpenAI Chat Completions | System message |
+| OpenAI Responses | `instructions` |
+| Anthropic | `system` |
+| Gemini | `systemInstruction` |
+
+This placement is part of the feature. A tool result somewhere in an old transcript is not equivalent to current system instructions. Nor is a file path whose contents the model has not read.
+
+Read the file for each render. Suppose a turn reads the old objective, edits the goal file, and calls `micro_handoff`. When that same turn makes its next model request, the new objective must appear. Requiring another human message would defeat the continuation mechanism precisely when it is needed.
+
+Do not append the file body to canonical History each time. The runtime retains its configuration; History retains the real dialogue and effects. Repeated file copies would create stale competing objectives and unnecessary context growth. As always, a user or tool can deliberately put text into dialogue; the Goals feature itself does not create those transcript copies.
+
+Auxiliary recall judges and memory compressors do not receive the parent's goal instructions. They have narrower tasks and existing request builders. A compressor that inherits the main agent's day-long objective is liable to work on that objective instead of compressing its input.
+
+File errors require a careful split. A human turn should be able to say, “The configured goal file is unavailable; repair it and explicitly re-enable reminders.” An automatic wake should not send a request with its objective silently missing. The wake preflights the read, and rendering checks again before send. A revision-bearing failure cannot disable a newer configuration selected while the old read was in progress.
+
+## §27.4 Let the Actor Decide Whether to Wake
+
+The timer callback is deliberately uninteresting:
+
+```text
+post GoalWake(generation)
 ```
 
-That is a `load_skill` call. The separate `goal_control` call is:
+The actor does the interesting work:
 
-```json
-{"file":"GOAL.md","enabled":true}
+```text
+Is this still the current timer generation?
+Are reminders still enabled?
+Is Goals still granted?
+Is the Agent still idle?
+Can the configured goal be read now?
 ```
 
-Omitting `idle_seconds` uses the current delay, initially 480 seconds. An explicit override must be positive, finite, and representable as a duration. Short overrides make isolated tests practical; they do not change the eight-minute default.
+Only after those checks does it admit a normal turn containing a clearly labelled automatic reminder. The canonical input is ordinary data identifying its runtime origin; the fresh goal is separately projected as instructions. There is no invented human reply and no special completion event.
 
-Calling `goal_control` with `{}` reports status without changing it. Updates merge the fields supplied by the caller, and an invalid update changes nothing. The two stopping operations have deliberately different meanings:
+The reminder asks the model to inspect actual state, continue authorized unfinished work, avoid repeating commands blindly, and leave healthy jobs alone. Synthetic reminders skip user-query recall: they are not a new user's search question.
 
-```json
-{"enabled":false}
+Why the generation token? Disposing a timer does not prove that its callback was never queued. If the user changes the interval, pauses, unloads the skill, or interrupts near the deadline, old mail may still arrive. A stale token must be harmless. A callback is an opportunity to check, not authority to run.
+
+Why use the existing admission path? A reminder is real work. It must respect queued input, accepted-work bookkeeping, tool limits, pause, cancellation, and the same provider lifecycle as an ordinary turn. Bypassing admission to call Engine directly would create a second scheduler inside the first.
+
+Direct library sends count as busy through the existing Engine-send counter. Starting or ending one posts a refresh opportunity to the actor. The Goals code does not maintain another count of provider activity.
+
+Independent Jobs are different. They may legitimately run while the foreground Agent is idle. A reminder can help the Agent observe one, but it is not a timeout or a license to restart it. The model still has to distinguish waiting for healthy work from having forgotten the task.
+
+The interval starts again after work becomes idle. This is not “run every eight minutes,” and it is not a watchdog for a hung active request.
+
+## §27.5 Stop Has More Than One Meaning
+
+The interface must not collapse these states:
+
+| Action or event | Effect |
+|---|---|
+| Load Goals | Grants control only; no file or timer |
+| Set a file | Configures instructions; does not implicitly enable reminders |
+| Enable | Validates the file and arms when idle |
+| Off | Stops reminders, retaining goal instructions |
+| Clear | Removes session configuration/injection, retaining the file |
+| Pause | Suspends scheduling, preserving configuration |
+| Resume | Starts a fresh idle interval if enabled |
+| Interrupt | Disables reminders and applies normal turn interruption |
+| Successful delegated submission | Disables reminders without changing the submission or parent's goal |
+| Unload/remove Skills | Revokes control and clears the session goal |
+| Shutdown/fault/destruction | Invalidates timer activity and completes normal joined cleanup |
+
+**Off is not completed.** A task can be blocked on credentials, permission, or a human decision. Stopping reminders is correct in that state, but the result is still incomplete.
+
+**Submitted is not idle.** A delegated Agent's accepted submission is an authoritative result. A later automatic turn would admit new work and invalidate that result. Disable the goal at successful submission publication, then let the actor dispose its timer. A refused submission must leave the goal alone.
+
+**Restart is not resume.** The file remains on disk, but configuration is session-local. A new Agent needs an explicit setup. Children have their own sessions; the parent's file and enabled flag are not copied into them.
+
+In earlier runtime work, a missing visible explanation made a real failure look like an unexplained pause. That is a useful lesson here, but it is not a claim that the historical provider failure was reproduced in C#. If a file becomes unreadable, status should say so. If the socket disconnects, the GUI should say its current knowledge ended there.
+
+## §27.6 One Status, Several Views
+
+`GoalStatusAsync` lets a trusted host observe the Agent even when the Goals skill is unavailable. It grants nothing. Configuration and model dispatch still require the skill.
+
+The GUI uses this query in its existing Agent-tree refresh. It does not start a second status scheduler. Each row carries that Agent's status, and the selected-Agent panel displays the corresponding row.
+
+The socket controls are deliberately small:
+
+- `get_goal` reads the selected Agent.
+- `update_goal` submits a strict patch to that Agent.
+- An acknowledged result carries the Agent identity.
+
+Decode the whole patch first. Reject duplicate names, unknown names, explicit nulls, wrong types, and invalid delays. Catch file-selection refusal at this control boundary without exposing operating-system paths or closing an otherwise usable socket.
+
+Await actor application before acknowledging. Broadcast updates only to tabs viewing that Agent. A queued frame for the previously selected Agent must not overwrite a new view. An in-progress switch shows that status is pending; a lost socket shows that current state is unknown.
+
+The form has a draft, not a second configuration. Periodic status frames must not erase what the user is typing. Apply sends the draft; the acknowledgment repopulates the controls with accepted values. Reload discards the draft in favor of an observation. Off and Clear remain distinct actions.
+
+Working and reminders enabled are separate facts. An Agent can continue its current request after reminders are turned off. Show “Working — reminders off,” not “Off” as if the request had disappeared. Likewise, the displayed deadline is the core's observed deadline, not a browser countdown that promises a future callback.
+
+Use text labels and ordinary keyboard-accessible controls. The local browser exercise checks their DOM behavior; it does not establish that a particular person can see or hear them comfortably. Human accessibility and audible behavior still require human use.
+
+## §27.7 Verify the Boundaries
+
+Use real Agents and the existing actor, renderer, Sandbox, skill catalog, and GUI. Replace the external provider with a small loopback HTTP peer only where a request is required.
+
+The important checks are causal:
+
+1. A plain legacy Agent neither declares nor dispatches `goal_control`. Loading Goals grants it without configuring a timer.
+2. Refused configuration preserves the old path, enabled flag, interval, and deadline. Off/Clear work after the file disappears.
+3. All four provider renderers receive fresh instructions. The file body is not appended by Goals to History.
+4. A same-turn handoff followed by another request reads the edited file.
+5. A real idle wake sends one labelled reminder, while pause, foreground activity, and held HTTP work prevent overlap.
+6. A stale timer after reconfiguration, unload, or shutdown cannot start a later request. An unreadable automatic wake makes no HTTP request.
+7. A successful child submission survives without a later reminder; a refused submission does not disable Goals; parent and child settings remain separate.
+8. Real sockets exercise availability, selected-Agent isolation, malformed patches, reconnect, file errors, Off and Clear. Status polling must not reset the deadline.
+9. An isolated browser configures a goal, makes a human request while reminders are off, edits the file, observes one idle reminder, turns it off, reconnects, clears it, and observes disconnect honestly.
+
+The local provider can verify actual request bytes and lifecycle. It cannot establish that a real model follows the goal well, knows when it is blocked, or avoids an unnecessary retry. Those remain application and human-judgment questions.
+
+The numbered Chapter 27 graders in earlier editions are **Gateway** graders. Do not rename their result as Goals evidence. This chapter has focused C# component, socket, and actual-host checks, not an invented inherited score.
+
+### Source map
+
+Paths are relative to `solutions/edition-3/main`:
+
+| Responsibility | Source |
+|---|---|
+| Goal values, state and callable declarations | `Common/Goals.cs`, `Common/Actor.cs` |
+| Configuration, reading, status, timer and wake validation | `Agent/Goals.cs` |
+| Admission, pause, interrupt and joined actor cleanup | `Agent/Actor.cs` |
+| Direct-send activity | `Agent/Models.cs` |
+| Successful submission publication | `Agent/ChildSubmission.cs` |
+| Request-only projection and explicit Goals declaration gate | `Engine/Render.cs` |
+| Tool schema/control dispatch | `Tools/Tool.cs`, `Jobs/Jobs.cs` |
+| Opt-in manual | `Skills/goals/SKILL.md` |
+| GUI adapter and controls | `Gui/Server/Goals.cs`, `Gui/Server/Host.cs`, `Gui/wwwroot/app.js` |
+| Core and real-socket tests | `Tests/GoalTests.cs`, `GuiTests/GoalControlsTests.cs` |
+
+## §27.8 Taking It for a Spin
+
+Start with the local checks. From the repository root, using your approved .NET 10 SDK:
+
+```sh
+dotnet build solutions/edition-3/main/Tests/Tests.csproj
+dotnet solutions/edition-3/main/Tests/bin/Debug/net10.0/Tests.dll --goal-tests
+
+dotnet build solutions/edition-3/main/GuiTests/GuiTests.csproj
+dotnet solutions/edition-3/main/GuiTests/bin/Debug/net10.0/GuiTests.dll --goal-tests
 ```
 
-This stops reminders but leaves the goal in subsequent requests. It works even if the file has become unreadable, because a broken file must not disable the off switch.
+These tests use owned temporary files, local sockets, and boundary fakes. They do not need provider credentials. The GUI test expects the repository root as its working directory so it can copy the shipped Goals manual.
 
-```json
-{"file":""}
+For a personal trial, use a new workspace, an owned port other than the port of your running application, and a provider/account configuration you have explicitly approved. Do not borrow another running Agent's credential store. Start with a tiny objective and a short, supervised interval; reminders can cause inference and spend money.
+
+This setup prepares an isolated primary skill that permits Goals. Run from the repository root:
+
+```sh
+main="$PWD/solutions/edition-3/main"
+work=$(mktemp -d "${TMPDIR:-/tmp}/ensemble-goals.XXXXXX")
+mkdir -p "$work/skills/base" "$work/skills/goals"
+cp "$main/Skills/goals/SKILL.md" "$work/skills/goals/SKILL.md"
+cat > "$work/skills/base/SKILL.md" <<'SKILL'
+---
+name: base
+type: primary
+description: Supervised Goals trial
+tools: read_file write_file
+loadable-skills: goals
+---
+Explain what you intend to do before tools. Use only the authorized workspace.
+$TOOLS
+$SKILLS
+SKILL
+cat > "$work/GOAL.md" <<'GOAL'
+# Supervised Goals trial
+
+Read the current objective and report the next safe step. Do not install,
+restart, deploy, commit, search for credentials, or make external changes.
+This is a demonstration, not permission to invent additional work.
+After one automatic reminder, disable reminders and report the result honestly.
+GOAL
+printf 'Workspace: %s\nGoal file: %s\n' "$work" "$work/GOAL.md"
 ```
 
-This clears the selected goal and stops reminders. Unloading the `goals` skill also clears the runtime configuration and timer, while leaving the file alone. Loading it again does not reactivate the old configuration.
+Build the actual GUI host:
 
-None of these operations means the assignment is complete. A person may turn reminders off to think, leave, or resolve a decision. The model may turn them off because it needs permission. The explanation belongs in the conversation; the runtime should not invent a completion judgment from a boolean.
+```sh
+dotnet build "$main/Examples/Gui/Gui.csproj"
+```
 
-## 27.4 Read once for each request
+After explicitly configuring your chosen provider and selecting an unused local port, launch from the temporary workspace. Supply `GOALS_PORT` yourself rather than copying a port already used by another instance:
 
-The Engine assembles its ordinary SYSTEM instructions, asks the Agent for the current goal contribution, and passes the resulting request-local string to the chosen renderer. It does not store the goal in History, replace the primary skill, or mutate shared prompt state.
+```sh
+: "${GOALS_PORT:?Choose an unused local port, not the existing application port}"
+(cd "$work" && dotnet "$main/Examples/Gui/bin/Debug/net10.0/Gui.dll" \
+    --port "$GOALS_PORT" --data-dir "$work/data" --agent-name trial \
+    --skills-dir "$work/skills" --primary-skill base --startup-skills goals)
+```
 
-The read happens on every Render, including the next request within a tool-using turn. If a model calls `write_file` to change its goal and then continues, that next request sees the new bytes. Reading only at turn start would miss precisely the edit the model just made. Reading separately inside several renderer branches would make one logical request depend on several filesystem observations.
+The omitted provider configuration is intentional: a chapter example must not silently choose an account, credential source, endpoint, or billable model for you. This is not the deferred joint OAuth test from Chapter 24.
 
-Each provider still uses its established instruction lane. Anthropic receives SYSTEM text, Chat Completions receives a system message, Responses receives developer input, and Gemini receives `systemInstruction`. Tests inspect those fields, not merely whether the goal text occurs somewhere in the request. A tool result containing the text would not satisfy the contract.
+Open the owned GUI URL and the Goals controls:
 
-Source review found an extra wrinkle in the existing Codex Responses route. It already supplies base instructions through both developer input and the required top-level `instructions` field. Passing the combined goal string to both duplicated the goal. The correction preserved that inherited base-instruction behavior and put the new goal contribution only in developer input. A whole-request count now catches the duplicate that a single-lane assertion missed.
+1. Confirm **No goal configured**. Startup loading the skill has not enabled anything.
+2. Enter the printed goal-file path, leave reminders unchecked, and Apply. Observe the acknowledgment and **Reminders off — goal retained**.
+3. Send a short human request. Inspect an authorized request trace if you need evidence of instruction placement; the model's answer alone does not prove what was sent.
+4. Edit the goal file. Send another request or enable a short supervised reminder and observe the fresh objective.
+5. Pause before a deadline and verify that inference does not start. Resume and observe a fresh interval rather than an immediate accumulated alarm.
+6. Turn reminders off while work is active. The current work remains work; only future idle wakes stop.
+7. Reload the page. The same running Agent still owns its configuration. This is not process-restart persistence.
+8. Clear the goal. Confirm the file still exists. Close the owned host through its normal shutdown path.
 
-The file is read afresh, but an already sent request is unchanged. Editing a file cannot retroactively alter bytes on the wire. Handoff and compaction likewise do not copy or rewrite the goal; subsequent rendering returns to the configured source.
+If a test or provider request is already running, inspect it instead of starting another copy just to obtain a newer timestamp. When finished or genuinely blocked, turn reminders off and say which state applies.
 
-## 27.5 Let the actor decide when to wake
+## §27.9 Exercises
 
-The actor already owns turn admission, History, cancellation, tool dispatch, and completion. It also owns goal configuration, timer generation, and the next due time. The timer callback has one job: enqueue a generation-tagged wake message.
+### Exercise 1 — Freshness in the Same Turn
 
-When that message reaches the actor, it is only a candidate wake. The actor checks its current state before doing anything with it. An old generation cannot revive a cleared configuration. Pause cannot be bypassed by a callback that was already queued when the timer was stopped.
+Use a boundary provider that returns a tool batch editing the goal and calling `micro_handoff`. Capture the next request. Show that it contains the new objective without requiring a new human message. Also show that Goals did not append the file body to canonical History.
 
-Ordinary input gets priority. If an ordinary turn is pending, the actor takes that turn and invalidates the idle timer. If a turn is active, the Agent is busy even when no output is arriving. Once the turn finishes, a fresh full delay begins. A background Job may still be running during that idle interval; the reminder does not cancel it or assume it needs replacing.
+### Exercise 2 — The Stale Callback
 
-On an eligible expiry, the actor checks that the goal can still be read and starts a labelled automatic reminder through the normal turn path. The reminder asks the model to inspect the goal, jobs, children, and saved results before deciding what to do. It is recorded as a system-originated reminder, not as a newly authored human request, and it does not replay an old tool call.
+Arrange for a timer callback to become eligible, then reconfigure or unload before the actor accepts it. Show why disposing the timer alone is insufficient. Assert that the old generation produces no request.
 
-The fixed delay applies again after each completed reminder. A failed provider request can also return the Agent to idle and start a new full interval. This is a fresh assessment opportunity, with current History and current goal text. It is not a transport retry of the old body.
+### Exercise 3 — Submission Is a Boundary
 
-Human controls remain stronger than the timer. Pause suspends reminders; unpause begins a full new delay. Interrupt disables them. Clear, unload, shutdown, and terminal submission invalidate further waking. Compaction workers cannot acquire an independent reminder lifetime.
+Give a delegated Agent an independent goal. Refuse one malformed submission, then accept a valid one. Verify the goal stays enabled after refusal and stops after successful publication, while the parent's configuration is unchanged. Do not equate ordinary final prose with submission.
 
-## 27.6 Keep failures visible
+### Exercise 4 — Status Without Authority
 
-A missing or empty goal must not silently disappear from the instructions. Automatic waking stops without sending a request, reminders become disabled, and the status exposes the error. Repairing the file does not re-enable them.
+Query an Agent with Goals unloaded. The GUI should show that state, not grant the control to obtain status. Then load the skill and verify that no configuration appeared as a side effect.
 
-An ordinary human request is still useful in this state. Its SYSTEM instructions contain a clearly labelled unavailable-goal notice so the Agent can help repair the file or clear the configuration. It does not receive stale goal contents presented as current. This separates “we cannot safely wake automatically” from “the human cannot ask for help.”
+### Exercise 5 — Two Tabs, Two Agents
 
-The startup path also matters. In a regression test, an owned directory replaced the Agent's journal file, making durable append fail before a reminder could start. The initial implementation nevertheless published “working” and left no next timer. It had inferred an active turn from the attempt to begin one.
+View different Agents in two tabs. Apply a goal in one, switch the other, and introduce a delayed old status frame. Demonstrate both identity filtering and that an unsaved form draft is not periodically replaced by a status refresh.
 
-The fix asks the existing runtime what actually happened: if a turn exists, publish working; if startup refused synchronously, return to the normal idle policy. The automatic-turn marker is installed only when the turn exists. This keeps error handling inside the same owner rather than adding a separate retry loop.
+### Exercise 6 — Missing File, Honest Outcome
 
-A broader GUI test exposed a different lifecycle mistake. Rejected child construction already had a discard path that suppressed normal publication. The new goal status publisher overlooked it and tried to notify the parent while that parent held its child-construction lock and waited for discard to finish. The resulting deadlock was a production defect, not a slow test. Goal publication now respects the existing discard boundary; fleet locking did not need a redesign.
+Remove a configured file before a wake. Verify zero inference from that wake, an explicit file-error status, and usable Off/Clear controls. Restore the file and explicitly re-enable. Do not report the interrupted task as completed.
 
-## 27.7 Give the human a truthful indicator
+## §27.10 What Goals Does—and Does Not—Buy Us
 
-The GUI displays a snapshot from the selected Agent. The core supplies the configured file, reminder setting, delay, phase, next due time, and error. Initial connection, reconnect, and agent selection replay that same status through the existing WebSocket path.
+The goal file carries a durable objective. The runtime brings its current contents into ordinary requests. An opt-in timer gives an idle Agent another chance to examine the work.
 
-The indicator uses text: “No goal,” “Goal: working,” “Goal: waiting,” “Goal: paused,” “Goal: reminders off,” or “Goal: error.” Working with reminders disabled says so explicitly. File, delay, due time, and error are also available in the title and accessible label.
+That is useful, but it is not self-certifying autonomy. A reminder can encounter a real blocker. The model can misunderstand the objective. A healthy independent job may still need time. The process can be stopped, the file can disappear, or an active request can remain stuck without becoming idle.
 
-Selection clears the previous Agent's display before the new replay arrives. Frames for a different Agent are ignored. A disconnected browser says it is disconnected instead of continuing to present an old snapshot as current. The browser does not own a wake timer and cannot restart one by reconnecting.
+I require the agent to inspect, distinguish those states, and explain its decision. Continue when there is useful authorized work. Wait when waiting is correct. Ask when a human decision is genuinely needed. Stop reminders when the goal is complete or human-dependent—and preserve which of those happened.
 
-Bill relies heavily on speech and cannot reliably inspect small visual distinctions. A colored dot would give him too little information. We kept meaningful text without adding automatic speech or another narrator, and kept the Conversation and Actions panes available for the separate questions “why?” and “what actually ran?”
-
-## 27.8 Exercise the boundaries
-
-The implementation tests use real Agents, their skill registry, actual rendering and tool dispatch, owned files, and local synthetic HTTP responses. One tool loop configures a goal and edits its file before the next request. Other tests distinguish an HTTP error from a still-active request, place ordinary input behind a queued callback, and verify that Interrupt prevents the stale wake from starting work.
-
-The tests also check disabled reminders retaining SYSTEM text, failed reads and explicit repair, unload, shutdown, invalid updates, rooted path refusal, a live background Job, handoff, and compaction-worker isolation. Provider tests inspect both instruction placement and absence from canonical dialogue. Short test delays establish transitions; the default of 480 seconds is asserted separately rather than pretending an eight-minute wait occurred.
-
-The GUI has a real WebSocket replay/selection test and a test of its production text renderer. An isolated headless-browser run used the real GUI and three synthetic model responses to load the skill, configure a goal, and end the turn. Reconnect retained the same core due time, selecting a child showed no inherited goal, and Interrupt changed the indicator to reminders off. Injected foreign-agent and selection frames exercised filtering and loading uncertainty. Terminating that owned server established the disconnected display.
-
-These observations establish browser text, accessible attributes, and measured layout, not a human visual assessment or hearing result. The browser used transcript-only speech handling. No live provider, real credential, or running user session was involved.
-
-Focused core race tests, the full GUI Go race suite, affected vet checks, existing Engine and skill tests, and compilation checks passed after the corrections. The failed journal, duplicated Codex goal, and rejected-child timeout remain part of the implementation record. A passing final run does not make those earlier failures disappear.
-
-This is implemented and locally tested source in the current Ensemble runtime. It is not an installation, an enabled goal in this collaboration, a completed student execution of Chapter 27, or evidence that a real model will always make the right continuation decision. The runtime supplies a controlled opportunity to reassess work. The goal file and the model still need sound engineering judgment.
-
-## Exercises
-
-Use the existing library, actor, Engine, skills and GUI. Build the mechanism, not another Agent loop. Use a local provider fixture for timing and wire assertions; a fake-provider pass is not evidence about a real provider. Keep the actual goal, wake message, model request, and tool execution distinguishable in the evidence.
-
-### 1. Make opt-in observable
-
-Start with an ordinary Agent that has not loaded `goals`. Verify that `goal_control` is neither declared nor callable and that becoming idle produces no automatic request. Check the legacy/no-primary-skill case too; registering a compiled tool must not accidentally advertise it everywhere.
-
-Load the skill through the real loader. Its instructions and control should become available, but no timer should start. Create a goal file through the existing file interface, then configure the file and enable a short test delay. Verify the returned file, delay and enabled state. Invalid settings must not partly replace a valid configuration.
-
-Disable reminders without supplying another file. Repeat while the configured file is unavailable. The off switch must not depend on successfully reading the goal it is meant to stop.
-
-### 2. Inspect the actual SYSTEM wire
-
-Write a distinctive goal, make a real Agent request to the local fixture, and inspect the rendered request. Find the goal exactly once in the provider's SYSTEM/developer instruction lane. Verify that the primary instructions and skill manuals are still present. A text search across the whole packet is not enough: a goal misplaced in a tool result or user message fails this exercise.
-
-Edit the file and make the next request. Include a second request within an ongoing tool-using turn so the test cannot pass by loading the file only at turn start. Verify that the new bytes replace the old goal contribution and that canonical conversation has not acquired duplicate copies. Turning reminders off must not remove the configured goal from SYSTEM.
-
-Exercise the supported provider render paths with local requests, including the Responses path where selected. Establish lane placement, not provider obedience. A handoff or context rebuild must not erase the configured file source or move its contents into a conversation summary. Do not modify accepted handoff behavior to achieve this.
-
-### 3. Let idle time wake the existing actor
-
-Finish a turn and wait for the configured idle delay. Observe one automatic message and one ordinary new turn through the existing event loop. The reminder should ask for a current-state check; it must not claim that a child is finished, a command failed, or a prior action needs replay.
-
-Start another ordinary turn before the timer expires. Hold its provider response with a controlled latch for longer than the idle delay. No reminder may start a concurrent request. Release the turn and verify that a fresh full idle delay begins. Queue ordinary input and verify that the idle reminder does not jump ahead of it.
-
-Leave an ordinary background job or child running while the Agent itself becomes idle. A reminder may wake the Agent to inspect that work; it must not cancel, duplicate, or restart it. Waiting for a reminder is not an execution timeout for the existing work.
-
-### 4. Recover an opportunity, not an old command
-
-Have the fixture end one model exchange with an explicit transport/inference error. Once the turn has actually ended, the enabled idle timer should supply a later opportunity to assess the current goal. Verify the full delay and the distinct new request. Do not resend captured request bytes, fabricate missing tool results, or repeat an earlier side effect.
-
-Contrast that with a deliberately latched active request. The goal timer must leave it alone. This proves the limit of the feature: it can wake an idle actor, not diagnose or repair every connection failure.
-
-### 5. Make human control win
-
-Test disabling just before expiry, and disabling after a timer callback has already been queued. Neither stale callback may create a new turn. Re-enable and verify that an old callback cannot consume the new timer's generation.
-
-Pause before expiry. Reminders stay suspended until the Agent is unpaused, then a fresh delay begins. Interrupt and verify that reminders are off rather than poised to undo the stop. Test shutdown with a timer pending and with a callback queued. There must be no post-shutdown model request or reminder-owned work keeping shutdown alive.
-
-Unload `goals`. Verify immediate control withdrawal, cleared goal configuration and cancelled reminder, while the file remains untouched. Reloading exposes the control but does not silently reactivate it. Verify isolation between two Agents and that a child or compaction worker does not inherit its parent's reminder lifetime.
-
-### 6. Keep file failures honest
-
-After valid configuration, remove the file, make it unreadable, or empty it. The next read must expose the problem. An automatic wake must not send an empty-goal request or enter a rapid retry loop. Status must show the error, not completion or an armed timer that no longer exists.
-
-An ordinary human request should receive a clearly labelled unavailable-goal notice in SYSTEM, preserving the ability to repair or clear the configuration. Do not claim that stale cached goal text is current. Restore the file and verify fresh reads; re-enabling reminders is explicit. A refused outside-workspace path must retain the existing filesystem boundary rather than introduce a convenient host-file bypass.
-
-### 7. Read the GUI state, including after reconnect
-
-Drive the real status-update path and inspect the selected Agent's indicator. Check no goal, configured with reminders off, working, idle waiting, paused, and file error. Preserve the distinction between working on a configured goal and having reminders enabled. Do not label reminders off as completed.
-
-Reconnect while waiting without causing another core transition. The current file, delay and due-time information must still appear. Switch between two Agents with different goal states; one Agent's frame must not overwrite the other's indicator. Use text labels and accessible descriptions, not color alone, and keep Conversation and Actions available.
-
-Run deterministic tests against the production GUI code, then inspect an isolated browser instance for readability and layout. State separately what the automated tests, browser inspection, and human observations establish. Do not alter or restart the user's running GUI merely to obtain a screenshot, and do not add automatic speech or device operations to this exercise.
-
-### 8. Review what the passing tests cannot decide
-
-Trace the single owner of configuration, timer generation, automatic-message admission and public status. Confirm that callbacks only enqueue work, blocking file/model work is not hidden under shared locks, and the GUI does not start a second timer. Inspect request-local goal placement and the opt-in grant path directly.
-
-Then try the intended human workflow: load the skill on request, write a useful goal, enable reminders, let the Agent return to idle, and inspect its resumed work. Keep paid-provider or deployment authority separate from local implementation tests. Report the configured delay, what actually woke, what remained unfinished, and how the reminder was stopped. A plausible final answer is not proof that every requested action occurred.
-
-Only after these results and code review should the chapter body explain the implementation and the experience. Preserve useful failures and limits; do not turn a successful demonstration into a promise that goals prevent all accidental stops.
+Goals should reduce the number of times I have to poke the agent. It should not reduce the amount of judgment in the work.

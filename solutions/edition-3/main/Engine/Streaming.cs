@@ -10,11 +10,13 @@ public sealed partial class Engine
     public partial Task<ParsedResponse> ParseAsync(HttpResponseMessage response,
         Action<Chunk>? onChunk, CancellationToken cancellation)
     {
-        return ParseCoreAsync(response, Array.Empty<string>(), onChunk, cancellation);
+        return ParseCoreAsync(Parent().Configuration(), response, Array.Empty<string>(), onChunk, cancellation,
+            Parent().IsMemoryCompressor());
     }
 
-    private partial async Task<ParsedResponse> ParseCoreAsync(HttpResponseMessage response,
-        IReadOnlyList<string> exchangeSecrets, Action<Chunk>? onChunk, CancellationToken cancellation)
+    private partial async Task<ParsedResponse> ParseCoreAsync(Configuration config, HttpResponseMessage response,
+        IReadOnlyList<string> exchangeSecrets, Action<Chunk>? onChunk, CancellationToken cancellation,
+        bool requireComplete)
     {
         int status = (int)response.StatusCode;
         if (!response.IsSuccessStatusCode)
@@ -24,7 +26,6 @@ public sealed partial class Engine
         }
         string? mediaType = response.Content.Headers.ContentType?.MediaType;
         bool streaming = string.Equals(mediaType, "text/event-stream", StringComparison.OrdinalIgnoreCase);
-        var config = Parent().Configuration();
         if (!streaming && config.Surface == Surface.Responses && !config.DisableStreaming
             && (mediaType is null || string.Equals(mediaType, "text/plain", StringComparison.OrdinalIgnoreCase)))
         {
@@ -38,7 +39,7 @@ public sealed partial class Engine
         {
             string body = await response.Content.ReadAsStringAsync(cancellation);
             Parent().Parent().Trace(Parent(), "response", body, exchangeSecrets);
-            var events = ParseResponse(status, body, out var billing);
+            var events = ParseResponse(config, status, body, out var billing);
             var ended = events.FirstOrDefault(fact => fact.Kind == EventKind.ResponseEnded);
             if (ended is null)
             {
@@ -60,15 +61,15 @@ public sealed partial class Engine
                 }
             }
             return new ParsedResponse(events, ids.ToImmutable(), earlyTool, billing,
-                IncompleteCompression(body));
+                requireComplete && IncompleteOutput(config, body));
         }
 
-        if (Parent().Configuration().Surface == Surface.Responses)
+        if (config.Surface == Surface.Responses)
         {
-            return await ParseResponsesStreamAsync(response, exchangeSecrets, onChunk, cancellation);
+            return await ParseResponsesStreamAsync(config, response, exchangeSecrets, onChunk, cancellation);
         }
         var state = new StreamAssembly();
-        var vendor = Parent().Configuration().Vendor;
+        var vendor = config.Vendor;
         void Emit(Chunk chunk)
         {
             TrackArrival(chunk, ref state.SeenText, ref state.ToolBeforeText);
@@ -156,7 +157,7 @@ public sealed partial class Engine
                 throw new FormatException("Stream ended without completion");
             }
             JsonObject completed = CompleteNativeResponse(state, vendor);
-            var events = ParseResponse(status, completed.ToJsonString(), out var billing);
+            var events = ParseResponse(config, status, completed.ToJsonString(), out var billing);
             var final = events.FirstOrDefault(fact => fact.Kind == EventKind.ResponseEnded);
             if (final is null)
             {
@@ -167,7 +168,7 @@ public sealed partial class Engine
                 throw new FormatException("Final part identity mismatch");
             }
             return new ParsedResponse(events, state.Order.ToImmutableArray(), state.ToolBeforeText, billing,
-                IncompleteCompression(completed.ToJsonString()));
+                requireComplete && IncompleteOutput(config, completed.ToJsonString()));
         }
         catch (Exception error) when (error is JsonException or FormatException or InvalidOperationException
             or ArgumentException or KeyNotFoundException or OverflowException)

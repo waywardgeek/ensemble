@@ -38,8 +38,8 @@ public sealed partial class Memory
     internal partial CompressionOutcome? Recover(Context context);
 
     // Agent-local human policy, independent of corpus and canonical History.
-    internal partial MemorySettings? ReadSettings();
-    internal partial void WriteSettings(MemorySettings settings);
+    internal partial AgentSettings? ReadSettings();
+    internal partial void WriteSettings(AgentSettings settings);
     private partial string HomePath(string relative);
     private partial string CorpusPath(MemoryBand band, string id);
     private static partial string BandDirectory(MemoryBand band);

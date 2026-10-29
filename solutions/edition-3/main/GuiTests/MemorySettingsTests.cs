@@ -73,6 +73,8 @@ static class MemorySettingsTests
                 await Task.Delay(20, token);
             }
             string html = await http.GetStringAsync(origin, token);
+            Check(html.Contains("recall-settings-form", StringComparison.Ordinal)
+                && html.Contains("recall-max_recall_bytes", StringComparison.Ordinal), "Recall form missing");
             Check(html.Contains("memory-settings-form", StringComparison.Ordinal), "Memory controls not served");
             using var first = new ClientWebSocket();
             using var second = new ClientWebSocket();
@@ -107,7 +109,46 @@ static class MemorySettingsTests
             await Frame(first, "settings_updated", token);
             Check(initial.History().View().Memories.Single().Text == "FRESH_GUI_SOUL",
                 "Acknowledged before fresh scan");
+            // Recall uses this same durable Agent document, not appearance state.
+            await Send(first, new { type = "update_settings", agent_id = "initial",
+                settings = new { recall = new { disabled = true, disable_judge = true,
+                    judge_model = "example-model", max_snippets = 7, min_score = 1.25 } } }, token);
+            var recallAck = (await Frame(first, "settings_updated", token)).GetProperty("settings");
+            Check(recallAck.GetProperty("recall").GetProperty("disabled").GetBoolean()
+                && initial.RecallSettings().Disabled && initial.RecallSettings().MaxSnippets == 7,
+                "Recall acknowledgment preceded application");
+            using (var saved = JsonDocument.Parse(File.ReadAllText(settingsPath)))
+            {
+                Check(JsonCodec.ReadRecallSettings(saved.RootElement.GetProperty("recall")).JudgeModel == "example-model"
+                    && JsonCodec.ReadMemorySettings(saved.RootElement.GetProperty("memory")).Conversation.Budget == 4567,
+                    "Recall acknowledgment preceded save or lost memory settings");
+            }
+            await Send(second, new { type = "get_settings", agent_id = "peer" }, token);
+            var peerRecall = await Frame(second, "current_settings", token, rejectUpdates: true);
+            Check(!peerRecall.GetProperty("settings").GetProperty("recall").GetProperty("disabled").GetBoolean()
+                && !peer.RecallSettings().Disabled, "Recall settings leaked to peer");
+            await Send(first, new { type = "update_settings", agent_id = "initial",
+                settings = new { memory = new { conversation = new { budget = 4568 } } } }, token);
+            await Frame(first, "settings_updated", token);
+            using (var saved = JsonDocument.Parse(File.ReadAllText(settingsPath)))
+                Check(JsonCodec.ReadRecallSettings(saved.RootElement.GetProperty("recall")).Disabled,
+                    "Memory patch erased recall settings");
             string before = File.ReadAllText(settingsPath);
+            foreach (string patch in new[] {
+                "{\"recall\":{\"max_snippets\":-1}}",
+                "{\"recall\":{\"candidates\":1.5}}",
+                "{\"recall\":{\"judge_model\":null}}",
+                "{\"recall\":{\"unknown\":true}}",
+                "{\"recall\":{\"disabled\":true,\"disabled\":false}}",
+                "{\"recall\":{\"disabled\":false},\"memory\":{}}" })
+            {
+                // Raw JSON retains duplicate fields, unlike anonymous objects.
+                string raw = "{\"type\":\"update_settings\",\"agent_id\":\"initial\",\"settings\":" + patch + "}";
+                await first.SendAsync(Encoding.UTF8.GetBytes(raw), WebSocketMessageType.Text, true, token);
+                await Frame(first, "error", token, rejectUpdates: true);
+                Check(File.ReadAllText(settingsPath) == before && initial.RecallSettings().Disabled,
+                    "Malformed recall patch changed file or live policy");
+            }
             await Send(first, new { type = "update_settings", agent_id = "initial",
                 settings = new { memory = new { soul = new { unknown = true } } } }, token);
             await Frame(first, "error", token, rejectUpdates: true);
@@ -116,13 +157,17 @@ static class MemorySettingsTests
             File.Delete(settingsPath);
             Directory.CreateDirectory(settingsPath);
             await Send(first, new { type = "update_settings", agent_id = "initial",
+                settings = new { recall = new { disabled = false } } }, token);
+            await Frame(first, "error", token, rejectUpdates: true);
+            Check(initial.RecallSettings().Disabled, "Failed recall save published success");
+            await Send(first, new { type = "update_settings", agent_id = "initial",
                 settings = new { memory = new { soul = new { disabled = true } } } }, token);
             await Frame(first, "error", token, rejectUpdates: true);
             Check(!initial.MemorySettings().Soul.Disabled, "Failed save changed live policy");
             Directory.Delete(settingsPath);
             Check(!initial.History().Events().Any(e => e.Kind == EventKind.RequestSent)
                 && !peer.History().Events().Any(e => e.Kind == EventKind.RequestSent), "Settings caused inference");
-            Console.WriteLine("PASS GUI memory settings: durable acknowledgment, fresh scan, selected-Agent isolation and refusal");
+            Console.WriteLine("PASS GUI memory/recall settings: durable acknowledgment, sibling preservation, fresh scan, selected-Agent isolation and refusal");
         }
         finally
         {

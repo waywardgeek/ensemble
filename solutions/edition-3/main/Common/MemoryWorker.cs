@@ -31,8 +31,8 @@ public sealed partial class Configuration
 
 public sealed partial class Engine
 {
-    // A terminal-success check scoped to the compressor. Ordinary parsing keeps
-    // its established behavior. Send still meters the completed exchange before
-    // refusing its incomplete output to the actor.
-    private partial bool IncompleteCompression(string body);
+    // Compressors and recall judges require terminal success. Ordinary parsing
+    // keeps its established behavior; transport is metered before refusing an
+    // incomplete auxiliary result, even when its text looks syntactically valid.
+    private static partial bool IncompleteOutput(Configuration config, string body);
 }

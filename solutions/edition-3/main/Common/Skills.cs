@@ -9,7 +9,7 @@ public sealed record SkillSpec(string Directory, string Primary,
     IReadOnlyDictionary<string, string>? McpEnvironment = null);
 // Value-like, short-lived construction snapshot. It contains immutable templates
 // and explicit values, never live grants, clients, owners or service references.
-internal sealed record SkillBootstrap(string Primary, ImmutableArray<string> Startup,
+internal sealed record SkillBootstrap(string Directory, string Primary, ImmutableArray<string> Startup,
     ImmutableDictionary<string, SkillDefinition> Definitions,
     ImmutableDictionary<string, string> Variables,
     ImmutableDictionary<string, string> Credentials);
@@ -47,6 +47,10 @@ public sealed partial class Skills
 {
     internal Agent? parent;
     internal bool destroyed;
+    // Host-selected documentation provenance. It is not Agent file-tool authority.
+    // Templates remain immutable even when recall observes newer manuals on disk.
+    private readonly string sourceDirectory;
+    private Microsoft.Win32.SafeHandles.SafeFileHandle? recallRoot;
     private readonly string primaryName;
     // Frozen host selection, not a second active-skill registry. History owns activation.
     private readonly ImmutableArray<string> startupSkills;
@@ -77,6 +81,11 @@ public sealed partial class Skills
     public partial Skills(Agent parent, SkillSpec specification);
     internal partial Skills(Agent parent, SkillBootstrap bootstrap);
     internal partial SkillBootstrap CaptureBootstrap();
+    // Lazy read-only root is owned by Skills and closed by Destroy. Descendants
+    // inherit the selected path, not this descriptor or any active MCP client.
+    internal partial ImmutableArray<(string File, string Text, string Hash)> RecallFiles(CancellationToken cancellation);
+    private partial void ReadRecallDirectory(Microsoft.Win32.SafeHandles.SafeFileHandle directory,
+        string relative, List<(string File, string Text, string Hash)> files, Configuration policy, CancellationToken cancellation);
     private partial void Attach(Agent parent);
     public partial Agent Parent();
     /// <summary>Join the initial skill batch before admitting user work. Cancellation

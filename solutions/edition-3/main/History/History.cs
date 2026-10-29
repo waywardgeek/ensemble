@@ -291,6 +291,11 @@ public sealed partial class History
                 // historical system entries; never infer role from event position.
                 dialogue.Add(new Entry(value.Seq, value.Actor!.Value, value.Parts));
                 break;
+            case EventKind.RecallAdded:
+                // Retrieved text has the user's data role but never changes the
+                // user's entry, phase, usage, ephemera or tool authority.
+                dialogue.Add(new Entry(value.Seq, Actor.Human, value.Parts));
+                break;
             case EventKind.HandoffRecorded:
                 dialogue = HandoffDialogue(dialogue, value);
                 break;

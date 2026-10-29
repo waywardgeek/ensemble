@@ -222,6 +222,13 @@ public sealed partial class Agent
                             // before returning. Join even that final wrapper step.
                             await memoryTask;
                         }
+                        if (message.Kind == MailKind.RecallDone && recallTask is not null)
+                        {
+                            // Publication precedes wrapper return. Join that last
+                            // step before releasing its foreground ownership.
+                            await recallTask;
+                            recallTask = null;
+                        }
                         Receive(message);
                     }
                     catch (Exception error)
@@ -232,6 +239,7 @@ public sealed partial class Agent
                         message.Reply?.TrySetException(error);
                         message.ToolReply?.TrySetException(error);
                         message.SkillReply?.TrySetException(error);
+                        message.GoalReply?.TrySetException(error);
                         message.StatusReply?.TrySetException(error);
                         throw;
                     }
@@ -261,6 +269,7 @@ public sealed partial class Agent
                 }
                 Advance();
                 PublishWorkActivity();
+                RefreshGoalTimer();
                 if (active is null && requests.Count == 0 && !workerPending && controlReplies.Count == 0 && startupReplies.Count == 0)
                 {
                     foreach (var reply in flushReplies)
@@ -284,10 +293,15 @@ public sealed partial class Agent
             }
             observationCancellation?.Cancel();
             controlCancellation.Cancel();
+            if (recallTask is not null)
+            {
+                await recallTask;
+                recallTask = null;
+            }
             while (workerPending || controlReplies.Count != 0 || startupReplies.Count != 0)
             {
                 var outcome = await mailbox.Reader.ReadAsync();
-                if (outcome.Kind is MailKind.HttpDone or MailKind.ToolDone or MailKind.AutomaticDone)
+                if (outcome.Kind is MailKind.HttpDone or MailKind.ToolDone or MailKind.AutomaticDone or MailKind.RecallDone)
                 {
                     workerPending = false;
                 }
@@ -303,6 +317,7 @@ public sealed partial class Agent
                 outcome.Reply?.TrySetException(error);
                 outcome.ToolReply?.TrySetException(error);
                 outcome.SkillReply?.TrySetException(error);
+                outcome.GoalReply?.TrySetException(error);
                 outcome.StatusReply?.TrySetException(error);
             }
             foreach (var reply in flushReplies)
@@ -337,6 +352,7 @@ public sealed partial class Agent
         }
         finally
         {
+            DisableGoal();
             // The fault path may have bypassed Shutdown mail. Join before any
             // owner can destroy History, Memory or Sandbox; do not try to append
             // to a journal that may be the original source of the actor failure.
@@ -352,6 +368,7 @@ public sealed partial class Agent
                 rejected.Reply?.TrySetException(new ObjectDisposedException(nameof(Agent)));
                 rejected.ToolReply?.TrySetException(new ObjectDisposedException(nameof(Agent)));
                 rejected.SkillReply?.TrySetException(new ObjectDisposedException(nameof(Agent)));
+                        rejected.GoalReply?.TrySetException(new ObjectDisposedException(nameof(Agent)));
                 rejected.StatusReply?.TrySetException(new ObjectDisposedException(nameof(Agent)));
             }
             foreach (var reply in flushReplies)
@@ -388,6 +405,37 @@ public sealed partial class Agent
         if (message.Kind != MailKind.Shutdown)
         {
             EnsureMemoryReady();
+        }
+        if (message.Kind == MailKind.GoalStatus)
+        {
+            message.GoalReply!.TrySetResult(CaptureGoalStatus());
+            return;
+        }
+        if (message.Kind == MailKind.GoalControl)
+        {
+            ConfigureGoal(message);
+            return;
+        }
+        if (message.Kind == MailKind.GoalWake)
+        {
+            WakeGoal(message);
+            return;
+        }
+        if (message.Kind == MailKind.GoalClear)
+        {
+            ClearGoal();
+            return;
+        }
+        if (message.Kind == MailKind.GoalReadFailed)
+        {
+            FailGoalRead(message.GoalFailure!);
+            return;
+        }
+        if (message.Kind == MailKind.GoalRefresh) { return; }
+        if (message.Kind == MailKind.RecallSettings)
+        {
+            ApplyRecallSettings(message);
+            return;
         }
         if (message.Kind == MailKind.IncomingQuestion)
         {
@@ -596,6 +644,7 @@ public sealed partial class Agent
         }
         if (message.Kind == MailKind.Shutdown)
         {
+            DisableGoal();
             stopping = true;
             interruptPending = true;
             observationCancellation?.Cancel();
@@ -611,6 +660,7 @@ public sealed partial class Agent
                 switch (input.Kind)
                 {
                     case InputKind.Pause:
+                        StopGoalTimer();
                         paused = true;
                         Record(new Event(EventKind.AgentPaused, reason: "pause"));
                         break;
@@ -620,12 +670,13 @@ public sealed partial class Agent
                         break;
                     case InputKind.InterruptNow:
                     case InputKind.InterruptAfterTool:
+                        DisableGoal();
                         if (active is not null)
                         {
                             Record(new Event(EventKind.TurnInterrupted, reason: input.Kind.ToString()));
                             interruptPending = true;
                             discardResponse = input.Kind == InputKind.InterruptNow;
-                            if (input.Kind == InputKind.InterruptNow || automaticPending)
+                            if (input.Kind == InputKind.InterruptNow || automaticPending || recallTask is not null)
                             {
                                 observationCancellation?.Cancel();
                             }
@@ -650,7 +701,7 @@ public sealed partial class Agent
                             replyWithTurn = input.Kind == InputKind.Chat;
                             requests.Enqueue(new Mail(MailKind.Submit,
                                 Reply: replyWithTurn ? message.Reply : null,
-                                WorkGeneration: AdmitChildWork()));
+                                WorkGeneration: AdmitChildWork(), RecallQuery: input.Text));
                         }
                         else
                         {
@@ -694,6 +745,11 @@ public sealed partial class Agent
         workerPending = false;
         observationCancellation?.Dispose();
         observationCancellation = null;
+        if (message.Kind == MailKind.RecallDone)
+        {
+            ReceiveRecall(message);
+            return;
+        }
         if (message.Kind == MailKind.AutomaticDone)
         {
             ReceiveAutomatic(message);
@@ -870,6 +926,7 @@ public sealed partial class Agent
             {
                 return;
             }
+            StopGoalTimer();
             if (active.Kind == MailKind.Submit)
             {
                 StartChildWork(active.WorkGeneration);
@@ -880,6 +937,10 @@ public sealed partial class Agent
             if (active.Kind == MailKind.Submit && !active.Parts.IsDefaultOrEmpty)
             {
                 Record(new Event(EventKind.MessageReceived, actor: Actor.Human, parts: active.Parts));
+            }
+            if (BeginRecall(active))
+            {
+                return;
             }
         }
         // Waiting is actor state, not an awaited child task on the mailbox.
@@ -948,7 +1009,7 @@ public sealed partial class Agent
                 string body;
                 try
                 {
-                    body = Engine().Render(requestContext, budgetInstruction).ToJsonString();
+                    body = Engine().Render(requestContext, budgetInstruction, active.AutomaticGoal).ToJsonString();
                 }
                 catch
                 {

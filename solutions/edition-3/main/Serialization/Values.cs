@@ -390,6 +390,13 @@ public sealed partial class Event
         Time = time;
         Actor = actor;
         Parts = parts?.ToImmutableArray() ?? [];
+        // Missing facts may be diagnosed replay no-ops, but a supplied recall
+        // body must not introduce other parts (especially instructions/grants).
+        if (kind == EventKind.RecallAdded && !Parts.IsEmpty
+            && (Parts.Length != 1 || Parts[0] is not RecallPart))
+        {
+            throw new ArgumentException("Recall event requires one recall attachment");
+        }
         From = from;
         Usage = usage;
         CallID = callID;
@@ -506,5 +513,14 @@ public sealed partial class HandoffPart
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(text);
         Text = text;
+    }
+}
+
+public sealed partial class RecallPart
+{
+    public partial RecallPart(RecallAttachment attachment)
+    {
+        ArgumentNullException.ThrowIfNull(attachment);
+        Attachment = attachment;
     }
 }

@@ -62,6 +62,12 @@ static async Task<JsonElement> Frame(ClientWebSocket socket, string type, Cancel
             return json.RootElement.Clone();
     }
 }
+if (args is ["--goal-tests"])
+{
+    await GoalControlsTests.RunAsync();
+    return;
+}
+
 if (args is ["--memory-settings-tests"])
 {
     await MemorySettingsTests.RunAsync();

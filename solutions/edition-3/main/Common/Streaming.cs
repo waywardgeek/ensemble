@@ -10,7 +10,7 @@ public sealed record Chunk(int PartID, ChunkKind Kind, string Text = "",
     string ToolName = "", string ArgsText = "");
 public sealed record ParsedResponse(ImmutableArray<Event> Events,
     ImmutableArray<int> PartIDs, bool ToolBeforeText = false, UsageIdentity? Billing = null,
-    bool IncompleteCompression = false);
+    bool IncompleteOutput = false);
 
 public sealed partial class Engine
 {
@@ -20,8 +20,9 @@ public sealed partial class Engine
         Action<Chunk>? onChunk = null, CancellationToken cancellation = default);
     // Authenticated sends supply only invocation-local diagnostic secrets. They
     // are never persisted on Engine or used to rewrite canonical provider data.
-    private partial Task<ParsedResponse> ParseCoreAsync(HttpResponseMessage response,
-        IReadOnlyList<string> exchangeSecrets, Action<Chunk>? onChunk, CancellationToken cancellation);
+    private partial Task<ParsedResponse> ParseCoreAsync(Configuration config, HttpResponseMessage response,
+        IReadOnlyList<string> exchangeSecrets, Action<Chunk>? onChunk, CancellationToken cancellation,
+        bool requireComplete);
 
     // Value-like Responses parse state, never shared between HTTP requests.
     private sealed class ResponsesAssembly

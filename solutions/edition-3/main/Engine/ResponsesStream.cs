@@ -7,7 +7,7 @@ namespace Ensemble;
 
 public sealed partial class Engine
 {
-    private async Task<ParsedResponse> ParseResponsesStreamAsync(HttpResponseMessage response,
+    private async Task<ParsedResponse> ParseResponsesStreamAsync(Configuration config, HttpResponseMessage response,
         IReadOnlyList<string> exchangeSecrets, Action<Chunk>? callback, CancellationToken cancellation)
     {
         var state = new ResponsesAssembly();
@@ -57,7 +57,7 @@ public sealed partial class Engine
                 // completed items or manufacture duplicate calls and text.
                 indices = Enumerable.Range(0, output.Count).ToArray();
             }
-            var facts = ParseResponse((int)response.StatusCode, terminal.ToJsonString(), out var billing);
+            var facts = ParseResponse(config, (int)response.StatusCode, terminal.ToJsonString(), out var billing);
             if (facts.Any(fact => fact.Kind == EventKind.ErrorOccurred))
             {
                 return new ParsedResponse(facts, []);
@@ -65,7 +65,6 @@ public sealed partial class Engine
             var parts = facts.Single(fact => fact.Kind == EventKind.ResponseEnded).Parts;
             var ids = ImmutableArray.CreateBuilder<int>();
             int cursor = 0;
-            var config = Parent().Configuration();
             var origin = new Provenance(config.Vendor, terminal["model"]?.GetValue<string>() ?? config.ResolvedModel, Surface.Responses);
             for (int itemIndex = 0; itemIndex < output.Count; itemIndex++)
             {

@@ -25,6 +25,8 @@ let agentClosed = false;
 // Last acknowledged server snapshot. Controls request changes; they never
 // become a second preference store. The server is also authoritative on reload.
 let settings = null;
+let goalSelectionPending = false;
+let goalDirty = false; // Unsaved form edits only, never a second live configuration.
 const speech = window.speechSynthesis;
 const notice = text => { document.querySelector("#notice").textContent = text; };
 
@@ -333,9 +335,17 @@ function handle(frame) {
     if (frame.type === "agent_tree") {
         agentRows = frame.agents || [];
         showAgents();
+        showGoal(agentRows.find(row => row.key === agentID)?.goal);
         return;
     }
     if (frame.type !== "replay" && frame.agent_id != null && frame.agent_id !== agentID) return;
+    if (frame.type === "goal_status" || frame.type === "goal_updated") {
+        if (goalSelectionPending) return;
+        goalDirty = false;
+        showGoal(frame.goal);
+        if (frame.type === "goal_updated") notice("Goal applied for this session.");
+        return;
+    }
     if (frame.type === "usage") {
         showUsage(frame);
         return;
@@ -346,6 +356,10 @@ function handle(frame) {
             localPauseCause = false;
         }
         agentID = frame.agent_id;
+        goalSelectionPending = false;
+        goalDirty = false;
+        showGoal(agentRows.find(row => row.key === agentID)?.goal);
+        send("get_goal");
         const relayLink = document.querySelector("#relay-link");
         relayLink.hidden = !agentID;
         if (agentID) {
@@ -385,6 +399,10 @@ function handle(frame) {
         return;
     }
     if (frame.type === "error" || frame.type === "lifecycle") {
+        if (frame.type === "error" && goalSelectionPending) {
+            goalSelectionPending = false;
+            showGoal(agentRows.find(row => row.key === agentID)?.goal);
+        }
         // Provider failures arrive as durable lifecycle facts; control refusals
         // arrive as error frames. Turn completion is not a second error source.
         const isError = frame.type === "error" || frame.kind === "error_occurred";
@@ -469,6 +487,7 @@ function connect() {
     socket.onclose = () => {
         if (connection !== socket) return;
         document.querySelector("#connection").textContent = "Disconnected — reconnecting";
+        showGoal(undefined);
         clearTimeout(reconnectTimer);
         reconnectTimer = setTimeout(connect, 800);
     };
@@ -494,6 +513,8 @@ document.querySelector("#agent-choice").onchange = event => {
     cancelSpeech(false);
     if (localPauseCause) send("unpause");
     localPauseCause = false;
+    goalSelectionPending = true;
+    showGoal(undefined);
     socket.send(JSON.stringify({ type: "select_agent", agent_id: event.target.value }));
 };
 function submit(type) {
@@ -535,6 +556,15 @@ function applySettings() {
     document.querySelector("#font-size").value = settings.font_size;
     document.querySelector("#max-tool-rounds").value = settings.max_tool_rounds;
     document.querySelector("#context-target-bytes").value = settings.context_target_bytes;
+    if (settings.recall) {
+        const recall = settings.recall;
+        document.querySelector("#recall-enabled").checked = !recall.disabled;
+        document.querySelector("#recall-judge-enabled").checked = !recall.disable_judge;
+        for (const field of ["judge_model", "min_score", "max_snippets", "min_query_length",
+            "candidates", "context_messages", "max_recall_bytes"]) {
+            document.querySelector(`#recall-${field}`).value = recall[field];
+        }
+    }
     for (const [band, policy] of Object.entries(settings.memory || {})) {
         document.querySelector(`#memory-${band}-enabled`).checked = !policy.disabled;
         for (const field of ["budget", "high_watermark", "low_watermark"]) {
@@ -557,6 +587,64 @@ function patchSettings(patch) {
     // Keep a proposed edit while saving; only acknowledged settings affect policy.
     notice("Saving settings…");
 }
+// Status is an actor observation, not a browser timer or completion verdict.
+function showGoal(goal) {
+    const connected = socket?.readyState === WebSocket.OPEN;
+    if (!connected || goalSelectionPending) goal = undefined;
+    const labels = {
+        unloaded: "Goals skill unloaded", unconfigured: "No goal configured",
+        busy: "Working", scheduled: "Waiting for idle reminder", paused: "Paused",
+        off: "Reminders off — goal retained", file_error: "Goal file error — reminders off"
+    };
+    const status = document.querySelector("#goal-status");
+    if (goal) {
+        const details = [labels[goal.phase] || goal.phase];
+        if (!goal.enabled && (goal.phase === "busy" || goal.phase === "paused")) {
+            details.push("reminders off");
+        }
+        if (goal.file) details.push(goal.file);
+        if (goal.due_utc) details.push(`due ${goal.due_utc}`);
+        if (goal.last_error) details.push(goal.last_error);
+        status.textContent = `Goal: ${details.join(" — ")}`;
+    } else if (!connected) {
+        status.textContent = "Goal: disconnected — current state unknown";
+    } else if (goalSelectionPending) {
+        status.textContent = "Goal: switching Agent — waiting for status";
+    } else {
+        status.textContent = "Goal: waiting for Agent status";
+    }
+    document.querySelector("#goal-reload").disabled = !connected || goalSelectionPending;
+    for (const id of ["goal-file", "goal-delay", "goal-enabled", "goal-apply", "goal-off", "goal-clear"]) {
+        document.querySelector(`#${id}`).disabled = !goal?.available;
+    }
+    if (!goalDirty) {
+        document.querySelector("#goal-file").value = goal?.file || "";
+        document.querySelector("#goal-delay").value = goal?.idle_seconds ?? 480;
+        document.querySelector("#goal-enabled").checked = goal?.enabled ?? false;
+    }
+}
+function updateGoal(goal) {
+    if (!socket || socket.readyState !== WebSocket.OPEN) {
+        notice("Not connected; goal was not changed.");
+        return;
+    }
+    socket.send(JSON.stringify({type: "update_goal", agent_id: agentID, goal}));
+    notice("Applying goal…");
+}
+document.querySelector("#goal-form").addEventListener("input", () => { goalDirty = true; });
+document.querySelector("#goal-form").addEventListener("submit", event => {
+    event.preventDefault();
+    const seconds = Number(document.querySelector("#goal-delay").value);
+    if (!Number.isFinite(seconds) || seconds < .001 || seconds > 4294967.294) {
+        notice("Idle delay must be between .001 and 4294967.294 seconds.");
+        return;
+    }
+    updateGoal({file: document.querySelector("#goal-file").value,
+        enabled: document.querySelector("#goal-enabled").checked, idle_seconds: seconds});
+});
+document.querySelector("#goal-off").onclick = () => updateGoal({enabled: false});
+document.querySelector("#goal-clear").onclick = () => updateGoal({file: ""});
+document.querySelector("#goal-reload").onclick = () => send("get_goal");
 document.querySelector("#memory-settings-form").addEventListener("submit", event => {
     event.preventDefault();
     const memory = {};
@@ -575,6 +663,25 @@ document.querySelector("#memory-settings-form").addEventListener("submit", event
     patchSettings({memory});
 });
 document.querySelector("#memory-settings-reload").onclick = () => send("get_settings");
+document.querySelector("#recall-settings-form").addEventListener("submit", event => {
+    event.preventDefault();
+    const recall = {
+        disabled: !document.querySelector("#recall-enabled").checked,
+        disable_judge: !document.querySelector("#recall-judge-enabled").checked,
+        judge_model: document.querySelector("#recall-judge_model").value
+    };
+    for (const field of ["min_score", "max_snippets", "min_query_length", "candidates",
+        "context_messages", "max_recall_bytes"]) {
+        const value = Number(document.querySelector(`#recall-${field}`).value);
+        if (!Number.isFinite(value) || value < 0 || (field !== "min_score" && !Number.isSafeInteger(value))) {
+            notice("Recall sizes/counts must be nonnegative integers; score must be a finite nonnegative number.");
+            return;
+        }
+        recall[field] = value;
+    }
+    patchSettings({recall});
+});
+document.querySelector("#recall-settings-reload").onclick = () => send("get_settings");
 document.querySelector("#theme").onchange = event => patchSettings({ theme: event.target.value });
 document.querySelector("#font-size").onchange = event => patchSettings({ font_size: Number(event.target.value) });
 document.querySelector("#max-tool-rounds").onchange = event => patchSettings({ max_tool_rounds: Number(event.target.value) });

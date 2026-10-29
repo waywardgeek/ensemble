@@ -22,10 +22,15 @@ public sealed partial class Agent
         }
         skills = null;
         child.parent = null;
+        GoalSkillsChanged();
     }
 
     public partial bool ToolEnabled(string name)
     {
+        if (name == "goal_control")
+        {
+            return GoalAvailable();
+        }
         var policy = Configuration();
         if (!AllowsMemoryTool(name) || !policy.AllowsTool(name) || IsAutomaticTool(name))
         {

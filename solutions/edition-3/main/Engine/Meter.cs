@@ -26,7 +26,7 @@ public sealed partial class Engine
         }
     }
 
-    private partial void RecordUsage(UsageIdentity identity, Usage usage)
+    private partial void RecordUsage(UsageIdentity identity, Usage usage, bool auxiliary)
     {
         lock (meterGate)
         {
@@ -34,7 +34,11 @@ public sealed partial class Engine
             meterRows[identity] = previous is null ? usage : previous.Add(usage);
             // For concurrent direct sends, latest means latest completion. The
             // normal Agent serializes requests, so no second scheduler is needed.
-            meterLatest = new MeterEntry(identity, usage);
+            // Judges add spend without replacing the main response observation.
+            if (!auxiliary)
+            {
+                meterLatest = new MeterEntry(identity, usage);
+            }
         }
     }
 }

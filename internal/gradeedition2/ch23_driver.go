@@ -247,6 +247,10 @@ func recallAttachments(out recallOut) []string {
 	for _, e := range out.events {
 		var kind string
 		json.Unmarshal(e["type"], &kind)
+		if kind == "recall_added" {
+			texts = append(texts, recallParts(e["parts"]))
+			continue
+		}
 		if kind != "recall_attached" {
 			continue
 		}
@@ -293,7 +297,7 @@ func recallParts(raw json.RawMessage) string {
 	}
 	var b strings.Builder
 	for _, p := range parts {
-		if p.Type == "text" {
+		if p.Type == "text" || p.Type == "recall" {
 			b.WriteString(p.Text)
 		}
 	}

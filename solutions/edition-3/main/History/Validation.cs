@@ -54,6 +54,12 @@ public sealed partial class History
                     return "missing message actor";
                 }
                 break;
+            case EventKind.RecallAdded:
+                if (value.Parts.Length != 1 || value.Parts[0] is not RecallPart)
+                {
+                    return "expected one recall attachment";
+                }
+                break;
             case EventKind.HandoffRecorded:
                 if (value.Parts.Length != 1 || value.Parts[0] is not HandoffPart)
                 {

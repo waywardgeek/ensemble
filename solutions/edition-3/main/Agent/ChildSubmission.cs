@@ -126,6 +126,7 @@ public sealed partial class Agent
             submittedPayload = validated;
             submissionReminders = 0;
             childFailure = null;
+            GoalSubmitted();
             SignalSubmissionChange();
             return validated.Clone();
         }

@@ -39,7 +39,8 @@ public enum ToolKind
     SendMessage,
     AskAgent,
     WaitForAgent,
-    WaitForAgentChange
+    WaitForAgentChange,
+    GoalControl
 }
 
 public sealed partial class Tool

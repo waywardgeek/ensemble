@@ -165,7 +165,12 @@ public sealed partial class Sandbox
 
     private partial SafeFileHandle OpenDirectory(string relative, bool create)
     {
-        var current = CheckedHandle(NativeOpenAt(rootHandle!, ".", OpenFlags(true), 0), relative);
+        return OpenDirectoryAt(rootHandle!, relative, create);
+    }
+
+    private static partial SafeFileHandle OpenDirectoryAt(SafeFileHandle root, string relative, bool create)
+    {
+        var current = CheckedHandle(NativeOpenAt(root, ".", OpenFlags(true), 0), relative);
         try
         {
             foreach (string component in relative.Split('/', StringSplitOptions.RemoveEmptyEntries))
@@ -253,6 +258,38 @@ public sealed partial class Sandbox
                     stream.Seek(0, SeekOrigin.End);
                 }
                 return stream;
+            }
+            catch
+            {
+                handle.Dispose();
+                throw;
+            }
+        }
+    }
+
+    public partial FileStream OpenRegularRead(string path)
+    {
+        lock (gate)
+        {
+            ObjectDisposedException.ThrowIf(destroyed, this);
+            if (root.Length != 0 || (!OperatingSystem.IsMacOS() && !OperatingSystem.IsLinux()))
+            {
+                // Rooted OpenFile already uses nonblocking no-follow descriptors.
+                return OpenFile(path, FileMode.Open, FileAccess.Read);
+            }
+            // Recursive readers must not wait for a FIFO writer. This explicit
+            // operation leaves ordinary unconfined OpenFile semantics unchanged.
+            int flags = OperatingSystem.IsMacOS() ? 0x1000004 : 0x80800; // CLOEXEC | NONBLOCK
+            var handle = CheckedHandle(NativeOpen(path, flags), path);
+            try
+            {
+                var input = new FileStream(handle, FileAccess.Read);
+                if (!input.CanSeek)
+                {
+                    input.Dispose();
+                    throw new IOException($"Sandbox file is not seekable: {path}");
+                }
+                return input;
             }
             catch
             {

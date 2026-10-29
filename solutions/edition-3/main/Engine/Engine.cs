@@ -86,7 +86,7 @@ public sealed partial class Engine
         }
     }
 
-    private partial async Task<ParsedResponse> SendCoreAsync(Configuration config, string requestBody, CancellationToken cancellation, Action<Chunk>? onChunk)
+    private partial async Task<ParsedResponse> SendCoreAsync(Configuration config, string requestBody, CancellationToken cancellation, Action<Chunk>? onChunk, bool auxiliary)
     {
         // Configuration remains authoritative on the parent. The body is an
         // immutable value prepared before this worker starts; hints arriving
@@ -120,7 +120,7 @@ public sealed partial class Engine
                 break;
         }
         cancellation.ThrowIfCancellationRequested();
-        CacheLens? lens = Lens();
+        CacheLens? lens = auxiliary ? null : Lens();
         CachePrediction? prediction = lens?.Begin(requestBody);
         Usage? completedUsage = null;
         try
@@ -150,7 +150,7 @@ public sealed partial class Engine
                 }
                 // A second 401 reaches the normal safe error parser. No loop,
                 // payment transition, or successful fact from the first attempt.
-                parsed = await ParseCoreAsync(response, traceSecrets, onChunk, cancellation);
+                parsed = await ParseCoreAsync(config, response, traceSecrets, onChunk, cancellation, auxiliary || Parent().IsMemoryCompressor());
             }
             finally
             {
@@ -163,15 +163,16 @@ public sealed partial class Engine
                 // Count the completed transport once, independently of whether
                 // its facts are subsequently recorded or replayed by History.
                 var identity = parsed.Billing ?? new UsageIdentity(config.Vendor, "", null);
-                RecordUsage(identity, completedUsage ?? new Usage(null, null, null, null));
+                RecordUsage(identity, completedUsage ?? new Usage(null, null, null, null), auxiliary);
             }
-            // Meter a completed exchange even when its output cannot authorize
-            // a memory write. No finalized call from an incomplete reply reaches
-            // the child actor. Ordinary-agent acceptance is unchanged.
-            if (parsed.IncompleteCompression)
+            // Meter completed transport even when its text cannot authorize a
+            // memory write or recall verdict. Incomplete specialized replies do
+            // not reach their caller as success; ordinary acceptance is unchanged.
+            if (parsed.IncompleteOutput)
             {
                 return new ParsedResponse([new Event(EventKind.ErrorOccurred,
-                    error: "Compressor response did not finish successfully.")], []);
+                    error: auxiliary ? "Recall judge response did not finish successfully."
+                        : "Compressor response did not finish successfully.")], []);
             }
             return parsed;
         }

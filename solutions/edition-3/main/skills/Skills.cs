@@ -9,6 +9,7 @@ public sealed partial class Skills
     {
         ArgumentNullException.ThrowIfNull(parent);
         ArgumentNullException.ThrowIfNull(specification);
+        sourceDirectory = Path.GetFullPath(specification.Directory);
         primaryName = specification.Primary;
         startupSkills = specification.StartupSkills?.ToImmutableArray() ?? [];
         definitions = new Dictionary<string, SkillDefinition>(StringComparer.Ordinal);
@@ -22,7 +23,7 @@ public sealed partial class Skills
         }
         // Sorting makes diagnostics and duplicate detection reproducible. A host
         // chooses one root; no implicit home-directory or environment fallback.
-        foreach (string path in Directory.GetFiles(specification.Directory, "SKILL.md", SearchOption.AllDirectories)
+        foreach (string path in Directory.GetFiles(sourceDirectory, "SKILL.md", SearchOption.AllDirectories)
                      .Order(StringComparer.Ordinal))
         {
             var definition = Parse(File.ReadAllText(path), path);
@@ -54,6 +55,7 @@ public sealed partial class Skills
     {
         ArgumentNullException.ThrowIfNull(parent);
         ArgumentNullException.ThrowIfNull(bootstrap);
+        sourceDirectory = bootstrap.Directory;
         primaryName = bootstrap.Primary;
         startupSkills = bootstrap.Startup;
         definitions = new Dictionary<string, SkillDefinition>(bootstrap.Definitions, StringComparer.Ordinal);
@@ -72,7 +74,7 @@ public sealed partial class Skills
         lock (gate)
         {
             ObjectDisposedException.ThrowIf(destroyed, this);
-            return new SkillBootstrap(primaryName, startupSkills,
+            return new SkillBootstrap(sourceDirectory, primaryName, startupSkills,
                 definitions.ToImmutableDictionary(StringComparer.Ordinal),
                 variables.ToImmutableDictionary(StringComparer.Ordinal),
                 mcpCredentials.ToImmutableDictionary(StringComparer.Ordinal));
@@ -128,6 +130,8 @@ public sealed partial class Skills
             lock (gate)
             {
                 mcpCredentials.Clear();
+                recallRoot?.Dispose();
+                recallRoot = null;
             }
             parent?.RemoveSkills(this);
         }
@@ -411,6 +415,7 @@ public sealed partial class Skills
             if (!Pending(name))
             {
                 Parent().History().Append(new Event(EventKind.SkillUnloadPending, name: name));
+                Parent().GoalSkillsChanged();
             }
             message = "Pending unload at later compaction: " + name + ". Instructions remain active; tool grants are revoked and external servers have stopped.";
         }

@@ -95,7 +95,7 @@ internal static partial class MeterTests
                 Check(refused, "Malformed settings accepted");
             }
             File.WriteAllText(path, valid);
-            Check(agent.Memory().ReadSettings()!.Conversation.Budget == 3000, "Valid document refused");
+            Check(agent.Memory().ReadSettings()!.Memory.Conversation.Budget == 3000, "Valid document refused");
             File.Delete(path);
             Check(agent.Memory().ReadSettings() is null, "Absent settings did not select defaults");
             File.WriteAllText(path, valid.Replace("\"version\":1", "\"version\":2"));
@@ -123,7 +123,7 @@ internal static partial class MeterTests
     private static async Task SettingsRefuses(Func<Task> action)
     {
         try { await action().WaitAsync(TimeSpan.FromSeconds(10)); }
-        catch (Exception e) when (e is IOException or UnauthorizedAccessException
+        catch (Exception e) when (e is IOException or InvalidDataException or UnauthorizedAccessException
             or ArgumentException or InvalidOperationException) { return; }
         throw new Exception("Expected settings refusal");
     }

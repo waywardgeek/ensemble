@@ -49,13 +49,14 @@ public sealed partial class Engine
     // Capture latest and rows together. No disk or History access occurs here;
     // callers can hold the immutable snapshot after the next send.
     public partial MeterSnapshot Meter();
-    // Only completed SendAsync calls record usage. Parse/Render/replay do not.
-    private partial void RecordUsage(UsageIdentity identity, Usage usage);
+    // Completed transport records usage, including the stateless recall judge.
+    // Parse/Render/replay do not; auxiliary calls leave Latest unchanged.
+    private partial void RecordUsage(UsageIdentity identity, Usage usage, bool auxiliary);
 
     // The owning actor imports a joined auxiliary worker once. This changes
     // cumulative rows only, never the last direct response or cache lens.
     internal partial void ImportUsage(MeterSnapshot usage);
     // Same decoder for plain and completed streaming responses. Public Parse
     // discards transient billing identity and never mutates the process meter.
-    private partial ImmutableArray<Event> ParseResponse(int status, string body, out UsageIdentity? billing);
+    private partial ImmutableArray<Event> ParseResponse(Configuration config, int status, string body, out UsageIdentity? billing);
 }

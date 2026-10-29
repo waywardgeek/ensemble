@@ -104,6 +104,11 @@ public static partial class JsonCodec
     public static partial JsonObject WritePart(Part part) => part switch
     {
         HandoffPart p => new() { ["type"] = "handoff", ["text"] = p.Text },
+        RecallPart p => new()
+        {
+            ["type"] = "recall", ["text"] = p.Attachment.Text,
+            ["hashes"] = new JsonArray(p.Attachment.Hashes.Select(hash => (JsonNode?)JsonValue.Create(hash)).ToArray())
+        },
         SkillPart p => new()
         {
             ["type"] = "skill", ["name"] = p.Name, ["body"] = p.Body, ["primary"] = p.Primary, ["pending"] = p.Pending,
@@ -183,6 +188,9 @@ public static partial class JsonCodec
     public static partial Part ReadPart(JsonElement value) => String(value, "type") switch
     {
             "handoff" => new HandoffPart(String(value, "text")),
+            "recall" => new RecallPart(new RecallAttachment(String(value, "text"),
+                value.GetProperty("hashes").EnumerateArray().Select(item =>
+                    item.GetString() ?? throw new FormatException("Null recall hash")))),
             "skill" => new SkillPart(String(value, "name"), String(value, "body"),
                 value.GetProperty("tools").EnumerateArray().Select(item => item.GetString() ?? throw new FormatException("Null tool name")), Flag(value, "primary"), Flag(value, "pending")),
         "text" => new TextPart(String(value, "text"),
@@ -290,6 +298,7 @@ public static partial class JsonCodec
             case EventKind.MemoryRetired:
                 o["retirement"] = value.Retirement is null ? null : WriteMemoryRetirement(value.Retirement);
                 break;
+            case EventKind.RecallAdded:
             case EventKind.HandoffRecorded:
             case EventKind.RuntimeConfigured:
             case EventKind.SkillLoaded:
@@ -404,6 +413,7 @@ public static partial class JsonCodec
                 return new(kind, seq, time, retirement:
                     root.TryGetProperty("retirement", out var retirement) && retirement.ValueKind != JsonValueKind.Null
                         ? ReadMemoryRetirement(retirement) : null, taskID: taskID);
+            case EventKind.RecallAdded:
             case EventKind.HandoffRecorded:
             case EventKind.RuntimeConfigured:
             case EventKind.SkillLoaded:
@@ -443,6 +453,7 @@ public static partial class JsonCodec
     {
         TextPart t => t.Text,
         HandoffPart h => h.Text,
+        RecallPart r => r.Attachment.Text,
         RedactedPart r => $"[redacted {r.Kind}: {r.Bytes} bytes; {r.Reason}]",
         ToolResultPart r => Text(r.Parts),
         _ => ""

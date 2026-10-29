@@ -4,13 +4,8 @@ namespace Ensemble;
 
 public sealed partial class Engine
 {
-    private partial bool IncompleteCompression(string body)
+    private static partial bool IncompleteOutput(Configuration config, string body)
     {
-        if (!Parent().IsMemoryCompressor())
-        {
-            return false;
-        }
-        var config = Parent().Configuration();
         if (config.Surface == Surface.Responses)
         {
             // The Responses parser already requires terminal completed success.

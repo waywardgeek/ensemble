@@ -50,6 +50,7 @@ public sealed partial class Agent
         {
             ObjectDisposedException.ThrowIf(destroyed, this);
             engineSends++;
+            if (goalConfiguration.Enabled) { mailbox.Writer.TryWrite(new Mail(MailKind.GoalRefresh)); }
             return configuration;
         }
     }
@@ -62,6 +63,7 @@ public sealed partial class Agent
             // released by Engine's finally, including credential-acquisition and
             // response parsing failures. It never cancels the request itself.
             engineSends--;
+            if (goalConfiguration.Enabled) { mailbox.Writer.TryWrite(new Mail(MailKind.GoalRefresh)); }
         }
     }
 }

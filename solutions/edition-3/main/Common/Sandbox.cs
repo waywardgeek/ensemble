@@ -29,6 +29,9 @@ public sealed partial class Sandbox
     // Confined opens never wait on a FIFO and refuse non-seekable handles.
     // The returned stream belongs to the caller, not to Sandbox.
     public partial FileStream OpenFile(string path, FileMode mode, FileAccess access);
+    // For discovered corpus files: refuse nonseekable files without waiting for
+    // FIFO peers, even when the Agent has no confinement root.
+    public partial FileStream OpenRegularRead(string path);
     public partial byte[] ReadFile(string path);
     // Sorted immediate names, not reusable open grants. Consumers must route
     // every subsequent descent/read through this same owner.
@@ -53,6 +56,15 @@ public sealed partial class Sandbox
     private static partial string CanonicalPath(string path);
     private partial string RelativePath(string path);
     private partial SafeFileHandle OpenDirectory(string relative, bool create);
+    private static partial SafeFileHandle OpenDirectoryAt(SafeFileHandle root, string relative, bool create);
+    // Narrow internal descriptor primitives for the host-selected Skills corpus.
+    // They grant no Sandbox policy exception: callers own a separate read-only
+    // handle and cannot use these operations to create, write or follow links.
+    internal static partial SafeFileHandle OpenReadRoot(string path);
+    internal static partial SafeFileHandle OpenReadDirectory(SafeFileHandle root, string relative);
+    internal static partial string[] ReadRootNames(SafeFileHandle root);
+    internal static partial FileStream OpenReadFile(SafeFileHandle directory, string name);
+    private static partial string[] ReadOpenedDirectory(SafeFileHandle handle, string path);
     private static partial SafeFileHandle CheckedHandle(int descriptor, string requestedPath);
     private static partial int OpenFlags(bool directory);
     private static partial IOException PathError(string requestedPath);

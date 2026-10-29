@@ -107,7 +107,7 @@ public static partial class Gui
         object gate = new();
         // Serialize memory read/patch/save/apply across tabs without holding
         // the projection lock while the actor joins an invalidated compressor.
-        using var memorySettingsGate = new SemaphoreSlim(1, 1);
+        using var agentSettingsGate = new SemaphoreSlim(1, 1);
         // Notification deduplication only; Engine remains the accounting authority.
         var lastMeterWire = new Dictionary<Agent, string>();
         string tracePath = options.TracePath;
@@ -405,6 +405,7 @@ public static partial class Gui
                     try
                     {
                         var status = await node.Agent.WorkStatusAsync(stopping.Token);
+                        var goal = await node.Agent.GoalStatusAsync(stopping.Token);
                         present.Add(node.Agent);
                         rows.Add(new JsonObject
                         {
@@ -416,6 +417,7 @@ public static partial class Gui
                             ["state"] = status.Activity.ToString().ToLowerInvariant(),
                             ["paused"] = status.Paused,
                             ["submitted"] = status.Submitted,
+                            ["goal"] = GoalValue(goal),
                             ["phase"] = status.Work?.Phase.ToString().ToLowerInvariant() ?? "idle",
                             ["tool"] = status.Work?.Tool ?? "",
                             ["detail"] = status.Work?.Detail ?? ""
@@ -580,6 +582,37 @@ public static partial class Gui
                                 // The initial snapshot is already queued atomically
                                 // with registration. Subscription is idempotent.
                                 break;
+                            case "get_goal":
+                            case "update_goal":
+                                GoalStatus goalStatus;
+                                try
+                                {
+                                    goalStatus = type == "get_goal"
+                                        ? await selected.GoalStatusAsync(lifetime.Token)
+                                        : await selected.GoalControlAsync(ReadGoalUpdate(command.GetProperty("goal")), lifetime.Token);
+                                }
+                                catch (Exception error) when (error is IOException or UnauthorizedAccessException)
+                                {
+                                    // A refused file selection must not close the socket or
+                                    // reveal an operating-system path in an error frame.
+                                    throw new InvalidDataException("Goal control refused");
+                                }
+                                lock (gate)
+                                {
+                                    // Broadcast only to views of this Agent. The frame carries
+                                    // its identity so a queued old reply cannot change a new view.
+                                    foreach (var (goalSocket, goalPeer) in peers)
+                                    {
+                                        if (!ReferenceEquals(goalPeer.Selected, selected)) continue;
+                                        if (type == "get_goal" && goalSocket != socket) continue;
+                                        Queue(goalSocket, goalPeer.Queue, new JsonObject
+                                        {
+                                            ["type"] = type == "get_goal" ? "goal_status" : "goal_updated",
+                                            ["agent_id"] = AddressOf(selected), ["goal"] = GoalValue(goalStatus)
+                                        });
+                                    }
+                                }
+                                break;
                             case "get_settings":
                                 await selected.WorkStatusAsync(lifetime.Token);
                                 lock (gate)
@@ -593,24 +626,34 @@ public static partial class Gui
                                 break;
                             case "update_settings":
                                 var patch = command.GetProperty("settings");
-                                if (patch.TryGetProperty("memory", out var memoryPatch))
+                                bool memoryUpdate = patch.TryGetProperty("memory", out var memoryPatch);
+                                bool recallUpdate = patch.TryGetProperty("recall", out var recallPatch);
+                                if (memoryUpdate || recallUpdate)
                                 {
-                                    // Separate documents cannot form one atomic update.
-                                    // The frontend sends memory-only patches; reject mixed
-                                    // patches rather than partly save appearance and policy.
+                                    // Policy and appearance have different owners/stores.
+                                    // A patch updates one policy section; never imply an
+                                    // atomic operation spanning appearance and Agent state.
                                     if (patch.EnumerateObject().Count() != 1)
                                     {
-                                        throw new InvalidDataException("Memory settings must be updated separately");
+                                        throw new InvalidDataException("Agent policy sections must be updated separately");
                                     }
-                                    await memorySettingsGate.WaitAsync(lifetime.Token);
+                                    await agentSettingsGate.WaitAsync(lifetime.Token);
                                     try
                                     {
                                         await selected.WorkStatusAsync(lifetime.Token);
-                                        var desired = MergeMemorySettings(memoryPatch, selected.MemorySettings());
                                         // Once admitted, await the definite actor outcome even
                                         // if this tab disconnects. Observer cancellation cannot
                                         // roll back a durable settings replacement.
-                                        await selected.SaveMemorySettingsAsync(desired);
+                                        if (memoryUpdate)
+                                        {
+                                            var desired = MergeMemorySettings(memoryPatch, selected.MemorySettings());
+                                            await selected.SaveMemorySettingsAsync(desired);
+                                        }
+                                        else
+                                        {
+                                            var desired = MergeRecallSettings(recallPatch, selected.RecallSettings());
+                                            await selected.SaveRecallSettingsAsync(desired);
+                                        }
                                         lock (gate)
                                         {
                                             foreach (var (peerSocket, peer) in peers.ToArray())
@@ -636,13 +679,13 @@ public static partial class Gui
                                             Queue(socket, queue, new JsonObject
                                             {
                                                 ["type"] = "error",
-                                                ["message"] = "Memory settings were not acknowledged. Reload settings to inspect the current policy; a saved change may apply on restart."
+                                                ["message"] = (memoryUpdate ? "Memory" : "Recall") + " settings were not acknowledged. Reload settings to inspect the current policy; a saved change may apply on restart."
                                             });
                                         }
                                     }
                                     finally
                                     {
-                                        memorySettingsGate.Release();
+                                        agentSettingsGate.Release();
                                     }
                                     break;
                                 }

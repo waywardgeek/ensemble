@@ -274,7 +274,11 @@ public sealed partial class Jobs
     private async Task<ToolResultPart> Control(ToolCallPart call, JobLimits limits, CancellationToken cancellation)
     {
         var allowed = new HashSet<string>(["ai_callback_delay", "ai_callback_pattern", "max_output_bytes"]);
-        if (call.Name == "micro_handoff")
+        if (call.Name == "goal_control")
+        {
+            allowed.UnionWith(["file", "enabled", "idle_seconds"]);
+        }
+        else if (call.Name == "micro_handoff")
         {
             allowed.Add("text");
         }
@@ -293,6 +297,20 @@ public sealed partial class Jobs
             {
                 throw new ArgumentException("Duplicate or unknown argument: " + property.Name);
             }
+        }
+        if (call.Name == "goal_control")
+        {
+            var update = new GoalUpdate(
+                call.Args.TryGetProperty("file", out var file) ? file.GetString() : null,
+                call.Args.TryGetProperty("enabled", out var enabled) ? enabled.GetBoolean() : null,
+                call.Args.TryGetProperty("idle_seconds", out var delay) ? delay.GetDouble() : null);
+            GoalStatus status = await Parent().GoalControlAsync(update, cancellation);
+            var options = new JsonSerializerOptions
+            {
+                PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower
+            };
+            string text = JsonSerializer.Serialize(status, options);
+            return new ToolResultPart(call.CallID, [new TextPart(text)]);
         }
         if (call.Name == "keep_tool_results")
         {
