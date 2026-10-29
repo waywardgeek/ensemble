@@ -1,4 +1,24 @@
-# Edition 3 — Chapter 27 Goals locally complete
+# Edition 3 — Gateway locally complete
+
+Chapter 26's standalone Gateway library, public client, router, durable queues,
+optional Host, Interviewer and Ensemble Adapter/AgentHost are implemented and
+reviewed. `../ch26` preserves this source-only endpoint, including the already
+completed Chapter 27 Goals foundation. Earlier endpoints remain unchanged.
+
+Local component and actual-process checks establish the tested behavior, including
+the three C# applications with a fake HTTP provider. The executable server scope
+passes **60/60** using an independent Go peer; forty original client/Noise points
+remain ungraded in that route. The manuscript and assembled source/test/prose review
+are complete. These are not live-model, OAuth/cache, deployment or security-audit
+claims. `Gateway/README.md` describes ownership and reproduction; the TOP of
+`docs/edition-3-csharp-progress.md` records the exact evidence and limitations.
+
+The book is **not fully verified**. The remaining joint work is Chapter 16's live
+OAuth exercise and Chapter 24's current official-endpoint/cache check, using a
+credential-store path and setup explicitly approved by Bill. No private credential
+search or account borrowing is authorized.
+
+## Preserved Chapter 27 — Goals locally complete
 
 Main includes the reviewed Chapter 27 Goals implementation and selected-Agent GUI.
 `../ch27` preserves the source-only endpoint; Chapter 23 and earlier endpoints remain
@@ -17,10 +37,10 @@ clean. The manuscript and assembled source/test/prose review are complete. See t
 TOP of `docs/edition-3-csharp-progress.md` for exact evidence and retained failures.
 
 Chapter 24's live OAuth/cache decision remains open; no workaround was presumed.
-Chapter 26 remains incomplete pending Bill's decision on a faithful C# Noise
-implementation dependency. No cryptographic source, package or protocol substitution
-was added. The final epilogue follows this boundary; neither pending integration is
-credited by the Goals result.
+Chapter 26 is now proceeding with Bill's approved Noise.NET/libsodium ChaChaPoly
+choice and associated-data forwarding extension (see the current section above).
+The Cadence epilogue is complete. Neither Gateway completion nor live OAuth/cache
+success is credited by the Goals result.
 
 ## Preserved Chapter 23 foundation
 
@@ -52,16 +72,17 @@ passed. Current official documentation still specifies public Responses for that
 OAuth flow. No workaround is implemented or presumed necessary; Chapter 24 is
 optional and does not block the Gateway foundation. Chapter 25 is now a completed
 historical interlude, with no code change or new endpoint. Chapter 26 Gateway is
-incomplete: its Noise-KK transport needs an approved supported cryptographic
-dependency on macOS/.NET 10. No Gateway code or dependency was added. Independent
-Chapter 27 Goals is locally complete independently; those two integration decisions remain deferred.
+incomplete: its approved cryptographic dependency extension is locally verified,
+but its C# router/client/adapter still require implementation. Chapter 27 Goals is
+locally complete independently; the Chapter 24 live exercise remains deferred.
 Exact evidence, retained failures and limits are in the TOP of
 `docs/edition-3-csharp-progress.md`.
 
 C# 14 / .NET 10. Common declares the core vocabulary, persistent fields,
 relationships and cross-module operations. Functional directories implement the
 matching partial types in one assembly. CLI, tests and examples are separate
-assemblies using that public API; no additional packages are required.
+assemblies using that public API; the core needs no additional packages. The
+optional Gateway transport dependency separately pins libsodium1.0.22.
 
 Main has Chapter 22's replayable memory bands, retained checkpoint selection,
 task-correlated transactions, and an Agent-owned rooted corpus/staging/recovery

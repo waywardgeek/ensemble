@@ -19,7 +19,7 @@ func main() {
 // Return an exit status so deferred build cleanup runs even after a failed grade.
 func run() int {
 	chapter := flag.Int("ch", 1, "Edition 2 chapter to grade")
-	executableOnly := flag.Bool("executable-only", false, "Chapters 5–16, 18–23 executable checks only; excludes Go consumers, topology and inherited checks")
+	executableOnly := flag.Bool("executable-only", false, "Chapters 5–16, 18–23, 26 executable checks only; Chapter 26 grades only server behavior using an independent peer")
 	jobsOnly := flag.Bool("jobs-only", false, "Chapter 4 executable jobs only; excludes the separate Go consumer checks")
 	asJSON := flag.Bool("json", false, "emit the report as JSON")
 	consumer := flag.String("consumer", "", "Chapter 4–13 separate consumer module (default: ch05 under or beside submission)")
@@ -40,6 +40,7 @@ func run() int {
 	statusSecondPrices := flag.String("status-second-prices", "unknown", "Chapter 18 Opus 4.6 rates in same order, or unknown (frozen accepted table)")
 	sandboxLibrary := flag.String("sandbox-library", "ensemble", "Chapter 19 public package relative to submitted module (legacy: .)")
 	reuseLegacy := flag.Bool("reuse-legacy", false, "Chapter 20: use the historical same-module public construction API")
+	gatewayPeer := flag.String("gateway-peer", "", "Chapter 26 executable scope: absolute independent Go peer source directory (not the submitted library)")
 	gatewayWelcome := flag.String("gateway-welcome", "QueueDepth", "Chapter 26 public welcome queue field (legacy: QueuedCount)")
 	flag.Parse()
 	if *chapter < 1 || (*chapter > 23 && *chapter != 26) || *chapter == 17 || flag.NArg() > 1 || (*chapter < 4 && (*consumer != "" || *consumerCase != "")) || (*chapter < 5 && (*workflow != "" || *mediaModels != "")) || (*chapter < 6 && *streamExercise != "") || (*chapter < 7 && *gui != "") {
@@ -54,8 +55,12 @@ func run() int {
 		fmt.Fprintln(os.Stderr, "-jobs-only requires Chapter 4 and excludes consumer flags")
 		return 2
 	}
-	if *executableOnly && ((*chapter != 5 && *chapter != 6 && *chapter != 7 && *chapter != 8 && *chapter != 9 && *chapter != 10 && *chapter != 11 && *chapter != 12 && *chapter != 13 && *chapter != 14 && *chapter != 15 && *chapter != 16 && *chapter != 18 && *chapter != 19 && *chapter != 20 && *chapter != 21 && *chapter != 22 && *chapter != 23) || *jobsOnly || *consumer != "" || *consumerCase != "" || *workflow != "" || (*chapter == 6 && *streamExercise == "") || ((*chapter == 7 || *chapter == 8 || *chapter == 9 || *chapter == 14 || *chapter == 15 || *chapter == 16 || *chapter == 18) && *gui == "")) {
-		fmt.Fprintln(os.Stderr, "-executable-only requires Chapter 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 18, 19, 20, 21, 22 or 23, excludes jobs-only/consumer/workflow flags; Chapter 6 requires -stream-exercise EXECUTABLE; Chapters 7/8/9 require -gui STATIC-DIRECTORY; Chapters 14/15/16/18 require -gui EXECUTABLE; Chapter 18 also requires -status-skills DIRECTORY")
+	if *executableOnly && ((*chapter != 5 && *chapter != 6 && *chapter != 7 && *chapter != 8 && *chapter != 9 && *chapter != 10 && *chapter != 11 && *chapter != 12 && *chapter != 13 && *chapter != 14 && *chapter != 15 && *chapter != 16 && *chapter != 18 && *chapter != 19 && *chapter != 20 && *chapter != 21 && *chapter != 22 && *chapter != 23 && *chapter != 26) || *jobsOnly || *consumer != "" || *consumerCase != "" || *workflow != "" || (*chapter == 6 && *streamExercise == "") || ((*chapter == 7 || *chapter == 8 || *chapter == 9 || *chapter == 14 || *chapter == 15 || *chapter == 16 || *chapter == 18) && *gui == "")) {
+		fmt.Fprintln(os.Stderr, "-executable-only requires Chapter 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 18, 19, 20, 21, 22, 23 or 26, excludes jobs-only/consumer/workflow flags; Chapter 6 requires -stream-exercise EXECUTABLE; Chapters 7/8/9 require -gui STATIC-DIRECTORY; Chapters 14/15/16/18 require -gui EXECUTABLE; Chapter 18 also requires -status-skills DIRECTORY")
+		return 2
+	}
+	if (*gatewayPeer != "" && (!*executableOnly || *chapter != 26)) || (*executableOnly && *chapter == 26 && (!filepath.IsAbs(*gatewayPeer) || *gui != "" || *fleetSkills != "" || *statusSkills != "" || *reuseLegacy || *streamExercise != "" || *sandboxLibrary != "ensemble" || *gatewayWelcome != "QueueDepth" || *recallData != "cr" || *mediaModels != "")) {
+		fmt.Fprintln(os.Stderr, "Chapter 26 -executable-only requires absolute -gateway-peer DIRECTORY and excludes GUI, fleet, provider, Go library and historical welcome flags")
 		return 2
 	}
 	if *executableOnly && *chapter == 22 && (*gui != "" || *fleetSkills != "" || *reuseLegacy || *streamExercise != "" || *statusSkills != "" || *sandboxLibrary != "ensemble") {
@@ -119,7 +124,7 @@ func run() int {
 	if (*chapter == 18 || *chapter == 22 || *chapter == 23) && *executableOnly {
 		buildPath = path
 	}
-	if *chapter == 26 {
+	if *chapter == 26 && !*executableOnly {
 		buildPath = filepath.Join(path, "cmd", "gateway")
 	}
 	bin, cleanup, err := grade.Build(buildPath)
@@ -131,7 +136,11 @@ func run() int {
 	var report grade.Report
 	switch *chapter {
 	case 26:
-		report, err = gradeedition2.Chapter26(bin, path, *gatewayWelcome)
+		if *executableOnly {
+			report, err = gradeedition2.Chapter26Executable(bin, *gatewayPeer)
+		} else {
+			report, err = gradeedition2.Chapter26(bin, path, *gatewayWelcome)
+		}
 	case 21:
 		if *executableOnly {
 			report, err = gradeedition2.Chapter21Executable(bin, *fleetSkills)

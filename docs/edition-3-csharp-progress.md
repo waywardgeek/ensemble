@@ -1,3 +1,753 @@
+## Chapter26 — assembled review complete; source-only endpoint preserved
+
+Chapter26 Gateway is **locally complete** at `solutions/edition-3/ch26`. The book is
+**not fully verified**: Chapter16 live OAuth and Chapter24's bounded live cache
+exercise still require Bill's approved credential-store/setup and participation.
+Chapter27 Goals and Cadence's epilogue were already completed; do not reopen them.
+
+- Personally reviewed the complete 81-file added/changed source/support delta
+  versus ch27, alongside the rewritten manuscript and grader changes. Inspected
+  Common declarations, reciprocal add/remove postconditions, live policy,
+  persistence validation, authenticated replacement, current-session actions,
+  serialized socket writes, queue receipt frontiers, joined cleanup, adapter
+  admission/result correlation and application startup/shutdown. Read tests and
+  working boundary fakes, not merely their pass summaries. No new runtime defect
+  emerged. Corrected stale README status/scope phrases; no production code changed.
+- Verified all 31 vendored C# sources against upstream pin
+  `4279cfa57df028dec4a4cb3ee9579a77a5cc39fa`: only the approved KeyPair import and
+  Transport associated-data API exposures differ. License bytes match. Retained
+  prior dependency/runtime checks; this comparison is not a new crypto audit.
+  Unused upstream Rekey remains unexposed and outside the verified contract.
+- Preserved **415 source/support files**, byte-equal to main, with **23 project
+  references internal**, no symlinks or build/runtime additions. All **334**
+  pre-existing non-README foundation files remain byte-equal to preserved ch27.
+  Earlier endpoints and original Go grader/probe are unchanged. Preservation and
+  scoped whitespace checks exited0 (job6635). No build artifacts or test logs were
+  copied into the endpoint; no installation, restart, deployment or commit occurred.
+- Reused valid unchanged evidence from `/private/tmp/ch26-csharp.HDZGCi`: host7/0,
+  interviewer4/0, adapter6/0 and actual three-C#-process exercise5/0; session15/0
+  then final affected6/0, local client6/0 and wrapper6/0, prior Mac/Pi crypto8/0.
+  Their original logs/results and retained failures are detailed below. The actual
+  Agent interview used a fake HTTP provider, not a live model. No new campaign was
+  run for review or preservation, and no new all-suite result is implied.
+- Executable scope remains **60/60**, four complete server rows C2/C3/C4/C7 using
+  the independent Go peer. C1/C5/C6's forty points remain ungraded, not substituted
+  with library-test credit. `grade-first.json` and retained two-launch artifacts
+  remain the results. Public prose example compilation, six shell blocks, JSON and
+  local-link checks from the preceding slice remain valid.
+
+Next: mandatory chapter-boundary handoff, then only the human-dependent live gate.
+Ask Bill for an explicitly approved credential directory and readiness to complete
+login; never request secrets in chat or search private/default stores. Recheck the
+current official public OAuth endpoint during that session and run the saved small
+three-request cache plan. Do not assume the historical failure or add a workaround
+without current evidence. Idle reminders should be disabled while waiting for that
+setup rather than repeatedly attempting blocked work.
+
+## Chapter26 — C# manuscript rewritten; assembled review remains
+
+The complete saved Gateway chapter has been rewritten against the public C#
+declarations and actual launch programs. Chapter26 remains **incomplete**: assembled
+source/test/prose review, source-only endpoint and mandatory chapter handoff remain.
+No production source changed in this prose slice. The joint Chapter16 OAuth and
+Chapter24 current-endpoint/cache exercise still requires Bill's approved setup.
+
+- Read the full manuscript and compared the preserved pre-reset revision. Retained
+  Deephold/Puffin, boundary trust, handler-return rationale and the earlier live
+  interview as attributed second-edition history—not a new C# live run.
+- Replaced Go APIs/layout/launch instructions with public C# contracts, the five
+  library/application projects, actual flags and Agent-home files. Explained the
+  real ownership graph, current-session checks, sent-frontier receipts, joined
+  shutdown and the difference between mailbox admission, History publication and
+  completed model work. Documented periodic/private snapshots' crash window and
+  lack of a cross-file transaction; no exactly-once or power-loss promise.
+- Dependency prose retains the approved suite, pinned Noise.NET/libsodium,
+  associated-data/private-key-import exposures, native-platform evidence and
+  unused-rekey limitation. API-key-only live recipe is explicitly opt-in; it does
+  not authorize credentials or replace Chapter24's public OAuth/cache exercise.
+- Kept actual three-C#-process/fake-provider evidence separate from historical live
+  model opinions and the 60/60 server-only executable scope; 40 points remain
+  ungraded. Added a transparent flag-translation wrapper, not canned observations.
+- Saved readback/static checks: six shell blocks parse, configuration and wire JSON
+  parse, both local links resolve, tracked manuscript whitespace clean. Corrected
+  inherited historical-evidence link and obsolete pseudo-key. Extracted public
+  client example compiles with zero warnings/errors in `prose-example-build.log`
+  under `/private/tmp/ch26-csharp.HDZGCi`; job6607 exit0. This is compilation, not
+  a new client execution. Existing passing timer/crypto/application/grade campaigns
+  were not rerun for prose. A pager accidentally invoked by `git diff --check` was
+  stopped by its observed PID; subsequent Git checks explicitly use GIT_PAGER=cat.
+- Review inventory `assembled-delta.txt` has 81 added/changed source/support files
+  versus preserved ch27 (including README and pinned ThirdParty/Noise). No missing
+  foundation files. This inventory is **not yet a completed assembled review**.
+  Public declarations, launch roots, interviewer, Requests and Sessions were read
+  for prose; full assembled source/test cross-check remains next. README's stale
+  denial of adapter/grade evidence was corrected. No endpoint exists yet.
+
+## Chapter26 — scoped executable server grader reconciled; prose/review remain
+
+C# implementation, relevant tests and actual-application work are now followed by
+an honest **60/60 executable server grade**. Chapter26 is still **incomplete**:
+manuscript rewrite, assembled source/test/prose review, source-only endpoint and
+mandatory chapter handoff remain. The joint OAuth/cache exercise remains deferred.
+No production source changed during grader reconciliation.
+
+- Fully read `internal/gradeedition2/ch26.go` and `ch26_probe.go.txt`, plus the
+  original seven-row contract `internal/grade/ch27_checks.go`. Edition 3 Gateway
+  uses the Edition 2 **`-ch 26`** route, not the historical Chapter27/Goals numbering.
+- Added opt-in `internal/gradeedition2/ch26_executable.go` and its scope test,
+  connected in `cmd/grade-edition2/main.go`. Existing Go route and probe source are
+  unchanged. Invocation: `-ch 26 -executable-only -gateway-peer ABSOLUTE-GO-PEER-DIR
+  -json SERVER-EXECUTABLE`. Independent peer is explicitly NOT the submitted C#
+  public library. Historical welcome fields and unrelated consumer/GUI/Go flags
+  refuse rather than silently change scope.
+- Four **complete** original rows score: C2 provenance10, C3 authenticated welcomes
+  (including empty/nonempty backlog)15, C4 group routing15, C7 child attenuation20.
+  **40 points remain ungraded:** C1 Noise wrapper15, C5 complete client/delivery
+  contract15, C6 outside public-client dependency boundary10. Independent C# tests
+  and application evidence support these concerns separately; their results are
+  not substituted for grader rows. Go crypto/client success earns no C# credit.
+- Reused the FULL original exercise, including clean process restart and the
+  held-handler/offline scenario, because C3's nonempty counts live inside that
+  scenario. No weakened assertions or duplicate synthetic router. Fatal/unrun
+  rows still fail; separate scope contract tests verify exclusions, weights,
+  missing evidence and abort behavior. No source-shape credit/security-audit claim.
+- `grader-contract.log` passes `^TestGatewayExecutableScope$`; `grader-build.log`
+  clean, job6583 exit0. Eight prelaunch refusal cases retained in
+  `grader-scope-refusals.json`. `grade-first.json`:60/60, all four rows pass;
+  `grade-first.err` empty, job6585 exit0. No correction/regrade was needed.
+  Artifacts `tmp/c26-executable-2028454503`: two real C# server launches, unchanged
+  outside Go peer, generated test identities/config, state and queues. Final
+  `state/queues/parent.json` is `{"next":8,"ack":8,"messages":[]}`. Expected wrong-key
+  and abrupt-peer-close diagnostics remain in server logs, not hidden as defects.
+- Scratch launcher `gateway-grade-host` only translates the historical `-config`
+  and `-print-key` flags to the C# `--` flags and directly execs the already built
+  pinned-SDK Host DLL. Only the outer grader uses `offline`; there is no double
+  env-i stripping the grader's inputs. Explicit peer source is `solutions/ch26`.
+- Saved grader diff reviewed; no runtime, core, crypto, CLI/GUI or preserved endpoint
+  changes. Prior adapter6/0 and actual-three-process5/0 evidence remains below;
+  no timer/crypto/application reruns for timestamps. Last free space9,639,388KiB.
+
+Next: read the current complete `book/edition-3/chapter-26.md` and preserved revision,
+rewrite against saved C# declarations while retaining Bill's rationale, then assembled
+source/test/prose review. The current manuscript still contains Go reference code
+and stale status (client-only). No Chapter26 endpoint or chapter acceptance yet.
+Scratch `/private/tmp/ch26-csharp.HDZGCi`; no owned jobs/workers at this boundary.
+
+---
+
+## Chapter26 — Ensemble adapter and three-process interview verified; grading/rewrite remain
+
+Implemented personally without workers. Chapter26 and the book remain **incomplete**.
+No preserved endpoint changed; no installation, deployment, shared restart, live
+provider/account access or credential-store read. Chapter16 OAuth/Chapter24 cache
+exercise still needs Bill and an explicitly approved store/setup.
+
+- Added optional `Gateway/Adapter/Ensemble.Gateway.Adapter.csproj`, with vocabulary
+  in `Common/Bridge.cs` and bodies in `Bridge/Bridge.cs`. Neither core nor public
+  Gateway references this adapter. A single-use invocation borrows the caller's
+  Agent across an explicit application boundary (like borrowed GUI hosting), owns
+  its public Client lifetime and reply observers, and clears borrowed references
+  after joined teardown. The caller retains Agent shutdown/destruction authority.
+  No second model scheduler, authority store or lossy observation subscription.
+- **Correction to the previous handoff:** actual Common is `Owners.cs`/`Actor.cs`;
+  `Application` is an alias for `Ensemble`, not another root type. Current public
+  admission is `Task<string> SubmitAsync(IEnumerable<Part>, CancellationToken)`.
+  It admits to the actor mailbox synchronously; it does NOT promise synchronous
+  History commit. The adapter passes stamped content as ordinary `TextPart` input,
+  acknowledges only after admission returns, and correlates each reliable result
+  with its own immutable envelope. Only `ResponseMode == "async"` sends a reply;
+  `RespondAsync` preserves conversation/source and requests no recursive response.
+  Failed turns/replies are logged through parent diagnostics, not sent as raw error
+  text. The actual saved Go adapter logs errors and has no child-alias registration;
+  previous handoff descriptions of those features were stale and were not copied.
+- Readiness means authenticated setup plus accepted contactability. Failed startup
+  settles readiness and the joined run with the same failure. Disconnect cancels
+  reply observation, not admitted actor work; late actor faults remain observed.
+  Unexpected disconnect fails the run. No hidden reconnect or persisted receipt.
+  A receipt means mailbox acceptance, not completed/durable inference: process
+  failure can lose admitted work or repeat it. No exactly-once execution claim.
+- Added `Gateway/AgentHost/GatewayAgent.csproj`: composition root owns Ensemble,
+  named Agent home, optional explicit skills, persistence and SIGINT/SIGTERM. API
+  key funding only, announced through existing `FundingDescription()` before
+  inference; model explicit, key from named environment variable, no plan fallback.
+  No skills/tools are activated without `--skills`. Host joins bridge, shuts down
+  Agent, saves after successful initialization, then destroys the application.
+  Ordinary errors log before diagnostic ownership detaches; destruction errors
+  expose type only. Saves use `agents/<id>/session.save.json`, events `events.jsonl`.
+- Six real-component adapter groups pass in `adapter-tests-2.log`, clean build in
+  `adapter-tests-build-2.log`, job6570 exit0. Real Agent, Router, Noise/WebSockets,
+  public clients; only provider replaced by loopback HTTP fake. Covers busy-first/
+  queued-second correlation and receipts before completion, exact queue reply
+  counts, no-response/error behavior, caller and remote disconnect without killing
+  admitted work, closed-Agent refusal before ack, and failed-pin readiness/join.
+  Earlier four-group result `adapter-tests-1.log` is retained, not additional credit.
+- Actual **three C# processes** (Router, AgentHost, Interviewer) passed five checks
+  in `agent-exercise-2.log`, job6568 exit0 after clean `agent-host-build-4.log`.
+  Probe `agent-exercise/main.py`; result
+  `tmp/gateway-ensemble-3y05xdlp/result.json` (5 passed/0 failed, 9 provider requests).
+  Stable key-print without provider config; four actor requests using an explicitly
+  selected local primary skill; exactly correlated report; joined save; restart
+  restoring old answers into the next actual request; SIGTERM during held model
+  HTTP; final-save obstruction producing nonzero exit after teardown. All local
+  fake-provider evidence, NOT live interview quality, provider availability or
+  OAuth/cache behavior. No repeat of unchanged host thirty-second timer campaign.
+- Retained real host defect: `agent-exercise-1.log` / result
+  `tmp/gateway-ensemble-q9pgr53p/result.json` failed startup with **Load before opening
+  History writers**. Corrected startup to recover persistence before opening event
+  log, matching existing CLI. First host build's five guessed signatures were my
+  editing errors, not behavioral failures; corrected from saved declarations.
+  Source review caught post-destruction diagnostic masking risk before exercise.
+- New adapter/host/tests read back as a bounded slice. Full chapter assembled
+  source/test/prose review remains. Core/CLI/GUI, cryptography and Gateway library
+  sources unchanged. Prior host7/0, interviewer4/0, session15/0 then final6/0,
+  client6/0, wrapper6/0 and Mac/Pi8/0 evidence remains separately scoped below.
+
+**Next:** inspect the actual Gateway grader route and assertions, select an honest
+C# executable scope, then manuscript rewrite, complete assembled review, source-only
+endpoint verification and mandatory chapter handoff. No Chapter26 grade exists yet.
+Scratch `/private/tmp/ch26-csharp.HDZGCi`; no owned jobs/workers remain at this slice.
+
+---
+
+# Chapter26 — standalone host and interviewer verified; Ensemble adapter remains
+
+`Gateway/Host/GatewayHost.csproj` is now the standalone ASP.NET composition root.
+The public Gateway library remains independent of ASP.NET and Ensemble. The host
+supports `--config PATH` (default `gateway.json`) and `--print-key`; printing the
+public key does not imply listener readiness. It resolves the configured host:port
+explicitly rather than allowing a hostname to become Kestrel's wildcard listener,
+uses ten-second header limits, and upgrades only the known exact `agent_id` route.
+The caller awaits Router.AcceptAsync through socket teardown. Standard console
+lifetime handles SIGINT/SIGTERM; a host-owned PeriodicTimer saves every30 seconds,
+reports failures and retries the next tick. Shutdown begins HTTP stop, joins the
+saver, joins Router/final save, then completes HTTP stop/disposal. Startup and cleanup
+failures remain visible together. No second policy/session registry was introduced.
+
+`Gateway/Interviewer/Interviewer.csproj` is an independent public-client executable,
+with declarations/state in its own Common and bodies in Interview. A bounded inbox
+accepts deliveries; overflow refuses before ack rather than blocking the receive loop
+or dropping acknowledged data. Four fixed questions each receive a unique conversation
+ID, and answers must match both that ID and the authenticated subject. Exact router
+headers are removed once, preserving answer paragraphs. Positive per-question timeout
+and cancellation/disconnection while waiting for answers prevent report writing.
+Report writing is ordinary file I/O, not atomic publication. SIGINT/SIGTERM cancel and
+join the client. Report files are newly created0600 on the supported Unix platforms;
+existing file permissions remain the caller's choice. These are subject answers, not
+independent performance measurements. No Ensemble runtime is referenced by interviewer.
+
+Evidence under `/private/tmp/ch26-csharp.HDZGCi`:
+- `host-build-1.log` clean before behavior; `host-exercise-1.log` **seven checks pass**,
+  job6515 collected exit0. The temporary Go probe imports the unchanged public
+  `ensemble/gateway` client and starts the actual C# host process. It establishes
+  stable key-only output even with an occupied port, no routing snapshot in key-only
+  mode, nonzero bind failure, strict HTTP preflight, authenticated policy/offline
+  admission, an obstructed periodic save reported on a real30-second tick followed
+  by successful retry on the next tick, SIGTERM joining active and unfinished upgraded
+  requests, restart/reply/resume delivery through durable ack3, nonzero final-save
+  failure after client teardown, and missing/malformed config/unknown-flag refusal.
+  Result: `tmp/gateway-csharp-host-714532677/result.json`; logs and generated identities
+  stay in that owned fixture. This is new Go-client-to-C#-router evidence on this Mac,
+  not Linux execution, deployment, power-loss durability or a security audit.
+- Host source readback led only to expanded cleanup formatting; final
+  `host-build-2.log` clean, job6536 exit0. The unchanged timer campaign was not rerun.
+- `interviewer-build-3.log` clean; `interviewer-exercise-2.log` **four checks pass**,
+  job6533 collected exit0. Actual C# interviewer/host plus unchanged Go subject verify
+  four fixed questions, rejection of wrong-sender/same-conversation and correct-sender/
+  wrong-conversation answers, complete private report, bounded unanswered-question
+  failure, SIGTERM cancellation, and prompt failure on router disconnect. Failure
+  cases leave no report. Result: `tmp/gateway-interviewer-4009733608/result.json`.
+  Earlier three-check run is retained separately; final run follows explicit inbox
+  construction and signal handling. The first interviewer build used a nonexistent
+  Envelope.ProvenanceHeader member; corrected to declared Protocol.ProvenanceHeader.
+  That was my editing/setup error, not a behavioral failure.
+- Probe sources are `host-exercise/main.go` and `interviewer-exercise/main.go` in
+  scratch. They use generated identities, owned loopback resources, bounded process
+  joins, callback/RPC/file boundaries and real exits. The Go subject is not Ensemble
+  and no live provider/model behavior is credited. Core/CLI/GUI and crypto/library
+  code were unchanged, so their earlier evidence was not rerun for timestamps.
+
+Next: thin Ensemble adapter and the actual three-process interview, including busy
+actor request correlation and refusal/shutdown paths; then honest scoped executable
+grading, manuscript rewrite, assembled source/test/prose review, source-only endpoint
+and chapter handoff. Full Go interviewer/gateway-agent source and its two submission
+correlation tests were read. C# Agent.SubmitAsync admits synchronously and returns
+that turn's reliable result; do not add another scheduler or use lossy observations.
+No adapter source, grading scope, chapter endpoint or acceptance yet. Deferred live
+OAuth/cache still needs Bill's explicitly approved credential setup. No deployment,
+private credentials, preserved-endpoint edits or workers were used.
+
+# Chapter26 — identity-owned WebSocket sessions verified; standalone host and adapter remain
+
+The C# Router now serves upgraded WebSockets through `AcceptAsync(id, socket, token)`;
+HTTP/listener ownership stays with its caller. `ContainsIdentity` is preflight, not
+authentication or a reservation, and admission is rechecked after upgrade. The base
+Gateway library still has no ASP.NET/core/CLI/GUI reference. Tests alone use ASP.NET
+for an owned loopback host. There is **no standalone C# host or Ensemble adapter yet**,
+and no chapter acceptance or deployment.
+
+`Common/Session.cs` declares identity-owned pending/active sessions, their socket,
+Noise child, lifetime, write gate, coalesced delivery wake, per-session sent frontier,
+and shared completion. `Router/{Session,Sessions}.cs` implements them. All pending
+handshakes are real owned children. Current is a weak selection among those children,
+not copied authority. KK plus identity/version-matched hello must succeed before
+replacement; a future hello receipt refuses without evicting the old session.
+Replacement changes authority under the root gate, then closes the old socket outside
+it. Subsequent RPC/response/receipt policy actions and current-session checks share
+the gate. Acknowledgments cannot exceed that session's delivery frontier. Encryption
+and send share one writer gate; no socket write holds the policy gate. Write failure
+after nonce advancement is terminal. Queue admission signals the live recipient;
+wake signals contain no copied messages or permissions. Handler-return receipt and
+at-least-once/replay semantics remain unchanged.
+
+Session teardown cancels and joins delivery/read work, disposes Noise/socket resources,
+and removes the identity link before settling its join. Router closes admission,
+joins all captured sessions (including unfinished handshakes), then saves and destroys
+the graph. Concurrent and subsequent DisposeAsync callers share one outcome; a failed
+final save/cleanup cannot become success on the next call. The HTTP caller observes
+connection/protocol errors; Router's join treats cleanup failures separately from
+malicious peer input. Private faulted joins are explicitly observed without hiding
+failures from their callers. Noise now accepts a Session strong owner in addition to
+Client/standalone roots; the third-party crypto source is unchanged.
+
+Evidence in `/private/tmp/ch26-csharp.HDZGCi`:
+- `session-build-4.log` clean; `session-tests-3.log` **15/0**: the nine existing
+  policy/snapshot groups (including copied retained Go files) plus six real server
+  groups. These cover public C# clients, concurrent RPCs/deliveries and response
+  provenance; offline replay/lost receipt and restart through ack3; failed key/hello/
+  future receipt leaving the old session active; authenticated replacement; blocked
+  socket delivery with other RPCs/save proceeding and rejection of ack2 while only
+  sequence1 began sending; malformed/duplicate/text/tampered/oversized frames; and
+  joined shutdown of pending and active sessions.
+- Final review added lifetime-cancellation checks and explicit private-fault observation.
+  `session-build-5.log` clean; `session-tests-4.log` **6/0** is the focused final server
+  run, additionally exercising the real ten-second handshake deadline (not a fixture
+  timeout) and a transport-disposal failure with complete detachment/final save and
+  failure still reported. Job6492 collected exit0. The earlier 15-group run is not
+  relabeled as following these final changes.
+- Ownership/welcome changes warranted affected local regressions:
+  `session-client-build.log`, `session-wrapper-build.log` both clean;
+  `session-client-tests.log` **6/0**, `session-wrapper-tests.log` **6/0**;
+  job6497 collected exit0. No new Go peer or Linux execution in those regressions.
+  Prior Go-router client7/0 and Mac/Pi crypto8/0 remain separately scoped evidence.
+- `session-tests-2.log` retains **11 pass/4 fail**. Three failures exposed a real
+  product bug: global default omission removed required `queue_depth:0` from welcome.
+  The unchanged Go `WelcomePayload` tag has no omitempty, so the C# field now explicitly
+  serializes zero. I prematurely called this a test mismatch before reading the tag;
+  that classification was wrong. The fourth failure was an old test expecting a second
+  DisposeAsync to hide its failed save; the new shared-result contract preserves it.
+  Earlier build logs retain test API-name mistakes; those were setup failures, not
+  behavioral failures or acceptance credit.
+
+Saved session/Common bodies and affected ownership paths were read back; full assembled
+chapter source/test/prose review still lies ahead. Core/CLI/GUI are unchanged. Next:
+standalone host with --config/--print-key, real listener lifetime and 30-second saves,
+actual-process checks and Go-client-to-C#-router interoperability; then interviewer and
+thin Ensemble adapter, remaining application checks, honest executable grading,
+manuscript rewrite, assembled review, source-only endpoint and chapter handoff.
+`solutions/ch26/cmd/gateway/main.go` was fully read for the host contract: public-key
+output is not readiness, periodic save failures are reported/retryable, and orderly
+stop closes listener admission before joined router/final save. No periodic runner
+has yet been added. Deferred OAuth/cache still needs Bill and an approved setup.
+
+# Chapter26 — C# router policy, administration and snapshot core verified; sessions remain
+
+The standalone Gateway now includes a real Router policy graph and durable queue
+core, not a running C# router service. `Gateway/Common/Router.cs` declares the root,
+identities, groups, queues, immutable boundary records and operations.
+`Router/{Router,Model,Administration}.cs` supplies the bodies; `RouterTests` exercises
+them. Router owns identities/groups; each identity owns its queue. Base membership,
+runtime grants and contactability are distinct reciprocal links. Constructors call
+parent add methods; destruction removes all links and children, retaining files.
+Mutations validate full proposed sets before publication under the root gate.
+Readers/mutators revalidate ownership after acquiring that gate. Runtime-group
+deletion also removes child base memberships and contacts, preventing accidental
+regrant when a name is recreated. There is no copied configuration authority in a
+connection, second scheduler, core/CLI/GUI change, or third-party crypto change.
+
+Implemented the seven actual MCP tools, caller-derived authority, narrow child
+registration, immutable bootstrap groups, live runtime administration, strongest
+*accepted* group provenance, and sequence/receipt queues. Oversize delivery refuses
+before sequence allocation. Snapshots use the Go `state.json` maps and
+`queues/<validated-id>.json` (plain ID, including colon; the older URL-escaped note
+was wrong). Retired group/sender references in envelopes remain historical values,
+not resurrected policy links. Queue restore requires a coherent contiguous pending
+tail and preserves drained frontiers. Optional Go strings normalize through one
+shared Protocol helper; required data and duplicate JSON properties still refuse.
+Save replaces individual 0600 files, with new directories 0700; existing parents
+are not chmod'd. This is ordinary periodic/orderly-snapshot durability, **not**
+fsync or a cross-file transaction. Periodic execution itself awaits the host/session
+slice. Explicit save failure leaves live state retryable; final save failure still
+detaches the graph. Missing files default; malformed or obstructed paths refuse.
+
+Evidence in `/private/tmp/ch26-csharp.HDZGCi`:
+- `router-tests-build-6.log`: actual final build, zero warnings/errors.
+- `router-tests-6.log`: nine groups pass: reciprocal ownership/refusal, accepted
+  provenance/queue admission, attenuated registration/live administration,
+  restart/receipt retention, independent Go-shaped persistence/fail-closed restore,
+  save-failure retry and destruction, RPC/schema contracts, concurrent admission
+  and saving, plus restore from a **copy** of the retained real Go client fixture.
+  That final check restored bob's next=3/ack=3/contactability and allocated four;
+  it did not rerun or modify the Go service/fixture.
+- Shared optional-envelope normalization warranted a client regression:
+  `router-codec-client-build.log` clean and `router-codec-client-tests.log` six local
+  groups pass; job6459 collected exit0. No Go peer was requested in that regression.
+  Prior client7/0 and Mac/Pi crypto8/0 remain separately scoped, unchanged evidence.
+- `router-path-baseline.log` retains a genuine failure: ENOTDIR surfaced as
+  DirectoryNotFoundException and was incorrectly treated as empty state. Fixed
+  by distinguishing absence from existing non-directory/dangling paths; the
+  expanded test covers both. Early build logs retain my harness/API-name errors
+  (GenerateKeypair/Public/MaxPlaintext/DataDirectory) and Frame-construction/analyzer
+  corrections; these were setup/editing failures, not behavioral verification.
+
+Readback covered Common and all three implementation bodies and compared admin
+schemas/results against the actual Go source. This is slice review, not the final
+assembled chapter source/test/prose review. No C# socket-host, session authentication,
+connection replacement, periodic saver, or Ensemble adapter is implemented yet;
+no application/grade/endpoint/chapter acceptance is claimed. Preserve ch27 and the
+resolved Noise dependency; no reason to repeat unchanged primitive campaigns.
+
+Next: identity-owned sessions with real Session/Noise ownership; authenticate fully
+before replacing active connection; current-session checks and sent-sequence-bounded
+receipts; serialized writes/delivery wakeups outside the policy gate; joined close
+and final save; standalone hosts/interviewer and existing-actor Ensemble adapter.
+Then focused interoperability/application checks, honest executable grading,
+manuscript rewrite, assembled review, source-only endpoint and chapter handoff.
+Chapter16/24 live OAuth/current-endpoint/cache work still needs Bill and an explicitly
+approved credential store/setup. No deployment, restart, private-credential search,
+workers or outstanding owned jobs at this boundary. Last free-space observation
+9,901,860KiB (not a guarantee); keep at least1GiB free. Goal remains enabled at480s.
+
+---
+
+## Chapter26 — public WebSocket client verified against real Go router; C# router remains
+
+Continued personally without workers; complete-book goal remains enabled at480s.
+Gateway is INCOMPLETE. This slice adds wire values, strict codecs, and the standalone
+public Client; it does not add the C# router, durable queue/policy owner, executable
+hosts, Ensemble adapter, chapter grading, final rewrite/review or preserved endpoint.
+Joint16 OAuth/24 current-endpoint/cache work remains open. No deployment, restart,
+private-account access or changes to preserved endpoints/Core/CLI/GUI.
+
+Common/{Protocol,Client}.cs declares immutable value-like records, IHandler/NopHandler,
+actual Client persistent state and partial callable members. Protocol/Wire.cs and
+Client/{Client,Requests}.cs implement them; the project includes those directories.
+Client is a standalone root, owns its socket/cancellation/RPC state and Noise child;
+NoiseKK now supports a Client-owning constructor with two-way registration/removal,
+while standalone roots remain supported. The borrowed application handler is not a
+second owner/scheduler or something the client destroys. No actor dependency.
+
+Connect pins the existing KK suite/prologue, sends hello, validates encrypted welcome
+and identity, then notifies the handler before starting its sole receive loop. One
+write gate covers encrypt+send; failure/cancellation after encryption closes rather
+than reuse the advanced nonce. Binary frames are bounded and fragmented reads joined.
+Delivery callbacks run sequentially; a return permits cumulative receipt, and memory
+receipt advances only after a successful write. Duplicate seqs are reacknowledged
+without rerunning handler. Refused callbacks remain unacknowledged. Close interrupts;
+Done/DisposeAsync join receive, resource release and final notification, including
+surfaced callback failure. External lifetime cancellation settles pending calls.
+Request cancellation removes just that waiter; late responses cannot attach to a new
+request. MCP tools/list, arbitrary Request/CallTool, send, respond, contactability and
+child registration follow actual reference API. No invented revoke/group convenience
+methods remain. Respond preserves conversation without asking for another async reply.
+No automatic reconnect, persisted client receipt or exactly-once claim.
+
+The codec rejects duplicate JSON properties and malformed required fields. Explicit
+JSON-RPC result:null is a present successful value, not absence; a focused baseline
+reproduced premature close before fixing nullable JsonElement decoding. Omitted Go
+optional strings normalize to empty, while required provenance/content stays strict.
+ProvenanceHeader formats just the header, not its following separator/body.
+
+Real interoperability finding: I initially used `seq` on hello/ack instead of the
+reference's `last_acked_seq` (envelopes correctly use seq). The fake repeated that
+assumption and passed six groups; unchanged Go retained receipt0 after deliveries,
+exposing the defect. Fixed the tag and fake and compared the whole protocol. Final
+real-Go queue has `ack:3,next:3,messages:null` (no outstanding messages), not merely
+a client-side receipt. This
+is why fake agreement was insufficient; repeated guessed contracts/anchors were my
+avoidable process failures, not extra verification credit. Other saved corrections
+cover header separators, response-mode omission and optional-string decoding.
+
+Gateway/ClientTests is a dependency-free test executable plus framework-only local
+ASP.NET WebSocket peer: six groups exercise real Noise/wire, held callbacks, duplicate
+receipt, reordered/canceled RPCs, explicit-null outcomes, malformed/ambiguous outcomes,
+text/oversize/tamper refusal, wrong pin/welcome/deadline, cancellation and joined teardown.
+A seventh launches the unchanged solutions/ch26/cmd/gateway binary with generated
+identities and an owned loopback port. It establishes contactability through RPC,
+queues offline messages, receives ordered router-stamped provenance, reconnects with
+receipt, replies with correlation, and checks saved receipt after joined SIGTERM.
+This is an actual Go host + C# client exercise, NOT a C# router/Ensemble application.
+
+Final evidence in /private/tmp/ch26-csharp.HDZGCi:
+- client-final-4-build.log: zero warnings/errors.
+- client-final-4-tests.log:7 passed,0 failed (six fake-boundary groups plus real Go).
+- client-owned-noise-regression.log: six existing local groups pass after owner change;
+  Go primitive-peer interop explicitly not rerun. Existing Mac/Pi8/0 evidence retained
+  at its prior boundary, not relabeled as Linux WebSocket-client testing.
+- Job6424 collected exit0. Successful Go fixture tmp/gateway-go-client-
+  eb6d218608614e47b34ab407ab5eb21d retains config/identities, deliveries/reply, router
+  state/queues and stderr/stdout. Go process joined; no deployment. Test configuration
+  uses only generated keys, no live credentials. Disk remains well above1GiB.
+
+Retain client-null-baseline.log and client-final-2-tests.log (receipt0), earlier test
+logs and failed fixtures. Harness-only failures: wrong map/array config schema,
+nonexistent health route and MCP ping, wrong expected stamped content/group, guessed
+project/storage paths. These failed before their respective intended assertions and
+are not router product defects. Refusal helper now excludes timeout as expected
+failure. Source edits are limited to Gateway (including Noise ownership there),
+documentation/cursors; third-party algorithms/assembly unchanged. Gateway/README.md
+states ownership, lifecycle, reproducible checks and explicit limits.
+
+Next: actual Common router identities/groups/queues/connections, durable state/admin
+and server host, then Ensemble adapter/interviewer and required actual applications,
+honest scoped grader, manuscript rewrite, assembled review, source-only endpoint and
+chapter handoff. Read actual reference/grader contracts before editing; do not repeat
+unchanged dependency/Pi campaigns or treat this client result as chapter completion.
+
+## Chapter26 — public key/Noise layer verified on Mac and xyzzy; client/router remain
+
+Bill re-enabled complete-book execution at fixed480-second idle reminders, then
+said “Please continue.” Reminders remain enabled. Continued personally, no workers.
+Chapter26 is INCOMPLETE: this slice adds the standalone public transport/key layer,
+not WebSockets, routing, delivery persistence, MCP administration, Ensemble adapter,
+actual application exercise, executable grade, final prose/review or endpoint.
+Chapter27/earlier endpoints remain untouched; live16 OAuth and24 cache check stay open.
+
+New standalone Gateway/Ensemble.Gateway.csproj compiles Common/Cryptography.cs and
+Cryptography/{Keys,NoiseKK}.cs. Common owns the actual partial declarations and all
+persistent state; the library references only the identified Noise dependency,
+not Ensemble core/GUI. Keypair is explicitly immutable/value-like; its public half
+is derived from supplied private bytes. NoiseKK is currently a standalone session
+root that explicitly disposes its upstream resources, serializes calls, preserves
+handshake payloads and AD, bounds transport messages, and makes authentication
+failure terminal. No rekey is exposed. When connection ownership is introduced,
+model that real relationship and both ends rather than hiding copied services.
+
+Key import needed a second narrow upstream API exposure: KeyPair.Generate(span)
+validates32 bytes and calls existing dh.GenerateKeyPair(privateKey). No new curve,
+cipher, KDF, hash, nonce or handshake algorithm. Of31 copied upstream C# files,
+only KeyPair.cs and Transport.cs now differ from the pinned v1.0.0 commit. License,
+provenance and separate Ensemble.Noise assembly remain; dependency README updated.
+The earlier five-group AD evidence remains historical, not relabeled as this slice.
+
+Keys.LoadOrCreateKeypair uses the historical base64-private-only file format, fresh
+public derivation, bounded strict UTF-8 reads and fail-closed malformed/permission
+errors. New directories/files are0700/0600; existing directories are not chmod'd.
+An owned same-directory temporary is flushed then atomically/exclusively linked
+into the destination on macOS/Linux. A concurrent loser loads the winner. Cleanup
+removes only a temporary actually created by this call and preserves an original
+failure. Unsupported platforms/filesystems refuse rather than weaken file privacy
+or atomicity. No directory-fsync/power-loss, sandbox or secret-store-search claim.
+
+Real finding: File.Move(temp,destination,overwrite:false) allowed concurrent callers
+to return different identities on this Mac. public-tests.log retains the failing
+seven-pass/one-fail run and failed private fixture. The .NET10 Unix source's
+check-then-replacing-rename path explains why this was insufficient; fixed with
+exclusive link and exact EEXIST handling, no broad retry. This is not a crypto issue.
+Source inspected: https://github.com/dotnet/runtime/blob/v10.0.0/src/libraries/System.Private.CoreLib/src/System/IO/FileSystem.Unix.cs.
+
+Focused suite now has six local groups and two real-Go interoperability groups.
+New groups cover immutable import/encoding, malformed/short/oversized keys, twelve
+concurrent creators, exact file format/permissions, restoration/no-overwrite, public
+session disposal and terminal refusal. The two peer groups now run through public
+C# NoiseKK with imported private bytes against the byte-identical Go wrapper in
+both roles, with empty/text/binary AD and empty/Unicode/4096-byte payloads. Low-level
+nonce-retention tests remain separate from the public session's terminal failure.
+This is concurrent-call evidence, not a two-process credential-store campaign.
+
+Final evidence /private/tmp/ch26-csharp.HDZGCi: public-final-2-build.log clean with
+zero warnings/errors; public-final-2-mac.log8/0; public-linux-2-build.log clean
+self-contained ARM64 publish; public-go-linux-2-build.log; public-xyzzy-2.log8/0 and
+public-xyzzy-2.exit0. Job6370 collected exit0. scp/checksum and actual Debian ARM64
+execution used new owned /tmp/cadence-noise-probe.ec1JcZ/public-transport, not the
+prior ad-extension directory. No deployment/shared service touched. Earlier failed
+chains stopped before remote setup. Core/CLI/GUI projects are unchanged; their
+old tests were not needlessly rerun or relabeled. Public source/tests reviewed;
+upstream delta, internal references and added public-source whitespace checked.
+
+Setup corrections retained: first public build passed spans to the pinned upstream
+array API; fixed owned copies and erased the temporary private copy. A later build
+correctly refused Unix mode calls because the analyzer needed an explicit Windows
+exclusion; no warning suppression. Both are build failures, not behavior results.
+Final ownership cleanup guard is included in the final Mac/Pi results above.
+
+Read the full current717-line chapter, Go public types/client/noise and full router
+server lifecycle; inspected existing Common/project boundaries. Chapter26 TL;DR
+now specifies the C# standalone assembly, Common/functional layout and ownership,
+and explicitly marks remaining Go draft sections as reference, not implementation.
+The rest of the manuscript is NOT rewritten or reviewed as final. Next read the
+remaining actual admin/group/storage/grader contracts and implement public wire
+values, WebSocket client, router and durable delivery with real parent relationships,
+then adapter and the full chapter completion loop. Do not restart dependency campaigns.
+
+## Chapter26 — approved AD forwarding extension verified on Mac and xyzzy; Gateway incomplete
+
+Bill approved preserving associated data via a narrow source extension, then said
+“Please proceed.” Suite remains Noise_KK_25519_ChaChaPoly_SHA256. AD decision is
+resolved, not a remaining human blocker. Implemented only the dependency extension
+and focused tests in this slice; C# Gateway client/router/adapter are NOT implemented.
+No preserved endpoint edited, no install/deployment/restart/commit or private keys.
+
+Source: solutions/edition-3/main/ThirdParty/Noise copies31 C# files from exact
+upstream v1.0.0 commit4279cfa57df028dec4a4cb3ee9579a77a5cc39fa. All except Transport.cs
+are byte-identical, as is the MIT license. New three-argument overloads pass AD into
+existing CipherState EncryptWithAd/DecryptWithAd; two-argument methods delegate with
+empty AD. No primitive, nonce, KDF, handshake or hash algorithms changed. Local
+Noise.csproj targets net10, retains upstream C#7.2/nullability conventions, names the
+modified assembly Ensemble.Noise, pins native libsodium exactly1.0.22. This is an
+identified third-party dependency, not a structural rewrite into course Common.
+Core/CLI/GUI project files and NuGet.Config match ch27; core has no new dependency.
+
+Gateway/Tests/NoiseTests.csproj is a standalone real-library test executable, with
+no test framework/provider fake. Three groups cover legacy/new empty AD, nonempty
+and binary AD in both directions, empty/Unicode/65519-byte payloads, argument/disposal
+refusal; changed/omitted AD, altered tag and replay rejection with nonce retention;
+wrong configured static keys/prologue. Two additional groups speak over pipes to an
+actual Go peer importing a byte-identical copy of solutions/ch26/gateway/noise.go
+with flynn/noise1.1.0, in both initiator/responder arrangements. Each direction tests
+empty/Unicode/4096-byte payloads and empty/text/binary AD, including wrong-AD refusal.
+Go peer has no production authority, temporary keys only, bounded replies, joined
+EOF exit and owned-process cleanup. It is not an invented compatible algorithm.
+Tests retry rejected input to inspect nonce behavior; production Gateway policy
+still closes authentication-failed connections. Peer manifests and reproduction
+instructions are saved; original Go wrapper is copied only to scratch for execution.
+
+Evidence: scratch /private/tmp/ch26-csharp.HDZGCi (pointer cadence-ch26-current),
+noise-restore.log/noise-build.log clean, go-peer-build.log, noise-tests.log5/0,
+job6316exit0. Self-contained osx-arm64 and linux-arm64 publishes succeed. Published
+Mac result published-mac-tests.log5/0. Cross-built Go peer CGO-disabled ARM64;
+scp into owned existing remote scratch subdirectory
+/tmp/cadence-noise-probe.ec1JcZ/ad-extension; archive checksum verified; actual Pi
+run xyzzy-tests.log5/0 and xyzzy-tests.exit0; job6318exit0. Both machines executed
+modified source, not merely the previous unmodified package. No claims for ARM32
+modified build, AESGCM, other Noise patterns, or audit. No other tests relabeled or
+rerun: existing Ensemble runtime was not changed. Logs and remote scratch retained.
+
+Review limitation: upstream CipherState.Rekey copies key.Slice(Aead.KeySize), a
+16-byte suffix of48-byte result, unlike Go's first32. Existing Gateway has no rekey
+calls. Recorded this source discrepancy in dependency README; did NOT claim a tested
+rekey failure, silently fix a primitive/state routine, or rely on it. Do not expose
+rekey in Gateway without separate review/correction and interoperability checks.
+
+Avoidable inspection errors: guessed keys.go (actual key helpers are in noise.go),
+one clipped combined source read and a stale rekey line range. Recovered exact
+source; these are not product failures. All build/runtime checks above passed on
+first executed run. After runtime verification, only documentation, gofmt and test
+manifest/reproduction files changed; reduced go.sum rebuild passes readonly.
+
+Current next work: faithfully implement public Gateway wrapper/client/router and
+adapter using this dependency, with Common-owned vocabulary and real ownership;
+read actual wire/storage contracts before declaring them. Then focused behavior,
+application/grade reconciliation, chapter rewrite/review and source-only endpoint.
+No extra approval needed for the agreed AD forwarding or suite. Chapter24 live
+OAuth/cache remains human-dependent. Goals/epilogue remain complete. Reminders off.
+Last local free space9,875,728KiB; remote10,430,384KiB. All jobs collected, no workers.
+
+## Chapter26 — Bill selects ChaChaPoly; public associated-data API mismatch identified
+
+Bill: “Let's go with ChaChaPoly.” Confirmed suite is
+Noise_KK_25519_ChaChaPoly_SHA256, preserving Ensemble's existing protocol.
+Continuation uses the tested Noise.NET1.0.0/libsodium1.0.22 candidate; no Gateway
+runtime code or repository dependency changed yet. AESGCM investigation is no
+longer on the critical path. Read full current717-line chapter and procedure.
+
+Exact remaining dependency/API issue, not an unsupported crypto redesign:
+- solutions/ch26/gateway/noise.go exposes Encrypt/Decrypt(data, associated),
+  forwarding associated bytes to flynn/noise CipherState.
+- solutions/ch26/gateway/noise_test.go tests transport with nonempty `binding` AD.
+  Chapter26 public independent Noise contract likewise includes associated data.
+- All actual Gateway client/server transport calls pass nil AD. Existing wire
+  behavior therefore matches Noise.NET's transport for this chosen suite.
+- Noise.NET1.0.0 Transport.WriteMessage/ReadMessage omit an AD argument; inspected
+  Transport.cs forwards null to internal EncryptWithAd/DecryptWithAd. The required
+  primitive support exists internally, but the published API doesn't expose it.
+  Source retained at /private/tmp/cadence-noise-probe.ENFVit/source/Transport.cs;
+  upstream https://github.com/Metalnem/noise/blob/master/Noise/Transport.cs .
+
+Need Bill's choice: retain full wrapper compatibility by a small source-level
+Noise.NET extension forwarding AD to its existing routines, or explicitly narrow
+C# public transport API to Gateway's empty-AD use. Do not silently discard AD,
+prepend it to plaintext, reflect into library private state, substitute primitives,
+or claim the existing probe tested nonempty AD/Go interoperability. Both options
+preserve ChaChaPoly; the decision concerns public API/dependency maintenance only.
+Goal reminders remain off at this real contract decision. Chapters24 and26 remain
+open; completed27 endpoint/epilogue untouched. Last disk10,225,896KiB.
+
+## Chapter26 remote probe — xyzzy ChaChaPoly passes; AESGCM availability refuses
+
+Bill authorized `ssh xyzzy` and instructed use of scp. Connected using existing
+SSH configuration with BatchMode and strict existing host-key checking. Read-only
+platform inspection: Debian12/bookworm, Linux6.12.25+rpt-rpi-2712, aarch64/64bit,
+glibc2.36. Linux CPU flags include aes and pmull. No installation or service changes.
+
+Transferred the existing self-contained linux-arm64 probe by scp into owned private
+`/tmp/cadence-noise-probe.ec1JcZ` on xyzzy; SHA256 of archive verified before unpack.
+Ran with isolated home/tmp/env and60s timeout. Remote .NET10.0.14 execution:
+- Noise_KK_25519_ChaChaPoly_SHA256 PASS: two-message handshake payload/hash agreement,
+  consecutive bidirectional transport (empty/UTF8/4096bytes), wrong static-key
+  rejection at both identity configurations, altered-ciphertext rejection.
+- Noise_KK_25519_AESGCM_SHA256 FAIL: Noise.NET constructor throws NotSupportedException
+  because libsodium reports AES-GCM unavailable. Combined probe exit1; transfer/job
+  exit0 must not be relabeled as all tests passing. Job6288 collected.
+
+Follow-up loads the exact bundled native .so through Python ctypes after sodium_init:
+version1.0.22, NEON1, ARMCRYPTO0, AESGCM availability0. Remote/local library SHA256
+match54f416a70e0d982a63e7f2402ff6f2a8666bf0a430404a4205ed8eee1868b9db.
+Read-only objdump shows actual AES implementation present, availability calling
+sodium_runtime_has_armcrypto rather than a constant unsupported stub. Thus do NOT
+claim xyzzy lacks AES hardware or that the library compiled AES out; discrepancy
+between OS flags and native detection remains unresolved. No feature check bypass,
+cipher substitution, native library replacement, or protocol change attempted.
+
+Logs copied back to local scratch `/private/tmp/cadence-noise-probe.ENFVit`:
+xyzzy-platform.log, xyzzy-execution.log, xyzzy-run.log/.exit,
+xyzzy-native-features.log, xyzzy-aes-disassembly.log, xyzzy-scp.log,
+xyzzy-upload.sha256 and xyzzy-scratch.txt. Remote scratch retained, no shared cleanup.
+Last remote free space10,555,816KiB. No remote background jobs remain.
+
+This is actual Mac-and-Pi execution for ChaChaPoly, not merely cross-publish.
+AESGCM passes on Mac but not xyzzy with this package. Same-library round trips do
+not prove Go interoperability or constitute an audit. Gateway dependency adoption
+and intended suite still require Bill's confirmation; no repository runtime changes.
+
+## Chapter26 dependency probe — Noise.NET works on this Mac; Pi execution and adoption pending
+
+Bill authorized an isolated library test on this Mac and assessment of cross-building
+for Raspberry Pi `xyzzy`. No Gateway implementation, production dependency adoption,
+remote connection, global install, restart, or preserved-endpoint edit occurred.
+Scratch: `/private/tmp/cadence-noise-probe.ENFVit`; pointer
+`/private/tmp/cadence-noise-probe-current`. Package restore/cache/home/tmp are local
+to that scratch, using existing SDK10 under env-i. Probe source uses real Noise.NET
+operations and throwaway keys, not replacement crypto or a scripted peer.
+
+- Noise.NET1.0.0 default restore selects libsodium1.0.16. Clean compile, but both
+  suites fail native initialization with DllNotFoundException on ARM64 macOS.
+  That package has osx-x64/linux-x64/windows native assets, not ARM assets.
+  Evidence: baseline-restore.log, baseline-build.log, baseline-run.log and .exit=1.
+- Explicit libsodium1.0.22 alongside unchanged Noise.NET1.0.0: clean build and
+  successful execution on macOS26.3.1 ARM64/.NET10.0.14. Both
+  Noise_KK_25519_ChaChaPoly_SHA256 and Noise_KK_25519_AESGCM_SHA256 pass two-message
+  handshake/hash/payload checks, consecutive bidirectional transport with empty,
+  UTF-8 and4096-byte payloads, wrong configured static keys on either side, and
+  altered transport ciphertext rejection. current-run.exit=0.
+- Self-contained publishes for osx-arm64, linux-arm64 and linux-arm all succeed.
+  file inspection confirms Mac ARM64 apphost plus matching dylib, Linux AArch64
+  apphost/libsodium.so, and Linux ARM EABI5 apphost/libsodium.so. This is RID-targeted
+  publish with bundled runtime/native assets, not a NativeAOT claim. Published Mac
+  executable repeats both passing suites, published-mac-run.exit=0. Job6285 exit0.
+- xyzzy was NOT contacted. Its OS/CPU/runtime prerequisites and actual execution
+  remain unknown. AES-GCM specifically needs CPU crypto support; the actual C#
+  wrapper rejects when libsodium's availability check fails. Neither cross-publish
+  nor a same-library round trip proves Go interoperability or security auditing.
+
+Primary source: https://github.com/Metalnem/noise (actual HandshakeState, Protocol,
+Aes256Gcm and Libsodium source read); package versions/assets from
+https://api.nuget.org/v3-flatcontainer/libsodium/index.json ; hardware limitation:
+https://doc.libsodium.org/secret-key_cryptography/aead/aes-256-gcm (HTTP200).
+Temporary .NET dependency restores are test-only; no repository project changed.
+Last observed free space10,260,356KiB. All probe jobs collected. Next: obtain
+permission for a temporary non-installing run on xyzzy and establish its platform;
+confirm dependency adoption before continuing Gateway. Reminders remain off.
+
 ## Epilogue complete — independent authorized work finished; two human-dependent items remain
 
 Replaced `book/edition-3/epilogue.md` with **What we can rebuild**, in Cadence's

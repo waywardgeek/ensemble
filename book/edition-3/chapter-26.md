@@ -25,52 +25,50 @@ boundary. That router belongs in the framework, not bolted on after.
 
 ## TL;DR
 
-The gateway is a standalone edge service that sits at the trust boundary,
-routing messages between agents over Noise-KK encrypted WebSocket
-connections. It uses group-based access control where an agent's
-capabilities derive from its group memberships, and parents can grant
-children a subset of their own groups (narrow only, never widen). The
-gateway administration surface is exposed as MCP tools tunneled over the
-same Noise-KK connection.
+Gateway is a standalone authenticated message router. It connects independently
+running applications over Noise-KK encrypted WebSockets, enforces group policy,
+and stamps messages with provenance before they reach an agent. It owns no
+Ensemble Agent and makes no model calls.
 
-Build a public client library in `gateway/` with a `Handler`
-interface, a `Client`, Noise-KK handshake, and envelope types. The library
-must have zero imports from the module’s `internal/` packages. Build a server in
-`internal/gateway/` with WebSocket connections, group-based routing,
-an offline queue, and MCP administration tools. Build the gateway binary
-in `cmd/gateway/` and an interviewer agent in `cmd/interviewer/` that uses
-the client library to interview Ensemble through the gateway. An adapter in
-`cmd/gateway-agent/` constructs the real public Ensemble root and Agent,
-submits stamped messages through its existing actor, and routes completed
-answers back. The router itself owns no Agent and makes no model calls.
+The C# implementation has five parts:
 
-The required public welcome fields are `AgentID string`, `QueueDepth int`
-and `ServerVersion string`; their JSON keys are `agent_id`, `queue_depth`
-and `server_version`. Queue depth counts outstanding deliveries after resume.
-Section 26.4 supplies the rest of the public callable contract; Section 26.6
-supplies the complete launch configuration and three-process exercise.
+- `Gateway/Ensemble.Gateway.csproj`: public client, key/Noise wrapper, wire values,
+  router policy, durable queues and server sessions. No core, GUI or ASP.NET dependency.
+- `Gateway/Host`: Kestrel listener, thirty-second saves and joined shutdown.
+- `Gateway/Interviewer`: an independent consumer of the public client.
+- `Gateway/Adapter`: a scoped bridge borrowing an existing Ensemble Agent.
+- `Gateway/AgentHost`: the application that constructs, restores, saves and destroys
+  that Ensemble. Neither library depends on this composition root.
 
-A handler return accepts delivery and triggers its acknowledgment. It does
-not promise completed or durable model work. Preserve offline queues and
-explicit reconnect receipts, snapshot dynamic state every thirty seconds
-and at orderly shutdown, and retain the at-least-once boundary. Store pending
-messages privately: transport encryption does not encrypt queue files.
+`Common` declares each assembly's vocabulary, persistent state and callable partial
+members; functional directories implement them. Router owns identities and groups.
+Identities own queues and all pending/active sessions. Sessions own sockets, Noise
+and their I/O lifetime. Group relationships are reciprocal; live policy is not
+copied into connections. Keys, envelopes and snapshots are explicitly value-like.
 
-Build and grade from the repository root:
+Preserve `Noise_KK_25519_ChaChaPoly_SHA256`. Use the pinned Noise.NET source and
+libsodium dependency, not invented cryptography or a quietly substituted suite.
+Authenticate a replacement before it can displace the current connection. Serialize
+writes outside the policy lock. Accept receipts only within the proper frontier.
 
-```sh
-go run ./cmd/grade-edition2 -ch 26 solutions/ch26
-```
+A delivery handler's return accepts work; it does not establish completed or durable
+model work. Queues survive orderly restart through private snapshots. Periodic
+saves leave a crash window, and individual file replacements are not a transaction
+across all queues and policy. This is not exactly-once execution.
 
-| # | Behavior | Check | Points |
-|---|----------|-------|--------|
-| 1 | Noise-KK handshake | Two peers complete mutual authentication over a byte stream. Wrong keys are rejected. | 15 |
-| 2 | Prompt envelope with provenance | Delivered body and authenticated provenance agree, with conversation and response mode preserved. | 10 |
-| 3 | Gateway server accepts connections | Actual binary welcomes multiple authenticated clients with identity, version and empty/nonempty queue counts. | 15 |
-| 4 | Group-based routing | Agent declares contactability by group. Gateway delivers messages only from senders whose group membership the recipient has accepted. Unauthorized sends are rejected. | 15 |
-| 5 | Delivery semantics | Handler return precedes ack; offline and unacknowledged messages survive reconnect with the proper sequence boundary; a clean server restart preserves queued delivery. | 15 |
-| 6 | Client library with Handler interface | Outside consumer compiles and uses the actual public client; its resolved imports exclude private runtime packages. | 10 |
-| 7 | Parent registers child | Connected agent registers a child's public key and grants it a subset of its own groups. Child connects independently via Noise-KK. Gateway rejects group grants the parent does not hold. | 20 |
+Local C# library and application checks, cross-language interoperability, and the
+scoped executable grade are recorded separately. The grade earns **60/60 server
+points**; 40 client/Noise points remain ungraded in that route. The three-process
+C# interview used a fake HTTP provider, not a live model. Section 26.7 explains
+those limits and how to reproduce the grading scope.
+
+### In plain words
+
+The router is a doorman and a mailbox, not another agent. It checks who connected,
+checks whether the recipient accepts that sender's group, and puts an authenticated
+label on the message. If the recipient is offline, it keeps the message. The client
+hands it to the application and sends a receipt only after the application accepts
+it. What the application then does with the message remains the application's job.
 
 ## 26.1 Why the agent needs a router
 
@@ -120,17 +118,16 @@ or a scheduled job runner will all connect the same way. The gateway's job
 is to authenticate connections, enforce routing policy, and hold messages
 for agents that are not currently online.
 
-The package layout reflects this separation. `gateway/` is a public client
-library with zero imports from private runtime packages. Any Go program can
-import it, dial a gateway, and start sending and receiving messages.
-`internal/gateway/` owns server policy and queues. `cmd/gateway/` constructs
-that root, its listener, and its persistence ticker. Each connection reaches
-policy and diagnostics through its actual parent; it does not acquire a
-private copy of the grants or a logger nobody can find.
+The project layout reflects this separation. A .NET application can reference
+`Ensemble.Gateway.csproj` without importing Ensemble's core or an HTTP host.
+`Common` declares the actual partial objects, not a bag of operations interfaces.
+`Cryptography`, `Protocol`, `Client` and `Router` implement those declarations in
+one assembly. ASP.NET belongs only to the optional host. Each session reaches
+policy through its identity and Router parents, not a private copy of the grants.
 
-Bill arrived at the router after the Deephold experience showed the cost of
+I arrived at the router after the Deephold experience showed the cost of
 agents parking inside tool calls to wait for each other. A connected client
-handles incoming messages through its application’s `Handler`. Ensemble's
+handles incoming messages through its application's `IHandler`. Ensemble's
 adapter admits them to the actor it already has. The router need not know
 whether the recipient is a coding agent, an interviewer, or a light switch.
 
@@ -167,15 +164,17 @@ The sequence:
 4. Subsequent binary frames carry encrypted JSON. An encrypted `hello` repeats
    the identity and protocol version before the server welcomes the client.
 
-This implementation uses `Noise_KK_25519_ChaChaPoly_SHA256` through
-`flynn/noise`. The [Noise specification's KK pattern and security
+The C# wrapper preserves `Noise_KK_25519_ChaChaPoly_SHA256`, the suite used by
+the earlier Go implementation through `flynn/noise`. Its dependency is Noise.NET
+1.0.0 source pinned to commit `4279cfa57df028dec4a4cb3ee9579a77a5cc39fa`, built
+as the distinct `Ensemble.Noise` assembly with native libsodium 1.0.22. The [Noise specification's KK pattern and security
 properties](https://noiseprotocol.org/noise.html#interactive-handshake-patterns-fundamental)
 explain its authentication and forward-secrecy conditions. Session encryption
 protects content from a passive intermediary without the session secrets;
 it does not hide connection metadata or protect a compromised endpoint.
 
-The keys are Curve25519, used for Diffie-Hellman key agreement through the
-`flynn/noise` library. Some deployments label these `ed25519:` out of habit.
+The keys are X25519 keys for Diffie-Hellman agreement. Noise.NET delegates the
+curve and cipher operations to libsodium; our wrapper does not implement them. Some deployments label these `ed25519:` out of habit.
 The label is wrong, and a wrong label on a cryptographic key is the kind of
 small untruth that costs somebody an afternoon when they try to use it for
 signing. The implementation labels them `x25519:` and accepts any prefix on
@@ -185,10 +184,29 @@ merely imprecise.
 Key management is file-based. `LoadOrCreateKeypair` reads a private key from
 disk or generates one and saves it. Clients and the server use the same helper. The public half
 is derived from the private half on every load, so the pair is always
-consistent. The gateway prints its public key on startup; Bill copies it
-into the agent's configuration, copies the agent's public key into the
+consistent. The gateway prints its public key on startup; I copy it
+into the agent's configuration, copy the agent's public key into the
 gateway's configuration, and the two can authenticate. No certificate
-authority, no token rotation, no password. The keypair is the identity.
+authority, no token rotation, no password. The keypair is the identity. Protect the private file accordingly; compromise
+still requires an operator response, not faith in the handshake.
+
+Two narrow API exposures in the pinned source preserve the wrapper contract:
+transport overloads forward associated data to the existing cipher state, and
+private-key import exposes the library's existing public-key derivation. No
+primitive or handshake algorithm was replaced. Wire traffic uses empty associated
+data, but the public wrapper must not silently ignore nonempty data supplied by
+its caller. See the [dependency and license notes](../../solutions/edition-3/main/ThirdParty/Noise/README.md).
+The unused upstream rekey path has a documented source discrepancy; Gateway neither
+exposes nor relies on it. Passing these tests is not a cryptographic audit.
+
+Key files contain only base64 private bytes. On the tested Unix platforms, new
+files are private and first creation publishes a fully written file with an
+exclusive hard link. Competing creators load the winner; they cannot each return
+a different identity by replacing one another's file. Malformed existing files
+refuse without replacement. Existing parent permissions are not silently changed.
+The native dependency and file-permission implementation need platform evidence:
+Mac and Linux ARM64 transport/key tests do not prove Windows support or Linux
+WebSocket behavior.
 
 ## 26.3 Trust stamped at the boundary
 
@@ -253,7 +271,7 @@ Section 26.6 adds the listener, data directory and real public keys:
   },
   "agents": {
     "ensemble": {
-      "public_key": "x25519:A1B2C3...",
+      "public_key": "REPLACE_WITH_SUBJECT_KEY",
       "groups": ["admin", "agents"]
     }
   }
@@ -306,127 +324,118 @@ runtime policy is distinct from a parent's narrow-only registration grant.
 
 ## 26.4 A library, not a framework
 
-The accepted module is `ensemble`; an outside Go module imports
-`ensemble/gateway` and uses a local `replace` pointing at the submitted
-module. The `Handler` interface is four methods:
+The public namespace is `Ensemble.Gateway`. An outside .NET application references
+`Gateway/Ensemble.Gateway.csproj`; it need not reference Ensemble's core. The
+borrowed application boundary is deliberately small:
 
-```go
-type Handler interface {
-    OnDeliver(env Envelope)
-    OnConnected(welcome WelcomePayload)
-    OnDisconnected(reason string)
-    OnError(err error)
+```csharp
+public interface IHandler
+{
+    void OnDeliver(Envelope envelope);
+    void OnConnected(WelcomePayload welcome);
+    void OnDisconnected(string reason);
+    void OnError(Exception error);
 }
 ```
 
-The client's receive goroutine calls these methods in the order traffic
-arrives, one at a time. Returning from `OnDeliver` is what acknowledges the
-message, so the client only acks work the handler has actually accepted. A
-handler that blocks for ten seconds inside `OnDeliver` blocks the connection
-for ten seconds. Work that takes real time belongs on a goroutine the handler
-owns. A callback must not synchronously call `Send`, `Request`, or another
-client RPC: their responses need the same receive goroutine now waiting for
-that callback to return.
+The client's receive loop calls delivery callbacks sequentially. Returning from
+`OnDeliver` permits the receipt. Throwing refuses the delivery and ends the
+connection. A callback that blocks for ten seconds blocks that receive loop for
+ten seconds. Admit long-running work to the application's existing queue; do not
+build another scheduler inside the client. Never synchronously wait for an RPC or
+joined disposal from a callback: the same loop must read the reply or finish that
+callback. `Close()` is the nonjoining operation permitted there.
 
-`NopHandler` implements all four methods as no-ops. Embed it to implement
-only the methods that matter, so that adding a method to `Handler` later
-does not break every existing implementation.
+`NopHandler` supplies no-op virtual methods for consumers that need only selected
+notifications. The client borrows its handler and never destroys the application
+behind it. A connection is a standalone root owning its socket, Noise child,
+cancellation resources and pending RPCs.
 
-The `Client` connects, handshakes, and starts the receive goroutine:
+For example, with an explicitly loaded identity, pinned public key, handler and
+connection-lifetime token:
 
-```go
-client, err := gateway.Connect(ctx, gateway.ClientConfig{
-    GatewayURL:    "ws://127.0.0.1:8093/v1/ws",
-    AgentID:       "interviewer",
-    StaticKey:     key,
-    GatewayPubKey: gwPub,
-}, handler)
+```csharp
+using Ensemble.Gateway;
+
+var config = new ClientConfig(
+    GatewayURL: "ws://127.0.0.1:8093/v1/ws",
+    AgentID: "interviewer",
+    StaticKey: key,
+    GatewayPubKey: gatewayPublicKey);
+await using Client client = await Client.ConnectAsync(config, handler, lifetime);
+await client.DeclareContactableAsync(["agents"], lifetime);
+await client.SendAsync(new OutboundMessage(
+    ToAgent: "ensemble",
+    Content: "What slows you down most?",
+    ConversationID: "question-1",
+    ResponseMode: Protocol.ResponseAsync), lifetime);
 ```
 
-That call opens the WebSocket, runs the Noise-KK handshake, waits for the
-gateway's welcome frame, and starts the goroutine that calls
-`handler.OnDeliver` for incoming traffic. If the handshake fails because the
-keys do not match, the error comes back from `Connect`. No partial
-connection, no deferred failure. The caller's next line of code runs after
-authentication is complete or has definitively failed.
+`ConnectAsync` opens the WebSocket, completes KK, reads an encrypted identity-matched
+welcome, invokes `OnConnected`, and starts the reader. Handshake failure is returned
+to this call, not hidden in a partially successful connection. Its cancellation
+token owns the **whole connection lifetime**, not just startup. Zero
+`HandshakeTimeout` selects ten seconds. There is no implicit reconnect or retry.
 
-The public types and callable signatures below are part of this exercise's
-consumer contract. `WelcomePayload.QueueDepth` is the outstanding count
-**after** applying the reconnect receipt. It is an `int`, encoded as
-`queue_depth`; it is not the sequence number or the number of registered
-agents. An empty connection reports zero, while reconnecting to one pending
-message reports one.
+These immutable value records define the main consumer contract:
 
-```go
-type WelcomePayload struct {
-    AgentID       string `json:"agent_id"`
-    QueueDepth    int    `json:"queue_depth"`
-    ServerVersion string `json:"server_version"`
-}
-
-type ClientConfig struct {
-    GatewayURL       string
-    AgentID          string
-    StaticKey        Keypair
-    GatewayPubKey    []byte
-    LastAckedSeq     uint64
-    HandshakeTimeout time.Duration
-}
-
-type OutboundMessage struct {
-    ToAgent        string `json:"to_agent"`
-    Content        string `json:"content"`
-    ConversationID string `json:"conversation_id,omitempty"`
-    ResponseMode   string `json:"response_mode,omitempty"`
-}
-
-type ChildRegistration struct {
-    AgentID   string   `json:"agent_id"`
-    PublicKey []byte   `json:"public_key"`
-    Groups    []string `json:"groups"`
-}
+```csharp
+public sealed record WelcomePayload(string AgentID, int QueueDepth, string ServerVersion);
+public sealed record ClientConfig(string GatewayURL, string AgentID, Keypair StaticKey,
+    ImmutableArray<byte> GatewayPubKey, ulong LastAckedSeq = 0,
+    TimeSpan HandshakeTimeout = default);
+public sealed record OutboundMessage(string ToAgent, string Content,
+    string ConversationID = "", string ResponseMode = "");
+public sealed record ChildRegistration(string AgentID, ImmutableArray<byte> PublicKey,
+    ImmutableArray<string> Groups);
 ```
 
-`Keypair` exposes `Private` and `Public` as `[]byte`; each is 32 bytes.
-`GenerateKeypair()` and `LoadOrCreateKeypair(path string)` return
-`(Keypair, error)`. `EncodePublicKey([]byte)` returns a labeled string;
-`ParsePublicKey(string)` returns `([]byte, error)`. Child registration takes
-the decoded public bytes; JSON marshaling encodes that byte slice as base64.
-Private bytes never belong in registration or gateway configuration.
+`ImmutableArray` is from `System.Collections.Immutable`. `QueueDepth` counts
+outstanding deliveries **after resume**, not identities or the highest sequence.
+Its JSON key `queue_depth` is mandatory even when zero. The other welcome keys
+are `agent_id` and `server_version`.
 
-`Envelope` exposes `ID`, `ToAgent`, `Content`, `ConversationID` and
-`ResponseMode` as strings, `Seq` as `uint64`, `Timestamp` as `time.Time`, and
-`Source` as a structure with string fields `Type`, `ChannelID`, `UserID`,
-`DisplayName` and `Trust`. `ProvenanceHeader(Source)` returns the displayed
-header. `ResponseAsync` is the string `async`.
+`Keypair.Private` and `.Public` are immutable 32-byte arrays. `Cryptography` supplies
+`GenerateKeypair()`, `LoadOrCreateKeypair(string)`,
+`EncodePublicKey(ReadOnlySpan<byte>)` and `ParsePublicKey(string)`. Use `.AsSpan()`
+when encoding an immutable array. Registration contains decoded **public** bytes,
+encoded as base64 on the wire; no private key belongs in policy or registration.
+
+`Envelope` has string `ID`, `ToAgent`, `Content`, `ConversationID` and `ResponseMode`,
+`ulong Seq`, `DateTimeOffset Timestamp`, and a `Source` value. Source's string fields
+are `Type`, `ChannelID`, `UserID`, `DisplayName` and `Trust`.
+`Protocol.ProvenanceHeader(Source)` returns only the header; the router appends
+`"\n\n"` and the original content. `Protocol.ResponseAsync` is `"async"`.
 
 | Public operation | Result and boundary |
 | --- | --- |
-| `Connect(context.Context, ClientConfig, Handler)` | `(*Client, error)`; a non-nil handler and authenticated welcome are required. Zero handshake timeout selects ten seconds. The context also owns the connection lifetime. |
-| `Send(context.Context, OutboundMessage)` | `error`; returns after authorization and queue admission, before the recipient necessarily handles it. |
-| `Respond(context.Context, Envelope, string)` | `error`; addresses the authenticated sender and preserves `ConversationID`. Current routing policy applies to replies too. |
-| `DeclareContactable(context.Context, []string)` | `error`; replaces accepted sender groups, including an empty set. |
-| `RegisterChild(context.Context, ChildRegistration)` | `error`; registers a new key with only groups the parent holds. |
-| `Request(context.Context, string, any)` | `(json.RawMessage, error)`; correlated MCP method request on the same socket. |
-| `CallTool(context.Context, string, any)` | `(json.RawMessage, error)`; interprets an MCP tool result, including `isError` refusals. |
-| `LastAckedSeq()` | `uint64`; last receipt successfully written after handler return. |
-| `Close()` / `Done()` | `Close` interrupts I/O; `Done` returns `<-chan struct{}` and closes after the receive callbacks finish. |
+| `Client.ConnectAsync(config, handler, cancellation)` | `Task<Client>`; authenticated welcome required. |
+| `SendAsync(message, cancellation)` | `Task`; router authorization and queue admission, not inference completion. |
+| `RespondAsync(envelope, text, cancellation)` | `Task`; addresses authenticated source, preserves conversation, does not request another async reply. Current routing policy still applies. |
+| `DeclareContactableAsync(groups, cancellation)` | `Task`; replaces accepted groups, including an empty set. |
+| `RegisterChildAsync(registration, cancellation)` | `Task`; new identity and narrow-only grant. |
+| `RequestAsync(method, parameters, cancellation)` | `Task<JsonElement>`; correlated MCP request. |
+| `CallToolAsync(name, arguments, cancellation)` | `Task<JsonElement>`; also interprets tool-level `isError` refusals. |
+| `LastAckedSeq()` | `ulong`; receipt successfully written after handler return. |
+| `Close()` | Interrupts without joining; safe from a callback. |
+| `Done()` / `DisposeAsync()` | `Task` / `ValueTask`; join callbacks, reader and cleanup. Final callback failure remains visible. |
 
-For the independently tested Noise layer, `NewNoiseKK(role string, key
-Keypair, peerPublic, prologue []byte)` returns `(*NoiseKK, error)`. Roles are
-`initiator` and `responder`. `WriteHandshakeMessage([]byte)` and
-`ReadHandshakeMessage([]byte)` return `([]byte, error)`;
-`IsHandshakeComplete()` returns `bool`. After completion, `Encrypt(data,
-associated []byte)` and `Decrypt(data, associated []byte)` return
-`([]byte, error)`. Keep each direction's calls ordered and terminate the
-connection after authentication or transport failure.
+Canceling an RPC wait removes only that correlation. A late response is ignored;
+it does not cancel the connection. Explicit `result:null` is a valid result,
+different from an absent result. Missing or ambiguous result/error fields refuse.
 
-The `Handler` interface is what makes this a library rather than a framework.
-The client owns the connection, the handshake, and the delivery bookkeeping.
-It owns no opinion about what a message means. The `cmd/gateway-agent` application implements `Handler`
-to route envelopes into its actual Ensemble actor. The interviewer implements it to
-collect answers. A home automation program would implement it to switch on a
-light. The gateway cannot tell the difference, and it does not need to.
+For standalone transport use, construct `NoiseKK(role, key, peerPublic, prologue)`
+with role `"initiator"` or `"responder"`. `WriteHandshakeMessage` and
+`ReadHandshakeMessage` take spans and return byte arrays; `IsHandshakeComplete()`
+reports readiness. `Encrypt(data, associatedData)` and `Decrypt(data, associatedData)`
+return byte arrays. Dispose explicitly, keep each direction ordered, and terminate
+a connection after authentication or transport failure. A client-owned or
+session-owned Noise child registers with its actual parent and detaches on disposal.
+
+The handler makes this a library rather than a framework. The client owns transport
+and receipts, not the meaning of a prompt. The interviewer collects answers. The
+optional Ensemble bridge submits turns. A home automation application could switch
+on a light. The router does not need to know which application it is serving.
 
 ## 26.5 Delivery and recovery
 
@@ -442,13 +451,13 @@ failures, and `mcp_response` for tool call results. Ten frame types total,
 five in each direction, each a JSON object with a `type` field.
 
 These are this course's Gateway frames, not a new standard MCP transport.
-`Request` sends JSON-RPC `initialize`, `tools/list` or `tools/call` inside
+`RequestAsync` sends JSON-RPC `initialize`, `tools/list` or `tools/call` inside
 `mcp_request`; a tool call's params are `{"name":"list-groups","arguments":{}}`.
 The server's initialization response declares MCP version `2024-11-05`.
 Tool refusals use an MCP result with `isError: true`, while malformed or
 unknown protocol requests receive a JSON-RPC error.
 
-The public client's `Send` and `Respond` use the acknowledged MCP
+The public client's `SendAsync` and `RespondAsync` use the acknowledged MCP
 `send-message` operation. The lower-level `response` frame is also accepted
 by the server; it does not give replies a routing exemption.
 
@@ -471,7 +480,7 @@ WebSocket traffic:
 `{"type":"deliver","envelope":...}` with the public `Envelope` fields
 encoded in snake case. MCP frames carry their JSON-RPC object under `rpc`.
 
-Every delivered message carries a sequence number. The receive goroutine calls `handler.OnDeliver`, and when the handler
+Every delivered message carries a sequence number. The receive loop calls `handler.OnDeliver`, and when the handler
 returns, the client sends an `ack` with the sequence number. The ack is the receipt. Tying the
 ack to the handler's return is a deliberate choice: an ack sent before the
 handler accepts the work loses the message if the process crashes between
@@ -483,21 +492,38 @@ directory, one file per recipient. Messages accumulate until the agent reconnect
 
 On reconnect, the agent sends `last_acked_seq` in the `hello` frame. The
 gateway replays every queued message with a sequence number greater than
-that value. The client supplies that receipt explicitly when calling `Connect` again;
+that value. The client supplies that receipt explicitly when calling `ConnectAsync` again;
 there is no automatic reconnect loop. Outstanding messages after the receipt
-are delivered again. A new connection supersedes the same identity’s old one. The guarantee is at-least-once. Exactly-once would require
+are delivered again. Only a fully authenticated new session can supersede the same identity's old one.
+A failed handshake cannot evict it. The guarantee is at-least-once delivery within
+the retained snapshot and application-acceptance boundaries. Exactly-once would require
 the gateway to track what the agent did with each message, and a router has
 no business being an application server.
 
 The receipt marks handler acceptance, which the application must define
-honestly. The Ensemble adapter calls `Agent.Submit` to admit a turn to the
-existing FIFO, then returns. An application-owned worker waits for that
-request's reliable result and sends the reply. A prompt can therefore be
+honestly. The Ensemble adapter calls
+`Agent.SubmitAsync(IEnumerable<Part>)`, which synchronously admits to the actor's
+mailbox and returns that request's `Task<string>`. This is not synchronous History
+publication. A bridge-owned observer waits for that exact task and sends the reply. A prompt can therefore be
 acknowledged before the model answers. A crash after that ack can lose work
 that the application has not saved. The router cannot turn admission into
 durable task completion.
 
-The server snapshots runtime group definitions and memberships,
+Sessions consult live policy under one Router gate. Replacement revokes the old
+session before closing its socket; its buffered requests cannot act as the current
+identity. The hello receipt may recover a lost acknowledgment up to the queue's
+allocation frontier. Later receipts may advance only through the session's sent
+frontier, not over merely allocated offline messages. Acknowledgments remain
+monotonic. Draining a queue does not reset its sequence.
+
+Socket writes never hold the policy gate. Each session serializes encryption and
+send under one write gate, so nonce order matches frame order. A write failure
+after encryption makes the session terminal; retrying as though the nonce had not
+advanced is unsafe. Reader and delivery work are both joined before Noise/socket
+disposal and removal from the identity. Pending handshakes are owned sessions too,
+so shutdown cannot overlook them.
+
+The host snapshots runtime group definitions and memberships,
 contactability, child identities, queues and receipt positions every thirty
 seconds, then once more on orderly shutdown. Keeping the highest allocated
 sequence even after a queue drains prevents a later message reusing an old
@@ -510,6 +536,14 @@ or power-loss durability. Protect the data directory as private application
 state. It contains the gateway's private key and plaintext pending messages.
 Noise protects their journey over the network, not those files at rest.
 
+Files are `identity.key`, `state.json` and `queues/<validated-id>.json`. Only an
+absent file gets empty defaults. Malformed JSON, duplicate fields and a path blocked
+by a regular file are errors, not permission to restart with empty queues. Save
+failure retains live state and is reported; a later timer tick can retry. Shutdown
+closes admission, joins all sessions and the host's timer, attempts the final save,
+and detaches ownership even on failure. All Router disposers observe the same
+shutdown result. A failed final save must make the application exit fail.
+
 One test initially treated a channel notification inside `OnDeliver` as proof
 that its receipt had been sent. The notification happened before the callback
 returned. Waiting for `LastAckedSeq()` to reach the delivered sequence, then
@@ -519,9 +553,9 @@ for the boundary being tested.
 
 ## 26.6 The interviewer proves the stack
 
-The interviewer is a standalone binary in `cmd/interviewer/`. It imports
-`ensemble/gateway`, holds its own keypair, and reaches Ensemble only through
-the gateway's routing. It imports no private Ensemble runtime. Its successful use shows that an
+The interviewer is a standalone C# executable in `Gateway/Interviewer`. It
+references only the public Gateway library, holds its own keypair, and reaches
+Ensemble only through the router. It does not reference Ensemble's core. Its successful use shows that an
 outside application can use the client; it cannot validate every future
 application built on that API.
 
@@ -532,9 +566,10 @@ you need a human, and what new tool would help most. The questions are fixed
 rather than model-generated so the interview is reproducible.
 
 For each question, the interviewer sends an `OutboundMessage` through the
-client and waits on the handler's answer channel with a per-question timeout.
+client and waits on the handler's bounded answer channel with a per-question timeout.
 `OnDeliver` puts the envelope on an application-owned channel, and
-`NopHandler` covers the remaining callbacks. The waiting code checks both the
+the remaining callbacks report connection failure. If the inbox is full, the
+handler refuses rather than acknowledging a silently dropped answer. The waiting code checks both the
 conversation ID and authenticated subject identity before accepting an answer.
 
 When all four answers arrive, the interviewer writes a markdown report:
@@ -555,34 +590,50 @@ allows it. Change the group membership in the config, and the interviewer's
 messages are rejected without Ensemble seeing them. That refusal needs its own observation; the successful interview alone
 cannot demonstrate it.
 
-The adapter adds no second turn loop. `Agent.Submit` supplies a reliable
-result channel for each accepted prompt, so a busy Agent can queue another
-question without confusing its answer with a shared idle event. Reply workers
-wait until the returned Client has been published: incoming delivery can race
-with `Connect` returning to its caller. Shutdown cancels work, closes the
-socket, waits for receive callbacks to finish, then joins those workers and
-saves the Agent. These are application lifetimes the router does not own.
+`GatewayBridge.RunAsync` borrows an Agent for one scoped invocation. It owns the
+Client and reply observers, not the actor. `SubmitAsync` provides a reliable result
+for each accepted prompt, so a busy Agent can queue another question without
+confusing its answer with a shared idle event or a lossy observation stream.
+Incoming delivery can race with `ConnectAsync` returning; observers wait until the
+Client is available. `Ready()` settles only after contactability is accepted, or
+fails with startup. Only requests marked `async` get replies. Turn failures are
+logged locally, not sent as exception text to remote peers.
+
+Bridge cancellation closes the connection and joins/detaches its observers; it
+does **not** undo admitted actor work. The application separately shuts down the
+Agent, saves History after joined shutdown, and destroys Ensemble. Borrowed
+references are cleared before the bridge returns. Initialization must load saved
+History before opening its event writer. Save-on-exit is armed only after successful
+startup. These are application lifetimes the router does not own.
 
 ### Running the interview
 
-Build from the accepted module, using a fresh private scratch directory:
+Use .NET 10/C# 14 and the approved native dependency described in Section 26.2.
+The repository's disabled package feeds are deliberate: use an existing package
+cache or explicitly authorize a source for libsodium 1.0.22; do not silently alter
+global NuGet configuration. From the repository root, build the active source
+(or change `CH26_SRC` to the preserved `solutions/edition-3/ch26` endpoint):
 
 ```sh
+set -eu
+CH26_SRC="$PWD/solutions/edition-3/main"
 CH26_RUN=$(mktemp -d /tmp/ensemble-ch26.XXXXXX)
-export CH26_RUN
-cd solutions/ch26
-go build -o "$CH26_RUN/gateway" ./cmd/gateway
-go build -o "$CH26_RUN/gateway-agent" ./cmd/gateway-agent
-go build -o "$CH26_RUN/interviewer" ./cmd/interviewer
-"$CH26_RUN/gateway-agent" -key "$CH26_RUN/subject.key" -print-key
-"$CH26_RUN/interviewer" -key "$CH26_RUN/interviewer.key" -print-key
-printf '%s\n' "$CH26_RUN"
+export CH26_SRC CH26_RUN
+for project in Host/GatewayHost AgentHost/GatewayAgent Interviewer/Interviewer; do
+  dotnet build "$CH26_SRC/Gateway/$project.csproj" --nologo
+done
+SUBJECT_KEY=$(dotnet "$CH26_SRC/Gateway/AgentHost/bin/Debug/net10.0/GatewayAgent.dll" \
+  --key "$CH26_RUN/subject.key" --print-key)
+INTERVIEWER_KEY=$(dotnet "$CH26_SRC/Gateway/Interviewer/bin/Debug/net10.0/Interviewer.dll" \
+  --key "$CH26_RUN/interviewer.key" --print-key)
+export SUBJECT_KEY INTERVIEWER_KEY
+printf '%s\n' "$CH26_RUN" "$SUBJECT_KEY" "$INTERVIEWER_KEY"
 ```
 
-The two printed keys are public. Put them in `$CH26_RUN/gateway.json`, using
-this complete configuration and replacing the three marked values. Choose an
-unused local port; 8093 is an example. If it is occupied, leave that process
-alone and use another port in the config and both client URLs.
+These printed keys are public. Key-print mode does not initialize a provider.
+Put this complete configuration in `$CH26_RUN/gateway.json`, replacing the three
+marked values. Choose an unused loopback port; 8093 is an example, not permission
+to stop a process already using it. Change the config and both client URLs together.
 
 ```json
 {
@@ -599,64 +650,94 @@ alone and use another port in the config and both client URLs.
   },
   "agents": {
     "ensemble": {
-      "public_key": "REPLACE_WITH_SUBJECT_PUBLIC_KEY",
+      "public_key": "REPLACE_WITH_SUBJECT_KEY",
       "groups": ["agents"]
     },
     "interviewer": {
-      "public_key": "REPLACE_WITH_INTERVIEWER_PUBLIC_KEY",
+      "public_key": "REPLACE_WITH_INTERVIEWER_KEY",
       "groups": ["agents"]
     }
   }
 }
 ```
 
-Generate the router's identity and retain its printed public key:
+Create the router identity and retain its printed public key:
 
 ```sh
-"$CH26_RUN/gateway" -config "$CH26_RUN/gateway.json" -print-key
+GATEWAY_KEY=$(dotnet "$CH26_SRC/Gateway/Host/bin/Debug/net10.0/GatewayHost.dll" \
+  --config "$CH26_RUN/gateway.json" --print-key)
+export GATEWAY_KEY
+printf '%s\n' "$GATEWAY_KEY"
 ```
 
-Use three terminals. Set `CH26_RUN` to the printed scratch path in each, and
-set `GATEWAY_KEY` to the router's public key in the two client terminals.
-Start the router first:
+Use three terminals with the same `CH26_SRC` and `CH26_RUN`, and `GATEWAY_KEY` in
+the two client terminals. Start the router:
 
 ```sh
-"$CH26_RUN/gateway" -config "$CH26_RUN/gateway.json"
+dotnet "$CH26_SRC/Gateway/Host/bin/Debug/net10.0/GatewayHost.dll" \
+  --config "$CH26_RUN/gateway.json"
 ```
 
-Its printed key is not a readiness signal. Confirm that this new process
-remains alive and owns the chosen listening port before starting clients.
-For example, `lsof -nP -iTCP:8093 -sTCP:LISTEN` shows the listener PID; match
-it to this launch, rather than merely finding somebody listening there.
+Its printed key is not readiness. Confirm that this process remains alive and owns
+the configured listener before starting clients. For example,
+`lsof -nP -iTCP:8093 -sTCP:LISTEN` identifies the PID; do not mistake somebody else's
+listener for this launch. There is no invented `/health` route.
 
-Then start the real Ensemble adapter. This version uses the already
-configured read-only credential route from optional Chapter 24:
+The optional Agent host is deliberately **API-key-only**. It announces funding
+before inference and has no plan/OAuth or Codex-endpoint fallback. For a paid live
+exercise, explicitly choose a provider/model you are authorized to use and supply
+`EN_API_KEY` through your approved environment setup. Do not paste a secret into
+the manuscript, transcript or shell history, or borrow another application's store.
+This recipe does not authorize a live call merely by being printed here.
+
+For OpenAI, set `EN_VENDOR=openai` and `EN_MODEL` to that selected model. The
+optional `EN_BASE_URL` selects a service base, including an owned compatible
+loopback fake. The host uses the existing Chat surface; this is not Chapter 24's
+public OAuth Responses/cache exercise. Then run:
 
 ```sh
-LLM_VENDOR=openai LLM_MODEL=gpt-6-astra OPENAI_REASONING_EFFORT=high \
-OPENAI_BILLING_MODE=codex "$CH26_RUN/gateway-agent" \
-  -gateway ws://127.0.0.1:8093/v1/ws -key "$CH26_RUN/subject.key" \
-  -gateway-key "$GATEWAY_KEY" -data "$CH26_RUN/subject-data"
+: "${EN_MODEL:?Select an authorized model}"
+: "${EN_API_KEY:?Supply through an approved environment setup}"
+export EN_VENDOR=openai
+# Unset an unrelated EN_BASE_URL, or explicitly set the intended service base.
+dotnet "$CH26_SRC/Gateway/AgentHost/bin/Debug/net10.0/GatewayAgent.dll" \
+  --gateway ws://127.0.0.1:8093/v1/ws --gateway-key "$GATEWAY_KEY" \
+  --agent ensemble --key "$CH26_RUN/subject.key" --groups agents \
+  --data "$CH26_RUN/subject-data" --no-stream
 ```
 
-Gateway itself does not require that billing route. The adapter uses the
-existing `ConfigFromEnv` provider configuration; readers using another
-working route can keep it. Wait for `Gateway Agent ensemble ready`, then run
-the interviewer in the third terminal:
+Without `--skills PATH --primary NAME`, the subject has no tools. Do not grant tools
+just to make a conversation more impressive. If explicitly selected, skills use
+the normal initialization and authority rules; gateway text grants nothing.
+The Agent lives at `subject-data/agents/ensemble/`, with `session.save.json` and
+`events.jsonl`. Wait for `Gateway Agent ensemble ready`, then run the interviewer:
 
 ```sh
-"$CH26_RUN/interviewer" -gateway ws://127.0.0.1:8093/v1/ws \
-  -key "$CH26_RUN/interviewer.key" -gateway-key "$GATEWAY_KEY" \
-  -report "$CH26_RUN/interview.md" -timeout 2m
+dotnet "$CH26_SRC/Gateway/Interviewer/bin/Debug/net10.0/Interviewer.dll" \
+  --gateway ws://127.0.0.1:8093/v1/ws --gateway-key "$GATEWAY_KEY" \
+  --agent interviewer --subject ensemble --key "$CH26_RUN/interviewer.key" \
+  --groups agents --report "$CH26_RUN/interview.md" --timeout-seconds 120
 ```
 
-Read the four answers in `interview.md`, then stop the subject and router
-with Ctrl-C so they can finish their shutdown paths. The subject owns its
-conversation save. The router owns the policy and pending-message snapshots.
-Register a second public identity and try an allowed subset and a refused
-over-grant separately; interviewing one authorized peer does not exercise
-child registration or refusal. Likewise, disconnect a recipient with an
-unacknowledged delivery and verify its sequence on reconnect.
+Read the report, then Ctrl-C the subject and router and observe joined exits.
+The interviewer writes only after all four answers. Timeout, cancellation or
+connection loss while awaiting answers leaves no new report; interruption during
+file writing is not an atomic-report guarantee. Inspect the saved conversation
+and receipt positions, not just the console's success text.
+
+The completed local C# exercise ran these three real executables with a small fake
+HTTP provider: four correlated answers, an explicitly selected primary skill,
+restored History before the next request, SIGTERM during held inference, and a
+visible final-save failure. Separate interviewer checks sent wrong-sender and
+wrong-conversation answers before the correct ones. Separate host checks used the
+unchanged Go client and observed real thirty-second failure/retry ticks, restart
+receipts and joined shutdown. These establish application wiring and failure
+behavior, not real-model judgment or productivity.
+
+Try refused group routing and narrow-only child registration separately. A
+successful interview alone proves neither. A network child is a registered public
+identity, not automatically an Ensemble task child. Test unacknowledged replay and
+offline delivery separately too; a final report alone says little about recovery.
 
 ### What the actual interview said
 
@@ -677,41 +758,78 @@ The launch selected Astra/high and the Codex route; the retained Agent facts
 verify the model, while effort and endpoint retain launch/source evidence.
 All four cache-read counts were zero. A working encrypted interview should
 not be sold as a cache benefit or a productivity experiment. The
-[run and transcript](../solutions/evidence/ch27/live-interview.md)
+[run and transcript](../../solutions/evidence/ch27/live-interview.md)
 retain the actual answers; later local diagnostic and receipt-test corrections
 do not turn that earlier run into a new one.
 
 ## 26.7 What the grader checks
 
-The grader builds the gateway and an outside Go consumer against the submitted
-module. The public contract above supplies the names that consumer needs,
-including `WelcomePayload.QueueDepth`. It also checks the resolved dependency
-graph: the public client must not reach private runtime packages. A compiling
-in-tree example alone can hide an `internal/` dependency.
+The original Go route builds the submitted router and an outside consumer against
+its public library. That route remains `-ch 26 solutions/ch26`; older Chapter 27
+Gateway numbering is not this edition's Goals chapter.
 
-The seven original weights remain. Successful authentication needs wrong-key
-controls; authorization needs a refused route beside an allowed one. Delivery
-needs a held handler as well as an offline recipient: receipt timing cannot
-be inferred merely from a message eventually arriving. Parent registration
-needs an independently connecting child and a refused wider grant.
+For C#, the opt-in executable route retains the complete outside-peer exercise,
+including two real server launches, held delivery, offline queues and restart. But
+the independent peer is Go, not the submitted C# client. Its own handshake, callback
+logic and import graph cannot earn C# library credit. The route scores only four
+complete original server rows: provenance, welcomes, routing and attenuation.
+Nonempty welcome counts occur in the delivery scenario, which is why that scenario
+is retained even though its full client contract is ungraded.
 
-The actual Ensemble interview, parent ownership and diagnostics, administrative
-state restoration and stronger lifetime checks retain their separate source
-and integration evidence. A targeted mutation establishes sensitivity to that
-defect, not general independence or complete security coverage.
+| Original row | Behavior | C# executable scope |
+| --- | --- | --- |
+| C1 | Noise-KK wrapper, wrong-key controls | 15 ungraded |
+| C2 | Provenance and preserved conversation/response mode | 10 |
+| C3 | Multiple authenticated identities, version and empty/nonempty queue counts | 15 |
+| C4 | Allowed and refused group routing | 15 |
+| C5 | Complete client handler/receipt/replay/restart contract | 15 ungraded |
+| C6 | Outside consumer of the submitted public client | 10 ungraded |
+| C7 | Independent child connection and refused wider grant | 20 |
 
-Build and grade from the repository root:
+The recorded C# result is **60/60**, not 100/100 and not a claim that the ungraded
+40 points failed. Real C# client tests and Mac/Pi wrapper interoperability tests
+retain their separate scopes. Neither a passing fake nor an outside Go peer is a
+security audit. The Ensemble adapter, administrative restore, ownership and host
+failure paths also need their own source and application evidence.
+
+To reproduce, build the Host first. The grader expects historical `-config` and
+`-print-key` flags; this small executable adapter only translates them and execs
+the real DLL. It supplies no canned result. With `CH26_SRC` and `CH26_RUN` from
+Section 26.6:
 
 ```sh
-go run ./cmd/grade-edition2 -ch 26 solutions/ch26
+DOTNET=$(command -v dotnet)
+export DOTNET
+cat > "$CH26_RUN/grade-host" <<'SH'
+#!/bin/sh
+set -eu
+[ "$#" -ge 2 ] && [ "$1" = -config ] || exit 2
+config=$2
+shift 2
+if [ "$#" -eq 0 ]; then
+  exec "$DOTNET" "$CH26_SRC/Gateway/Host/bin/Debug/net10.0/GatewayHost.dll" --config "$config"
+fi
+[ "$#" -eq 1 ] && [ "$1" = -print-key ] || exit 2
+exec "$DOTNET" "$CH26_SRC/Gateway/Host/bin/Debug/net10.0/GatewayHost.dll" --config "$config" --print-key
+SH
+chmod 700 "$CH26_RUN/grade-host"
+go run ./cmd/grade-edition2 -ch 26 -executable-only \
+  -gateway-peer "$PWD/solutions/ch26" -json "$CH26_RUN/grade-host"
 ```
 
-| # | Behavior | Check | Points |
-|---|----------|-------|--------|
-| 1 | Noise-KK handshake | Two peers complete mutual authentication over a byte stream. Wrong keys are rejected. | 15 |
-| 2 | Prompt envelope with provenance | Delivered body and authenticated provenance agree, with conversation and response mode preserved. | 10 |
-| 3 | Gateway server accepts connections | Actual binary welcomes multiple authenticated clients with identity, version and empty/nonempty queue counts. | 15 |
-| 4 | Group-based routing | Agent declares contactability by group. Gateway delivers messages only from senders whose group membership the recipient has accepted. Unauthorized sends are rejected. | 15 |
-| 5 | Delivery semantics | Handler return precedes ack; offline and unacknowledged messages survive reconnect with the proper sequence boundary; a clean server restart preserves queued delivery. | 15 |
-| 6 | Client library with Handler interface | Outside consumer compiles and uses the actual public client; its resolved imports exclude private runtime packages. | 10 |
-| 7 | Parent registers child | Connected agent registers a child's public key and grants it a subset of its own groups. Child connects independently via Noise-KK. Gateway rejects group grants the parent does not hold. | 20 |
+The peer directory is explicit and absolute. Do not point it at the C# tree or
+call it the submitted implementation. The ordinary Go route is unchanged.
+
+Two failures from this translation are worth remembering. An early loopback fake
+shared the client's wrong receipt spelling; six local groups passed while the real
+Go router retained ack zero. The wire uses `last_acked_seq` for hello/ack and `seq`
+only for envelopes. Separately, omitting a zero `queue_depth` looked harmless until
+the independent welcome assertion caught it. Tests built from our own assumptions
+can agree with us and still be wrong.
+
+Read the source alongside the tests: Common declarations, reciprocal relationship
+operations, current-session checks, socket writes outside the policy gate, and
+joined destruction. Green transport tests do not excuse duplicated authority or a
+hidden scheduler. The router's usefulness is not in making another agent look busy.
+It is in giving independently running applications a small, honest boundary they
+can depend on.
