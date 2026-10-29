@@ -26,6 +26,7 @@ export class ArtifactScroll {
     const label = document.createElement("span");
     label.textContent = kind;
     const speaker = document.createElement("button");
+    speaker.type = "button";
     speaker.textContent = "🔊";
     speaker.setAttribute("aria-label", "Read artifact aloud");
     const content = document.createElement("div");
@@ -44,12 +45,17 @@ export class ArtifactScroll {
   render(card) {
     const nearEnd =
       this.element.clientHeight + this.element.scrollTop >= this.element.scrollHeight - 180;
+    const focused = card.content.contains(document.activeElement) ? document.activeElement : null;
+    const boxes = [...card.content.querySelectorAll(".clipboard-block")];
+    const expanded = [...card.content.querySelectorAll("details")]
+      .find(details => details.querySelector("summary")?.textContent === "Full artifact")?.open || false;
     card.content.replaceChildren();
     // A cap bounds the normal card while the expander retains every byte.
     const shown = card.text.slice(0, 4000);
     const body = document.createElement("div");
     card.content.append(body);
-    if (card.kind === "text" || ["thinking", "reasoning_summary"].includes(card.kind)) markdown(body, shown);
+    if (card.kind === "text" || ["thinking", "reasoning_summary"].includes(card.kind))
+      markdown(body, shown, { copyable: card.kind === "text" && shown.length === card.text.length, boxes });
     else {
       const pre = document.createElement("pre");
       if (card.label.textContent === "edit_file") {
@@ -75,13 +81,16 @@ export class ArtifactScroll {
     }
     if (card.text.length > shown.length) {
       const details = document.createElement("details");
+      details.open = expanded;
       const summary = document.createElement("summary");
       summary.textContent = "Full artifact";
-      const full = document.createElement("pre");
-      full.textContent = card.text;
+      const full = document.createElement(card.kind === "text" ? "div" : "pre");
+      if (card.kind === "text") markdown(full, card.text, { copyable: true, boxes });
+      else full.textContent = card.text;
       details.append(summary, full);
       card.content.append(details);
     }
+    if (focused?.isConnected) focused.focus({ preventScroll: true });
     if (nearEnd) this.element.scrollTo(0, this.element.scrollHeight);
   }
   // History replay is silent. Finals reconcile display text, while already

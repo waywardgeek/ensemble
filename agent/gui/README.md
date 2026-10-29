@@ -71,6 +71,34 @@ reads that artifact's full text. Native speech availability depends on the brows
 the page displays speech errors and handles them like completion so the queue
 cannot strand the gate.
 
+Ask the Agent for a **copyable text box** containing a particular command, draft
+or other snippet. The reply can contain several independent boxes with prose
+between them. Each box has a read-only text field and **Copy** for only that
+snippet, never the surrounding reply. Prose, thinking and tool results do not
+get Copy buttons. Markdown fenced snippets in replies become these boxes.
+
+The generated format is a normal Markdown fenced block, for example:
+
+````text
+Here is the requested command:
+```text
+git --no-pager diff
+```
+````
+
+Only complete blocks become copyable. Their payload stays literal, including
+spaces, blank lines and Markdown; the fences and their structural newlines are
+excluded. Use a longer backtick fence to include shorter fences in the payload.
+For replies longer than the preview limit, open **Full artifact** to access the
+complete boxes; a truncated preview never offers a truncated copy.
+
+**Copied** confirms success. HTTPS/localhost uses the browser's Clipboard API;
+ordinary HTTP sessions try the older copy command. If both are blocked, the
+snippet field selects its content for Ctrl+C or Command+C. Copying never submits
+a prompt or runs a tool. Boxes are reconstructed on replay and agent switching.
+`node --test clipboard.test.mjs` checks real Firefox clipboard behavior; install
+Playwright Firefox first. Its HTTP cases require a non-loopback IPv4 interface.
+
 Reconnect rebuilds the last hour or last 100 renderable events, whichever is
 larger, plus current streaming partials. History is synchronized, finals remove
 partials, and display identities survive response-local parser ID reuse. Browser

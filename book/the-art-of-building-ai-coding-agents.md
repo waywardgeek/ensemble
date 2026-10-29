@@ -7157,6 +7157,36 @@ three checks for each empty or opaque case, while readable controls still
 produced native start/end events. No new model generation was needed to diagnose
 what was already visible in the saved page.
 
+### Copyable text snippets
+
+A reply can explain a command and offer the command itself for copying.
+Completed Markdown code fences in text replies become read-only textboxes,
+each with its own **Copy** button. Ordinary backtick fences work with or
+without a language label; no special snippet marker is required. The boxes
+sit inside the reply, alongside its explanation. There is no whole-Artifact
+Copy button: each button copies only its snippet.
+
+The textbox holds the literal payload between the enclosing fence lines.
+Copy excludes those fences, their language label and the surrounding prose,
+while preserving the payload's whitespace, blank lines and Unicode. Assign
+the payload as the textbox's value so HTML-looking text stays text, including
+a literal closing textarea tag. To include triple-backtick fences in the
+payload, enclose it with four backticks. More generally, use an outer fence
+longer than any backtick fence the snippet contains.
+
+While a reply streams, an unfinished fenced block remains noninteractive
+preformatted text. Its closing fence makes the snippet copyable; later prose
+can keep streaming around it. The authoritative final replaces provisional
+content, and replay renders the same snippet controls from the retained text.
+For long replies, the truncated preview has no snippet controls. Open
+**Full artifact** to reach the complete Markdown and copy its snippets.
+
+Copy first uses the native clipboard API, then falls back to the browser's
+copy command if the API is unavailable or denied. If both fail, the textbox
+is selected and the page asks the reader to press Ctrl+C or Command+C.
+This is GUI rendering over ordinary reply text; it needs no provider or
+core changes.
+
 ---
 
 ## 7.10 The voice

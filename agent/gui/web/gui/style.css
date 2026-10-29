@@ -90,6 +90,17 @@ button:hover {
 .artifact header button {
   margin-left: auto;
 }
+.clipboard-block {
+  margin: 0.8rem 0;
+}
+.clipboard-block textarea {
+  display: block;
+  font-family: monospace;
+  margin-bottom: 0.4rem;
+}
+.clipboard-block [role="status"] {
+  margin-left: 0.5rem;
+}
 .artifact--thinking {
   background: var(--thinking-bg);
 }
