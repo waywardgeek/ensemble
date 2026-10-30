@@ -30,8 +30,9 @@ rebuild it from nothing or transplant the old Go GUI. Implement the missing
 crossover work, using the ownership and behavior established in the preceding
 chapters:
 
-1. Make the GUI a coherent, accessible three-pane application with a stable
-   status bar, agent tree, settings, chat, and tool artifacts.
+1. Make the GUI a coherent, accessible three-pane application using the approved
+   Bootstrap control system and graphite/blue design direction below, with a
+   stable status bar, agent tree, settings, chat, and tool artifacts.
 2. Provide an ordinary foreground `start` launcher and actionable startup errors.
    Make it possible to run beside the current application without stopping it.
 3. Verify the real browser, actor, persistence, and shutdown paths with owned
@@ -70,10 +71,92 @@ implementing it; ordinary work within the agreed model needs no per-function
 permission.
 
 Teaching code must remain readable. Comment relationships, contracts, and
-non-obvious browser lifecycle decisions. Do not turn a layout change into a
-framework, configuration language, second event bus, or collection of copied
-state. The existing HTML, CSS, and JavaScript are adequate unless a concrete
-requirement proves otherwise.
+non-obvious browser lifecycle decisions. Use the approved component library
+below; do not build another framework, configuration language, second event bus,
+or collection of copied state around it. Keep the existing HTML/JavaScript
+integration and C# host rather than adding a React or Vue rewrite merely to use
+styled controls.
+
+## Required GUI reading
+
+Before implementing this crossover, read the complete original
+[Chapter 8, “Build Your Dream GUI”](../chapter-08.md), as well as the current
+[C# Chapter 8](chapter-08.md). The original chapter explains the design intent
+and why using the interface matters; this chapter is not a substitute for it.
+Check your candidate against that intent and its still-applicable behavior.
+
+Earlier Go names, grader routes, and superseded implementation details are
+historical, not instructions to replace the current C# architecture. Current
+contracts and this chapter's safety boundaries govern. If the readings expose a
+genuine conflict, explain it rather than silently choosing a convenient version.
+Do not edit the earlier edition. Report the relevant checks in your handoff.
+
+## The selected control system and visual direction
+
+The first crossover candidate improved the layout, but I still found it ugly.
+“Good enough for now” was not an endorsement of its design or acceptance as my
+replacement. We compared two interactive component-library samples. I chose
+**Sample B: Bootstrap**, with a graphite background and blue accents, rather than
+the navy/teal Web Awesome sample. Do not reopen that choice as an unspecified
+framework-selection task or continue polishing the first candidate's homemade
+control system.
+
+Use **Bootstrap 5.3.8**, the stable version used in that sample. Its CSS and
+JavaScript supply the common control vocabulary: genuine tabs, buttons, forms,
+menus where needed, and consistent focus/disabled states. Read the
+[official Bootstrap 5.3 documentation](https://getbootstrap.com/docs/5.3/getting-started/introduction/)
+and [distribution instructions](https://getbootstrap.com/docs/5.3/getting-started/download/).
+Pin the dependency and retain its MIT license and provenance. Bundle the required
+assets locally with the optional GUI; do not depend on a runtime CDN, remote
+fonts, or an unrequested package installation. A Node build system is not needed
+just to use the published browser assets. Use one control system, not Bootstrap
+alongside a second component library.
+
+The temporary localhost sample is not a required service or an answer key. These
+are its durable design requirements:
+
+- **Graphite surfaces, light text, blue accents.** The selected sample used dark
+  page `#15191f`, pane surface `#1f252e`, raised surface `#29323f`, main text
+  `#f1f4f9`, secondary text `#bbc6d5`, border `#455365`, accent `#a8c8ff`, and
+  selected background `#263e64`. Use these as the initial application palette;
+  verify actual foreground/background combinations rather than assuming the
+  library guarantees contrast. The light counterpart used `#f5f6f9`, white,
+  `#e9edf5`, text `#17253b`, secondary text `#4a5c75`, and accent `#2359a6`.
+- **A quiet shell and a clear hierarchy.** Compact status controls, aligned pane
+  headings, consistent spacing, and breathing room around messages. Give the
+  conversation the main reading space. Avoid enclosing every label or sentence
+  in another bordered box. Reserve tool cards for distinct activities/artifacts.
+- **Tabs that select a shared panel.** Agents/Settings are a connected tab strip,
+  not pill-shaped action buttons. The active tab joins or clearly identifies its
+  panel; inactive tabs recede. Keyboard focus is distinct from selected state.
+  Use the library's tab behavior without adding competing click/key handlers.
+- **Consistent controls, not the sample's fake application.** Keep the button,
+  form, spacing and theme treatment, but bind it to the real acknowledged Agent
+  operations described below. The sample's conversation, timings, artifacts,
+  creation/deletion, pause and speech behavior were illustrative. They are not
+  production data, a scheduler, persistence, or accepted test results.
+
+Bootstrap does **not** supply Ensemble's agent relationships, tree semantics,
+pane splitters, transcript or tool renderer. Keep those responsibilities in the
+existing application/browser layers and style them consistently. A nested list
+of sample buttons is not a keyboard-accessible real agent tree. Use the existing
+ownership and operations, implementing missing presentation behavior without
+rebuilding the core. Do not add another tree or layout framework without a
+concrete need and architectural discussion.
+
+Integrate the existing acknowledged appearance preferences with Bootstrap's
+light/dark presentation. Do not create a second localStorage authority, lose
+saved explicit choices, or apply a rejected setting optimistically. New users
+start dark. Library event handling must not duplicate sends, resets or peer
+operations; attaching it again after replay/reconnection must not accumulate
+handlers. Preserve target identity while updating the presentation.
+
+Verify locally bundled CSS/JavaScript in the ordinary embedded build **and** a
+mounted GUI base path. Check for failed asset requests and unintended external
+requests, real tab/keyboard behavior, both themes and enlarged text. A library
+makes controls consistent; it does not certify contrast, beauty, accessibility,
+or correct application wiring. Carry these checks into the integrated exercise,
+not only a standalone component demo.
 
 ## The interface I require
 
@@ -153,6 +236,17 @@ inventing an unrelated file browser. Long output should be inspectable without
 forcing the conversation to scroll sideways. Render untrusted text safely, not
 as executable provider-supplied HTML.
 
+Inline truncation is not permission to make the retained result unreachable.
+Provide a usable way to inspect or download the complete output when a current
+owned Job has it. Resolve an Agent and its Job through the existing ownership
+operations; never accept a browser-supplied filesystem path. Preserve the GUI's
+origin/header guards, mounted base path, request cancellation, and private-response
+headers. Reading a download must not consume the Job observer's output cursor.
+Refuse running, missing, wrong-owner, or historical-only handles explicitly rather
+than returning partial output as complete. Bound browser memory use and explain
+any size refusal; an unbounded `fetch().blob()` is not streaming to disk. Test
+exact bytes, ownership refusals, and a later ordinary Job observation.
+
 Make pane widths adjustable with pointer and keyboard controls. Panes should
 scroll independently, with useful minimum widths and without hiding the chat
 composer. At narrow widths, provide an explicit way to reach each pane rather
@@ -168,7 +262,21 @@ panes; low-contrast gray labels cannot. Tabs must look and behave like tabs.
 Selection, focus, warning, and error states must not rely on color alone.
 
 Check both themes, enlarged text, keyboard use, and long content in an actual
-browser. Check computed contrast as well as the layout. Do not invent a numerical
+browser. Combine the conditions: test the largest supported text size in narrow
+windows as well as on a desktop, not large text only on a wide screen and narrow
+screens only at the default size. Include long status values and an expanded or
+resized composer. Verify that the prompt, Send, model, theme, and pause/interrupt
+controls remain reachable, with a useful conversation reading area and no
+page-wide horizontal overflow. Hiding overflowing controls or silently shrinking
+the chosen text size is not a correction. Bounded status summaries, shorter
+navigation labels, and accessible secondary help can preserve space without
+dropping operations. Keep screenshots, but also assert geometry and keyboard
+reachability; a successful settings save does not establish a usable layout.
+Check computed contrast as well as the layout. Capturing a screenshot is not
+viewing its pixels: say whether the acting model actually received and inspected
+the image, or only examined DOM/style/geometry. If visual input is unavailable,
+retain the screenshot for the human and report that limitation; do not claim a
+visual review or invent a hidden vision capability. Do not invent a numerical
 beauty grade. The human decides whether the application is pleasant and usable;
 the student must still bring a considered design.
 
@@ -291,8 +399,12 @@ A useful session proceeds through these paths:
    acknowledgment and restart persistence. Simulate a write failure and show
    that the old accepted state remains. Selection changes must not apply a
    delayed result or a draft to the wrong Agent.
-5. Exercise Pause/Resume, Interrupt, opt-in speech and theme controls. Queued
-   speech counts as busy according to the existing policy; selection cancels
+5. Exercise Pause/Resume, Interrupt, opt-in speech and theme controls. In
+   particular, type while pause-on-input is active, press Pause explicitly, and
+   send: releasing the automatic typing pause must not undo the manual pause.
+   Keep model changes disabled during admitted work even when later usage/meter
+   frames arrive; a status refresh must not accidentally re-enable the control.
+   Queued speech counts as busy according to the existing policy; selection cancels
    stale callbacks and replay is silent. A fake speech boundary verifies wiring,
    not hearing. Native voice quality, useful speed, and accessibility need the
    human's own browser and ears before acceptance.
@@ -381,6 +493,13 @@ use the repository's normal records rather than inventing an audit bureaucracy.
 Do not call the whole system accepted because the submission was accepted by a
 tool. A fresh context, different model name, or isolated directory alone is not
 proof that the teaching is sufficient; the work and recorded assistance matter.
+
+The Bootstrap decision and the first run's substantive behavior/layout lessons
+justify a new fresh-student run. Retain the first candidate and its failures for
+comparison, but do not merge its solution into the next starting implementation
+and call that a rebuild from the chapter. The next student receives the completed
+C# foundation plus this revised assignment. Small corrections can still be made
+within a run; another reset for every CSS adjustment would not teach us more.
 
 When enough new requirements or failure lessons accumulate, preserve what was
 learned, revise the chapter, commit the new teaching baseline, and run a fresh

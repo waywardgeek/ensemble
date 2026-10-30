@@ -1,5 +1,25 @@
 # Edition 3 — GUI crossover: teaching baseline for fresh student
 
+## Current boundary — Bootstrap crossover run 02 baseline
+
+Bill selected Sample B (Bootstrap 5.3.8, graphite/blue) and asked that Chapter 26
+make the direction clear to the student. Cadence recommends a fresh execution:
+the control-system decision plus the first run's substantive lessons warrant it.
+Chapter 26 now contains the selected palette, connected tabs, local dependency
+and license requirements, real-backend/acknowledgment boundaries, and the combined
+layout, full-output, pause and model-control lessons. Screenshot capture remains
+distinct from actual visual inspection. The temporary sample is not a required
+service or a hidden implementation answer key.
+
+The next baseline commit is scoped to Chapter 26 and this progress record.
+`solutions/edition-3/main` is unchanged; candidate 01 is not merged into it.
+Student 02 will receive a fresh isolated worktree from that baseline. Preserve
+candidate 01, its failed and passing evidence, and the existing preview/sample
+servers. No shared-repository reset, Comparison chapter edits, running application
+restart, credentials, provider campaign, installation or promotion is included.
+The prior records below describe run 01 and the samples, not acceptance of run 02.
+
+
 Bill's manual V3 use rejected the single-column GUI as a replacement despite the
 locally completed implementation/book. Current goal: a beautiful, high-contrast,
 usable three-pane GUI, with stable status/model/speech/control/theme bar, actual
@@ -14,12 +34,143 @@ and the embedded-assets lesson; no GUI solution was implemented ahead of the run
 The complete saved assignment was read, including startup/rollback, browser and
 ownership requirements, student completion, and the acceptance/promotion gate.
 
-Next: commit only the crossover chapter and coordinator-owned policy/progress
-updates, create a fresh isolated worktree from that revision, and give the student
-Chapter 26 plus architecture/environment boundaries. Do not fold Comparison's
-uncommitted chapter edits into the baseline. The student must complete its own
-implementation/testing before review. No real server switch, credentials, live
-provider exercise, installation, or top-level promotion is authorized here.
+Teaching baseline committed: `48f61495f9ffc26af550caa14cd569e4b18528c5`, limited
+to Chapter 26, AGENTS precedence, this record, and the C# procedure exception.
+Chapter links/source selectors and shell-example syntax checked; no live example
+executed. Comparison's uncommitted chapter edits were excluded and retained.
+
+Fresh student `gui-crossover-student-01` has submitted; Cadence collected its
+saved result and joined it. Its changes remain uncommitted in the detached sparse
+worktree `/Users/bill/projects/ensemble-crossover-student-01`, not integrated into
+shared `main`. It received Chapter 26, the Common/ownership rules and isolation
+boundaries, with the explicit clarifications below; it did not receive private
+trial code or a preimplemented GUI. Cadence is reviewing the actual changes and
+local evidence. Human replacement acceptance remains open. No real server switch,
+credentials, live provider exercise, installation, or top-level promotion is
+authorized here.
+
+## Clarifications during student run 01
+
+- Approved the existing value-like Preferences default changing from `system` to
+  `dark`, while preserving saved explicit choices. Repeated requests were one
+  clarification: the student encountered unavailable reply-wait handles; direct
+  steering delivered the already-issued approval. Do not count that tooling issue
+  as a GUI or chapter failure.
+- Bill required the original `book/chapter-08.md`, “Build Your Dream GUI,” as
+  additional reading. It was added read-only to the student's sparse checkout;
+  current C# Chapter 8 and current architecture/safety remain authoritative over
+  historical Go details. Chapter 26 now records this prerequisite for future runs.
+  Cadence had not reread the original in full when freezing the baseline; this
+  run is therefore not an unassisted test of the original Chapter 26 alone.
+  Cadence subsequently read the complete original and frozen C# Chapter 8.
+  The comparison confirms a teaching omission: the
+  original expressly requires three panes, pointer/keyboard dividers, and sidebar
+  tree/tabs; the C# rewrite narrows the deliverable largely to a settings panel.
+  Chapter 26 restores these explicit requirements. Comparison owns Chapter 8;
+  Cadence did not edit it. Original Go wire names/defaults/grader routes are not
+  imported as current C# contracts, and historical native speech evidence is not
+  credited to this candidate.
+- Student identified a concrete full-output gap: Job reports truncate inline,
+  with no safe browser route to the underlying owned output. Approved one private
+  GUI Common route declaration/implementation using attached Agent→Jobs.Find→Job
+  and Sandbox, with the existing loopback/origin/port/custom-header guard shape,
+  bounded downloads, no arbitrary path input, no observation-cursor consumption,
+  preserved mount lifetime/base paths, and explicit unavailable-output behavior.
+  The port/header refinement is part of that one architectural clarification,
+  not permission for new core state, types, duplicated registries, or authority.
+
+## Component-library samples — awaiting Bill’s design feedback
+
+Bill found candidate 01 visually unattractive, though good enough for now; this
+is not beautiful-GUI or replacement acceptance. Cadence acknowledged that saved
+screenshots were not actually visually viewed. Bill then authorized evaluating
+component libraries and requested samples, not a production-framework migration.
+
+Two isolated interactive samples are served at `http://localhost:18091/`:
+`webawesome.html` (Web Awesome 3.14.0, navy/teal) and `bootstrap.html` (Bootstrap
+5.3.8, graphite/blue). Owned directory `/private/tmp/ensemble-gui-samples.bmSk3A`,
+pointer `/private/tmp/cadence-gui-samples-current`, server job 977 intentionally
+alive for Bill. Archives were fetched from the public registry, checked against
+its integrity metadata, and extracted without install/lifecycle scripts. Both MIT
+licenses and exact sources are retained in that directory. Assets are locally
+served; samples use no credentials, agents, providers, speech, or live endpoints.
+All conversation, timings, artifacts and status are explicitly illustrative.
+
+Web Awesome supplies actual tree, tabs and buttons. Bootstrap supplies tabs,
+buttons and form styling; its sample hierarchy uses native details/buttons, not
+an invented Bootstrap tree. Shared custom shell/dividers, application palettes and
+sample interactions are identified. No actual Ensemble source was migrated or
+changed for these samples. Servers 8088/8089/18090 remain untouched.
+
+`check.log` and `check/result.json` record both isolated Chrome exercises passing:
+local loading/no attempted external requests or page errors, theme switching,
+keyboard tabs, sample creation/selection/deletion, composer, pause, keyboard pane
+resizing, exact sample download, and 32px/390px no horizontal overflow. Check job
+978 joined exit zero. Screenshots are saved, not visually inspected by Cadence;
+these are functional sample checks, not beauty/full accessibility certification.
+Bill evaluates and chooses a direction before integration. Working reminders
+remain off while waiting for his feedback.
+
+## Cadence review of candidate 01 — combined-layout correction
+
+Reviewed the changed startup/cleanup path, Common declarations, guarded download
+route and its owning relationships, page/layout/app/CSS changes, foreground
+launcher, rollback controller and executable fixtures, and retained results. The
+student's evidence lives in `/private/tmp/ensemble-crossover-01/results`: 310 core
+groups, GUI host checks, seven startup cases, ten disposable launchd recovery
+cases plus candidate-phase exception recovery, and the 15-group final real-host
+browser exercise. These are the student's completed runs, not newly rerun core or
+rollback campaigns. No speech quality, live provider/account, human accessibility,
+beauty, or replacement acceptance follows from them.
+
+Independent review scratch: `/private/tmp/crossover-review.U7G9YB` (pointer
+`/private/tmp/cadence-crossover-review-current`). A clean isolated rebuild and
+real-host browser run passed the original 15 groups. Added review measurements
+in `browser/review-geometry.json` found a real gap: at 32-pixel text, Send was below
+the viewport at 768px width and the 390px layout also overflowed horizontally.
+The student's tests exercised large text and narrow widths separately, and the
+large-text screenshot alone did not assert usability.
+
+The focused failing baseline is `layout-baseline-2/geometry.json` and its log.
+The first focused attempt (`layout-baseline.log`) instead failed on Cadence's
+ambiguous fixture selector and earns no product-failure credit. The first CSS
+correction recovered Send but retained horizontal overflow; that result remains
+in `layout-correction-1`. The second passed the 18/32px by six-width geometry
+check (`layout-correction-2`). Changes are limited to bounded status summary
+wrapping, narrow control columns, an accessible short navigation label, secondary
+keyboard-help placement, and textarea sizing relative to the actual chat pane.
+The chosen text size is not reduced. The existing browser exercise now asserts
+combined enlarged text/narrow widths, a resized textarea, on-screen controls,
+no page-wide horizontal overflow, and remaining reading space.
+
+The corrected packaged build (`build-corrected.log`) is clean. Its first full
+exercise (`browser-corrected.log`) reached all new geometry assertions, then
+failed on Cadence's wrong reporting-helper name (`pass` instead of the existing
+`checkpoint`); that is a fixture-editing error, not another UI defect. The
+corrected complete run (`browser-corrected-2.log` and directory) exited zero with
+16 passing groups, including combined text/window/resized-composer assertions.
+The ordinary embedded assets were rebuilt; no source override was used for that
+full run. No production code changed for the fixture correction. No unchanged
+core or rollback rerun is claimed for these CSS/page changes.
+
+Bill requested a visual trial before further iteration. An isolated preview is
+running at `http://localhost:18090/?speech=transcript`, owned job 961, temporary
+home/workspace `/private/tmp/ensemble-gui-preview.4dMvJP` (pointer
+`/private/tmp/cadence-gui-preview-current`). HTTP page retrieval succeeded and
+contained the new workbench/tree/theme controls. It uses an unused synthetic key
+and unreachable loopback provider, not credentials or a live model; sending a
+message cannot establish inference behavior. Bill's browser was not driven.
+8088/8089 remain untouched; the candidate is not integrated or installed. The
+preview is intentionally left alive for Bill; working reminders are paused for
+his usability evaluation. Other review/test jobs were collected.
+
+Bill explicitly required every improvement to remain in Chapter 26, not merely
+in this candidate. The chapter now teaches combined-condition browser checks,
+resized composer reachability, bounded status summaries, and executable geometry
+checks alongside screenshots. It also incorporates the run's full-output download
+ownership/guard/memory/cursor requirements, manual-versus-typing pause behavior,
+and busy-model controls across meter frames. These are student obligations, not
+a hidden CSS solution. Comparison's Chapters 01–25 are untouched by Cadence.
 
 The previous local completion record follows as historical evidence, not GUI
 replacement acceptance.
