@@ -1,5 +1,35 @@
 # Edition 3 — direct C# chapter execution
 
+## Current exception: the final GUI crossover
+
+The direct implementation below completed the C# foundation. Bill then rejected
+the first GUI's usability and authorized a new fresh-student crossover loop.
+`book/edition-3/chapter-26.md` is now the sole, final crossover assignment.
+The manuscript is sequential 00–26; source endpoints and grader flags retain
+historical numbers, mapped in the edition README.
+
+Cadence owns Chapter 26, baseline preparation, review, testing, teaching revisions,
+and follow-through. Comparison owns Chapters 01–25; do not edit or stage its work.
+After reviewing the assignment, Cadence makes the authorized scoped baseline
+commit and runs a fresh student in an isolated worktree. The student completes
+implementation and local checks before handing over; do not require routine early
+compiling checkpoints or implement the solution ahead of it. Record substantive
+clarifications. Inspect the actual changes, collect the saved result, and join
+before reporting the student's work complete.
+
+The standard below still applies: readable Common declarations, real ownership,
+complete logical destruction, honest tests and evidence, and visible explanations.
+For this crossover only, the former no-worker/no-commit rules give way to this
+bounded student and teaching-baseline authorization. They grant no shared reset,
+restart, installation, credential access, live-provider campaign, push, or
+publication. Protect the existing servers on 8088 and 8089 and their served assets.
+Use owned ports/profiles/homes and deterministic boundary fakes. Bill evaluates the
+candidate. Refine the chapter and rerun fresh when enough lessons warrant it;
+reset only the disposable owned student worktree. Replacement acceptance precedes
+any coordinated Edition 2 archival and V3 promotion.
+
+## Earlier direct-implementation procedure (retained)
+
 This is the current procedure, authorized by Bill after the Chapter 2 C# trial.
 It replaces the old student/author/reviewer workflows and their correction-round
 rules. Cadence does the implementation, teaching edits, inspection and exercises

@@ -1,3 +1,31 @@
+# Edition 3 — GUI crossover: teaching baseline for fresh student
+
+Bill's manual V3 use rejected the single-column GUI as a replacement despite the
+locally completed implementation/book. Current goal: a beautiful, high-contrast,
+usable three-pane GUI, with stable status/model/speech/control/theme bar, actual
+agent tree and creation/deletion, grouped settings, readable anchored chat, and
+visible tool results/artifacts. Human acceptance is still open.
+
+The chapter removal/renumbering is committed at `7b865c22`. Edition 3 now has
+Chapters 00–26; Chapter 26 is the sole crossover. Historical endpoint/grader numbers
+remain unchanged. Cadence owns 26 and the student/review loop; Comparison's edits
+to 01–25 remain separate. The fresh baseline adds the narrow procedure exception
+and the embedded-assets lesson; no GUI solution was implemented ahead of the run.
+The complete saved assignment was read, including startup/rollback, browser and
+ownership requirements, student completion, and the acceptance/promotion gate.
+
+Next: commit only the crossover chapter and coordinator-owned policy/progress
+updates, create a fresh isolated worktree from that revision, and give the student
+Chapter 26 plus architecture/environment boundaries. Do not fold Comparison's
+uncommitted chapter edits into the baseline. The student must complete its own
+implementation/testing before review. No real server switch, credentials, live
+provider exercise, installation, or top-level promotion is authorized here.
+
+The previous local completion record follows as historical evidence, not GUI
+replacement acceptance.
+
+---
+
 # Edition 3 — local book execution and finalization complete
 
 Completed personally, without workers. Chapter 24's mandatory handoff preceded

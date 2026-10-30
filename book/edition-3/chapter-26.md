@@ -183,6 +183,12 @@ rebuild an unrelated running installation. Keep machine-specific account paths
 out of the repository. Use an explicitly supplied credential path when the human
 selects Codex; a path alone must not silently select the payer.
 
+The GUI library normally embeds its assets. Verify the built application's
+ordinary launch, not only an explicit `--gui-dir` source override: a CSS edit
+cannot change an already built assembly or an already loaded tab. Keep the
+existing borrowed-host and base-path behavior intact, with asset and socket URLs
+relative to the mounted page. Do not make the optional GUI a core dependency.
+
 The current host accepts `--port`, `--workspace`, `--sandbox`, `--data-dir`,
 `--agent-name`, `--gui-dir`, and `--skills-dir`. Codex selection uses
 `--billing codex --codex-auth-file PATH`; its endpoint is pinned. Inspect the

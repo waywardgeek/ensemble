@@ -1,5 +1,24 @@
 # Ensemble student restart
 
+## Current Edition 3 crossover exception
+
+Bill authorized a fresh-student run of `book/edition-3/chapter-26.md` after the
+completed direct C# implementation. For this exercise, that chapter and
+`docs/edition-3-csharp-procedure.md` govern; dated workflows below are history,
+not additional role process. Cadence owns Chapter 26 and all non-student roles.
+Comparison owns Chapters 01–25. The student implements only in its assigned
+isolated worktree, starting from `solutions/edition-3/main`, and owns testing and
+local exercise through completion. No routine early-checkpoint interruption or
+extra workers. Questions about genuine ambiguity are welcome.
+
+Do not alter earlier editions or preserved endpoints. Do not touch Bill's live
+servers on 8088/8089, browser, credentials, or shared served assets. No live-provider
+campaign, installation, publication, push, or automatic promotion is authorized.
+Use owned ports, profiles, homes, and temporary data. Reset only disposable owned
+student worktrees, never the shared repository. The human accepts actual usability
+before any coordinated archival/promotion. See the chapter for the assignment;
+this notice records precedence and ownership, not another specification.
+
 ## Current edition procedure
 
 Edition 3 is governed by `docs/edition-3-execution.md`, not the dated Edition 2
