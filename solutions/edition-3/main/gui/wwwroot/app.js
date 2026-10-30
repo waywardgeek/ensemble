@@ -570,7 +570,7 @@ function handle(frame) {
         showGoal(agentRows.find(row => row.key === agentID)?.goal);
         send("get_goal");
         const relayLink = document.querySelector("#relay-link");
-        relayLink.hidden = !agentID;
+        relayLink.hidden = !agentID || agentID === socket?.relayAgentID;
         if (agentID) {
             const relayURL = new URL(location.href);
             relayURL.searchParams.set("agent_id", agentID);
@@ -695,7 +695,6 @@ function connect() {
             const frame = JSON.parse(event.data);
             if (frame.type === "connection") {
                 connection.relayAgentID = frame.relay_agent_id;
-                document.querySelector("#relay-agent").textContent = frame.relay_agent_id || "Original unnamed Agent";
             } else if (frame.type === "mcp") handleMcp(connection, frame);
             else handle(frame);
         }
@@ -969,10 +968,11 @@ function renderAgentTree() {
     const tree = document.querySelector("#agent-tree");
     const focused = tree.contains(document.activeElement) ? document.activeElement.dataset.agent : null;
     tree.replaceChildren();
-    function add(row, group) {
+    function add(row, group, level = 1) {
         const children = row.key == null ? [] : agentRows.filter(child => child.parent === row.key);
         const item = document.createElement("li");
         item.setAttribute("role", "treeitem");
+        item.setAttribute("aria-level", String(level));
         item.setAttribute("aria-selected", String(row.key === agentID));
         const line = document.createElement("div");
         line.className = "tree-row";
@@ -985,9 +985,15 @@ function renderAgentTree() {
                 tree.querySelector(`[data-agent="${CSS.escape(row.key)}"]`)?.focus();
             });
             toggle.classList.add("tree-expand");
+            toggle.dataset.toggleAgent = row.key;
             toggle.tabIndex = -1;
             toggle.setAttribute("aria-label", `${expanded ? "Collapse" : "Expand"} ${row.id}`);
             line.append(toggle);
+        } else {
+            const spacer = document.createElement("span");
+            spacer.className = "tree-expander-space";
+            spacer.setAttribute("aria-hidden", "true");
+            line.append(spacer);
         }
         const choose = actionButton("", () => selectAgent(row.key));
         choose.classList.add("tree-select");
@@ -1000,7 +1006,7 @@ function renderAgentTree() {
         name.textContent = row.id;
         const state = document.createElement("span");
         state.className = "tree-state";
-        state.textContent = row.paused ? "paused" : row.state;
+        state.textContent = [row.submitted ? "submitted" : "", row.paused ? "paused" : row.state].filter(Boolean).join(" · ");
         choose.append(name, state);
         choose.onkeydown = event => {
             if (!["ArrowDown", "ArrowUp", "ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) return;
@@ -1034,12 +1040,22 @@ function renderAgentTree() {
             visible[next].focus();
         };
         line.append(choose);
+        if (row.can_delete) {
+            const remove = document.createElement("button");
+            remove.type = "button";
+            remove.className = "btn tree-delete icon-button";
+            remove.dataset.deleteAgent = row.key;
+            remove.setAttribute("aria-label", `Delete ${row.id}`);
+            remove.title = `Delete ${row.key}; saved files will remain`;
+            remove.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18M9 6V3h6v3M5 6l1 15h12l1-15M10 10v7M14 10v7"/></svg>';
+            line.append(remove);
+        }
         item.append(line);
         if (children.length) {
             const nested = document.createElement("ul");
             nested.setAttribute("role", "group");
             nested.hidden = collapsedAgents.has(row.key);
-            for (const child of children) add(child, nested);
+            for (const child of children) add(child, nested, level + 1);
             item.append(nested);
         }
         group.append(item);

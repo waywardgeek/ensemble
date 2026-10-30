@@ -7,6 +7,15 @@ namespace EnsembleGui;
 
 public static partial class Gui
 {
+    private static partial bool CanDeleteAgent(Agent source, Agent target)
+    {
+        for (Agent? owner = source; owner is not null; owner = owner.AgentParent())
+        {
+            if (ReferenceEquals(owner, target)) return false;
+        }
+        return true;
+    }
+
     private static partial void MapPeers(IEndpointRouteBuilder routes, Agent source, int port,
         CancellationToken stopping)
     {
@@ -78,11 +87,25 @@ public static partial class Gui
                 }
                 // A borrowed mount cannot destroy the Agent its caller promised
                 // to keep alive until all mounted requests have drained.
-                if (ReferenceEquals(ensemble.FindAgent(name), source))
+                var target = ensemble.FindAgentAddress(name)
+                    ?? throw new ArgumentException("No live Agent has that address.");
+                if (!CanDeleteAgent(source, target))
                 {
-                    return Results.Conflict(new { error = "The mounted Agent is caller-owned and cannot be deleted here." });
+                    return Results.Conflict(new { error = "The mounted Agent and its owners cannot be deleted here." });
                 }
-                await ensemble.DeletePeerAsync(source, name, token);
+                if (target.AgentParent() is not null)
+                {
+                    // Explicit human deletion cancels and joins the owned subtree,
+                    // then detaches both ends of its relationships. It never edits
+                    // the top-level launch registry or deletes saved child files.
+                    token.ThrowIfCancellationRequested();
+                    await target.ShutdownAsync().ConfigureAwait(ConfigureAwaitOptions.SuppressThrowing);
+                    target.Destroy();
+                }
+                else
+                {
+                    await ensemble.DeletePeerAsync(source, target.Name!, token);
+                }
                 return Results.Json(new { name, deleted = true, files_retained = true });
             }
             catch (OperationCanceledException) when (token.IsCancellationRequested)
@@ -93,7 +116,7 @@ public static partial class Gui
             {
                 return Results.BadRequest(new { error = "Invalid peer request, skill, or stored configuration." });
             }
-            catch (Exception error) when (error is InvalidOperationException or IOException or UnauthorizedAccessException)
+            catch (Exception error) when (error is InvalidOperationException or IOException or UnauthorizedAccessException or AggregateException)
             {
                 // Never reflect paths, provider diagnostics or credentials.
                 return Results.Conflict(new { error = "Peer operation refused. Check the name, startup skill, storage, and unfinished children." });

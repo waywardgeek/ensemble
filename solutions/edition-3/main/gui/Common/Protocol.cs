@@ -41,6 +41,9 @@ public static partial class Gui
     // cannot block the WebSocket carrying that peer's initialization replies.
     private static partial void MapPeers(Microsoft.AspNetCore.Routing.IEndpointRouteBuilder routes,
         Agent source, int port, CancellationToken stopping);
+    // The mounted Agent and its owning ancestors must outlive this borrowed GUI.
+    // Share this eligibility rule between tree projection and HTTP enforcement.
+    private static partial bool CanDeleteAgent(Agent source, Agent target);
     // Read-only complete Job output, resolved through a live Agent and its Jobs.
     // No caller path is accepted. Completed output is guarded and bounded; the
     // response copy observes both mount shutdown and request cancellation.

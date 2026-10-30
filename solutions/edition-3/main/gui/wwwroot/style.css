@@ -135,7 +135,20 @@ details { margin: 0.175rem 0; }
 summary { cursor: pointer; color: var(--accent); overflow-wrap: anywhere; padding: 0.075rem 0; }
 #agents-panel > details { border-top: 1px solid var(--edge); margin-top: 0.25rem; padding-top: 0.125rem; font-size: .85rem; }
 #agent-tree, #agent-tree ul { list-style: none; padding: 0; margin: 0; }
-#agent-tree ul { margin-left: 0.2125rem; padding-left: 0.0875rem; border-left: 1px solid var(--edge); }
+/* Preserve real branch indentation even in the compact layout. Leaf rows keep
+   the same expander slot, so their names cannot jump back toward the root. */
+#agent-tree { overflow-x: auto; }
+#agent-tree ul { margin-left: 1rem; padding-left: .25rem; border-left: 1px solid var(--control-edge); }
+.tree-row { min-width: 12rem; }
+.tree-expander-space { width: 44px; flex: 0 0 44px; }
+.tree-delete.btn { flex: none; border: 0; background: transparent; color: var(--bs-body-color); }
+.tree-delete svg { width: 1.35rem; height: 1.35rem; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.agent-toolbar { display: flex; align-items: center; gap: .25rem; flex-wrap: wrap; margin-top: .25rem; }
+#peer-open { flex: 1; }
+.peer-dialog { width: min(28rem, calc(100vw - 1rem)); max-height: calc(100dvh - 2rem); overflow: auto; background: var(--surface); color: var(--bs-body-color); border: 1px solid var(--control-edge); border-radius: .5rem; padding: .5rem; }
+.peer-dialog::backdrop { background: rgb(0 0 0 / .6); }
+.peer-dialog h2 { font-size: 1.1rem; }
+.dialog-actions { display: flex; justify-content: flex-end; gap: .25rem; margin-top: .5rem; }
 .tree-row { display: flex; align-items: center; gap: 0.025rem; margin: 0.0375rem 0; border-left: .16rem solid transparent; border-radius: .35rem; }
 .tree-row:hover { background: var(--surface-raised); }
 .tree-select.btn { flex: 1; min-width: 0; text-align: left; padding: 0.1125rem 0.1rem; border: 0; border-radius: 0; color: var(--bs-body-color); background: transparent; }

@@ -241,14 +241,32 @@ expandable hierarchy and agent creation/deletion controls. Represent the real
 parent relationships: named top-level peers are siblings, not children of the
 first displayed Agent. Show the selected row and meaningful status. Support
 keyboard traversal, expansion, selection, and visible focus without requiring a
-mouse or color perception.
+mouse or color perception. Compact styling must not erase the hierarchy: give
+children clearly visible indentation and branch guides, and reserve the expander
+slot on leaf rows so their names align with branch names at the same level.
+Preserve explicit expand/collapse choices across new snapshots. Test real parent,
+child, and grandchild geometry as well as keyboard behavior.
 
-Use the existing peer operations. Creation and deletion are acknowledged
-operations, not optimistic edits to a local list. Protected/mounted actors and
-parents with unresolved children retain the current refusal rules. Deletion
-retains saved files according to the core contract. A selection changes the
-view; it does not transfer that tab's browser relay or MCP authority. Keep the
-separate-relay action discoverable for Agents that require it.
+The tree is the sole visible conversation selector. Use a **Create Agent** button
+that opens a dialog, not a permanently expanded creation form. Put confirmed trash
+actions on eligible tree rows, not a second name-entry deletion form. Protect the
+mounted Agent and its owning ancestors in both presentation and server enforcement.
+Creation and deletion are acknowledged operations, not optimistic edits to a local
+list. Reuse registry-aware operations for top-level peers, including refusal when
+they have unresolved children. Explicit child deletion cancels and joins its owned
+subtree before logical destruction; it does not edit the top-level registry or
+delete saved files. Test confirmation cancellation, server-side protection, view
+recovery after deletion, and actual retention of saved submission files.
+
+Submission is result publication, not a request to stop or remove a child. Keep
+submitted children selectable and show their submitted status alongside activity.
+A status-tool query and a GUI snapshot must not hide them merely because their
+work is complete. Keep explicit lifecycle operations separate from observation.
+
+A selection changes the view; it does not transfer that tab's browser relay or
+MCP authority. Remove redundant selection/relay explanations from the normal
+sidebar, but keep a compact separate-relay action discoverable for Agents that
+require it. A pending creation must leave the tree usable for that startup step.
 
 The Settings tab has clearly grouped **AI**, **Memory**, and **Accessibility**
 sections. AI includes the existing model/context/tool-policy and account/funding

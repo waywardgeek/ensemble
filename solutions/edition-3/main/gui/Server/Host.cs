@@ -418,6 +418,7 @@ public static partial class Gui
                             ["state"] = status.Activity.ToString().ToLowerInvariant(),
                             ["paused"] = status.Paused,
                             ["submitted"] = status.Submitted,
+                            ["can_delete"] = node.Address is not null && CanDeleteAgent(agent, node.Agent),
                             ["goal"] = GoalValue(goal),
                             ["phase"] = status.Work?.Phase.ToString().ToLowerInvariant() ?? "idle",
                             ["tool"] = status.Work?.Tool ?? "",

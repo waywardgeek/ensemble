@@ -119,7 +119,7 @@ const check = (condition, message) => { assert.ok(condition, message); console.l
   check(Math.abs(many.height-one.height)<2&&many.scroll>many.client&&many.overflow==='auto','long wrapped input scrolls inside one-line area');
   await page.locator('#prompt').fill('');const empty=await measureComposer();
   check(Math.abs(empty.height-one.height)<2,'clearing input preserves one-line area');
-  await page.waitForFunction(()=>document.querySelector('#state').textContent==='inputpending');
+  await page.waitForFunction(()=>['idle','inputpending'].includes(document.querySelector('#state').textContent));
 
   // Structural presentation checks do not certify pixel-level beauty. These
   // protect the selected design's distinction between navigation and actions.
@@ -206,7 +206,8 @@ const check = (condition, message) => { assert.ok(condition, message); console.l
   check((await page.locator('#notice').textContent()).includes('Model selection refused'),'refused model restores acknowledged choice');
   console.log('PASS immediate model selection, acknowledgment and refusal recovery');
 
-  check(await page.locator('#tool-transcript .part').count()===6,'tool call, results and media appear only in Tools');
+  // The public agents_status regression adds one real result to the six seeded artifacts.
+  check(await page.locator('#tool-transcript .part').count()===7,'tool call, results and media appear only in Tools');
   check(await page.locator('#transcript [data-kind="tool_call"],#transcript [data-kind="tool_result"]').count()===0,'Chat excludes tools');
   check(await page.locator('#tool-transcript img').evaluate(e=>e.complete && e.naturalWidth>0),'embedded image renders');
   const originalIDs=await page.locator('[data-part-id]').evaluateAll(nodes=>nodes.map(n=>n.dataset.partId));
@@ -223,6 +224,41 @@ const check = (condition, message) => { assert.ok(condition, message); console.l
   check(await page.evaluate(()=>document.activeElement.dataset.agent)==='captain/worker/nested','tree reaches grandchild');
   await page.keyboard.press('ArrowLeft');
   check(await page.evaluate(()=>document.activeElement.dataset.agent)==='captain/worker','tree ArrowLeft returns to parent');
+  const treeGeometry=await page.evaluate(()=>{
+    const row=key=>{const e=document.querySelector(`[data-agent="${key}"]`);return{left:e.querySelector('.tree-name').getBoundingClientRect().left,level:Number(e.closest('[role="treeitem"]').getAttribute('aria-level'))};};
+    return{root:row('captain'),peer:row('peer'),child:row('captain/worker'),grandchild:row('captain/worker/nested'),retained:row('captain/retained')};
+  });
+  check(Math.abs(treeGeometry.root.left-treeGeometry.peer.left)<1,'leaf and branch roots align');
+  check(treeGeometry.child.left-treeGeometry.root.left>=18&&treeGeometry.grandchild.left-treeGeometry.child.left>=18,'child and grandchild have clear indentation');
+  check(treeGeometry.child.level===2&&treeGeometry.grandchild.level===3,'tree exposes nesting levels');
+  check(await page.locator('[data-delete-agent="captain"]').count()===0,'mounted root has no trash action');
+  check(await page.locator('#peer-delete,#peer-delete-confirm').count()===0,'standalone delete controls removed');
+  check(await page.locator('#agent-choice').isHidden(),'tree is the only visible conversation selector');
+  check((await page.locator('[data-agent="captain/retained"] .tree-state').innerText()).includes('submitted'),'submitted child remains visible with result status');
+  await page.locator('[data-toggle-agent="captain/worker"]').click();
+  check(await page.locator('[data-agent="captain/worker/nested"]').isHidden(),'branch collapse hides descendants');
+  const protectedDelete=await page.evaluate(async()=>{const r=await fetch('./peers/delete',{method:'POST',headers:{'Content-Type':'application/json','X-Ensemble-Peers':'1'},body:JSON.stringify({name:'captain'})});return r.status;});
+  check(protectedDelete===409,'server independently refuses mounted-root deletion');
+  await page.locator('#peer-open').click();
+  check(await page.locator('#peer-dialog').evaluate(e=>e.open),'Create Agent opens dialog');
+  await page.locator('#peer-name').fill('tree-created');
+  await page.locator('#peer-create').click();
+  await page.waitForFunction(()=>document.querySelector('[data-agent="tree-created"]'));
+  check(await page.locator('#peer-dialog').isHidden(),'creation closes dialog while tree remains available');
+  check(await page.locator('[data-agent="captain/worker/nested"]').isHidden(),'collapse survives a new server tree snapshot');
+  await page.locator('[data-toggle-agent="captain/worker"]').click();
+  check(await page.locator('[data-agent="captain/worker/nested"]').isVisible(),'branch re-expands');
+  await page.locator('[data-agent="captain/retained"]').click();
+  await page.waitForFunction(()=>document.querySelector('#agent-choice').value==='captain/retained'&&!document.querySelector('#send').disabled);
+  page.once('dialog',dialog=>dialog.dismiss());await page.locator('[data-delete-agent="captain/retained"]').click();
+  check(await page.locator('[data-agent="captain/retained"]').count()===1,'canceling deletion preserves child');
+  page.once('dialog',dialog=>dialog.accept());await page.locator('[data-delete-agent="captain/retained"]').click();
+  await page.waitForFunction(()=>!document.querySelector('[data-agent="captain/retained"]')&&document.querySelector('#agent-choice').value==='captain');
+  check((await page.locator('#peer-notice').innerText()).includes('saved files retained'),'child deletion acknowledges retained files');
+  check(fs.existsSync(JSON.parse(fs.readFileSync(path.join(root,'.crossover/runtime/fixture.json'),'utf8')).retainedArtifact),'child deletion actually retains submit.md');
+  page.once('dialog',dialog=>dialog.accept());await page.locator('[data-delete-agent="tree-created"]').click();
+  await page.waitForFunction(()=>!document.querySelector('[data-agent="tree-created"]'));
+  console.log('PASS real tree hierarchy, collapse persistence, retained submission, creation dialog, and guarded row deletion');
   await page.locator('#left-splitter').focus(); const before=await page.locator('#left-splitter').getAttribute('aria-valuenow');
   await page.keyboard.press('ArrowRight');
   check(await page.locator('#left-splitter').getAttribute('aria-valuenow')!==before,'separator supports keyboard resizing');
@@ -287,7 +323,7 @@ const check = (condition, message) => { assert.ok(condition, message); console.l
   await page.waitForFunction(()=>document.querySelector('#transcript').textContent.includes('PEER-ONLY'));
   check(!(await page.locator('#transcript').innerText()).includes('Offline crossover'),'selection replaces Chat replay');
   check(await page.locator('#tool-transcript .part').count()===0,'selection clears old tool display');
-  check((await page.locator('#relay-agent').textContent())==='captain','view selection does not retarget relay authority');
+  check(frames.filter(frame=>frame.type==='connection').at(-1)?.relay_agent_id==='captain','selection leaves the fixed relay authority unchanged');
   await page.locator('[data-agent="captain"]').click();
   await page.waitForFunction(()=>document.querySelector('#transcript').textContent.includes('Offline crossover'));
   await page.locator('#prompt').fill('Stream the fixture response'); await page.locator('#send').click();

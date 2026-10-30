@@ -52,21 +52,18 @@
  <section class="tab-pane active show" id="agents-panel" role="tabpanel" aria-labelledby="agents-tab" tabindex="0">
  <h2 class="sidebar-caption">Workspace</h2>
  <ul id="agent-tree" role="tree" aria-label="Agent hierarchy"></ul>
- <details><summary>Conversation selection and relay</summary>
- <label for="agent-choice">Displayed conversation</label><select class="form-select" id="agent-choice" aria-describedby="agent-help"></select>
- <p id="agent-help">Selection changes this tab only. Browser tools stay attached to <span id="relay-agent">the connection’s original Agent</span>.</p>
- <a id="relay-link" target="_blank" rel="noopener" hidden>Open an independent browser relay for this Agent</a></details>
-<details id="peers-panel"><summary>Create or delete an Agent</summary>
-<p>Create a top-level peer using this host's current defaults. Blank model and primary skill inherit those defaults. Creation leaves the displayed conversation unchanged. Deleting the displayed peer returns that tab to the mounted Agent.</p>
-<label>Name <input class="form-control" id="peer-name" autocomplete="off"></label>
-<label>Model <input class="form-control" id="peer-model" autocomplete="off"></label>
-<label>Primary skill <input class="form-control" id="peer-skill" autocomplete="off"></label>
-<button class="btn btn-outline-primary" id="peer-create" type="button">Create peer</button>
-<button class="btn btn-outline-primary" id="peer-cancel" type="button" hidden>Cancel creation request</button>
-<label><input class="form-check-input" id="peer-delete-confirm" type="checkbox"> Stop and delete the named peer's registry entry; retain its saved files</label>
-<button class="btn btn-outline-primary" id="peer-delete" type="button">Delete named peer</button>
-<p id="peer-notice" role="status" aria-live="polite"></p>
-</details>
+ <select id="agent-choice" hidden aria-hidden="true" tabindex="-1"></select>
+ <div class="agent-toolbar"><button class="btn btn-secondary" id="peer-open" type="button">Create Agent</button>
+ <a id="relay-link" class="btn icon-button" target="_blank" rel="noopener noreferrer" aria-label="Open selected Agent in a separate relay tab" title="Open selected Agent in a separate relay tab" hidden>↗</a>
+ <button class="btn btn-quiet" id="peer-cancel" type="button" hidden>Cancel creation</button></div>
+ <div id="peer-notice" class="notice" role="status"></div>
+ <dialog id="peer-dialog" class="peer-dialog" aria-labelledby="peer-dialog-title">
+ <form id="peer-form"><h2 id="peer-dialog-title">Create Agent</h2>
+ <label class="form-label" for="peer-name">Name</label><input class="form-control" id="peer-name" required pattern=".*\S.*" title="Enter an Agent name." autocomplete="off">
+ <label class="form-label" for="peer-model">Model (optional)</label><input class="form-control" id="peer-model" autocomplete="off">
+ <label class="form-label" for="peer-skill">Primary skill (optional)</label><input class="form-control" id="peer-skill" autocomplete="off">
+ <div class="dialog-actions"><button class="btn btn-quiet" id="peer-close" type="button">Cancel</button><button class="btn btn-primary" id="peer-create" type="submit">Create</button></div>
+ </form></dialog>
 </section>
  <section class="tab-pane" id="settings-panel" role="tabpanel" aria-labelledby="settings-tab" tabindex="0">
  <section class="settings-section" aria-labelledby="user-heading"><h2 id="user-heading">User</h2>

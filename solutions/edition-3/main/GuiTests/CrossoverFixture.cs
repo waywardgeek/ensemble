@@ -17,7 +17,7 @@ internal static class CrossoverFixture
         File.Delete(stopFile);
         using var deadline = new CancellationTokenSource(TimeSpan.FromMinutes(15));
         var token = deadline.Token;
-        var root = new Ensemble.Ensemble(TextWriter.Null);
+        var root = new Ensemble.Ensemble(TextWriter.Null, dataDirectory: Path.Combine(directory, "data"));
         var providerBuilder = WebApplication.CreateBuilder();
         providerBuilder.Logging.ClearProviders();
         var provider = providerBuilder.Build();
@@ -74,6 +74,12 @@ internal static class CrossoverFixture
             selected.InstallTools();
             var child = new Agent(root, selected, "worker", configuration);
             _ = new Agent(root, child, "nested", configuration);
+            var retained = new Agent(root, selected, "retained", configuration);
+            retained.PublishSubmission("Completed fixture work; retain this child for inspection.");
+            var retainedState = await retained.WorkStatusAsync(token);
+            if (!retainedState.Submitted || retainedState.Activity != AgentActivity.Idle
+                || !ReferenceEquals(selected.FindChild("retained"), retained))
+                throw new InvalidOperationException("Submission must retain an idle, queryable child.");
             var peer = new Agent(root, configuration, name: "peer");
             peer.History().Append(new Event(EventKind.MessageReceived, actor: Actor.Human,
                 parts: [new TextPart("PEER-ONLY history") ]));
@@ -160,7 +166,7 @@ internal static class CrossoverFixture
             await bulk.DispatchAsync(new ToolCallPart("bulk-job", configuration.Target(), "run_command",
                 JsonSerializer.SerializeToElement(new { command = "head -c 8388608 /dev/zero", max_output_bytes = 128, ai_callback_delay = 1 })), token);
             int bulkHandle = bulk.Jobs().Children().Single().Handle;
-            string confinedRoot = Path.Combine(directory, "confined");
+            string confinedRoot = Path.Combine(root.DataDirectory(), "agents", "confined");
             Directory.CreateDirectory(confinedRoot);
             var confinedConfiguration = new Configuration(Vendor.Anthropic, "claude-3-haiku-20240307",
                 "http://127.0.0.1:18203", key, sandboxRoot: confinedRoot);
@@ -190,7 +196,19 @@ internal static class CrossoverFixture
                 SettingsPath: Path.Combine(directory, "appearance.json"),
                 TracePath: Path.Combine(directory, "gui.log"), BasePath: "/assistant"), token);
             await host.StartAsync(token);
-            File.WriteAllText(Path.Combine(directory, "fixture.json"), JsonSerializer.Serialize(new { handle, runningHandle, nestedHandle, oversizedHandle, cursorHandle, bulkHandle, removedHandle, outputHash }));
+            var statusResult = await selected.DispatchAsync(new ToolCallPart("retained-status",
+                configuration.Target(), "agents_status", JsonSerializer.SerializeToElement(new { })), token);
+            if (statusResult.IsError) throw new InvalidOperationException("Child status tool refused.");
+            using (var statusJson = JsonDocument.Parse(string.Concat(statusResult.Parts.OfType<TextPart>().Select(part => part.Text))))
+            {
+                if (!statusJson.RootElement.GetProperty("agents").EnumerateArray().Any(row =>
+                    row.GetProperty("agent_id").GetString() == "retained"
+                    && row.GetProperty("submitted").GetBoolean()
+                    && row.GetProperty("activity").GetString() == "idle"))
+                    throw new InvalidOperationException("Submitted child missing from agents_status.");
+            }
+            Console.WriteLine("PASS submitted child remains idle, queryable, owned, and listed in agents_status");
+            File.WriteAllText(Path.Combine(directory, "fixture.json"), JsonSerializer.Serialize(new { handle, runningHandle, nestedHandle, oversizedHandle, cursorHandle, bulkHandle, removedHandle, outputHash, retainedArtifact = Path.Combine(retained.DataDirectory(), "submit.md") }));
             Console.WriteLine("READY http://127.0.0.1:18202/assistant/ (embedded assets; loopback provider :18203)");
             while (!File.Exists(stopFile))
             {

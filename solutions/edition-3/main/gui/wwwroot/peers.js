@@ -1,36 +1,28 @@
 "use strict";
-// HTTP management runs beside the WebSocket: pending browser startup still
-// needs tree selection and its independent relay tab to remain usable.
+// HTTP management remains independent of the conversation socket. Closing the
+// creation dialog leaves the tree and separate relay tab usable during startup.
 (() => {
     const name = document.querySelector("#peer-name");
     const model = document.querySelector("#peer-model");
     const skill = document.querySelector("#peer-skill");
+    const dialog = document.querySelector("#peer-dialog");
+    const open = document.querySelector("#peer-open");
     const create = document.querySelector("#peer-create");
-    const remove = document.querySelector("#peer-delete");
     const cancel = document.querySelector("#peer-cancel");
-    const confirm = document.querySelector("#peer-delete-confirm");
     const notice = document.querySelector("#peer-notice");
     let pending = null;
 
-    async function change(operation) {
-        if (pending) return;
-        if (!name.value.trim()) {
-            notice.textContent = "Enter a peer name.";
-            name.focus();
-            return;
-        }
-        if (operation === "delete" && !confirm.checked) {
-            notice.textContent = "Confirm deletion of the named peer's registry entry first.";
-            return;
-        }
-        const body = { name: name.value };
+    async function change(operation, address) {
+        if (pending) { notice.textContent = "An Agent operation is already in progress."; return; }
+        const body = { name: operation === "create" ? name.value : address };
         if (operation === "create") Object.assign(body, { model: model.value, skill: skill.value });
         pending = new AbortController();
-        for (const control of [name, model, skill, create, remove, confirm]) control.disabled = true;
+        for (const control of [name, model, skill, create, open]) control.disabled = true;
         cancel.hidden = operation !== "create";
+        dialog.close();
         notice.textContent = operation === "create"
-            ? "Creating peer. If its skill needs a browser, select it in the conversation picker and open its independent relay."
-            : "Stopping and deleting peer. Saved files will remain.";
+            ? "Creating Agent. If a browser is needed, select it in the tree and open its separate relay tab."
+            : "Stopping and deleting Agent. Saved files will remain.";
         try {
             const response = await fetch(`./peers/${operation}`, {
                 method: "POST", credentials: "same-origin", redirect: "error", cache: "no-store",
@@ -38,24 +30,33 @@
                 body: JSON.stringify(body), signal: pending.signal
             });
             if (!response.ok) {
-                notice.textContent = "Peer operation refused. Check the name, primary skill, storage, and unfinished children. The mounted Agent cannot be deleted here.";
+                notice.textContent = "Agent operation refused. Check the name, primary skill, storage, and unfinished children. The mounted Agent cannot be deleted here.";
                 return;
             }
             const result = await response.json();
             notice.textContent = operation === "create"
-                ? `Created peer ${result.name}. Select it to view its conversation.`
-                : `Deleted peer ${result.name}; saved files retained.`;
+                ? `Created Agent ${result.name}. Select it in the tree.`
+                : `Deleted Agent ${result.name}; saved files retained.`;
         } catch (_) {
-            // Aborting a response is not proof that commit did not win the race.
-            notice.textContent = "Request interrupted. Check the Agent tree before retrying; an operation may already have completed.";
+            // Response cancellation is not proof that commit did not win the race.
+            notice.textContent = "Request interrupted. Check the Agent tree before retrying; the operation may already have completed.";
         } finally {
             pending = null;
             cancel.hidden = true;
-            confirm.checked = false;
-            for (const control of [name, model, skill, create, remove, confirm]) control.disabled = false;
+            for (const control of [name, model, skill, create, open]) control.disabled = false;
         }
     }
-    create.onclick = () => change("create");
-    remove.onclick = () => change("delete");
+    open.onclick = () => { dialog.showModal(); name.focus(); };
+    document.querySelector("#peer-close").onclick = () => dialog.close();
+    document.querySelector("#peer-form").onsubmit = event => { event.preventDefault(); void change("create"); };
+    document.addEventListener("click", event => {
+        const remove = event.target.closest("button[data-delete-agent]");
+        if (!remove) return;
+        if (pending) { notice.textContent = "An Agent operation is already in progress."; return; }
+        const address = remove.dataset.deleteAgent;
+        if (window.confirm(`Delete ${address}? Running work and owned descendants will be stopped. Saved files will remain.`)) {
+            void change("delete", address);
+        }
+    });
     cancel.onclick = () => pending?.abort();
 })();
