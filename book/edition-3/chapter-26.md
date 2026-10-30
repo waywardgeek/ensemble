@@ -321,6 +321,12 @@ inventing an unrelated file browser. Long output should be inspectable without
 forcing the conversation to scroll sideways. Render untrusted text safely, not
 as executable provider-supplied HTML.
 
+Exercise automatic tool-result redaction on the selected provider route, not
+only unredacted sample results. A retained `RedactedPart` is a readable omission
+notice, not media. Project it through the common text formatter without exposing
+its private locator or mutating History; keep genuine unsupported media refusal.
+A valid saved redaction must not make every subsequent request fail locally.
+
 Inline truncation is not permission to make the retained result unreachable.
 Provide a usable way to inspect or download the complete output when a current
 owned Job has it. Resolve an Agent and its Job through the existing ownership

@@ -102,11 +102,14 @@ public sealed partial class Engine
 
     private static string ResponsesResult(ToolResultPart result)
     {
-        if (result.Parts.Any(part => part is not TextPart))
+        if (result.Parts.Any(part => part is not TextPart and not RedactedPart))
         {
             throw new NotSupportedException("Responses tool media projection is not implemented");
         }
-        return string.Concat(result.Parts.Cast<TextPart>().Select(part => part.Text));
+        // Budget redaction leaves readable markers inside canonical tool results.
+        // They are not media. Use the common formatter without reading their
+        // private locators or changing the retained History.
+        return JsonCodec.Text(result.Parts);
     }
 
     private static List<Part> ParseResponses(JsonElement root, Provenance from)

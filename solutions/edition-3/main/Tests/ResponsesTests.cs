@@ -112,6 +112,70 @@ internal static class ResponsesTests
         finally { app.Destroy(); }
     }
 
+    public static void RedactedResults()
+    {
+        var app = new Application(TextWriter.Null);
+        try
+        {
+            var agent = new Agent(app, Config());
+            var call = new Entry(1, Actor.Agent,
+                [new ToolCallPart("redacted-call", agent.Configuration().Target(), "effect", J("{}"))]);
+            var context = new Context([call,
+                new Entry(2, Actor.Tool, [new ToolResultPart("redacted-call", [new TextPart("result")])])]);
+
+            // Use the same reducer as the automatic tool-result budget. Its marker
+            // is readable text evidence, not a request to send unsupported media.
+            var redacted = History.Reduce(context, new Event(EventKind.Redacted,
+                redactFrom: 2, redactTo: 2, level: Redaction.Result, reason: "tool result budget"));
+            var wire = agent.Engine().Render(redacted);
+            var output = wire["input"]!.AsArray().Single(item =>
+                item!["type"]!.GetValue<string>() == "function_call_output")!;
+            Check(output["call_id"]!.GetValue<string>() == "redacted-call", "redacted result retains call pairing");
+            Check(output["output"]!.GetValue<string>() == "[redacted text: 6 bytes; tool result budget]",
+                "Responses renders the actual redaction marker");
+            Check(((ToolResultPart)redacted.Dialogue[1].Parts[0]).Parts[0] is RedactedPart,
+                "wire projection does not mutate the redacted context");
+            Check(((ToolResultPart)context.Dialogue[1].Parts[0]).Parts[0] is TextPart { Text: "result" },
+                "redaction leaves its original input context intact");
+
+            // Job-backed markers carry a private locator for later retrieval. The
+            // normal text formatter must not leak that locator into provider input.
+            var marker = new RedactedPart("tool_result", 12, "budget",
+                new BlobRef(RefKind.Path, "/not-opened/private-job-output"));
+            var mixed = new Context([call, new Entry(2, Actor.Tool,
+                [new ToolResultPart("redacted-call", [new TextPart("left"), marker, new TextPart("right")])])]);
+            string mixedJson = agent.Engine().Render(mixed).ToJsonString();
+            Check(mixedJson.Contains("left[redacted tool_result: 12 bytes; budget]right")
+                && !mixedJson.Contains("private-job-output"), "mixed text preserves ordering without exposing locator");
+
+            var empty = new Context([call, new Entry(2, Actor.Tool, [new ToolResultPart("redacted-call", [])])]);
+            var emptyWire = agent.Engine().Render(empty);
+            Check(emptyWire["input"]!.AsArray().Single(item =>
+                item!["type"]!.GetValue<string>() == "function_call_output")!["output"]!.GetValue<string>() == "",
+                "a genuinely empty result remains empty");
+
+            // This repair must not silently discard actual media on a surface
+            // whose tool-media projection has not been implemented.
+            var image = new BlobPart("image/png", new BlobRef(RefKind.Uri,
+                "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+lA3sAAAAASUVORK5CYII="));
+            var media = new Context([call, new Entry(2, Actor.Tool, [new ToolResultPart("redacted-call", [image])])]);
+            bool refused = false;
+            try
+            {
+                agent.Engine().Render(media);
+            }
+            catch (NotSupportedException)
+            {
+                refused = true;
+            }
+            Check(refused, "real Responses tool media remains explicitly unsupported");
+        }
+        finally
+        {
+            app.Destroy();
+        }
+    }
+
     public static void Plain()
     {
         var app = new Application(TextWriter.Null);
