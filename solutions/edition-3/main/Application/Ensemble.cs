@@ -219,6 +219,15 @@ public sealed partial class Ensemble
             failures ??= [];
             failures.Add(ex);
         }
+        try
+        {
+            CodexCredentials()?.Destroy();
+        }
+        catch (Exception ex)
+        {
+            failures ??= [];
+            failures.Add(ex);
+        }
         // Complete every ownership cascade even if one log cannot close cleanly.
         observations.Writer.TryComplete();
         if (failures is not null)

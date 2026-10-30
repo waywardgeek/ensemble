@@ -764,12 +764,12 @@ public sealed partial class Agent
             }
             if (message.Error is not null)
             {
-                if (message.Error is PlanAuthorizationException refusal)
+                if (message.Error is PlanAuthorizationException or CodexAuthorizationException)
                 {
                     // One durable error feeds replay, GUI and speech. Record
                     // before ending the turn; a failed append still faults the
                     // actor and cannot publish a success or a fabricated fact.
-                    Record(new Event(EventKind.ErrorOccurred, error: refusal.Message));
+                    Record(new Event(EventKind.ErrorOccurred, error: message.Error.Message));
                 }
                 Finish(message.Error);
                 return;

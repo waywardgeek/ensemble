@@ -61,16 +61,23 @@ public static partial class Gui
             var cancellation = active.Token;
             try
             {
-                var credentials = agent.Parent().Credentials();
+                var config = agent.Configuration();
+                // Public account controls must not borrow or renew another
+                // grant while this mounted Agent uses Codex funding.
+                var credentials = config.Billing == BillingMode.Codex ? null : agent.Parent().Credentials();
                 if (operation == "status")
                 {
                     var accounts = credentials is null ? [] : await credentials.AccountsAsync(cancellation);
                     bool pending = credentials is not null && await credentials.LoginPendingAsync(cancellation);
-                    var config = agent.Configuration();
                     await response.WriteAsJsonAsync(new
                     {
                         enabled = credentials is not null,
-                        billing = config.Billing == BillingMode.ChatGptPlan ? "chatgpt" : "api",
+                        billing = config.Billing switch
+                        {
+                            BillingMode.ChatGptPlan => "chatgpt",
+                            BillingMode.Codex => "codex",
+                            _ => "api"
+                        },
                         selected_account = config.Account,
                         pending,
                         accounts = accounts.Select(account => new
@@ -159,7 +166,6 @@ public static partial class Gui
                 {
                     // The browser chooses an account, never a credential-bearing
                     // destination. Discovery does not mutate this Agent's model.
-                    var config = agent.Configuration();
                     if (config.Vendor != Vendor.OpenAI)
                     {
                         throw new InvalidOperationException("Plan catalog requires an OpenAI endpoint.");

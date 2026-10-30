@@ -1,4 +1,10 @@
-# Edition 3 — Gateway locally complete
+# Edition 3 — locally complete
+
+The C# chapter work and local book finalization are complete. The assembled
+Markdown, EPUB, print interior and reading PDF are in `book/edition-3`; its README
+contains build instructions and evidence limits. No publication or deployment is
+implied. Chapter 24 preserves the final runtime source; main differs only in this
+README after final reconciliation.
 
 Chapter 26's standalone Gateway library, public client, router, durable queues,
 optional Host, Interviewer and Ensemble Adapter/AgentHost are implemented and
@@ -13,10 +19,25 @@ are complete. These are not live-model, OAuth/cache, deployment or security-audi
 claims. `Gateway/README.md` describes ownership and reproduction; the TOP of
 `docs/edition-3-csharp-progress.md` records the exact evidence and limitations.
 
-The book is **not fully verified**. The remaining joint work is Chapter 16's live
-OAuth exercise and Chapter 24's current official-endpoint/cache check, using a
-credential-store path and setup explicitly approved by Bill. No private credential
-search or account borrowing is authorized.
+The October 29 joint session verified real CLI public OAuth login, account-model
+discovery and three public Responses calls, all with zero cache reads/writes.
+The optional Codex-backed C# integration is now implemented and reviewed in core,
+CLI and GUI. Select `--billing codex --codex-auth-file /explicit/approved/file`
+or `EN_BILLING=codex` with `EN_CODEX_AUTH_FILE`. It uses the pinned Responses route,
+reads one paired grant per send, and never refreshes, rewrites, searches private
+stores or falls back to a different payer. Renewal belongs to Codex. Explicit
+Codex startup leaves the separate public store and saved public selection alone.
+
+The bounded actual C# CLI check completed three identical-body requests:
+input3641/output5 each, cached reads3456/0/3456, writes0. Two94.9% hits and a miss
+are measured reuse, not guaranteed savings or subscription billing evidence.
+The earlier temporary probe remains separate evidence with one unmeasured attempt.
+Chapter24 explains those limits and the explicit CLI/GUI flags. Its source-only
+endpoint is `../ch24`; the existing Gateway and Goals endpoints stay unchanged.
+The final shared suite passed310 groups, alongside the separately scoped six
+Codex, eight host and ten public-funding checks. The book/progress record keeps
+exact evidence and overlap rather than adding those into an inflated test total.
+No live GUI inference, renewal/revocation, deployment or security audit is claimed.
 
 ## Preserved Chapter 27 — Goals locally complete
 
@@ -36,11 +57,10 @@ pass, with two local requests and a joined clean host exit. Final CLI/GUI builds
 clean. The manuscript and assembled source/test/prose review are complete. See the
 TOP of `docs/edition-3-csharp-progress.md` for exact evidence and retained failures.
 
-Chapter 24's live OAuth/cache decision remains open; no workaround was presumed.
-Chapter 26 is now proceeding with Bill's approved Noise.NET/libsodium ChaChaPoly
-choice and associated-data forwarding extension (see the current section above).
-The Cadence epilogue is complete. Neither Gateway completion nor live OAuth/cache
-success is credited by the Goals result.
+Chapter24's integrated Codex result is recorded above; it is not evidence earned
+by the Goals tests. Chapter26 remains locally complete with Bill's approved
+Noise.NET/libsodium ChaChaPoly choice and narrow API exposures. The Cadence
+epilogue records the collaboration separately from application verification.
 
 ## Preserved Chapter 23 foundation
 
@@ -66,17 +86,11 @@ final actual CLI/GUI builds are clean. Earlier behavioral results are reused, no
 relabeled as a new full regression. No live relevance, OAuth, billing, native Linux,
 audible speech or human-accessibility success is claimed.
 
-Chapter 24's independent manuscript/decision work is complete; Bill authorized
-continuing the later chapters while he is away. Joint real OAuth and a bounded live cache probe remain deferred, not
-passed. Current official documentation still specifies public Responses for that
-OAuth flow. No workaround is implemented or presumed necessary; Chapter 24 is
-optional and does not block the Gateway foundation. Chapter 25 is now a completed
-historical interlude, with no code change or new endpoint. Chapter 26 Gateway is
-incomplete: its approved cryptographic dependency extension is locally verified,
-but its C# router/client/adapter still require implementation. Chapter 27 Goals is
-locally complete independently; the Chapter 24 live exercise remains deferred.
-Exact evidence, retained failures and limits are in the TOP of
-`docs/edition-3-csharp-progress.md`.
+This Chapter 23 section records its original verification boundary, not the
+current status of later work. Chapters 24, 26 and 27 are now locally complete as
+summarized above; Chapter 25 is a historical interlude with no runtime endpoint.
+See `book/edition-3/README.md` for final book build instructions and
+`docs/edition-3-csharp-progress.md` for the chronological evidence.
 
 C# 14 / .NET 10. Common declares the core vocabulary, persistent fields,
 relationships and cross-module operations. Functional directories implement the
@@ -526,9 +540,12 @@ labels. Store permissions and protected writes remain the shared Auth owner's
 responsibility. These commands do not change the route/account of a running GUI.
 
 Local CLI verification covers status, local clearing, safe callback refusals,
-denial, signal cancellation and listener cleanup. Successful signed login and
-remote revocation are verified against a local issuer at the library boundary,
-not yet through the CLI end to end. Live OAuth remains deferred.
+denial, signal cancellation and listener cleanup. The later joint live exercise
+also verified actual CLI public OAuth login, status, model discovery and three
+completed inference requests. Remote revocation remains verified only against a
+local issuer at the library boundary; live renewal/revocation were not exercised.
+Chapter 24 records the separate integrated Codex test and its cache miss as well
+as its hits.
 
 ### GUI account management
 

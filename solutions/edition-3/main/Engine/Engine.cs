@@ -14,17 +14,20 @@ public sealed partial class PlanAuthorizationException
 public sealed partial class Engine
 {
     public partial Engine(Agent parent)
-    {
-        // A model may spend more than a minute before headers or body arrive.
-        // Caller cancellation, not a blanket generation timer, controls this wait.
-        // OAuth credentials belong to the explicitly selected endpoint. Do not
-        // follow a remote redirect or retain cookies for this bearer transport.
-        bool plan = parent.Configuration().Billing == BillingMode.ChatGptPlan;
-        http = new HttpClient(new HttpClientHandler
+        : this(parent, new HttpClientHandler
         {
-            AllowAutoRedirect = !plan,
-            UseCookies = !plan
-        }) { Timeout = Timeout.InfiniteTimeSpan };
+            // Bearer transports must not redirect or retain cookies.
+            AllowAutoRedirect = parent.Configuration().Billing == BillingMode.ApiKey,
+            UseCookies = parent.Configuration().Billing == BillingMode.ApiKey
+        })
+    {
+    }
+
+    internal partial Engine(Agent parent, HttpMessageHandler transport)
+    {
+        // Caller cancellation, not a blanket generation timer, bounds inference.
+        http = new HttpClient(transport) { Timeout = Timeout.InfiniteTimeSpan };
+        codexSessionID = Guid.NewGuid().ToString("N");
         try
         {
             parent.AddEngine(this);
@@ -39,6 +42,10 @@ public sealed partial class Engine
     public partial Agent Parent() => parent ?? throw new ObjectDisposedException(nameof(Engine));
     private static string Endpoint(Configuration config)
     {
+        if (config.Billing == BillingMode.Codex)
+        {
+            return CodexCredentials.ResponsesEndpoint;
+        }
         // Accept either a service base or the complete documented endpoint.
         bool streaming = !config.DisableStreaming
             && LookupModel(config.Vendor, config.Model, out var features) && features.Stream;
@@ -112,6 +119,23 @@ public sealed partial class Engine
                 {
                     bearer = await PlanBearerAsync(null, cancellation);
                 }
+                else if (config.Billing == BillingMode.Codex)
+                {
+                    var source = Parent().Parent().CodexCredentials() ?? throw new CodexAuthorizationException();
+                    var grant = await source.ReadAsync(cancellation);
+                    bearer = grant.Bearer;
+                    traceSecrets.Add(grant.Account);
+                    request.Headers.Add("ChatGPT-Account-ID", grant.Account);
+                    using var body = System.Text.Json.JsonDocument.Parse(requestBody);
+                    string session = codexSessionID;
+                    if (body.RootElement.TryGetProperty("prompt_cache_key", out var key)
+                        && key.ValueKind == System.Text.Json.JsonValueKind.String
+                        && !string.IsNullOrEmpty(key.GetString()))
+                    {
+                        session = key.GetString()!;
+                    }
+                    request.Headers.Add("session-id", session);
+                }
                 traceSecrets.Add(bearer);
                 request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", bearer);
                 break;
@@ -148,7 +172,13 @@ public sealed partial class Engine
                     retry.Headers.Authorization = new AuthenticationHeaderValue("Bearer", bearer);
                     response = await http.SendAsync(retry, HttpCompletionOption.ResponseHeadersRead, cancellation);
                 }
-                // A second 401 reaches the normal safe error parser. No loop,
+                if (config.Billing == BillingMode.Codex
+                    && response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+                {
+                    // Codex owns renewal; do not replay inference or touch its file.
+                    throw new CodexAuthorizationException();
+                }
+                // A second public-plan 401 reaches the normal safe error parser. No loop,
                 // payment transition, or successful fact from the first attempt.
                 parsed = await ParseCoreAsync(config, response, traceSecrets, onChunk, cancellation, auxiliary || Parent().IsMemoryCompressor());
             }

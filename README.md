@@ -1,5 +1,9 @@
 # The Art of Building AI Coding Agents
 
+**C# Edition 3:** the locally completed book and implementation are in the
+[Edition 3 guide](book/edition-3/README.md). The instructions below continue to
+describe the existing Go application; they do not build or install C# Edition 3.
+
 *Second edition. An agentic codebook: build the agent, test the teaching, improve the book.*
 
 **[Read the book](book/the-art-of-building-ai-coding-agents.md)** ·

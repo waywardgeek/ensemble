@@ -683,6 +683,20 @@ try
             return failures == 0 ? 0 : 1;
         }
     }
+    if (args is ["--codex-tests"] || args.Length == 0)
+    {
+        CheckCase("Codex explicit pinned funding", CodexTests.Configuration);
+        await AsyncCase("Codex ownership and fresh paired reads", () => CodexTests.Credentials(temp));
+        await AsyncCase("Codex strict bounded credential refusal", () => CodexTests.InvalidFiles(temp));
+        await AsyncCase("Codex actual Engine protocol and accounting", () => CodexTests.Transport(temp));
+        await AsyncCase("Codex no retry or fallback after failure", () => CodexTests.Refusals(temp));
+        await AsyncCase("Codex actor records safe terminal refusal", () => CodexTests.ActorFailure(temp));
+        if (args.Length != 0)
+        {
+            Console.WriteLine($"{passed} passed; {failures} failed");
+            return failures == 0 ? 0 : 1;
+        }
+    }
     if (args is ["--responses-tests"] || args.Length == 0)
     {
         CheckCase("Responses selected-model reasoning policy", ResponsesTests.ReasoningPolicy);

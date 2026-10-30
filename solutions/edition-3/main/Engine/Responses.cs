@@ -43,7 +43,7 @@ public sealed partial class Engine
                         }
                         // A billing switch keeps the same Responses provenance,
                         // but the declared namespace changes with the route profile.
-                        if (config.Billing == BillingMode.ChatGptPlan)
+                        if (config.Billing is BillingMode.ChatGptPlan or BillingMode.Codex)
                         {
                             item["namespace"] = "ensemble";
                         }

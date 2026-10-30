@@ -34,11 +34,13 @@ storage, PKCE login, signed identity validation, renewal, discovery and sign-out
 account controls; neither is another credential store. History records ordinary
 conversation and compatible opaque replay data, not OAuth secrets.
 
-The reference endpoint is locally verified, not live-OAuth accepted. Its scoped
-executable grade covers 70 transport points; signed local issuer tests separately
-exercise the credential owner. Successful real login, real plan inference and
-live renewal remain deferred. Do not mistake documentation, synthetic grants or a
-passing fake for an account integration.
+The preserved reference endpoint has a scoped 70-point transport grade; signed
+local issuer tests separately exercise the credential owner. In the October 29,
+2026 joint session, Bill completed real CLI login with Ensemble's own registration.
+Account-specific model discovery and three plan-funded Responses calls succeeded
+through current main. Renewal, sign-out, GUI login and billing reconciliation were
+not exercised live. The cache result was zero reported reuse; see Chapter 24.
+These observations supplement, rather than expand, the earlier executable grade.
 
 ## The coding brief
 
@@ -775,16 +777,30 @@ do **not** establish successful host signed login. Successful signed exchanges
 remain local library-issuer evidence. Speech-queue transcripts prove admission,
 not human hearing or accessibility quality.
 
-### Deferred live exercise
+### Joint live exercise — October 29, 2026
 
-When the human authorizes the session and supplies an approved account source,
-perform a small real login with Ensemble's own registration, confirm the announced
-funding and available model, make a bounded plan request, and test the relevant
-renewal/sign-out path without switching payment source. Never search private
-stores, borrow another application's account, or paste tokens into conversation.
-Record exact evidence and limitations separately. For this C# endpoint, live OAuth
-and plan billing remain explicitly incomplete; permission to implement and test
-locally does not fill that gap.
+Bill approved a dedicated private credential directory and authenticated in his own
+browser. The CLI login exited successfully; a separate status command reported
+signed-in plan access, and account-specific model discovery succeeded. Three
+isolated CLI runs then used the visible `gpt-6-astra` model, explicit
+`--billing chatgpt --surface responses`, streaming and `store:false` at the public
+Responses endpoint. All three reached `response.completed` and answered `OK`.
+No other application's credentials were inspected or borrowed.
+
+Each response reported 3,641 input and 5 output tokens, with zero cached-read and
+zero cache-write tokens. Chapter 24 records the controlled inputs and limits.
+This establishes real CLI login, discovery and bounded plan inference in that
+session—not live renewal, 401 recovery, logout/revocation, GUI login, audible
+quality or human accessibility. No API-key fallback or dollar-charge claim follows
+from successful plan inference. The live session deliberately left the account
+signed in; exercising revocation would be a separate authorized action.
+
+The later [Chapter 24](chapter-24.md) work completed the separate Codex-backed
+C# route, including explicit CLI/GUI selection and no silent billing fallback.
+Its three actual C# CLI responses measured two cache hits and one miss. Codex
+alone renews that grant; this does not change the public OAuth ownership or the
+limits of this chapter's live exercise.
+
 
 ## Taking it for a spin — historical evidence
 
@@ -849,8 +865,9 @@ Agent scheduler, Jobs, canonical History or tool loop. Common owns the shared
 vocabulary; Auth and Engine implement their respective operations. The GUI
 projects public state rather than owning a second account store.
 
-The endpoint is an offline implementation boundary, not a live-integration
-claim. Real OAuth is deferred for a joint session. Successful host login, real
-plan inference, current account model availability, audible quality and human
-accessibility remain explicitly unverified. A model name or an encrypted
+The preserved endpoint remains the original offline implementation boundary.
+The later joint session on current main adds observed CLI login, account-model
+discovery and three successful plan responses; it does not retroactively rerun
+that endpoint's tests. Live renewal/revocation, GUI login, audible quality, human
+accessibility and account billing remain unverified. A model name or an encrypted
 artifact is not permission; a green fake-provider grade is not a provider bill.

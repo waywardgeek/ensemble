@@ -60,7 +60,7 @@ public sealed partial class Engine
             }
             request["tools"] = config.Vendor == Vendor.Gemini
                 ? new JsonArray(new JsonObject { ["functionDeclarations"] = declarations })
-                : config.Billing == BillingMode.ChatGptPlan
+                : config.Billing is BillingMode.ChatGptPlan or BillingMode.Codex
                     ? new JsonArray(new JsonObject
                     {
                         ["type"] = "namespace",
@@ -138,7 +138,14 @@ public sealed partial class Engine
                 request["system"] = new JsonArray(system);
             }
         }
-        if (config.PromptCacheKey.Length > 0)
+        if (config.Billing == BillingMode.Codex)
+        {
+            // Required by this endpoint; no media/reasoning capability is inferred.
+            request["stream"] = true;
+            request["prompt_cache_key"] = config.PromptCacheKey.Length == 0
+                ? codexSessionID : config.PromptCacheKey;
+        }
+        else if (config.PromptCacheKey.Length > 0)
         {
             request["prompt_cache_key"] = config.PromptCacheKey;
         }

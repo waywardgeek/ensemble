@@ -1,3 +1,386 @@
+# Edition 3 — local book execution and finalization complete
+
+Completed personally, without workers. Chapter 24's mandatory handoff preceded
+this finalization pass. Current source remains `solutions/edition-3/main`; the
+preserved `ch24` endpoint is unchanged. Comparing all source/support files with
+that endpoint found only README differences. No runtime change, renewed live
+probe, credential access, deployment, restart, install, commit or publication
+occurred in this pass. Earlier endpoints and editions were not overwritten.
+
+Reconciled Edition 3 front matter, Bill's note, chapter guide, C# prerequisites,
+Cadence's epilogue, Chapter 16's pointer to integrated Codex, and root/main/book
+status. Earlier authorship and historical results remain attributed. Marked the
+copied writing procedure historical rather than reviving its superseded worker
+procession. Fixed ten inherited local-link paths and two obsolete early-chapter
+CLI project paths; Chapter 2's related tests/stub commands now also select its
+preserved endpoint. No accepted runtime chapter was reopened.
+
+The existing assembler/EPUB script now accept an explicit edition/output
+selection while retaining Edition 2 defaults. Default assembly is byte-identical
+to output from the original script on the unchanged Edition 2 inputs. Reused the
+existing publication-link filter, which already accepts edition metadata. Fixed
+the copied Edition 3 print filter/test paths and gave Chrome a fresh owned
+profile. The first print build refused a left-hand preface: an unconditional
+Edition 2 spacer was wrong after Edition 3's two-page contents. Removed that
+spacer in this edition, retained the actual PDF parity check, and preserved the
+failed output/log. This was a real finalization defect, not a runtime defect.
+
+Final outputs saved and byte-checked in `book/edition-3`:
+- `the-art-of-building-ai-coding-agents.md` — assembled current manuscript.
+- `The Art of Building AI Coding Agents.epub` — valid populated navigation,
+  no navigation document in the spine, inherited cover embedded.
+- `The Art of Building AI Coding Agents - Print Interior.pdf` — 484 pages,
+  7×10 inches, coverless, preface physical page 5 / printed page 1.
+- `The Art of Building AI Coding Agents.pdf` — 485 pages including the cover
+  for free reading, with all 99 interior links preserved.
+- `interior-print.html` — reproducible intermediate.
+
+Verification: 11 existing print regressions pass; 68 shell blocks parse without
+execution; 69 local Markdown links and 50 explicit source paths exist; all 1,340
+local EPUB links/fragments resolve. PDF checks verify 31 contents references,
+black text, unnumbered front matter, recto preface, 10.5pt body/minimum 10pt code,
+reading-copy links/coordinates/page labels. Final build job6827 exited0; prior
+corrected build6819 exited0; first refused build6815 exited1 and is retained.
+All owned jobs collected, no children. Final local artifact sizes/checksums and
+logs: `/private/tmp/edition3-final/result.json`, `ebook-build-final.log`,
+`print-build-final.log`, `print-tests-saved.log`. Disk observed9,772,940KiB free.
+No new C# suite or chapter grade is claimed; Chapter24's310/0 shared groups and
+its bounded live evidence remain scoped to their original verified boundary.
+
+Limits: source URLs are not a promise that unpublished files exist online;
+external historical links were not revalidated. Automated typography/navigation
+checks are not a visual or human-accessibility sign-off. Cover artwork is
+inherited, not newly approved for publication. Live GUI inference, public OAuth
+renewal/revocation, full subscription pricing, and native audible/accessibility
+acceptance remain unverified. Codex cache evidence remains two hits and one miss,
+not guaranteed savings. These are recorded limits, not invitations to make more
+live requests. Publication, installation and deployment remain Bill's decisions.
+Working goal completed; reminders disabled after saving this boundary.
+
+---
+
+# Chapter24 — complete, reviewed and preserved; final book tasks remain
+
+The authorized optional Codex C# integration is complete through core, actual
+CLI/GUI selection, failure/host tests and bounded actual CLI live verification.
+Chapter24's manuscript was rewritten and read back against actual declarations,
+protocol, host flags and the preserved pre-reset revision. Bill's opening,
+reason for the detour, renewal inconvenience and earlier failed/successful Go
+experiments remain, explicitly distinguished from current C# evidence.
+
+Final shared integration build `integrated-build.log` is clean and
+`integrated-shared.log` reports310 passed/0failed; job6778 collected exit0.
+Those tests overlap earlier focused groups; no inflated aggregate or Chapter24
+grade is claimed. No production change followed successful host/live checks.
+The assembled ch26-to-main review covered all19 changed/new source/support files,
+including complete Codex reader/tests, declaration/ownership/lifecycle, transport,
+projection, accounting, persistence, actual hosts and guarded GUI controls. No
+new runtime defect emerged. Readback corrected a stale opening paragraph and
+README claims that the adapter was still unimplemented. All3 manuscript shell
+blocks parse; local links/source-map paths and added whitespace checks pass.
+
+New immutable endpoint `solutions/edition-3/ch24`:418 source/support files,
+byte-equal to main at preservation, no symlinks/runtime/build artifacts, all23
+project references internal. Receipt:
+`/private/tmp/ch24-csharp.n6KhiS/preserved-ch24.json`. Earlier endpoints unchanged.
+This chapter was implemented after Gateway/Goals, so ch24 includes that completed
+foundation; chronological chapter numbers do not imply a source rollback.
+
+Live actual C# result remains exactly three completed requests, input3641/output5
+and cached3456/0/3456, write0, byte-identical to public baseline. Two94.9% hits and
+one miss. `/private/tmp/ch24-csharp-live-7nxtey1f/result.json`. No additional live
+requests, credential renewal/rewrite or deployment. No fixed savings promise,
+live GUI inference/accessibility/revocation/security-audit claim. The earlier
+Python first attempt remains unmeasured, not a miss or a replaced attempt.
+
+NEXT after required chapter handoff: final book-related work. Inspect existing
+build/finalization requirements, reconcile status/examples/links/epilogue and
+source/evidence pointers with this completed implementation, preserve final
+source/evidence using existing project practice, report completion and limits.
+Do not invent publication deliverables, reopen accepted chapters without a
+concrete inconsistency, repeat live calls or mutate prior endpoints. Continue
+personally with480-second reminders; no workers, installs, shared restarts,
+deployment, commits/pushes, publication, credential searches or Bill browser.
+
+---
+
+# Chapter24 — CLI/GUI integrated; actual C# live cache reuse measured; prose/review remain
+
+Bill's authorized goal remains completing Chapter24 before asking him to try
+Edition3, then final book-related tasks. Personal implementation; no workers.
+
+Both actual hosts now accept `--billing codex` and explicit `--codex-auth-file`
+or `EN_CODEX_AUTH_FILE`. Explicit flags win over environment. The file selector
+alone does not select funding. Codex defaults to OpenAI streaming Responses at
+the pinned service; explicit conflicting vendor/surface/endpoint/no-stream or
+public account label refuses. Ambient API keys are excluded. Explicit Codex
+launch skips the public store entirely, including saved-selection reads. No
+Codex selection persistence or login/refresh command was added. Public auth
+commands remain Chapter16's independent flow. GUI account status reports Codex;
+its guarded public-account operations refuse and UI explains renewal in Codex.
+
+Host evidence: `/private/tmp/ch24-csharp.n6KhiS/hosts-cli-build.log` and
+`hosts-gui-build.log` clean. `host-exercise.mjs`/`hosts-exercise-2.log` has eight
+passing checks; result `/private/tmp/ch24-csharp.n6KhiS/tmp/hosts-uixC2U/result.json`.
+Real CLI/GUI processes, explicit/environment precedence, six invalid configurations
+per host, no implicit funding, missing-grant safe failure, immutable malformed
+synthetic public store, guarded account routes, isolated Chrome funding/controls,
+and joined GUI shutdown. No live inference in that exercise. First fixture
+incorrectly expected zero exit for failed CLI turn; safe error/nonzero was correct,
+retained `hosts-exercise-1.log`. Existing public-funding fixture passed unchanged:
+ten scenarios/six loopback requests, `/private/tmp/ch16-funding.VLB5QR/result.json`,
+`hosts-public-funding.log`. Saved four-file host delta reviewed against ch26.
+
+**Live actual C# CLI:** `/private/tmp/ch24-csharp-live-7nxtey1f/result.json`;
+three authorized attempts, all completed `OK` with input3641/output5/write0.
+Cached reads were **3456, 0, 3456** (94.9%, 0%, 94.9%). Two hits are evidence
+of integrated reuse, not a fixed rate or dollar/subscription saving guarantee.
+All three real trace request payloads equal the public baseline:21438bytes,
+SHA256 `95eae405d65743e2b34b6cb3e03754ffea92e3b5c465a5bd95ed0cd8b1f6e756`.
+This corrects any inherited shorthand hash; the actual trace and chapter agree.
+Process times3.991/3.562/2.887seconds include startup, not TTFT. Total10938 tokens;
+cached6912, uncached4011, output15. No extra attempt for the miss. The production
+CLI/Engine read only the approved `~/.codex/auth.json`, paired grant per send,
+no renewal/rewrite/fallback; public store not selected; accounts remain signed in.
+Verifier corrections did not resend: events.jsonl has a metadata row without type,
+and documentary request.json has a newline absent from actual HTTP trace payload.
+First CLI process itself exited0; only its post-process verifier had failed.
+`live-cli-1.log` retains that failure; verified-result.json records recovered facts.
+
+Core evidence below remains valid. Shared integration regression started with
+job6778 (`integrated-build.log`, `integrated-shared.log`); pending at this edit,
+not yet credited. No new production change after successful host/live checks.
+Remaining: complete Chapter24 manuscript update and preserved-revision comparison,
+assembled source/test/prose review, source-only ch24 endpoint and mandatory
+handoff; then inspect and complete established final book tasks. Chapter24 has
+no separate grader (confirm existing route); do not invent a score. No more live
+requests needed for this bounded check. Keep preserved ch26/ch27 untouched.
+
+---
+
+## Chapter24 — Codex core implemented and offline-verified; hosts/live integration remain
+
+The first C# implementation slice is saved in main. This is not Chapter24 completion
+and does not yet expose Codex selection in the CLI/GUI. No live requests occurred
+in this slice; the earlier Python comparison remains separate evidence.
+
+Common/Codex.cs declares a separate optional Ensemble-owned CodexCredentials child,
+its read-only file path/lifetime/gate, an exchange-local value-like secret pair, and
+a safe CodexAuthorizationException. Auth/Codex.cs implements validated reciprocal
+registration/removal and joined destruction without modifying or deleting Codex's
+file. Each send reads the selected file afresh through one handle, with a 1MiB bound,
+strict JSON/duplicate/header-value validation and paired account/bearer publication.
+Explicit non-chatgpt auth modes refuse; legacy omitted mode still requires the pair.
+No default-store discovery, JWT identity reconstruction, token cache or renewal.
+
+BillingMode.Codex is appended, preserving ApiKey=1 and ChatGptPlan=2. Configuration
+requires streaming OpenAI Responses, the pinned Codex HTTPS base/Responses endpoint,
+no API key and no public-account label. Engine keeps sole HTTP ownership; its real
+handler disables redirects/cookies for both authenticated routes, and an internal
+handler constructor supports a working boundary fake without endpoint exceptions.
+Codex reads through Engine->Agent->Ensemble, masks the exchange bearer/account in
+traces, sends paired headers and session-id matching the frozen cache key (stable
+Engine fallback), and never takes the public-plan 401 retry. Rendering reuses the
+existing namespace/instructions/Responses machinery. Saved configuration remains
+documentary and secret-free. Actor records a safe Codex credential failure once;
+root shutdown joins Agents before destroying either credential owner.
+
+Scratch: /private/tmp/ch24-csharp.n6KhiS, pointer /private/tmp/cadence-ch24-current.
+Owned env-i wrapper reuses the approved private .NET10 SDK/dependency cache. Final
+core-tests-build-final.log is clean, core-tests-final.log 6/0, core-auth-tests.log
+20/0. core-auth-inference.log 2/0 repeats two groups already included in those20,
+not two extra distinct groups. Earlier core-responses-2.log 8/0 remains valid; only
+the private credential duplicate-check helper changed afterward to reuse the
+existing AuthProtocol.UniqueObject operation. Job6745 collected exit0. No host
+build/application/browser/live-C# credit yet; no full shared-suite claim.
+
+The first behavioral result core-tests-1.log was 3/2: malformed data escaped because
+InvalidDataException was not covered by the safe catch (product defect, corrected);
+the test incorrectly treated Usage.Input as including cached reads (test defect,
+corrected to disjoint buckets and AllInput). The full parser read showed absent or
+text/plain Content-Type SSE support already existed; no parser patch was needed.
+The first guarded core patch refused before modifying existing files due to a
+misremembered enum anchor; retained scripts are history, not scripts to replay.
+
+NEXT: read CLI/GUI startup blocks completely and implement explicit billing codex
+and explicit selected credential-file flag/environment, without default searches,
+public-store reads/renewal or persisted secret paths. Current anchors: CLI Program
+Config helper28, options102-124, funding selection300-347; Examples/Gui/Program.cs
+options39-44, selection83-140; Gui/Server/Auth.cs currently labels all non-plan as
+api and needs a correct Codex display. Read the actual browser assets by discovery,
+not the nonexistent Gui/Assets path. Validate host refusal/precedence, actual
+application wiring, relevant regressions, then bounded C# live reuse, prose,
+assembled review, source-only endpoint and handoff. Final book work follows.
+Reminders remain480 seconds. No workers, private-store reads in this slice,
+install/restart/deploy/commit/publication, or changes to preserved endpoints.
+
+## Chapter24 — Codex-backed C# integration authorized; final book tasks follow
+
+Bill confirmed this is Chapter24 and explicitly set the goal: complete its optional
+Codex-backed path before asking him to test/use Edition3, then finish the final
+book-related work. He asked for working reminders while away; GOAL.md was saved
+and goal_control enabled at480 seconds. The prior reminders-off/pending-adapter-
+decision boundary is superseded. Work personally, no workers or routine permission
+loops; discuss genuine shared-vocabulary/architecture ambiguity, not source facts.
+
+Immediate work is actual C# core/CLI/GUI integration with explicit Codex funding and
+credential selection, the approved ~/.codex/auth.json read-only, account/access from
+one read, Codex-owned renewal, pinned endpoint and no redirects or silent fallback.
+Preserve Chapter16's separate public OAuth registration/store and prior endpoints.
+Use the live agent/ implementation as reference and actual Common ownership/access
+paths, not a second scheduler or credential cache. Initial declaration inspection
+locates Ensemble-owned Credentials in Common/Auth.cs and Engine's PlanBearerAsync
+in Common/Owners.cs; full source/design review remains next. No code changed yet.
+
+Completion includes relevant boundary-fake/failure tests, bounded actual-C# live
+verification of the chosen route including measured reuse, accurate Chapter24 prose,
+assembled review and source-only endpoint/handoff per procedure. The temporary
+Python result below does not satisfy this. No fresh public-route campaign, fixed
+cache-rate promise or inferred dollar saving. Both accounts remain signed in.
+
+Then reconcile final book status/examples/links/manuscript/epilogue, inspect existing
+build/finalization requirements, preserve final source/evidence and report limits.
+Do not invent new deliverables or reopen accepted chapters without concrete findings.
+No deployment, shared restart, installation, publication, commits/pushes, credential
+search/copy/disclosure/refresh/rewrite, shared cleanup or Bill browser/8088 access.
+Keep at least1GiB free. GOAL.md holds the active concise scope and evidence pointers.
+
+## Codex live comparison — identical bodies; two measured cache hits, one unknown attempt
+
+Bill supplied `~/.codex/auth.json` in response to the explicit read-only credential
+path request. Used only that path, reading account/access from one file read per
+request; no default-store search, refresh, rewrite, copied credential artifact,
+token output, or public-OAuth bearer sent to Codex. Codex retains refresh ownership.
+This authorization is for the bounded comparison, not installation or a new adapter.
+
+Actual baseline inspection corrected my earlier assumption: C# main's saved public
+request already uses top-level instructions. The temporary Python HTTPS probe sent
+exactly the same21438 bytes to chatgpt.com/backend-api/codex/responses; SHA256
+95eae405d65743e2b34b6cb3e03754ffea92e3b5c465a5bd95ed0cd8b1f6e756.
+Same model gpt-6-astra, low effort/summary off, tools, input, cache key, stream/store
+settings. Differences: Codex auth/account, endpoint, session-id matching body key,
+probe User-Agent and transport (Python instead of CLI/Agent/Engine). No automatic
+redirect/retry/renewal/fallback or tool dispatch; per-attempt150s hard deadline.
+
+- Request1 HTTP200 without Content-Type; the initial probe rejected the missing
+  header before parsing SSE (job6705 exit1). This is my probe limitation, not an
+  inference failure or cache miss. Completion/usage unknown; it may have affected
+  later cache state. Saved result records the refusal. No replacement request.
+- Corrected only parser acceptance of absent Content-Type, preserving bounded valid
+  SSE and response.completed gating, and added safe diagnostic reason codes.
+  Requests2/3 both HTTP200, response.completed, OK, input3641/output5, cached3456,
+  cache-write0; each94.9% input reuse (job6707 exit0). Process times2.957/2.464s,
+  not TTFT or a fair CLI-vs-probe speed benchmark. Raw attribution includes cached
+  instructions36/tools301/user3119. No tools called.
+- Known Codex subtotal7292 tokens; all-three total unknown. Public baseline remains
+  three completed responses, each input3641/output5/cached0/write0, total10938.
+  This establishes a bounded observational contrast, not general hit rates, an
+  isolated cause, confirmed bill, or production C# Codex support.
+- Evidence `/private/tmp/ch24-codex-wRrXdD/result.json`, probe.py/request.json and
+  run1..3/result.json; run2/3/terminal-usage.json. Pointer
+  `/private/tmp/ch26-csharp.HDZGCi/live-codex-current`. No raw token, account ID or
+  opaque/private reasoning persisted by the probe. Baseline evidence unchanged.
+- Updated Chapter24, epilogue status and main README; no production code or
+  preserved endpoint changed. No broader tests rerun; no installs/restarts/commits.
+  Both accounts left in their prior sign-in state; reminders remain off.
+
+Next: discuss with Bill whether to implement the optional C# Codex adapter, using
+this evidence and the live agent/ reference. That is a separate architecture and
+credential-ownership decision, not implied by a successful temporary endpoint probe.
+Earlier preparation notes below are chronological; their missing-authorization and
+projection assumptions are superseded by this measured boundary.
+
+## Live OAuth/cache — login and inference verified; zero reuse; Codex comparison requested
+
+On October 29, 2026 Bill joined the session and explicitly approved `~/.en`, then
+`~/.en/oauth` as a new private credential store. The existing parent directory was
+not chmod'd or searched. Created the dedicated directory mode0700; no credential
+values or private authorization URLs were put in conversation. Bill opened the
+private login link himself; no browser control or port8088 was used.
+
+- Existing CLI built cleanly (`/private/tmp/ch26-csharp.HDZGCi/live-oauth-cli-build.log`).
+  Real `auth login` completed (job6651 exit0), separate redacted status confirmed
+  signed-in/plan-enabled label `bill`, and live `auth models` succeeded. The visible
+  `gpt-6-astra` model was chosen because main already declares its exact policy.
+  Private account metadata remains only in the approved directory, not this record.
+- Rechecked official sign-in, public OAuth inference, and prompt-cache guidance:
+  https://developers.openai.com/siwc/token-sharing-open-source/sign-in
+  https://developers.openai.com/siwc/token-sharing-open-source/models-and-inference
+  https://developers.openai.com/api/docs/guides/prompt-caching
+  Public guidance specifies api.openai.com/v1/responses, store:false, streaming;
+  it explicitly excludes ChatGPT backend endpoints for that public OAuth flow.
+  Cache guidance described implicit default caching and the 1,024-visible-token
+  minimum for GPT-5.6 and later. Documentation is not an explanation of this result.
+- Ran three actual isolated main CLI/Agent/Engine processes, explicit
+  `--billing chatgpt --surface responses`, approved store/account, model
+  gpt-6-astra, reasoning low/summary off, fixed prompt_cache_key. Harmless fixed
+  18,919-byte user prompt; memory and recall disabled. The minimal skill still
+  exposes micro_handoff/load_skill/unload_skill controls in one namespace, not
+  zero tools; no tool call or auxiliary model request occurred.
+- All three request bodies match byte-for-byte: 21,438 bytes, SHA256
+  95eae405d65743e2b34b6cb3e03754ffea92e3b5c465a5bd95ed0cd8b1f6e756.
+  Each produced one response.completed, status completed, answer OK, input3641,
+  output5, cached_tokens0, cache_write_tokens0; total10938 tokens across three.
+  Raw attribution assigns3302 input tokens to the user message. Process times
+  3.263/3.961/3.859 seconds include startup, not first-token timing. Existing Engine
+  trace supplied raw requests/terminal usage; CacheLens was not enabled. This is
+  successful real login/discovery/inference and zero observed reuse, not proof of
+  service-wide failure or its cause. No complete pricing/invoice claim follows.
+- Evidence: `/private/tmp/ch24-live-fp7oyrt5/result.json`, run.py, prompt.txt, per-run
+  request.json/terminal-usage.json/process-result.json and actual Agent api.log /
+  history files. Pointer: `/private/tmp/ch26-csharp.HDZGCi/live-cache-current`.
+  First attempted launch used my incorrect `--billing plan` spelling, refused
+  locally before an API trace or inference. Preserved setup-refusal.json/txt;
+  corrected to chatgpt. It is not a fourth inference or a cache miss.
+- No production-code change, fallback, alternate endpoint, credential borrowing,
+  install, deployment, shared restart or preserved-endpoint edit. Live renewal,
+  rejected-bearer retry, logout/revocation, GUI login, audible/accessibility behavior
+  and full cache-write pricing remain unverified. The account is intentionally
+  left signed in; those account mutations were not part of the three-request test.
+- Updated Chapters16/24, the epilogue's stale status paragraphs and main README.
+  Earlier chapter grades and endpoint evidence retain their scopes; no campaigns
+  were repeated or retroactively expanded. Chapter26 handoff was completed.
+
+Next: Bill requested the same bounded comparison against the Codex endpoint when
+ready. Inspect current official access/transport requirements first; the public
+OAuth grant must not simply be sent to the backend. No Codex credential source or
+refresh ownership is approved yet. Obtain an explicit dedicated setup/path rather
+than searching private/default stores. Preserve the baseline and identify every
+necessary request difference. Reminders remain off unless Bill asks to resume them.
+
+### Codex comparison preparation — source inspection, not credential access
+
+Bill pointed to the running Edition2 implementation and corrected the source
+location to `agent/`. `solutions/README.md` confirms this is authoritative; numbered
+solutions are snapshots. Read `agent/internal/auth/codex.go`, engine/codex.go,
+engine/engine.go transport spans, engine/responses.go projection, and Ensemble's
+credential selection. The explicit selected-file reader pairs account/access from
+one read and performs no refresh. Transport pins chatgpt.com/backend-api/codex,
+posts /responses, sends ChatGPT-Account-ID plus session-id (hyphen, not underscore),
+and disables redirects. HTTP401 asks for renewal in Codex; no API-key fallback.
+Codex projection uses top-level instructions, not a duplicate developer input,
+and a stable body prompt_cache_key matching session-id. A comparison must disclose
+those differences; equal message text is not byte-identical cross-route payloads.
+
+Fresh official auth/config documentation supports an explicitly isolated CODEX_HOME
+and file credential storage, and treats auth.json as sensitive. Current upstream
+model-provider-info/src/lib.rs (HTTP200) retains CHATGPT_CODEX_BASE_URL at the same
+backend URL. The old core/src/model_provider_info.rs URL returned HTTP404 and was
+not used as current evidence. Directory listing/source output was capped inline;
+only the relevant downloaded source spans were inspected, not a claimed full
+upstream review. Sources:
+https://developers.openai.com/codex/auth
+https://developers.openai.com/codex/config-reference
+https://raw.githubusercontent.com/openai/codex/main/codex-rs/model-provider-info/src/lib.rs
+
+No private/default credential store, running configuration or token value read;
+no Codex inference/refresh/login attempted. `command -v codex` found no executable
+on this shell PATH; this does not prove it is uninstalled. Next requires Bill's
+explicit credential-file path for read-only access with Codex owning renewal, or
+approval of a separate login setup. Do not install or adapt production speculatively.
+Public baseline prose/hash/usage/local links rechecked against retained receipts;
+no inference rerun. Account remains signed in; reminders off.
+
 ## Chapter26 — assembled review complete; source-only endpoint preserved
 
 Chapter26 Gateway is **locally complete** at `solutions/edition-3/ch26`. The book is

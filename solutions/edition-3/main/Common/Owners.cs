@@ -181,11 +181,15 @@ public sealed partial class Engine
     // Only Agent's relationship methods write this back-reference.
     internal Agent? parent;
     private readonly HttpClient http;
+    // Stable affinity fallback when a frozen request has no explicit cache key.
+    private readonly string codexSessionID;
     internal bool destroyed;
 
     // Own one HTTP client, then register with Agent. The generation has no
     // blanket deadline; explicit caller cancellation still reaches network I/O.
     public partial Engine(Agent parent);
+    // Boundary fake seam; the Engine owns this transport just like its real one.
+    internal partial Engine(Agent parent, HttpMessageHandler transport);
     public partial Agent Parent();
 
     // Build a disposable request. Refuse unsupported media or ambiguous calls

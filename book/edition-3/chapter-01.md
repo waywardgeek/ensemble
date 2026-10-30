@@ -510,7 +510,7 @@ real time. Watch the input count. It never goes down.
 None of this is scored by the seven-check grader. It is still part of finishing
 the chapter. The second-edition student typed three real turns in a terminal,
 introduced a boat called “Copper Finch,” and received that name back when asked
-again. The [retained transcript](../solutions/evidence/ch01/live.txt)
+again. The [retained transcript](../../solutions/evidence/ch01/live.txt)
 also records a false start: a launcher consumed stdin, so chat saw EOF and
 exited without making a request. A clean exit had demonstrated no conversation.
 

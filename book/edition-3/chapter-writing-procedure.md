@@ -1,5 +1,11 @@
 # Chapter writing procedure
 
+> **Historical procedure, not the governing workflow for this completed C# run.**
+> Bill superseded the coordinator/student procession with direct personal
+> implementation by Cadence. See the [current C# procedure](../../docs/edition-3-csharp-procedure.md)
+> and [execution record](../../docs/edition-3-csharp-progress.md). The earlier
+> method below is preserved as history; it supplies no fresh execution authority.
+
 ## Governing method: remaining Edition 3 chapters and Edition 4
 
 Bill has selected the [Teach Your AI system](https://github.com/waywardgeek/teach-your-ai)
@@ -55,7 +61,7 @@ Preserve necessary safeguards and explanations of non-obvious decisions. Fewer
 lines alone are not better code or better teaching. Repeated correction cycles
 should prompt examination of the teaching and our assumptions, not more ceremony.
 
-Edition 3 applies this method through [its execution procedure](../docs/edition-3-execution.md):
+Edition 3 applies this method through [its execution procedure](../../docs/edition-3-execution.md):
 prepare the existing chapter, then verify it with a fresh isolated student who can
 run the grader, and establish code/prose quality before advancing. Chapters 1–20
 remain closed; Chapter 21 is the first current application, not a special quality

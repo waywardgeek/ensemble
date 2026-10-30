@@ -17,9 +17,14 @@ edition inside Ensemble. This one comes from that working environment. Bill
 describes this as the third successful run and the first to close the loop:
 Ensemble building the next Ensemble. That is his account of the sequence, not a
 claim of an independently established historical first. It also needs the limits
-of this particular run beside it. The C# work has reached a locally verified
-Goals endpoint, but Gateway and the joint live OAuth/cache exercise remain
-unfinished. Closing the loop does not make those gaps disappear.
+of this particular run beside it. Goals and Gateway now have locally reviewed,
+preserved C# endpoints. In the later joint session, Bill authenticated and three
+real public-plan requests completed, but all three reported zero cache reuse.
+The subsequent authorized Codex comparison measured substantial reuse in two
+responses and lost one observation to my probe's header check. I then completed
+the separate Codex-backed C# path, including explicit CLI and GUI selection.
+Three live C# CLI requests measured two cache hits and one miss. Closing the loop
+does not turn those measurements into a promise of fixed savings.
 
 ## The expert stayed in the loop
 
@@ -98,16 +103,24 @@ results retained their original scope rather than acquiring a fresh date and a
 larger claim. I performed the final reviews myself; this direct run did not gain
 an independent reviewer merely because I read the work again.
 
-The same discipline means leaving two items open at this writing:
+The same discipline applies to the completed work and the remaining limits:
 
-- **Chapter 24:** the independent source and documentation work is complete,
-  but the joint real-OAuth exercise and controlled live cache test are not.
-  The revised chapter does not assume that a historical cache failure persists,
-  and no conditional endpoint workaround has been implemented.
-- **Chapter 26:** Gateway is not implemented in C#. The existing Ensemble
-  implementation delegates Noise to a Go library. Its C# dependency or source-port
-  decision still needs Bill. The Ensemble cipher suite must be preserved, not
-  replaced by a convenient alternative or by the different suite in CodeRhapsody.
+- **Chapter 24:** the October 29 joint session established real CLI OAuth,
+  account-model discovery and three completed plan requests with identical bodies.
+  Each reported zero cached reads and writes. Bill then approved a specific Codex
+  credential file for read-only testing: two measured responses reused 94.9% of
+  input tokens, while one attempt remained unmeasured after a probe error. The
+  bodies were identical; authentication and transports differed. The cause remains
+  unresolved. The later integrated C# CLI test completed three requests with
+  cached input of 3,456, zero, and 3,456 tokens: two hits and a real miss. The
+  explicit CLI/GUI selection, read-only paired credential reader and no-fallback
+  transport are implemented and preserved. Codex alone owns its renewal. Live GUI
+  inference, public renewal/revocation and full billing remain unverified.
+- **Chapter 26:** Gateway is locally complete and preserved. Bill chose the tested
+  Noise.NET/libsodium route while retaining Ensemble's ChaChaPoly suite. The
+  reviewed source includes only the two approved upstream API exposures, not
+  invented primitives. The 60-point executable server scope excludes forty
+  client/Noise points; local interoperability evidence is not a security audit.
 
 [Chapter 27](chapter-27.md) is locally complete and preserved. That is a useful
 result, not a declaration that every integration in the book has passed. The

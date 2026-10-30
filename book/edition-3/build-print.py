@@ -5,7 +5,7 @@ Chrome does not implement target-counter(). Reserve a TOC number column in CSS,
 render once, resolve its links, and stamp references without changing layout.
 Front matter is unnumbered; the Preface begins Arabic page 1 on a recto page.
 """
-import re, subprocess, sys
+import os, re, subprocess, sys, tempfile
 from collections import Counter
 from pathlib import Path
 
@@ -13,16 +13,21 @@ import pymupdf
 
 CHROME = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
 BOOK = Path(__file__).resolve().parent
+ROOT = BOOK.parent.parent
+OUTPUT = Path(os.environ.get("BOOK_OUTPUT_DIR", BOOK))
 GEORGIA = Path("/System/Library/Fonts/Supplemental/Georgia.ttf")
 
 
 def render(html: Path, pdf: Path) -> None:
     pdf.unlink(missing_ok=True)
-    subprocess.run(
-        [CHROME, "--headless=new", "--no-sandbox", f"--print-to-pdf={pdf}",
-         "--no-pdf-header-footer", f"file://{html}"],
-        capture_output=True, timeout=600, check=True,
-    )
+    # A private profile cannot attach to the reader's running browser.
+    with tempfile.TemporaryDirectory(prefix="edition3-print-") as profile:
+        subprocess.run(
+            [CHROME, "--headless=new", "--no-sandbox", f"--user-data-dir={profile}",
+             "--no-first-run", f"--print-to-pdf={pdf}",
+             "--no-pdf-header-footer", f"file://{html}"],
+            capture_output=True, timeout=600, check=True,
+        )
     if not pdf.exists():
         sys.exit(f"FATAL: Chrome produced no PDF at {pdf}")
 
@@ -248,13 +253,12 @@ def clean_html(html: str) -> str:
         flags=re.S,
     )
 
-    # Chrome currently treats break-before:right as an ordinary page break.
-    # The title/TOC/dedication occupy three pages; explicitly leave the fourth
-    # blank. finish_pagination verifies physical recto parity if layout changes.
+    # Edition 3 has two TOC pages, followed by title and dedication. Do not
+    # inherit Edition 2's unconditional blank spacer: that moves this preface
+    # onto a left-hand page. finish_pagination checks actual PDF parity.
     anchor = '<h1 id="preface">'
     if html.count(anchor) != 1:
         sys.exit("FATAL: expected exactly one Preface heading")
-    html = html.replace(anchor, '<div class="recto-spacer" aria-hidden="true"></div>\n' + anchor)
     return html
 
 
@@ -268,22 +272,23 @@ def run_pandoc(src: Path) -> None:
     noticed, because every heading the stale TOC listed did match a page.
     Running pandoc here makes that class of staleness impossible.
     """
-    manuscript = BOOK / "the-art-of-building-ai-coding-agents.md"
+    manuscript = OUTPUT / "the-art-of-building-ai-coding-agents.md"
     front = BOOK / "front-matter-print.md"
     header = BOOK / "print-header.html"
     for f in (front, manuscript, header):
         if not f.exists():
             sys.exit(f"FATAL: missing build input {f}")
     cmd = [
-        "pandoc", front.name, manuscript.name,
-        "-o", src.name,
+        "pandoc", str(front), str(manuscript),
+        "-o", str(src),
         "--from=markdown", "--to=html", "--standalone",
         "--toc", "--toc-depth=1",
         "-M", "title=The Art of Building AI Coding Agents",
         "-M", "author=Bill Cox",
+        "-M", "publication-directory=book/edition-3",
         "-H", header.name,
-        "--lua-filter", str(BOOK.parent / "scripts" / "publication-links.lua"),
-        "--lua-filter", str(BOOK.parent / "scripts" / "print-sidebars.lua"),
+        "--lua-filter", str(ROOT / "scripts" / "publication-links.lua"),
+        "--lua-filter", str(ROOT / "scripts" / "print-sidebars.lua"),
     ]
     print("pandoc: regenerate interior-print.html")
     r = subprocess.run(cmd, cwd=BOOK, capture_output=True, text=True)
@@ -298,7 +303,7 @@ def build_reading_pdf(interior_path: Path) -> None:
     Resolve those names in the original PDF, then offset explicit page targets.
     resolve_link also converts PDF coordinates to PyMuPDF page coordinates.
     """
-    output = BOOK / "The Art of Building AI Coding Agents.pdf"
+    output = OUTPUT / "The Art of Building AI Coding Agents.pdf"
     with pymupdf.open(interior_path) as interior, pymupdf.open() as reading:
         rect = interior[0].rect
         cover = reading.new_page(width=rect.width, height=rect.height)
@@ -362,8 +367,8 @@ def check_reading_pdf(interior_pdf: Path, output: Path) -> None:
 
 
 def main() -> None:
-    src = BOOK / "interior-print.html"
-    pdf = BOOK / "The Art of Building AI Coding Agents - Print Interior.pdf"
+    src = OUTPUT / "interior-print.html"
+    pdf = OUTPUT / "The Art of Building AI Coding Agents - Print Interior.pdf"
 
     run_pandoc(src)
     html = src.read_text()

@@ -1,17 +1,22 @@
 # A Note from Bill
 
-This is Update 2 of the second edition of *The Art of Building AI Coding
-Agents*, the final update to this edition before the third. The second edition
-built Ensemble v2 with Codex, catching up with the first edition through the
-gateway.
+This is the third edition of *The Art of Building AI Coding Agents*. The second
+edition built Ensemble with Codex. For this run, Cadence worked inside Ensemble
+to build the next Ensemble, in C# 14 on .NET 10, with my direction and review.
+This is the third successful run and the first to close that working loop.
 
-The next step is to execute this second-edition book using Ensemble v2. The
-third edition will come from that run: what Ensemble builds, what the exercises
-teach it, and what we learn by fixing what gets in the way. That work is underway;
-this update does not claim that Ensemble has already produced the third edition.
-Chapter 25 remains reserved for the crossover account.
+The durable artifact is not merely the generated code. It is the knowledge and
+judgment needed to rebuild the system: the relationships, failure contracts,
+reasons, tests, and corrections. Rebuildable code is not disposable code. I still
+require a design a human can understand, and passing a grader does not excuse
+violating that design.
 
-The point of the experiment is still the same: preserve the judgment needed to
-build the agent, test whether another builder can apply it, and improve the book
-from what actually happens. The first edition stays intact as the record of where
-this began.
+The C# chapter endpoints are preserved, including Goals and Gateway. Chapter 24
+now includes the optional Codex-backed path, separately from the public OAuth
+flow. The joint live exercise verified authentication and inference; cache reuse
+varied. The chapters report the measured results and the limits of their local
+and live checks. This is not a claim that every platform, provider, or human
+accessibility path has been verified.
+
+The earlier editions remain intact. Their successes and failures are part of the
+record, not results that this edition silently claims to have rerun.

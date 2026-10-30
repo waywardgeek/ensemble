@@ -36,12 +36,12 @@ try
             flags[flag] = "1";
             continue;
         }
-        if (flag is not ("--data-dir" or "--agent-name" or "--sandbox" or "--port" or "--gui-dir" or "--vendor" or "--model" or "--base-url" or "--workspace" or "--event-log" or "--settings" or "--skills-dir" or "--primary-skill" or "--startup-skills" or "--save" or "--save-log" or "--archive-log" or "--cache-lens" or "--prompt-cache-key" or "--surface" or "--billing" or "--account" or "--credentials-dir" or "--reasoning-effort" or "--reasoning-summary" or "--safe-mode" or "--enable-web-search") || i + 1 >= args.Length)
+        if (flag is not ("--data-dir" or "--agent-name" or "--sandbox" or "--port" or "--gui-dir" or "--vendor" or "--model" or "--base-url" or "--workspace" or "--event-log" or "--settings" or "--skills-dir" or "--primary-skill" or "--startup-skills" or "--save" or "--save-log" or "--archive-log" or "--cache-lens" or "--prompt-cache-key" or "--surface" or "--billing" or "--account" or "--credentials-dir" or "--codex-auth-file" or "--reasoning-effort" or "--reasoning-summary" or "--safe-mode" or "--enable-web-search") || i + 1 >= args.Length)
         {
             throw new ArgumentException("Unknown or incomplete GUI flag");
         }
         string value = args[++i];
-        if (flag is "--data-dir" or "--agent-name" or "--sandbox" or "--surface" or "--billing" or "--account" or "--credentials-dir" or "--reasoning-effort" or "--reasoning-summary" or "--safe-mode" or "--enable-web-search")
+        if (flag is "--data-dir" or "--agent-name" or "--sandbox" or "--surface" or "--billing" or "--account" or "--credentials-dir" or "--codex-auth-file" or "--reasoning-effort" or "--reasoning-summary" or "--safe-mode" or "--enable-web-search")
         {
             if ((flag != "--sandbox" && string.IsNullOrWhiteSpace(value)) || value.StartsWith("--"))
             {
@@ -63,10 +63,6 @@ try
         Directory.SetCurrentDirectory(Path.GetFullPath(workspace));
     }
     string endpoint = Selected("--base-url", "LLM_BASE_URL");
-    if (endpoint.Length == 0)
-    {
-        throw new ArgumentException("Set LLM_BASE_URL explicitly");
-    }
     string sandboxRoot = Selected("--sandbox", "EN_SANDBOX_ROOT");
     string dataDirectory = Selected("--data-dir", "EN_DATA_DIR");
     string agentName = Selected("--agent-name", "EN_AGENT_NAME");
@@ -81,11 +77,14 @@ try
         _ => throw new ArgumentException("Unknown surface; use chat-completions or responses")
     };
     string credentialsDirectory = Selected("--credentials-dir", "EN_CREDENTIALS_DIR");
-    Credentials? launchCredentials = string.IsNullOrWhiteSpace(credentialsDirectory)
+    string billingSelection = Selected("--billing", "EN_BILLING");
+    string codexAuthFile = Selected("--codex-auth-file", "EN_CODEX_AUTH_FILE");
+    // Codex and public OAuth have independent stores and renewal owners.
+    // Do not inspect a public store when this launch explicitly selects Codex.
+    Credentials? launchCredentials = billingSelection == "codex" || string.IsNullOrWhiteSpace(credentialsDirectory)
         ? null : new Credentials(app, credentialsDirectory);
     string? savedAccount = launchCredentials is null ? null
         : await launchCredentials.SelectedPlanAccountAsync();
-    string billingSelection = Selected("--billing", "EN_BILLING");
     string accountSelection = Selected("--account", "EN_ACCOUNT");
     if (billingSelection.Length == 0 && savedAccount is not null)
     {
@@ -99,22 +98,28 @@ try
     {
         "" or "api" => BillingMode.ApiKey,
         "chatgpt" => BillingMode.ChatGptPlan,
-        _ => throw new ArgumentException("Unknown billing mode; use api or chatgpt")
+        "codex" => BillingMode.Codex,
+        _ => throw new ArgumentException("Unknown billing mode; use api, chatgpt or codex")
     };
     var vendor = Selected("--vendor", "LLM_VENDOR") switch
     {
-        "" when billing == BillingMode.ChatGptPlan => Vendor.OpenAI,
+        "" when billing is BillingMode.ChatGptPlan or BillingMode.Codex => Vendor.OpenAI,
         "" or "anthropic" => Vendor.Anthropic,
         "openai" => Vendor.OpenAI,
         "gemini" => Vendor.Gemini,
         _ => throw new ArgumentException("Unknown LLM_VENDOR")
     };
     // Host launch defaults do not weaken the explicit library contract.
-    if (billing == BillingMode.ChatGptPlan && surface is null)
+    if (billing is BillingMode.ChatGptPlan or BillingMode.Codex && surface is null)
     {
         surface = Surface.Responses;
     }
-    // Selecting plan billing excludes API keys even when the process inherits one.
+    if (endpoint.Length == 0)
+    {
+        endpoint = billing == BillingMode.Codex ? CodexCredentials.ServiceBase
+            : throw new ArgumentException("Set LLM_BASE_URL explicitly");
+    }
+    // Selecting either plan route excludes ambient API keys.
     string key = billing == BillingMode.ApiKey ? Env("LLM_API_KEY") : "";
     var config = new Configuration(vendor, Selected("--model", "LLM_MODEL"), endpoint, key,
         requireToolExplanation: Env("LLM_REQUIRE_TOOL_EXPLANATION") == "true",
@@ -132,6 +137,14 @@ try
     if (billing == BillingMode.ChatGptPlan && string.IsNullOrWhiteSpace(credentialsDirectory))
     {
         throw new ArgumentException("Plan billing requires --credentials-dir or EN_CREDENTIALS_DIR");
+    }
+    if (billing == BillingMode.Codex)
+    {
+        if (string.IsNullOrWhiteSpace(codexAuthFile))
+        {
+            throw new ArgumentException("Codex billing requires --codex-auth-file or EN_CODEX_AUTH_FILE");
+        }
+        _ = new CodexCredentials(app, codexAuthFile);
     }
     // Account management changes the saved next-launch default, not this
     // immutable Configuration. No implicit credential location is searched.

@@ -146,7 +146,7 @@ expanded contracts before the student learned from the original exercises
 turned small tasks into larger ones, and review approved the expansion. That
 attempt was stopped. The fresh student built first; these chapters enhance the
 original explanations using its accepted code and reviews. The history is in
-[`docs/edition-2-attempt-1.md`](../docs/edition-2-attempt-1.md).
+[`docs/edition-2-attempt-1.md`](../../docs/edition-2-attempt-1.md).
 
 ## The generation
 

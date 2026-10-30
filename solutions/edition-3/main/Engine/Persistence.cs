@@ -29,7 +29,7 @@ public sealed partial class Engine
             {
                 sources = declarations[0]?["functionDeclarations"]?.AsArray() ?? new JsonArray();
             }
-            if (config.Billing == BillingMode.ChatGptPlan)
+            if (config.Billing is BillingMode.ChatGptPlan or BillingMode.Codex)
             {
                 sources = declarations[0]!["tools"]!.AsArray();
             }

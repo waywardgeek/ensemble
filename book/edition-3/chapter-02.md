@@ -1394,9 +1394,9 @@ and Tests reference it. There are no external NuGet package dependencies.
 The GUI stub only constructs and destroys the shared owners; it is not a GUI.
 
 ```sh
-dotnet run --project solutions/edition-3/main/Tests/Tests.csproj -c Release
-dotnet run --project solutions/edition-3/main/GuiStub/GuiStub.csproj -c Release
-dotnet publish solutions/edition-3/main/Cli/Ch02.csproj -c Release -o ./bin/ch02
+dotnet run --project solutions/edition-3/ch02/Tests/Tests.csproj -c Release
+dotnet run --project solutions/edition-3/ch02/GuiStub/GuiStub.csproj -c Release
+dotnet publish solutions/edition-3/ch02/Cli/Ch02.csproj -c Release -o ./bin/ch02
 ./bin/grade-edition2 -ch 2 -json ./bin/ch02/Ch02
 ./bin/grade-edition3 -ch 1 -json ./bin/ch02/Ch02
 ```

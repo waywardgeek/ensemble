@@ -30,7 +30,7 @@ static Configuration Configuration(bool disableStreaming = false, bool stubsTool
 {
     var vendor = Env("LLM_VENDOR") switch
     {
-        "" when billing == BillingMode.ChatGptPlan => Vendor.OpenAI,
+        "" when billing is BillingMode.ChatGptPlan or BillingMode.Codex => Vendor.OpenAI,
         "" or "anthropic" => Vendor.Anthropic,
         "openai" => Vendor.OpenAI,
         "gemini" => Vendor.Gemini,
@@ -49,6 +49,7 @@ static Configuration Configuration(bool disableStreaming = false, bool stubsTool
         url = vendor switch
         {
             Vendor.Anthropic => "https://api.anthropic.com",
+            Vendor.OpenAI when billing == BillingMode.Codex => CodexCredentials.ServiceBase,
             Vendor.OpenAI => "https://api.openai.com",
             _ => "https://generativelanguage.googleapis.com"
         };
@@ -100,6 +101,7 @@ static async Task<int> Run(string[] args)
         string reasoningEffort = Env("OPENAI_REASONING_EFFORT");
         string reasoningSummary = Env("OPENAI_REASONING_SUMMARY");
         string credentialsDirectory = Env("EN_CREDENTIALS_DIR");
+        string codexAuthFile = Env("EN_CODEX_AUTH_FILE");
         bool stubResults = Env("EN_STUB_TOOL_RESULTS") == "1";
         string contextBudget = Env("EN_CONTEXT_BUDGET_BYTES");
         bool persistenceEnabled = Env("EN_DISABLE_SAVE") != "1";
@@ -109,7 +111,7 @@ static async Task<int> Run(string[] args)
         var remaining = new List<string>();
         for (int index = 0; index < args.Length; index++)
         {
-            if (args[index] is "--surface" or "--billing" or "--account" or "--credentials-dir" or "--reasoning-effort" or "--reasoning-summary")
+            if (args[index] is "--surface" or "--billing" or "--account" or "--credentials-dir" or "--codex-auth-file" or "--reasoning-effort" or "--reasoning-summary")
             {
                 string flag = args[index];
                 if (++index == args.Length || string.IsNullOrWhiteSpace(args[index]) || args[index].StartsWith("--"))
@@ -122,6 +124,7 @@ static async Task<int> Run(string[] args)
                     case "--billing": billingSelection = args[index]; break;
                     case "--account": account = args[index]; break;
                     case "--credentials-dir": credentialsDirectory = args[index]; break;
+                    case "--codex-auth-file": codexAuthFile = args[index]; break;
                     case "--reasoning-effort": reasoningEffort = args[index]; break;
                     case "--reasoning-summary": reasoningSummary = args[index]; break;
                 }
@@ -273,7 +276,7 @@ static async Task<int> Run(string[] args)
         app = new Application(Console.Error, dataDirectory: container);
         if (args.Length > 2)
         {
-            throw new ArgumentException("Usage: ch04 [--data-dir DIR] [--agent-name NAME] [--sandbox ROOT] [--safe | --safe-mode BOOL] [--enable-web-search BOOL] [--surface chat-completions|responses] [--billing api|chatgpt] [--account LABEL] [--credentials-dir DIR] [--no-stream] [--cache-lens DIR] [--cache-breakpoints] [--prompt-cache-key KEY] [--stub-tool-results] [--context-budget-bytes N] [chat | dump [logfile] | render logfile | auth status|models|login|logout|signout]");
+            throw new ArgumentException("Usage: ch04 [--data-dir DIR] [--agent-name NAME] [--sandbox ROOT] [--safe | --safe-mode BOOL] [--enable-web-search BOOL] [--surface chat-completions|responses] [--billing api|chatgpt|codex] [--account LABEL] [--credentials-dir DIR] [--codex-auth-file FILE] [--no-stream] [--cache-lens DIR] [--cache-breakpoints] [--prompt-cache-key KEY] [--stub-tool-results] [--context-budget-bytes N] [chat | dump [logfile] | render logfile | auth status|models|login|logout|signout]");
         }
 
         // Authentication is a host operation, never a model turn or a tool.
@@ -299,7 +302,9 @@ static async Task<int> Run(string[] args)
 
         // Read only an explicitly supplied store. An explicit launch choice wins
         // but never overwrites the saved choice, including after local logout.
-        Credentials? launchCredentials = string.IsNullOrWhiteSpace(credentialsDirectory)
+        // Explicit Codex selection must not inspect or renew a public grant,
+        // even when the process inherits an unrelated credentials directory.
+        Credentials? launchCredentials = billingSelection == "codex" || string.IsNullOrWhiteSpace(credentialsDirectory)
             ? null : new Credentials(app, credentialsDirectory);
         string? savedAccount = launchCredentials is null ? null
             : await launchCredentials.SelectedPlanAccountAsync();
@@ -322,10 +327,11 @@ static async Task<int> Run(string[] args)
         {
             "" or "api" => BillingMode.ApiKey,
             "chatgpt" => BillingMode.ChatGptPlan,
-            _ => throw new ArgumentException("Unknown billing mode; use api or chatgpt")
+            "codex" => BillingMode.Codex,
+            _ => throw new ArgumentException("Unknown billing mode; use api, chatgpt or codex")
         };
         // Host launch defaults do not weaken the explicit library contract.
-        if (billing == BillingMode.ChatGptPlan && surface is null)
+        if (billing is BillingMode.ChatGptPlan or BillingMode.Codex && surface is null)
         {
             surface = Surface.Responses;
         }
@@ -340,6 +346,16 @@ static async Task<int> Run(string[] args)
             }
             // The root already owns the selected store. Engines obtain bearer
             // tokens through that parent path, never a host-held token copy.
+        }
+        if (billing == BillingMode.Codex)
+        {
+            if (string.IsNullOrWhiteSpace(codexAuthFile))
+            {
+                throw new ArgumentException("Codex billing requires --codex-auth-file or EN_CODEX_AUTH_FILE");
+            }
+            // Select only. Engine reads a fresh paired grant when sending;
+            // Codex alone owns login and renewal of this file.
+            _ = new CodexCredentials(app, codexAuthFile);
         }
         Console.Error.WriteLine(config.FundingDescription());
         var agent = new Agent(app, config, name: agentName.Length == 0 ? "root" : agentName);

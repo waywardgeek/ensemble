@@ -16,7 +16,7 @@
 # scratch output. Being reproducible does not make it disposable.
 set -euo pipefail
 
-BOOK_DIR="$(cd "$(dirname "$0")/../book" && pwd)"
+BOOK_DIR="${BOOK_DIR:-$(cd "$(dirname "$0")/../book" && pwd)}"
 OUT=""
 
 add() {

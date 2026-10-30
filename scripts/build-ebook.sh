@@ -37,10 +37,13 @@
 # "nav" must NOT appear in that spine listing.
 set -euo pipefail
 
-BOOK_DIR="$(cd "$(dirname "$0")/../book" && pwd)"
-MANUSCRIPT="$BOOK_DIR/the-art-of-building-ai-coding-agents.md"
+REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+BOOK_DIR="${BOOK_DIR:-$REPO_ROOT/book}"
+BUILD_DIR="${BOOK_OUTPUT_DIR:-$BOOK_DIR}"
+PUBLICATION_DIRECTORY="${PUBLICATION_DIRECTORY:-book}"
+MANUSCRIPT="$BUILD_DIR/the-art-of-building-ai-coding-agents.md"
 FRONT="$BOOK_DIR/front-matter.md"
-OUT="$BOOK_DIR/The Art of Building AI Coding Agents.epub"
+OUT="$BUILD_DIR/The Art of Building AI Coding Agents.epub"
 
 TITLE="The Art of Building AI Coding Agents"
 AUTHOR="Bill Cox"
@@ -89,7 +92,8 @@ pandoc "$FRONT" "$DERIVED" \
     -o "$OUT" \
     --from=markdown --to=epub \
     --toc-depth=1 \
-    --lua-filter="$BOOK_DIR/../scripts/publication-links.lua" \
+    --lua-filter="$REPO_ROOT/scripts/publication-links.lua" \
+    -M publication-directory="$PUBLICATION_DIRECTORY" \
     --resource-path="$BOOK_DIR" \
     --css="$CSS" \
     -M title="$TITLE" \

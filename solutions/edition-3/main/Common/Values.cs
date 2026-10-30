@@ -21,7 +21,7 @@ public sealed partial class PlanAuthorizationException : InvalidOperationExcepti
 }
 
 // Payment authority is independent of the wire surface; there is no fallback.
-public enum BillingMode { ApiKey = 1, ChatGptPlan }
+public enum BillingMode { ApiKey = 1, ChatGptPlan, Codex }
 public enum Actor
 {
     Human = 1, Agent, System, Tool

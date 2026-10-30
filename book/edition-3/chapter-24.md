@@ -19,43 +19,118 @@ engineering requirement: test the current integration before implementing yester
 workaround. The measurements below explain why the earlier implementation took a
 detour. They do not establish that today's public OAuth cache is still broken.
 
-**C# execution status:** the current official route has been checked in the
-documentation; real OAuth and the controlled cache exercise remain deferred until
-Bill can authenticate. No Codex credential adapter has been implemented in this
-edition. Bill authorized continuing the independent chapters while these live
-checks remain open. This is neither a cache success nor a reproduced failure.
+**C# execution status — October 29, 2026:** real Ensemble OAuth login and
+account-model discovery succeeded. Three completed public-route requests reported
+zero cached reads and writes. After the separately authorized comparison, the
+Codex-backed C# path was implemented in core, CLI and GUI. Its bounded actual-CLI
+check returned three correct answers with cache reads of **3,456, zero, and
+3,456** out of 3,641 input tokens. That supports the optional detour, with a
+measured miss—not a universal hit-rate or dollar-saving promise. Chapter16's
+public grant and renewal store remain separate.
 
 ## TL;DR
 
-**This chapter is optional and has no separate grader.** It adds a decision gate,
-not an unconditional new connection mode. The C# implementation continues from
-Chapter 23 with Chapter 16's public OAuth flow. Gateway does not require the old
-detour.
+**This chapter is optional and has no separate grader.** If the public OAuth
+route gives satisfactory measured reuse for your workload, keep it. For the
+failure observed here, Edition 3 now has an explicit Codex-backed C# path in
+both CLI and GUI. This is a separate grant, not a way to send Ensemble's public
+OAuth token to another endpoint.
 
-1. With the human present, finish Chapter 16's real OAuth exercise using an
-   explicitly approved Ensemble credential directory. Do not search Codex's files,
-   borrow a running application's configuration, or copy tokens between clients.
-2. Recheck the official third-party inference documentation. At this revision it
-   specifies `POST https://api.openai.com/v1/responses`, `store:false`, streaming,
-   and `response.completed` as the success boundary. It explicitly excludes
-   ChatGPT's `backend-api` endpoints for this public OAuth integration.
-3. Run a small controlled probe with one available model, one funding source,
-   stable instructions and tools, and a reusable prefix long enough for that
-   model's current cache rules. Measure actual completed-response usage. A login,
-   a correct answer, or a large byte overlap is not a cache measurement.
-4. If reuse is satisfactory, skip the workaround. If it fails reproducibly,
-   first check request stability, eligibility and current provider requirements.
-   A failure does not itself authorize a private endpoint or another application's
-   credentials. Establish an authorized, currently supported alternative before
-   implementing one.
-5. If authentication or a conclusive probe must wait, record that uncertainty and
-   continue the independent work. Do not label an unperformed exercise passed,
-   and do not manufacture a Chapter 24 code change to fill the gap.
+1. Select `--billing codex` (or `EN_BILLING=codex`) and an explicitly approved
+   `--codex-auth-file FILE` (or `EN_CODEX_AUTH_FILE`). There is no home-directory
+   search, no copied token store, and no silent API-key or public-plan fallback.
+2. One optional `CodexCredentials` child belongs to Ensemble. Engine reaches it
+   through Agent → Ensemble immediately before sending. One bounded file read
+   returns the access token and account together. Codex alone owns login and
+   renewal; Ensemble neither refreshes nor writes that file.
+3. Use OpenAI streaming Responses at the pinned
+   `https://chatgpt.com/backend-api/codex/responses` endpoint. Reject incompatible
+   configuration before reading credentials. Disable redirects and cookies.
+   Send the paired bearer/account and a stable `session-id`; keep the normal
+   Engine, actor, History, Jobs and usage accounting.
+4. Send `store:false`, `stream:true`, top-level instructions and local input.
+   A supplied `--prompt-cache-key` also supplies the session-affinity header;
+   otherwise one Engine-lifetime key serves both. Neither is a hit guarantee.
+5. Require terminal completion before treating a response as successful. Safe
+   credential failure tells the user to repair the Codex sign-in; it does not
+   expose the path, token, parser exception or provider body in History.
+6. Verify boundaries with fakes, then make a bounded real application check.
+   The actual C# CLI returned `OK` three times with identical bodies: cache
+   reads were **3,456, zero, and 3,456** out of 3,641 input tokens. That proves
+   integrated reuse occurred, not that every request reuses its prefix.
 
-The runnable C# foundation is `solutions/edition-3/ch23/`; subsequent work continues
-in `solutions/edition-3/main/`. There is no new Chapter 24 implementation endpoint
-or executable score. Historical Go files are evidence for the account below, not
-C# acceptance or current setup instructions.
+Work in `solutions/edition-3/main`; the source-only reader endpoint is
+`solutions/edition-3/ch24`. This optional integration was finished after Gateway
+and Goals, so that endpoint also includes their already completed foundation.
+Earlier preserved endpoints were not rewritten. The source map below follows
+Common declarations and real parent relationships, not a second transport agent.
+
+### What we actually measured
+
+On October 29, 2026 Bill authorized a new private `~/.en/oauth` store and completed
+Ensemble's real public login. Redacted status confirmed plan access and model
+discovery listed `gpt-6-astra`. Three CLI requests on the documented public
+Responses route completed normally, each reporting zero cache reads and writes.
+
+Bill then explicitly approved read-only use of `~/.codex/auth.json` for a bounded
+comparison. The temporary Python probe sent the same body to Codex. Its first
+attempt returned HTTP200 without a `Content-Type`; the probe refused before
+reading the stream. **That completion and usage are unknown, not a cache miss.**
+After correcting the probe, its two remaining attempts both reported 3,456 cache
+reads. No replacement fourth request was sent. That experiment justified the
+integration; it did not itself implement or test the C# path.
+
+The later integrated check used the **actual C# CLI and Engine**, with explicit
+Codex funding and the approved read-only source. Its existing Responses parser
+already accepted the absent-header stream shape. All three requests returned
+`OK`, and the second was a genuine measured cache miss:
+
+| Route and implementation | Input per response | Cached reads | Output per response | Cache writes |
+| --- | ---: | --- | ---: | ---: |
+| Public OAuth, C# CLI, three completed requests | 3,641 | 0 / 0 / 0 | 5 | 0 each |
+| Codex, temporary probe, two measured responses | 3,641 | 3,456 / 3,456 | 5 | 0 each |
+| Codex, integrated C# CLI, three completed requests | 3,641 | 3,456 / 0 / 3,456 | 5 | 0 each |
+
+The first probe attempt is additional, unmeasured traffic—not included in the
+second row's token totals. Each three-response C# series used 10,938 total
+reported tokens. In the Codex C# series, 6,912 were cached input, 4,011 were
+uncached input, and 15 were output. Two responses reused about 94.9% of input;
+one reused none. These are provider usage reports, **not a subscription invoice
+or a measurement of dollars saved**.
+
+The wire payloads in all three comparisons were byte-identical: 21,438 UTF-8
+bytes, SHA-256
+`95eae405d65743e2b34b6cb3e03754ffea92e3b5c465a5bd95ed0cd8b1f6e756`.
+A documentary `request.json` has a trailing newline; the equality check uses the
+actual trace payload, not that file's bytes. The prompt was fixed harmless text,
+reasoning was low, summaries off, recall and memory disabled, and no tool was
+called. The body already used top-level instructions: no cross-route message
+conversion was necessary. The credential source, endpoint and HTTP headers
+changed. The C# process durations were roughly 4.0, 3.6 and 2.9 seconds, including
+startup—not a controlled latency comparison or time-to-first-token measurement.
+
+The public [inference guidance](https://developers.openai.com/siwc/token-sharing-open-source/models-and-inference)
+checked for this exercise specifies `https://api.openai.com/v1/responses`,
+`store:false`, streaming and terminal completion, and explicitly excludes
+ChatGPT backend endpoints **for the public grant**. The
+[Codex authentication guidance](https://developers.openai.com/codex/auth) and
+[current upstream provider source](https://github.com/openai/codex/blob/main/codex-rs/model-provider-info/src/lib.rs)
+describe a separate access path. Neither account was logged out or renewed by
+the Codex comparison. This sample does not identify a service-side cause,
+establish a universal hit rate, or explain an internal product decision.
+
+## Implementation status
+
+The core, both host selectors, local failure checks, isolated GUI display, and
+bounded live C# path are implemented and verified. Six Codex-specific groups,
+20 public-auth groups, eight existing Responses groups, eight host checks, ten
+public-funding regression scenarios, and the final 310-group shared suite provide
+different evidence scopes; several overlap and must not be added into a claimed
+unique total. The shared build and both actual hosts build cleanly. There is no
+separate Chapter24 score. Live GUI inference, renewal/revocation, accessibility,
+subscription billing and general provider reliability are not established by
+these checks. See the [progress record](../../docs/edition-3-csharp-progress.md)
+for retained failures, exact local evidence paths and final preservation status.
 
 ## 24.1 In plain language
 
@@ -104,7 +179,133 @@ Jobs owns tool work. A justified transport change should not introduce a second
 agent loop or duplicate the credential store. Explicit funding remains explicit:
 a failed plan request never silently falls back to an API key.
 
-## 24.2 Taking a measurement in C#
+## 24.2 Taking the detour in C#
+
+Keep two credential owners distinct. Chapter16's `Credentials` owns Ensemble's
+public registration, protected storage, selected account and renewal protocol.
+`CodexCredentials` is a separate optional child of the same Ensemble root. It
+selects exactly one path; construction performs no discovery or credential I/O.
+Its parent add/remove operations maintain both ends under the root's existing
+credential relationship gate. Destruction cancels and joins reads, then detaches;
+it does not delete or rewrite somebody else's sign-in.
+
+A request walks Engine → Agent → Ensemble → CodexCredentials. The reader accepts
+one JSON object of at most 1 MiB and rejects duplicate properties, malformed data
+and missing/unsafe header values. It reads `tokens.access_token` and
+`tokens.account_id` together from that one document. An omitted legacy
+`auth_mode` is accepted; a supplied mode must be `chatgpt`. It does not reconstruct
+identity from a JWT or use `OPENAI_API_KEY` as a substitute. The exchange-local
+pair is value-like, not a second mutable token store or relationship object.
+
+This is deliberately inconvenient: Codex must repair an expired or rejected
+sign-in. Ensemble reads again on each send, so a renewed pair is picked up
+without restart. A Codex HTTP401 produces a safe failure and **no renewal or
+second request**. Chapter16's public-plan one-retry renewal remains specific to
+that different grant. Quota, redirect and interrupted-stream failures likewise
+do not choose a different payer. API keys inherited in the environment are
+excluded when either plan route is explicitly selected.
+
+Configuration appends `BillingMode.Codex` without renumbering existing values.
+It requires OpenAI, Responses, streaming, no API key and no public account label.
+The only accepted endpoints are the exact pinned service base or its Responses
+endpoint. An explicit public/loopback/other URL is refused; there is no test-only
+production endpoint exception. Tests substitute a boundary HTTP handler while
+exercising the real Engine construction, headers, JSON, parser and accounting.
+The normal client disables redirects and cookies for both plan routes.
+
+The HTTP exchange sends bearer authorization, `ChatGPT-Account-ID` and
+`session-id`. A configured prompt-cache key is frozen in the request and used by
+the header. Otherwise Engine creates one key for its lifetime; restarting the
+Engine does not promise the same fallback identity. Top-level instructions use
+the existing Responses projection and namespaced tool vocabulary. The credential
+file path, account and bearer are not copied into documentary configuration or
+History. Exchange diagnostics mask the paired secrets. Successful provider text
+is still canonical content; masking diagnostics is not a claim to detect every
+possible secret an application might put in a prompt.
+
+### CLI and GUI selection
+
+Select a source explicitly **only with the account holder's permission**. These
+commands illustrate an approved file-backed Codex sign-in; do not assume that a
+file exists or that another application's private store is yours to read. Perform
+login or renewal with Codex itself, following its current documentation. Do not
+paste credentials into chat, a shell argument, or the book's exercises.
+
+From the repository root, build the actual host:
+
+```sh
+dotnet build solutions/edition-3/main/Cli/Ch04.csproj
+```
+
+Then, after approving that exact credential path, launch a fresh owned workspace:
+
+```sh
+work=$(mktemp -d)
+env -u LLM_BASE_URL -u EN_ACCOUNT -u LLM_API_KEY \
+  LLM_VENDOR=openai LLM_MODEL=gpt-6-astra \
+  dotnet solutions/edition-3/main/Cli/bin/Debug/net10.0/ch04.dll \
+  --billing codex --codex-auth-file "$HOME/.codex/auth.json" \
+  --data-dir "$work" chat
+```
+
+`gpt-6-astra` was verified in this exercise; the name is not a promise of future
+availability or entitlement. Explicit model IDs do not require a discovery
+request. The chapter's ordinary model policy and capability checks still apply.
+For an isolated cache exercise, additionally use a minimal primary skill and
+disable recall/memory in that temporary Agent's settings so they do not add
+requests or alter the prefix. Chapter16's `auth models` lists the public account's
+models, not a new Codex entitlement service.
+
+`EN_BILLING=codex` and `EN_CODEX_AUTH_FILE=/approved/file` are the equivalent
+environment selections. Explicit flags win. Supplying only a file path does
+**not** select Codex funding. There is no `CODEX_HOME` or `~/.codex` search and
+no persisted Codex funding choice. The CLI announces the selected funding before
+inference; GUI shows the same source in its normal funding display.
+
+The GUI uses the same selectors and pinned default:
+
+```sh
+dotnet build solutions/edition-3/main/Examples/Gui/Gui.csproj
+work=$(mktemp -d)
+env -u LLM_BASE_URL -u EN_ACCOUNT -u LLM_API_KEY \
+  LLM_VENDOR=openai LLM_MODEL=gpt-6-astra \
+  dotnet solutions/edition-3/main/Examples/Gui/bin/Debug/net10.0/Gui.dll \
+  --billing codex --codex-auth-file "$HOME/.codex/auth.json" \
+  --data-dir "$work" --port 8099
+```
+
+Choose an unused owned port; do not replace a running application. In Codex mode,
+public account controls are disabled and explain that Codex owns renewal. Guarded
+server routes refuse those operations too: disabling a button is not a security
+boundary. Explicit Codex startup skips the public credential store entirely,
+even if the process inherited an unrelated `EN_CREDENTIALS_DIR`. It neither reads
+that store's saved selection nor mutates the running actor when login state changes.
+The existing CLI `auth` commands remain public-OAuth commands, not Codex operations.
+
+To leave the detour, explicitly launch with `--billing chatgpt`, your public
+`--credentials-dir` and `--account`, and no Codex base-URL override. That keeps
+Chapter16's public flow and store. Select `--billing api` only when you intend
+API-key funding. Neither direction copies credentials between applications.
+
+### Source map
+
+| Responsibility | C# source under `solutions/edition-3/main` |
+| --- | --- |
+| Shared credential owner, pair and safe failure | `Common/Codex.cs` |
+| Fresh reads, endpoint validation, relationships and cleanup | `Auth/Codex.cs` |
+| Billing vocabulary and configuration/funding contract | `Common/Values.cs`, `Serialization/Values.cs` |
+| HTTP ownership, paired headers and retry separation | `Common/Owners.cs`, `Engine/Engine.cs` |
+| Responses projection and terminal parsing | `Engine/Render.cs`, `Engine/Responses.cs`, `Engine/Streaming.cs` |
+| Safe actor narration and root teardown | `Agent/Actor.cs`, `Application/Ensemble.cs` |
+| Human selection and account display | `Cli/Program.cs`, `Examples/Gui/Program.cs`, `Gui/Server/Auth.cs`, `Gui/wwwroot/auth.js` |
+| Real components with a boundary handler fake | `Tests/CodexTests.cs` |
+
+There is no new model scheduler, History owner, usage meter or tool loop. The
+request remains a frozen value passed to the existing Engine. The source split
+makes the shared contract inspectable in Common and the implementation inspectable
+in its responsible module, rather than hiding policy in UI glue.
+
+## 24.3 Taking a measurement in C#
 
 Do this with the account holder, not as an unattended credential-discovery task.
 Chapter 16 supplies the human `auth status`, `auth login` and `auth models`
@@ -113,7 +314,8 @@ approved account and discover a model actually visible to it. A model name in an
 old table is neither current availability nor permission to use it.
 
 For the joint probe, agree on a small request budget before sending. Three
-completed requests are a useful first observation: one warm-up and two repeats.
+attempts are a useful first observation: one candidate warm-up and two repeats.
+An incomplete or unmeasured attempt still consumes that agreed request budget.
 They are not enough to establish a service-wide guarantee. Use one model, fixed
 reasoning/settings, a fixed harmless reference prefix, and a short requested
 answer. Meet the selected model's documented minimum cacheable length; do not
@@ -168,7 +370,7 @@ probe is justified. Do not retry indefinitely or treat one small sample as proof
 that every public OAuth request is broken. If the test cannot run, write
 **untested**, not **fixed**, **broken**, or **passed**.
 
-## 24.3 What the earlier detour taught us
+## 24.4 What the earlier detour taught us
 
 The following is historical implementation evidence, not the C# exercise above.
 The Go adapter selected a separate `codex` connection, reread a human-selected
@@ -214,16 +416,25 @@ became visible because we measured the real tool loop. The reverse lesson matter
 just as much: once the supported route works, stop maintaining an unnecessary
 detour.
 
-## 24.4 Where this execution stops, and where the book continues
+## 24.5 Where this execution stops, and where the book continues
 
-The official inference and caching pages were fetched successfully for this
-revision. No real OAuth exchange or inference/cache probe was performed in this
-C# chapter. No Codex adapter, credential lookup, endpoint change, or new pricing
-claim was added. The historical measurements remain attributed to their earlier
-runs. Existing local Responses, authentication and cache tests prove their own
-bounded contracts, not today's provider cache behavior.
+The optional Codex path is working through the actual C# application. It remains
+a separate, explicitly selected grant using a backend that can change; it is not
+a replacement for the documented public OAuth contract. The public comparison
+reported no reuse; the integrated Codex check reported two hits and one miss.
+Keep both facts. A correct answer, a successful login and a plausible affinity
+header are each weaker evidence than the terminal usage record.
 
-We will return to the live exercise together. Meanwhile, Chapter 25 is a historical
-interlude and Chapter 26's Gateway can be built on the unchanged Chapter 23 C#
-foundation. Independent progress does not erase the open check. The best code for
-an unproven workaround is, for now, no workaround at all.
+Tests also establish the less visible behavior: paired rereads after replacement,
+malformed/duplicate/oversized-file refusal, safe cancellation and destruction,
+redacted actor errors, no retry on Codex401/429/redirect, and no successful usage
+for incomplete streams. Host checks establish selection, public-store separation
+and displayed funding. They do not make a security audit, a billing guarantee,
+a live GUI test or a claim that every provider will behave well tomorrow.
+
+The chapter's end condition is not “we have a workaround, therefore keep it
+forever.” When the public route gives satisfactory measured reuse for the intended
+workload, prefer it and retire unnecessary detours. Until then, preserve a clear
+escape hatch without silently changing who pays. Chapter25 records a different
+kind of failure: the gap between a patch, a passing test and the application a
+person actually uses. Gateway and Goals continue on the same ownership model.

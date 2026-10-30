@@ -118,9 +118,17 @@ public sealed partial class Configuration
         {
             Credentials.ValidatePlanEndpoint(uri);
         }
-        if (billing == BillingMode.ApiKey && account.Length != 0)
+        if (billing == BillingMode.Codex)
         {
-            throw new ArgumentException("Account selection requires plan billing");
+            if (Surface != Surface.Responses || disableStreaming || apiKey.Length != 0)
+            {
+                throw new ArgumentException("Codex requires streaming Responses and no API key");
+            }
+            CodexCredentials.ValidateEndpoint(uri);
+        }
+        if (billing != BillingMode.ChatGptPlan && account.Length != 0)
+        {
+            throw new ArgumentException("Account labels require public plan billing");
         }
         Billing = billing;
         Account = account;

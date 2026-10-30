@@ -928,7 +928,7 @@ and read a variable back, it is worth the fifteen minutes on its own.
 The second-edition student drove those paths with all three providers on
 October 9. Each started a delayed job, waited for its end, answered a `NAME>`
 PTY prompt with `Ada`, observed `hello Ada`, and killed a running sleep job.
-The retained [student record](../docs/edition-2-notes/ch04.md) links the
+The retained [student record](../../docs/edition-2-notes/ch04.md) links the
 actual event logs and distinguishes model summaries from inspected output:
 
 | live model | plain input | cache read | output |

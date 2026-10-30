@@ -25,7 +25,7 @@ class PrintBuildTests(unittest.TestCase):
         self.assertNotIn('id="contents"', clean)
         self.assertNotIn('Duplicate markdown contents', clean)
         self.assertNotIn('page-break-after: always;', clean)
-        self.assertIn('class="recto-spacer"', clean)
+        self.assertNotIn('class="recto-spacer"', clean)
         self.assertIn('Actual prose', clean)
 
     def test_missing_preface_is_rejected(self):

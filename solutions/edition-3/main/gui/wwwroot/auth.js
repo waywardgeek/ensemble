@@ -35,9 +35,11 @@
 
     async function refresh() {
         const value = await request("status");
-        status.textContent = `Running billing: ${value.billing}. Selected account: ${value.selected_account || "none"}. `
-            + (value.enabled ? (value.pending ? "Sign-in pending." : "No sign-in pending.")
-                : "Account management is disabled; launch with --credentials-dir.");
+        status.textContent = value.billing === "codex"
+            ? "Running billing: Codex ChatGPT grant. Sign in and renew in Codex; Ensemble only reads the explicitly selected file. Public OAuth account controls are disabled."
+            : `Running billing: ${value.billing}. Selected account: ${value.selected_account || "none"}. `
+                + (value.enabled ? (value.pending ? "Sign-in pending." : "No sign-in pending.")
+                    : "Account management is disabled; launch with --credentials-dir.");
         list.replaceChildren();
         for (const account of value.accounts) {
             const item = document.createElement("li");
