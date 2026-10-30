@@ -165,17 +165,22 @@ const check = (condition, message) => { assert.ok(condition, message); console.l
    assert.ok(Math.abs(geometry.before[id][i]-geometry.after[id][i])<1,`${id} moved during status-only changes`);
   console.log('PASS status changes leave control rectangles stable');
   check(await page.locator('#set-model, #funding-source, #selected-name').count()===0,'header removes Apply, repeated Agent name and funding status');
-  check(await page.locator('.model-caption').textContent()==='Don’t be evil.','model caption shown');
+  check(await page.locator('.model-caption').count()===0,'caption removed from header');
   const header=await page.evaluate(()=>({
    height:document.querySelector('#status-bar').getBoundingClientRect().height,
-   groups:['.run-state','#usage-meter','#model-controls','.model-caption','.status-actions'].map(selector=>{const r=document.querySelector(selector).getBoundingClientRect();return {left:r.left,right:r.right,centerX:(r.left+r.right)/2,centerY:(r.top+r.bottom)/2};}),
+   groups:['.run-state','#model-controls','#usage-meter','.status-actions'].map(selector=>{const r=document.querySelector(selector).getBoundingClientRect();return {left:r.left,right:r.right,centerX:(r.left+r.right)/2,centerY:(r.top+r.bottom)/2};}),
    slots:[...document.querySelectorAll('#usage-meter output')].map(e=>({width:e.getBoundingClientRect().width,align:getComputedStyle(e).textAlign,gap:parseFloat(getComputedStyle(e.parentElement).columnGap)}))
   }));
   check(header.height<=55,'desktop header is at most 55px at the unchanged 18px font');
   check(header.groups.every(g=>Math.abs(g.centerY-header.groups[0].centerY)<1),'all header groups share one centered row');
-  check(header.groups.every((g,i)=>!i||g.left>=header.groups[i-1].right),'status, usage, model, caption and actions appear in order without overlap');
-  check(Math.abs(header.groups[3].centerX-(header.groups[2].right+header.groups[4].left)/2)<1,'caption is centered between model and actions');
+  check(header.groups.every((g,i)=>!i||g.left>=header.groups[i-1].right),'status, model, usage and actions appear in order without overlap');
+  check(Math.abs(header.groups[2].centerX-(header.groups[1].right+header.groups[3].left)/2)<1,'usage is centered between model and actions');
   check(header.slots.every(s=>s.width>0&&s.align==='left'&&s.gap<5),'usage figures occupy fixed left-aligned slots beside labels');
+  const usageFits=await page.evaluate(()=>{
+   const values={'usage-cost':'$1234.56','usage-all':'1,234,567','usage-cache':'1,234,567','usage-hit':'100.0%'};
+   return Object.entries(values).every(([id,value])=>{const e=document.getElementById(id),saved=e.textContent;e.textContent=value;const fits=e.scrollWidth<=e.clientWidth+1;e.textContent=saved;return fits;});
+  });
+  check(usageFits,'tight numeric slots retain seven-digit counts, cost and full hit rate');
   const originalModel=await page.locator('#model-choice').inputValue();
   const otherModel=await page.locator('#model-choice option').evaluateAll((options,current)=>options.find(o=>o.value!==current)?.value,originalModel);
   check(!!otherModel,'fixture supplies another same-provider model');
