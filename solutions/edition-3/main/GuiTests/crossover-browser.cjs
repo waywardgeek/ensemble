@@ -36,7 +36,9 @@ const check = (condition, message) => { assert.ok(condition, message); console.l
    const toggle=document.querySelector('.tree-expand').getBoundingClientRect();
    const bubbles=['human','assistant'].map(role=>{
     const e=document.querySelector(`#transcript article[data-role="${role}"][data-kind="text"] > .message`),s=getComputedStyle(e);
-    return {role,border:s.borderTopWidth,borderStyle:s.borderTopStyle,borderColor:s.borderTopColor,background:s.backgroundColor,radius:s.borderTopLeftRadius,padding:s.padding};
+    const link=document.createElement('a');link.href='#bubble-contrast-test';link.textContent='Link';e.append(link);
+    const linkContrast=ratio(getComputedStyle(link).color,s.backgroundColor);link.remove();
+    return {role,border:s.borderTopWidth,leftBorder:s.borderInlineStartWidth,borderStyle:s.borderTopStyle,borderColor:s.borderTopColor,background:s.backgroundColor,radius:s.borderTopLeftRadius,padding:s.padding,textContrast:ratio(s.color,s.backgroundColor),linkContrast,borderContrast:ratio(s.borderTopColor,s.backgroundColor)};
    });
    return{text,bubbles,inputBorder:ratio(style.borderTopColor,background(prompt)),target:{width:toggle.width,height:toggle.height}};
   });
@@ -45,7 +47,9 @@ const check = (condition, message) => { assert.ok(condition, message); console.l
   check(report.target.width>=44&&report.target.height>=44,`${theme} tree expand target at least 44 pixels`);
   const [human,agent]=report.bubbles;
   check(report.bubbles.every(b=>parseFloat(b.border)>=1&&b.borderStyle==='solid'&&b.borderColor!==b.background&&parseFloat(b.radius)>0),`${theme} both speakers have visible rounded message borders`);
-  check(['border','borderColor','background','radius','padding'].every(key=>human[key]===agent[key]),`${theme} Agent bubble matches human styling and compact spacing`);
+  check(['radius','padding'].every(key=>human[key]===agent[key]),`${theme} both bubbles retain compact spacing`);
+  check(agent.background!==human.background&&parseFloat(agent.leftBorder)>parseFloat(human.leftBorder),`${theme} Agent has a distinct fill and a non-color border cue`);
+  check(agent.textContrast>=4.5&&agent.linkContrast>=4.5&&agent.borderContrast>=3,`${theme} Agent bubble text, links and border retain contrast`);
  };
 
  const modelRequests=[];

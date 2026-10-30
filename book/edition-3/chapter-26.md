@@ -165,7 +165,10 @@ not only a standalone component demo.
 Put a status bar across the top. Give its contents reserved space so changing
 status and numbers do not push the controls around. Keep proportional artwork on
 the left and one compact row to its right. Put each speaker’s name above their
-message bubble, with the same compact bubble treatment for human and Agent text.
+message bubble, with compact spacing for both human and Agent text. Distinguish
+Agent messages with a blue fill and stronger leading border, not red-dependent
+color differences alone. Preserve text and link contrast in both themes; keep
+the speaker names as an explicit identity cue.
 Do not repeat the Agent name under the artwork or in a conversation-title row.
 Show connection/activity,
 then the model selector, centered in the full header rather than merely its
