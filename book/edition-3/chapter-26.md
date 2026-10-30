@@ -164,10 +164,10 @@ not only a standalone component demo.
 
 Put a status bar across the top. Give its contents reserved space so changing
 status and numbers do not push the controls around. Keep proportional artwork on
-the left and two compact rows to its right. The Agent name belongs in the
+the left and one compact row to its right. The Agent name belongs in the
 conversation heading, not repeated under the artwork. Show connection/activity
-and usage without claiming unknown amounts are zero. Group Cost, Input, Cache,
-and Hit closely: each numeric output gets a fixed-width, left-aligned slot beside
+followed immediately by usage, without claiming unknown amounts are zero. Group
+Cost, Input, Cache, and Hit closely: each numeric output gets a fixed-width, left-aligned slot beside
 its label. Tabular digits help changing numbers remain still. Long values may
 truncate with the full value available accessibly; they must not shove the
 controls off screen. Do not repeat the selected model or funding in another row.
@@ -181,13 +181,13 @@ state changes must not make adjacent controls jump either.
 
 The status bar contains:
 
-- A centered model dropdown, sized to its current name within responsive limits,
+- A model dropdown, sized to its current name within responsive limits,
   using the existing same-provider, between-turn model-change operation. Choosing
   a model sends the change immediately; there is no separate Apply button. The
   server acknowledgment, not the click, establishes the displayed selection. A
   refused change must restore that selection. Bill requested the small caption
-  “Don’t be evil.” beneath it. A two-row span can accommodate both without
-  enlarging the whole header.
+  “Don’t be evil.” after it, centered in the space before the action controls.
+  Keep all groups on one vertically centered row without shrinking the fonts.
   Compatible model names are not proof of account entitlement. Preserve the
   distinction between running selection and persisted launch configuration.
 - A speaker-icon Speech control with an accessible name and native checked

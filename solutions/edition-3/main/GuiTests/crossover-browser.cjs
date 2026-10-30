@@ -168,9 +168,13 @@ const check = (condition, message) => { assert.ok(condition, message); console.l
   check(await page.locator('.model-caption').textContent()==='Don’t be evil.','model caption shown');
   const header=await page.evaluate(()=>({
    height:document.querySelector('#status-bar').getBoundingClientRect().height,
+   groups:['.run-state','#usage-meter','#model-controls','.model-caption','.status-actions'].map(selector=>{const r=document.querySelector(selector).getBoundingClientRect();return {left:r.left,right:r.right,centerX:(r.left+r.right)/2,centerY:(r.top+r.bottom)/2};}),
    slots:[...document.querySelectorAll('#usage-meter output')].map(e=>({width:e.getBoundingClientRect().width,align:getComputedStyle(e).textAlign,gap:parseFloat(getComputedStyle(e.parentElement).columnGap)}))
   }));
-  check(header.height<80,'desktop header stays two compact rows');
+  check(header.height<=55,'desktop header is at most 55px at the unchanged 18px font');
+  check(header.groups.every(g=>Math.abs(g.centerY-header.groups[0].centerY)<1),'all header groups share one centered row');
+  check(header.groups.every((g,i)=>!i||g.left>=header.groups[i-1].right),'status, usage, model, caption and actions appear in order without overlap');
+  check(Math.abs(header.groups[3].centerX-(header.groups[2].right+header.groups[4].left)/2)<1,'caption is centered between model and actions');
   check(header.slots.every(s=>s.width>0&&s.align==='left'&&s.gap<5),'usage figures occupy fixed left-aligned slots beside labels');
   const originalModel=await page.locator('#model-choice').inputValue();
   const otherModel=await page.locator('#model-choice option').evaluateAll((options,current)=>options.find(o=>o.value!==current)?.value,originalModel);

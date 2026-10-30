@@ -20,19 +20,20 @@
 
 <header id="status-bar" aria-label="Agent status and controls">
  <img class="brand-mark" src="./artwork/ensemble-128.png" width="128" height="120" alt="Ensemble">
- <div class="header-scroll"><div class="header-rows">
+ <div class="header-scroll"><div class="header-row">
  <div class="run-state"><span id="connection" role="status">Connecting</span><span id="state">unknown</span></div>
+ <section id="usage-meter" aria-label="Current process token usage and estimated cost">
+ <span>Cost <output id="usage-cost">?</output></span><span>Input <output id="usage-all">?</output></span>
+ <span>Cache <output id="usage-cache">?</output></span><span>Hit <output id="usage-hit">?</output></span></section>
  <div id="model-controls"><label class="visually-hidden" for="model-choice">Model</label>
  <select class="form-select" id="model-choice" aria-describedby="model-help" disabled></select>
- <small class="model-caption">Don’t be evil.</small></div>
+ </div><small class="model-caption">Don’t be evil.</small>
  <div class="status-actions"><label class="speech-toggle icon-button" title="Speech off; enable reading new messages aloud"><input id="narrate" type="checkbox" aria-label="Speech: read new messages aloud"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use class="speech-on" href="#icon-speaker"/><use class="speech-off" href="#icon-speaker-off"/></svg></label>
  <button class="btn btn-quiet icon-button" id="pause" aria-label="Pause" title="Pause Agent" disabled><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14M16 5v14"/></svg></button>
  <button class="btn btn-quiet icon-button" id="resume" aria-label="Resume" title="Resume Agent" disabled><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m8 5 11 7-11 7Z"/></svg></button>
  <button class="btn btn-quiet icon-button" id="interrupt" aria-label="Interrupt" title="Interrupt current work" disabled><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="6" width="12" height="12" rx="1"/></svg></button>
  <button class="btn btn-quiet icon-button" id="theme-toggle" aria-label="Switch to light theme" title="Dark theme; switch to light theme" disabled><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#icon-moon"/></svg></button></div>
- <section id="usage-meter" aria-label="Current process token usage and estimated cost">
- <span>Cost <output id="usage-cost">?</output></span><span>Input <output id="usage-all">?</output></span>
- <span>Cache <output id="usage-cache">?</output></span><span>Hit <output id="usage-hit">?</output></span></section>
+
  </div></div>
 </header>
 <nav id="pane-navigation" aria-label="Workspace panes">
