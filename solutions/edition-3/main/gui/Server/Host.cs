@@ -775,7 +775,7 @@ public static partial class Gui
                                 throw new ArgumentException("Unknown GUI control");
                         }
                     }
-                    catch (Exception error) when (error is JsonException or ArgumentException or KeyNotFoundException or InvalidOperationException or InvalidDataException)
+                    catch (Exception error) when (error is JsonException or ArgumentException or KeyNotFoundException or InvalidOperationException or InvalidDataException or IOException or UnauthorizedAccessException)
                     {
                         lock (gate)
                         {

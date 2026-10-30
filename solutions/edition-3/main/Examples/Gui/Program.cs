@@ -181,10 +181,19 @@ try
     {
         startupSkills.Add("gui-debug");
     }
+    // User information has one saved source, shared with the GUI. Skills capture
+    // it at activation; restoring History does not rewrite earlier instructions.
+    string settingsPath = hostFlags.GetValueOrDefault("--settings", Path.Combine(app.DataDirectory(), "settings.json"));
+    var user = Gui.ReadPreferences(agent, settingsPath);
     _ = new Skills(agent, new SkillSpec(
         skillsDirectory.Length == 0 ? Path.Combine(AppContext.BaseDirectory, "skills") : skillsDirectory,
         primarySkill.Length == 0 ? "ensemble" : primarySkill,
-        new Dictionary<string, string> { ["CUSTOM_VAR"] = Env("EN_CUSTOM_VAR") }, startupSkills,
+        new Dictionary<string, string>
+        {
+            ["CUSTOM_VAR"] = Env("EN_CUSTOM_VAR"),
+            ["HUMAN_NAME"] = string.IsNullOrWhiteSpace(user.HumanName) ? "Human" : user.HumanName,
+            ["HUMAN_DESCRIPTION"] = user.HumanDescription
+        }, startupSkills,
         Environment.GetEnvironmentVariables().Cast<System.Collections.DictionaryEntry>()
             .ToDictionary(entry => (string)entry.Key, entry => (string)entry.Value!)));
     if (!flags.ContainsKey("--no-save") && Env("EN_DISABLE_SAVE") != "1")
@@ -199,12 +208,11 @@ try
     agent.History().StartLog(log);
     // Shared GUI preferences belong to the application container. The reusable
     // GUI still borrows an Agent and accepts explicit caller-owned options.
-    string defaultSettings = Path.Combine(app.DataDirectory(), "settings.json");
     var guiOptions = new GuiOptions(
         Port: hostFlags.TryGetValue("--port", out var portText)
             ? int.Parse(portText, System.Globalization.CultureInfo.InvariantCulture) : 8090,
         AssetsDirectory: hostFlags.GetValueOrDefault("--gui-dir"),
-        SettingsPath: hostFlags.GetValueOrDefault("--settings", defaultSettings),
+        SettingsPath: settingsPath,
         TracePath: Env("CH07_GUI_LOG") is { Length: > 0 } guiLog ? guiLog : Path.Combine(actorHome, "gui.log"));
     // Fleet restoration belongs to this application composition root, not the
     // reusable GUI mount, which only borrows the Agent supplied by its caller.

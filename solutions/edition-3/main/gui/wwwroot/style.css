@@ -143,7 +143,7 @@ summary { cursor: pointer; color: var(--accent); overflow-wrap: anywhere; paddin
 #tool-transcript { padding: 0.25rem; }
 article.part { min-width: 0; margin: 0 0 0.325rem; }
 #transcript article.part { padding: 0.0625rem 0 0.175rem; max-width: 48rem; margin-inline: auto; }
-#transcript article[data-role="human"] { padding: 0.25rem 0.275rem; border: 1px solid var(--edge); border-radius: .65rem; background: var(--surface); }
+#transcript article[data-role="human"] > .message { padding: 0.25rem 0.275rem; border: 1px solid var(--edge); border-radius: .65rem; background: var(--surface); }
 #transcript article[data-kind="thinking"], #transcript article[data-kind="reasoning_summary"] { padding: 0.15rem 0.2rem; border-left: 2px solid var(--edge); color: var(--muted); }
 #tool-transcript article.part { padding: 0.225rem; border: 1px solid var(--edge); border-radius: .6rem; background: var(--bs-body-bg); margin-bottom: 0.2125rem; }
 .card-heading { display: flex; gap: 0.0375rem; align-items: center; color: var(--muted); font-size: .8rem; margin-bottom: 0.1625rem; }
@@ -237,8 +237,6 @@ body.compact #transcript { padding: .3rem; }
    subsequent prose can use the whole message width, including on narrow panes.
    flow-root contains the floats so controls cannot intrude into the next card. */
 #transcript article[data-kind="text"] { display: flow-root; }
-#transcript article[data-kind="text"] > .card-heading { display: contents; }
-#transcript article[data-kind="text"] > .card-heading strong { float: left; margin: .1rem .35rem 0 0; }
-#transcript article[data-kind="text"] > .card-heading .btn { float: right; margin-left: .15rem; }
-#transcript article[data-kind="text"] > :not(.card-heading):not(.message) { clear: both; }
+#transcript article[data-kind="text"] > .card-heading { display: flex; }
+#transcript article[data-kind="text"] > .icon-button { float: right; margin-left: .15rem; width: 44px; height: 44px; }
 #transcript article[data-kind="text"] > .message > :not(p):first-child { clear: both; }

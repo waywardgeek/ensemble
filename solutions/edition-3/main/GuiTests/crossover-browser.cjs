@@ -52,6 +52,25 @@ const check = (condition, message) => { assert.ok(condition, message); console.l
   await page.goto(base);
   await page.waitForFunction(()=>document.querySelector('#connection').textContent==='Connected' && !document.querySelector('#send').disabled);
   check(await page.locator('html').getAttribute('data-bs-theme')==='dark','fresh settings default to dark');
+  await page.locator('#settings-tab').click();
+  await page.locator('#human-name').fill('Taylor <friend>');
+  await page.locator('#human-description').fill('Writes $TOOLS <examples>');
+  await page.locator('#user-settings button').click();
+  await page.waitForFunction(()=>[...document.querySelectorAll('article[data-role="human"] .card-heading strong')].some(el=>el.textContent==='Taylor <friend>'));
+  await page.reload();
+  await page.waitForFunction(()=>document.querySelector('#connection').textContent==='Connected' && !document.querySelector('#send').disabled);
+  await page.waitForFunction(()=>document.querySelector('#human-name').value==='Taylor <friend>');
+  check(await page.locator('#human-description').inputValue()==='Writes $TOOLS <examples>','User description survives reload without interpretation');
+  await page.waitForFunction(()=>document.querySelector('article[data-role="assistant"] .card-heading strong')?.textContent==='captain');
+  const names=await page.evaluate(()=>[...document.querySelectorAll('#transcript article[data-kind="text"]')].map(el=>({
+   name:el.querySelector('.card-heading strong').textContent, title:el.querySelector('.card-heading strong').title,
+   speak:el.querySelector('[data-action="speak"]').getAttribute('aria-label'),
+   above:el.querySelector('.card-heading').getBoundingClientRect().bottom<=el.querySelector('.message').getBoundingClientRect().top+1
+  })));
+  check(names.length>0&&names.every(x=>x.above&&!/\b(Assistant|You)\b/.test(x.name+x.title+x.speak)),'names appear above messages, including accessible labels');
+  check(await page.locator('.card-heading friend').count()===0,'user name is plain text, not HTML');
+  await page.locator('#agents-tab').click();
+
   check(!(await page.locator('#narrate').isChecked()),'speech starts opt-in');
   await page.locator('.brand-mark').evaluate(image=>image.decode());
   const artwork=await page.locator('.brand-mark').evaluate(image=>({width:image.naturalWidth,height:image.naturalHeight,ratio:image.getBoundingClientRect().width/image.getBoundingClientRect().height}));

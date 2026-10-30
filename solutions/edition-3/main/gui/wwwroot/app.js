@@ -402,10 +402,11 @@ function render(card) {
     const kind = card.kind === "reasoning_summary" ? "Reasoning summary" : card.kind === "thinking" ? "Thinking" : card.kind;
     // Labels are projections of this card, not invented people or timestamps.
     // Keep wire-level details in a tooltip while prose reads as conversation.
-    const author = card.role === "human" ? "You" : card.role === "assistant" ? "Assistant" : card.role;
+    const author = card.role === "human" ? (settings?.human_name || "Human")
+        : card.role === "assistant" ? (agentRows.find(row => row.key === card.agent)?.id || card.agent || "Agent") : card.role;
     title.textContent = artifact ? card.name || card.toolName || kind
         : card.kind === "text" ? author : kind;
-    title.title = `${card.role} · ${card.name || card.toolName || kind}${summary}${card.status ? " · " + card.status : ""}`;
+    title.title = `${author} · ${card.name || card.toolName || kind}${summary}${card.status ? " · " + card.status : ""}`;
     if (artifact && card.status) {
         const status = document.createElement("div");
         status.className = "tool-state";
@@ -413,13 +414,15 @@ function render(card) {
         card.node.append(status);
     }
     const speaker = actionButton("Speak", () => speak(card));
-    speaker.setAttribute("aria-label", `Speak ${card.role} ${card.kind}`);
+    speaker.setAttribute("aria-label", `Speak ${author} ${card.kind}`);
     speaker.title = speaker.getAttribute("aria-label");
     setButtonIcon(speaker, "icon-speaker");
     speaker.dataset.action = "speak";
     speaker.disabled = !card.text.trim() || (!speech && !transcriptSpeech);
-    heading.append(title, speaker);
+    heading.append(title);
     card.node.append(heading);
+    // Name above the message; the full-size speech target floats beside its text.
+    (card.kind === "text" ? card.node : heading).append(speaker);
     if (card.kind === "text") {
         const body = document.createElement("div");
         body.className = "message";
@@ -593,8 +596,10 @@ function handle(frame) {
         return;
     }
     if (frame.type === "current_settings" || frame.type === "settings_updated") {
+        const nameChanged = settings?.human_name !== frame.settings.human_name;
         settings = frame.settings;
         applySettings();
+        if (nameChanged) for (const card of cards.values()) render(card);
         notice("");
         return;
     }
@@ -788,6 +793,8 @@ document.querySelector("#prompt").onkeydown = event => {
 document.querySelector("#stop-speech").onclick = () => cancelSpeech();
 function applySettings() {
     if (!settings) return;
+    document.querySelector("#human-name").value = settings.human_name || "";
+    document.querySelector("#human-description").value = settings.human_description || "";
     document.documentElement.dataset.theme = settings.theme;
     const dark = settings.theme === "dark" || (settings.theme === "system" && matchMedia("(prefers-color-scheme: dark)").matches);
     document.documentElement.dataset.bsTheme = dark ? "dark" : "light";
@@ -824,6 +831,11 @@ function applySettings() {
     document.querySelector("#pause-speaking").checked = settings.pause_while_speaking;
     updatePauseCause(); // Disabling speech pausing does not cancel the queue.
 }
+document.querySelector("#user-settings").addEventListener("submit", event => {
+    event.preventDefault();
+    patchSettings({ human_name: document.querySelector("#human-name").value,
+        human_description: document.querySelector("#human-description").value });
+});
 function patchSettings(patch) {
     if (!socket || socket.readyState !== WebSocket.OPEN) {
         notice("Not connected; settings were not saved.");

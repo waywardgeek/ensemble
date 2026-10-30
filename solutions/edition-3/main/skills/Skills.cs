@@ -139,7 +139,7 @@ public sealed partial class Skills
 
     public partial void RegisterVariable(string name, string value)
     {
-        if (!Regex.IsMatch(name, "^[A-Z][A-Z0-9_]*$") || name is "TOOLS" or "SKILLS")
+        if (!Regex.IsMatch(name, "^[A-Z][A-Z0-9_]*$") || name is "TOOLS" or "SKILLS" or "AGENT_NAME")
         {
             throw new ArgumentException("Variable name is invalid or reserved", nameof(name));
         }
@@ -317,7 +317,11 @@ public sealed partial class Skills
             {
                 return string.Join("\n", available.Select(name => $"- {name}: {definitions[name].Description}"));
             }
-            return (values ?? variables).TryGetValue(key, out string? value) ? value : match.Value;
+            // Identity comes from the real owner, never an inherited parent name.
+            if (key == "AGENT_NAME") return Parent().Name ?? Parent().ChildID() ?? "Agent";
+            return (values ?? variables).TryGetValue(key, out string? value) ? value
+                : key == "HUMAN_NAME" ? "Human"
+                : key == "HUMAN_DESCRIPTION" ? "" : match.Value;
         });
     }
 

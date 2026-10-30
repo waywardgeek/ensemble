@@ -203,6 +203,21 @@ An unavailable connection is not an idle Agent. Pending selection and settings
 changes are not acknowledged state. Disable controls when their target is
 uncertain and show why rather than silently applying them to a different Agent.
 
+### Named collaborators
+
+Show each speaker's name above the message, including in accessible Speak labels,
+not the generic labels “You” and “Assistant.” Agent names derive from the real
+Agent tree; do not invent a second identity or silently rename an Agent's files.
+Settings includes a User name and short description in the existing settings file,
+with save-before-acknowledgment and a neutral fallback when no name is configured.
+The GUI reads those fields directly. At startup its host passes them into the
+existing skill variables as `$HUMAN_NAME` and `$HUMAN_DESCRIPTION`; `$AGENT_NAME`
+derives from the actual Agent. The primary skill describes the named engineering
+collaboration. Preserve one-pass substitution, immutable activated manuals, and
+historical messages: changing a display name does not rewrite earlier instructions
+or provider protocol roles. Test save/reload, save refusal, literal user text, and
+name placement with real browser geometry.
+
 ### Three panes below it
 
 On a desktop, all three panes are visible at once.

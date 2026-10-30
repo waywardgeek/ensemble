@@ -66,6 +66,14 @@
 </details>
 </section>
  <section class="tab-pane" id="settings-panel" role="tabpanel" aria-labelledby="settings-tab" tabindex="0">
+ <section class="settings-section" aria-labelledby="user-heading"><h2 id="user-heading">User</h2>
+ <form id="user-settings">
+ <label for="human-name">Name</label><input class="form-control" id="human-name" maxlength="120" autocomplete="name">
+ <label for="human-description">Description</label><textarea class="form-control" id="human-description" maxlength="2000" rows="3"></textarea>
+ <button class="btn btn-secondary" type="submit">Save user</button>
+ </form>
+ <p>Shared by this GUI. Names update after saving. Skill variables use these values at startup; existing conversation instructions are not rewritten.</p>
+ </section>
  <section class="settings-section" aria-labelledby="ai-heading"><h2 id="ai-heading">AI settings</h2><p id="model-help">The header selects a same-provider session model between turns. Capabilities do not prove entitlement. Funding is fixed; launch configuration wins on restart.</p>
  <label>Tool batches per turn <input class="form-control" id="max-tool-rounds" type="number" min="0" step="1" value="0"> (0 = auto, 200)</label>
  <label>Context target <input class="form-control" id="context-target-bytes" type="number" min="0" step="1000" value="400000"> UTF-8 bytes (0 = default, 400,000)</label>

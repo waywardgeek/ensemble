@@ -209,3 +209,18 @@ not Agent policy: keyboard Home/End or pointer dragging can give either side mos
 of the workspace, retaining 160px minimum panes and recalculating on window/font
 changes. The running host must be rebuilt/replaced to receive embedded asset
 changes; editing these source files does not update an already running host.
+
+### User names
+
+Settings → User stores a name and description in the existing GUI settings file.
+Save is acknowledged only after settings-file replacement succeeds; the browser uses the
+acknowledged name above human messages and in accessible labels. Agent labels
+come from the actual Agent tree, not the model or an additional display identity.
+
+At startup the GUI example passes these saved fields as `$HUMAN_NAME` and
+`$HUMAN_DESCRIPTION` to skills. `$AGENT_NAME` is reserved and derived from each
+Agent. Unconfigured human names display as “Human.” Substitution is one pass:
+user text containing `$TOOLS` is data, not another substitution instruction.
+Already-rendered skills and restored conversation History are not rewritten by
+a User edit. Restart loads the saved values for subsequent skill activation;
+it does not retroactively change restored instructions.

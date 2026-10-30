@@ -4,15 +4,19 @@ using Ensemble;
 
 namespace EnsembleGui;
 
-// Value-like presentation preferences, not an owner or an Agent service. The
+// Value-like GUI preferences and user information, not an owner or an Agent service. The
 // tool budget deliberately does not live here: the Agent owns that live fact.
 public sealed record Preferences(string Theme = "dark", bool TtsEnabled = false,
-    double TtsSpeed = 1, int FontSize = 18, bool PauseWhileSpeaking = true);
+    double TtsSpeed = 1, int FontSize = 18, bool PauseWhileSpeaking = true,
+    string HumanName = "", string HumanDescription = "");
 
 public static partial class Gui
 {
-    // Shared validation for disk and wire patches. Invalid/unknown fields leave
-    // their previous values intact; a well-typed out-of-range number is clamped.
+    // The GUI host reads the same saved user fields before activating its primary
+    // skill. Rendered skill text remains an immutable activation-time snapshot.
+    public static partial Preferences ReadPreferences(Agent agent, string path);
+    // Shared validation for disk and wire patches. Invalid user fields and unknown
+    // fields refuse the patch; bounded numeric appearance values are clamped.
     private static partial (Preferences Preferences, int Budget, int ContextTarget) MergeSettings(
         JsonElement patch, Preferences current, int budget, int contextTarget);
     private static partial JsonObject Settings(Preferences preferences, int budget, int contextTarget);

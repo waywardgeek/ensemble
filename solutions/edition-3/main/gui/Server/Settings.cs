@@ -6,6 +6,9 @@ namespace EnsembleGui;
 
 public static partial class Gui
 {
+    public static partial Preferences ReadPreferences(Agent agent, string path) =>
+        LoadSettings(agent, path).Preferences;
+
     private static partial (Preferences Preferences, int Budget, int ContextTarget) MergeSettings(
         JsonElement patch, Preferences current, int budget, int contextTarget)
     {
@@ -19,6 +22,16 @@ public static partial class Gui
             var value = field.Value;
             switch (field.Name)
             {
+                case "human_name":
+                    if (value.ValueKind != JsonValueKind.String || value.GetString()!.Length > 120)
+                        throw new ArgumentException("User name must be at most 120 characters");
+                    next = next with { HumanName = value.GetString()!.Trim() };
+                    break;
+                case "human_description":
+                    if (value.ValueKind != JsonValueKind.String || value.GetString()!.Length > 2000)
+                        throw new ArgumentException("User description must be at most 2000 characters");
+                    next = next with { HumanDescription = value.GetString()! };
+                    break;
                 case "theme" when value.ValueKind == JsonValueKind.String:
                     string? theme = value.GetString();
                     if (theme is "system" or "light" or "dark")
@@ -63,6 +76,8 @@ public static partial class Gui
 
     private static partial JsonObject Settings(Preferences preferences, int budget, int contextTarget) => new()
     {
+        ["human_name"] = preferences.HumanName,
+        ["human_description"] = preferences.HumanDescription,
         ["theme"] = preferences.Theme,
         ["tts_enabled"] = preferences.TtsEnabled,
         ["tts_speed"] = preferences.TtsSpeed,

@@ -116,11 +116,44 @@ try
             using var socket = new ClientWebSocket();
             socket.Options.SetRequestHeader("Origin", origin);
             await socket.ConnectAsync(new Uri($"ws://127.0.0.1:{port}/ws"), cancellation);
-            await Frame(socket, "current_settings", cancellation);
+            var currentUser = (await Frame(socket, "current_settings", cancellation)).GetProperty("settings");
+            Check(currentUser.GetProperty("human_name").GetString() == (attempt == 0 ? "" : "Taylor"),
+                "User settings did not survive host restart");
             var unnamedRows = (await Frame(socket, "agent_tree", cancellation)).GetProperty("agents").EnumerateArray().ToArray();
             Check(unnamedRows.Count(row => row.GetProperty("key").ValueKind == JsonValueKind.Null) == 1
                 && unnamedRows.Count(row => row.GetProperty("key").GetString() == "") == 1,
                 "Unnamed roots collapsed or acquired invented global identity");
+            if (attempt == 0)
+            {
+                await socket.SendAsync(Encoding.UTF8.GetBytes("""{"type":"update_settings","settings":{"human_name":"Taylor","human_description":"Writes $TOOLS <examples>"}}"""), WebSocketMessageType.Text, true, cancellation);
+                var saved = (await Frame(socket, "settings_updated", cancellation)).GetProperty("settings");
+                Check(saved.GetProperty("human_name").GetString() == "Taylor", "User name not acknowledged");
+                var fromDisk = Gui.ReadPreferences(agent, "settings.json");
+                Check(fromDisk.HumanName == "Taylor" && fromDisk.HumanDescription == "Writes $TOOLS <examples>", "User fields not saved together");
+                Check(saved.GetProperty("theme").GetString() == "dark", "User save changed appearance");
+                // A blocked destination must refuse without publishing or losing the socket.
+                string before = File.ReadAllText("settings.json");
+                File.Delete("settings.json"); Directory.CreateDirectory("settings.json");
+                try
+                {
+                    await socket.SendAsync(Encoding.UTF8.GetBytes("""{"type":"update_settings","settings":{"human_name":"Not saved"}}"""), WebSocketMessageType.Text, true, cancellation);
+                    await Frame(socket, "error", cancellation);
+                    await socket.SendAsync(Encoding.UTF8.GetBytes("""{"type":"get_settings"}"""), WebSocketMessageType.Text, true, cancellation);
+                    Check((await Frame(socket, "current_settings", cancellation)).GetProperty("settings").GetProperty("human_name").GetString() == "Taylor", "Failed save published user name");
+                }
+                finally { Directory.Delete("settings.json"); File.WriteAllText("settings.json", before); }
+                var identity = new Ensemble.Ensemble(TextWriter.Null);
+                try
+                {
+                    var named = new Agent(identity, new Configuration(Vendor.Anthropic, "offline", apiKey: "", baseUrl: "http://127.0.0.1:1"), name: "Casey");
+                    Directory.CreateDirectory("identity-skills/primary");
+                    File.WriteAllText("identity-skills/primary/SKILL.md", "---\nname: primary\ndescription: Identity test\ntype: primary\ntools:\n---\n$AGENT_NAME|$HUMAN_NAME|$HUMAN_DESCRIPTION");
+                    var skills = new Skills(named, new SkillSpec("identity-skills", "primary", new Dictionary<string, string>
+                    { ["HUMAN_NAME"] = fromDisk.HumanName, ["HUMAN_DESCRIPTION"] = fromDisk.HumanDescription }));
+                    Check(skills.Active().Any(part => part.Body.Contains("Casey|Taylor|Writes $TOOLS <examples>", StringComparison.Ordinal)), "Identity substitution failed or recursively expanded user text");
+                }
+                finally { identity.Destroy(); }
+            }
             Check(agent.Mcp()!.Browser() is not null, "Socket did not register browser relay");
             Check(agent.Mcp()!.Clients().Length == 0, "Discovery started without a granting skill");
             await socket.SendAsync(Encoding.UTF8.GetBytes("{\"type\":\"pause\"}"), WebSocketMessageType.Text, true, cancellation);
