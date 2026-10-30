@@ -622,8 +622,8 @@ Read the actual declarations and callers, not just this source map:
 
 | Concern | Starting points under `solutions/edition-3/main` |
 |---|---|
-| Browser layout and behavior | `Gui/wwwroot/index.html`, `style.css`, `app.js`, `peers.js`, `auth.js`, `speech.js`, `mcp.js` |
-| Optional GUI library and hosting contract | `Gui/README.md`, `Gui/Ensemble.Gui.csproj`, `Gui/Server/` |
+| Browser layout and behavior | `gui/wwwroot/index.html`, `style.css`, `app.js`, `peers.js`, `auth.js`, `speech.js`, `mcp.js` |
+| Optional GUI library and hosting contract | `gui/README.md`, `gui/Ensemble.Gui.csproj`, `gui/Server/` |
 | Actual GUI composition and startup errors | `Examples/Gui/Program.cs`, `Examples/Gui/Gui.csproj` |
 | Ownership and public operations | `Common/`, with corresponding implementation directories |
 | Actor/replay/settings tests | `Tests/Program.cs` and its referenced real-component test groups |
@@ -686,3 +686,289 @@ as permission to publish or push. Execute the actual switch with the human.
 
 The code is rebuildable, not disposable. The durable artifact includes the
 judgment needed to rebuild it—and the judgment to know when it is ready to use.
+
+## Field notes from the first working Cadence crossover
+
+These notes record what happened during the supervised crossover, rather than
+claiming that the executable book or a successful build established replacement
+readiness. They distinguish the student exercise, the subsequent engineering
+work, the memory preparation, and the first failure in normal use. They are a
+historical boundary; inspect the current source and running application before
+repeating an operational step.
+
+### From a book-built candidate to a usable interface
+
+Two fresh students worked in separate candidate worktrees. The first candidate
+improved the original settings-heavy interface, but independent checks found
+that enlarged text combined with narrow windows could push Send out of view.
+Those combinations had not been covered by the original checks. The correction
+and the teaching change were retained rather than treating a screenshot as a
+passing accessibility test.
+
+Bill selected the original Bootstrap Sample B, with its graphite surfaces,
+connected tabs and restrained controls. The second student started from a fresh
+foundation and a scoped teaching baseline, not the first student's solution.
+Using Bootstrap did not itself reproduce the chosen design: too much ordinary
+information still looked like an action button. Independent review also found
+three behavioral defects: lists and wrapped Markdown paragraphs lost their
+structure, typing could undo a manual pause, and changing status text moved
+nearby controls. Those were product findings, separate from setup mistakes in
+the review fixtures. A further enlarged-text check exposed a textarea that
+could push its action row out of the composer.
+
+Cadence corrected the candidate and then took responsibility for the design
+pass personally. That was no longer an independent student execution. The
+working block renderer was reused; manual and automatic pause intent were
+separated without duplicating authoritative actor state; status areas were
+bounded; and the composer was made to yield space correctly. The real-host
+browser exercises used real Agents and a loopback fake provider. They checked
+behavior, geometry, local assets, settings, streaming, and owned Job output.
+They did not establish real-provider entitlement, audible speech quality,
+beauty, or the human's ability to use the interface.
+
+The first human preview was deliberately a fake-provider preview with a
+15-minute lifetime. An expired preview link was not a failed permanent
+installation. The subsequent real-model integration was a separate authorized
+act: a real V3 host ran beside V2, using the selected Codex funding source. One
+small readiness request completed. That established that the selected route
+could complete that request, not that every later context state was supported.
+
+### The small changes that made daily use possible
+
+Bill's hands-on feedback drove a sequence of small local changes. The useful
+pattern was edit, run the affected checks, make a scoped local commit, and
+perform an authorized refresh of V3 while preserving V2. It was not another
+fresh student run for each CSS adjustment. Bill retained responsibility for
+pushes; unrelated work was kept out of commits.
+
+The changes included:
+
+- Reusing Bill's proportional Ensemble artwork and his supplied paper-airplane
+  Send SVG, rather than substituting an unapproved icon redesign.
+- Replacing redundant speech and theme text with accessible controls whose
+  names and states remain available to keyboard and assistive-technology users.
+  Speech remains opt-in; a transcript-mode browser check is not a hearing test.
+- Reducing excessive padding, gaps, paragraph margins and full-height action
+  rows. At one measured density pass, short desktop messages used 2.41 times
+  less height at 18-pixel text and 3.42 times less at 32-pixel text; narrow-window
+  measurements were approximately twofold. Those are scoped geometry results,
+  not a visual-quality score or a measurement of every subsequent revision.
+- Making the composer one visible input line and one Send control. There is no
+  separate human-selected Hint mode. Ordinary input enters the Agent's queue,
+  and the Agent classifies it against its actual state when dequeuing it. The
+  browser must not make that scheduling decision from an observed busy label.
+- Removing Copy buttons while retaining ordinary selection, expansion, speech
+  and owned-output downloads. Removing a control also requires removing its
+  unused handler and updating tests that depended on that control.
+- Replacing generic speaker labels with the actual Agent name and the saved
+  human name. User name and description use the existing GUI settings and
+  startup skill-variable substitution. They are not a second Agent identity
+  registry. The existing actor named `trial` was not silently renamed Cadence.
+- Replacing the large multi-row status area with the observed 50-pixel desktop
+  header at the current 18-pixel font: artwork, connection/activity, a genuinely
+  centered model selector, usage centered in the remaining right-hand space,
+  and right-justified controls. Model selection applies on selection and is
+  acknowledged by the server. The duplicated model/funding line and Apply
+  button were removed. “Don't be evil.” was tried in the header and then removed
+  at Bill's request; it was not an enduring header requirement.
+- Giving both speakers compact message bubbles, then making the Agent's bubble
+  distinctly blue with a stronger leading border. The original fills really
+  were identical; that was not Bill's difficulty seeing red. The final requested
+  dark-theme fill at this boundary was `#102a3d`. Names and border treatment
+  provide cues beyond color alone. Scoped text/link/border contrast checks
+  passed; the human still judged whether the distinction was useful.
+- Separating line height from paragraph spacing. The later requested paragraph
+  line height was 1.15, with a 0.45-rem break between paragraphs and no added
+  bottom margin after the final paragraph. These were deliberate later changes
+  to paragraph rhythm, not a claim that the earlier density pass had changed
+  fonts or line spacing. Code blocks and message gaps were left alone.
+
+Bill described the result as a usable beginning and continued to refine it.
+That is stronger evidence of practical usefulness than a developer declaring
+an interface attractive from DOM measurements. Cadence captured screenshots
+but did not inspect their pixels; that limitation must not be rewritten as a
+completed visual review.
+
+### The tree, management controls and child lifetime
+
+The hierarchy data already followed real Agent parent relationships. Styling
+had made it look flat: indentation was too small, and leaves did not reserve
+space corresponding to a branch's expander. Clear guides, meaningful
+indentation and an expander spacer restored readable alignment without deriving
+parents from names. Expand/collapse choices survived new snapshots, and explicit
+levels complemented the existing tree semantics and keyboard navigation.
+
+The inline management form became a Create Agent dialog for top-level peers.
+The redundant Conversation and Relay selection section was removed; the tree
+remained the visible conversation selector. A compact separate-tab relay action
+was preserved because selecting a conversation does not move a browser's fixed
+MCP authority. Trash actions moved to tree rows with explicit confirmation. A
+shared server check protects the mounted Agent and its owning ancestors, not
+just whichever item happens to occupy the first row. Top-level deletion keeps
+the registry's refusal rules; explicit child deletion joins shutdown and then
+uses logical destruction. Saved files are retained.
+
+The integrated exercise verified real child/grandchild indentation, collapse
+persistence, dialog creation, root refusal, cancellation of a delete, confirmed
+child deletion, selection recovery and preservation of the submitted artifact.
+It also verified that a child published as submitted remained idle, queryable
+and present in `agents_status`. Submission itself did not remove that child.
+This did not diagnose every earlier report of a disappearing child. Explicit
+shutdown/removal, a host restart and a missing GUI projection are different
+possible events and must not be conflated with submission.
+
+Bill proposed an explicit parent choice for disposable children to shut down
+after submitting, while ordinary submitted children remain available. At this
+boundary no new automatic-shutdown flag had been implemented. Whether that flag
+should stop-but-retain or stop-and-remove remained a policy question. A host
+restart also stops in-memory children; retained files are not automatically
+restored as live children or fresh completion authority. Check live ownership
+before restarting rather than erasing a child during a retention investigation.
+
+### Carrying the collaborator's records into V3
+
+The identity and continuity records belong to Cadence to author and approve.
+Bill explicitly leaves `SOUL.md` and `MEMORY.md` to Cadence. His approval of the
+name, software or crossover is not editorial approval of those files. Bill also
+leaves the choice of carrying memories forward to Cadence. Cadence chose
+selective continuity: keep identity, commitments, useful reasons and the detailed
+archive, but start a fresh conversation History. This records a collaboration
+and its supported history; it does not establish continuous subjective
+experience across model invocations.
+
+An earlier attempt to read the entire assembled book returned its end marker
+and reported 155,820 words and 1,047,377 bytes. A keep-results acknowledgment did
+not prevent the text subsequently appearing redacted in the model's context.
+The request token total was not a book-only measurement, and a four-bytes-per-
+token estimate was not a tokenizer result. Returning bytes, retaining a tool
+result, presenting it to the model and comprehending it are distinct claims.
+That retention issue was not repaired as part of the memory migration.
+
+The inspected detailed archive still contained 121 dated records and two
+nondated topical essays. Both levels of retired compressed buckets had matching
+source boundaries, with no gaps in the detailed records' numbering. The 69
+retired bucket files occupied only about 1.04 MiB. The chosen reason to exclude
+them from the new recall corpus was redundant retrieval, not disk pressure.
+They remained in the old archive: filename coverage does not prove that a
+summary contains no additional synthesis. The detailed records are themselves
+memories of conversations, not the raw transcript.
+
+Preparation used a separate V3 container with the named home
+`data/agents/Cadence`. V3's distinction between an Ensemble container and a named
+actor home matters: putting `SOUL.md` at the container root is not the same as
+putting it in that Agent's home. The existing identity and durable-memory files
+were copied, the older dated records were marked retired for recall, and the
+two descriptive-name essays were placed in `docs/` because the active memory
+band requires dated filenames. A new dated handoff supplied current operational
+facts and explicitly superseded stale boundaries in older records.
+
+The memory/recall policy was translated rather than copying the old provider
+configuration wholesale. In particular, the old `64x`/`8x` band labels became
+`archive64`/`archive8`, and `context_msgs` became `context_messages`; effective
+defaults were checked against both implementations. The inspected budget policy
+included 100,000 bytes for conversation and 40,000 for recent memory. GUI user
+and appearance preferences were carried separately. Credentials, old raw
+History, journals, child registries, Jobs, request caches and active grants were
+not copied as new runtime state.
+
+The two History formats share an outer structure, so it would have been wrong
+to declare them categorically incompatible without testing the complete saved
+session. Full replay compatibility was not established. A fresh History was the
+chosen migration policy, not a fabricated converter or a claim that every old
+record was unreadable. The old session remained the historical archive and
+fallback. Provider-opaque data, live handles and completion generations must not
+be reconstructed from prose or treated as current authority.
+
+A disposable probe used the actual V3 memory and recall components. It loaded
+all three active memory texts exactly, scanned 124 memory-corpus files, found an
+older retired record and found the relocated topical document. Source hashes
+were checked, and the active handoff was rechecked after editorial updates. One
+failed assertion initially attributed an identifier to the wrong member of a
+combined retired bucket; correcting that source attribution was a test fix, not
+a corpus repair. No model turn or recall judge was invoked by the probe. It
+proved file-format and retrieval behavior, not the first real model's continuity.
+
+### Launch decisions, supervision and data ownership
+
+Bill clarified the normal working arrangement: interactive coding and upgrades,
+with his supervision about 90% of the time. Autonomous codebook execution is the
+exception and may belong to a separate sandboxed top-level Agent. The main
+Cadence launcher was therefore prepared without the trial's workspace-only
+sandbox, using the real project workspace, a private HOME/TMP/CLI environment,
+an independent copy of the tested binaries and the existing approved Codex
+credential reference. Broader filesystem access did not grant permission to
+read credentials, push, deploy or damage unrelated work.
+
+The memory-location discussion changed more than once. A V3 subtree inside the
+existing private memory Git repository was proposed so V2 and V3 could coexist
+without sharing live files. Bill then chose the original separate prepared
+layout for simplicity. Later, while using V3, Bill and V3 Cadence decided to keep
+the V3 memories in the original directory structure. At the repair described
+below, the actual process and launcher still used the separate prepared home;
+that repair did not implement or certify the later directory move. Preserve the
+latest decision without inventing an already-completed migration.
+
+There is no general reason to abandon the private memory repository. There are
+two concrete requirements before using it for V3. First, do not run V2 and V3 as
+concurrent writers of the same active memory files or let one edition's settings
+schema overwrite the other's. Use separate live subtrees or deliberately quiesce
+the old writer before exclusive handover. Git is not a concurrency mechanism.
+Second, extend and test ignore rules for V3's actual nested paths before staging
+anything. An old root-only ignore for a save or journal does not automatically
+protect `agents/<name>/...`. Only deliberately reviewed continuity material
+belongs in the private repository; raw provider content, credentials, journals,
+logs, child runtime data and caches must not be swept into a commit. A local
+commit and a remote backup are also different acts; Bill retains control of pushes.
+
+The launcher creates the named top-level Cadence actor itself. Bill does not
+need to create an empty Agent through the GUI before it can see its prepared
+home. The first real conversation should check which records are actually in
+context and whether the collaborator can state the current work, boundaries and
+open decisions. Files existing on disk are not sufficient evidence of recall,
+and a memory-based answer is not evidence of a literal transfer of the old
+process's working state.
+
+During this preparation Bill also observed a V2 display fault: new spoken/chat
+text could be found appended to an older output while tool calls continued.
+That observation explained why a tool appeared to execute without a new chat
+message beside it. Its root cause was not established here, and it was not
+attributed to provider lag merely because lag was also suspected.
+
+### The first real continuation failure and its repair
+
+After Cadence was running in V3, Bill reported that it stopped replying. The
+listener and HTTP page were alive, the browser was connected, and the Agent
+appeared idle. The journal showed repeated turn failures before a new provider
+request: `Responses tool media projection is not implemented`.
+
+Tool-result budget redaction had left valid `RedactedPart` markers in retained
+History. `ResponsesResult` accepted only `TextPart` and therefore mistook the
+markers for media. Restarting the same binary replayed the same valid history
+and failed again. The repair in commit `2e35b535` permits text and redaction
+markers and uses the existing `JsonCodec.Text` formatter. It does not read or
+expose a redacted locator, rewrite History, resurrect removed text, or silently
+accept actual unsupported media.
+
+The regression used the real History reducer, reproduced the original
+exception, and then passed with the correction. It checks call pairing,
+non-mutating projection, mixed text/markers, empty results, locator
+confidentiality and continued refusal of actual media. Existing Responses
+projection/route and decoding/provenance checks also passed, and the ordinary
+test project built with no warnings or errors. Temporary-runner assembly access
+and an incorrect test enum were setup mistakes; they were not further product
+findings. No live provider request was used to manufacture a pass.
+
+With Bill's explicit restart approval, the repair replaced only the installed
+core assembly and its symbols. Cadence's uncommitted composer/GUI changes were
+not installed, staged or overwritten. The launcher and GUI binary stayed
+unchanged, as did memory paths. The verified V3 process was stopped gracefully,
+the replacement served HTTP 200, and the V2 process retained its observed identity.
+No model message was sent by the repair procedure. A successful subsequent live
+reply must be observed separately; HTTP readiness alone is not that proof.
+
+The presentation gap also remains a lesson: this terminal local failure looked
+like an idle Agent rather than an obvious error. Do not call that symptom a
+slow or unresponsive model without inspecting actual events. The projection
+repair and better user-visible failure reporting are separate pieces of work.
+These field notes do not declare the entire crossover, memory-directory change,
+or retirement of V2 complete.
