@@ -28,7 +28,10 @@ Delegated work has explicit ownership and completion:
 - `join_agents` waits for selected children to submit. A running report can carry
   a child's question; answer it with `respond_to_parent_message`, then use
   `wait_for_job` on the same join handle. Reaching a callback delay stops waiting,
-  not execution. Incoming messages also wake current waits without killing work.
+  not execution. Pending hints cap each current/remaining tool observation at the
+  default three seconds from observation start; older waits return promptly, fast
+  results and shorter delays stay faster. Finalized calls still execute, Jobs keep
+  running, and the hint arrives after the batch. Explicit interruption is separate.
 - A delegated Agent finishes with `submit`, using its advertised schema exactly.
   Ordinary final prose is not submission. Resolve descendants first. The root
   answers the human normally rather than submitting itself.

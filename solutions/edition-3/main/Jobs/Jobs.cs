@@ -249,7 +249,7 @@ public sealed partial class Jobs
             }
             catch (OperationCanceledException) when (cancellation.IsCancellationRequested)
             {
-                // A hint/interrupt cancelled this observation, not the worker.
+                // Explicit interruption cancelled this observation, not the worker.
                 // Use the same reporting path and real cursor; never invent a
                 // killed result or lose the output produced before the wake.
                 result = await job.ObserveAsync(call.CallID, 0, "", selected.MaxBytes,

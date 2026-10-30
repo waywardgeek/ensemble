@@ -47,8 +47,8 @@ public sealed partial class Jobs
     internal partial Task<ToolResultPart> DispatchAsync(ToolCallPart call, CancellationToken cancellation = default, string? refusal = null);
     // Validate before replacing the one pending observation override.
     public partial void SetLimits(JobLimits limits);
-    // Wake only observers already waiting. Execution and future observations
-    // remain untouched; the owning Agent calls this after recording a message.
+    // Cap current observers at the default delay measured from their start.
+    // Execution is untouched. Later observers also check Agent hint state.
     internal partial void WakeObservers();
     // Stop owned work, close OS resources, detach both relationship ends.
     // Output files intentionally remain available to recorded references.

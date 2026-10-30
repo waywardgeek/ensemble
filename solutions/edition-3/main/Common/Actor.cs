@@ -72,8 +72,9 @@ public sealed partial class Agent
     private long responseID;
     private bool interruptPending;
     private bool discardResponse;
-    private bool skipTail;
-    private bool hintPending;
+    // Actor writes; Job observers read this when capturing their wake pulse.
+    private volatile bool hintPending;
+    internal partial bool HasPendingHint();
     private CancellationTokenSource? observationCancellation;
     private ImmutableArray<ToolCallPart> calls = [];
     private int nextCall;

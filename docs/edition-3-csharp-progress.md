@@ -1,5 +1,48 @@
 # Edition 3 GUI crossover — integrated V3 and human acceptance
 
+## 2026-10-30 — crossover accepted; non-disruptive hint caps
+
+Bill confirmed the first real Cadence V3 crossover and accepted the installed
+one-to-five-line composer. Older preparation boundaries below are historical.
+He authorized personal hint implementation/testing while away, with eight-minute
+Goals reminders, not replacement/restart of the working 8089 host. Protect 8088;
+the unrelated child-shutdown policy remains undecided.
+
+Hints now preserve finalized pending calls. Agent owns hint and batch state;
+the old hint-only skip-tail flag is removed. Job observers read their owning
+Agent's pending-hint state and receive non-sticky pulses for current waits.
+The observer reschedules one timer to the earlier of its requested deadline and
+three seconds from observation start, not hint arrival. Aged waits return promptly;
+repeated hints cannot extend deadlines; short delays and fast completion stay fast.
+Job execution, output cursors, real result/handle correlation and explicit Interrupt
+semantics are unchanged. Explicit host adapters marked `waitForCompletion` retain
+their mandatory complete-result contract; normal model-facing tools/controls use
+the bounded observer. The GUI Interrupt button is unchanged.
+
+Evidence: `/private/tmp/cadence-hint-check/`. `hint5.log`: five focused groups
+passed, including elapsed/early/repeated caps, short delays, fast completion,
+four-call pending effects exactly once with correlated handles, and both explicit
+interruption modes. `--message-wake-tests.log`: four groups passed.
+`--goal-tests.log`: seven passed (configuration, fresh reads, pause/busy/off/interrupt,
+submission/child independence, missing-file refusal, unload/teardown, same-turn
+handoff freshness). `regression.log`: 313 groups, zero failures, including the
+new checks. The later `final-regression.log` passed 315 entries while two checks
+were redundantly registered; the duplication was then removed. `review-build.log`
+confirms the final test source builds cleanly. `gui-build.log`: real GUI build, zero warnings/errors, isolated artifacts
+and disabled package sources. No live providers, credentials, workers or host
+restarts were used. Runtime source/skill guidance is updated; no book changes.
+
+Fixture corrections: the new batch test initially omitted its argument schema;
+the runtime correctly refused its calls. A later redundant suite registration
+also had a mistyped method name; it was corrected and the duplication removed.
+These were test mistakes, not product failures or additional coverage.
+
+The build is NOT installed: coordinate rollout and human usability acceptance
+with Bill. Goals was explicitly enabled at 480 seconds and reported busy in this
+session. The isolated tests, not an assumed live eight-minute wake, establish its
+reminder behavior. The progress-note insertion initially refused a wrong title
+anchor without changing the file; this entry preserves the prior account below.
+
 ## Current boundary — density corrections built/tested; live8089 replacement awaits agreement
 
 Bill requested at least twice the conversation density with unchanged fonts,

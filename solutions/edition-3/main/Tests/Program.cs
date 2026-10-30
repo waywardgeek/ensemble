@@ -447,6 +447,19 @@ try
             return failures == 0 ? 0 : 1;
         }
     }
+    if (args is ["--hint-cap-tests"] || args.Length == 0)
+    {
+        await AsyncCase("hint observation deadlines and completion", () => ActorTests.HintObservationCaps(temp));
+        await AsyncCase("hint preserves pending batch effects and correlation", () => ActorTests.HintBatchCaps(temp));
+        if (args.Length != 0)
+        {
+            await AsyncCase("hint keeps finalized tail", ActorTests.BusyHint);
+            await AsyncCase("explicit immediate interruption still skips tail", ActorTests.ImmediateInterrupt);
+            await AsyncCase("explicit boundary interruption still skips tail", ActorTests.BoundaryInterrupt);
+            Console.WriteLine($"{passed} passed; {failures} failed");
+            return failures == 0 ? 0 : 1;
+        }
+    }
     if (args is ["--message-wake-tests"] || args.Length == 0)
     {
         await AsyncCase("Chapter 20 non-sticky observation pulse", () => ActorTests.MessagePulse(temp));

@@ -222,8 +222,8 @@ internal static partial class ActorTests
                     "Actor control fact did not round-trip through the public log codec.");
             }
 
-            Check(forbiddenEffects == 0, "Undispatched batch tail ran.");
-            var job = agent.Jobs().Children().Single();
+            Check(forbiddenEffects == (kind == InputKind.Hint ? 1 : 0), "Batch tail did not respect hint versus interruption.");
+            var job = agent.Jobs().Children().First();
             Check(job.Snapshot().Status != "killed", "Control killed independent work.");
             if (kind != InputKind.InterruptAfterTool)
             {
@@ -233,7 +233,16 @@ internal static partial class ActorTests
             var result = facts.Single(e => e.Kind == EventKind.ToolReturned && e.CallID == "slow-id");
             Check(result.Job?.Handle == job.Handle && result.Job.Status != "killed", "Missing real job snapshot.");
             var skipped = facts.Single(e => e.Kind == EventKind.ToolReturned && e.CallID == "tail-id");
-            Check(skipped.IsError && JsonCodec.Text(skipped.Parts).Contains("not executed"), "Tail was not paired honestly.");
+            if (kind == InputKind.Hint)
+            {
+                Check(!skipped.IsError && JsonCodec.Text(skipped.Parts).Contains("bad effect"),
+                    "Hint discarded the finalized tail call or its actual result.");
+            }
+            else
+            {
+                Check(skipped.IsError && JsonCodec.Text(skipped.Parts).Contains("not executed"),
+                    "Explicit interruption did not pair the skipped tail honestly.");
+            }
             Check((kind != InputKind.Hint || continuation.Contains("BUSY_HINT"))
                 && continuation.Contains("slow-id") && continuation.Contains("tail-id"),
                 "Continuation omitted hint or correlated results.");

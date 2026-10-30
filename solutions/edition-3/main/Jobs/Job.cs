@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Text;
 using System.Text.RegularExpressions;
 
@@ -301,9 +302,40 @@ public sealed partial class Job
             // callers must not inherit a message aimed at the current waiter.
             wake = observationWake.Task;
         }
-        var expires = Task.Delay(TimeSpan.FromSeconds(delay), token);
+        // Capture the pulse before reading Agent state: a hint arriving on
+        // either side of that read is seen here or through the captured pulse.
+        bool capped = Parent().Parent().HasPendingHint();
+        if (capped)
+        {
+            delay = Math.Min(delay, new JobLimits().Delay);
+        }
+        long started = Stopwatch.GetTimestamp();
+        using var timer = new CancellationTokenSource();
+        var expires = Task.Delay(Timeout.InfiniteTimeSpan, timer.Token);
+        timer.CancelAfter(TimeSpan.FromSeconds(delay));
         while (true)
         {
+            if (wake.IsCompleted)
+            {
+                lock (gate)
+                {
+                    wake = observationWake.Task;
+                }
+                if (!capped)
+                {
+                    capped = true;
+                    double ceiling = Math.Min(delay, new JobLimits().Delay);
+                    TimeSpan remaining = TimeSpan.FromSeconds(ceiling) - Stopwatch.GetElapsedTime(started);
+                    if (remaining <= TimeSpan.Zero)
+                    {
+                        timer.Cancel();
+                    }
+                    else
+                    {
+                        timer.CancelAfter(remaining);
+                    }
+                }
+            }
             Task signal;
             Task? finished;
             JobInfo info;
@@ -332,7 +364,7 @@ public sealed partial class Job
                 await finished.WaitAsync(token);
             }
             var text = Encoding.UTF8.GetString(fresh);
-            bool ready = wake.IsCompleted || attention || info.Status != "running" || expires.IsCompleted
+            bool ready = attention || info.Status != "running" || expires.IsCompleted
                 || (pattern is not null ? pattern.IsMatch(text) : wakeOnOutput && fresh.Length > 0);
             if (ready)
             {

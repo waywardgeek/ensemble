@@ -270,9 +270,14 @@ direct Engine sends, and reports submission/failure independently of activity.
 Agents report synchronized stopping/stopped state without restarting their actor.
 `--child-spawn-tests` covers real loopback spawning, typed submit and draining,
 observer cancellation, refusal, bounded failure, status and shutdown races.
-Incoming human messages and child questions wake current Job observations without
-cancelling work or interrupting a later wait. Child notices are ordinary tool data;
-an idle parent does not start inference, and root-human questions stay in their inbox.
+Incoming human messages and child questions cap current Job observations at the
+default three seconds, measured from observation start, without cancelling work.
+An already older observation returns promptly. While a hint awaits delivery, each
+remaining finalized call still executes with at most that observation delay; fast
+completion and shorter requested delays remain faster. The hint reaches inference
+after the batch, with actual correlated results and running Job handles. A wake
+pulse itself is not retained for a later unrelated observation. Child notices are
+ordinary tool data; an idle parent does not start inference, and root-human questions stay in their inbox.
 `--message-wake-tests` covers these boundaries. The shipped ensemble skill grants
 and teaches all seven child tools. CLI stdin remains live during chat work, with
 actor-decided turn/hint admission, reliable answer output and a separate human
@@ -782,8 +787,15 @@ results and limitations; a green grade is not an architecture verdict.
 ## Lifetime and evidence limits
 
 `ai_callback_delay`, patterns and inline caps control observation, never job
-execution deadlines. Busy hints and interrupts stop foreground observation but
-preserve independent Jobs. `FlushAsync` waits for accepted turns and foreground
+execution deadlines. Busy hints shorten observation to the default three-second
+ceiling and preserve finalized pending calls. Explicit interrupts still stop
+foreground observation and reject undispatched calls; neither cancels independent
+Jobs. `--hint-cap-tests` exercises elapsed and pending waits, repeated hints, short
+delays, fast completion, exact-once effects and correlated results;
+`--message-wake-tests` and `--goal-tests` cover message/question and reminder
+behavior. Explicit host adapters marked `waitForCompletion` retain their complete-
+result contract; normal model-facing tools use the bounded observer.
+`FlushAsync` waits for accepted turns and foreground
 controls, not independent background work; it does not resume a paused Agent.
 
 Destruction stops and joins work before detaching History or parents. .NET cannot

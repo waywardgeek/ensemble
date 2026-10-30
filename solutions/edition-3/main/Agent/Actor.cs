@@ -4,6 +4,8 @@ namespace Ensemble;
 
 public sealed partial class Agent
 {
+    internal partial bool HasPendingHint() => hintPending;
+
     public partial Task<string> SubmitAsync(IEnumerable<Part> parts)
     {
         var reply = new TaskCompletionSource<string>(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -457,10 +459,6 @@ public sealed partial class Agent
                 if (active is not null)
                 {
                     hintPending = true;
-                    if (!transportPending && nextCall < calls.Length)
-                    {
-                        skipTail = true;
-                    }
                 }
                 Jobs().WakeObservers();
             }
@@ -716,10 +714,6 @@ public sealed partial class Agent
                                 StartChildWork(AdmitChildWork());
                             }
                             hintPending = true;
-                            if (!transportPending && nextCall < calls.Length)
-                            {
-                                skipTail = true;
-                            }
                         }
                         Jobs().WakeObservers();
                         break;
@@ -898,11 +892,6 @@ public sealed partial class Agent
         {
             SkipRemaining("Interrupted before dispatch; not executed.");
             Finish(new OperationCanceledException("Turn interrupted."));
-        }
-        if (skipTail)
-        {
-            SkipRemaining("Hint received before dispatch; not executed.");
-            skipTail = false;
         }
         if (nextCall >= calls.Length)
         {
@@ -1120,7 +1109,6 @@ public sealed partial class Agent
         responseText = "";
         interruptPending = false;
         discardResponse = false;
-        skipTail = false;
         hintPending = false;
         mailbox.Writer.TryWrite(new Mail(MailKind.Wake));
     }
