@@ -480,12 +480,10 @@ function renderControls() {
     document.querySelector("#send").disabled = !ready;
     document.querySelector("#clear-tools").disabled = !ready;
     document.querySelector("#model-choice").disabled = !ready || busy || paused;
-    document.querySelector("#set-model").disabled = document.querySelector("#model-choice").disabled;
     document.querySelector("#theme-toggle").disabled = !connected || !settings;
 }
 // Format acknowledged Engine values only. No browser counters or price table.
 function showUsage(frame) {
-    document.querySelector("#funding-source").textContent = frame.funding || "Funding information unavailable.";
     const picker = document.querySelector("#model-choice");
     picker.replaceChildren();
     for (const model of frame.model_choices) {
@@ -532,15 +530,13 @@ function showAgents() {
     }
     picker.value = agentID ?? "";
     const selected = agentRows.find(row => row.key === agentID);
-    const name = document.querySelector("#selected-name");
-    name.textContent = selected?.id || agentID || "Original unnamed conversation";
-    name.title = selected?.key || name.textContent;
+    const name = selected?.id || agentID || "Original unnamed conversation";
     const conversation = document.querySelector("#conversation-agent");
-    conversation.textContent = name.textContent;
-    conversation.title = name.title;
+    conversation.textContent = name;
+    conversation.title = selected?.key || name;
     const input = document.querySelector("#prompt");
-    input.placeholder = `Ask ${name.textContent} anything…`;
-    input.setAttribute("aria-label", `Message to ${name.textContent}`);
+    input.placeholder = `Ask ${name} anything…`;
+    input.setAttribute("aria-label", `Message to ${name}`);
     renderAgentTree();
 }
 function handle(frame) {
@@ -772,8 +768,10 @@ document.querySelector("#interrupt").onclick = () => {
     if (send("interrupt")) pauseIntent = null;
 };
 document.querySelector("#clear-tools").onclick = () => send("clear_tools");
-document.querySelector("#set-model").onclick = () => {
-    send("set_model", document.querySelector("#model-choice").value);
+document.querySelector("#model-choice").onchange = event => {
+    // A choice is the action. The server's usage frame confirms it or restores
+    // the unchanged model after refusal; never infer acceptance from the click.
+    if (send("set_model", event.target.value)) event.target.disabled = true;
 };
 document.querySelector("#resume").onclick = () => {
     if (send("unpause")) pauseIntent = null;

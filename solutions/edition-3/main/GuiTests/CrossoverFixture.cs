@@ -66,7 +66,9 @@ internal static class CrossoverFixture
         try
         {
             await provider.StartAsync(token);
-            var configuration = new Configuration(Vendor.Anthropic, "claude-3-haiku-20240307",
+            // The browser first switches this launch model to the catalogued
+            // Haiku model, exercising an actual selection before inference.
+            var configuration = new Configuration(Vendor.Anthropic, "crossover-initial",
                 "http://127.0.0.1:18203", key);
             var selected = new Agent(root, configuration, name: "captain", outputDirectory: Path.Combine(directory, "jobs"));
             selected.InstallTools();

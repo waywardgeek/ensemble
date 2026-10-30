@@ -63,23 +63,23 @@ label { display: block; margin: 0.15rem 0; }
 input:not([type="checkbox"]), select { max-width: 100%; }
 .form-check-input { flex: none; border-color: var(--control-edge); }
 
-/* Status text and usage never size neighboring controls. The second row keeps
-   accounting available without giving every numeric field the weight of a button. */
-#status-bar { flex: none; display: grid; grid-template-columns: 10rem minmax(6rem, .7fr) minmax(10rem, 1fr) 13.25rem; align-items: center; gap: 0.0875rem 0.225rem; padding: 0.15rem 0.25rem 0.1rem; border-bottom: 1px solid var(--edge); background: var(--surface); overflow: auto; max-height: 30dvh; }
-.identity { display: flex; align-items: center; gap: 0.15rem; min-width: 0; }
-.brand-mark { flex: none; width: 2.35rem; height: auto; object-fit: contain; }
+/* Two rows beside the artwork. Long status/accounting text cannot move the
+   centered model or actions. On narrow windows this strip scrolls locally,
+   rather than consuming the conversation's height with stacked controls. */
+#status-bar { flex: none; display: grid; grid-template-columns: 64px minmax(0,1fr); align-items: center; gap: .25rem; padding: 2px .25rem; border-bottom: 1px solid var(--edge); background: var(--surface); }
+.brand-mark { width: 64px; height: auto; object-fit: contain; }
 .icon-symbols { position: absolute; width: 0; height: 0; overflow: hidden; }
-.identity-text { display: grid; min-width: 0; line-height: 1.35; }
-.identity-text strong { font-weight: 650; letter-spacing: -.02em; }
-#selected-name { color: var(--muted); font-size: .78rem; }
-.identity-text > *, .run-state > *, #funding-source { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.run-state { min-width: 0; display: grid; line-height: 1.4; font-size: .8rem; }
+.header-scroll { min-width: 0; overflow-x: auto; }
+.header-rows { display: grid; grid-template-columns: minmax(0,1fr) auto minmax(0,1fr); grid-template-rows: 44px auto; align-items: center; column-gap: .4rem; min-width: 44rem; }
+.run-state { grid-column: 1; grid-row: 1; min-width: 0; display: flex; gap: .5rem; font-size: .8rem; }
+.run-state > * { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 #connection { color: var(--muted); }
 #state { color: var(--bs-body-color); }
-#model-controls { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 0.05rem; min-width: 0; }
-#model-choice { min-width: 0; width: 100%; font-size: .84rem; }
-#set-model { font-size: .78rem; padding-inline: 0.1rem; }
-.status-actions { display: grid; grid-template-columns: repeat(5, 2.45rem); align-items: center; gap: 0.0625rem; min-width: 0; overflow-x: auto; }
+#model-controls { position: relative; grid-column: 2; grid-row: 1 / 3; display: grid; justify-items: center; gap: 0; min-width: 0; }
+#model-choice { field-sizing: content; width: auto; min-width: 10ch; max-width: min(26rem, calc(100vw - 64px - .75rem)); min-height: 44px; font-size: 1rem; }
+@supports not (field-sizing: content) { #model-choice { width: 24ch; } }
+.model-caption { font-size: .65rem; color: var(--muted); line-height: 1.25; }
+.status-actions { grid-column: 3; grid-row: 1; justify-self: end; display: grid; grid-template-columns: repeat(5,44px); align-items: center; gap: 1px; }
 /* The native checkbox covers its icon: keyboard/checked semantics and a full
    hit target remain intact, without another copy of the speech preference. */
 .speech-toggle { position: relative; margin: 0; color: var(--muted); border-radius: .4rem; cursor: pointer; }
@@ -92,10 +92,13 @@ input:not([type="checkbox"]), select { max-width: 100%; }
 .icon-button svg { width: 100%; height: 100%; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 #theme-toggle { padding: 0.15rem; }
 .card-heading .icon-button { padding: 0.15rem; }
-#usage-meter { grid-column: 1 / 3; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0.175rem; min-width: 0; font-size: .7rem; color: var(--muted); font-variant-numeric: tabular-nums; }
-#usage-meter > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-#usage-meter output { color: var(--bs-body-color); }
-#funding-source { grid-column: 3 / -1; margin: 0; height: 1.55em; min-width: 0; font-size: .7rem; color: var(--muted); text-align: right; }
+/* Fixed, left-aligned numeric slots keep labels close and changing values
+   stable. Full accounting remains available in the meter's details/title. */
+#usage-meter { grid-column: 1; grid-row: 2; display: flex; gap: .3rem; min-width: 0; overflow-x: auto; font-size: .7rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+#usage-meter > span { display: inline-flex; flex: none; gap: .25ch; align-items: baseline; white-space: nowrap; }
+#usage-meter output { display: inline-block; width: 9ch; overflow: hidden; text-overflow: ellipsis; text-align: left; color: var(--bs-body-color); }
+#usage-meter #usage-cost { width: 8ch; }
+#usage-meter #usage-hit { width: 6ch; }
 
 #workspace { flex: 1; min-height: 0; display: grid; grid-template-columns: minmax(0,var(--left-width)) .4rem minmax(0,1fr) .4rem minmax(0,var(--right-width)); }
 #left-pane, #chat-pane, #tools-pane { min-width: 0; min-height: 0; display: flex; flex-direction: column; }
@@ -192,11 +195,6 @@ body.compact .splitter { display: none; }
 body.compact #workspace[data-pane="chat"] > :not(#chat-pane),
 body.compact #workspace[data-pane="agents"] > :not(#left-pane),
 body.compact #workspace[data-pane="tools"] > :not(#tools-pane) { display: none; }
-body.compact #status-bar { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); padding: 0.1rem 0.1625rem; max-height: 26dvh; }
-body.compact .run-state { text-align: right; }
-body.compact #model-controls, body.compact .status-actions, body.compact #usage-meter, body.compact #funding-source { grid-column: 1 / -1; }
-body.compact .status-actions { grid-template-columns: 5.1rem repeat(3, 2.45rem) 7rem; }
-body.compact #funding-source { text-align: left; }
 body.compact .pane-heading { padding: 0.125rem 0.1875rem; }
 body.compact #transcript, body.compact #tool-transcript { padding: 0.2rem; }
 
@@ -206,10 +204,6 @@ body.compact #transcript, body.compact #tool-transcript { padding: 0.2rem; }
 .btn:not(.tree-select) { display: inline-flex; align-items: center; justify-content: center; }
 .icon-button, .speech-toggle, .tree-expand { width: 44px; height: 44px; min-height: 44px; }
 .icon-button, #theme-toggle, .card-heading .icon-button { padding: 10px; }
-.status-actions { grid-template-columns: repeat(5,44px); }
-#statusbar { grid-template-columns: 10rem minmax(6rem,.7fr) minmax(10rem,1fr) max-content; }
-body.compact #statusbar { grid-template-columns: minmax(0,1fr) minmax(5rem,auto); }
-body.compact .status-actions { grid-template-columns: repeat(5,44px); }
 .form-control, .form-select { padding-block: .09375rem; }
 body.compact #compose { padding: .25rem .4rem; }
 /* Conversation density: actions share the message rows; fonts are unchanged. */

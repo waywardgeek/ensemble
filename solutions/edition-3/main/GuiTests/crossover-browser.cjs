@@ -29,7 +29,7 @@ const check = (condition, message) => { assert.ok(condition, message); console.l
    const luminance=c=>c.map(v=>{v/=255;return v<=.04045?v/12.92:((v+.055)/1.055)**2.4}).reduce((sum,v,i)=>sum+v*[.2126,.7152,.0722][i],0);
    const ratio=(a,b)=>{const x=[luminance(rgb(a)),luminance(rgb(b))].sort((a,b)=>a-b);return(x[1]+.05)/(x[0]+.05)};
    const background=e=>{while(e){const c=getComputedStyle(e).backgroundColor;if(c!=='rgba(0, 0, 0, 0)'&&c!=='transparent')return c;e=e.parentElement;}throw Error('No opaque background');};
-   const text=['#selected-name','#connection','#state','#agents-tab','#settings-tab','#agent-tree .tree-state','#prompt','#send','.card-heading strong','.card-heading .btn'].map(selector=>{
+   const text=['#conversation-agent','#connection','#state','#agents-tab','#settings-tab','#agent-tree .tree-state','#prompt','#send','.card-heading strong','.card-heading .btn'].map(selector=>{
     const e=document.querySelector(selector);return{selector,ratio:ratio(getComputedStyle(e).color,background(e))};
    });
    const prompt=document.querySelector('#prompt'),style=getComputedStyle(prompt);
@@ -41,9 +41,10 @@ const check = (condition, message) => { assert.ok(condition, message); console.l
   check(report.target.width>=44&&report.target.height>=44,`${theme} tree expand target at least 44 pixels`);
  };
 
+ const modelRequests=[];
  // Observe real outgoing controls, without replacing the socket or the actor.
  page.on('websocket', ws=>ws.on('framesent', frame=>{
-  try { const value=JSON.parse(frame.payload); if(['pause','unpause','interrupt'].includes(value.type)) controls.push(value.type); } catch {}
+  try { const value=JSON.parse(frame.payload); if(value.type==='set_model')modelRequests.push(value); if(['pause','unpause','interrupt'].includes(value.type)) controls.push(value.type); } catch {}
  }));
  page.on('pageerror', e=>errors.push(e.stack));
  page.on('request', r=>{ requests.push(r.url()); if (!/^(http:\/\/127\.0\.0\.1:18202\/|data:)/.test(r.url())) external.push(r.url()); });
@@ -97,7 +98,7 @@ const check = (condition, message) => { assert.ok(condition, message); console.l
   });
   assert.deepEqual(composer.children,['prompt','send']);
   check(composer.sameRow,'composer is exactly input and Send in one row');
-  check(composer.placeholder===`Ask ${await page.locator('#selected-name').textContent()} anything…`,'placeholder names the selected Agent');
+  check(composer.placeholder===`Ask ${await page.locator('#conversation-agent').textContent()} anything…`,'placeholder names the selected Agent');
   const measureComposer=()=>page.locator('#prompt').evaluate(el=>{const c=getComputedStyle(el);return{height:el.getBoundingClientRect().height,line:parseFloat(c.lineHeight),padding:parseFloat(c.paddingTop)+parseFloat(c.paddingBottom)+parseFloat(c.borderTopWidth)+parseFloat(c.borderBottomWidth),scroll:el.scrollHeight,client:el.clientHeight,overflow:c.overflowY};});
   const one=await measureComposer();
   check(Math.abs(one.height-one.line-one.padding)<2,'composer starts at one line');
@@ -111,12 +112,12 @@ const check = (condition, message) => { assert.ok(condition, message); console.l
 
   // Structural presentation checks do not certify pixel-level beauty. These
   // protect the selected design's distinction between navigation and actions.
-  await page.waitForFunction(()=>document.querySelector('#selected-name').textContent!=='Waiting');
+  await page.waitForFunction(()=>document.querySelector('#conversation-agent').textContent!=='Waiting');
   const design=await page.evaluate(()=>{
    const tab=document.querySelector('#agents-tab'), tree=document.querySelector('.tree-select');
    const t=getComputedStyle(tab), row=getComputedStyle(tree);
    return {title:document.querySelector('#conversation-agent').textContent,
-    selected:document.querySelector('#selected-name').textContent,
+    selected:document.querySelector('#agent-choice').value,
     tabButtonClass:tab.classList.contains('btn'),tabBottom:t.borderBottomColor,
     tabBackground:t.backgroundColor,tabBottomRadius:t.borderBottomLeftRadius,
     treeBorder:row.borderTopWidth,treeBackground:row.backgroundColor,
@@ -145,11 +146,11 @@ const check = (condition, message) => { assert.ok(condition, message); console.l
   // Geometry-only stress: this does not test Engine accounting. Preserve and
   // restore the real values; later assertions test actual acknowledged usage.
   const geometry=await page.evaluate(()=>{
-   const ids=['model-choice','set-model','narrate','pause','resume','interrupt','theme-toggle'];
+   const ids=['model-choice','narrate','pause','resume','interrupt','theme-toggle'];
    const measure=()=>Object.fromEntries(ids.map(id=>{
     const r=document.getElementById(id).getBoundingClientRect();return[id,[r.x,r.y,r.width,r.height]];
    }));
-   const targets={'selected-name':'A very long selected agent name that must not move controls',
+   const targets={'conversation-agent':'A very long selected agent name that must not move controls',
     state:'a-long-changing-state-value',connection:'Disconnected — reconnecting',
     'usage-cache':'123,456,789','usage-hit':'99.99%',
     'usage-all':'999,999,999','usage-cost':'$1234.56789'};
@@ -163,6 +164,29 @@ const check = (condition, message) => { assert.ok(condition, message); console.l
   for(const id of Object.keys(geometry.before)) for(let i=0;i<4;i++)
    assert.ok(Math.abs(geometry.before[id][i]-geometry.after[id][i])<1,`${id} moved during status-only changes`);
   console.log('PASS status changes leave control rectangles stable');
+  check(await page.locator('#set-model, #funding-source, #selected-name').count()===0,'header removes Apply, repeated Agent name and funding status');
+  check(await page.locator('.model-caption').textContent()==='Don’t be evil.','model caption shown');
+  const header=await page.evaluate(()=>({
+   height:document.querySelector('#status-bar').getBoundingClientRect().height,
+   slots:[...document.querySelectorAll('#usage-meter output')].map(e=>({width:e.getBoundingClientRect().width,align:getComputedStyle(e).textAlign,gap:parseFloat(getComputedStyle(e.parentElement).columnGap)}))
+  }));
+  check(header.height<80,'desktop header stays two compact rows');
+  check(header.slots.every(s=>s.width>0&&s.align==='left'&&s.gap<5),'usage figures occupy fixed left-aligned slots beside labels');
+  const originalModel=await page.locator('#model-choice').inputValue();
+  const otherModel=await page.locator('#model-choice option').evaluateAll((options,current)=>options.find(o=>o.value!==current)?.value,originalModel);
+  check(!!otherModel,'fixture supplies another same-provider model');
+  const startRequests=modelRequests.length;
+  const startFrames=frames.length;
+  await page.locator('#model-choice').selectOption(otherModel);
+  await page.waitForFunction(model=>!document.querySelector('#model-choice').disabled&&document.querySelector('#model-choice').value===model,otherModel);
+  check(modelRequests.length===startRequests+1&&modelRequests.at(-1).text===otherModel,'one selection immediately sends one model change');
+  check(frames.slice(startFrames).some(f=>f.type==='usage'&&f.selected_model===otherModel),'server acknowledges changed model');
+  await page.locator('#model-choice').evaluate(el=>{const o=new Option('Invalid empty model',' ');el.add(o);});
+  await page.locator('#model-choice').selectOption(' ');
+  await page.waitForFunction(model=>!document.querySelector('#model-choice').disabled&&document.querySelector('#model-choice').value===model,otherModel);
+  check((await page.locator('#notice').textContent()).includes('Model selection refused'),'refused model restores acknowledged choice');
+  console.log('PASS immediate model selection, acknowledgment and refusal recovery');
+
   check(await page.locator('#tool-transcript .part').count()===6,'tool call, results and media appear only in Tools');
   check(await page.locator('#transcript [data-kind="tool_call"],#transcript [data-kind="tool_result"]').count()===0,'Chat excludes tools');
   check(await page.locator('#tool-transcript img').evaluate(e=>e.complete && e.naturalWidth>0),'embedded image renders');
@@ -249,17 +273,17 @@ const check = (condition, message) => { assert.ok(condition, message); console.l
   await page.waitForFunction(()=>document.querySelector('#transcript').textContent.includes('Offline crossover'));
   await page.locator('#prompt').fill('Stream the fixture response'); await page.locator('#send').click();
   await page.waitForFunction(()=>document.querySelector('#transcript').textContent.includes('STREAM-IDENTITY first'));
-  check(await page.locator('#set-model').isDisabled(),'model mutation disabled while running');
+  check(await page.locator('#model-choice').isDisabled(),'model mutation disabled while running');
   check(await page.locator('#send').isEnabled(),'ordinary input remains available during a turn');
   check(await page.locator('#interrupt').isEnabled(),'interrupt enabled while running');
   const streamed=await page.locator('#transcript .part').filter({hasText:'STREAM-IDENTITY first'}).getAttribute('data-part-id');
   await page.waitForFunction(()=>document.querySelector('#transcript').textContent.includes('and final.'));
-  await page.waitForFunction(()=>!document.querySelector('#set-model').disabled);
+  await page.waitForFunction(()=>!document.querySelector('#model-choice').disabled);
   check(await page.locator('#transcript .part').filter({hasText:'STREAM-IDENTITY first and final.'}).count()===1,'stream final updates one card');
   check(await page.locator('#transcript .part').filter({hasText:'STREAM-IDENTITY first and final.'}).getAttribute('data-part-id')===streamed,'stream/final part identity stable');
   check((await page.locator('#usage-all').textContent())==='31','meter uses acknowledged Engine input');
   const paused=()=>page.waitForFunction(()=>document.querySelector('#state').textContent==='paused');
-  const resumed=()=>page.waitForFunction(()=>['idle','inputpending'].includes(document.querySelector('#state').textContent) && !document.querySelector('#set-model').disabled);
+  const resumed=()=>page.waitForFunction(()=>['idle','inputpending'].includes(document.querySelector('#state').textContent) && !document.querySelector('#model-choice').disabled);
   const expectNoUnpause=async (action,label)=>{
    const start=controls.length; await action();
    // A settings acknowledgment is ordered after controls on the same socket.
@@ -309,7 +333,7 @@ const check = (condition, message) => { assert.ok(condition, message); console.l
   // Selection must not release a manual pause on the old Agent or carry local
   // pause ownership into the newly selected conversation.
   await page.locator('[data-agent="peer"]').click();
-  await page.waitForFunction(()=>document.querySelector('#selected-name').textContent==='peer' && !document.querySelector('#send').disabled);
+  await page.waitForFunction(()=>document.querySelector('#conversation-agent').textContent==='peer' && !document.querySelector('#send').disabled);
   check(await page.locator('#prompt').getAttribute('placeholder')==='Ask peer anything…','placeholder follows Agent selection');
   await page.locator('[data-agent="captain"]').click();await paused();
   await expectNoUnpause(async()=>{
@@ -374,11 +398,11 @@ const check = (condition, message) => { assert.ok(condition, message); console.l
     if(await page.locator('#pane-navigation').isVisible())await page.locator('button[data-pane="chat"]').click();
     await page.locator('#prompt').evaluate(el=>el.style.height='1000px');
     const layout=await page.evaluate(()=>{
-     const ids=['model-choice','set-model','narrate','pause','resume','interrupt','theme-toggle'];
+     const ids=['model-choice','narrate','pause','resume','interrupt','theme-toggle'];
      const measure=()=>ids.map(id=>{
       const r=document.getElementById(id).getBoundingClientRect();return[r.x,r.y,r.width,r.height];
      });
-     const saved=['selected-name','state','usage-all','usage-cost'].map(id=>[id,document.getElementById(id).textContent]);
+     const saved=['conversation-agent','state','usage-all','usage-cost'].map(id=>[id,document.getElementById(id).textContent]);
      const before=measure();
      for(const [id] of saved)document.getElementById(id).textContent='Long changing status: 123,456,789.12345';
      const after=measure();
