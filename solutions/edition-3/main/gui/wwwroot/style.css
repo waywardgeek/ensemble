@@ -230,7 +230,7 @@ body.compact #transcript { padding: .3rem; }
 #transcript .card-heading .btn { min-height: 44px; }
 .btn:not(.tree-select) { display: inline-flex; align-items: center; justify-content: center; }
 #transcript .card-heading .icon-button { width: 44px; height: 44px; padding: 10px; }
-#transcript .part p { margin-bottom: .2125rem; line-height: 1.3; }
+#transcript .part p { margin-bottom: .45rem; line-height: 1.15; }
 #transcript .part p:last-child { margin-bottom: 0; }
 #transcript .part h2, #transcript .part h3, #transcript .part h4 { margin: .45rem 0 .25rem; }
 #transcript .part ul, #transcript .part ol { margin: .25rem 0 .35rem; }
