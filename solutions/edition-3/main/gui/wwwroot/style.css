@@ -66,19 +66,23 @@ input:not([type="checkbox"]), select { max-width: 100%; }
 /* One row beside the artwork. Long status/accounting text cannot move the
    model or actions. On narrow windows this strip scrolls locally,
    rather than consuming the conversation's height with stacked controls. */
-#status-bar { flex: none; display: grid; grid-template-columns: 48px minmax(0,1fr); align-items: center; gap: .25rem; padding: 2px .25rem; border-bottom: 1px solid var(--edge); background: var(--surface); }
-.brand-mark { width: 48px; height: auto; object-fit: contain; }
+#status-bar { flex: none; display: block; padding: 2px .25rem; border-bottom: 1px solid var(--edge); background: var(--surface); }
+.brand-mark { flex: none; width: 48px; height: auto; object-fit: contain; }
 .icon-symbols { position: absolute; width: 0; height: 0; overflow: hidden; }
 .header-scroll { min-width: 0; overflow-x: auto; }
-.header-row { display: grid; grid-template-columns: auto auto minmax(max-content,1fr) auto; align-items: center; column-gap: .4rem; min-width: max-content; }
-.run-state { grid-column: 1; grid-row: 1; width: 17ch; min-width: 0; display: flex; gap: .5rem; font-size: .8rem; }
+/* Equal side tracks center the model independently of the wider usage/actions
+   group. Intrinsic minimums keep groups separate when the header must scroll. */
+.header-row { display: grid; grid-template-columns: minmax(max-content,1fr) auto minmax(max-content,1fr); align-items: center; column-gap: .4rem; min-width: max-content; }
+.header-start { display: flex; align-items: center; gap: .25rem; }
+.header-end { grid-column: 3; grid-row: 1; display: grid; grid-template-columns: minmax(max-content,1fr) auto; align-items: center; column-gap: .4rem; }
+.run-state { width: 17ch; min-width: 0; display: flex; gap: .5rem; font-size: .8rem; }
 .run-state > * { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 #connection { color: var(--muted); }
 #state { color: var(--bs-body-color); }
 #model-controls { position: relative; grid-column: 2; grid-row: 1; display: grid; justify-items: center; gap: 0; min-width: 0; }
 #model-choice { field-sizing: content; width: auto; min-width: 10ch; max-width: min(26rem, calc(100vw - 48px - .75rem)); min-height: 44px; font-size: 1rem; }
 @supports not (field-sizing: content) { #model-choice { width: 24ch; } }
-.status-actions { grid-column: 4; grid-row: 1; justify-self: end; display: grid; grid-template-columns: repeat(5,44px); align-items: center; gap: 1px; }
+.status-actions { grid-column: 2; grid-row: 1; justify-self: end; display: grid; grid-template-columns: repeat(5,44px); align-items: center; gap: 1px; }
 /* The native checkbox covers its icon: keyboard/checked semantics and a full
    hit target remain intact, without another copy of the speech preference. */
 .speech-toggle { position: relative; margin: 0; color: var(--muted); border-radius: .4rem; cursor: pointer; }
@@ -93,7 +97,7 @@ input:not([type="checkbox"]), select { max-width: 100%; }
 .card-heading .icon-button { padding: 0.15rem; }
 /* Fixed, left-aligned numeric slots keep labels close and changing values
    stable. Full accounting remains available in the meter's details/title. */
-#usage-meter { grid-column: 3; grid-row: 1; justify-self: center; display: flex; gap: .15rem; min-width: 0; overflow-x: auto; font-size: .7rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+#usage-meter { grid-column: 1; grid-row: 1; justify-self: center; display: flex; gap: .15rem; min-width: 0; overflow-x: auto; font-size: .7rem; color: var(--muted); font-variant-numeric: tabular-nums; }
 #usage-meter > span { display: inline-flex; flex: none; gap: .15ch; align-items: baseline; white-space: nowrap; }
 #usage-meter output { display: inline-block; width: 8ch; overflow: hidden; text-overflow: ellipsis; text-align: left; color: var(--bs-body-color); }
 #usage-meter #usage-cost { width: 8ch; }

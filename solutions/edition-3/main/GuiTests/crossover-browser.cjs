@@ -174,6 +174,7 @@ const check = (condition, message) => { assert.ok(condition, message); console.l
   check(header.height<=55,'desktop header is at most 55px at the unchanged 18px font');
   check(header.groups.every(g=>Math.abs(g.centerY-header.groups[0].centerY)<1),'all header groups share one centered row');
   check(header.groups.every((g,i)=>!i||g.left>=header.groups[i-1].right),'status, model, usage and actions appear in order without overlap');
+  check(Math.abs(header.groups[1].centerX-(page.viewportSize().width/2))<1,'model is centered in the entire header');
   check(Math.abs(header.groups[2].centerX-(header.groups[1].right+header.groups[3].left)/2)<1,'usage is centered between model and actions');
   check(header.slots.every(s=>s.width>0&&s.align==='left'&&s.gap<5),'usage figures occupy fixed left-aligned slots beside labels');
   const usageFits=await page.evaluate(()=>{
