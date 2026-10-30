@@ -149,7 +149,7 @@ summary { cursor: pointer; color: var(--accent); overflow-wrap: anywhere; paddin
 #tool-transcript { padding: 0.25rem; }
 article.part { min-width: 0; margin: 0 0 0.325rem; }
 #transcript article.part { padding: 0.0625rem 0 0.175rem; max-width: 48rem; margin-inline: auto; }
-#transcript article[data-role="human"] > .message { padding: 0.25rem 0.275rem; border: 1px solid var(--edge); border-radius: .65rem; background: var(--surface); }
+#transcript article[data-kind="text"] > .message { padding: 0.25rem 0.275rem; border: 1px solid var(--edge); border-radius: .65rem; background: var(--surface); }
 #transcript article[data-kind="thinking"], #transcript article[data-kind="reasoning_summary"] { padding: 0.15rem 0.2rem; border-left: 2px solid var(--edge); color: var(--muted); }
 #tool-transcript article.part { padding: 0.225rem; border: 1px solid var(--edge); border-radius: .6rem; background: var(--bs-body-bg); margin-bottom: 0.2125rem; }
 .card-heading { display: flex; gap: 0.0375rem; align-items: center; color: var(--muted); font-size: .8rem; margin-bottom: 0.1625rem; }

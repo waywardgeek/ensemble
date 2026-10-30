@@ -531,9 +531,6 @@ function showAgents() {
     picker.value = agentID ?? "";
     const selected = agentRows.find(row => row.key === agentID);
     const name = selected?.id || agentID || "Original unnamed conversation";
-    const conversation = document.querySelector("#conversation-agent");
-    conversation.textContent = name;
-    conversation.title = selected?.key || name;
     const input = document.querySelector("#prompt");
     input.placeholder = `Ask ${name} anything…`;
     input.setAttribute("aria-label", `Message to ${name}`);

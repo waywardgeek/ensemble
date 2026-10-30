@@ -29,16 +29,23 @@ const check = (condition, message) => { assert.ok(condition, message); console.l
    const luminance=c=>c.map(v=>{v/=255;return v<=.04045?v/12.92:((v+.055)/1.055)**2.4}).reduce((sum,v,i)=>sum+v*[.2126,.7152,.0722][i],0);
    const ratio=(a,b)=>{const x=[luminance(rgb(a)),luminance(rgb(b))].sort((a,b)=>a-b);return(x[1]+.05)/(x[0]+.05)};
    const background=e=>{while(e){const c=getComputedStyle(e).backgroundColor;if(c!=='rgba(0, 0, 0, 0)'&&c!=='transparent')return c;e=e.parentElement;}throw Error('No opaque background');};
-   const text=['#conversation-agent','#connection','#state','#agents-tab','#settings-tab','#agent-tree .tree-state','#prompt','#send','.card-heading strong','.card-heading .btn'].map(selector=>{
+   const text=['#connection','#state','#agents-tab','#settings-tab','#agent-tree .tree-state','#prompt','#send','.card-heading strong','.card-heading .btn'].map(selector=>{
     const e=document.querySelector(selector);return{selector,ratio:ratio(getComputedStyle(e).color,background(e))};
    });
    const prompt=document.querySelector('#prompt'),style=getComputedStyle(prompt);
    const toggle=document.querySelector('.tree-expand').getBoundingClientRect();
-   return{text,inputBorder:ratio(style.borderTopColor,background(prompt)),target:{width:toggle.width,height:toggle.height}};
+   const bubbles=['human','assistant'].map(role=>{
+    const e=document.querySelector(`#transcript article[data-role="${role}"][data-kind="text"] > .message`),s=getComputedStyle(e);
+    return {role,border:s.borderTopWidth,borderStyle:s.borderTopStyle,borderColor:s.borderTopColor,background:s.backgroundColor,radius:s.borderTopLeftRadius,padding:s.padding};
+   });
+   return{text,bubbles,inputBorder:ratio(style.borderTopColor,background(prompt)),target:{width:toggle.width,height:toggle.height}};
   });
   for(const item of report.text)check(item.ratio>=4.5,`${theme} text contrast ${item.selector}: ${item.ratio.toFixed(2)}:1`);
   check(report.inputBorder>=3,`${theme} input boundary contrast: ${report.inputBorder.toFixed(2)}:1`);
   check(report.target.width>=44&&report.target.height>=44,`${theme} tree expand target at least 44 pixels`);
+  const [human,agent]=report.bubbles;
+  check(report.bubbles.every(b=>parseFloat(b.border)>=1&&b.borderStyle==='solid'&&b.borderColor!==b.background&&parseFloat(b.radius)>0),`${theme} both speakers have visible rounded message borders`);
+  check(['border','borderColor','background','radius','padding'].every(key=>human[key]===agent[key]),`${theme} Agent bubble matches human styling and compact spacing`);
  };
 
  const modelRequests=[];
@@ -98,7 +105,7 @@ const check = (condition, message) => { assert.ok(condition, message); console.l
   });
   assert.deepEqual(composer.children,['prompt','send']);
   check(composer.sameRow,'composer is exactly input and Send in one row');
-  check(composer.placeholder===`Ask ${await page.locator('#conversation-agent').textContent()} anything…`,'placeholder names the selected Agent');
+  check(composer.placeholder===`Ask ${await page.locator('#agent-choice').inputValue()} anything…`,'placeholder names the selected Agent');
   const measureComposer=()=>page.locator('#prompt').evaluate(el=>{const c=getComputedStyle(el);return{height:el.getBoundingClientRect().height,line:parseFloat(c.lineHeight),padding:parseFloat(c.paddingTop)+parseFloat(c.paddingBottom)+parseFloat(c.borderTopWidth)+parseFloat(c.borderBottomWidth),scroll:el.scrollHeight,client:el.clientHeight,overflow:c.overflowY};});
   const one=await measureComposer();
   check(Math.abs(one.height-one.line-one.padding)<2,'composer starts at one line');
@@ -112,19 +119,18 @@ const check = (condition, message) => { assert.ok(condition, message); console.l
 
   // Structural presentation checks do not certify pixel-level beauty. These
   // protect the selected design's distinction between navigation and actions.
-  await page.waitForFunction(()=>document.querySelector('#conversation-agent').textContent!=='Waiting');
+  await page.waitForFunction(()=>document.querySelector('#agent-choice').value==='captain');
   const design=await page.evaluate(()=>{
    const tab=document.querySelector('#agents-tab'), tree=document.querySelector('.tree-select');
    const t=getComputedStyle(tab), row=getComputedStyle(tree);
-   return {title:document.querySelector('#conversation-agent').textContent,
-    selected:document.querySelector('#agent-choice').value,
+   return {
     tabButtonClass:tab.classList.contains('btn'),tabBottom:t.borderBottomColor,
     tabBackground:t.backgroundColor,tabBottomRadius:t.borderBottomLeftRadius,
     treeBorder:row.borderTopWidth,treeBackground:row.backgroundColor,
     sendPrimary:document.querySelector('#send').classList.contains('btn-primary'),
     controlNames:['pause','resume','interrupt'].map(id=>document.getElementById(id).getAttribute('aria-label'))};
   });
-  check(design.title===design.selected,'conversation title reflects selected Agent');
+  check(await page.locator('#chat-pane > .pane-heading').count()===0,'redundant conversation title row removed');
   check(!design.tabButtonClass && design.tabBottom===design.tabBackground && design.tabBottomRadius==='0px','tabs connect to their pane instead of appearing as action buttons');
   check(design.treeBorder==='0px' && design.treeBackground==='rgba(0, 0, 0, 0)','tree rows use quiet navigation styling');
   check(design.sendPrimary && design.controlNames.join(',')==='Pause,Resume,Interrupt','primary Send and named compact Agent controls');
@@ -150,8 +156,7 @@ const check = (condition, message) => { assert.ok(condition, message); console.l
    const measure=()=>Object.fromEntries(ids.map(id=>{
     const r=document.getElementById(id).getBoundingClientRect();return[id,[r.x,r.y,r.width,r.height]];
    }));
-   const targets={'conversation-agent':'A very long selected agent name that must not move controls',
-    state:'a-long-changing-state-value',connection:'Disconnected — reconnecting',
+   const targets={state:'a-long-changing-state-value',connection:'Disconnected — reconnecting',
     'usage-cache':'123,456,789','usage-hit':'99.99%',
     'usage-all':'999,999,999','usage-cost':'$1234.56789'};
    const saved=Object.fromEntries(Object.keys(targets).map(id=>[id,document.getElementById(id).textContent]));
@@ -343,7 +348,7 @@ const check = (condition, message) => { assert.ok(condition, message); console.l
   // Selection must not release a manual pause on the old Agent or carry local
   // pause ownership into the newly selected conversation.
   await page.locator('[data-agent="peer"]').click();
-  await page.waitForFunction(()=>document.querySelector('#conversation-agent').textContent==='peer' && !document.querySelector('#send').disabled);
+  await page.waitForFunction(()=>document.querySelector('#agent-choice').value==='peer' && !document.querySelector('#send').disabled);
   check(await page.locator('#prompt').getAttribute('placeholder')==='Ask peer anything…','placeholder follows Agent selection');
   await page.locator('[data-agent="captain"]').click();await paused();
   await expectNoUnpause(async()=>{
@@ -412,7 +417,7 @@ const check = (condition, message) => { assert.ok(condition, message); console.l
      const measure=()=>ids.map(id=>{
       const r=document.getElementById(id).getBoundingClientRect();return[r.x,r.y,r.width,r.height];
      });
-     const saved=['conversation-agent','state','usage-all','usage-cost'].map(id=>[id,document.getElementById(id).textContent]);
+     const saved=['state','usage-all','usage-cost'].map(id=>[id,document.getElementById(id).textContent]);
      const before=measure();
      for(const [id] of saved)document.getElementById(id).textContent='Long changing status: 123,456,789.12345';
      const after=measure();

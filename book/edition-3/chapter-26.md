@@ -164,8 +164,10 @@ not only a standalone component demo.
 
 Put a status bar across the top. Give its contents reserved space so changing
 status and numbers do not push the controls around. Keep proportional artwork on
-the left and one compact row to its right. The Agent name belongs in the
-conversation heading, not repeated under the artwork. Show connection/activity,
+the left and one compact row to its right. Put each speaker’s name above their
+message bubble, with the same compact bubble treatment for human and Agent text.
+Do not repeat the Agent name under the artwork or in a conversation-title row.
+Show connection/activity,
 then the model selector, centered in the full header rather than merely its
 remaining left-hand space. Center usage in the remaining space before the action
 controls, without claiming unknown amounts are zero. Group Cost, Input, Cache,
