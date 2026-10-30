@@ -742,6 +742,25 @@ function selectAgent(key) {
     showGoal(undefined);
     socket.send(JSON.stringify({ type: "select_agent", agent_id: key }));
 }
+// Fit rendered lines, including wrapping, within the CSS one-to-five-line bounds.
+// Reset first so deleting text can shrink the input as well as grow it.
+function resizeComposer() {
+    const input = document.querySelector("#prompt");
+    if (!input.clientWidth) return; // Hidden compact panes are measured when shown.
+    const style = getComputedStyle(input);
+    const border = parseFloat(style.borderTopWidth) + parseFloat(style.borderBottomWidth);
+    input.style.height = style.minHeight;
+    input.style.height = `${Math.min(input.scrollHeight + border, parseFloat(style.maxHeight))}px`;
+}
+let composerWidth = -1;
+new ResizeObserver(entries => {
+    const width = entries[0].contentRect.width;
+    if (width === composerWidth) return; // Our height change is not a new sizing cause.
+    composerWidth = width;
+    resizeComposer();
+}).observe(document.querySelector("#prompt"));
+resizeComposer();
+
 // One input path. Browser state must not classify a message as a hint.
 function submit() {
     if (document.querySelector("#send").disabled) {
@@ -751,6 +770,7 @@ function submit() {
     const input = document.querySelector("#prompt");
     if (input.value.trim() && send("prompt", input.value)) {
         input.value = "";
+        resizeComposer();
         humanTyping = false;
         updatePauseCause();
     }
@@ -773,6 +793,7 @@ document.querySelector("#resume").onclick = () => {
     if (send("unpause")) pauseIntent = null;
 };
 document.querySelector("#prompt").oninput = event => {
+    resizeComposer();
     humanTyping = !event.detail?.mcp && event.target.value.length > 0;
     updatePauseCause();
 };
@@ -797,6 +818,7 @@ function applySettings() {
     themeButton.setAttribute("aria-label", dark ? "Switch to light theme" : "Switch to dark theme");
     themeButton.title = dark ? "Dark theme; switch to light theme" : "Light theme; switch to dark theme";
     document.documentElement.style.fontSize = `${settings.font_size}px`;
+    resizeComposer();
     renderControls();
     document.querySelector("#theme").value = settings.theme;
     document.querySelector("#font-size").value = settings.font_size;

@@ -199,8 +199,10 @@ an uncommitted candidate for independent review.
 
 ### Compact conversation and flexible panes
 
-The composer has one visible line plus the supplied Send icon; longer input
-scrolls inside it. Its placeholder and accessible name follow the selected Agent.
+The composer starts at one visible line beside the supplied Send icon and grows
+with newlines or wrapped text up to five lines; longer input scrolls inside it.
+It shrinks when text is removed or sent and refits when pane width or font size
+changes. Its placeholder and accessible name follow the selected Agent.
 Send stays available during a turn. The browser posts an ordinary Message; the
 Agent decides how to handle it when dequeued. There is no GUI Hint mode.
 
