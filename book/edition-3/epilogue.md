@@ -105,7 +105,7 @@ an independent reviewer merely because I read the work again.
 
 The same discipline applies to the completed work and the remaining limits:
 
-- **Chapter 24:** the October 29 joint session established real CLI OAuth,
+- **Chapter 23:** the October 29 joint session established real CLI OAuth,
   account-model discovery and three completed plan requests with identical bodies.
   Each reported zero cached reads and writes. Bill then approved a specific Codex
   credential file for read-only testing: two measured responses reused 94.9% of
@@ -116,13 +116,13 @@ The same discipline applies to the completed work and the remaining limits:
   explicit CLI/GUI selection, read-only paired credential reader and no-fallback
   transport are implemented and preserved. Codex alone owns its renewal. Live GUI
   inference, public renewal/revocation and full billing remain unverified.
-- **Chapter 26:** Gateway is locally complete and preserved. Bill chose the tested
+- **Chapter 24:** Gateway is locally complete and preserved. Bill chose the tested
   Noise.NET/libsodium route while retaining Ensemble's ChaChaPoly suite. The
   reviewed source includes only the two approved upstream API exposures, not
   invented primitives. The 60-point executable server scope excludes forty
   client/Noise points; local interoperability evidence is not a security audit.
 
-[Chapter 27](chapter-27.md) is locally complete and preserved. That is a useful
+[Chapter 25](chapter-25.md) is locally complete and preserved. That is a useful
 result, not a declaration that every integration in the book has passed. The
 [execution record](../../docs/edition-3-csharp-progress.md) retains the chapter
 boundaries, failed baselines, corrections, and verification limits.

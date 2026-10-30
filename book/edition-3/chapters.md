@@ -1,8 +1,9 @@
 # Chapters
 
-The C# third edition is locally complete through Goals, including Gateway and
-the optional Codex path. Chapter 25 preserves the crossover account. See the
-[edition guide](README.md) for source endpoints, verification limits and builds.
+The C# foundation includes Goals, Gateway, and the optional Codex path. The
+final crossover chapter is the active replacement-readiness exercise, not yet
+accepted. See the [edition guide](README.md) for historical source endpoint
+numbers, verification limits, and builds.
 
 - [Preface](preface.md)
 - [Chapter 0: The Perpetual Machine](chapter-00.md)
@@ -22,17 +23,16 @@ the optional Codex path. Chapter 25 preserves the crossover account. See the
 - [Chapter 14: The World's Best Context Engineering, Before Breakfast](chapter-14.md)
 - [Chapter 15: The Invisible Invoice](chapter-15.md)
 - [Chapter 16: Leaving Anthropic for OpenAI](chapter-16.md)
-- [Chapter 17: The Crossover](chapter-17.md)
-- [Chapter 18: Giving the Agent the Web, and a Status Line](chapter-18.md)
-- [Chapter 19: The Sandbox](chapter-19.md)
-- [Chapter 20: The Ensemble](chapter-20.md)
-- [Chapter 21: Managing the Swarm](chapter-21.md)
-- [Chapter 22: Forgetting on Purpose](chapter-22.md)
-- [Chapter 23: Auto-Recall](chapter-23.md)
-- [Chapter 24: While the Cache Is Broken](chapter-24.md)
-- [Chapter 25: Crossing Over to Ensemble](chapter-25.md)
-- [Chapter 26: Gateway](chapter-26.md)
-- [Chapter 27: Goals](chapter-27.md)
+- [Chapter 17: Giving the Agent the Web, and a Status Line](chapter-17.md)
+- [Chapter 18: The Sandbox](chapter-18.md)
+- [Chapter 19: The Ensemble](chapter-19.md)
+- [Chapter 20: Managing the Swarm](chapter-20.md)
+- [Chapter 21: Forgetting on Purpose](chapter-21.md)
+- [Chapter 22: Auto-Recall](chapter-22.md)
+- [Chapter 23: While the Cache Is Broken](chapter-23.md)
+- [Chapter 24: Gateway](chapter-24.md)
+- [Chapter 25: Goals](chapter-25.md)
+- [Chapter 26: Crossing Over to Ensemble](chapter-26.md)
 - [Epilogue: What we can rebuild](epilogue.md)
 - [A note from Bill](note-from-bill.md)
 

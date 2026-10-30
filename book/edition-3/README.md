@@ -1,6 +1,6 @@
 # Edition 3 — C# inside Ensemble
 
-This edition is locally complete through Chapter 27, Goals, including Gateway
+This edition is locally complete through Chapter 25, Goals, including Gateway
 and the optional Codex-backed path. Bill directed the architecture; Cadence
 implemented, exercised and reviewed the C# work personally inside Ensemble.
 
@@ -13,9 +13,36 @@ implemented, exercised and reviewed the C# work personally inside Ensemble.
 
 The implementation uses C# 14 / .NET 10. Follow the current source README and
 chapter-specific commands, not the repository root's Go build instructions.
-Chapter 25 is a historical interlude without a runtime endpoint. Chapter 24 was
-completed after Gateway and Goals; its preserved endpoint intentionally contains
-that foundation. Earlier endpoints are not overwritten by later finalization.
+The final crossover exercise is now active; local foundation verification is not
+human acceptance of the replacement. The optional Codex implementation was
+completed after Gateway and Goals, and its historical `ch24` endpoint intentionally
+contains that foundation. Earlier endpoints are not renamed or overwritten.
+
+The generated Markdown, EPUB, and PDFs are the previous build until regenerated
+from this revised manuscript. They do not yet reflect the crossover rewrite or
+sequential renumbering.
+
+## Sequential manuscript numbers and historical endpoints
+
+Only Edition 3 manuscript numbers changed. Do not renumber immutable source
+endpoints, archived evidence, or executable grader flags to match the book.
+
+| Current chapter | Topic | Original chapter / preserved endpoint number |
+|---|---|---|
+| 00–16 | Earlier foundation | Unchanged |
+| 17 | Web and status | 18 / `ch18` |
+| 18 | Sandbox | 19 / `ch19` |
+| 19 | Ensemble | 20 / `ch20` |
+| 20 | Managing the swarm | 21 / `ch21` |
+| 21 | Memory | 22 / `ch22` |
+| 22 | Recall | 23 / `ch23` |
+| 23 | Codex/cache | 24 / `ch24` |
+| 24 | Gateway | 26 / `ch26` |
+| 25 | Goals | 27 / `ch27` |
+| 26 | Crossover | New assignment; no accepted endpoint yet |
+
+The two former historical crossover chapters were removed, not merged into
+unrelated chapters. Earlier editions and their chapter numbering are unchanged.
 
 ## What completion means
 
@@ -29,7 +56,7 @@ with zero cache reuse in three public requests. The integrated C# Codex path the
 completed three identical-body requests with cached input of 3,456, zero and
 3,456 tokens out of 3,641 each. This is two hits and one miss, not guaranteed
 savings or a billing measurement. No further live exercise is needed for this
-book boundary. See Chapter 24 for the separate earlier probe and its unknown
+book boundary. See Chapter 23 for the separate earlier probe and its unknown
 attempt. Live renewal/revocation, GUI inference and audible/human accessibility
 remain outside these results.
 

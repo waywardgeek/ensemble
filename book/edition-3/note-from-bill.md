@@ -11,7 +11,7 @@ reasons, tests, and corrections. Rebuildable code is not disposable code. I stil
 require a design a human can understand, and passing a grader does not excuse
 violating that design.
 
-The C# chapter endpoints are preserved, including Goals and Gateway. Chapter 24
+The C# chapter endpoints are preserved, including Goals and Gateway. Chapter 23
 now includes the optional Codex-backed path, separately from the public OAuth
 flow. The joint live exercise verified authentication and inference; cache reuse
 varied. The chapters report the measured results and the limits of their local

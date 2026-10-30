@@ -39,7 +39,7 @@ local issuer tests separately exercise the credential owner. In the October 29,
 2026 joint session, Bill completed real CLI login with Ensemble's own registration.
 Account-specific model discovery and three plan-funded Responses calls succeeded
 through current main. Renewal, sign-out, GUI login and billing reconciliation were
-not exercised live. The cache result was zero reported reuse; see Chapter 24.
+not exercised live. The cache result was zero reported reuse; see Chapter 23.
 These observations supplement, rather than expand, the earlier executable grade.
 
 ## The coding brief
@@ -153,7 +153,7 @@ editing the earlier context. ([Launch policy](https://www.anthropic.com/claude-o
 
 Several chapters depend on owning that editing policy: Chapter 2's
 ephemera, the changing GUI and speech views in Chapters 12–13,
-the cuts in Chapter 14, the later memory in Chapter 22, and Chapter 23's recorded
+the cuts in Chapter 14, the later memory in Chapter 21, and Chapter 22's recorded
 recall attachments, which survive until a checkpoint. They do not
 all have the same lifetime. They do share the ability to stop
 sending material without asking a provider to make the cut.
@@ -788,14 +788,14 @@ Responses endpoint. All three reached `response.completed` and answered `OK`.
 No other application's credentials were inspected or borrowed.
 
 Each response reported 3,641 input and 5 output tokens, with zero cached-read and
-zero cache-write tokens. Chapter 24 records the controlled inputs and limits.
+zero cache-write tokens. Chapter 23 records the controlled inputs and limits.
 This establishes real CLI login, discovery and bounded plan inference in that
 session—not live renewal, 401 recovery, logout/revocation, GUI login, audible
 quality or human accessibility. No API-key fallback or dollar-charge claim follows
 from successful plan inference. The live session deliberately left the account
 signed in; exercising revocation would be a separate authorized action.
 
-The later [Chapter 24](chapter-24.md) work completed the separate Codex-backed
+The later [Chapter 23](chapter-23.md) work completed the separate Codex-backed
 C# route, including explicit CLI/GUI selection and no silent billing fallback.
 Its three actual C# CLI responses measured two cache hits and one miss. Codex
 alone renews that grant; this does not change the public OAuth ownership or the

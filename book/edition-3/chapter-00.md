@@ -173,13 +173,14 @@ A self-improvement loop with graded checkpoints and mutation-tested guardrails, 
 For this experiment, Bill explicitly selected GPT-6 Astra (`gpt-6-astra`) at
 high reasoning. The new Ensemble has demonstrated actual coding with that
 configuration: reading a program, reproducing failures, editing it and passing
-the unchanged tests. Chapter 17 records that bounded task.
+the unchanged tests. That bounded task belongs to the earlier crossover record,
+not evidence of this edition's replacement readiness.
 
-At this edition's first publication, the implementation catches up through the
-first edition's final exercise, Gateway, now Chapter 26. The actual move from
-Codex into Ensemble has begun, and Chapter 25 is reserved for that experience.
-The crossover is not complete. Using Ensemble to produce Edition 3 remains the
-next goal; this second edition was built with Codex under Bill's direction.
+The earlier second edition was built with Codex under Bill's direction. The C#
+third edition was built inside Ensemble. That closes the development loop, but
+does not by itself establish that the replacement is ready for daily use. The
+final crossover exercise in Chapter 26 requires an actual usable application,
+a safe trial, and the human's acceptance before promotion.
 
 ## Your Ensemble
 
