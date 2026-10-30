@@ -144,6 +144,8 @@ Restoration creates registry peers, not their saved delegated descendants. Old c
 
 Ordinary application shutdown preserves registry and files. Explicit `DeletePeerAsync` refuses retained unfinished children before closing the target's admission, joins teardown, removes the registry entry, and detaches the live Agent. Saved files remain. If registry replacement fails, retain the stopped registered peer for a retry. Cancellation can stop a request before irreversible teardown; after shutdown begins, join to a definite outcome rather than abandon half a deletion.
 
+This deliberately changes v2 Chapter 21's deletion policy, which also removed the peer's directory. Deleting a peer now removes it from the running and restorable fleet without erasing saved work that may still need inspection. Retained files are historical data, not permission to recreate an Agent: restoration follows the registry, so a deleted peer does not return on restart.
+
 ## 20.5 Addresses and Authority Are Different
 
 A local child ID is meaningful only to its owning parent. Two branches may both contain a child named `tests`:
@@ -337,7 +339,7 @@ The original seven-row Go grade remains available on its original route. The C# 
 | Bottom-up submission and idle correction regressions | 10 |
 | **C# executable scope** | **70** |
 
-The named-peer persistence row (15) and GUI tree row (15) are excluded from this score, not silently passed by source review or unrelated unit tests. C# persistence, mounted hosting, independent browser selection, peer controls, and startup have their own real-component, actual-host, and isolated-browser evidence. They remain necessary review and exercise obligations even though this CLI adapter does not award their points.
+A 70/70 result passes this executable subset of the original rubric; it is not whole-feature acceptance. The named-peer persistence row (15) and GUI tree row (15) are excluded from this score, not silently passed by source review or unrelated unit tests. C# persistence, mounted hosting, independent browser selection, peer controls, and startup have their own real-component, actual-host, and isolated-browser evidence. They remain necessary review and exercise obligations even though this CLI adapter does not award their points.
 
 From the repository root, build the actual CLI and the grader:
 
@@ -356,7 +358,7 @@ Pass the executable host, not the DLL alone. If this shell's installed runtime c
 
 The adapter supplies a loopback provider, owned working directory, shipped skill activation, correlated JSON control messages, and joined EOF shutdown. It holds model work to inspect activity, tests positive owned-child access and negative cross-tree access, observes a running change wait before releasing progress, checks fresh cursors and queued replies, and exercises recursive questions and bottom-up submission. Retained wire records distinguish finalized output from submission and current completion from historical files.
 
-The local 70-point grade is not live-provider evidence. Nor does a build, fake boundary, browser snapshot, or one successful shutdown establish every architectural or accessibility claim. Keep the earlier failures and the scope of each passing result in the progress record. Do not rerun unchanged campaigns merely to replace their timestamps.
+These local checks do not verify live-provider entitlement, OAuth, billing, native-platform behavior, audible speech, or human accessibility. The earlier failures and the scope of each passing result remain in the progress record.
 
 ## 20.14 Exercise
 
@@ -382,7 +384,7 @@ Create a named peer, choose its model and skill, close the application cleanly, 
 
 If a selected skill needs browser tools, open the explicit independent relay. Also try cancellation before the relay arrives and a headless launch against the same requirement. The first must join rollback; the second must refuse promptly by default.
 
-Local automated checks cover protocol and lifecycle boundaries. A human still needs to assess legibility, speech, and practical supervision with real work. Live provider entitlement, OAuth, billing, and native-platform behavior must remain explicitly unverified until exercised with authorized resources.
+Then assess legibility, speech, and practical supervision with real work. Protocol checks cannot tell you whether the fleet is comfortable to manage.
 
 ### Engineering takeaway
 

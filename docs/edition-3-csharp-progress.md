@@ -1,5 +1,188 @@
 # Edition 3 — GUI crossover: teaching baseline for fresh student
 
+## Current boundary — Cadence's personal Sample B design implemented; Bill's review remains
+
+**Current preview:** job1378, `http://127.0.0.1:18202/assistant/?speech=transcript`,
+private `/private/tmp/ensemble-gui-design-preview.SpRbbX`, launched from this pass's isolated binaries. Readiness,
+HTTP page response, and byte-equal final JS/CSS were observed. Real GUI/Agents,
+local fake provider, silent speech transcript mode, fresh disposable data;
+15-minute fixture deadline. This is not installation or live-provider acceptance.
+Verify availability before claiming it still runs. No shared runtime diff.
+Reminders disabled pending Bill's visual/usability review, not because crossover
+or replacement has been accepted.
+
+Bill clarified that his reference is the ORIGINAL illustrative Bootstrap sample
+at `http://localhost:18091/bootstrap.html`, source
+`/private/tmp/ensemble-gui-samples.bmSk3A`, not either student's GUI. He then
+reassigned design/implementation to Cadence personally, asking for a fantastic GUI
+rather than merely a chapter pass. Student02 stopped, reported no edits/jobs in
+that resumed assignment, and its handoff was collected/joined. No new student.
+
+I implemented this pass in the existing UNCOMMITTED, UNINTEGRATED candidate
+`/Users/bill/projects/ensemble-crossover-student-02`. My design-pass production
+changes are limited to `gui/wwwroot/index.html`, `style.css`, and presentation
+labels/classes in `app.js`; the browser exercise has corresponding assertions.
+The corrected pause, Markdown, stream, settings, selection, and output authority
+logic is preserved. `layout.js` and C# implementation were not changed by this pass.
+Shared runtime source, running applications, earlier editions, and Comparison's
+Chapters 01–25/companion remain untouched. Integration is still held for design
+review; no commit, installation, restart, promotion, or live-provider campaign.
+
+Design: original Sample B's Bootstrap graphite/blue colors; connected tabs;
+quiet Agent navigation and secondary actions; grouped settings; a real selected
+Agent conversation title; open assistant prose and distinct human/tool cards;
+bounded reading width; compact named Pause/Resume/Interrupt icons; stable header
+slots; a primary Send action; and a yielding bottom composer. Ordinary information
+is not styled as an action button. Stronger light/input boundaries and 44-pixel
+expand targets are deliberate usability improvements over the mockup. Disabled
+controls remain disabled from acknowledged Agent state, not invented local state.
+
+Evidence: `/private/tmp/ensemble-gui-design.Dapy8d`. Before-files are in `before/`; isolated binaries are in
+`build/`. Final builds `build-tests-3.log` and `build-gui-3.log` passed with zero
+warnings/errors. Final real-browser run: `check.WAgtHZ` (`browser.log`, `result.json`,
+`host.log`, `.crossover/evidence/`); GUI JS/CSS served byte-equal to saved source,
+browser exit 0, fixture shutdown exit 0. It passed existing real Agent/control,
+selection, replay, streaming, guarded output and persistence checks, plus design
+structure, representative rendered text/input contrast in both themes, tree
+hit areas, and all eight 18/32-pixel text and 390/768/1536-pixel width combinations
+(including 844-pixel phone height and maximal textarea). No external page requests
+or browser script errors. Markup check found 131 unique IDs with label/ARIA
+references resolving. These are scoped checks, not general accessibility proof.
+
+Retained failures: the first design run exposed Send below the viewport at
+390×844/font32 with maximal textarea. Both the outer form and textarea now yield;
+an unintended pane-title line box was also removed. A focused partial-style probe
+did not reproduce the full test's state and was not treated as exoneration. Later
+contrast checking exposed Bootstrap's color fades crossing new theme surfaces;
+control color transitions were removed for immediate high-contrast switching.
+Failed runs remain under this same directory. Two guarded editing mistakes were
+also retained: a mistyped temporary path wrote nothing, and a later layout anchor
+refused after HTML had been saved; I inspected that partial state and did not
+replay the HTML transformation. No layout change was needed.
+
+Source/DOM/style/geometry and runtime behavior were inspected; screenshot pixels
+were NOT inspected by Cadence. Beauty, native audible quality, human accessibility,
+and replacement acceptance remain Bill's decisions. Chapter 26 records the
+substantive lessons. Earlier startup/recovery/core evidence is reused for unchanged
+work, not represented as a fresh campaign. A preview's actual availability will
+be recorded separately; this entry itself does not claim a running preview.
+
+
+## Earlier boundary — candidate 02 corrected and independently checked; Bill's review next
+
+**Subsequent authorized preview:** Bill asked to try the candidate and approved
+launching an isolated fake-provider preview. Started job 1256 at
+`http://127.0.0.1:18202/assistant/?speech=transcript`, private directory
+`/private/tmp/ensemble-crossover02-preview.fFp764`. Readiness and successful page
+response were observed; served app.js and style.css exactly matched corrected
+source. The existing fixture has a 15-minute deadline and fake provider on 18203.
+This is a temporary preview, not installation or acceptance; availability after
+launch must be checked. Speech is silent transcript mode at that URL. No browser
+was driven, credentials accessed, or protected server changed. Stop file:
+`.crossover/runtime/stop` under the preview directory. Reminders remain off while
+Bill reviews; this later launch supersedes the no-preview-at-review-end note below.
+
+Student 02 remains submitted/collected/joined. I finished the scoped saved-code
+and test review and made focused corrections in its isolated, UNCOMMITTED worktree
+`/Users/bill/projects/ensemble-crossover-student-02`, not shared main. Candidate
+baseline remains `b8427b420e681c864e05587dd73c1903aeeeb7ca`. No integration,
+installation, live-provider request, shared restart, promotion, or acceptance.
+Comparison's Chapters 01–25 and companion were not edited. Core Job declarations
+and implementation remain unchanged from the candidate baseline.
+
+Corrections by Cadence:
+- Restored the foundation's block/list/wrapped-paragraph handling while retaining
+  candidate inline emphasis and expandable/copyable code. Browser checks assert
+  actual UL/OL/LI/P structure and normal displayed paragraph whitespace.
+- Separated local manual/automatic/null pause intent from acknowledged actor
+  state, with cause-transition tracking. Fixed Pause and Resume slots allow an
+  automatic pause to be made deliberate. Tests observe outgoing controls and real
+  actor phases for both typing/manual-Pause orderings, clear/send, explicit Resume
+  with an unchanged draft, another tab's pause, selection, reconnect, and Interrupt.
+- Bounded status identity/model/action/usage/funding slots. Geometry checks change
+  displayed values only; they are not accounting tests.
+- The combined matrix found a fourth product defect: a maximally enlarged textarea
+  pushed Send outside the viewport at font32/390px. A flex-column composer now lets
+  the textarea shrink around fixed labels/actions; a 60% outer cap (formerly 48%)
+  leaves room at 844px height without removing the textarea's own 24dvh limit.
+- Corrected a new startup-test source path from `Gui/wwwroot` to Git's `gui/wwwroot`.
+  This case-only fixture correction does not change the host or its startup policy.
+
+Final independent evidence: `/private/tmp/ensemble-crossover02-corrected.rrMfLx`. Both application and GuiTests builds passed
+with zero warnings/errors. Updated integrated `GuiTests/crossover-browser.cjs`
+passed against the real isolated fixture/loopback fake provider and newly embedded
+assets. Served app.js was byte-equal to saved source. Browser result and joined
+host/provider/Agent shutdown are exit zero; host log ends STOPPED. Matrix covers
+18px and 32px text at 390×844, 390×1000, 768×1000 and 1536×1000, with maximal
+textarea, changed status strings, reachable header controls and Send, and no
+page-wide horizontal overflow. Other passing browser checks include real sockets,
+relay/selection, tree/tabs/peers, output guards/bytes, rooted escape/FIFO/missing/
+running/oversized output, stream/replay identity, model busy state, and saved
+appearance. Screenshots were captured, not visually inspected as pixels.
+
+Retain the original three-defect baseline below. Intermediate corrected runs and
+the composer failure remain in `/private/tmp/ensemble-crossover02-corrected.*`;
+focused geometry evidence is in `/private/tmp/ensemble-crossover02-layout.*`
+(latest `/private/tmp/ensemble-crossover02-layout.Yrq0Dv`). My fixture errors were: requiring literal spaces rather
+than normal HTML newline collapse, expecting `inputpending` after a completed
+turn (actual `idle`), and adding a second catch block before syntax checking.
+I also incorrectly asserted that the stylesheet had a paragraph `pre-wrap` rule;
+a guarded edit refused without writing, actual inspection disproved it, and the
+browser confirms normal whitespace. These are my errors, not product defects.
+
+Review covered the changed frontend, layout, output route and ownership/bounds,
+packaging/declarations, startup/launcher, fixture/browser/cancellation/startup
+checks and recovery controller/tests. Earlier valid student core, startup,
+recovery and output-cancellation results are reused, not represented as fresh
+independent reruns. Launchd remains UNTESTED for this candidate; native speech,
+visual beauty, human accessibility, live providers and replacement are unverified.
+Chapter 26 contains the substantive lessons, including local pause intent,
+reserved geometry, preserving Markdown blocks, and composer shrink behavior.
+
+Next is Bill's actual candidate/usability review, not student 03 or installation.
+The candidate is still in its worktree; no preview service was left running by
+this review. Protected 8088/8089, earlier previews, endpoints and earlier editions
+were not changed. Reminders will be disabled at this human acceptance boundary;
+that is not a runtime-completion or replacement verdict.
+
+## Prior boundary — student 02 joined; independent review found three defects
+
+Fresh Bootstrap student `gui-crossover-student-02` has submitted; its result was
+collected and the existing join completed. Candidate remains UNCOMMITTED and
+unintegrated at `/Users/bill/projects/ensemble-crossover-student-02`, baseline
+`b8427b420e681c864e05587dd73c1903aeeeb7ca`. Core Job files are unchanged. Prior
+"RUNNING" statements below describe earlier milestones. Parent review is NOT
+complete and no replacement acceptance is claimed.
+
+Independent retained baseline `/private/tmp/ensemble-crossover02-review.5r7IZh/result.json`
+ran the actual `GuiTests.dll --crossover-host`, embedded `/assistant/` GUI, real
+actor controls, and isolated muted Chrome. The served app.js matched the saved
+candidate byte-for-byte. It demonstrated: semantic list/paragraph rendering
+regressed; typing/clearing after acknowledged manual pause sent `unpause` and
+returned the actor to `inputpending`; long display values moved reserved controls.
+The geometry probe changed displayed values only and is NOT accounting evidence.
+Host/provider/Agents joined with exit zero. Check job 1185 exited one for these
+three assertions. No candidate production changes have yet been made by Cadence.
+Chapter 26 now explicitly exercises all three findings, including both orders of
+manual/automatic pause.
+
+Fixture mistakes remain distinct: an initial guarded command refused the guessed
+`--crossover-fixture` selector before launching; the actual selector is
+`--crossover-host`. `/private/tmp/ensemble-crossover02-review.utB4Ji/result.json`
+then timed out on a guessed `idle` state before behavioral checks. Actual fixture
+readiness is Connected plus enabled Send, and the real ready state is
+`inputpending`. That setup run also shut down cleanly; it is not a product defect.
+The current scratch pointer is `/private/tmp/cadence-crossover02-review-current`.
+Next: focused candidate corrections, matching regressions, finish full saved
+source/test review, and isolated integrated/browser verification. Preserve prior
+student evidence; do not rerun unchanged core/rollback campaigns for freshness.
+
+Bill explicitly returned priority to crossover after conversation about the new
+human companion (Comparison's work) and competitor context management. Do not edit
+or review the companion now. Research was not completed as a comparative ranking;
+read-only pending fetches 1170/1173 were collected, with full results in agent io
+and truncated inline output, not credited as fully read. No new provider tests.
+
 ## Current boundary — Bootstrap crossover run 02 baseline
 
 Bill selected Sample B (Bootstrap 5.3.8, graphite/blue) and asked that Chapter 26
@@ -11,13 +194,74 @@ layout, full-output, pause and model-control lessons. Screenshot capture remains
 distinct from actual visual inspection. The temporary sample is not a required
 service or a hidden implementation answer key.
 
-The next baseline commit is scoped to Chapter 26 and this progress record.
-`solutions/edition-3/main` is unchanged; candidate 01 is not merged into it.
-Student 02 will receive a fresh isolated worktree from that baseline. Preserve
-candidate 01, its failed and passing evidence, and the existing preview/sample
-servers. No shared-repository reset, Comparison chapter edits, running application
+Baseline `b8427b420e681c864e05587dd73c1903aeeeb7ca` commits only Chapter 26 and
+this progress record. `solutions/edition-3/main` is unchanged; candidate 01 is
+not merged into it. Fresh `gui-crossover-student-02` is now RUNNING in clean
+isolated `/Users/bill/projects/ensemble-crossover-student-02` from that revision.
+Earlier start calls were refused/interrupted before dispatch; the subsequent
+spawn returned running. No second-run result is yet available. Student owns
+implementation/testing; Cadence will collect, join and review before reporting
+completion. Eight-minute work reminders are enabled. Preserve candidate 01,
+its failed and passing evidence, and the existing preview/sample servers. No shared-repository reset, Comparison chapter edits, running application
 restart, credentials, provider campaign, installation or promotion is included.
 The prior records below describe run 01 and the samples, not acceptance of run 02.
+
+Run 02 clarification `main-6`: student proposed a private GUI Common
+`MapJobOutput` declaration and Server body. Cadence inspected current Common
+Sandbox/Jobs, peer guards and mount admission/draining, then approved the narrow
+route with no new persistent state/core API, configured-port/custom-header/full
+origin guards, linked cancellation, real Agent→Jobs ownership, non-consuming and
+bounded downloads, and safe refusals. Specified `OpenRegularRead` rather than
+ordinary unconfined `OpenFile` to avoid blocking on nonseekable substitutes.
+Clarified that an Options dialog cannot replace the left Settings tab and that
+Go retirement/promotion remains gated by Bill's acceptance. Reply delivered via
+respond_to_parent_message. Added the regular-file and Settings-dialog lessons to
+shared Chapter 26 for future baselines; this is explicit assistance after the
+frozen run-02 baseline, not an unassisted reconstruction claim.
+
+Run 02 progress `main-7` reported a new core `Job.OpenOutput()` despite main-6's
+GUI-only approval. Cadence inspected the saved declaration/body and route:
+ordinary OpenFile under Job gate, no required custom header, no stopping token,
+no running-output refusal, and name-only FindAgent used for qualified addresses.
+Responded through respond_to_parent_message with concrete corrections, allowing
+an explained approval request if a genuine core gap exists; asked to reconcile
+main-6 explicitly in case messages crossed. These are source findings in ongoing
+work, not failing final campaign claims. Added qualified-address, header-vs-fetch-
+metadata, joined active-response and core-approval clarifications to Chapter 26.
+No student files were edited by Cadence; await actual corrected implementation.
+
+Follow-up: no acknowledgment of main-6/main-7 appeared in the retrieved student
+activity, and the saved route still retained most issues. Cadence sent the same
+correction through direct send_message (job 1073). Student explicitly acknowledged
+in job 1076/cursor 299 that the earlier scope corrections were not visible in its
+tool results, and committed to removing the core API, safe regular-file access,
+required header, running refusal, linked mount cancellation and bounded UI.
+Treat this as reported coordination-delivery failure, not deliberate refusal or
+proof of a chapter defect. Acceptance still requires actual corrected code/tests.
+Working-directory fixture failures were corrected with seven Goals groups; do not
+inflate that into an invented later full-suite run. Wait for student completion
+or a new substantive question rather than repeatedly steering healthy work.
+
+Run 02 `main-8`: student correctly noted unconfined OpenRegularRead follows links
+and asked before adding a ReparsePoint/ancestor walk or a second Sandbox. Cadence
+inspected Common/Sandbox, Resolve/RelativePath and both open bodies; directed it
+to preserve deliberate full-access versus rooted policy, not invent stronger
+GUI confinement. Rooted outward-target refusal/no escaped bytes and nonseekable
+refusal are distinct; inward links may legitimately resolve. Ownership/completion
+does not authenticate original bytes against hostile local substitution. Added
+this nuance to Chapter 26, answered via respond_to_parent_message and direct copy
+job 1116 (cursor 432) because prior reply visibility was unreliable. Student reports
+seven disposable recovery cases and startup checks, still awaiting final review.
+No new core operation, metadata-walk patch or second filesystem owner approved.
+
+Latest student activity through cursor 509 acknowledged main-8 and proceeded with
+final checks. Student found a real recovery gap when process creation throws
+before a candidate exists, corrected it, and reported PASS recovery start-failure
+plus the existing GUI consumer/selection/mounted-peer checks (job 1134 exit 0).
+Cadence added launch-failure restoration and coverage explicitly to Chapter 26;
+these are student-reported checks pending independent review. Join job 1140 is
+waiting for the final submission; no completion or acceptance is claimed.
+
 
 
 Bill's manual V3 use rejected the single-column GUI as a replacement despite the

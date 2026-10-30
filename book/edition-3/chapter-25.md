@@ -323,7 +323,7 @@ After explicitly configuring your chosen provider and selecting an unused local 
     --skills-dir "$work/skills" --primary-skill base --startup-skills goals)
 ```
 
-The omitted provider configuration is intentional: a chapter example must not silently choose an account, credential source, endpoint, or billable model for you. This is not the deferred joint OAuth test from Chapter 23.
+The omitted provider configuration is intentional: a chapter example must not silently choose an account, credential source, endpoint, or billable model for you. This demonstration is separate from the completed, bounded OAuth/cache exercise recorded in Chapter 23.
 
 Open the owned GUI URL and the Goals controls:
 

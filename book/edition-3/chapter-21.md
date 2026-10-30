@@ -542,7 +542,7 @@ The opt-in executable adapter preserves the original Go route and awards only fi
 | Fresh startup from corpus files | 5 |
 | **Exercised scope** | **40** |
 
-That scope passed 40/40 across four clean joined sessions and 72 local model requests. The remaining 60 points—checkpoint/background, GUI toggle, forced/headroom, replay/accounting, abandon/restart and parity—are explicitly outside this executable score. Their separate component/GUI evidence is not converted into points or called a 100-point executable pass.
+The adapter passed 40/40 across four clean joined sessions and 72 local model requests, covering 40 of the original rubric's 100 points. The remaining 60 points cover checkpoint/background, GUI toggle, forced/headroom, replay/accounting, abandon/restart and parity. Those behaviors remain part of the chapter; they are ungraded by this route, rather than failed or removed. The component and GUI checks above provide separate evidence about them without supplying the missing grader points.
 
 The adapter waits for every observed launch's matching committed terminal outcome and then uses an actor barrier before rereading events. It does not infer completion from quiet time. Fresh-start copies only live corpus Markdown, not saves, child submissions, retired files or receipts. A single outgoing request must then contain the planted memory fact.
 

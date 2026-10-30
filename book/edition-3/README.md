@@ -18,9 +18,9 @@ human acceptance of the replacement. The optional Codex implementation was
 completed after Gateway and Goals, and its historical `ch24` endpoint intentionally
 contains that foundation. Earlier endpoints are not renamed or overwritten.
 
-The generated Markdown, EPUB, and PDFs are the previous build until regenerated
-from this revised manuscript. They do not yet reflect the crossover rewrite or
-sequential renumbering.
+The generated Markdown, EPUB, and PDFs have been regenerated from the current
+Chapters 00–26, including the current crossover text without changing it. The
+companion publication is available under [companion/](companion/README.md).
 
 ## Sequential manuscript numbers and historical endpoints
 
@@ -83,11 +83,18 @@ Chrome rendering uses a fresh temporary profile, never the running user profile.
 
 Outputs are the assembled Markdown, EPUB, coverless **Print Interior.pdf**, and
 **The Art of Building AI Coding Agents.pdf** with the cover for free reading.
-`interior-print.html` is the intermediate print input. Cover artwork is inherited
-from the existing edition assets, not a newly approved publication cover. Inspect
-layout and publication metadata before publishing; this work neither publishes
-nor changes any store listing. Source links target the public repository and
-will become available there only when Bill chooses to publish these changes.
+`interior-print.html` is the intermediate print input. Existing cover artwork is
+reused as requested. The current coverless interior is **479 pages at 7 × 10
+inches**; the covered reading PDF is **480 pages**. The reading PDF is for the
+website, not the KDP interior upload. A print cover wrap is separate and must be
+sized for the final interior and selected paper.
+
+The build checks contents destinations, printed references, page labels, black
+print text, embedded fonts, readable body/code type, and EPUB navigation and
+local resources. Review the files in KDP's preview tools before approving a
+publication. No upload or store-listing change is performed by these scripts.
+Source links target the public repository and become available there when Bill
+publishes the corresponding source changes.
 
 Regression checks:
 

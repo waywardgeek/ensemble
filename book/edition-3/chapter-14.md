@@ -2,9 +2,13 @@
 
 A long session with a coding agent can degrade in a familiar way. The answers get vaguer. The agent reads a file it read an hour ago, then forgets a decision made before lunch. A fresh chat can help because a person decides what to carry over. This chapter moves tool-traffic cleanup inside the Agent and records every cut, so replay can explain what left the working context and reproduce the result.
 
-The title comes from the author's account of the original design: after carrying it around for months, he described it to CodeRhapsody one morning, and the first commit landed at 7:42, before breakfast. That is the book's historical account, not a claim about the time taken by this C# implementation or a benchmark against every other system.
+I had started new chats myself, several times, on the day I designed this chapter.
+
+The design had been in my head for a couple of months. On a Tuesday morning I typed it out for about twenty minutes while CodeRhapsody turned it into a design record and checked it against the code. Then I took a shower. The first commit landed at 7:42, before breakfast, and frankly it felt good to get it out.
 
 The important idea is less grand and more useful: **the context window is a working set, not the archive**. Keep the decisions and their reasons. Remove tool bytes deliberately. Do not let a cleanup erase the manual that explains the tools still available.
+
+The breakfast story, byte measurements, and compaction experiments described here come from my earlier work, not fresh measurements of this C# endpoint or a benchmark against every other system. The endpoint's local tests and loopback exercises are described in §14.14; at that chapter boundary, live-provider, native/audible speech, and human-accessibility verification remained incomplete.
 
 ## TL;DR: what you build
 
@@ -36,11 +40,11 @@ Ask three questions of every byte sent again with a request:
 - What put it here?
 - What can remove it?
 
-A user prompt has a reason to remain. A useful explanation of an edit does too. A large file result often answered a question once and is now occupying the window without another decision to support. The first edition's measurements reported about 42 percent result bytes and another 30 percent call arguments in the measured histories. Those figures motivate examining tool traffic; they are not measurements of this C# endpoint.
+A user prompt has a reason to remain. A useful explanation of an edit does too. A large file result often answered a question once and is now occupying the window without another decision to support. In Chapter 2's measured sessions, result bytes made up about 42 percent of conversation history by volume and call arguments another 30 percent. That made tool traffic the obvious place to look.
 
 A removed file result can often be obtained again by reading the file. That is not the same as recovering the original result: the file may have changed, and repeating a command may have effects. Preserve original facts in the archive when their historical identity matters. A stub should say that bytes were removed, not fabricate a trustworthy locator.
 
-The book records a particularly instructive earlier bug: a stub referred to an output path whose numeric handle was reused after restart. The next reader received plausible output from the wrong command. Wrong data was worse than no data. This endpoint does not turn a result stub into an unverified promise that some path still names its original bytes.
+One earlier bug was particularly instructive: a stub referred to an output path whose numeric handle was reused after restart. The next reader received plausible output from the wrong command. Wrong data was worse than no data. This endpoint does not turn a result stub into an unverified promise that some path still names its original bytes.
 
 Tool clearing is not dialogue summarization. The automatic policy in this chapter never asks a model to replace the user's goal or a discussion with a compressed paraphrase. Existing reduction primitives can express other operations, but the policy here selects result and tool reductions only.
 
@@ -148,7 +152,7 @@ Narration is evidence of what the Agent said, not proof the statement remains tr
 
 ## 14.7 A handoff is a fact, not a destructive summary
 
-The book's earlier experiments tried positional `compress_context`: a model chose messages to replace with a summary. Bill's September 2026 account described repeated loss of most of the conversation, including the goal near its beginning. Later whole-task handoffs started a fresh instance from a document, introducing a second path for durable state. Those are historical lessons, not implementations to reproduce here.
+The earlier positional `compress_context` experiment let a model choose messages to replace with a summary. The September 2026 account described repeated loss of most of the conversation, including the goal near its beginning. Later whole-task handoffs started a fresh instance from a document, introducing a second path for durable state. Neither approach is the mechanism to reproduce here.
 
 `micro_handoff` is smaller and more constrained. The model supplies a nonempty `text` note through the normal tool protocol. Admission validates it; the ordinary successful result is recorded before the note can take effect. If the response also contains another tool, its outcome must be recorded before the cut. Interruption pairs undispatched tails with their exact-ID refusals first. Independent Jobs are not cancelled merely because their observations no longer belong in context.
 
@@ -278,6 +282,6 @@ The final component suite has 89 passing groups. A separate assembly consumer us
 
 The scoped executable grade passes all eight checks for 100/100. The first attempt scored 70/100 because its adapter assumed restored manuals and a Go event label; correcting the fixture made current startup selection explicit and checked the actual C# encoding. Those earlier failures remain failures, not retroactive successes. The progress record retains the detailed receipts and process exits.
 
-No live-provider result is credited at this boundary. Live testing is authorized, but the test session has no approved credential source available. Native/audible speech and human-accessibility verification also remain incomplete. These limitations do not erase the offline evidence, and the offline evidence does not erase them.
+The live-provider check remained blocked by the lack of an approved credential source in the test session. The local results establish the state transitions above, not model quality or the unverified speech and accessibility behavior.
 
 The lesson is not that smaller context proves better memory. It is that every retained byte has a reason, every cut is an inspectable fact, and recovery can reproduce the working state without guessing what the Agent must have meant.

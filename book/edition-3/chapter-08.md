@@ -121,6 +121,13 @@ validation. Missing, unreadable, or malformed files fall back to defaults withou
 rewriting or deleting the original file. Do not coerce `"true"`, `1`, and `true`
 into interchangeable values.
 
+This deliberately changes Edition 2's recovery policy: malformed saved JSON
+used to stop startup with an error. Here preferences can fail without locking
+the human out of the GUI. Leaving the file untouched on load gives you a chance
+to inspect or recover it; this is not a backup system, and a later successful
+settings edit can replace that file. A failed save still leaves the accepted
+in-memory values unchanged, as the next section requires.
+
 Preserve zero on disk, in snapshots, and in the input control. Do not replace it
 with 200 in the user-facing state. Only the actor's captured effective limit
 normalizes zero.
@@ -187,6 +194,49 @@ The older Go grader used the label `settings_changed`; that historical label is
 not a requirement to add a second product message.
 
 ## 8.5 Build a useful settings panel
+
+The second edition built three panes, drag bars and a sidebar agent tree. This
+C# endpoint keeps one transcript and adds settings to the Chapter 7 page.
+There are no drag bars or agent-tree controls in this endpoint. Start with this
+smaller page, then judge whether it is comfortable enough for your work.
+
+Open `Examples/Gui/wwwroot/index.html`, `style.css` and `app.js` in the preserved
+`solutions/edition-3/ch08` endpoint. They divide the work without a UI framework:
+
+- The header holds connection and Agent state, Pause/Resume/Interrupt buttons,
+  and a native `details` element for Settings. Its `summary` opens the controls
+  without a custom panel widget.
+- The `main` element, `#transcript`, holds conversation cards. The notice below
+  it reports connection and settings errors; it has `role="status"` so the
+  message is not merely a color change.
+- The `#compose` form holds the labelled textarea and Send message/Send hint
+  buttons. Keep these separate actions visible even though keyboard shortcuts
+  also exist.
+
+The layout is ordinary document flow. The body is centered with a maximum width
+of `70rem`; the transcript grows with its cards, and the composer follows it.
+The `.controls` rows use wrapping flex layout, so buttons can move onto another
+row instead of widening the page. Cards use `overflow-wrap: anywhere`, and
+code blocks use `white-space: pre-wrap`, keeping long arguments and code lines
+from forcing horizontal page scrolling. At widths below 420 pixels, the page
+padding shrinks and buttons can grow to fill a row. Check those choices with
+real long output, not just an empty page.
+
+Theming changes shared CSS variables rather than recoloring each card. The root
+provides the light palette; `data-theme="dark"` selects the dark one. A
+`prefers-color-scheme` media query supplies the system palette only when neither
+explicit light nor dark is selected. Font size is another root variable,
+`--font-size`, used by the page font and inherited by inputs. Existing content
+therefore changes along with the controls.
+
+Follow one edit through the page. Selecting Dark sends the sparse patch
+`{"theme":"dark"}` through `patchSettings`. The control can show the proposed
+choice while “Saving settings…” is displayed, but the acknowledged settings
+remain authoritative. When `settings_updated` arrives, `applySettings` updates
+the root theme attribute, font variable and every settings control. Another tab
+uses the same path. An error restores the acknowledged values and displays the
+failure; it does not pretend the proposed change was saved. This is why the
+page needs both a control value and the last accepted settings snapshot.
 
 Put the panel in the existing optional GUI. Provide clearly labeled controls
 for every table entry. Numeric input steps are integral for font and batch count;

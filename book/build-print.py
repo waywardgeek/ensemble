@@ -5,7 +5,7 @@ Chrome does not implement target-counter(). Reserve a TOC number column in CSS,
 render once, resolve its links, and stamp references without changing layout.
 Front matter is unnumbered; the Preface begins Arabic page 1 on a recto page.
 """
-import re, subprocess, sys
+import re, subprocess, sys, tempfile
 from collections import Counter
 from pathlib import Path
 
@@ -18,11 +18,13 @@ GEORGIA = Path("/System/Library/Fonts/Supplemental/Georgia.ttf")
 
 def render(html: Path, pdf: Path) -> None:
     pdf.unlink(missing_ok=True)
-    subprocess.run(
-        [CHROME, "--headless=new", "--no-sandbox", f"--print-to-pdf={pdf}",
-         "--no-pdf-header-footer", f"file://{html}"],
-        capture_output=True, timeout=600, check=True,
-    )
+    # Never attach publication rendering to an existing interactive profile.
+    with tempfile.TemporaryDirectory(prefix="book-print-chrome-") as profile:
+        subprocess.run(
+            [CHROME, "--headless=new", "--no-sandbox", f"--user-data-dir={profile}",
+             f"--print-to-pdf={pdf}", "--no-pdf-header-footer", f"file://{html}"],
+            capture_output=True, timeout=600, check=True,
+        )
     if not pdf.exists():
         sys.exit(f"FATAL: Chrome produced no PDF at {pdf}")
 

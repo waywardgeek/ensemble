@@ -169,6 +169,13 @@ without claiming unknown amounts are zero. Tabular digits help changing numbers
 remain still. Long names may truncate with the full value available accessibly;
 they must not shove the controls off screen.
 
+Reserve the geometry, not just the labels. Wrapping flex rows and tabular digits
+alone do not stop a longer state or usage value from changing neighboring widths
+or row heights. Bound identity and numeric slots; give model and action controls
+stable tracks. At enlarged text or narrow widths, use an explicit responsive
+arrangement with reachable overflow rather than shrinking text. Pause/Resume
+state changes must not make adjacent controls jump either.
+
 The status bar contains:
 
 - A model dropdown using the existing same-provider, between-turn model-change
@@ -213,7 +220,9 @@ information where applicable. Memory includes the existing band and recall
 settings. Accessibility includes theme, font size, voice, speech speed and pause
 behavior. Keep Goals and existing account controls reachable too; reorganizing
 controls is not permission to drop them. Memory is a settings group, not another
-persistent memory authority or a new recall corpus viewer.
+persistent memory authority or a new recall corpus viewer. A supplemental dialog
+must not replace or bury this agreed Settings tab, duplicate its state, or make
+its grouped controls harder to reach.
 
 Appearance settings belong to their existing store. Memory/recall settings
 belong to the selected Agent. Preserve durable-save-before-acknowledgment,
@@ -239,9 +248,31 @@ as executable provider-supplied HTML.
 Inline truncation is not permission to make the retained result unreachable.
 Provide a usable way to inspect or download the complete output when a current
 owned Job has it. Resolve an Agent and its Job through the existing ownership
-operations; never accept a browser-supplied filesystem path. Preserve the GUI's
-origin/header guards, mounted base path, request cancellation, and private-response
-headers. Reading a download must not consume the Job observer's output cursor.
+operations, including canonical qualified addresses for nested Agents. A named
+top-level lookup is not a substitute for GUI tree/address resolution. Never
+accept a browser-supplied filesystem path. Open the owned output
+with the existing `Sandbox.OpenRegularRead` operation: an ordinary unconfined
+`OpenFile` can wait for a pipe peer if a file has been substituted, whereas the
+regular-file reader refuses nonseekable input without that wait. Dispose the
+returned stream and preserve the same confinement authority.
+
+Nonblocking regular-file access is not a blanket symlink ban. An empty Sandbox
+root deliberately retains full access; a rooted Agent enforces its existing
+confinement and permits admissible inward links. Do not invent a second Sandbox
+or a GUI metadata/ancestor-checking scheme: checking then opening does not prevent
+concurrent substitution. Test that a rooted output redirected outside its root
+refuses without returning escaped bytes, separately from nonseekable-file refusal.
+Preserve the existing unconfined policy and report its limits. Job ownership and
+completion do not authenticate original file bytes against hostile local writers;
+stronger immutable-artifact provenance would require a separately agreed design.
+
+Preserve the GUI's origin/header guards, mounted base path, request cancellation, and private-response
+headers. A convenient ordinary download link is not a reason to replace the
+required custom-header guard with optional browser fetch metadata. Mount shutdown
+must cancel and join the active response, not just stop future admission. Reuse
+the available core operations; if a genuine gap requires a new public operation,
+explain the need and obtain the shared-vocabulary agreement before adding it.
+Reading a download must not consume the Job observer's output cursor.
 Refuse running, missing, wrong-owner, or historical-only handles explicitly rather
 than returning partial output as complete. Bound browser memory use and explain
 any size refusal; an unbounded `fetch().blob()` is not streaming to disk. Test
@@ -261,6 +292,16 @@ and controls that look related. Slightly different dark surfaces can distinguish
 panes; low-contrast gray labels cannot. Tabs must look and behave like tabs.
 Selection, focus, warning, and error states must not rely on color alone.
 
+A component library does not decide the visual hierarchy. When the human selects
+a reference, study the actual page: its connected tabs, navigation rows, prose,
+spacing, and card boundaries, not merely which library it imports. Ordinary
+status information is not an action; navigation should not resemble a row of
+primary buttons. Keep the reference's visual discipline while replacing its
+illustrative interactions with the real application's ownership and behavior.
+Use clear conversation labels without inventing identities, times, or activity.
+Compact action icons need accessible names and generous targets. A restrained
+appearance must not mean faint text or indistinct input boundaries.
+
 Check both themes, enlarged text, keyboard use, and long content in an actual
 browser. Combine the conditions: test the largest supported text size in narrow
 windows as well as on a desktop, not large text only on a wide screen and narrow
@@ -272,6 +313,13 @@ the chosen text size is not a correction. Bounded status summaries, shorter
 navigation labels, and accessible secondary help can preserve space without
 dropping operations. Keep screenshots, but also assert geometry and keyboard
 reachability; a successful settings save does not establish a usable layout.
+A bounded composer with its own scrollbar can still leave Send outside the
+visible area after textarea resizing. Reserve space for its label and action row,
+let both the form and textarea yield space, and test short phone-height windows
+as well as tall ones. Include nonempty notices and settings acknowledgments:
+those rows also consume space. A flexing textarea inside a fixed outer form can
+still overflow after other rows grow. Do not call an off-screen button anchored
+merely because its outer form is.
 Check computed contrast as well as the layout. Capturing a screenshot is not
 viewing its pixels: say whether the acting model actually received and inspected
 the image, or only examined DOM/style/geometry. If visual input is unavailable,
@@ -354,15 +402,17 @@ Prepare a one-shot, approximately thirty-minute rollback with an early-restore
 command. It must check the original process identity and port ownership before
 acting; never terminate an unexpected owner. Allow graceful old-server shutdown,
 and do not force-kill it to make a trial proceed. Restore early if the candidate
-exits. Bound the candidate's shutdown, and restrict any forced termination to
+exits or cannot be launched at all. A missing or unexecutable candidate may throw
+before there is a process to monitor; that exception must still reach the restore
+path after the original has stopped. Bound the candidate's shutdown, and restrict any forced termination to
 processes the trial actually owns. Start the restored application independently
 of the controller that is finishing. Preserve status and private logs, reporting
 uncertain or failed restoration honestly. A slow original shutdown must not
 cause the controller to disappear and leave an empty port later.
 
 Test those lifecycle rules using real disposable local servers before offering a
-live switch. Cover timer expiry, early restore, candidate crash, a candidate
-ignoring termination, changed-owner refusal, and cancellation before the switch.
+live switch. Cover timer expiry, early restore, candidate launch failure and crash,
+a candidate ignoring termination, changed-owner refusal, and cancellation before the switch.
 An armed timer is not proof of recovery. An observed restored listener is not
 proof of remote connectivity or successful inference. Power, network, and OS
 failures remain outside a software controller's guarantee.
@@ -384,11 +434,22 @@ A useful session proceeds through these paths:
 
 1. Launch on an owned spare port. See the three panes, the selected agent, and a
    truthful connection state. Change status/usage text and show that the status
-   bar controls do not move around. Inspect dark and light themes, large text,
+   bar controls do not move around. Compare bounding rectangles before and
+   after realistic long agent names, status values, and multi-digit usage/cost
+   values at a fixed viewport. Checking only that controls are inside the window
+   does not establish reserved space. Label a display-value geometry probe as
+   such; it does not verify backend accounting. Inspect dark and light themes, large text,
    keyboard navigation and pane resizing. Keep screenshots for the human.
 2. Send a message through the real browser. Observe explanation, streaming,
    a tool call and result, and a final reply in the correct panes. Use enough
-   output to test scrolling. Inspect a real artifact supported by the renderer.
+   output to test scrolling. Preserve the existing safe Markdown behavior:
+   unordered and ordered lists must remain semantic lists, and source-wrapped
+   prose must remain one paragraph rather than a stack of separate paragraphs.
+   Check headings, inline code, links, and fenced code without executing supplied
+   HTML. A styling change is not permission to replace a working renderer with a
+   less capable one. Reuse the working block parser when adding inline emphasis
+   or expandable code; test semantic elements and displayed whitespace, not only
+   a screenshot or text-content match. Inspect a real artifact supported by the renderer.
    Disconnect/reconnect and verify repair without duplicate cards or lost text.
 3. Create a peer, see its actual place in the tree, select it, return to the
    original, and delete the eligible peer through the existing operation.
@@ -402,6 +463,21 @@ A useful session proceeds through these paths:
 5. Exercise Pause/Resume, Interrupt, opt-in speech and theme controls. In
    particular, type while pause-on-input is active, press Pause explicitly, and
    send: releasing the automatic typing pause must not undo the manual pause.
+   Also test the reverse order: press Pause, wait for its acknowledged state,
+   type a draft, then clear it or submit it. Observe outgoing controls as well as
+   the real actor's state: the browser must not send an automatic unpause that
+   releases the deliberate pause. A simple Pause/Resume click pair misses this
+   interaction. Keep automatic-pause ownership distinct from a manual request,
+   without creating a browser-owned copy of authoritative actor state.
+   A tab may remember that it requested an automatic pause; that is local control
+   intent, not authority over an already paused Agent. Typing after another tab's
+   Pause must not claim that pause. Explicit Resume must work with an unchanged
+   draft, and explicit Pause must be reachable while typing has automatically
+   paused the Agent. Exercise selection, reconnect, and interruption: stale local
+   intent must neither release someone else's pause nor travel to another Agent.
+   Wait for actual ready phases: a seeded conversation can be `inputpending`,
+   while a completed turn can be `idle`. A guessed state predicate is a fixture
+   failure, not evidence that Resume failed.
    Keep model changes disabled during admitted work even when later usage/meter
    frames arrive; a status refresh must not accidentally re-enable the control.
    Queued speech counts as busy according to the existing policy; selection cancels

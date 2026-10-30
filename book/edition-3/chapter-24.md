@@ -786,9 +786,11 @@ is retained even though its full client contract is ungraded.
 | C6 | Outside consumer of the submitted public client | 10 ungraded |
 | C7 | Independent child connection and refused wider grant | 20 |
 
-The recorded C# result is **60/60**, not 100/100 and not a claim that the ungraded
-40 points failed. Real C# client tests and Mac/Pi wrapper interoperability tests
-retain their separate scopes. Neither a passing fake nor an outside Go peer is a
+The recorded C# result is **60/60**, covering 60 of the original rubric's 100
+points. The remaining 40 client/Noise points are ungraded by this route, rather
+than failed or removed from the chapter's requirements. Read the real C# client
+tests and Mac/Pi wrapper interoperability results as separate evidence; they do
+not supply those grader points. Neither a passing fake nor an outside Go peer is a
 security audit. The Ensemble adapter, administrative restore, ownership and host
 failure paths also need their own source and application evidence.
 

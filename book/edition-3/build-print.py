@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
-"""One-render print build with measured PDF contents references and page labels.
+"""Measured print build with PDF contents references and page labels.
 
 Chrome does not implement target-counter(). Reserve a TOC number column in CSS,
-render once, resolve its links, and stamp references without changing layout.
+render, resolve its links, and stamp references without changing layout.
+A second render adds a blank front-matter page only when measured parity needs it.
 Front matter is unnumbered; the Preface begins Arabic page 1 on a recto page.
 """
 import os, re, subprocess, sys, tempfile
@@ -253,13 +254,29 @@ def clean_html(html: str) -> str:
         flags=re.S,
     )
 
-    # Edition 3 has two TOC pages, followed by title and dedication. Do not
-    # inherit Edition 2's unconditional blank spacer: that moves this preface
-    # onto a left-hand page. finish_pagination checks actual PDF parity.
+    # Contents length changes as chapters change. Do not insert an unconditional
+    # blank page: main measures the Preface position before choosing a spacer.
     anchor = '<h1 id="preface">'
     if html.count(anchor) != 1:
         sys.exit("FATAL: expected exactly one Preface heading")
     return html
+
+
+
+def recto_preface_html(html: str, preface_page: int) -> str:
+    """Add a real blank page only for a measured verso Preface.
+
+    Chrome treats break-before:right like an ordinary page break. A fixed
+    spacer therefore works for one contents length and fails for another.
+    The caller rerenders once and verifies the resulting physical page parity.
+    """
+    if preface_page % 2 == 1:
+        return html
+    anchor = '<h1 id="preface">'
+    if html.count(anchor) != 1 or 'class="recto-spacer"' in html:
+        sys.exit("FATAL: expected one Preface and no existing recto spacer")
+    spacer = '<div class="recto-spacer" aria-hidden="true"></div>\n'
+    return html.replace(anchor, spacer + anchor, 1)
 
 
 def run_pandoc(src: Path) -> None:
@@ -380,13 +397,22 @@ def main() -> None:
     titles = [strip_tags(t) for _, t in entries]
     print(f"TOC entries: {len(titles)}")
 
-    print("render: Chrome (single layout pass)")
+    print("render: Chrome (measure layout)")
     render(src, pdf)
     check_type_size(pdf)
     mapping = build_map(pdf, titles)
     missing = [t for t in titles if t not in mapping]
     if missing:
         sys.exit(f"FATAL: headings never matched a page: {missing[:5]}")
+    recto_html = recto_preface_html(html, mapping["Preface"])
+    if recto_html != html:
+        print("render: add measured recto spacer and verify layout")
+        src.write_text(recto_html)
+        render(src, pdf)
+        mapping = build_map(pdf, titles)
+        missing = [t for t in titles if t not in mapping]
+        if missing:
+            sys.exit(f"FATAL: headings missing after recto repair: {missing[:5]}")
     first, stamped = finish_pagination(pdf, entries, mapping)
     if build_map(pdf, titles) != mapping:
         sys.exit("FATAL: page stamping changed heading locations")

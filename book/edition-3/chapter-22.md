@@ -27,6 +27,8 @@ The improvement was immediate in my daily use. The agent
 went from a goldfish that kept meticulous diaries to a collaborator
 with a past.
 
+The daily-use observations and tuning history in this chapter come from that earlier system, not fresh C# measurements. The C# evidence in §22.9 covers local component and application behavior and a scoped executable rubric; it does not establish live-provider relevance, entitlement, OAuth, billing, native Linux, audible speech, or human accessibility.
+
 ## §22.0 — TL;DR — The Prompt
 
 You are building a C# coding agent that can use tools and skills. Chapters 1–21
@@ -433,12 +435,17 @@ attached the capped text again. Its short-snippet control passed. That history
 explains why C# tests both the cap and next-turn source-hash suppression.
 
 The hash must live with the entry, not in a permanent “seen” table. Otherwise the
-Agent could never recover a fact again after compaction removed it. Chapter 21
-makes this precise: handoff removes old tool/private material but retains the
-completed conversation source until a correlated memory replacement commits.
-The recall entry and its hashes survive that held interval. A committed cut that
-actually removes the entry releases its deduplication identity. Replay has the
-same behavior and does no disk scanning or new judging.
+Agent could never recover a fact again after compaction removed it. V2 Chapter 23
+released that identity when checkpoint removal discarded the recall entry. This
+edition deliberately ties release to the committed replacement, not merely to a
+handoff: Chapter 21 retains completed conversation source until a correlated
+memory replacement commits, even though handoff removes old tool/private material.
+
+The recall entry and its hashes survive that held interval because the model
+still has the source. Clearing the hashes at handoff would let recall attach the
+same material again before its replacement was safe. A committed cut that actually
+removes the entry releases its deduplication identity. Replay has the same
+behavior and does no disk scanning or new judging.
 
 This also protects cache structure. Retrieval happens once at new-turn admission,
 not during every tool-loop render. That is a stable-prefix design decision, not
@@ -446,13 +453,12 @@ proof that a live provider will credit a particular cache hit.
 
 ## §22.6 Tuning: What the Numbers Mean
 
-The first-edition account traces these defaults through months of daily
-use. The stories explain their purpose; they do not make the numbers right
-for every corpus.
+These defaults emerged from months of daily use. The tuning explains their
+purpose; it does not make the numbers right for every corpus.
 
 **MinScore went from 0.5 to 3.0.** At 0.5, every conversation triggered
 recall, and most results were noise: single keyword matches on common
-technical terms. The higher floor reduced that noise in the reported corpus.
+technical terms. The higher floor reduced that noise in the original corpus.
 The jump is large because BM25 scores are not
 normalized; the right threshold depends on corpus size and vocabulary.
 Note: this threshold applies only to plain recall (no judge). When the
@@ -467,15 +473,14 @@ meaning: a short
 project identifier can carry more information than a long generic instruction.
 
 **Candidates went from 10 to 80 (code default) to 20 (production).**
-That was the earlier CodeRhapsody tuning history. This exercise defaults
+That was the CodeRhapsody tuning history. This exercise defaults
 to 20; it does not inherit the old code's 80-candidate setting. More
 candidates enlarge the prompt. Whether they improve selection enough to
 justify that cost depends on the corpus and judge; count the actual candidate
 bytes rather than assuming 20 snippets means a fixed number of tokens.
 
 **Judge timeout is 15 seconds, not 2.** The original design assumed a
-local model (Ollama) with sub-second latency. The historical account reports
-cloud calls taking 1–3 seconds. The generous timeout exists
+local model (Ollama) with sub-second latency. Cloud calls took 1–3 seconds in that workflow. The generous timeout exists
 because a late judge response is better than no judge response. The
 fallback to unfiltered BM25 results is noisier.
 
@@ -502,9 +507,8 @@ turns can return after committed cuts remove its retained identity if it scores 
 and adjusting retrieval is a natural next step that this implementation does
 not take.
 
-These are honest limitations, listed as what they are rather than as a
-roadmap. In the earlier daily-use account, BM25 with a judge worked
-well enough for that corpus; the local C# tests do not establish that claim anew. The system is simple, fast, and debuggable. A
+These are limitations, not a roadmap. BM25 with a judge worked well enough for
+daily use in that system. The system is simple, fast, and debuggable. A
 more sophisticated retrieval system would be harder to debug when it
 recalled the wrong thing, and debugging recall errors is already hard.
 
@@ -515,7 +519,7 @@ indexed alongside memories and documents, subject to launch policy.
 This was added because skill docs are markdown files in a known directory,
 and the existing source scan could include them.
 
-In the earlier daily-use account, the result was unexpectedly powerful. When a user asks about something a
+In daily use, the result was unexpectedly powerful. When a user asks about something a
 skill handles ("can you check my email?" or "what's on my calendar?"),
 the skill's documentation surfaces through auto-recall. The agent can see the
 snippet, recognize the available skill, and load it. No explicit skill
@@ -594,11 +598,11 @@ At this chapter boundary the shared suite passed **297 groups**, and both actual
 CLI and GUI hosts built cleanly. The isolated actual-browser/CLI exercise made
 four local-provider requests: it retrieved a retired fact, retained it for a short
 follow-up, saved and reloaded disabled recall through visible controls, and honored
-that setting after CLI restart. Both hosts joined cleanly. That demonstrates local
-application behavior, not a real model’s relevance judgment or human accessibility.
+that setting after CLI restart. Both hosts joined cleanly.
 
-The opt-in executable grader runs the real CLI and reuses seven complete original
-assertion rows. It does not convert library checks into executable credit:
+The opt-in executable grader runs the real CLI and reuses seven complete rows
+from the original rubric. Its 70/70 is a pass for those rows, not whole-feature
+acceptance; library checks do not become executable credit:
 
 | Executable row | Points |
 |---|---:|
@@ -620,8 +624,6 @@ executable wrapper for the built CLI, not a DLL treated as a native executable.
 
 The successful run joined nineteen CLI sessions and retained thirty-seven
 recorded local peer requests, plus a held timeout exchange outside that recorder.
-No live-provider relevance, entitlement, OAuth, billing, native Linux, audible
-speech, or human-accessibility success is claimed by these checks.
 
 ## §22.10 — Take It for a Spin
 

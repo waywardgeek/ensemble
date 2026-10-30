@@ -63,6 +63,15 @@ It sends chunks and then an immutable completion back to the actor. Pause,
 hint, interrupt, and shutdown therefore continue to use the existing owner
 rather than a parallel streaming control loop.
 
+**Upgrading from Edition 2:** the old “non-streaming is streaming with a length
+of one” rule no longer applies to observer notifications. A non-streaming
+response emits **zero deltas**, not one synthetic delta per part. Final parts
+are authoritative in both modes: a display must be able to create a part from
+its final notification even if no delta preceded it, and must not append the
+final text to an already displayed partial copy. Streaming changes how soon
+content can be shown, not what belongs in the conversation. Compare final
+content and usage across modes; do not require a positive plain-mode delta count.
+
 A slow observer still cannot stall that owner. Observation queues remain
 bounded and lossy. A reliable request task, not a quiet screen or a final-looking
 chunk, tells the application whether its request completed.

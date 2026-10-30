@@ -825,16 +825,17 @@ boundary reports independently cancelled questions as ordinary tool errors.
 
 Sender attribution then received a focused failing test and correction. The
 final shared regression was 191 passing groups, with clean builds of both actual
-hosts. The scoped executable grade was 100/100 across five clean host sessions
-and 59 local requests. Earlier unsuccessful grader runs included fixture errors;
+hosts. The fleet-only executable grade was 100/100 across five clean host sessions
+and 59 local requests: all 100 fleet points from the combined 200-point rubric
+in Section 19.15. Earlier unsuccessful grader runs included fixture errors;
 the current progress record retains them rather than treating every score as a
 product regression. GUI mounting, replay and browser relay evidence have their
 own scope; the executable fleet score does not include a GUI consumer score.
 
 These are local results, not live-model task quality, account entitlement,
-provider billing, audible speech or human accessibility. Live OAuth remains a
-separate deferred exercise. The following second-edition account is preserved
-history, not another measurement of this C# implementation.
+provider billing, audible speech or human accessibility. Chapter 23 records the
+later bounded live OAuth/cache exercise separately. The following second-edition
+account is preserved history, not another measurement of this C# implementation.
 
 
 The second-edition GUI deployment ran from a fresh directory with no source

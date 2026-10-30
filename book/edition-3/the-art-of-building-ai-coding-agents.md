@@ -215,18 +215,8 @@
   - [Exercise, graded](#exercise-graded)
   - [Taking it for a spin — historical evidence](#taking-it-for-a-spin--historical-evidence)
   - [The C# boundary](#the-c-boundary)
-- [Chapter 17: The Crossover](#chapter-17-the-crossover)
+- [Chapter 17: Giving the Agent the Web, and a Status Line](#chapter-17-giving-the-agent-the-web-and-a-status-line)
   - [TL;DR](#tldr-11)
-  - [In plain words — the C# boundary](#in-plain-words--the-c-boundary)
-  - [17.1 What Breaks on Day One](#171-what-breaks-on-day-one)
-  - [17.2 The Bugs That Succeed](#172-the-bugs-that-succeed)
-  - [17.3 Two Paths, One Screen](#173-two-paths-one-screen)
-  - [17.4 What You Cannot See Cannot Be Fixed](#174-what-you-cannot-see-cannot-be-fixed)
-  - [17.5 The Agent Looks in the Mirror](#175-the-agent-looks-in-the-mirror)
-  - [17.6 The Book That Rewrites Itself](#176-the-book-that-rewrites-itself)
-  - [17.7 A File That Actually Changed](#177-a-file-that-actually-changed)
-- [Chapter 18: Giving the Agent the Web, and a Status Line](#chapter-18-giving-the-agent-the-web-and-a-status-line)
-  - [TL;DR](#tldr-12)
   - [The idea in plain words](#the-idea-in-plain-words-1)
   - [The state of search](#the-state-of-search)
   - [The transport seam](#the-transport-seam)
@@ -244,120 +234,124 @@
   - [The chain in the C# implementation](#the-chain-in-the-c-implementation)
   - [Exercise, graded](#exercise-graded-1)
   - [Taking it for a spin — the historical run](#taking-it-for-a-spin--the-historical-run)
-- [Chapter 19: The Sandbox](#chapter-19-the-sandbox)
+- [Chapter 18: The Sandbox](#chapter-18-the-sandbox)
+  - [TL;DR](#tldr-12)
+  - [18.1 The lethal trifecta](#181-the-lethal-trifecta)
+  - [18.2 What the wall protects](#182-what-the-wall-protects)
+  - [18.3 Two boundaries, not one](#183-two-boundaries-not-one)
+  - [18.4 The kernel half -- `sandbox-exec`](#184-the-kernel-half----sandbox-exec)
+  - [18.5 Keep known credentials out of readable diagnostics](#185-keep-known-credentials-out-of-readable-diagnostics)
+  - [18.6 Git inside the sandbox](#186-git-inside-the-sandbox)
+  - [18.7 The trust hierarchy](#187-the-trust-hierarchy)
+  - [18.8 When the trifecta is the right answer](#188-when-the-trifecta-is-the-right-answer)
+  - [18.9 What does not work](#189-what-does-not-work)
+  - [18.10 The sandbox object](#1810-the-sandbox-object)
+  - [18.11 Taking it for a spin](#1811-taking-it-for-a-spin)
+  - [18.12 C# checks and evidence limits](#1812-c-checks-and-evidence-limits)
+- [Chapter 19: The Ensemble](#chapter-19-the-ensemble)
   - [TL;DR](#tldr-13)
-  - [19.1 The lethal trifecta](#191-the-lethal-trifecta)
-  - [19.2 What the wall protects](#192-what-the-wall-protects)
-  - [19.3 Two boundaries, not one](#193-two-boundaries-not-one)
-  - [19.4 The kernel half -- `sandbox-exec`](#194-the-kernel-half----sandbox-exec)
-  - [19.5 Keep known credentials out of readable diagnostics](#195-keep-known-credentials-out-of-readable-diagnostics)
-  - [19.6 Git inside the sandbox](#196-git-inside-the-sandbox)
-  - [19.7 The trust hierarchy](#197-the-trust-hierarchy)
-  - [19.8 When the trifecta is the right answer](#198-when-the-trifecta-is-the-right-answer)
-  - [19.9 What does not work](#199-what-does-not-work)
-  - [19.10 The sandbox object](#1910-the-sandbox-object)
-  - [19.11 Taking it for a spin](#1911-taking-it-for-a-spin)
-  - [19.12 C# checks and evidence limits](#1912-c-checks-and-evidence-limits)
-- [Chapter 20: The Ensemble](#chapter-20-the-ensemble)
-  - [TL;DR](#tldr-14)
   - [The physics](#the-physics)
-  - [20.1 The specification](#201-the-specification)
-  - [20.2 Why the public boundary matters](#202-why-the-public-boundary-matters)
-  - [20.3 The import test](#203-the-import-test)
-  - [20.4 The library must have a consumer](#204-the-library-must-have-a-consumer)
-  - [20.5 How a test is invoked is part of the test](#205-how-a-test-is-invoked-is-part-of-the-test)
-  - [20.6 Spawning](#206-spawning)
-  - [20.7 The parent and the user](#207-the-parent-and-the-user)
-  - [20.8 Asking is not finishing](#208-asking-is-not-finishing)
-  - [20.9 Waking the blocked Agent](#209-waking-the-blocked-agent)
-  - [20.10 Three wakes, then tell someone](#2010-three-wakes-then-tell-someone)
-  - [20.11 Five wiring failures](#2011-five-wiring-failures)
-  - [20.12 What the sweep found](#2012-what-the-sweep-found)
-  - [20.13 The C# exercise](#2013-the-c-exercise)
-  - [20.14 Taking it for a spin](#2014-taking-it-for-a-spin)
-  - [20.15 Checks](#2015-checks)
-- [Chapter 21: Managing the Swarm](#chapter-21-managing-the-swarm)
-  - [21.1 Activity Is Not Completion](#211-activity-is-not-completion)
-  - [21.2 One Ensemble, Real Owners](#212-one-ensemble-real-owners)
-  - [21.3 Homes Are Not Save Paths](#213-homes-are-not-save-paths)
-  - [21.4 Persistent Named Peers](#214-persistent-named-peers)
-  - [21.5 Addresses and Authority Are Different](#215-addresses-and-authority-are-different)
-  - [21.6 The Management Tools](#216-the-management-tools)
-  - [21.7 Finalized Output and Reliable Replies](#217-finalized-output-and-reliable-replies)
-  - [21.8 Wait for Change, Not for a Timer Alone](#218-wait-for-change-not-for-a-timer-alone)
-  - [21.9 Durable Submission Is Historical Data](#219-durable-submission-is-historical-data)
-  - [21.10 Browser Selection Does Not Transfer a Relay](#2110-browser-selection-does-not-transfer-a-relay)
-  - [21.11 Browser-Dependent Startup and Trusted Peer Controls](#2111-browser-dependent-startup-and-trusted-peer-controls)
-  - [21.12 Failure Lessons and Review Order](#2112-failure-lessons-and-review-order)
-  - [21.13 Verification and Scoring Scope](#2113-verification-and-scoring-scope)
-  - [21.14 Exercise](#2114-exercise)
-- [Chapter 22: Forgetting on Purpose](#chapter-22-forgetting-on-purpose)
-  - [TL;DR](#tldr-15)
-  - [§22.1 The Waterfall: Organizing Memory by Stability](#221-the-waterfall-organizing-memory-by-stability)
-  - [§22.2 Replay Records the Memory, Not a Promise to Read It Later](#222-replay-records-the-memory-not-a-promise-to-read-it-later)
-  - [§22.3 A Compression Is a Transaction](#223-a-compression-is-a-transaction)
-  - [§22.4 A Small Worker With Enforced Limits](#224-a-small-worker-with-enforced-limits)
-  - [§22.5 Run Asynchronously Without Creating Another Scheduler](#225-run-asynchronously-without-creating-another-scheduler)
-  - [§22.6 Context Pressure Must Be Enforced](#226-context-pressure-must-be-enforced)
-  - [§22.7 Files and Settings Belong to the Agent](#227-files-and-settings-belong-to-the-agent)
-  - [§22.8 Walk the C# Implementation](#228-walk-the-c-implementation)
-  - [§22.9 Failure Lessons Worth Keeping](#229-failure-lessons-worth-keeping)
-  - [§22.10 Historical Measurements and Trials](#2210-historical-measurements-and-trials)
-  - [§22.11 What the C# Verification Establishes](#2211-what-the-c-verification-establishes)
-  - [§22.12 What We Learned](#2212-what-we-learned)
+  - [19.1 The specification](#191-the-specification)
+  - [19.2 Why the public boundary matters](#192-why-the-public-boundary-matters)
+  - [19.3 The import test](#193-the-import-test)
+  - [19.4 The library must have a consumer](#194-the-library-must-have-a-consumer)
+  - [19.5 How a test is invoked is part of the test](#195-how-a-test-is-invoked-is-part-of-the-test)
+  - [19.6 Spawning](#196-spawning)
+  - [19.7 The parent and the user](#197-the-parent-and-the-user)
+  - [19.8 Asking is not finishing](#198-asking-is-not-finishing)
+  - [19.9 Waking the blocked Agent](#199-waking-the-blocked-agent)
+  - [19.10 Three wakes, then tell someone](#1910-three-wakes-then-tell-someone)
+  - [19.11 Five wiring failures](#1911-five-wiring-failures)
+  - [19.12 What the sweep found](#1912-what-the-sweep-found)
+  - [19.13 The C# exercise](#1913-the-c-exercise)
+  - [19.14 Taking it for a spin](#1914-taking-it-for-a-spin)
+  - [19.15 Checks](#1915-checks)
+- [Chapter 20: Managing the Swarm](#chapter-20-managing-the-swarm)
+  - [20.1 Activity Is Not Completion](#201-activity-is-not-completion)
+  - [20.2 One Ensemble, Real Owners](#202-one-ensemble-real-owners)
+  - [20.3 Homes Are Not Save Paths](#203-homes-are-not-save-paths)
+  - [20.4 Persistent Named Peers](#204-persistent-named-peers)
+  - [20.5 Addresses and Authority Are Different](#205-addresses-and-authority-are-different)
+  - [20.6 The Management Tools](#206-the-management-tools)
+  - [20.7 Finalized Output and Reliable Replies](#207-finalized-output-and-reliable-replies)
+  - [20.8 Wait for Change, Not for a Timer Alone](#208-wait-for-change-not-for-a-timer-alone)
+  - [20.9 Durable Submission Is Historical Data](#209-durable-submission-is-historical-data)
+  - [20.10 Browser Selection Does Not Transfer a Relay](#2010-browser-selection-does-not-transfer-a-relay)
+  - [20.11 Browser-Dependent Startup and Trusted Peer Controls](#2011-browser-dependent-startup-and-trusted-peer-controls)
+  - [20.12 Failure Lessons and Review Order](#2012-failure-lessons-and-review-order)
+  - [20.13 Verification and Scoring Scope](#2013-verification-and-scoring-scope)
+  - [20.14 Exercise](#2014-exercise)
+- [Chapter 21: Forgetting on Purpose](#chapter-21-forgetting-on-purpose)
+  - [TL;DR](#tldr-14)
+  - [§21.1 The Waterfall: Organizing Memory by Stability](#211-the-waterfall-organizing-memory-by-stability)
+  - [§21.2 Replay Records the Memory, Not a Promise to Read It Later](#212-replay-records-the-memory-not-a-promise-to-read-it-later)
+  - [§21.3 A Compression Is a Transaction](#213-a-compression-is-a-transaction)
+  - [§21.4 A Small Worker With Enforced Limits](#214-a-small-worker-with-enforced-limits)
+  - [§21.5 Run Asynchronously Without Creating Another Scheduler](#215-run-asynchronously-without-creating-another-scheduler)
+  - [§21.6 Context Pressure Must Be Enforced](#216-context-pressure-must-be-enforced)
+  - [§21.7 Files and Settings Belong to the Agent](#217-files-and-settings-belong-to-the-agent)
+  - [§21.8 Walk the C# Implementation](#218-walk-the-c-implementation)
+  - [§21.9 Failure Lessons Worth Keeping](#219-failure-lessons-worth-keeping)
+  - [§21.10 Historical Measurements and Trials](#2110-historical-measurements-and-trials)
+  - [§21.11 What the C# Verification Establishes](#2111-what-the-c-verification-establishes)
+  - [§21.12 What We Learned](#2112-what-we-learned)
   - [Exercises](#exercises)
   - [Take It for a Spin](#take-it-for-a-spin)
-- [Chapter 23: Auto-Recall](#chapter-23-auto-recall)
-  - [§23.0 — TL;DR — The Prompt](#230--tldr--the-prompt)
-  - [§23.1 — The Retrieval Pipeline](#231--the-retrieval-pipeline)
-  - [§23.2 BM25: The Old Formula That Still Works](#232-bm25-the-old-formula-that-still-works)
-  - [§23.3 Per-Source Quotas: Why Memory Gets Half the Slots](#233-per-source-quotas-why-memory-gets-half-the-slots)
-  - [§23.4 — The Judge: Filtering by Meaning, Not Keywords](#234--the-judge-filtering-by-meaning-not-keywords)
-  - [§23.5 — A Recall Entry Is Part of the Conversation](#235--a-recall-entry-is-part-of-the-conversation)
-  - [§23.6 Tuning: What the Numbers Mean](#236-tuning-what-the-numbers-mean)
-  - [§23.7 What BM25 Cannot Do](#237-what-bm25-cannot-do)
-  - [§23.8 Skill Discovery: The Unplanned Win](#238-skill-discovery-the-unplanned-win)
-  - [§23.9 — Verify the Implementation](#239--verify-the-implementation)
-  - [§23.10 — Take It for a Spin](#2310--take-it-for-a-spin)
-- [Chapter 24: While the Cache Is Broken — Measure Before Taking the Detour](#chapter-24-while-the-cache-is-broken--measure-before-taking-the-detour)
+- [Chapter 22: Auto-Recall](#chapter-22-auto-recall)
+  - [§22.0 — TL;DR — The Prompt](#220--tldr--the-prompt)
+  - [§22.1 — The Retrieval Pipeline](#221--the-retrieval-pipeline)
+  - [§22.2 BM25: The Old Formula That Still Works](#222-bm25-the-old-formula-that-still-works)
+  - [§22.3 Per-Source Quotas: Why Memory Gets Half the Slots](#223-per-source-quotas-why-memory-gets-half-the-slots)
+  - [§22.4 — The Judge: Filtering by Meaning, Not Keywords](#224--the-judge-filtering-by-meaning-not-keywords)
+  - [§22.5 — A Recall Entry Is Part of the Conversation](#225--a-recall-entry-is-part-of-the-conversation)
+  - [§22.6 Tuning: What the Numbers Mean](#226-tuning-what-the-numbers-mean)
+  - [§22.7 What BM25 Cannot Do](#227-what-bm25-cannot-do)
+  - [§22.8 Skill Discovery: The Unplanned Win](#228-skill-discovery-the-unplanned-win)
+  - [§22.9 — Verify the Implementation](#229--verify-the-implementation)
+  - [§22.10 — Take It for a Spin](#2210--take-it-for-a-spin)
+- [Chapter 23: While the Cache Is Broken — Measure Before Taking the Detour](#chapter-23-while-the-cache-is-broken--measure-before-taking-the-detour)
   - [Why this chapter exists](#why-this-chapter-exists)
-  - [TL;DR](#tldr-16)
+  - [TL;DR](#tldr-15)
   - [Implementation status](#implementation-status)
-  - [24.1 In plain language](#241-in-plain-language)
-  - [24.2 Taking the detour in C#](#242-taking-the-detour-in-c)
-  - [24.3 Taking a measurement in C#](#243-taking-a-measurement-in-c)
-  - [24.4 What the earlier detour taught us](#244-what-the-earlier-detour-taught-us)
-  - [24.5 Where this execution stops, and where the book continues](#245-where-this-execution-stops-and-where-the-book-continues)
-- [Chapter 25: Crossing Over to Ensemble](#chapter-25-crossing-over-to-ensemble)
-  - [Using the thing we had built](#using-the-thing-we-had-built)
-  - [Observation should serve the work](#observation-should-serve-the-work)
-  - [Explain before acting](#explain-before-acting)
-  - [A check-in is not a deadline](#a-check-in-is-not-a-deadline)
-  - [Roles must agree with their result contracts](#roles-must-agree-with-their-result-contracts)
-  - [Configuration should be inspectable](#configuration-should-be-inspectable)
-  - [Identity outlives a process](#identity-outlives-a-process)
-  - [What the crossover contributes to the book](#what-the-crossover-contributes-to-the-book)
-- [Chapter 26: Gateway](#chapter-26-gateway)
-  - [TL;DR](#tldr-17)
-  - [26.1 Why the agent needs a router](#261-why-the-agent-needs-a-router)
-  - [26.2 Noise-KK beneath the cloud](#262-noise-kk-beneath-the-cloud)
-  - [26.3 Trust stamped at the boundary](#263-trust-stamped-at-the-boundary)
-  - [26.4 A library, not a framework](#264-a-library-not-a-framework)
-  - [26.5 Delivery and recovery](#265-delivery-and-recovery)
-  - [26.6 The interviewer proves the stack](#266-the-interviewer-proves-the-stack)
-  - [26.7 What the grader checks](#267-what-the-grader-checks)
-- [Chapter 27 — Goals](#chapter-27--goals)
-  - [§27.0 TL;DR — What to Build](#270-tldr--what-to-build)
-  - [§27.1 Write an Objective, Not a Repeated Command](#271-write-an-objective-not-a-repeated-command)
-  - [§27.2 Keep the State on the Agent](#272-keep-the-state-on-the-agent)
-  - [§27.3 Preserve the Goal Across Requests, Not as Transcript Copies](#273-preserve-the-goal-across-requests-not-as-transcript-copies)
-  - [§27.4 Let the Actor Decide Whether to Wake](#274-let-the-actor-decide-whether-to-wake)
-  - [§27.5 Stop Has More Than One Meaning](#275-stop-has-more-than-one-meaning)
-  - [§27.6 One Status, Several Views](#276-one-status-several-views)
-  - [§27.7 Verify the Boundaries](#277-verify-the-boundaries)
-  - [§27.8 Taking It for a Spin](#278-taking-it-for-a-spin)
-  - [§27.9 Exercises](#279-exercises)
-  - [§27.10 What Goals Does—and Does Not—Buy Us](#2710-what-goals-doesand-does-notbuy-us)
+  - [23.1 In plain language](#231-in-plain-language)
+  - [23.2 Taking the detour in C#](#232-taking-the-detour-in-c)
+  - [23.3 Taking a measurement in C#](#233-taking-a-measurement-in-c)
+  - [23.4 What the earlier detour taught us](#234-what-the-earlier-detour-taught-us)
+  - [23.5 Where this execution stops, and where the book continues](#235-where-this-execution-stops-and-where-the-book-continues)
+- [Chapter 24: Gateway](#chapter-24-gateway)
+  - [TL;DR](#tldr-16)
+  - [24.1 Why the agent needs a router](#241-why-the-agent-needs-a-router)
+  - [24.2 Noise-KK beneath the cloud](#242-noise-kk-beneath-the-cloud)
+  - [24.3 Trust stamped at the boundary](#243-trust-stamped-at-the-boundary)
+  - [24.4 A library, not a framework](#244-a-library-not-a-framework)
+  - [24.5 Delivery and recovery](#245-delivery-and-recovery)
+  - [24.6 The interviewer proves the stack](#246-the-interviewer-proves-the-stack)
+  - [24.7 What the grader checks](#247-what-the-grader-checks)
+- [Chapter 25 — Goals](#chapter-25--goals)
+  - [§25.0 TL;DR — What to Build](#250-tldr--what-to-build)
+  - [§25.1 Write an Objective, Not a Repeated Command](#251-write-an-objective-not-a-repeated-command)
+  - [§25.2 Keep the State on the Agent](#252-keep-the-state-on-the-agent)
+  - [§25.3 Preserve the Goal Across Requests, Not as Transcript Copies](#253-preserve-the-goal-across-requests-not-as-transcript-copies)
+  - [§25.4 Let the Actor Decide Whether to Wake](#254-let-the-actor-decide-whether-to-wake)
+  - [§25.5 Stop Has More Than One Meaning](#255-stop-has-more-than-one-meaning)
+  - [§25.6 One Status, Several Views](#256-one-status-several-views)
+  - [§25.7 Verify the Boundaries](#257-verify-the-boundaries)
+  - [§25.8 Taking It for a Spin](#258-taking-it-for-a-spin)
+  - [§25.9 Exercises](#259-exercises)
+  - [§25.10 What Goals Does—and Does Not—Buy Us](#2510-what-goals-doesand-does-notbuy-us)
+- [Chapter 26: Crossing Over to Ensemble](#chapter-26-crossing-over-to-ensemble)
+  - [TL;DR — finish the replacement, not another demonstration](#tldr--finish-the-replacement-not-another-demonstration)
+  - [In plain words — one system, a better place to use it](#in-plain-words--one-system-a-better-place-to-use-it)
+  - [Required GUI reading](#required-gui-reading)
+  - [The selected control system and visual direction](#the-selected-control-system-and-visual-direction)
+  - [The interface I require](#the-interface-i-require)
+  - [Make startup ordinary and failure useful](#make-startup-ordinary-and-failure-useful)
+  - [A safe trial and an independent way back](#a-safe-trial-and-an-independent-way-back)
+  - [Exercise the behavior that daily use exposes](#exercise-the-behavior-that-daily-use-exposes)
+  - [Lessons that remain obligations](#lessons-that-remain-obligations)
+  - [Where to work](#where-to-work)
+  - [The fresh-student loop](#the-fresh-student-loop)
+  - [The human acceptance and promotion gate](#the-human-acceptance-and-promotion-gate)
 - [Epilogue: What we can rebuild](#epilogue-what-we-can-rebuild)
   - [The expert stayed in the loop](#the-expert-stayed-in-the-loop)
   - [A correction needs a reason](#a-correction-needs-a-reason)
@@ -632,9 +626,11 @@ not replace Bill's architectural judgment or the assembled source review. My
 
 *The Singularity as it Happened*
 
-*Second-edition note: the opening account and comparison figures below are
-preserved from the first edition's October 2026 account. They describe that
-work, not fresh measurements of today's products or of the new student build.*
+*Third-edition note: the opening account, opinions and comparison figures below
+are preserved from the first edition's October 2026 account. They describe that
+work, not fresh measurements of today's products or of the C# implementation.
+The third-edition implementation run is complete; the current Chapter 26
+crossover is still in progress, not an accepted replacement for daily use.*
 
 ---
 
@@ -658,7 +654,7 @@ I am the guru of this codebase, and this book encodes what I know: the art of bu
 
 Consider what the field has shipped.
 
-The one I have worked with extensively is Gemini CLI. Mocks everywhere instead of fakes. Nearly five thousand mock call sites as of October 2026. In December 2025 it was 255,000 lines of TypeScript. Today it is 559,193. It more than doubled while I was writing this book. Claude Code, reported at 512,000 lines of TypeScript, is in the same class. The winner, at 1.8 million lines of Rust, is Codex.
+The one I have worked with extensively is Gemini CLI. Mocks everywhere instead of fakes. Nearly five thousand mock call sites as of October 2026. In December 2025 it was 255,000 lines of TypeScript. By October 2026 it was 559,193. It more than doubled while I was writing this book. Claude Code, reported at 512,000 lines of TypeScript, is in the same class. The winner, at 1.8 million lines of Rust, is Codex.
 
 Ensemble does most of what these tools do in 27,042.
 
@@ -727,9 +723,11 @@ evidence, and it is also software someone wrote.
 Build one chapter on its accepted predecessor. Read its explanation as well as
 its exercise: the reason for a boundary is often what keeps the next feature
 from breaking it. Before writing code, load
-`.agents/skills/ensemble-coding/SKILL.md`. It carries the implementation and
-review rules into an agent's working context. Chapter 1 explains the initial
-architecture; later chapters introduce their own machinery when it is needed.
+the `ensemble-csharp` skill and follow the
+[C# edition procedure](../../docs/edition-3-csharp-procedure.md). They carry the
+implementation and review rules into an agent's working context. Chapter 1
+explains the initial architecture; later chapters introduce their own machinery
+when it is needed.
 
 Keep the student away from the reference answers until it has attempted the
 exercise. Otherwise a successful build tells you that copying works. If the
@@ -740,7 +738,8 @@ by the model quietly choosing its favorite design.
 
 For each chapter, finish the same small cycle:
 
-1. Implement the stated capability and run its grader, module tests and vet.
+1. Implement the stated capability and run its applicable grader, .NET build
+   and tests.
    Check which packages and executable actually ran; a successful command with
    no tests selected proves little.
 2. Exercise the human interface with a real model. Type into the chat, read its
@@ -771,11 +770,14 @@ the defects tried; independent review and live use can still find a different
 mistake. Keep those findings too. They are material for teaching, not stains
 to scrub out of the experiment.
 
-This edition's first author-led attempt supplied an expensive warning. Writing
-expanded contracts before the student learned from the original exercises
+The second edition's first author-led attempt supplied an expensive warning.
+Writing expanded contracts before the student learned from the original exercises
 turned small tasks into larger ones, and review approved the expansion. That
-attempt was stopped. The fresh student built first; these chapters enhance the
-original explanations using its accepted code and reviews. The history is in
+attempt was stopped. The fresh second-edition student built first; that edition
+enhanced the original explanations using its accepted code and reviews. The third edition
+now teaches the completed C# implementation, with chapter source maps pointing
+to its preserved endpoints rather than changing their historical numbers.
+The second-edition attempt history is in
 [`docs/edition-2-attempt-1.md`](../../docs/edition-2-attempt-1.md).
 
 ## The generation
@@ -800,16 +802,18 @@ After the crossing, every chapter you add is written with the tool the chapter e
 
 A self-improvement loop with graded checkpoints and mutation-tested guardrails, running on a model whose improvements must be demonstrated on each pass.
 
-For this experiment, Bill explicitly selected GPT-6 Astra (`gpt-6-astra`) at
-high reasoning. The new Ensemble has demonstrated actual coding with that
+For the earlier crossover experiment, Bill explicitly selected GPT-6 Astra
+(`gpt-6-astra`) at high reasoning. The new Ensemble has demonstrated actual coding with that
 configuration: reading a program, reproducing failures, editing it and passing
-the unchanged tests. Chapter 17 records that bounded task.
+the unchanged tests. That bounded task belongs to the earlier crossover record,
+not evidence of this edition's replacement readiness.
 
-At this edition's first publication, the implementation catches up through the
-first edition's final exercise, Gateway, now Chapter 26. The actual move from
-Codex into Ensemble has begun, and Chapter 25 is reserved for that experience.
-The crossover is not complete. Using Ensemble to produce Edition 3 remains the
-next goal; this second edition was built with Codex under Bill's direction.
+The earlier second edition was built with Codex under Bill's direction. The C#
+third edition was built inside Ensemble. That closes the development loop, but
+does not by itself establish that the replacement is ready for daily use. The
+current crossover exercise in Chapter 26 requires an actual usable application,
+a safe trial, and the human's acceptance before promotion. That exercise is
+ongoing; implementation completion is not crossover acceptance.
 
 ## Your Ensemble
 
@@ -5770,6 +5774,15 @@ It sends chunks and then an immutable completion back to the actor. Pause,
 hint, interrupt, and shutdown therefore continue to use the existing owner
 rather than a parallel streaming control loop.
 
+**Upgrading from Edition 2:** the old “non-streaming is streaming with a length
+of one” rule no longer applies to observer notifications. A non-streaming
+response emits **zero deltas**, not one synthetic delta per part. Final parts
+are authoritative in both modes: a display must be able to create a part from
+its final notification even if no delta preceded it, and must not append the
+final text to an already displayed partial copy. Streaming changes how soon
+content can be shown, not what belongs in the conversation. Compare final
+content and usage across modes; do not require a positive plain-mode delta count.
+
 A slow observer still cannot stall that owner. Observation queues remain
 bounded and lossy. A reliable request task, not a quiet screen or a final-looking
 chunk, tells the application whether its request completed.
@@ -6809,6 +6822,13 @@ validation. Missing, unreadable, or malformed files fall back to defaults withou
 rewriting or deleting the original file. Do not coerce `"true"`, `1`, and `true`
 into interchangeable values.
 
+This deliberately changes Edition 2's recovery policy: malformed saved JSON
+used to stop startup with an error. Here preferences can fail without locking
+the human out of the GUI. Leaving the file untouched on load gives you a chance
+to inspect or recover it; this is not a backup system, and a later successful
+settings edit can replace that file. A failed save still leaves the accepted
+in-memory values unchanged, as the next section requires.
+
 Preserve zero on disk, in snapshots, and in the input control. Do not replace it
 with 200 in the user-facing state. Only the actor's captured effective limit
 normalizes zero.
@@ -6875,6 +6895,49 @@ The older Go grader used the label `settings_changed`; that historical label is
 not a requirement to add a second product message.
 
 ## 8.5 Build a useful settings panel
+
+The second edition built three panes, drag bars and a sidebar agent tree. This
+C# endpoint keeps one transcript and adds settings to the Chapter 7 page.
+There are no drag bars or agent-tree controls in this endpoint. Start with this
+smaller page, then judge whether it is comfortable enough for your work.
+
+Open `Examples/Gui/wwwroot/index.html`, `style.css` and `app.js` in the preserved
+`solutions/edition-3/ch08` endpoint. They divide the work without a UI framework:
+
+- The header holds connection and Agent state, Pause/Resume/Interrupt buttons,
+  and a native `details` element for Settings. Its `summary` opens the controls
+  without a custom panel widget.
+- The `main` element, `#transcript`, holds conversation cards. The notice below
+  it reports connection and settings errors; it has `role="status"` so the
+  message is not merely a color change.
+- The `#compose` form holds the labelled textarea and Send message/Send hint
+  buttons. Keep these separate actions visible even though keyboard shortcuts
+  also exist.
+
+The layout is ordinary document flow. The body is centered with a maximum width
+of `70rem`; the transcript grows with its cards, and the composer follows it.
+The `.controls` rows use wrapping flex layout, so buttons can move onto another
+row instead of widening the page. Cards use `overflow-wrap: anywhere`, and
+code blocks use `white-space: pre-wrap`, keeping long arguments and code lines
+from forcing horizontal page scrolling. At widths below 420 pixels, the page
+padding shrinks and buttons can grow to fill a row. Check those choices with
+real long output, not just an empty page.
+
+Theming changes shared CSS variables rather than recoloring each card. The root
+provides the light palette; `data-theme="dark"` selects the dark one. A
+`prefers-color-scheme` media query supplies the system palette only when neither
+explicit light nor dark is selected. Font size is another root variable,
+`--font-size`, used by the page font and inherited by inputs. Existing content
+therefore changes along with the controls.
+
+Follow one edit through the page. Selecting Dark sends the sparse patch
+`{"theme":"dark"}` through `patchSettings`. The control can show the proposed
+choice while “Saving settings…” is displayed, but the acknowledged settings
+remain authoritative. When `settings_updated` arrives, `applySettings` updates
+the root theme attribute, font variable and every settings control. Another tab
+uses the same path. An error restores the acknowledged values and displays the
+failure; it does not pretend the proposed change was saved. This is why the
+page needs both a control value and the last accepted settings snapshot.
 
 Put the panel in the existing optional GUI. Provide clearly labeled controls
 for every table entry. Numeric input steps are integral for font and batch count;
@@ -8587,9 +8650,13 @@ The historical first-edition and later Go listener sessions are not C# integrati
 
 A long session with a coding agent can degrade in a familiar way. The answers get vaguer. The agent reads a file it read an hour ago, then forgets a decision made before lunch. A fresh chat can help because a person decides what to carry over. This chapter moves tool-traffic cleanup inside the Agent and records every cut, so replay can explain what left the working context and reproduce the result.
 
-The title comes from the author's account of the original design: after carrying it around for months, he described it to CodeRhapsody one morning, and the first commit landed at 7:42, before breakfast. That is the book's historical account, not a claim about the time taken by this C# implementation or a benchmark against every other system.
+I had started new chats myself, several times, on the day I designed this chapter.
+
+The design had been in my head for a couple of months. On a Tuesday morning I typed it out for about twenty minutes while CodeRhapsody turned it into a design record and checked it against the code. Then I took a shower. The first commit landed at 7:42, before breakfast, and frankly it felt good to get it out.
 
 The important idea is less grand and more useful: **the context window is a working set, not the archive**. Keep the decisions and their reasons. Remove tool bytes deliberately. Do not let a cleanup erase the manual that explains the tools still available.
+
+The breakfast story, byte measurements, and compaction experiments described here come from my earlier work, not fresh measurements of this C# endpoint or a benchmark against every other system. The endpoint's local tests and loopback exercises are described in §14.14; at that chapter boundary, live-provider, native/audible speech, and human-accessibility verification remained incomplete.
 
 ## TL;DR: what you build
 
@@ -8621,11 +8688,11 @@ Ask three questions of every byte sent again with a request:
 - What put it here?
 - What can remove it?
 
-A user prompt has a reason to remain. A useful explanation of an edit does too. A large file result often answered a question once and is now occupying the window without another decision to support. The first edition's measurements reported about 42 percent result bytes and another 30 percent call arguments in the measured histories. Those figures motivate examining tool traffic; they are not measurements of this C# endpoint.
+A user prompt has a reason to remain. A useful explanation of an edit does too. A large file result often answered a question once and is now occupying the window without another decision to support. In Chapter 2's measured sessions, result bytes made up about 42 percent of conversation history by volume and call arguments another 30 percent. That made tool traffic the obvious place to look.
 
 A removed file result can often be obtained again by reading the file. That is not the same as recovering the original result: the file may have changed, and repeating a command may have effects. Preserve original facts in the archive when their historical identity matters. A stub should say that bytes were removed, not fabricate a trustworthy locator.
 
-The book records a particularly instructive earlier bug: a stub referred to an output path whose numeric handle was reused after restart. The next reader received plausible output from the wrong command. Wrong data was worse than no data. This endpoint does not turn a result stub into an unverified promise that some path still names its original bytes.
+One earlier bug was particularly instructive: a stub referred to an output path whose numeric handle was reused after restart. The next reader received plausible output from the wrong command. Wrong data was worse than no data. This endpoint does not turn a result stub into an unverified promise that some path still names its original bytes.
 
 Tool clearing is not dialogue summarization. The automatic policy in this chapter never asks a model to replace the user's goal or a discussion with a compressed paraphrase. Existing reduction primitives can express other operations, but the policy here selects result and tool reductions only.
 
@@ -8733,7 +8800,7 @@ Narration is evidence of what the Agent said, not proof the statement remains tr
 
 ## 14.7 A handoff is a fact, not a destructive summary
 
-The book's earlier experiments tried positional `compress_context`: a model chose messages to replace with a summary. Bill's September 2026 account described repeated loss of most of the conversation, including the goal near its beginning. Later whole-task handoffs started a fresh instance from a document, introducing a second path for durable state. Those are historical lessons, not implementations to reproduce here.
+The earlier positional `compress_context` experiment let a model choose messages to replace with a summary. The September 2026 account described repeated loss of most of the conversation, including the goal near its beginning. Later whole-task handoffs started a fresh instance from a document, introducing a second path for durable state. Neither approach is the mechanism to reproduce here.
 
 `micro_handoff` is smaller and more constrained. The model supplies a nonempty `text` note through the normal tool protocol. Admission validates it; the ordinary successful result is recorded before the note can take effect. If the response also contains another tool, its outcome must be recorded before the cut. Interruption pairs undispatched tails with their exact-ID refusals first. Independent Jobs are not cancelled merely because their observations no longer belong in context.
 
@@ -8863,7 +8930,7 @@ The final component suite has 89 passing groups. A separate assembly consumer us
 
 The scoped executable grade passes all eight checks for 100/100. The first attempt scored 70/100 because its adapter assumed restored manuals and a Go event label; correcting the fixture made current startup selection explicit and checked the actual C# encoding. Those earlier failures remain failures, not retroactive successes. The progress record retains the detailed receipts and process exits.
 
-No live-provider result is credited at this boundary. Live testing is authorized, but the test session has no approved credential source available. Native/audible speech and human-accessibility verification also remain incomplete. These limitations do not erase the offline evidence, and the offline evidence does not erase them.
+The live-provider check remained blocked by the lack of an approved credential source in the test session. The local results establish the state transitions above, not model quality or the unverified speech and accessibility behavior.
 
 The lesson is not that smaller context proves better memory. It is that every retained byte has a reason, every cut is an inspectable fact, and recovery can reproduce the working state without guessing what the Agent must have meant.
 
@@ -9431,7 +9498,7 @@ local issuer tests separately exercise the credential owner. In the October 29,
 2026 joint session, Bill completed real CLI login with Ensemble's own registration.
 Account-specific model discovery and three plan-funded Responses calls succeeded
 through current main. Renewal, sign-out, GUI login and billing reconciliation were
-not exercised live. The cache result was zero reported reuse; see Chapter 24.
+not exercised live. The cache result was zero reported reuse; see Chapter 23.
 These observations supplement, rather than expand, the earlier executable grade.
 
 ## The coding brief
@@ -9545,7 +9612,7 @@ editing the earlier context. ([Launch policy](https://www.anthropic.com/claude-o
 
 Several chapters depend on owning that editing policy: Chapter 2's
 ephemera, the changing GUI and speech views in Chapters 12–13,
-the cuts in Chapter 14, the later memory in Chapter 22, and Chapter 23's recorded
+the cuts in Chapter 14, the later memory in Chapter 21, and Chapter 22's recorded
 recall attachments, which survive until a checkpoint. They do not
 all have the same lifetime. They do share the ability to stop
 sending material without asking a provider to make the cut.
@@ -10180,14 +10247,14 @@ Responses endpoint. All three reached `response.completed` and answered `OK`.
 No other application's credentials were inspected or borrowed.
 
 Each response reported 3,641 input and 5 output tokens, with zero cached-read and
-zero cache-write tokens. Chapter 24 records the controlled inputs and limits.
+zero cache-write tokens. Chapter 23 records the controlled inputs and limits.
 This establishes real CLI login, discovery and bounded plan inference in that
 session—not live renewal, 401 recovery, logout/revocation, GUI login, audible
 quality or human accessibility. No API-key fallback or dollar-charge claim follows
 from successful plan inference. The live session deliberately left the account
 signed in; exercising revocation would be a separate authorized action.
 
-The later [Chapter 24](chapter-24.md) work completed the separate Codex-backed
+The later [Chapter 23](chapter-23.md) work completed the separate Codex-backed
 C# route, including explicit CLI/GUI selection and no silent billing fallback.
 Its three actual C# CLI responses measured two cache hits and one miss. Codex
 alone renews that grant; this does not change the public OAuth ownership or the
@@ -10266,809 +10333,7 @@ artifact is not permission; a green fake-provider grade is not a provider bill.
 
 ---
 
-# Chapter 17: The Crossover
-
-The morning of the switch, I had two agents open on the screen.
-CodeRhapsody, the one that wrote this book. Ensemble, the one the
-book describes. Same hardware, same model, same prompt. One of them
-built by reading eighteen chapters of instructions. The other built
-by writing them.
-
-If the agent that came out of this book cannot replace the one that
-went into it, then eighteen chapters taught a toy. If it can, the
-loop closes and the last chapter writes itself. Close it now, while
-every design decision is still fresh enough to debug. A month from
-now the memory is gone and the crossover becomes a project instead
-of a morning.
-
-The first crossover took twelve days. The distance between passing a
-grader and surviving a workday turned out to be thirty-seven
-changes, a vendor caching bug, and this chapter.
-
----
-
-## TL;DR
-
-The first-edition account counted thirty-seven changes on the way
-to a daily driver. They sort into four kinds:
-
-1. **Loud failures** that announce themselves within minutes of real
-   use: part-ID collisions, a settings dialog that never saved, a
-   Ctrl-C that killed the process without persisting the
-   conversation.
-
-2. **Silent failures** where every request succeeds but something
-   underneath is quietly wrong: a model selector that selected
-   nothing, a credential provider that selected the wrong credential
-   after a vendor switch, a startup resolver that sent an OpenAI
-   model to Anthropic.
-
-3. **Two-path failures** where the live streaming path and the
-   replay path disagree on what content looks like: text vanishing
-   after a restart, resets that cleared the log but not the screen,
-   a client that classified messages by guessing at turn state.
-
-4. **Invisible failures** where the output is correct and the bill
-   is not: a cache diagnostic tool with a 100% false-positive rate,
-   a route where cache reads first appeared around 22,000 tokens,
-   and a plan-route caching gap that ended in a bug report rather
-   than a code fix.
-
-The existing checks had missed these paths. Daily use exposed them;
-focused regressions could then keep them from returning. A passing
-check establishes what it observed, which may be a smaller claim
-than its name suggests.
-
-This chapter is a field report, with no new graded implementation.
-The historical repairs below explain failures to avoid, not defects
-to recreate. The final section follows the second-edition agent
-through a real Astra/high coding task: reading source, reproducing
-failures, editing a file and passing the unchanged tests. That is a
-concrete step toward replacing a daily driver; it is not the same
-as having written the next edition with it.
-
-## In plain words — the C# boundary
-
-A crossover is using the application for real work, not implementing another
-framework. The C# CLI and GUI already submit work to the same Agent; the Agent
-owns its Engine, Jobs and History. The shared Credentials owner belongs to
-Ensemble. A browser projects those facts; it must not invent another model,
-funding selection, transcript or usage meter to make its display convenient.
-
-The historical failures below are questions to ask of that design, not changes
-to apply blindly. For example, the C# GUI identifies content by request and part
-identity rather than adopting the first edition's monotonic counter. Its running
-Configuration is immutable; it does not offer the historical live model picker.
-There is no reason to add a picker merely to reproduce its bugs.
-
-**Edition 3 C# scope.** This chapter adds no implementation or grader. The
-preserved `solutions/edition-3/ch16` endpoint remains its runnable predecessor;
-there is no duplicate `ch17` source snapshot. The October 11 task below is
-historical second-edition evidence, not a C# run. The C# reproduction instructions
-use current public commands, but a fresh model-led repair, live OAuth, and daily
-use remain unverified. No private-memory migration or replacement of Bill's
-running application is part of this chapter. Continue with Chapter 18 while
-keeping that live crossover explicitly open.
-
----
-
-## 17.1 What Breaks on Day One
-
-The following incidents come from the first-edition crossover and
-its [running changelog](../../edition-1/book/crossover-changelog.md), begun September 27,
-2026. Names such as `Hub`, `view_gui` and the narration gate describe
-that implementation. The new implementation has already learned
-several of these lessons in earlier chapters.
-
-The first morning, the operator opened Ensemble and typed a
-prompt. The second assistant response rendered inside the first
-one's bubble. These first bugs are gifts: they announce themselves
-the moment someone uses the tool for longer than one turn, and
-they teach nothing the preceding chapters did not already know. They exist
-here to establish a baseline: the agent works, if the definition
-of "works" is narrow enough. The next section raises the bar.
-
-**Part IDs collided across turns.** Every vendor parser minted IDs
-from a counter scoped to one API response. The first text block of
-every turn was `part_id: 1`. The GUI keyed its artifact map by that
-ID and never cleared it, so turn two's text deltas found turn one's
-DOM node and appended inside it. The second response appeared
-inside the first one's bubble.
-
-The rejected fix was clearing the map on each turn boundary. It
-works, but it makes the client responsible for a property the server
-should guarantee, and it needs a reliable "new turn" signal before
-the first delta arrives. The historical fix was a single monotonic counter
-on the actor, shared across all parsers and both the delta and final
-emitters, so a content address is unique for the lifetime of the
-session.
-
-**The settings dialog never saved anything.** Every control called
-`sendPatch` on every change event. `sendPatch` was never defined.
-A `ReferenceError` fired on every interaction, silently, and the
-dialog looked correct because theme and font size both apply locally
-on the way past: the visible half worked while the durable half
-never ran. Four wrong hypotheses came first. The harness log named
-the real cause on its first line.
-
-That pattern is worth isolating. A control that shows its effect
-immediately can hide a broken write indefinitely, because what the
-operator sees is the effect, not the persistence. The three
-settings controls that accepted input while doing nothing at all
-(temperature, max tokens, system prompt) were removed outright
-rather than wired up. A control that does nothing is worse than no
-control: it invites someone to set it, confirm it visually, and
-trust an outcome that was never produced.
-
-**Ctrl-C did not save the conversation.** There was no signal
-handling. The main goroutine blocked on `for in.Scan()` over stdin,
-and the save ran after that loop returned. SIGINT killed the process
-where it stood, so the save was unreachable by construction. Not a
-race, simply never run. The rejected fix was a signal handler that
-saves and calls `os.Exit(0)`, because exit skips deferred functions
-and the defers here are load-bearing. The real fix moved stdin to
-its own goroutine; the main goroutine now selects on stdin
-completion versus a signal. Either way it falls out through the
-existing exit path, and every defer still runs.
-
-**Font size changed nothing.** Every `font-size` declaration in the
-stylesheet used absolute pixels, so setting the root font size did
-nothing downstream. All twenty-one declarations converted to `rem`.
-Additionally, `if (app.font_size)` skipped zero, which is exactly
-what a never-set value deserializes to. Zero now means "use the
-default."
-
-**The chat input was a single-line field.** Long messages scrolled
-sideways through a one-line slot. It is now a `<textarea>` that
-grows with its content up to a `rem`-based cap, then scrolls. The
-cap lives in CSS rather than JavaScript, because a constant in
-pixels silently breaks the font-size slider: at 32px text the box
-stops at the same physical height and holds half as many lines.
-
-The pattern matters beyond any one fix. Real use quickly exposes
-whether a tab is identifiable among twenty open tabs, whether a
-textarea grows, or whether a process saves on a signal. Those last
-two behaviors can also be tested directly. The missing step was to
-exercise the interface as someone would actually use it, then keep
-that observation in a regression. The expensive category is next.
-
----
-
-## 17.2 The Bugs That Succeed
-
-The second kind of crossover bug is the one where every request is
-answered, the GUI looks right, the tests pass, and the model or
-credential underneath is wrong. These share a shape: the visible half of an
-operation works while the functional half never runs.
-
-**The model selector selected nothing.** The GUI offered a dropdown.
-Choosing a different model changed nothing at all. Every request
-went to the startup default. The dropdown wrote to one config field;
-startup read from another. Nothing carried one to the other. It was
-a known-dead setting.
-
-What makes it worth a section rather than a bullet is the readout.
-`effectiveModel` consulted the settings store first, with a comment
-explaining that the GUI selection is what the operator just did. So
-the display showed the selected model while the engine dialed the
-old one, and the display was the thing that was wrong.
-
-A readout fed from intent always agrees with the operator. Only a
-readout fed from the fact can disagree, and disagreeing is the
-entire job.
-
-**The credential did not cross a vendor switch.** An operator who
-switched models from Claude to GPT in the dropdown saw the dialect
-change, the host change, and the response arrive correctly. The
-plan credential never arrived. ChatGPT plan credentials were
-attached once, at startup, behind a guard that checked the vendor. The guard was correct when vendor was a process
-lifetime constant. In that implementation the model had become changeable at
-runtime, which means the vendor had become changeable at runtime,
-which means the guard had an expiry date on it.
-
-The runtime switch had already been fixed once before. It moved
-model, vendor, surface, base URL, and API key together, carefully,
-with a refusal path. Five fields. The credential provider was not
-among them, because when that fix was written the provider did not
-exist yet.
-
-Flip the picker from Claude to a GPT model and the dialect changes,
-the host changes, the key is refilled from the endpoint table, and
-the plan credential never arrives. A metered key can answer the
-request while bypassing the intended subscription. The changelog
-inferred that fallback from the code and a 401 response; it did not
-observe the charge on an invoice. A correct answer would not reveal
-which credential paid for it.
-
-The fix was one line: adding the credential to what the switch
-already moves. But the more important change was making the state
-observable. The engine now logs the credential in force whenever it
-changes. `DescribeCredential` names the kind and has no path that
-can emit a token, because putting the redaction at each call site
-would mean a rule enforced in five places and broken in the sixth.
-A missing provider reports as the static key, not as "none," because
-falling back to a billed key while expecting a plan credential is
-the commonest mistake, and it must not read like the correct case.
-
-**The vendor was not a property of the model.** Startup resolved the
-vendor first and then chose a model. A model from `settings.json`
-was sent to whichever vendor happened to be the default. The
-changelog records a stored Astra selection producing a
-healthy-looking session running Sonnet instead. Its diagnosis
-specifically concerns model choices outside the `LLM_MODEL`
-environment override.
-
-The GUI masked it. After connecting, the browser sends the model
-choice over the WebSocket, correcting the mistake moments after
-startup. The CLI had no such correction and ran the wrong model the
-entire time, silently. The bug was invisible in the interface where
-it was survivable and total in the interface where it was not.
-
-The model is now settled first. The vendor is taken from the model
-table. An explicit vendor override still outranks the table, for
-local OpenAI-compatible endpoints serving identifiers the table has
-never seen.
-
-**The pattern across the section.** Every bug here produced
-correct-looking output. The selector showed the right model and
-dialed the wrong one. The settings dialog displayed the new theme
-and persisted nothing. The credential system sent the right request
-with the wrong credential selected. Output-only checks can pass because
-the output looks fine. Persistence, billing and identity need their
-own observations: a credential log, a cost meter, a cache lens.
-Tests can compare those observations with actual requests, saved
-files and provider usage. The instrument makes the hidden state
-inspectable; it also needs a test that can tell when it lies.
-
----
-
-## 17.3 Two Paths, One Screen
-
-The agent renders content through two separate paths. A live
-streaming path carries real-time deltas and tool calls as they
-arrive. A replay path reconstructs the same view from the saved
-event log on every startup. Both share the same WebSocket protocol
-and the same message types.
-
-These two paths should produce identical screens. They did not.
-Every restart during the first week disagreed.
-
-**The hub believed its log was empty.** `Hub.logLen`, the hub's
-notion of how much history is renderable, was only ever advanced
-inside the live observation handler. On a restored session with a
-full log but no new observations, that counter stayed at zero and
-the replay loop ran `for i := 0; i < 0`. The hub held the entire
-conversation and reported that none of it existed. `NewHub` now
-seeds the counter from the log it is handed.
-
-Fixing that exposed a second bug: every send used a select with a
-default case, dropping silently when the buffer was full. A newer
-progress snapshot can supersede an older one. A text delta, tool
-result or replayed artifact cannot be discarded on that assumption.
-A long conversation rendered to far more messages than the historical
-256-slot buffer, so that repair waited for room with a timeout to
-avoid pinning a dead client. Preserve content and terminate a failed
-connection honestly; the old queue is not a new design requirement.
-
-**Assistant text vanished on restart.** After restarting, the GUI
-showed user messages and tool calls, but every model response and
-thinking block was gone. The save file had all 392 events intact.
-`partToWireMsg` produced messages with no `part_id` field. The GUI
-keys its artifact map by `part_id`, so every replayed response
-landed under `undefined` and collapsed into one invisible div. The
-live streaming path set that field through one function; the replay
-path used a different, incomplete one.
-
-This is the lesson of the section. A field that is present in one
-path but absent in the other creates a class of bug that is
-invisible during development, when only live streaming runs, and
-total after a restart, when only replay runs. The fix is not "add
-the field" but "share the identity." A `part_id` is the identity of
-a piece of content, and identity must survive both paths.
-
-**The reset nobody saw.** Clicking reset cleared the conversation in
-the log. The old text stayed on screen until a browser refresh.
-Refresh requested replay and rebuilt the screen. That gave the
-investigation a useful split: inspect the saved record separately
-from live notification. In this case the durable record was right;
-the live screen was wrong. A refresh alone would not establish both.
-
-`Engine.Record` appends to the log and applies the reducer. It does
-not notify the observer. The reset event traveled through the replay
-channel (which self-heals on refresh) and never through the live
-channel (which is what the operator is watching). A
-`ConversationCleared` observation fired from the reset handler gives
-both channels the same event.
-
-**The client that guessed.** Killing the agent mid-turn left stale
-in-flight state in the save file. On the next launch, the GUI
-classified every message as a hint to a nonexistent turn. Messages
-vanished silently. The connection was open. The agent answered
-nothing, forever.
-
-The browser decided message type by branching on its own copy of
-turn state: `if (agentState === 'idle') send prompt else send hint`.
-Chapter 2 states the rule this breaks: a hint and a prompt are the
-same event, distinguished only by turn state, and classification
-belongs in the reducer. This client shipped a guess.
-
-The fix is a deletion plus a move. The GUI now always sends a
-prompt. The actor classifies, without consulting any state variable,
-by its own position in the drain loop. Arriving at the main loop
-means idle, so it is a prompt. Arriving at the mid-turn drain means
-a turn is running, so it is a hint. The classification is
-structural.
-
-**The terminal as a diagnostic tool.** The CLI had called a bare
-engine loop, bypassing the actor entirely. It could not reproduce
-any of these bugs. Rebuilding it as a text Observer over the same
-actor loop turned the CLI and GUI into two renderers of one agent.
-The comparison narrows the diagnosis: a bug in both points toward
-the shared path; a bug in one points toward its inputs, timing or
-rendering. Neither result proves the core innocent. Writing a second
-renderer against the same seam makes those differences observable
-without building a second agent.
-
----
-
-## 17.4 What You Cannot See Cannot Be Fixed
-
-At large context sizes, the gap between a 91% cache hit rate
-and a 22% hit rate can dominate input cost. The crossover record
-reports nearly half a weekly allowance consumed in one morning. The correct
-answer still arrives. Nothing errors. Nothing retries. The session
-looks normal. The only artifact that disagrees is the bill.
-
-Chapter 15 teaches the mechanism. This section tells the story of
-what happens when that mechanism meets a production session and the
-bill arrives.
-
-**The meter comes first.** A cache breakpoint placed on an unstable
-prefix buys nothing while looking like it should have worked, so
-proving stability is a prerequisite, not a follow-up. The cache lens
-intercepts each request body, splits it into named sections in the
-provider's actual cache concatenation order, and diffs against the
-prior request. The historical display distinguished MATCH, PREFIX
-DIVERGED (with the byte offset), and CACHE MISSED ANYWAY. The last
-verdict leaves a cause to investigate: routing, expiry, eviction or
-eligibility can differ while local bytes stay stable. Collapsing these into a single
-hit-rate figure would make the instrument unactionable.
-
-An early run of the lens caught a bug in itself. Appending a
-message to a JSON array shifts the closing bracket, so naive
-string comparison flags every single turn as an edit. The alarm
-would have fired constantly and been muted inside a day. A false
-alarm that always fires is worse than no alarm: it trains the
-operator to ignore the real one. The fix was per-section comparison
-with grown-container detection: trim the prior section's trailing
-framing and check whether what remains is a prefix of the current.
-
-**The alarm that always fired.** The changelog reports a morning
-consuming 46% of a weekly plan allowance, alongside 175 requests
-carrying 6.9 million uncached input tokens and a 22.5% hit rate.
-These are recorded allowance and usage observations, not an
-independently reconstructed invoice. The
-lens had been running the whole time and reporting a divergence on
-every single request:
-
-```
-cachelens: PREFIX DIVERGED — section "input" changed
-```
-
-The OpenAI Responses API calls the conversation `"input"`. Chat
-Completions calls it `"messages"`. Gemini calls it `"contents"`.
-The canonicalizer knew the latter two names and defaulted to
-`"messages"`, so on the Responses surface the entire conversation
-was filed as a frozen section that should never change. Every
-ordinary appended turn tripped the alarm.
-
-An alarm that labels every harmless append a divergence loses its
-ability to distinguish the event the operator needs to see. The
-operator stared at it every morning and learned nothing. The
-genuine cache break singled out in the record, a rewrite
-that cut the surviving prefix to 34%, rendered as the same line of
-text as the hundred harmless appends around it. The
-instrument ran, reported, and its report carried zero information.
-
-The fix was three lines: reading the conversation key off the body.
-That exposed a second gap. Within the dialogue, the lens had
-recorded only that the conversation changed, which is true on every
-turn. Growth and rewriting are different events. Appending leaves
-earlier bytes untouched. Editing something below the top voids the
-cache from the edit onward. The lens now reports rewrites separately
-from growth, with the offset at which the prefix stopped matching.
-
-**Four breakpoints, one freed by asking the right question.** The
-initial layout placed a marker at the end of the previous exchange,
-one message behind the newest prompt. The argument for it was that a
-cached write from the prior round could be read back. The earlier
-rolling marker already offered that prefix for caching. In the
-tested explicit-cache layout, the extra marker repeated a boundary
-instead of protecting a different stable section. Marker placement
-creates an opportunity; provider usage determines whether a write
-or read was granted.
-
-The freed slot went to the tool array, at the very front of cache
-order. A tool-boundary marker leaves an earlier eligible prefix
-when the system prompt changes. Without it, the next marked boundary
-includes that changed prompt, and tool schemas are not small.
-
-The four possible positions are the end of the tool array, the
-system prompt, the retained checkpoint boundary, and the last
-eligible retained content block before ephemera. A checkpoint may
-be represented by surviving memory after a handoff is removed.
-Memory remains data; it does not become a mutable system prompt.
-
-**The plan route differed from the fixture.** The first-edition
-changelog records a fake and a parser sharing assumptions about
-OpenAI's Responses stream. The live plan route exposed rejected
-explicit cache controls, absent Content-Type, an empty terminal
-output array despite completed item events, and missing provenance
-on the assembled tool calls. Fixing one exposed the next.
-
-Chapter 16's second-edition run encountered its own cache-options
-rejection and empty-terminal stream failure. Its actual live header
-was not retained, so the absent-header parser condition has separate
-captured-body and controlled-header proof. Keeping those observations
-separate avoids turning a plausible diagnosis into a fabricated wire
-capture.
-
-A fake and code built from the same mistaken assumption can agree.
-Captured provider behavior can correct the fixture, and a targeted
-regression can then catch the parser defect without another paid
-request. Live use supplies evidence the shared assumption lacked;
-it does not make the repaired test useless.
-
-**The apparent floor.** With the lens repaired, the historical
-investigation varied request size in a live session. Despite identical
-tools, an identical system prompt, and a stable 99% cacheable
-prefix, the provider wrote nothing at 8,000 tokens. Nothing at
-10,000. Nothing at 18,000. The first request to cross roughly 22,000
-tokens was cached, and the request after it read back 22,144 of
-them.
-
-The investigation compared that result with the then-documented
-1,024-token minimum and called the difference a floor. Seven
-requests establish an observation worth investigating; they do not
-establish a universal 22,000-token threshold. Request size changed
-alongside session history, and a local prefix estimate cannot show
-which provider-side cache entry was available.
-
-Trimming can trade fewer input tokens against less reuse, but a
-longer request is not automatically cheaper. Compare actual counts
-and applicable prices. Padding a prompt to reproduce one historical
-threshold would turn an unexplained result into a cost policy.
-
-Size did not explain all the misses in the record. Its morning session
-consumed 46% of a weekly allowance on requests between 55,000 and 73,000
-tokens, well above that apparent boundary, while a first-party client using the
-same OAuth token but a different endpoint sustained 61-85% hit
-rates, including 12,160 cached tokens on the first request of a
-fresh session. Same credentials, different route, different caching.
-
-The record says a bug was filed with the provider and the route
-remained too expensive for that daily workload. An expected fix
-within weeks was a hope in the original account, not a delivery date.
-The lesson worth keeping is that an instrument never
-checked against an independent measurement is a belief dressed up as
-data. The lens ran all morning, reported constantly, and carried zero
-signal, because it was only ever compared to its own logic.
-
----
-
-## 17.5 The Agent Looks in the Mirror
-
-The historical agent had a GUI and a built-in MCP server but still
-could not inspect its own screen through the active configuration.
-The server had been built and documented in original Chapter 13:
-`gui_snapshot`, `gui_click`, `gui_input`. Nothing connected to it.
-A stdio client check did not establish the missing path from agent
-to browser. The real browser/skill path in Chapter 12 addresses that
-boundary in this edition.
-
-**Two doors, one per direction.** The historical `--mcp-port` relayed the GUI's MCP
-server onto loopback TCP, so any external agent that speaks MCP can
-connect and drive the browser. Its `view_gui` builtin
-asked the connected GUI for a snapshot over the existing WebSocket.
-One exposed the browser to an external client; the other made it
-reachable from the local agent.
-
-The changelog records a live check: prompted to list its buttons,
-the agent called `view_gui` and correctly named the hamburger,
-reset, and settings buttons along with the Chats and Artifacts tabs.
-It worked, and then the question was why it had not worked before.
-
-**The underscore that hid a tool.** `view_gui` had been registered,
-unit-tested, and never reached a request. The tool registry
-normalizes names by stripping non-alphanumeric characters, so
-`view_gui` becomes `viewgui` internally. The skill filter checked
-against the raw name `view_gui` listed in skills. The question was
-about `viewgui`; the skill said `view_gui`; the answer was no. Every
-underscored tool name was silently dropped from every request,
-regardless of what skills were loaded.
-
-Builtins survived by accident: `NewRegistry` stored them under their
-raw name while `Register` stored normalized ones. One map, two key
-conventions. The fix was one line: check the declared name rather
-than the normalized key. A normalized key is an index, not an
-identity, and any identity check must use the name the other party
-actually used.
-
-The one-line fix broke the original Chapter 15 check. The MCP connect path recorded
-enabled tools under the normalized key, under a comment explaining
-why. The old convention was internally consistent; the fix moved one
-end of it. The cross-chapter sweep caught the regression. Bisecting
-in a worktree localized the commit, and a second fix recorded the
-declared name instead.
-
-**The model that worked in silence.** Some models reason at length
-internally and then act without narrating. For a supervisor who
-reads narration live through a screen reader at high speed, the
-narration is the review. It happens as the agent works, catching a
-wrong assumption before it becomes ten wrong edits. The changelog
-records a silent session followed by a hard reset that also
-discarded the supervisor's uncommitted work. The missing narration
-made review harder; the destructive recovery added a second failure.
-Interrupting the current turn and inspecting the actual diff
-preserves more options. Interrupt leaves the Agent and other jobs
-alive, so those jobs still need deliberate supervision.
-
-That implementation added `RequiresVisibleReasoning` on
-`ModelFeatures`, with enforcement in its actor loop: if no visible
-text was produced in a round, every tool call in
-the batch is rejected before execution. Refusing before execution is
-the point, because a tool that has already run cannot be un-run by a
-complaint. Every call in the batch is answered, because a vendor
-requires a result for each call it made. The error text is long on
-purpose. The message explains the rule and a concrete next step.
-It also asks the model to report what surprised it, giving the
-supervisor a chance to investigate a mismatch. This historical gate
-is not a new requirement of the prose-only chapter, nor a request
-for private chain of thought. Useful progress says what is about to
-change and why; its truth still has to agree with the actual work.
-
-**Engineering standards written from observation.** After reviewing
-a new model's first day on the crossover tree, a pattern emerged:
-deleted load-bearing comments, unformatted Go committed through
-Python string replacements, stray `.bak` files in a public
-repository. Each mistake had a specific mechanism of harm.
-
-A deleted comment that read "recall is hooked in TWO places" removed
-the only record of an invariant that both call sites still depend
-on. The condition it warned about survived; the warning did not. A
-compiler can accept the deletion while both call sites still depend
-on the invariant. The diff does show the missing explanation; a
-reviewer has to ask whether its reason survived.
-
-The remedy was explicit engineering standards appended to the agent's
-SKILL.md, each stating the reason it exists, so that overriding a
-rule means overriding an argument: gate on output not exit status;
-use anchored file edits; deleting a WHY comment requires proving the
-condition is gone, in the commit message; git is the backup; never
-weaken a test; report surprises.
-
-A human team writes down engineering standards after a new
-contributor joins and makes the same three mistakes everyone makes.
-That the new contributor is a model rather than a person changes
-the ceremony, not the need.
-
----
-
-## 17.6 The Book That Rewrites Itself
-
-Thirty-seven changes and a vendor caching bug were the first
-account's tally. The useful part of that tally is the gap it names:
-building a feature and trusting it with a workday are different tests.
-
-**What the book got right.** The vendor seam from Chapter 16, built
-because of billing and context-control constraints, turned out
-to be the mechanism that made the model crossover possible. The
-agent already knew how to switch providers; the switch was a table
-change, not a rewrite.
-
-The observer pattern taught in Chapter 6 held throughout those
-repairs. The CLI and the GUI are two renderers over the same actor
-loop. The rebuilt CLI made the comparison in §17.3 possible without
-opening a browser.
-
-The graders caught real regressions across twenty chapters of
-cross-chapter sweeps: the underscore filter, a mutable global, a
-frozen-snapshot model row that scored 100/100 against the live tree
-and 85/100 against the frozen one. Each would have shipped silently
-without the sweep.
-
-**What the crossover changed.** The exercises teach individual
-mechanisms. Daily work combines them under conditions a short
-fixture may never reach: another turn, a restart, a model switch,
-a long conversation. Those conditions belong in focused checks once
-the failure is understood. Ten minutes can expose a broken control;
-it cannot certify a reliable workday.
-
-The first account overreached when it said instrumentation had been
-missing: the original cache chapter already taught the lens and
-meter. Chapters 17 and 18 carry those instruments and the credential
-report forward. They ask whether a
-correct-looking answer came from the selected model and credential,
-and what usage accompanied it. An instrument with a wrong input
-field can fail as quietly as the feature it measures. Comparing it
-with independent requests and usage closes that loop.
-
-Inference economics changes the engineering choices. Prompt caching
-can reduce input cost as well as latency, but a rate difference is
-not a measured weekly bill. Use the meter to see usage in each
-category, the lens to understand local changes, and the actual
-provider counters to determine whether reuse occurred.
-
-**The recursive part.** The first-edition account reports that the
-agent edited the chapters describing it, including a sub-agent voice
-pass. That is a use of the tool worth preserving, not proof that
-sub-agents already belong to this chapter's implementation or that
-each regenerated edition must improve. The second edition needs its
-own demonstration.
-
-A builder's crossover will differ in its specifics. These four
-categories give the investigation a place to start: loud failures that
-announce themselves in ten minutes, silent failures that announce
-themselves on the invoice, two-path failures that announce
-themselves after the first restart, and invisible failures that
-announce themselves only when someone builds the instrument to see
-them.
-
-The next test is a piece of work that has to be right outside the
-agent's own explanation. Start there, while the implementation is
-still familiar enough to debug.
-
----
-
-## 17.7 A File That Actually Changed
-
-The second-edition crossover began with a smaller claim. Could the
-new Ensemble run the model Bill selected, repair a real program
-through its tools, and leave a result another process could verify?
-
-The selected model was `gpt-6-astra` at high reasoning effort. Its
-name already existed in the model table, but the table sent it to
-Chat Completions. Naming the right model did not select the right
-transport. The October 11, 2026 [model documentation](https://developers.openai.com/api/docs/models/gpt-6-astra)
-supports high effort, and the [reasoning guide](https://developers.openai.com/api/docs/guides/reasoning)
-requires Responses for Astra function calls. Moving that row to the
-existing Responses renderer was the entire runtime change. Agent
-settings already carried the effort; Chapter 16 already supplied
-the credential and stream handling.
-
-The task was a small CSV spending report. Its implementation split
-the file into lines, then split each line on commas and added the
-amount as a binary float. A merchant called `Books, Inc.` defeats
-the parser; a quoted newline defeats the line splitter; an ordinary
-refund can expose the arithmetic. Six tests fixed the expected
-behavior before the agent started.
-
-The actual CLI session read `aggregate.py` and `test_aggregate.py`,
-then ran `python3 -m unittest -v`. The result was three failures and
-three errors. Before editing, Astra explained the two causes:
-manual splitting broke CSV structure, and floats lost decimal
-precision. It then used `edit_file` to replace that code with the
-standard library's `csv.reader`, a file opened with `newline=""`,
-and `Decimal` arithmetic. Blank rows were skipped. The sorted,
-tab-separated, two-decimal CLI output stayed intact.
-
-The next command ran the same six tests. All passed. An independent
-rerun of the preserved before and after directories reproduced both
-outcomes; the test file was byte-identical. The useful evidence is
-the [actual source diff](../../solutions/evidence/ch20/task.patch)
-beside the failing and passing results, rather than the model's
-claim that it repaired something.
-
-Five requests completed in the recorded 27.46-second run, and every
-request and terminal response named Astra/high. Subscription billing
-was selected explicitly with no API key configured. The CLI exited
-normally after EOF and wrote its save. The endpoint follows from
-the configured base URL and transport source; the payload log did
-not independently capture the HTTPS URL or authorization headers.
-
-There were 161 ordinary text deltas and no public reasoning-summary
-deltas, despite requesting detailed summaries. Every response
-reported zero cache grants and zero reasoning tokens. Those fields
-do not measure private mental activity, and successful repair does
-not establish cache savings. Ordinary progress arrived before the
-edit, so the useful explanation was present even without a public
-summary. This was one bounded coding task, without a steering or
-GUI demonstration. It establishes more than a configuration change
-and less than general project reliability or authorship of Edition 3.
-
-### Try the same task with the C# endpoint
-
-There is no grader for this chapter. This is a bounded real-model exercise,
-not a fake-provider test. It requires your own authorized account, an available
-model and explicit funding consent. Do not run it merely to turn an unavailable
-integration check green. The C# Chapter 16 local checks establish neither live
-account permission nor successful repair of this program.
-
-From the repository root, with the .NET 10 SDK and Python 3 available, build the
-preserved endpoint into a private temporary output directory and copy only the
-broken source and unchanged tests into a fresh workspace:
-
-```sh
-chapter17_repo=$PWD
-chapter17_bin=$(mktemp -d)
-dotnet build "$chapter17_repo/solutions/edition-3/ch16/Cli/Ch04.csproj" \
-  -warnaserror -o "$chapter17_bin"
-chapter17_work=$(mktemp -d)
-cp "$chapter17_repo/solutions/evidence/ch20/task-before/aggregate.py" "$chapter17_work/"
-cp "$chapter17_repo/solutions/evidence/ch20/task-before/test_aggregate.py" "$chapter17_work/"
-cd "$chapter17_work"
-mkdir -p skills/base
-cat > skills/base/SKILL.md <<'EOF'
----
-name: base
-type: primary
-description: Repair the local CSV program using its unchanged tests.
-tools: read_file edit_file run_command wait_for_job
----
-Read the source and tests, reproduce the failure, explain the intended edit,
-then change the source and run the unchanged tests. Work in this directory.
-If a command is still running, use its job handle to collect the real result.
-Do not change tests or inspect credentials. These workspace instructions are
-not an operating-system sandbox.
-EOF
-```
-
-Use the explicitly selected Ensemble credential directory and account from
-Chapter 16. Do not borrow another application's files. These commands read status
-and the current account's visible model list; they do not log in or change funding.
-If a new sign-in is needed, stop and follow the authorized Chapter 16 flow first.
-
-```sh
-: "${EN_CREDENTIALS_DIR:?Set your approved Ensemble credential directory}"
-: "${EN_ACCOUNT:?Set your Ensemble account label}"
-dotnet "$chapter17_bin/ch04.dll" --credentials-dir "$EN_CREDENTIALS_DIR" \
-  --account "$EN_ACCOUNT" auth status
-dotnet "$chapter17_bin/ch04.dll" --credentials-dir "$EN_CREDENTIALS_DIR" \
-  --account "$EN_ACCOUNT" auth models
-```
-
-Proceed only if the account permits direct plan inference and the selected model
-is available. Catalog visibility alone does not grant capability or permission.
-This example uses the exact supported `gpt-6-astra` row, high effort and `auto`
-public summaries; the historical run's `detailed` setting is not supported by
-this C# row. Start a fresh conversation, inspect the model/funding announcement,
-and do not submit the prompt if it differs from your intent:
-
-```sh
-LLM_VENDOR=openai LLM_MODEL=gpt-6-astra \
-dotnet "$chapter17_bin/ch04.dll" \
-  --surface responses --billing chatgpt \
-  --credentials-dir "$EN_CREDENTIALS_DIR" --account "$EN_ACCOUNT" \
-  --reasoning-effort high --reasoning-summary auto \
-  --skills-dir "$chapter17_work/skills" --primary-skill base chat
-```
-
-The explicit plan route ignores ambient API keys and refuses rather than falling
-back to billed API use. Use the normal production base URL from Chapter 16;
-remove stale test-endpoint overrides before an authorized live run. Do not put
-credentials in the prompt or publish the private logs created in this workspace.
-
-Use the recorded prompt:
-
-```text
-Repair aggregate.py in this scratch directory. Read aggregate.py and test_aggregate.py using read_file, then run python3 -m unittest -v with run_command before editing to observe the failures. Make the smallest clear fix: totals(path) must return exact decimal currency totals grouped by merchant, support normal CSV quoting including embedded commas, escaped quotes and newlines, skip blank rows, and retain the CLI's sorted tab-separated two-decimal output. Use only the Python standard library. Do not change test_aggregate.py or read files outside this workspace. Edit the actual source using a file tool, run the unchanged tests again, and give a concise report of the bug, fix and real results. Do not add unrelated features or just describe a patch. Briefly report progress before editing.
-```
-
-After the final answer, send EOF. Check the files yourself:
-
-```sh
-python3 -m unittest -v
-cmp "$chapter17_repo/solutions/evidence/ch20/task-before/test_aggregate.py" test_aggregate.py
-```
-
-Read the source diff, too. Passing these six cases says something
-specific about this repair. It does not make the agent its own
-reviewer. That distinction is what keeps the next piece of work
-small enough to trust and concrete enough to improve.
-
----
-
-# Chapter 18: Giving the Agent the Web, and a Status Line
+# Chapter 17: Giving the Agent the Web, and a Status Line
 
 The community tools looked like the answer. Open source, no API
 keys, no lock-in. I tried them. The results were not very
@@ -11094,8 +10359,8 @@ credential service, or accounting store.
 This chapter's runnable endpoint is C# 14 on .NET 10. The search
 investigation and Go architecture repair recounted below are historical;
 they explain the choices, not the results of a new C# provider trial.
-Chapter 17 was a field report. Start this implementation from the
-preserved Chapter 16 code.
+Start this implementation from the preserved Chapter 16 code. The earlier
+historical crossover field report is no longer a chapter in this edition.
 
 ### Specification
 
@@ -12145,7 +11410,7 @@ were separate runs, preserved with their actual source versions in
 
 ---
 
-# Chapter 19: The Sandbox
+# Chapter 18: The Sandbox
 
 In October 2025 I built a secrets manager in CodeRhapsody. The idea
 was simple: API keys and passwords live in an encrypted store, and
@@ -12237,7 +11502,7 @@ consumer. See the final checks section for the exact table and separate componen
 evidence. macOS ARM64 is the exercised native platform; Linux and x64 branches
 are not credited as verified, and confined shell execution requires macOS.
 
-## 19.1 The lethal trifecta
+## 18.1 The lethal trifecta
 
 Simon Willison described the [lethal trifecta](https://simonwillison.net/2025/Jun/16/the-lethal-trifecta/)
 in a June 16, 2025 article: private data, untrusted content and
@@ -12254,12 +11519,12 @@ external communication. For a tool-using agent, these become:
 Together, these capabilities create a route for an attacker to
 induce access to private data and send it elsewhere. Removing one
 route does not make every other harmful action safe. An attacker hides a prompt in a web page the agent crawls
-(Chapter 18 just gave the agent that ability), the model follows the
+(Chapter 17 just gave the agent that ability), the model follows the
 hidden instruction, reads a credential from the environment, and
 exfiltrates it in the next HTTP request. No software vulnerability
 was exploited. The model did exactly what it was told.
 
-Chapter 18 completed the trifecta. The agent has file access (private
+Chapter 17 completed the trifecta. The agent has file access (private
 data), web search and crawling (untrusted content), and `run_command`
 plus the model API itself (external action). Every chapter that added
 a capability made the agent more useful and more dangerous. This
@@ -12271,7 +11536,7 @@ The fix is not "be careful." The fix is not an approval dialog. The
 fix is a wall between the things the agent can reach and the things
 that can reach the agent.
 
-## 19.2 What the wall protects
+## 18.2 What the wall protects
 
 The instinct is to contain the binary. Docker, chroot, a process
 jail. That instinct treats the ensemble process as the threat.
@@ -12323,7 +11588,7 @@ The trust boundary sits between the binary and the workspace, not
 between the binary and the network. The binary controls the HTTP
 client. The warden does not need to proxy to itself.
 
-## 19.3 Two boundaries, not one
+## 18.3 Two boundaries, not one
 
 A sandbox that checks paths in userspace sounds sufficient. Every
 file tool calls one function, the function resolves symlinks, checks
@@ -12435,7 +11700,7 @@ This is the tested symlink-substitution boundary, not a claim about arbitrary
 privileged directory relocation, mount changes, or an attacker who already
 controls the host process. Keep that threat distinction visible.
 
-## 19.4 The kernel half -- `sandbox-exec`
+## 18.4 The kernel half -- `sandbox-exec`
 
 The shell never calls our C# code, so the kernel has to enforce the
 boundary. On macOS, that mechanism is Seatbelt, reached through
@@ -12524,13 +11789,13 @@ passed. The positive controls also failed, because the profile
 denied reading a file *inside* the sandbox. The experiment looked
 like a complete success and was worthless.
 
-This is section 19.3's own principle catching the person who wrote
+This is section 18.3's own principle catching the person who wrote
 the code: a sandbox that rejects everything is trivial to build and
 worthless to use. Every test of a denial needs a paired test that the
 legitimate operation still works, or the suite cannot distinguish a
 wall from a brick.
 
-## 19.5 Keep known credentials out of readable diagnostics
+## 18.5 Keep known credentials out of readable diagnostics
 
 The trusted host needs a credential to contact the model; the child shell does
 not. The confined environment therefore uses an allowlist, rather than trying to
@@ -12572,7 +11837,7 @@ a signed local issuer, a real 401/refresh exchange, and readable rooted logs to
 check both plan bearer values. Neither exercise uses a live account or proves
 that every possible secret is detected.
 
-## 19.6 Git inside the sandbox
+## 18.6 Git inside the sandbox
 
 Git often needs local identity configuration, but the user's `~/.gitconfig` can
 contain credential helpers, includes, signing programs, aliases, or private
@@ -12591,9 +11856,9 @@ does not create a commit. Earlier historical Go trials did commit; that account
 remains history, not permission for a present exercise. Kernel/network policy
 and the stripped environment still apply to Git and its descendants.
 
-## 19.7 The trust hierarchy
+## 18.7 The trust hierarchy
 
-Chapter 18 added another route for external communication. The
+Chapter 17 added another route for external communication. The
 application now chooses which work gets a confined workspace,
 which retains shell access, and which may load web search. These
 choices are independent: safe mode does not imply a sandbox root,
@@ -12656,7 +11921,7 @@ this chapter; the value derivation is the public foundation for one.
 ### What web search actually gates
 
 There are no builtin web tools. Zero grep hits for `web_search` or
-`crawl_web` in the tool registry. Chapter 18 delivered web access as
+`crawl_web` in the tool registry. Chapter 17 delivered web access as
 the `web-search` skill wired to hosted MCP, so the gate withholds
 the *skill*, not a set of tools. When `EnableWebSearch` is false, the
 skill is not loadable, its MCP server never connects, and its tools
@@ -12672,7 +11937,7 @@ known-key sanitization already has one owner. No standalone Logger
 needs to impersonate an Agent, and no callback bag supplies a stale
 copy of the sandbox root.
 
-## 19.8 When the trifecta is the right answer
+## 18.8 When the trifecta is the right answer
 
 Bill reported a different use for full access late in 2025, when
 somebody compromised smart devices in his house.
@@ -12704,7 +11969,7 @@ the agent does not replace confinement where confinement fits the
 task. Choose the boundary deliberately; urgency does not remove
 the remaining risk.
 
-## 19.9 What does not work
+## 18.9 What does not work
 
 **Approval dialogs.** The agent that asks "May I read this file?" is
 the same agent that might be compromised. A compromised agent asks
@@ -12756,7 +12021,7 @@ values in diagnostics before writing. It does not sanitize canonical successful
 provider content or every model-visible result. It does not add
 hardware-backed credentials or change provider authentication.
 
-## 19.10 The sandbox object
+## 18.10 The sandbox object
 
 Common declares the Agent's Sandbox relationship, persistent root/handle state,
 and all callable operations. Functional partials implement them. Do not hide a
@@ -12781,7 +12046,7 @@ without a forest of wrappers, callbacks, or copied services. A passing build
 cannot establish the native ABI, ownership, or kernel policy. Exercise those
 boundaries on the platform for which you claim support.
 
-## 19.11 Taking it for a spin
+## 18.11 Taking it for a spin
 
 Run the C# exercise on macOS with the approved .NET 10 SDK. Build the
 preserved endpoint's CLI, or the matching implementation under `main`:
@@ -12893,7 +12158,7 @@ observation: a refused escape beside work that still finishes. Neither
 a model's compliance nor a small collection of denied paths proves
 that every possible escape has been excluded.
 
-## 19.12 C# checks and evidence limits
+## 18.12 C# checks and evidence limits
 
 Use the preserved `solutions/edition-3/ch19` endpoint after building it with the
 approved .NET 10 SDK. The normal component runner includes the chapter's groups;
@@ -12958,7 +12223,7 @@ controls, meaningful failure assertions, and ownership review are all necessary.
 
 ---
 
-# Chapter 20: The Ensemble
+# Chapter 19: The Ensemble
 
 I have been steering a single agent through this book. I listen
 to its reasoning at five times speaking rate and redirect between tool
@@ -13000,7 +12265,7 @@ Use real consumers to test both a headless dependency graph and the public GUI
 construction path. Neither check measures rendered pixels or guarantees that
 all request and teardown paths still work.
 
-## 20.1 The specification
+## 19.1 The specification
 
 This chapter has two boundaries to make real: another application can borrow the
 GUI, and an Agent can delegate work without losing ownership of it. I require
@@ -13041,7 +12306,7 @@ Each delegated Agent has two actual strong parents: Ensemble and its Agent
 parent. Both directions are maintained by declared add/remove operations. A
 child has its own actor, Skills, clients, History and Jobs. It does not acquire
 private copies of the task workspace. State isolation is not process isolation
-or protection against another child editing a shared file. Chapter 19 supplies
+or protection against another child editing a shared file. Chapter 18 supplies
 the optional narrow-only confinement boundary.
 
 The shipped `ensemble` skill grants these seven tools:
@@ -13133,10 +12398,10 @@ The C# executable route is `-ch 20 -executable-only -fleet-skills ABSOLUTE_DIR`
 with a positional executable wrapper that starts the built `ch04.dll`. It scores
 the seven fleet rows, 100 points. The separate 100-point Go GUI/reuse consumer
 is excluded, not credited from C# tests. The historical Go route is unchanged.
-Section 20.13 gives the wrapper and separate GUI consumer exercise. A score does
+Section 19.13 gives the wrapper and separate GUI consumer exercise. A score does
 not inspect ownership, prove live-provider operation or establish accessibility.
 
-## 20.2 Why the public boundary matters
+## 19.2 Why the public boundary matters
 
 The earlier GUI already projected one Agent's events and sent controls back to
 that Agent. A reusable library should expose that work, not duplicate it. An
@@ -13155,7 +12420,7 @@ The new boundary must preserve replay, transient output, controls and browser
 RPC. Moving code is not evidence that those paths still work. Use an outside
 consumer, a built host and an isolated browser for their different observations.
 
-## 20.3 The import test
+## 19.3 The import test
 
 The historical Go boundary exposed a useful failure: importing the core dragged
 Gorilla WebSocket into a headless binary, and core types under `internal/` could
@@ -13174,7 +12439,7 @@ the supplied consumer is the evidence for public accessibility. It still says
 nothing about request routing, browser rendering or shutdown; test those paths
 from the outside too.
 
-## 20.4 The library must have a consumer
+## 19.4 The library must have a consumer
 
 `GuiTests` is a separate-assembly public consumer, not another functional module
 of the core. It creates its own empty working directory before creating assets
@@ -13202,7 +12467,7 @@ the old standalone host can otherwise escape a mount prefix while the initial
 HTML still appears to work. Account controls follow the prefix; the deliberately
 fixed root callback is documented separately, not quietly weakened to fit a test.
 
-## 20.5 How a test is invoked is part of the test
+## 19.5 How a test is invoked is part of the test
 
 An outside consumer needs explicit project references and an owned working
 directory. Build before launching so the supervised process is the application,
@@ -13215,7 +12480,7 @@ a required model. Those were setup failures, not failures of fleet behavior. The
 same distinction applies to C#: `Cli/Ch04.csproj` produces lowercase `ch04.dll`,
 and `Examples/Gui/Gui.csproj` is the actual web host, not `GuiStub`.
 
-The Chapter 20 executable adapter keeps its own local-provider wire records and
+The Chapter 19 executable adapter keeps its own local-provider wire records and
 uses explicit shipped skill selection. Its early attempts assumed shell tools
 were granted by the `ensemble` skill, compared observation fields as payload
 schema, and expected all Job output in the final cursor read. Those were grader
@@ -13223,7 +12488,7 @@ mistakes. Fixing them does not earn a product correction; identifying a missing
 sender field in question replies did. Keep that distinction visible in the
 record rather than presenting every failed test as a software defect.
 
-## 20.6 Spawning
+## 19.6 Spawning
 
 A child is a full Agent with both its Ensemble parent and Agent parent supplied
 at construction. Ensemble owns the process-wide collection; the Agent owns its
@@ -13233,7 +12498,7 @@ before mutation, establish both links before returning, and remove both links
 during destruction. No manager, copied service bag or callback factory is needed.
 
 `CreateChildAsync(id, model, submitSchema, cancellation)` constructs a ready
-child, not a running task. It derives Chapter 19's narrow-only policy, captures
+child, not a running task. It derives Chapter 18's narrow-only policy, captures
 parsed skill templates and current values, creates independent Skills and MCP
 clients, configures `children/<id>/save.json` beneath the parent's persistence
 directory, restores that child's History, and awaits skill initialization. It
@@ -13259,7 +12524,7 @@ attempts all cleanup, preserving errors instead of allowing the last `finally`
 to hide an earlier failure. Explicit destruction detaches both parents. Saved
 work survives; process and relationship lifetime do not.
 
-## 20.7 The parent and the user
+## 19.7 The parent and the user
 
 A child reaches its parent through `AgentParent()`, not by searching an ID map.
 The root's human inbox belongs to that root. There is no fabricated human Agent
@@ -13290,7 +12555,7 @@ first implementation returned text alone. The correction changed the existing
 question edge's completion value, not its owner or routing mechanism. A focused
 failing assertion established the missing field before the correction.
 
-## 20.8 Asking is not finishing
+## 19.8 Asking is not finishing
 
 The first edition initially gave the parent link only
 at submit time. A child could do its work and deliver a result, and the
@@ -13392,7 +12657,7 @@ Nested object and array constraints are enforced; unsupported keywords and all
 references are refused at launch. A declaration that accepts a keyword while
 ignoring its meaning would promise a check that does not exist. Schema and
 payload admission limits refuse oversized or excessively nested data instead of
-truncating it. Section 20.1 specifies that public boundary. No schema resolution
+truncating it. Section 19.1 specifies that public boundary. No schema resolution
 fetches a URL or reads a local file.
 
 Without a custom schema, `submit({"result":"text"})` keeps its existing meaning.
@@ -13409,7 +12674,7 @@ waiting for. At the terminal, `/reply TEXT` answers the sole human question;
 `/reply MESSAGE_ID TEXT` selects one when several are pending.
 
 
-## 20.9 Waking the blocked Agent
+## 19.9 Waking the blocked Agent
 
 The job supervisor already separates a tool's execution from the Agent's wait
 for it. When the callback delay expires, the Agent gets a running notice and a
@@ -13448,7 +12713,7 @@ Chat input uses actor-decided turn-or-hint admission. JSON `prompt` and `hint`
 retain their separate meanings. Displaying a human question observes the inbox;
 it does not consume it or create another pending-question store.
 
-## 20.10 Three wakes, then tell someone
+## 19.10 Three wakes, then tell someone
 
 “Done” has a precise meaning for a delegated Agent: it called `submit`, and its
 children have finished. A normal model response ending is not sufficient for
@@ -13500,7 +12765,7 @@ still has completion and save work to finish. A caller that needs to stop or
 dispose of that worker must wait for its reliable completion and drain, rather
 than interrupt it from inside the submit callback.
 
-## 20.11 Five wiring failures
+## 19.11 Five wiring failures
 The first edition records five failures when its real executable finally ran
 the fleet. Each had been hidden by a fixture supplying what the product omitted.
 They are construction lessons, not bugs to recreate in this implementation.
@@ -13558,7 +12823,7 @@ registration both describe capabilities the user cannot reach. Exercise the
 boundary from the side that depends on it.
 
 
-## 20.12 What the sweep found
+## 19.12 What the sweep found
 
 Two more defects surfaced in the full cross-chapter sweep, and neither
 belonged to the five.
@@ -13574,13 +12839,13 @@ cross-chapter sweep happened to do so. The fix moved the counter to a field on t
 struct, behind the lock that already protected it. The lesson is worth stating plainly: if the id is per-fleet, the counter
 must live on the fleet, not on the package.
 
-**A bisect indicted innocent code.** Original Chapter 19 scored 85 against the
+**A bisect indicted innocent code.** Original Chapter 18 scored 85 against the
 live tree and 100 against four consecutive worktrees. The bisect framed
 a one-line change from this chapter as the culprit. That change could
 not touch event logs. The contradiction was the clue.
 
 Every worktree path is absolute. The sweep runs graders with relative
-paths. The original Chapter 19 harness set the working directory to the student
+paths. The original Chapter 18 harness set the working directory to the student
 tree and passed a relative path to the event log file. In the live
 tree, where the working directory matched the student directory, the
 relative path resolved correctly. In a worktree, where the student
@@ -13590,7 +12855,7 @@ an absolute path, 85 with a relative one.
 
 How a test is invoked is part of the test.
 
-## 20.13 The C# exercise
+## 19.13 The C# exercise
 
 Extend the preceding C# endpoint. Demonstrate public GUI hosting and terminal
 delegation separately, then check their shared ownership paths. Keep the GUI's
@@ -13754,7 +13019,7 @@ is pending, or `/reply MESSAGE_ID TEXT` otherwise. In JSON mode, use:
 refuse without consuming it. Quit while a question is pending too: closing the
 question should become an ordinary tool outcome, not an unhandled Job failure.
 
-Finally launch the structured reviewer from §20.8. A controlled local provider
+Finally launch the structured reviewer from §19.8. A controlled local provider
 should omit `fixed`, then correct it to boolean `false`; only the corrected
 object may satisfy a join. Check nested values and the durable artifact, default
 text and ordinary-grandchild controls, early parent-submit refusal, exhaustion
@@ -13772,7 +13037,7 @@ This driver uses its own local provider and state directories. Keep its reports
 and actual process exits; do not transfer its 100 points to the excluded Go
 consumer or to live integration.
 
-## 20.14 Taking it for a spin
+## 19.14 Taking it for a spin
 
 The C# implementation was exercised locally with controlled HTTP peers, actual
 CLI processes, an outside GUI consumer and an isolated muted browser. JSON and
@@ -13785,16 +13050,17 @@ boundary reports independently cancelled questions as ordinary tool errors.
 
 Sender attribution then received a focused failing test and correction. The
 final shared regression was 191 passing groups, with clean builds of both actual
-hosts. The scoped executable grade was 100/100 across five clean host sessions
-and 59 local requests. Earlier unsuccessful grader runs included fixture errors;
+hosts. The fleet-only executable grade was 100/100 across five clean host sessions
+and 59 local requests: all 100 fleet points from the combined 200-point rubric
+in Section 19.15. Earlier unsuccessful grader runs included fixture errors;
 the current progress record retains them rather than treating every score as a
 product regression. GUI mounting, replay and browser relay evidence have their
 own scope; the executable fleet score does not include a GUI consumer score.
 
 These are local results, not live-model task quality, account entitlement,
-provider billing, audible speech or human accessibility. Live OAuth remains a
-separate deferred exercise. The following second-edition account is preserved
-history, not another measurement of this C# implementation.
+provider billing, audible speech or human accessibility. Chapter 23 records the
+later bounded live OAuth/cache exercise separately. The following second-edition
+account is preserved history, not another measurement of this C# implementation.
 
 
 The second-edition GUI deployment ran from a fresh directory with no source
@@ -13834,7 +13100,7 @@ showed the parent's view; it did not become a monitor for every child's reasonin
 The browser still showed one Agent, one stream and one event log. The next
 chapter makes the fleet visible through that existing frontend boundary.
 
-## 20.15 Checks
+## 19.15 Checks
 
 The historical combined rubric below has seven GUI/reuse rows and seven fleet
 rows, 200 points. C# executable-only grading uses only the final seven rows,
@@ -13887,17 +13153,17 @@ nothing about a caller that can no longer find it.
 
 ---
 
-# Chapter 21: Managing the Swarm
+# Chapter 20: Managing the Swarm
 
-Chapter 20 gave an agent the ability to spawn children, wait for their submissions, and answer their questions. A parent could send a task downward and receive a result upward. That is necessary, but it is not yet a usable fleet.
+Chapter 19 gave an agent the ability to spawn children, wait for their submissions, and answer their questions. A parent could send a task downward and receive a result upward. That is necessary, but it is not yet a usable fleet.
 
 A long-running parent may supervise several children while a human watches another conversation. The human needs to see what each agent is doing, select a conversation without taking ownership of its work, and create named agents that survive an application restart. The parent needs finer controls: inspect a child, send steering, queue a question, interrupt a turn, retrieve a saved result, or remove a child deliberately.
 
 These capabilities must compose. A GUI that displays another agent's conversation but sends input to the old one is broken. A tool that can inspect any globally named agent has escaped its authority. A stored result that revives an old task's completion after restart is not reliable persistence.
 
-This chapter builds the C# management layer on the owners from Chapter 20. It does not introduce a fleet manager, Agent factory, callback table, or second live registry. `Ensemble` owns its Agents; a delegated Agent also has its actual parent Agent. The Common declarations expose those relationships and the functional partials implement their operations.
+This chapter builds the C# management layer on the owners from Chapter 19. It does not introduce a fleet manager, Agent factory, callback table, or second live registry. `Ensemble` owns its Agents; a delegated Agent also has its actual parent Agent. The Common declarations expose those relationships and the functional partials implement their operations.
 
-## 21.1 Activity Is Not Completion
+## 20.1 Activity Is Not Completion
 
 "Busy" is useful but incomplete. Is the agent waiting for a model, executing a tool, or observing other work? Conversely, "idle" does not prove that it submitted a result.
 
@@ -13932,7 +13198,7 @@ Activity notifications are transient and lossy, like streaming progress. They do
 
 A child may have submitted and still be draining its final tool result or save. It may be idle with a retained failure and no submission. It may be paused with queued work and therefore still busy. The UI and every management tool must preserve those distinctions.
 
-## 21.2 One Ensemble, Real Owners
+## 20.2 One Ensemble, Real Owners
 
 The earlier Go implementation introduced a manager and supplied a factory to avoid package import cycles. Those are historical implementation choices, not the C# design. C# partial declarations and implementations compile into the same assembly and module. Common declares the vocabulary; functional directories supply the bodies. There is no reason to reproduce a factory indirection just because an earlier language needed one.
 
@@ -13951,7 +13217,7 @@ The actual Agent reference is identity. `Children` captures membership; it is no
 
 Do not hold ownership locks while awaiting an actor, sending a WebSocket frame, or reading a file. The GUI is a consumer of the ownership model, not its owner or its scheduler.
 
-## 21.3 Homes Are Not Save Paths
+## 20.3 Homes Are Not Save Paths
 
 There are three different locations to distinguish:
 
@@ -13991,7 +13257,7 @@ Persistent names are nonblank local components, not paths: reject `.`, `..`, sep
 
 This is a construction contract, not a migration command. Do not move a running actor's files to make a new directory diagram look correct.
 
-## 21.4 Persistent Named Peers
+## 20.4 Persistent Named Peers
 
 A named peer is an Ensemble-owned top-level Agent. It is not a delegated child, so ordinary chat does not trigger the child's mandatory-submission correction loop.
 
@@ -14033,7 +13299,9 @@ Restoration creates registry peers, not their saved delegated descendants. Old c
 
 Ordinary application shutdown preserves registry and files. Explicit `DeletePeerAsync` refuses retained unfinished children before closing the target's admission, joins teardown, removes the registry entry, and detaches the live Agent. Saved files remain. If registry replacement fails, retain the stopped registered peer for a retry. Cancellation can stop a request before irreversible teardown; after shutdown begins, join to a definite outcome rather than abandon half a deletion.
 
-## 21.5 Addresses and Authority Are Different
+This deliberately changes v2 Chapter 21's deletion policy, which also removed the peer's directory. Deleting a peer now removes it from the running and restorable fleet without erasing saved work that may still need inspection. Retained files are historical data, not permission to recreate an Agent: restoration follows the registry, so a deleted peer does not return on restart.
+
+## 20.5 Addresses and Authority Are Different
 
 A local child ID is meaningful only to its owning parent. Two branches may both contain a child named `tests`:
 
@@ -14050,11 +13318,11 @@ Model-facing tools have a narrower rule: resolve a live requested child with the
 
 A valid but unavailable ID and an elsewhere-owned ID receive the same ordinary refusal. A positive owned-child control is essential: an implementation that always says "unknown" has not passed an ownership test.
 
-These are process-internal authority checks, not OS isolation. They prevent one tool handler from reaching across the ownership tree. File and process confinement still come from Chapter 19. Arbitrary trusted code sharing the same process has not been made into an adversarial security principal by adding a lookup rule.
+These are process-internal authority checks, not OS isolation. They prevent one tool handler from reaching across the ownership tree. File and process confinement still come from Chapter 18. Arbitrary trusted code sharing the same process has not been made into an adversarial security principal by adding a lookup rule.
 
-## 21.6 The Management Tools
+## 20.6 The Management Tools
 
-Chapter 20's seven tools remain. The shipped `ensemble` skill now also grants:
+Chapter 19's seven tools remain. The shipped `ensemble` skill now also grants:
 
 | Tool | Contract |
 |---|---|
@@ -14085,7 +13353,7 @@ The tool `shutdown_agent` first awaits the existing foreground `FlushAsync` barr
 
 Flush waits for current and queued foreground work. It does not resume pause, wait for independent Jobs, or itself save History. A paused child with queued work can therefore keep a graceful waiter pending. Cancelling that waiter leaves the child alive. Once final teardown starts, join it without abandoning cleanup; it cancels independent Jobs and descendants and preserves saved files. Cleanup errors are still errors, even when every relationship was detached correctly.
 
-## 21.7 Finalized Output and Reliable Replies
+## 20.7 Finalized Output and Reliable Replies
 
 Output polling must not consume the GUI's shared lossy observation queue. Use canonical History snapshots and its durable sequence numbers instead.
 
@@ -14106,13 +13374,13 @@ Output polling must not consume the GUI's shared lossy observation queue. Use ca
 
 This illustrates the output shape, not a promise that idle implies submitted. They are independent fields.
 
-`send_message` admits `Message` through the actor, so it becomes steering during active work or a new turn when idle. An incoming message wakes current Job observations without killing the Jobs and without creating a sticky interrupt for future observers, as established in Chapter 20.
+`send_message` admits `Message` through the actor, so it becomes steering during active work or a new turn when idle. An incoming message wakes current Job observations without killing the Jobs and without creating a sticky interrupt for future observers, as established in Chapter 19.
 
 `ask_agent` instead uses a separate `SubmitAsync` admission and waits for that turn's reliable reply. It does not consume an older assistant final from a shared cursor. It has no cursor parameter and does not automatically fetch the structured submission payload. Use `get_submission` for historical typed data and `join_agents` for current selected-child completion.
 
 `wait_for_agent` waits for new finalized text or a nonbusy status. It is not a submission wait and not a quiescence guarantee. Two independent output observers can read the same committed events. Observer cancellation leaves the child's work alive. If destruction clears the live History, an already-running observer retains its last immutable snapshot long enough to report the observed output and closed status; that local readback is not another persistent transcript.
 
-## 21.8 Wait for Change, Not for a Timer Alone
+## 20.8 Wait for Change, Not for a Timer Alone
 
 A supervisor may need to react before a child completes. `wait_for_agent_change` is a cancellable snapshot loop, not another scheduler or event subscription framework.
 
@@ -14132,11 +13400,11 @@ An earlier Go implementation registered a Job with a tool's shared cursor before
 
 The lesson is still current: every admitted observer needs a completion, cancellation, or refusal path. "Refused before execution" is a real lifecycle outcome. In C#, keep that responsibility in the existing Job owner; do not add a fleet-level workaround that merely hides a stranded Job.
 
-## 21.9 Durable Submission Is Historical Data
+## 20.9 Durable Submission Is Historical Data
 
 A parent's context may be compacted. A child may be stopped and removed. The useful result should remain retrievable without reconstructing the child, starting skills, or granting it new authority.
 
-C# keeps one immutable accepted artifact at the child's `submit.md`. Despite the filename, its body is a strict JSON envelope. Chapter 20's schema, exact-number validation, and generation rules still apply. Chapter 21 writes version 2, adding the owning parent's nullable qualified address; version 1 remains readable without provenance it never recorded.
+C# keeps one immutable accepted artifact at the child's `submit.md`. Despite the filename, its body is a strict JSON envelope. Chapter 19's schema, exact-number validation, and generation rules still apply. Chapter 20 writes version 2, adding the owning parent's nullable qualified address; version 1 remains readable without provenance it never recorded.
 
 Publication validates the payload, checks current generation and lifetime, atomically replaces the artifact through the actual Sandbox, and only then exposes live completion. The envelope has a 2 MiB bound in addition to the existing stricter schema/payload limits. It is not an append log and not a second mutable output cache.
 
@@ -14148,7 +13416,7 @@ The tool reports `historical: true`. Reading old bytes does not set `Submission(
 
 This deliberately differs from a memory-first fallback. Fresh reads make external file replacement visible and avoid a second authoritative cache. Filesystem failures return bounded diagnostics rather than exposing an absolute private path.
 
-## 21.10 Browser Selection Does Not Transfer a Relay
+## 20.10 Browser Selection Does Not Transfer a Relay
 
 A single-Agent GUI could bind every socket to one conversation. A fleet GUI needs two identities per connection:
 
@@ -14177,7 +13445,7 @@ The queue is bounded by frame count; do not describe that as a separately enforc
 
 The browser resets transcript cards and stops old-view narration on switch. Replay is silent. Speech associated with the old view must not send a stale resume command to the newly selected Agent. Structured snapshots and muted browser checks establish routing and rendering, not audible quality or human accessibility.
 
-## 21.11 Browser-Dependent Startup and Trusted Peer Controls
+## 20.11 Browser-Dependent Startup and Trusted Peer Controls
 
 The standalone GUI starts serving while restoring peers. A browser-dependent peer can then appear in the tree while waiting for its own relay, allowing the operator to open the explicit relay tab and complete startup.
 
@@ -14197,7 +13465,7 @@ These routes use exact-origin/loopback checks, the dedicated custom header, boun
 
 Borrowed `ServeAsync` still does not own its caller's Agent or ASP.NET application. It neither restores the fleet nor stops unrelated routes. Cancelling the mount joins its own requests and relay teardown before returning. The caller must keep the Agent alive until that join finishes.
 
-## 21.12 Failure Lessons and Review Order
+## 20.12 Failure Lessons and Review Order
 
 The original Go chapter uncovered useful failures. A reused settings filename replaced the named-agent registry with UI preferences. A generic fallback instantiated an unknown selected skill and reported success for the wrong Agent. A string-based test harness truncated structured object submissions. A replay queue exposed a switch before it had admitted the new transcript. Preserve those lessons, but do not present them as failures observed in this C# implementation.
 
@@ -14213,7 +13481,7 @@ The executable grader also needed correction. Before a response completes, a zer
 
 Review complete bounded source, not guessed filenames or clipped output. Read declarations and actual call paths, not just the code that a test happens to reach. Passing tests do not establish that Common owns all declarations, that every relationship has both ends, or that destruction attempts every owned cleanup operation.
 
-## 21.13 Verification and Scoring Scope
+## 20.13 Verification and Scoring Scope
 
 The original seven-row Go grade remains available on its original route. The C# executable-only adapter retains these original rows and weights:
 
@@ -14226,7 +13494,7 @@ The original seven-row Go grade remains available on its original route. The C# 
 | Bottom-up submission and idle correction regressions | 10 |
 | **C# executable scope** | **70** |
 
-The named-peer persistence row (15) and GUI tree row (15) are excluded from this score, not silently passed by source review or unrelated unit tests. C# persistence, mounted hosting, independent browser selection, peer controls, and startup have their own real-component, actual-host, and isolated-browser evidence. They remain necessary review and exercise obligations even though this CLI adapter does not award their points.
+A 70/70 result passes this executable subset of the original rubric; it is not whole-feature acceptance. The named-peer persistence row (15) and GUI tree row (15) are excluded from this score, not silently passed by source review or unrelated unit tests. C# persistence, mounted hosting, independent browser selection, peer controls, and startup have their own real-component, actual-host, and isolated-browser evidence. They remain necessary review and exercise obligations even though this CLI adapter does not award their points.
 
 From the repository root, build the actual CLI and the grader:
 
@@ -14245,9 +13513,9 @@ Pass the executable host, not the DLL alone. If this shell's installed runtime c
 
 The adapter supplies a loopback provider, owned working directory, shipped skill activation, correlated JSON control messages, and joined EOF shutdown. It holds model work to inspect activity, tests positive owned-child access and negative cross-tree access, observes a running change wait before releasing progress, checks fresh cursors and queued replies, and exercises recursive questions and bottom-up submission. Retained wire records distinguish finalized output from submission and current completion from historical files.
 
-The local 70-point grade is not live-provider evidence. Nor does a build, fake boundary, browser snapshot, or one successful shutdown establish every architectural or accessibility claim. Keep the earlier failures and the scope of each passing result in the progress record. Do not rerun unchanged campaigns merely to replace their timestamps.
+These local checks do not verify live-provider entitlement, OAuth, billing, native-platform behavior, audible speech, or human accessibility. The earlier failures and the scope of each passing result remain in the progress record.
 
-## 21.14 Exercise
+## 20.14 Exercise
 
 Implement and inspect the management layer through the existing owners:
 
@@ -14271,7 +13539,7 @@ Create a named peer, choose its model and skill, close the application cleanly, 
 
 If a selected skill needs browser tools, open the explicit independent relay. Also try cancellation before the relay arrives and a headless launch against the same requirement. The first must join rollback; the second must refuse promptly by default.
 
-Local automated checks cover protocol and lifecycle boundaries. A human still needs to assess legibility, speech, and practical supervision with real work. Live provider entitlement, OAuth, billing, and native-platform behavior must remain explicitly unverified until exercised with authorized resources.
+Then assess legibility, speech, and practical supervision with real work. Protocol checks cannot tell you whether the fleet is comfortable to manage.
 
 ### Engineering takeaway
 
@@ -14279,7 +13547,7 @@ A useful fleet is not a larger collection of callbacks. It is a set of understan
 
 ---
 
-# Chapter 22: Forgetting on Purpose
+# Chapter 21: Forgetting on Purpose
 
 Memory is the most important feature I never knew I needed.
 
@@ -14320,7 +13588,7 @@ and fail to use it.
 
 ## TL;DR
 
-> **Implement long-term memory in the C# system from Chapter 21.** Keep the existing owners, actor mailbox, canonical History, Sandbox and Engine meter. Do not add a manager, a second transcript, a second scheduler, or a callback interface to connect partial implementations.
+> **Implement long-term memory in the C# system from Chapter 20.** Keep the existing owners, actor mailbox, canonical History, Sandbox and Engine meter. Do not add a manager, a second transcript, a second scheduler, or a callback interface to connect partial implementations.
 >
 > **Projection and replay.** Declare value-like `MemoryEntry`, `MemoryRetirement`, compression launch/receipt/outcome values, and immutable policies in Common. `Context.Memories` orders five bands from stable to recent: SOUL, MEMORY, 64x archive, 8x archive, session. Conversation follows them. `MemoryPopulated` records actual text; `MemoryRetired` records explicit identities, or an entire band. Reduction and snapshot/journal replay do no filesystem work and start no workers. Render retained memory as labeled user/data text, never system instructions or tool authority.
 >
@@ -14352,7 +13620,7 @@ Memory also is not authority. A remembered instruction from a web page does not 
 
 ---
 
-## §22.1 The Waterfall: Organizing Memory by Stability
+## §21.1 The Waterfall: Organizing Memory by Stability
 
 Most systems treat memory as one flat database. Humans do not. Stable commitments persist for years; the details of this morning are easier to lose. I want the system to reflect that difference without pretending we have implemented a human mind.
 
@@ -14389,7 +13657,7 @@ The full canonical event archive is the backstop. A memory note can say, “I ch
 
 ---
 
-## §22.2 Replay Records the Memory, Not a Promise to Read It Later
+## §21.2 Replay Records the Memory, Not a Promise to Read It Later
 
 A tempting implementation writes a Markdown file and puts its name in conversation History. On restore, it reads whatever happens to be at that path. That does not replay the old conversation: it substitutes today's disk contents for yesterday's accepted input.
 
@@ -14409,7 +13677,7 @@ The compressor cannot preserve a reason that the acting model never expressed. A
 
 ### Keep checkpoints until their replacement exists
 
-Chapter 14's handoff removed old tool traffic and private replay. Chapter 22 keeps that guarantee, but no longer discards every older handoff note as soon as a new note arrives. Those notes mark completed segments available for long-term compression.
+Chapter 14's handoff removed old tool traffic and private replay. Chapter 21 keeps that guarantee, but no longer discards every older handoff note as soon as a new note arrives. Those notes mark completed segments available for long-term compression.
 
 The companion results must still be recorded before applying the handoff. A tool call is not a completed batch merely because it appears in History. The prefix selector refuses unresolved tool traffic or private material; it does not “fix” an unsafe selection by pretending the missing result succeeded.
 
@@ -14417,7 +13685,7 @@ The selector returns immutable selected entries and readable input. It changes n
 
 ---
 
-## §22.3 A Compression Is a Transaction
+## §21.3 A Compression Is a Transaction
 
 Moving the model request to a background task is the easy part. The difficult question is what to do when the model, user and filesystem all continue working while the summary is in flight.
 
@@ -14471,7 +13739,7 @@ Recovery uses owner-derived paths and checks expected bytes. It is repeatable ac
 
 ---
 
-## §22.4 A Small Worker With Enforced Limits
+## §21.4 A Small Worker With Enforced Limits
 
 On October 14, 2026, the first direct path bypassed the ordinary loop, called Engine once and expected a final handoff. The main agent had emitted no checkpoint note. The compressor needed another reasoning turn and returned no final text; the selected conversation remained active and the attempt failed. That was a real local failure, not a hypothetical design objection.
 
@@ -14516,7 +13784,7 @@ Those settings do not establish current provider availability, entitlement or ac
 
 ---
 
-## §22.5 Run Asynchronously Without Creating Another Scheduler
+## §21.5 Run Asynchronously Without Creating Another Scheduler
 
 The Agent already owns scheduling, pending work, cancellation and a mailbox. Memory compression belongs there. I do not want a new manager trying to infer the Agent's state from polling or duplicated flags.
 
@@ -14542,7 +13810,7 @@ This distinction also makes a failed attempt visible. If the model used tokens a
 
 ---
 
-## §22.6 Context Pressure Must Be Enforced
+## §21.6 Context Pressure Must Be Enforced
 
 The waterfall's byte budgets tell us when to compress retained information. The provider's context window tells us whether the next request is in danger. They are related, but neither is a substitute for the other.
 
@@ -14568,9 +13836,9 @@ Markers belong to the disposable request, not canonical History. Local wire test
 
 ---
 
-## §22.7 Files and Settings Belong to the Agent
+## §21.7 Files and Settings Belong to the Agent
 
-Chapter 21 established sibling homes for true top-level Agents and nested homes for their children. Memory uses that layout; it does not rediscover a directory by looking at a save filename.
+Chapter 20 established sibling homes for true top-level Agents and nested homes for their children. Memory uses that layout; it does not rediscover a directory by looking at a save filename.
 
 ```text
 <ensemble-directory>/
@@ -14622,7 +13890,7 @@ Memory and appearance patches are separate; there is no false promise of atomic 
 
 ---
 
-## §22.8 Walk the C# Implementation
+## §21.8 Walk the C# Implementation
 
 Common declares vocabulary and operations. Functional partials implement them in the same assembly; no runtime adapter is needed to connect those halves.
 
@@ -14661,7 +13929,7 @@ Another is whether a routine is pure. `History.Reduce` must not inspect files. `
 
 ---
 
-## §22.9 Failure Lessons Worth Keeping
+## §21.9 Failure Lessons Worth Keeping
 
 ### A direct call did not establish completion
 
@@ -14695,7 +13963,7 @@ Repeated guesses are not evidence of thoroughness. Read the declarations and sav
 
 ---
 
-## §22.10 Historical Measurements and Trials
+## §21.10 Historical Measurements and Trials
 
 These measurements and live runs belong to the earlier implementation. They explain the design and its limitations; they are not C# acceptance evidence.
 
@@ -14796,7 +14064,7 @@ all. Once it runs, the next question is what the agent actually learned.
 
 ---
 
-## §22.11 What the C# Verification Establishes
+## §21.11 What the C# Verification Establishes
 
 The preserved historical account above explains why I require the transaction and ownership boundaries. It is not evidence that this C# port passes those boundaries. The C# implementation was exercised separately with real actors, History journals, rooted files, sockets and local provider fakes.
 
@@ -14823,7 +14091,7 @@ The opt-in executable adapter preserves the original Go route and awards only fi
 | Fresh startup from corpus files | 5 |
 | **Exercised scope** | **40** |
 
-That scope passed 40/40 across four clean joined sessions and 72 local model requests. The remaining 60 points—checkpoint/background, GUI toggle, forced/headroom, replay/accounting, abandon/restart and parity—are explicitly outside this executable score. Their separate component/GUI evidence is not converted into points or called a 100-point executable pass.
+The adapter passed 40/40 across four clean joined sessions and 72 local model requests, covering 40 of the original rubric's 100 points. The remaining 60 points cover checkpoint/background, GUI toggle, forced/headroom, replay/accounting, abandon/restart and parity. Those behaviors remain part of the chapter; they are ungraded by this route, rather than failed or removed. The component and GUI checks above provide separate evidence about them without supplying the missing grader points.
 
 The adapter waits for every observed launch's matching committed terminal outcome and then uses an actor barrier before rereading events. It does not infer completion from quiet time. Fresh-start copies only live corpus Markdown, not saves, child submissions, retired files or receipts. A single outgoing request must then contain the planted memory fact.
 
@@ -14831,7 +14099,7 @@ These checks establish the exercised local contracts. They do not establish real
 
 ---
 
-## §22.12 What We Learned
+## §21.12 What We Learned
 
 1. **A summary is only one part of memory.** The feature also needs replay semantics, file ownership, stale-result checks, recovery, settings and accounting. A good paragraph written into the wrong lifecycle can still lose information.
 
@@ -14920,7 +14188,7 @@ dotnet build Examples/Gui/Gui.csproj
 dotnet run --project Examples/Gui/Gui.csproj --no-build -- --port 8097
 ```
 
-Before launching, explicitly choose your intended model, route, funding and existing authorized credential source using the host options from Chapters 16 and 21. Do not paste tokens into the book, logs or conversation. Starting a local page does not establish that inference is configured. The chapter's verification used local fake providers; a real-provider exercise spends real usage and remains a separate test.
+Before launching, explicitly choose your intended model, route, funding and existing authorized credential source using the host options from Chapters 16 and 20. Do not paste tokens into the book, logs or conversation. Starting a local page does not establish that inference is configured. The chapter's verification used local fake providers; a real-provider exercise spends real usage and remains a separate test.
 
 Open the printed loopback URL in a separate browser profile. In Memory settings, reload the current acknowledged values. Disable SOUL and save. Inspect the Agent-local `settings.json` and wait for the application acknowledgment, not just a changed checkbox. Edit the marker while disabled, re-enable and save, then send a small prompt. Inspect the actual request through an explicitly enabled, protected diagnostic capture; it should contain the edited marker in data, not privileged instructions. Such captures can contain conversation content—keep them private and disable them when done.
 
@@ -14957,14 +14225,14 @@ The point is not to accumulate files. It is to show that a useful account surviv
 
 ---
 
-**Previous:** [Chapter 21: Managing the Swarm](chapter-21.md)
-**Next:** [Chapter 23: Auto-Recall](chapter-23.md)
+**Previous:** [Chapter 20: Managing the Swarm](chapter-20.md)
+**Next:** [Chapter 22: Auto-Recall](chapter-22.md)
 
 ---
 
-# Chapter 23: Auto-Recall
+# Chapter 22: Auto-Recall
 
-Chapter 22 built a memory system. The agent can save, compress, and
+Chapter 21 built a memory system. The agent can save, compress, and
 graduate memories through a cascade of bands. Enabled bands already put
 recent memories in context. Older originals and unloaded material remain on disk, organized and budgeted, until something
 brings them back. The agent can still repeat a rejected decision because
@@ -14991,9 +14259,11 @@ The improvement was immediate in my daily use. The agent
 went from a goldfish that kept meticulous diaries to a collaborator
 with a past.
 
-## §23.0 — TL;DR — The Prompt
+The daily-use observations and tuning history in this chapter come from that earlier system, not fresh C# measurements. The C# evidence in §22.9 covers local component and application behavior and a scoped executable rubric; it does not establish live-provider relevance, entitlement, OAuth, billing, native Linux, audible speech, or human accessibility.
 
-You are building a C# coding agent that can use tools and skills. Chapters 1–22
+## §22.0 — TL;DR — The Prompt
+
+You are building a C# coding agent that can use tools and skills. Chapters 1–21
 provided durable History, an actor-owned scheduler, and transactional long-term
 memory. Now implement automatic local recall before a new model turn.
 
@@ -15051,7 +14321,7 @@ memory. Now implement automatic local recall before a new model turn.
    results, live memory, and projected instructions/manuals. Keep SHA-256 hashes
    of the full selected snippets in `RecallAttachment`, even when output is
    capped. Save/replay preserves them. A real context cut releases them; do not
-   add an ever-growing per-session “seen” registry. Chapter 22’s handoff alone
+   add an ever-growing per-session “seen” registry. Chapter 21’s handoff alone
    does not remove them while source awaits a committed replacement.
 10. **Make policy durable and truthful.** Share Agent-home `settings.json` with
     Memory. Legacy memory-only files use recall defaults; malformed supplied
@@ -15071,7 +14341,7 @@ human-input preservation, cancellation, replay/hash lifetime, durable restart,
 and judge usage without changing main observations. A fake provider can establish
 wire behavior, not whether a real model finds the right memory.
 
-## §23.1 — The Retrieval Pipeline
+## §22.1 — The Retrieval Pipeline
 
 The pipeline is intentionally small:
 
@@ -15142,7 +14412,7 @@ retrieval failures disappear. A corrupt readable corpus or unresolved recovery
 hold refuses the affected turn. Calling that state “no matches” would conceal a
 broken input boundary and encourage the model to answer without facts it expects.
 
-## §23.2 BM25: The Old Formula That Still Works
+## §22.2 BM25: The Old Formula That Still Works
 
 BM25 is a well-established keyword-ranking formula. For this exercise's
 small markdown corpus, it supplies the useful machinery without an embedding
@@ -15226,7 +14496,7 @@ searchable after recovery, subject to the same actual-context exclusion as other
 memories. Constructing the recall service must not scan disk before its embedding
 client has loaded history.
 
-The positive logarithm above is deliberate. The prior Ensemble Chapter 23, 24,
+The positive logarithm above is deliberate. The prior Ensemble Chapter 22, 24,
 and 26 implementations use it. CodeRhapsody’s comparison implementation instead
 clamps `log((N - df + .5) / (df + .5))` at zero. Those are different score functions.
 With Ensemble’s `log(1 + ratio)`, a matching term still has positive weight in a
@@ -15234,7 +14504,7 @@ one-document memory corpus. Keep that choice explicit when testing thresholds;
 do not transplant a threshold from a different IDF convention and call the
 scores equivalent.
 
-## §23.3 Per-Source Quotas: Why Memory Gets Half the Slots
+## §22.3 Per-Source Quotas: Why Memory Gets Half the Slots
 
 The first version of auto-recall ran a single merged BM25 search over all
 sources. Design documents dominated the results. A 20KB design doc full of
@@ -15280,7 +14550,7 @@ sources when enough memory hits exist. Unused slots still flow elsewhere.
 Keep the full ranked pool for mechanical fallback. The candidate limit
 restricts the judge prompt, not the memories available to fallback selection.
 
-## §23.4 — The Judge: Filtering by Meaning, Not Keywords
+## §22.4 — The Judge: Filtering by Meaning, Not Keywords
 
 BM25 finds shared words. A judge can decide whether the matching passage would
 actually help this conversation. The judge is one stateless call through the
@@ -15344,7 +14614,7 @@ Use the existing authentication and same-source retry path, not a parallel auth
 system. Restoring a recorded attachment performs no judgment and adds no usage to
 the new process meter.
 
-## §23.5 — A Recall Entry Is Part of the Conversation
+## §22.5 — A Recall Entry Is Part of the Conversation
 
 The result is not appended to the user’s text. C# records a separate
 `RecallAdded` event whose single `RecallPart` holds an immutable
@@ -15397,26 +14667,30 @@ attached the capped text again. Its short-snippet control passed. That history
 explains why C# tests both the cap and next-turn source-hash suppression.
 
 The hash must live with the entry, not in a permanent “seen” table. Otherwise the
-Agent could never recover a fact again after compaction removed it. Chapter 22
-makes this precise: handoff removes old tool/private material but retains the
-completed conversation source until a correlated memory replacement commits.
-The recall entry and its hashes survive that held interval. A committed cut that
-actually removes the entry releases its deduplication identity. Replay has the
-same behavior and does no disk scanning or new judging.
+Agent could never recover a fact again after compaction removed it. V2 Chapter 23
+released that identity when checkpoint removal discarded the recall entry. This
+edition deliberately ties release to the committed replacement, not merely to a
+handoff: Chapter 21 retains completed conversation source until a correlated
+memory replacement commits, even though handoff removes old tool/private material.
+
+The recall entry and its hashes survive that held interval because the model
+still has the source. Clearing the hashes at handoff would let recall attach the
+same material again before its replacement was safe. A committed cut that actually
+removes the entry releases its deduplication identity. Replay has the same
+behavior and does no disk scanning or new judging.
 
 This also protects cache structure. Retrieval happens once at new-turn admission,
 not during every tool-loop render. That is a stable-prefix design decision, not
 proof that a live provider will credit a particular cache hit.
 
-## §23.6 Tuning: What the Numbers Mean
+## §22.6 Tuning: What the Numbers Mean
 
-The first-edition account traces these defaults through months of daily
-use. The stories explain their purpose; they do not make the numbers right
-for every corpus.
+These defaults emerged from months of daily use. The tuning explains their
+purpose; it does not make the numbers right for every corpus.
 
 **MinScore went from 0.5 to 3.0.** At 0.5, every conversation triggered
 recall, and most results were noise: single keyword matches on common
-technical terms. The higher floor reduced that noise in the reported corpus.
+technical terms. The higher floor reduced that noise in the original corpus.
 The jump is large because BM25 scores are not
 normalized; the right threshold depends on corpus size and vocabulary.
 Note: this threshold applies only to plain recall (no judge). When the
@@ -15431,19 +14705,18 @@ meaning: a short
 project identifier can carry more information than a long generic instruction.
 
 **Candidates went from 10 to 80 (code default) to 20 (production).**
-That was the earlier CodeRhapsody tuning history. This exercise defaults
+That was the CodeRhapsody tuning history. This exercise defaults
 to 20; it does not inherit the old code's 80-candidate setting. More
 candidates enlarge the prompt. Whether they improve selection enough to
 justify that cost depends on the corpus and judge; count the actual candidate
 bytes rather than assuming 20 snippets means a fixed number of tokens.
 
 **Judge timeout is 15 seconds, not 2.** The original design assumed a
-local model (Ollama) with sub-second latency. The historical account reports
-cloud calls taking 1–3 seconds. The generous timeout exists
+local model (Ollama) with sub-second latency. Cloud calls took 1–3 seconds in that workflow. The generous timeout exists
 because a late judge response is better than no judge response. The
 fallback to unfiltered BM25 results is noisier.
 
-## §23.7 What BM25 Cannot Do
+## §22.7 What BM25 Cannot Do
 
 BM25 matches words. Three limitations follow:
 
@@ -15466,20 +14739,19 @@ turns can return after committed cuts remove its retained identity if it scores 
 and adjusting retrieval is a natural next step that this implementation does
 not take.
 
-These are honest limitations, listed as what they are rather than as a
-roadmap. In the earlier daily-use account, BM25 with a judge worked
-well enough for that corpus; the local C# tests do not establish that claim anew. The system is simple, fast, and debuggable. A
+These are limitations, not a roadmap. BM25 with a judge worked well enough for
+daily use in that system. The system is simple, fast, and debuggable. A
 more sophisticated retrieval system would be harder to debug when it
 recalled the wrong thing, and debugging recall errors is already hard.
 
-## §23.8 Skill Discovery: The Unplanned Win
+## §22.8 Skill Discovery: The Unplanned Win
 
 Visible, exact `SKILL.md` files in the explicitly selected skill source are
 indexed alongside memories and documents, subject to launch policy.
 This was added because skill docs are markdown files in a known directory,
 and the existing source scan could include them.
 
-In the earlier daily-use account, the result was unexpectedly powerful. When a user asks about something a
+In daily use, the result was unexpectedly powerful. When a user asks about something a
 skill handles ("can you check my email?" or "what's on my calendar?"),
 the skill's documentation surfaces through auto-recall. The agent can see the
 snippet, recognize the available skill, and load it. No explicit skill
@@ -15537,7 +14809,7 @@ a bag of copied services. Destroying it detaches both ends and clears derived
 indexes without deleting corpus files. Immutable snippets/indexes/attachments are
 value-like and need no artificial ownership back-pointers.
 
-## §23.9 — Verify the Implementation
+## §22.9 — Verify the Implementation
 
 Use real algorithms and components with a small working fake at the provider
 boundary. The focused C# checks cover arithmetic, chunking and byte limits;
@@ -15558,11 +14830,11 @@ At this chapter boundary the shared suite passed **297 groups**, and both actual
 CLI and GUI hosts built cleanly. The isolated actual-browser/CLI exercise made
 four local-provider requests: it retrieved a retired fact, retained it for a short
 follow-up, saved and reloaded disabled recall through visible controls, and honored
-that setting after CLI restart. Both hosts joined cleanly. That demonstrates local
-application behavior, not a real model’s relevance judgment or human accessibility.
+that setting after CLI restart. Both hosts joined cleanly.
 
-The opt-in executable grader runs the real CLI and reuses seven complete original
-assertion rows. It does not convert library checks into executable credit:
+The opt-in executable grader runs the real CLI and reuses seven complete rows
+from the original rubric. Its 70/70 is a pass for those rows, not whole-feature
+acceptance; library checks do not become executable credit:
 
 | Executable row | Points |
 |---|---:|
@@ -15584,10 +14856,8 @@ executable wrapper for the built CLI, not a DLL treated as a native executable.
 
 The successful run joined nineteen CLI sessions and retained thirty-seven
 recorded local peer requests, plus a held timeout exchange outside that recorder.
-No live-provider relevance, entitlement, OAuth, billing, native Linux, audible
-speech, or human-accessibility success is claimed by these checks.
 
-## §23.10 — Take It for a Spin
+## §22.10 — Take It for a Spin
 
 Now test meaning as well as plumbing. The exercise needs a fact absent from the
 current conversation, a long query that can trigger recall, and a short follow-up
@@ -15698,7 +14968,7 @@ restart with the same home; a new planted fact must not appear merely because an
 old checkbox still looks checked. Re-enable and test again. A settings acknowledgment
 is not a claim that a currently running turn changed its captured policy.
 
-Finally exercise Chapter 22’s real committed conversation cut. A handoff alone
+Finally exercise Chapter 21’s real committed conversation cut. A handoff alone
 must not erase retained hashes while replacement is pending. After a committed
 cut removes the recall entry, ask an eligible query again and confirm that the
 archived fact can be recalled anew. Do not substitute quiet time for observing
@@ -15732,11 +15002,11 @@ used a typed primary and the Agent's corpus paths, with separate fixtures
 from this CLI demonstration. Those earlier live answers establish the narrower and
 more interesting fact that the archived reason actually came back.
 
-← [Chapter 22: Memory](chapter-22.md) · [Chapter 24: While the Cache Is Broken →](chapter-24.md)
+← [Chapter 21: Memory](chapter-21.md) · [Chapter 23: While the Cache Is Broken →](chapter-23.md)
 
 ---
 
-# Chapter 24: While the Cache Is Broken — Measure Before Taking the Detour
+# Chapter 23: While the Cache Is Broken — Measure Before Taking the Detour
 
 ## Why this chapter exists
 
@@ -15870,7 +15140,7 @@ subscription billing and general provider reliability are not established by
 these checks. See the [progress record](../../docs/edition-3-csharp-progress.md)
 for retained failures, exact local evidence paths and final preservation status.
 
-## 24.1 In plain language
+## 23.1 In plain language
 
 A coding agent may send thirty thousand tokens of instructions and working
 context on every turn. Most of that context stays the same while the agent
@@ -15917,7 +15187,7 @@ Jobs owns tool work. A justified transport change should not introduce a second
 agent loop or duplicate the credential store. Explicit funding remains explicit:
 a failed plan request never silently falls back to an API key.
 
-## 24.2 Taking the detour in C#
+## 23.2 Taking the detour in C#
 
 Keep two credential owners distinct. Chapter16's `Credentials` owns Ensemble's
 public registration, protected storage, selected account and renewal protocol.
@@ -16043,7 +15313,7 @@ request remains a frozen value passed to the existing Engine. The source split
 makes the shared contract inspectable in Common and the implementation inspectable
 in its responsible module, rather than hiding policy in UI glue.
 
-## 24.3 Taking a measurement in C#
+## 23.3 Taking a measurement in C#
 
 Do this with the account holder, not as an unattended credential-discovery task.
 Chapter 16 supplies the human `auth status`, `auth login` and `auth models`
@@ -16108,7 +15378,7 @@ probe is justified. Do not retry indefinitely or treat one small sample as proof
 that every public OAuth request is broken. If the test cannot run, write
 **untested**, not **fixed**, **broken**, or **passed**.
 
-## 24.4 What the earlier detour taught us
+## 23.4 What the earlier detour taught us
 
 The following is historical implementation evidence, not the C# exercise above.
 The Go adapter selected a separate `codex` connection, reread a human-selected
@@ -16154,7 +15424,7 @@ became visible because we measured the real tool loop. The reverse lesson matter
 just as much: once the supported route works, stop maintaining an unnecessary
 detour.
 
-## 24.5 Where this execution stops, and where the book continues
+## 23.5 Where this execution stops, and where the book continues
 
 The optional Codex path is working through the actual C# application. It remains
 a separate, explicitly selected grant using a backend that can change; it is not
@@ -16179,244 +15449,7 @@ person actually uses. Gateway and Goals continue on the same ownership model.
 
 ---
 
-# Chapter 25: Crossing Over to Ensemble
-
-“I gave Astra a book. Astra gave me an AI coding agent.”
-
-That is how I described the crossover. The book included graders. Astra built
-Ensemble while working in Codex, and then I began working with Astra inside the
-agent we had built. The result was no longer just something to inspect. It was
-the place where we were doing the next piece of work.
-
-That distinction matters. I had supplied the book, the tests, architectural
-requirements, and continuing engineering direction. This was not software
-appearing without human expertise. Nor does moving the conversation into a new
-application establish that the model carried its entire earlier context with
-it. What crossed over was a working collaboration, supported by code, records,
-and further correction.
-
-This chapter is a historical interlude about that earlier, Go-based crossover.
-The [crossover record](../../docs/edition-2-notes/ch25-crossover.md) is its source.
-It preserves tests, failures, installations, and observations made at different
-times. Those are not fresh results for this C# edition. There is no new
-implementation exercise, grader, or source checkpoint in this chapter.
-
-## Using the thing we had built
-
-My first requests came from using the GUI, not from reading its source. I listen
-quickly, and the speech-speed slider stopped at 2×. Increasing a maximum sounds
-like a small change until the underlying voice rate turns out not to be linear.
-For my Eloquence setup, I reported that native rates of 2.0, 2.6, and 2.9 sounded
-approximately like 2×, 3.5×, and 5×. A native rate of 3.0 was already around 6×.
-
-The correction used those observations to interpolate the higher settings and
-changed both the control and saved-setting validation. The label said
-*approximate*. That qualification was part of correctness: the mapping was
-calibrated for this setup, not a universal timing law for speech engines.
-
-Tests checked the actual control, saved settings, and native utterance rates.
-A deliberately incorrect direct mapping made the new test fail. Those checks
-established the wiring and mapping, not how quickly a human heard the speech.
-Other speech-suite failures remained separate; fixing the slider did not make
-the entire speech system verified.
-
-There was another trap. Building a new executable did not change the executable
-used by the launcher. Installing it did not restart the running process. Later,
-restarting the server still left an open browser tab running old JavaScript.
-
-These are separate operations:
-
-1. Edit the source.
-2. Build the replacement.
-3. Install it at the intended launch target.
-4. Restart the process deliberately.
-5. Reload the browser assets when necessary.
-6. Observe the changed behavior.
-
-A successful earlier step is not evidence that a later one happened. It is also
-not permission to interrupt somebody's working session.
-
-## Observation should serve the work
-
-I kept hearing “GUI snapshot” and “tts queue” while the agent worked. The browser
-had registered both tools for automatic collection before every model request.
-The results entered ephemeral context, and their ordinary tool events reached
-the speech announcement path.
-
-The diagnosis was not that snapshots accumulated forever. Replacement was
-working: the model received the current snapshot and queue, not an ever-growing
-stack. The unwanted behavior was repeated automatic collection and its noise.
-
-I chose on-demand observation. We removed automatic registration for those two
-tools while retaining their implementations and the general ephemeral-context
-mechanism. The agent could inspect the browser when needed, act on visible
-controls, and take another snapshot to confirm the result.
-
-The distinction saved an unnecessary redesign. Silencing announcements would
-have hidden the activity rather than stopped it. Removing all ephemeral context
-would have discarded a useful mechanism to solve a narrower problem.
-
-Here the historical record includes a live confirmation: after the updated
-server was running, a hard browser refresh removed the old registrations.
-Automatic attachments ceased, and explicit snapshot and queue calls still
-worked. That confirmation belongs to this particular fix. It does not establish
-the later configuration migration's still-pending live verification.
-
-## Explain before acting
-
-I require the agent to explain what it intends to do and why before meaningful
-actions. Silence followed by a long retrospective does not provide the same
-oversight. The conversation explains intent; the Actions pane shows execution.
-Both need to remain available.
-
-Private reasoning is not that explanation. Neither is an encrypted replay item,
-a spinner, or a provider's brief thinking title. A request for more detailed
-provider summaries also cannot guarantee that the provider will return them.
-The ordinary visible explanation has its own purpose and must stand on its own.
-
-The earlier implementation added a model capability for enforcing explanation
-presence and order. An unexplained batch was refused before any tool effects,
-with paired corrective results so the model could try again. No minimum length
-was imposed. A mechanical check can establish that text preceded tools; it
-cannot certify that the text explained anything useful.
-
-Streaming made the rule more subtle. A parser could receive a tool fragment
-first and explanatory text later, then normalize the final result into
-text-first order. Inspecting only that final representation would falsely
-credit an explanation supplied after the proposed action. The correction
-checked actual stream arrival order too.
-
-The lesson is broader than this one policy: test the boundary at which a
-requirement matters. A tidy final representation can erase the evidence needed
-to enforce it.
-
-## A check-in is not a deadline
-
-A job returning control after three seconds had caused confusion. That interval
-meant “look again,” not “terminate the work.” Yet a different timeout really was
-ending model requests: the HTTP client imposed a sixty-second deadline on the
-whole response.
-
-The historical diagnosis followed the failure to that client. A request begun
-at one timestamp failed a minute later with the client-timeout error. The fix
-removed the total response deadline while retaining connection protections and
-explicit interruption and shutdown. It did not add automatic retries.
-
-The useful test was deliberately longer than the old limit. With a local
-provider boundary and the real actor and HTTP parser, both a streaming response
-and a response withheld before headers completed after sixty-one seconds.
-Restoring the old client made the new streaming test fail at about sixty
-seconds. Separate tests showed that interruption and shutdown still canceled
-requests.
-
-That is stronger than making a short test green. The corrected implementation
-survived the condition that had killed legitimate work, and the negative control
-showed the test could detect the original defect. It was still local evidence,
-not a claim about a live provider's response duration.
-
-## Roles must agree with their result contracts
-
-The human conversation and a delegated worker do not have the same completion
-protocol. A main agent can finish with an ordinary reply. A worker may owe its
-parent an explicit structured submission. Confusing those roles produced more
-than awkward wording during the crossover.
-
-In one later live experiment, an auxiliary compressor was required to call
-`submit(memory)`, but its input also contained the main-agent instruction not
-to submit. The provider opened a stream, produced substantial ordinary prose,
-and completed without a function call. The runtime rejected the result and
-retained the source instead of committing a memory replacement.
-
-This was not a silent provider stall. Nor was it successful compression merely
-because useful-looking text had arrived. The output contract failed. The
-conflicting instructions were observable; the model's internal reason for
-choosing prose was not.
-
-An earlier interrupted wait remained a different incident. A later completed
-failure did not prove that both had the same cause. Similarly, disabling all
-memory bands and successfully recording a handoff isolated the checkpoint path;
-it did not repair the compressor.
-
-Moving compression into the background would not, by itself, solve contradictory
-instructions. A restricted worker needs an unambiguous role, a bounded result
-contract, observable completion, and parent-controlled acceptance and cleanup.
-Chapter 22 teaches those responsibilities in C#. Its local verification is
-recorded there, not borrowed from this historical experiment.
-
-## Configuration should be inspectable
-
-A question about reasoning settings exposed launch state that was difficult to
-inspect: the running request asked for high effort and automatic summaries, not
-the detailed summaries I expected. That led to a larger request for explicit
-file-based application configuration.
-
-The earlier Go implementation made the selected file authoritative, kept
-credentials external, and distinguished current settings from saved changes
-that required restart. It also preserved the legacy startup path used by tests
-and graders. A save had to succeed before the application published the new
-settings as accepted.
-
-Review found a serious detail that a successful launch would not have caught.
-Loading a credential before registering flags could place that credential in
-the default value printed by help or error output. The fix kept the override
-flag's default empty. A negative control restored the unsafe behavior and made
-the regression test fail for the leak.
-
-The source record says the replacement was installed and its configuration
-validated. It also says the final restart, browser refresh, and live
-configuration verification remained pending. This chapter does not silently
-finish those steps.
-
-The C# edition has its own ownership and persistence design. In particular,
-Agent-home memory and recall policies are separate from shared GUI appearance
-preferences. Do not import the old Go application's single-file schema merely
-because the historical lesson is sound. Carry forward the requirement—clear
-authority, secret-free configuration, save-before-publication, and honest
-active-versus-next-launch state—not an unrelated implementation shape.
-
-## Identity outlives a process
-
-Another crossover report concerned new streaming text appearing in an old card.
-The earlier runtime allocated artifact IDs uniquely within one process, but
-restarted its counter at zero after restoring history. Saved cards still had
-the old IDs.
-
-An isolated two-runtime reproduction made the collision visible. The first
-response, `FIRST`, used ID 1. After save and reload, `SECOND` also used ID 1.
-Both remained separate in durable history, while the renderer appended the new
-delta to the old card and then replaced its text with the final response.
-
-The archive had not lost a message. The projection had confused two identities.
-Clearing the display every turn would hide the symptom, not satisfy the identity
-contract. Starting future IDs above the old maximum would also leave existing
-collisions in older history unresolved.
-
-The record labels this investigation **reproduced, not fixed or deployed** at
-that boundary. Its lesson is an obligation to test identity across restoration,
-not evidence of a repair that the record never demonstrates.
-
-## What the crossover contributes to the book
-
-These incidents are why I do not treat generated code or a green grader as the
-end of engineering. A real user exposes assumptions about speech, observation,
-latency, roles, settings, and identity that a construction exercise may miss.
-The response must be diagnosis and correction, not a claim that the user used
-the program incorrectly.
-
-The transfer of knowledge goes in both directions. An expert helps build and
-check the system; demonstrated work then supplies better explanations and
-requirements for the codebook. A fresh agent can execute that improved book
-again. The code is a rebuildable output, but its quality still matters: it is
-where the teaching meets real behavior.
-
-For this edition, Chapter 25 adds no hidden repair pass. Chapter 24's live OAuth
-and cache decision remains open, and its optional workaround has not been
-implemented. Chapter 26 continues from the locally verified Chapter 23 C#
-foundation. The next feature must earn its own implementation and evidence.
-
----
-
-# Chapter 26: Gateway
+# Chapter 24: Gateway
 
 I built a fantasy role-playing game for AI agents called Deephold.
 Moltbook had taken off as a social network for agents, and I thought a
@@ -16477,7 +15510,7 @@ across all queues and policy. This is not exactly-once execution.
 Local C# library and application checks, cross-language interoperability, and the
 scoped executable grade are recorded separately. The grade earns **60/60 server
 points**; 40 client/Noise points remain ungraded in that route. The three-process
-C# interview used a fake HTTP provider, not a live model. Section 26.7 explains
+C# interview used a fake HTTP provider, not a live model. Section 24.7 explains
 those limits and how to reproduce the grading scope.
 
 ### In plain words
@@ -16488,7 +15521,7 @@ label on the message. If the recipient is offline, it keeps the message. The cli
 hands it to the application and sends a receipt only after the application accepts
 it. What the application then does with the message remains the application's job.
 
-## 26.1 Why the agent needs a router
+## 24.1 Why the agent needs a router
 
 The fleet can already delegate work to children inside one Ensemble. Its
 operator still reaches it through the terminal or browser. Another process
@@ -16549,7 +15582,7 @@ handles incoming messages through its application's `IHandler`. Ensemble's
 adapter admits them to the actor it already has. The router need not know
 whether the recipient is a coding agent, an interviewer, or a light switch.
 
-## 26.2 Noise-KK beneath the cloud
+## 24.2 Noise-KK beneath the cloud
 
 TLS client certificates can provide mutual authentication when the endpoints
 own that TLS connection. A terminating reverse proxy changes which endpoints
@@ -16626,7 +15659,7 @@ The native dependency and file-permission implementation need platform evidence:
 Mac and Linux ARM64 transport/key tests do not prove Windows support or Linux
 WebSocket behavior.
 
-## 26.3 Trust stamped at the boundary
+## 24.3 Trust stamped at the boundary
 
 A message flowing through the gateway carries an envelope: a message ID, a
 sequence number, a destination agent, a source, a timestamp, an optional
@@ -16671,7 +15704,7 @@ the envelope retains the other routing fields for the receiving application.
 Groups are the authorization primitive. Each group carries a trust level, a
 description, and a set of capabilities. An agent's base group memberships
 are declared in the gateway configuration. This fragment shows the policy;
-Section 26.6 adds the listener, data directory and real public keys:
+Section 24.6 adds the listener, data directory and real public keys:
 
 ```json
 {
@@ -16740,7 +15773,7 @@ configured base memberships intact. Deleting a runtime group removes its
 grants and contactability references. Administrative authority to change
 runtime policy is distinct from a parent's narrow-only registration grant.
 
-## 26.4 A library, not a framework
+## 24.4 A library, not a framework
 
 The public namespace is `Ensemble.Gateway`. An outside .NET application references
 `Gateway/Ensemble.Gateway.csproj`; it need not reference Ensemble's core. The
@@ -16855,7 +15888,7 @@ and receipts, not the meaning of a prompt. The interviewer collects answers. The
 optional Ensemble bridge submits turns. A home automation application could switch
 on a light. The router does not need to know which application it is serving.
 
-## 26.5 Delivery and recovery
+## 24.5 Delivery and recovery
 
 After the Noise-KK handshake, both sides speak a JSON protocol inside the
 encrypted stream. The agent sends five frame types: `hello` to identify
@@ -16969,7 +16002,7 @@ issuing a request on the same serialized socket, established the intended
 ordering. An earlier event that usually happens nearby is a poor substitute
 for the boundary being tested.
 
-## 26.6 The interviewer proves the stack
+## 24.6 The interviewer proves the stack
 
 The interviewer is a standalone C# executable in `Gateway/Interviewer`. It
 references only the public Gateway library, holds its own keypair, and reaches
@@ -17026,7 +16059,7 @@ startup. These are application lifetimes the router does not own.
 
 ### Running the interview
 
-Use .NET 10/C# 14 and the approved native dependency described in Section 26.2.
+Use .NET 10/C# 14 and the approved native dependency described in Section 24.2.
 The repository's disabled package feeds are deliberate: use an existing package
 cache or explicitly authorize a source for libsodium 1.0.22; do not silently alter
 global NuGet configuration. From the repository root, build the active source
@@ -17110,7 +16143,7 @@ This recipe does not authorize a live call merely by being printed here.
 
 For OpenAI, set `EN_VENDOR=openai` and `EN_MODEL` to that selected model. The
 optional `EN_BASE_URL` selects a service base, including an owned compatible
-loopback fake. The host uses the existing Chat surface; this is not Chapter 24's
+loopback fake. The host uses the existing Chat surface; this is not Chapter 23's
 public OAuth Responses/cache exercise. Then run:
 
 ```sh
@@ -17180,10 +16213,10 @@ not be sold as a cache benefit or a productivity experiment. The
 retain the actual answers; later local diagnostic and receipt-test corrections
 do not turn that earlier run into a new one.
 
-## 26.7 What the grader checks
+## 24.7 What the grader checks
 
 The original Go route builds the submitted router and an outside consumer against
-its public library. That route remains `-ch 26 solutions/ch26`; older Chapter 27
+its public library. That route remains `-ch 26 solutions/ch26`; older Chapter 25
 Gateway numbering is not this edition's Goals chapter.
 
 For C#, the opt-in executable route retains the complete outside-peer exercise,
@@ -17204,16 +16237,18 @@ is retained even though its full client contract is ungraded.
 | C6 | Outside consumer of the submitted public client | 10 ungraded |
 | C7 | Independent child connection and refused wider grant | 20 |
 
-The recorded C# result is **60/60**, not 100/100 and not a claim that the ungraded
-40 points failed. Real C# client tests and Mac/Pi wrapper interoperability tests
-retain their separate scopes. Neither a passing fake nor an outside Go peer is a
+The recorded C# result is **60/60**, covering 60 of the original rubric's 100
+points. The remaining 40 client/Noise points are ungraded by this route, rather
+than failed or removed from the chapter's requirements. Read the real C# client
+tests and Mac/Pi wrapper interoperability results as separate evidence; they do
+not supply those grader points. Neither a passing fake nor an outside Go peer is a
 security audit. The Ensemble adapter, administrative restore, ownership and host
 failure paths also need their own source and application evidence.
 
 To reproduce, build the Host first. The grader expects historical `-config` and
 `-print-key` flags; this small executable adapter only translates them and execs
 the real DLL. It supplies no canned result. With `CH26_SRC` and `CH26_RUN` from
-Section 26.6:
+Section 24.6:
 
 ```sh
 DOTNET=$(command -v dotnet)
@@ -17254,7 +16289,7 @@ can depend on.
 
 ---
 
-# Chapter 27 — Goals
+# Chapter 25 — Goals
 
 I would give Ensemble a job that ought to keep it occupied for most of a day. An hour later, it could be sitting there doing nothing. Codex had done the same thing. Neither program was necessarily broken. The model had finished a response, but the job was not finished. Work resumed when I noticed and poked it.
 
@@ -17269,9 +16304,9 @@ Goals addresses these two problems separately:
 
 The first mechanism preserves an objective across compression. The second supplies an opportunity to continue. Neither guarantees progress, correct judgment, or permission to act.
 
-> **C# edition boundary.** This chapter builds on the locally verified Chapter 23 implementation. Chapter 24's real OAuth/cache decision remains open, Chapter 25 is a historical interlude, and Chapter 26's Noise dependency remains unresolved. Goals does not depend on the optional cache detour or Gateway. Completing this chapter must not silently mark either of those integrations complete.
+> **C# edition boundary.** This implementation was originally built on the preserved `solutions/edition-3/ch23` endpoint. The optional Codex path and Gateway have since been completed locally; their historical endpoints retain their original names. Goals does not depend on either integration. The final crossover exercise in Chapter 26 still requires the human's replacement acceptance.
 
-## §27.0 TL;DR — What to Build
+## §25.0 TL;DR — What to Build
 
 Build an opt-in, session-local Goals feature on the existing Agent actor. Do not add a scheduler service, a goal database, a second model conversation, or a browser-owned timer.
 
@@ -17330,7 +16365,7 @@ Show the selected Agent's status, not the host actor's status by accident. Disti
 
 Provide labelled Apply, Reminders off, Clear, and Reload controls. Acknowledgment means the actor applied the update. The browser must not optimistically claim success when a checkbox changes. These controls are session-local; they do not write the durable memory/recall policy or appearance preferences.
 
-## §27.1 Write an Objective, Not a Repeated Command
+## §25.1 Write an Objective, Not a Repeated Command
 
 A useful goal file tells the agent what remains, how to recognize completion, and where its authority ends:
 
@@ -17358,7 +16393,7 @@ The path is not the objective. The file's current bytes are. A handoff can repla
 
 That does not make the file magical. It can be stale, badly written, or missing. Keep it short enough to understand, update it when the work changes, and do not put secrets in a document that will be sent to the model.
 
-## §27.2 Keep the State on the Agent
+## §25.2 Keep the State on the Agent
 
 `Common/Goals.cs` declares the vocabulary and operations. `Agent/Goals.cs` implements them as another partial section of the same Agent type.
 
@@ -17378,7 +16413,7 @@ The timer accepts a finite interval of at least one millisecond and no more than
 
 Unloading a skill has two distinct effects in this system: its authority is revoked immediately, while its old manual can remain in canonical History pending later retirement. Goals uses the current grant, not the presence of an old manual. Unload also clears its session configuration and timer. Removing the Skills relationship does the same without deleting the goal file.
 
-## §27.3 Preserve the Goal Across Requests, Not as Transcript Copies
+## §25.3 Preserve the Goal Across Requests, Not as Transcript Copies
 
 The renderer already projects primary instructions, tool policy, retained manuals, and request-only pressure guidance. Goal text joins that request-only instruction projection.
 
@@ -17401,7 +16436,7 @@ Auxiliary recall judges and memory compressors do not receive the parent's goal 
 
 File errors require a careful split. A human turn should be able to say, “The configured goal file is unavailable; repair it and explicitly re-enable reminders.” An automatic wake should not send a request with its objective silently missing. The wake preflights the read, and rendering checks again before send. A revision-bearing failure cannot disable a newer configuration selected while the old read was in progress.
 
-## §27.4 Let the Actor Decide Whether to Wake
+## §25.4 Let the Actor Decide Whether to Wake
 
 The timer callback is deliberately uninteresting:
 
@@ -17433,7 +16468,7 @@ Independent Jobs are different. They may legitimately run while the foreground A
 
 The interval starts again after work becomes idle. This is not “run every eight minutes,” and it is not a watchdog for a hung active request.
 
-## §27.5 Stop Has More Than One Meaning
+## §25.5 Stop Has More Than One Meaning
 
 The interface must not collapse these states:
 
@@ -17459,7 +16494,7 @@ The interface must not collapse these states:
 
 In earlier runtime work, a missing visible explanation made a real failure look like an unexplained pause. That is a useful lesson here, but it is not a claim that the historical provider failure was reproduced in C#. If a file becomes unreadable, status should say so. If the socket disconnects, the GUI should say its current knowledge ended there.
 
-## §27.6 One Status, Several Views
+## §25.6 One Status, Several Views
 
 `GoalStatusAsync` lets a trusted host observe the Agent even when the Goals skill is unavailable. It grants nothing. Configuration and model dispatch still require the skill.
 
@@ -17481,7 +16516,7 @@ Working and reminders enabled are separate facts. An Agent can continue its curr
 
 Use text labels and ordinary keyboard-accessible controls. The local browser exercise checks their DOM behavior; it does not establish that a particular person can see or hear them comfortably. Human accessibility and audible behavior still require human use.
 
-## §27.7 Verify the Boundaries
+## §25.7 Verify the Boundaries
 
 Use real Agents and the existing actor, renderer, Sandbox, skill catalog, and GUI. Replace the external provider with a small loopback HTTP peer only where a request is required.
 
@@ -17499,7 +16534,7 @@ The important checks are causal:
 
 The local provider can verify actual request bytes and lifecycle. It cannot establish that a real model follows the goal well, knows when it is blocked, or avoids an unnecessary retry. Those remain application and human-judgment questions.
 
-The numbered Chapter 27 graders in earlier editions are **Gateway** graders. Do not rename their result as Goals evidence. This chapter has focused C# component, socket, and actual-host checks, not an invented inherited score.
+The numbered Chapter 25 graders in earlier editions are **Gateway** graders. Do not rename their result as Goals evidence. This chapter has focused C# component, socket, and actual-host checks, not an invented inherited score.
 
 ### Source map
 
@@ -17518,7 +16553,7 @@ Paths are relative to `solutions/edition-3/main`:
 | GUI adapter and controls | `Gui/Server/Goals.cs`, `Gui/Server/Host.cs`, `Gui/wwwroot/app.js` |
 | Core and real-socket tests | `Tests/GoalTests.cs`, `GuiTests/GoalControlsTests.cs` |
 
-## §27.8 Taking It for a Spin
+## §25.8 Taking It for a Spin
 
 Start with the local checks. From the repository root, using your approved .NET 10 SDK:
 
@@ -17579,7 +16614,7 @@ After explicitly configuring your chosen provider and selecting an unused local 
     --skills-dir "$work/skills" --primary-skill base --startup-skills goals)
 ```
 
-The omitted provider configuration is intentional: a chapter example must not silently choose an account, credential source, endpoint, or billable model for you. This is not the deferred joint OAuth test from Chapter 24.
+The omitted provider configuration is intentional: a chapter example must not silently choose an account, credential source, endpoint, or billable model for you. This demonstration is separate from the completed, bounded OAuth/cache exercise recorded in Chapter 23.
 
 Open the owned GUI URL and the Goals controls:
 
@@ -17594,7 +16629,7 @@ Open the owned GUI URL and the Goals controls:
 
 If a test or provider request is already running, inspect it instead of starting another copy just to obtain a newer timestamp. When finished or genuinely blocked, turn reminders off and say which state applies.
 
-## §27.9 Exercises
+## §25.9 Exercises
 
 ### Exercise 1 — Freshness in the Same Turn
 
@@ -17620,7 +16655,7 @@ View different Agents in two tabs. Apply a goal in one, switch the other, and in
 
 Remove a configured file before a wake. Verify zero inference from that wake, an explicit file-error status, and usable Off/Clear controls. Restore the file and explicitly re-enable. Do not report the interrupted task as completed.
 
-## §27.10 What Goals Does—and Does Not—Buy Us
+## §25.10 What Goals Does—and Does Not—Buy Us
 
 The goal file carries a durable objective. The runtime brings its current contents into ordinary requests. An opt-in timer gives an idle Agent another chance to examine the work.
 
@@ -17629,6 +16664,602 @@ That is useful, but it is not self-certifying autonomy. A reminder can encounter
 I require the agent to inspect, distinguish those states, and explain its decision. Continue when there is useful authorized work. Wait when waiting is correct. Ask when a human decision is genuinely needed. Stop reminders when the goal is complete or human-dependent—and preserve which of those happened.
 
 Goals should reduce the number of times I have to poke the agent. It should not reduce the amount of judgment in the work.
+
+---
+
+# Chapter 26: Crossing Over to Ensemble
+
+“I gave Astra a book. Astra gave me an AI coding agent.”
+
+That is how I described the earlier crossover. The book included graders. Astra
+built Ensemble while working in Codex, and then I began working with Astra inside
+the agent we had built. The next edition was built inside Ensemble. The loop
+closed, but closing it once did not make every later replacement ready to use.
+
+When I opened the C# edition, I saw settings above a conversation, arranged in one
+long column. There was no useful agent tree in the interface I was looking at.
+The controls and the tests existed; the application did not yet feel like the
+place where I could do my work. I asked for a real GUI.
+
+That is not cosmetic work to do after the engineering. It is engineering. I can
+hardly see, and I listen quickly. If I cannot find the selected agent, hear the
+right answer, follow the explanation beside the tool results, or interrupt work
+without guessing which control will move next, the application is not ready to
+replace the one I use now.
+
+This is the final implementation chapter. Its result is a replacement candidate
+and a safe way for the human to evaluate it. The crossover is complete when the
+human accepts that candidate for ordinary work—not when the student declares it
+finished, and not when an author adds up earlier test counts.
+
+## TL;DR — finish the replacement, not another demonstration
+
+Start from the completed C# application in `solutions/edition-3/main`. Do not
+rebuild it from nothing or transplant the old Go GUI. Implement the missing
+crossover work, using the ownership and behavior established in the preceding
+chapters:
+
+1. Make the GUI a coherent, accessible three-pane application using the approved
+   Bootstrap control system and graphite/blue design direction below, with a
+   stable status bar, agent tree, settings, chat, and tool artifacts.
+2. Provide an ordinary foreground `start` launcher and actionable startup errors.
+   Make it possible to run beside the current application without stopping it.
+3. Verify the real browser, actor, persistence, and shutdown paths with owned
+   local resources. A screenshot alone does not verify a control; a socket test
+   alone does not verify a usable interface.
+4. Prepare a safe, explicitly armed crossover and rollback procedure. The
+   current application and its data remain recoverable throughout the trial.
+5. Give the human a runnable candidate, clear instructions, the tests you actually
+   performed, and the limitations that still need human or live-provider work.
+
+This is the only crossover chapter in Edition 3. The earlier historical
+crossover chapters have been removed and the manuscript renumbered sequentially.
+Preserved source endpoints and grader commands retain their original names;
+see the numbering map in [the edition guide](README.md). Earlier editions remain
+historical records, not files to edit here.
+
+## In plain words — one system, a better place to use it
+
+The GUI is a projection and control surface over the existing application.
+Ensemble owns Agents; Agents own their work, History, Engine, and related
+services. The browser does not become a scheduler, credential owner, transcript,
+model registry, memory database, or usage meter because it needs a nicer display.
+
+Begin by reading the current implementation. The existing GUI has peer creation
+and deletion, an agent selection protocol, model changes, settings acknowledgments,
+usage, memory and recall controls, Goals, speech, and tool-card rendering. Most of
+the work is to arrange and connect those capabilities well. Replace an awkward
+presentation, not a correct ownership model.
+
+C# changes still follow the Common/implementation structure. Common declares
+persistent state, relationships, and externally callable operations; functional
+modules implement them. Real parents provide access to services. Destruction
+completes both ends of relationships. Value-like display data need not acquire
+invented lifecycle machinery. Explain any necessary vocabulary change before
+implementing it; ordinary work within the agreed model needs no per-function
+permission.
+
+Teaching code must remain readable. Comment relationships, contracts, and
+non-obvious browser lifecycle decisions. Use the approved component library
+below; do not build another framework, configuration language, second event bus,
+or collection of copied state around it. Keep the existing HTML/JavaScript
+integration and C# host rather than adding a React or Vue rewrite merely to use
+styled controls.
+
+## Required GUI reading
+
+Before implementing this crossover, read the complete original
+[Chapter 8, “Build Your Dream GUI”](../chapter-08.md), as well as the current
+[C# Chapter 8](chapter-08.md). The original chapter explains the design intent
+and why using the interface matters; this chapter is not a substitute for it.
+Check your candidate against that intent and its still-applicable behavior.
+
+Earlier Go names, grader routes, and superseded implementation details are
+historical, not instructions to replace the current C# architecture. Current
+contracts and this chapter's safety boundaries govern. If the readings expose a
+genuine conflict, explain it rather than silently choosing a convenient version.
+Do not edit the earlier edition. Report the relevant checks in your handoff.
+
+## The selected control system and visual direction
+
+The first crossover candidate improved the layout, but I still found it ugly.
+“Good enough for now” was not an endorsement of its design or acceptance as my
+replacement. We compared two interactive component-library samples. I chose
+**Sample B: Bootstrap**, with a graphite background and blue accents, rather than
+the navy/teal Web Awesome sample. Do not reopen that choice as an unspecified
+framework-selection task or continue polishing the first candidate's homemade
+control system.
+
+Use **Bootstrap 5.3.8**, the stable version used in that sample. Its CSS and
+JavaScript supply the common control vocabulary: genuine tabs, buttons, forms,
+menus where needed, and consistent focus/disabled states. Read the
+[official Bootstrap 5.3 documentation](https://getbootstrap.com/docs/5.3/getting-started/introduction/)
+and [distribution instructions](https://getbootstrap.com/docs/5.3/getting-started/download/).
+Pin the dependency and retain its MIT license and provenance. Bundle the required
+assets locally with the optional GUI; do not depend on a runtime CDN, remote
+fonts, or an unrequested package installation. A Node build system is not needed
+just to use the published browser assets. Use one control system, not Bootstrap
+alongside a second component library.
+
+The temporary localhost sample is not a required service or an answer key. These
+are its durable design requirements:
+
+- **Graphite surfaces, light text, blue accents.** The selected sample used dark
+  page `#15191f`, pane surface `#1f252e`, raised surface `#29323f`, main text
+  `#f1f4f9`, secondary text `#bbc6d5`, border `#455365`, accent `#a8c8ff`, and
+  selected background `#263e64`. Use these as the initial application palette;
+  verify actual foreground/background combinations rather than assuming the
+  library guarantees contrast. The light counterpart used `#f5f6f9`, white,
+  `#e9edf5`, text `#17253b`, secondary text `#4a5c75`, and accent `#2359a6`.
+- **A quiet shell and a clear hierarchy.** Compact status controls, aligned pane
+  headings, consistent spacing, and breathing room around messages. Give the
+  conversation the main reading space. Avoid enclosing every label or sentence
+  in another bordered box. Reserve tool cards for distinct activities/artifacts.
+- **Tabs that select a shared panel.** Agents/Settings are a connected tab strip,
+  not pill-shaped action buttons. The active tab joins or clearly identifies its
+  panel; inactive tabs recede. Keyboard focus is distinct from selected state.
+  Use the library's tab behavior without adding competing click/key handlers.
+- **Consistent controls, not the sample's fake application.** Keep the button,
+  form, spacing and theme treatment, but bind it to the real acknowledged Agent
+  operations described below. The sample's conversation, timings, artifacts,
+  creation/deletion, pause and speech behavior were illustrative. They are not
+  production data, a scheduler, persistence, or accepted test results.
+
+Bootstrap does **not** supply Ensemble's agent relationships, tree semantics,
+pane splitters, transcript or tool renderer. Keep those responsibilities in the
+existing application/browser layers and style them consistently. A nested list
+of sample buttons is not a keyboard-accessible real agent tree. Use the existing
+ownership and operations, implementing missing presentation behavior without
+rebuilding the core. Do not add another tree or layout framework without a
+concrete need and architectural discussion.
+
+Integrate the existing acknowledged appearance preferences with Bootstrap's
+light/dark presentation. Do not create a second localStorage authority, lose
+saved explicit choices, or apply a rejected setting optimistically. New users
+start dark. Library event handling must not duplicate sends, resets or peer
+operations; attaching it again after replay/reconnection must not accumulate
+handlers. Preserve target identity while updating the presentation.
+
+Verify locally bundled CSS/JavaScript in the ordinary embedded build **and** a
+mounted GUI base path. Check for failed asset requests and unintended external
+requests, real tab/keyboard behavior, both themes and enlarged text. A library
+makes controls consistent; it does not certify contrast, beauty, accessibility,
+or correct application wiring. Carry these checks into the integrated exercise,
+not only a standalone component demo.
+
+## The interface I require
+
+### A stable status bar
+
+Put a status bar across the top. Give its contents reserved space so changing
+status and numbers do not push the controls around. Show the selected agent,
+connection/activity state, and the existing model/funding and usage information
+without claiming unknown amounts are zero. Tabular digits help changing numbers
+remain still. Long names may truncate with the full value available accessibly;
+they must not shove the controls off screen.
+
+Reserve the geometry, not just the labels. Wrapping flex rows and tabular digits
+alone do not stop a longer state or usage value from changing neighboring widths
+or row heights. Bound identity and numeric slots; give model and action controls
+stable tracks. At enlarged text or narrow widths, use an explicit responsive
+arrangement with reachable overflow rather than shrinking text. Pause/Resume
+state changes must not make adjacent controls jump either.
+
+The status bar contains:
+
+- A model dropdown using the existing same-provider, between-turn model-change
+  operation. A refused change must not leave the display pretending it succeeded.
+  Compatible model names are not proof of account entitlement. Preserve the
+  distinction between running selection and persisted launch configuration.
+- A clearly labeled Speech checkbox. Speech remains opt-in. Its state is the
+  acknowledged appearance/speech setting, not an independent second toggle.
+- Compact Pause/Resume and Interrupt controls with useful labels, keyboard focus,
+  and adequate click targets. Do not confuse pausing admission with interrupting a
+  turn, or interrupting a turn with killing independent Jobs.
+- A Light/Dark theme button. Its action must be clear, its setting must persist
+  through the existing appearance store, and it must agree with any equivalent
+  settings control. Use dark for a new user unless a saved explicit choice says
+  otherwise. Both themes need high contrast.
+
+An unavailable connection is not an idle Agent. Pending selection and settings
+changes are not acknowledged state. Disable controls when their target is
+uncertain and show why rather than silently applying them to a different Agent.
+
+### Three panes below it
+
+On a desktop, all three panes are visible at once.
+
+**Left: Agents and Settings.** Use two genuine tabs. The Agents tab contains an
+expandable hierarchy and agent creation/deletion controls. Represent the real
+parent relationships: named top-level peers are siblings, not children of the
+first displayed Agent. Show the selected row and meaningful status. Support
+keyboard traversal, expansion, selection, and visible focus without requiring a
+mouse or color perception.
+
+Use the existing peer operations. Creation and deletion are acknowledged
+operations, not optimistic edits to a local list. Protected/mounted actors and
+parents with unresolved children retain the current refusal rules. Deletion
+retains saved files according to the core contract. A selection changes the
+view; it does not transfer that tab's browser relay or MCP authority. Keep the
+separate-relay action discoverable for Agents that require it.
+
+The Settings tab has clearly grouped **AI**, **Memory**, and **Accessibility**
+sections. AI includes the existing model/context/tool-policy and account/funding
+information where applicable. Memory includes the existing band and recall
+settings. Accessibility includes theme, font size, voice, speech speed and pause
+behavior. Keep Goals and existing account controls reachable too; reorganizing
+controls is not permission to drop them. Memory is a settings group, not another
+persistent memory authority or a new recall corpus viewer. A supplemental dialog
+must not replace or bury this agreed Settings tab, duplicate its state, or make
+its grouped controls harder to reach.
+
+Appearance settings belong to their existing store. Memory/recall settings
+belong to the selected Agent. Preserve durable-save-before-acknowledgment,
+sibling-policy preservation, draft protection, and rejection of stale selection
+frames. Funding stays fixed for a running Agent. Codex renewal remains Codex's
+responsibility; public OAuth operations must not turn into Codex operations.
+
+**Middle: Chat.** Give the conversation the main reading space, with a composer
+anchored at the bottom. Keep ordinary explanations visible while tools run.
+Preserve Enter/Shift-Enter behavior, hints, selection/replay, streaming and final
+replacement, near-bottom-only autoscroll, and scroll position when the human is
+reading older material. A new answer must not silently replace an earlier one.
+Private reasoning and opaque replay payloads are not chat text.
+
+**Right: Tools and artifacts.** Show tool calls, results, running work, failures,
+and available artifacts in coherent expandable cards. A pending call must not
+look like a successful result. Preserve exact call/job identity and existing
+controls; use the existing renderer and artifact capabilities rather than
+inventing an unrelated file browser. Long output should be inspectable without
+forcing the conversation to scroll sideways. Render untrusted text safely, not
+as executable provider-supplied HTML.
+
+Inline truncation is not permission to make the retained result unreachable.
+Provide a usable way to inspect or download the complete output when a current
+owned Job has it. Resolve an Agent and its Job through the existing ownership
+operations, including canonical qualified addresses for nested Agents. A named
+top-level lookup is not a substitute for GUI tree/address resolution. Never
+accept a browser-supplied filesystem path. Open the owned output
+with the existing `Sandbox.OpenRegularRead` operation: an ordinary unconfined
+`OpenFile` can wait for a pipe peer if a file has been substituted, whereas the
+regular-file reader refuses nonseekable input without that wait. Dispose the
+returned stream and preserve the same confinement authority.
+
+Nonblocking regular-file access is not a blanket symlink ban. An empty Sandbox
+root deliberately retains full access; a rooted Agent enforces its existing
+confinement and permits admissible inward links. Do not invent a second Sandbox
+or a GUI metadata/ancestor-checking scheme: checking then opening does not prevent
+concurrent substitution. Test that a rooted output redirected outside its root
+refuses without returning escaped bytes, separately from nonseekable-file refusal.
+Preserve the existing unconfined policy and report its limits. Job ownership and
+completion do not authenticate original file bytes against hostile local writers;
+stronger immutable-artifact provenance would require a separately agreed design.
+
+Preserve the GUI's origin/header guards, mounted base path, request cancellation, and private-response
+headers. A convenient ordinary download link is not a reason to replace the
+required custom-header guard with optional browser fetch metadata. Mount shutdown
+must cancel and join the active response, not just stop future admission. Reuse
+the available core operations; if a genuine gap requires a new public operation,
+explain the need and obtain the shared-vocabulary agreement before adding it.
+Reading a download must not consume the Job observer's output cursor.
+Refuse running, missing, wrong-owner, or historical-only handles explicitly rather
+than returning partial output as complete. Bound browser memory use and explain
+any size refusal; an unbounded `fetch().blob()` is not streaming to disk. Test
+exact bytes, ownership refusals, and a later ordinary Job observation.
+
+Make pane widths adjustable with pointer and keyboard controls. Panes should
+scroll independently, with useful minimum widths and without hiding the chat
+composer. At narrow widths, provide an explicit way to reach each pane rather
+than squeezing three unreadable columns or dropping functions. This is not a
+request for a separate mobile application.
+
+### Deliberate appearance, not a color swatch on the old page
+
+I prefer fairly dark backgrounds and light text. Choose restrained, attractive
+accent colors, consistent spacing, readable typography, clear section headings,
+and controls that look related. Slightly different dark surfaces can distinguish
+panes; low-contrast gray labels cannot. Tabs must look and behave like tabs.
+Selection, focus, warning, and error states must not rely on color alone.
+
+Check both themes, enlarged text, keyboard use, and long content in an actual
+browser. Combine the conditions: test the largest supported text size in narrow
+windows as well as on a desktop, not large text only on a wide screen and narrow
+screens only at the default size. Include long status values and an expanded or
+resized composer. Verify that the prompt, Send, model, theme, and pause/interrupt
+controls remain reachable, with a useful conversation reading area and no
+page-wide horizontal overflow. Hiding overflowing controls or silently shrinking
+the chosen text size is not a correction. Bounded status summaries, shorter
+navigation labels, and accessible secondary help can preserve space without
+dropping operations. Keep screenshots, but also assert geometry and keyboard
+reachability; a successful settings save does not establish a usable layout.
+A bounded composer with its own scrollbar can still leave Send outside the
+visible area after textarea resizing. Reserve space for its label and action row,
+let the textarea yield space, and test short phone-height windows as well as tall
+ones. Do not call an off-screen button anchored merely because its outer form is.
+Check computed contrast as well as the layout. Capturing a screenshot is not
+viewing its pixels: say whether the acting model actually received and inspected
+the image, or only examined DOM/style/geometry. If visual input is unavailable,
+retain the screenshot for the human and report that limitation; do not claim a
+visual review or invent a hidden vision capability. Do not invent a numerical
+beauty grade. The human decides whether the application is pleasant and usable;
+the student must still bring a considered design.
+
+## Make startup ordinary and failure useful
+
+Provide a simple executable `start` script in the working solution, documented
+for this C# edition. It runs the GUI in the foreground, forwards supported launch
+options, exposes errors, and stops cleanly with Ctrl+C. Explain its build
+prerequisite and how it locates the SDK, assets, skills, workspace, and data.
+Do not silently install dependencies, fetch credentials, kill a port owner, or
+rebuild an unrelated running installation. Keep machine-specific account paths
+out of the repository. Use an explicitly supplied credential path when the human
+selects Codex; a path alone must not silently select the payer.
+
+The GUI library normally embeds its assets. Verify the built application's
+ordinary launch, not only an explicit `--gui-dir` source override: a CSS edit
+cannot change an already built assembly or an already loaded tab. Keep the
+existing borrowed-host and base-path behavior intact, with asset and socket URLs
+relative to the mounted page. Do not make the optional GUI a core dependency.
+
+The current host accepts `--port`, `--workspace`, `--sandbox`, `--data-dir`,
+`--agent-name`, `--gui-dir`, and `--skills-dir`. Codex selection uses
+`--billing codex --codex-auth-file PATH`; its endpoint is pinned. Inspect the
+saved parser rather than assume other flags exist. Provide a parallel-run
+example on an unused port, not instructions to evict the working server. A human
+may run something like the following after building:
+
+```sh
+# Choose a genuinely unused loopback port and a private trial home first.
+# This is a human-authorized live launch, not an offline test command.
+./start --port "$TRIAL_PORT" --data-dir "$TRIAL_HOME" \
+  --billing codex --codex-auth-file "$APPROVED_CODEX_AUTH_FILE"
+```
+
+The first manual trial used the default port while the old Ensemble still owned
+8088. The GUI printed only `GUI failed: AggregateException`. Starting on 8089
+worked. That is evidence consistent with a bind conflict; the type-only message
+did not diagnose the underlying exception. Improve startup reporting at the
+proper ownership boundary: show an actionable, safely masked cause while the
+relationships needed for diagnostic masking still exist. Do not dump nested
+exceptions, request headers, tokens, or private paths merely to improve debugging.
+Test bind failure, malformed setup, and cleanup faults without hiding the primary
+error. Retain defensive type-only reporting where safe redaction is unavailable.
+
+A separate remote trial restored the old server after thirty minutes. It left no
+provider request in the V3 API trace. A browser log showed a request to select
+`main` while the V3 actor was named `trial`; that observation did not establish
+why the remote trial failed. Inspect stale-browser and invalid-selection behavior
+without turning this clue into a claimed diagnosis. Give the human clear reload
+instructions and show a selection error without leaving controls falsely ready.
+
+## A safe trial and an independent way back
+
+Preserve the existing executable, launcher, configuration, history, and actor
+homes. Begin with separate trial data; do not copy private stores or let a new
+application overwrite the current session. The initial student run is not a
+migration of Cadence's memories. A later migration needs an explicit inventory,
+format compatibility checks, a copy rather than an in-place experiment, and the
+human's approval.
+
+First run the new GUI beside the current application. Only after the human is
+ready should a deliberately armed switch occupy the familiar port. The rollback
+controller must outlive both GUI processes and their tool Jobs. A shell command
+backgrounded under the application is not enough: application shutdown may kill
+its process group or owned jobs.
+
+On macOS, the earlier trial used a separate per-user launchd job, with a private
+temporary definition, automatic restart disabled, and an explicit start. A probe
+showed that bare `launchctl submit` could remain waiting; acceptance by launchctl
+was not proof the controller ran. Require an observed armed state before stopping
+the original process. Do not install a login-startup service or a global daemon
+merely to run this trial.
+
+Prepare a one-shot, approximately thirty-minute rollback with an early-restore
+command. It must check the original process identity and port ownership before
+acting; never terminate an unexpected owner. Allow graceful old-server shutdown,
+and do not force-kill it to make a trial proceed. Restore early if the candidate
+exits or cannot be launched at all. A missing or unexecutable candidate may throw
+before there is a process to monitor; that exception must still reach the restore
+path after the original has stopped. Bound the candidate's shutdown, and restrict any forced termination to
+processes the trial actually owns. Start the restored application independently
+of the controller that is finishing. Preserve status and private logs, reporting
+uncertain or failed restoration honestly. A slow original shutdown must not
+cause the controller to disappear and leave an empty port later.
+
+Test those lifecycle rules using real disposable local servers before offering a
+live switch. Cover timer expiry, early restore, candidate launch failure and crash,
+a candidate ignoring termination, changed-owner refusal, and cancellation before the switch.
+An armed timer is not proof of recovery. An observed restored listener is not
+proof of remote connectivity or successful inference. Power, network, and OS
+failures remain outside a software controller's guarantee.
+
+The earlier private trial controller is experience, not a hidden student
+solution or a permanent service to borrow. Deliver and test the small launcher
+and recovery support in the working solution. Do not read the human's private
+trial directory as an answer key.
+
+## Exercise the behavior that daily use exposes
+
+Use the real C# host and an isolated browser with a fresh profile, plus a small
+working provider fake where deterministic replies or failures are needed. The
+fake is a boundary peer, not a mock of Agent, History, or the GUI itself. It must
+speak the selected transport faithfully. Merely assigning a dummy key does not
+make a public endpoint an offline test.
+
+A useful session proceeds through these paths:
+
+1. Launch on an owned spare port. See the three panes, the selected agent, and a
+   truthful connection state. Change status/usage text and show that the status
+   bar controls do not move around. Compare bounding rectangles before and
+   after realistic long agent names, status values, and multi-digit usage/cost
+   values at a fixed viewport. Checking only that controls are inside the window
+   does not establish reserved space. Label a display-value geometry probe as
+   such; it does not verify backend accounting. Inspect dark and light themes, large text,
+   keyboard navigation and pane resizing. Keep screenshots for the human.
+2. Send a message through the real browser. Observe explanation, streaming,
+   a tool call and result, and a final reply in the correct panes. Use enough
+   output to test scrolling. Preserve the existing safe Markdown behavior:
+   unordered and ordered lists must remain semantic lists, and source-wrapped
+   prose must remain one paragraph rather than a stack of separate paragraphs.
+   Check headings, inline code, links, and fenced code without executing supplied
+   HTML. A styling change is not permission to replace a working renderer with a
+   less capable one. Reuse the working block parser when adding inline emphasis
+   or expandable code; test semantic elements and displayed whitespace, not only
+   a screenshot or text-content match. Inspect a real artifact supported by the renderer.
+   Disconnect/reconnect and verify repair without duplicate cards or lost text.
+3. Create a peer, see its actual place in the tree, select it, return to the
+   original, and delete the eligible peer through the existing operation.
+   Demonstrate a refusal without pretending deletion succeeded. A displayed
+   child must not grant its parent-tab browser authority.
+4. Change a model between turns and exercise the existing busy/refusal path.
+   Change appearance and selected-Agent memory/recall settings; observe the
+   acknowledgment and restart persistence. Simulate a write failure and show
+   that the old accepted state remains. Selection changes must not apply a
+   delayed result or a draft to the wrong Agent.
+5. Exercise Pause/Resume, Interrupt, opt-in speech and theme controls. In
+   particular, type while pause-on-input is active, press Pause explicitly, and
+   send: releasing the automatic typing pause must not undo the manual pause.
+   Also test the reverse order: press Pause, wait for its acknowledged state,
+   type a draft, then clear it or submit it. Observe outgoing controls as well as
+   the real actor's state: the browser must not send an automatic unpause that
+   releases the deliberate pause. A simple Pause/Resume click pair misses this
+   interaction. Keep automatic-pause ownership distinct from a manual request,
+   without creating a browser-owned copy of authoritative actor state.
+   A tab may remember that it requested an automatic pause; that is local control
+   intent, not authority over an already paused Agent. Typing after another tab's
+   Pause must not claim that pause. Explicit Resume must work with an unchanged
+   draft, and explicit Pause must be reachable while typing has automatically
+   paused the Agent. Exercise selection, reconnect, and interruption: stale local
+   intent must neither release someone else's pause nor travel to another Agent.
+   Wait for actual ready phases: a seeded conversation can be `inputpending`,
+   while a completed turn can be `idle`. A guessed state predicate is a fixture
+   failure, not evidence that Resume failed.
+   Keep model changes disabled during admitted work even when later usage/meter
+   frames arrive; a status refresh must not accidentally re-enable the control.
+   Queued speech counts as busy according to the existing policy; selection cancels
+   stale callbacks and replay is silent. A fake speech boundary verifies wiring,
+   not hearing. Native voice quality, useful speed, and accessibility need the
+   human's own browser and ears before acceptance.
+6. Stop and restart the owned host with the same saved trial state. Continue the
+   conversation and perform a new tool operation. New content must not overwrite
+   an old card; identity must survive replay and restoration. Confirm graceful
+   shutdown joins work and saves state, including when the browser disconnects.
+7. Exercise failure and recovery: occupied port, refused settings, interrupted
+   provider work, stale browser selection, and the independent rollback cases.
+   Keep demonstrated failures and corrections; do not count a timeout as proof
+   that a refusal worked.
+
+These are integrated exercises, not seven new frameworks or a fabricated point
+score. Reuse the existing test programs for affected contracts. Run broader
+regression when shared behavior changes. Read saved source and complete relevant
+spans; build success cannot excuse broken ownership or a barely usable page.
+
+Do not borrow live credentials for the student run. The author and human arrange
+any later bounded live check explicitly. Public OAuth and Codex are separate
+funding/credential paths with no silent API-key fallback. The prior C# Codex cache
+sample had two hits and one miss; it does not promise savings for the candidate.
+No new cache campaign is required simply because the GUI changed.
+
+## Lessons that remain obligations
+
+The earlier Go crossover record is history, not a list of patches to transplant.
+Several of its lessons belong in the replacement exercise:
+
+- **Explain before effects.** Ordinary visible assistant text explains intent;
+  private reasoning, a spinner, and a tool result do not replace it. Keep that
+  explanation visible beside Actions. The existing enforcement checks arrival
+  order, not just a normalized final message; do not weaken it for the new UI.
+- **Observation serves work.** Use explicit GUI/speech observation when needed.
+  Do not add automatic snapshot polling before every model request as a layout
+  shortcut or turn diagnostic noise into spoken dialogue.
+- **A check-in is not a deadline.** A Job observation delay does not end the Job.
+  Do not impose a short whole-response HTTP timeout or automatic paid retries to
+  make a slow provider look responsive. Controls and shutdown must still work.
+- **Roles have different result contracts.** A main conversation ends with a
+  normal reply; a delegated worker or compressor may owe a structured result.
+  Retain source through failed compression. Pleasant prose is not a committed
+  replacement, and a background worker is not permission to publish History.
+- **Configuration needs honest authority.** Show current versus next-launch
+  state, save before success, and keep credentials out of settings and History.
+  Do not import the earlier Go configuration schema over the C# ownership model.
+- **Build, install, restart, refresh, observe are different acts.** A new binary
+  on disk does not change a running process or an already loaded browser tab.
+  Record which act actually happened. Neither building nor a timer grants restart
+  authority over the human's working application.
+
+These principles explain why green grades alone did not finish the crossover.
+They also keep a redesign from regressing less visible work that already matters.
+
+## Where to work
+
+Read the actual declarations and callers, not just this source map:
+
+| Concern | Starting points under `solutions/edition-3/main` |
+|---|---|
+| Browser layout and behavior | `Gui/wwwroot/index.html`, `style.css`, `app.js`, `peers.js`, `auth.js`, `speech.js`, `mcp.js` |
+| Optional GUI library and hosting contract | `Gui/README.md`, `Gui/Ensemble.Gui.csproj`, `Gui/Server/` |
+| Actual GUI composition and startup errors | `Examples/Gui/Program.cs`, `Examples/Gui/Gui.csproj` |
+| Ownership and public operations | `Common/`, with corresponding implementation directories |
+| Actor/replay/settings tests | `Tests/Program.cs` and its referenced real-component test groups |
+| External GUI consumer | `GuiTests/GuiTests.csproj` |
+| Build/run orientation | `README.md` |
+
+Preserved numbered endpoints are read-only historical boundaries. The working
+solution is the candidate. Do not edit an earlier endpoint to make a regression
+disappear. Do not change the public protocol or persistence schema merely to
+simplify styling; a genuinely needed change requires architectural agreement.
+
+## The fresh-student loop
+
+The author first commits this chapter and its agreed starting implementation.
+A fresh student receives that revision, the current architectural rules, and a
+clean isolated working tree. The student owns implementation, tests, and the
+local exercise through completion, and may ask about genuine ambiguity. Do not
+interrupt it for routine early compiling checkpoints or supply an unrecorded
+solution through hints. The author performs the other roles: engineering review,
+behavioral verification, and teaching revision. The human evaluates the candidate.
+
+The submission states changed files, how to build and start, the actual local
+results, known limitations, and any clarification received. Keep it concise;
+use the repository's normal records rather than inventing an audit bureaucracy.
+Do not call the whole system accepted because the submission was accepted by a
+tool. A fresh context, different model name, or isolated directory alone is not
+proof that the teaching is sufficient; the work and recorded assistance matter.
+
+The Bootstrap decision and the first run's substantive behavior/layout lessons
+justify a new fresh-student run. Retain the first candidate and its failures for
+comparison, but do not merge its solution into the next starting implementation
+and call that a rebuild from the chapter. The next student receives the completed
+C# foundation plus this revised assignment. Small corrections can still be made
+within a run; another reset for every CSS adjustment would not teach us more.
+
+When enough new requirements or failure lessons accumulate, preserve what was
+learned, revise the chapter, commit the new teaching baseline, and run a fresh
+student again. Discard only the owned student run after its work is no longer
+needed. Never `reset --hard` or `clean` the human's shared working repository to
+simulate a fresh student. Minor corrections may be inspected directly without
+pretending each one has earned a new independent run.
+
+## The human acceptance and promotion gate
+
+The student hands over a candidate that can be run beside the old Ensemble.
+The human then checks actual readability, speech, keyboard use, normal coding
+work, interruption, settings, agent management, restart continuity, and recovery.
+Diagnose problems kindly and concretely; do not blame the human for exposing a
+path the tests missed. The chapter improves when those observations become clear
+teaching and meaningful regression checks.
+
+When the human says the new Ensemble is ready to replace the current one, the
+crossover is complete. Only then archive the current Edition 2 implementation
+and book and promote Edition 3 to the top level. Inventory the actual repository
+layout first, preserve history and the known-good launcher/data, stage the move,
+fix current links and launch paths, and verify the promoted build and rollback
+before retiring the old launch route. Do not overwrite the Edition 1 archive,
+move private state into Git, delete the old installation, or interpret acceptance
+as permission to publish or push. Execute the actual switch with the human.
+
+The code is rebuildable, not disposable. The durable artifact includes the
+judgment needed to rebuild it—and the judgment to know when it is ready to use.
 
 ---
 
@@ -17739,7 +17370,7 @@ an independent reviewer merely because I read the work again.
 
 The same discipline applies to the completed work and the remaining limits:
 
-- **Chapter 24:** the October 29 joint session established real CLI OAuth,
+- **Chapter 23:** the October 29 joint session established real CLI OAuth,
   account-model discovery and three completed plan requests with identical bodies.
   Each reported zero cached reads and writes. Bill then approved a specific Codex
   credential file for read-only testing: two measured responses reused 94.9% of
@@ -17750,13 +17381,13 @@ The same discipline applies to the completed work and the remaining limits:
   explicit CLI/GUI selection, read-only paired credential reader and no-fallback
   transport are implemented and preserved. Codex alone owns its renewal. Live GUI
   inference, public renewal/revocation and full billing remain unverified.
-- **Chapter 26:** Gateway is locally complete and preserved. Bill chose the tested
+- **Chapter 24:** Gateway is locally complete and preserved. Bill chose the tested
   Noise.NET/libsodium route while retaining Ensemble's ChaChaPoly suite. The
   reviewed source includes only the two approved upstream API exposures, not
   invented primitives. The 60-point executable server scope excludes forty
   client/Noise points; local interoperability evidence is not a security audit.
 
-[Chapter 27](chapter-27.md) is locally complete and preserved. That is a useful
+[Chapter 25](chapter-25.md) is locally complete and preserved. That is a useful
 result, not a declaration that every integration in the book has passed. The
 [execution record](../../docs/edition-3-csharp-progress.md) retains the chapter
 boundaries, failed baselines, corrections, and verification limits.
@@ -17821,7 +17452,7 @@ reasons, tests, and corrections. Rebuildable code is not disposable code. I stil
 require a design a human can understand, and passing a grader does not excuse
 violating that design.
 
-The C# chapter endpoints are preserved, including Goals and Gateway. Chapter 24
+The C# chapter endpoints are preserved, including Goals and Gateway. Chapter 23
 now includes the optional Codex-backed path, separately from the public OAuth
 flow. The joint live exercise verified authentication and inference; cache reuse
 varied. The chapters report the measured results and the limits of their local
