@@ -1,6 +1,132 @@
-# Edition 3 — GUI crossover: teaching baseline for fresh student
+# Edition 3 GUI crossover — integrated V3 and human acceptance
 
-## Current boundary — Cadence's personal Sample B design implemented; Bill's review remains
+## Current boundary — density corrections built/tested; live8089 replacement awaits agreement
+
+Bill requested at least twice the conversation density with unchanged fonts,
+then clarified roughly4X smaller widget padding/gaps and paragraph margins across
+the interface. He wants exactly two visible composer widgets: one-line input and
+his supplied Send SVG; longer text scrolls internally. This supersedes last night's
+one-to-four-line growth request. Placeholder follows the selected Agent. He also
+asked to remove restrictive relative pane proportions so Actions or conversation
+can occupy most of the workspace. I worked personally, with no new student run.
+
+Saved in shared `solutions/edition-3/main`: compact whitespace, message controls
+beside prose rather than a separate tall header row, no fixed message-width cap,
+unchanged supplied `paper_airplane_send_icon.svg` (copied as
+`gui/wwwroot/artwork/paper-airplane-send.svg`), SVG media type, one-line composer,
+Agent-specific placeholder, and space-based splitter bounds with160px minima.
+Splitters update keyboard/ARIA bounds and re-clamp after viewport/font changes.
+Fonts and line spacing were not reduced. Icon targets remain44px.
+
+I initially proposed retaining a GUI Hint action. Bill corrected that architectural
+mistake: the Agent classifies ordinary Message input at dequeue. I read the current
+Actor.cs handler, removed the browser Hint button and forced-hint shortcut/branch,
+and allow ordinary Send while the Agent is working. Core scheduling was already
+correct and was not changed. The server's legacy input route remains for other
+consumers; the GUI no longer chooses it. Chapter26 and GUI README now teach the
+current requirements instead of the obsolete expanding composer.
+
+Evidence and before-source backup: `/private/tmp/ensemble-gui-density.y8ML7J`.
+Final builds: `build-3.log`, `application-build-3.log` (zero warnings/errors).
+Final real-host/fake-provider browser run: `check-3/check.log`, `result.json` and
+`.crossover/evidence/`; ports18204/18205, served app/CSS matched source, browser and
+host shutdown exit0. New checks cover exactly two composer controls, one-line
+scrolling, unchanged icon loading, selected-Agent placeholder, Send during work,
+Actions taking most of the workspace with narrow chat, minimum panes on resize,
+mouse expansion of conversation, and absence of a message-width cap. Existing
+Markdown/pause/stream/output-authority checks and eight viewport/font combinations
+also passed. No live model request was made.
+
+Controlled before/after rendering of identical short messages is in `density.json`
+and `measure-2.log`. At1536×1000, message-height ratios were2.41 at font18 and3.42 at
+font32; at390×844 they were1.99 and2.00 respectively. Measured font family, size,
+weight and line-height matched in every case, with no page overflow. These are
+bounded short-message geometry measurements, not a guarantee for arbitrary long
+prose/code or proof of visual beauty. Calculated visible capacity also improves
+because the composer no longer consumes several rows. Screenshots were captured,
+not visually inspected.
+
+The first browser run stopped on an obsolete contrast selector for the intentionally
+removed composer label; that is a test error, retained under `check/`. The earlier
+grid layout used a permanent action-width column that hurt narrow text wrapping;
+its measurements are retained in `density-grid.json`. The final layout wraps text
+around actions only for their height. A whole-interface draft was briefly narrowed
+at Bill's request; his later explicit whitespace-everywhere instruction is the
+current scope. No font reduction was used to improve the measurements.
+
+Live8089 remains independent PID28036 with embedded *previous* assets.8088 remains
+PID17331. Neither was restarted or signaled during this work. The density changes
+are not deployed. Arrange a separate controlled replacement with Bill; do not
+reuse the prior night's restart authorization while he is using8089. No commit,
+push, publication, credential access, new real-model check, or memory migration.
+The full-book loading/redaction investigation is deferred at Bill's request.
+
+
+## Earlier boundary — integrated real V3 running on8089; tomorrow's usability/spacing review remains
+
+Bill authorized real integration, including the model, and explicitly approved
+stopping/replacing V3 on8089 while leaving8088 untouched. He asked me to continue
+personally while he slept; broad spacing cleanup is deferred until tomorrow.
+
+I finished the requested polish in the reviewed candidate: proportional approved
+Ensemble artwork in the header and favicon; local speaker symbols for the native
+opt-in speech toggle, per-message Speak and Stop speech; moon/sun theme symbols
+with explicit accessible switch actions; and a composer that starts at one line,
+grows to about four, then scrolls internally and shrinks again when cleared.
+The line cap belongs to CSS; sizing reads actual content height and recomputes for
+font/width changes without an observer feedback loop. PNG assets use image/png.
+Chapter26 now teaches these requirements and the earlier design/layout lessons.
+
+Focused private checks: `/private/tmp/ensemble-gui-integration.VlLyje/check`. A port-only copy of the existing real
+fixture used18204/18205 so no preview was evicted. Both candidate builds passed;
+the browser run verified the new artwork/icons/composer and prior Markdown,
+pause-ownership, stream, selection, output-authority and responsive regressions,
+including eight window/text-size combinations. Served assets matched source;
+browser and fixture shutdown exited0. Unchanged earlier startup/recovery evidence
+is retained, not presented as a newly rerun campaign.
+
+I verified the shared runtime baseline before any copy, preserved rollback, sent
+SIGINT only to old8089 PID17375 and observed its exit, then copied its data/history.
+All28 reviewed files were integrated into shared `solutions/edition-3/main` and
+verified byte-equal to the tested candidate. The shared-source build passed with
+zero warnings/errors into `/Users/bill/ensemble-edition3-trial/integrated-yw0u3vsf/build`.
+No commit, push, publication, earlier-edition edits or Edition2 promotion occurred.
+Comparison's book/companion work remains outside my changes.
+
+**Working URL: http://localhost:8089/** — reload an existing browser tab to obtain
+the new assets. PID28036 runs independently (parent1, process group/session28036),
+with no15-minute preview expiry or installed autostart/restart service. It uses
+embedded GUI assets, the existing trial workspace/data/history and actor `trial`,
+explicit Codex funding and model `gpt-6-astra`. There is no source-directory GUI
+override, fallback, credential inspection/copy/refresh or new account setup.
+Application use of its existing configured credential source is unchanged.
+
+One controlled readiness prompt was submitted through an isolated private browser.
+The live Agent answered `GUI_READY`, returned to idle and showed no notice;
+`/private/tmp/ensemble-gui-integration.VlLyje/real-result.json` and `real-check.log` record it. This proves that bounded
+real-provider turn, not model quality, pricing, cache performance, or a multi-turn
+coding campaign. The checker initially failed *before any request* because I used
+Playwright's `response.ok()` method on Node fetch's boolean `ok` property. Those
+setup failures remain as `*.setup-error`; I corrected the checker, not the product,
+and did not resend a completed/admitted request. The result's request counter
+records the checker's requested turn, not independent provider wire accounting.
+
+After the checker closed,8089 still returned HTTP200. Protected8088 remains PID17331
+with its original start time and listener; it was neither signaled nor changed.
+Rollback: `/Users/bill/ensemble-edition3-trial/rollback-gui-am80icpa` includes source hashes/before-files, old assets/binaries,
+unchanged launcher, post-stop data snapshot, guarded `restore-source.py` and README.
+The original shared binary output and original trial launcher were not overwritten.
+The new foreground entry is `~/ensemble-edition3-trial/start-integrated` (do not
+invoke while8089 is occupied). Runtime README/log/PID are in `/Users/bill/ensemble-edition3-trial/integrated-yw0u3vsf`.
+
+Screenshots were captured, not pixel-inspected. Native audible quality and human
+visual/accessibility acceptance remain unverified. Bill's next-day usability and
+spacing review remains the human gate; integration is not an assertion that the
+GUI is beautiful or that8088 should be replaced. Reminders stop at this completed
+night-work boundary, not as an acceptance claim.
+
+
+## Earlier boundary — Cadence's personal Sample B design implemented; Bill's review remains
 
 **Current preview:** job1378, `http://127.0.0.1:18202/assistant/?speech=transcript`,
 private `/private/tmp/ensemble-gui-design-preview.SpRbbX`, launched from this pass's isolated binaries. Readiness,

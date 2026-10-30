@@ -177,6 +177,7 @@ public static partial class Gui
         }
         MapAuth(routes, callbackRoutes, agent, port, stopping.Token);
         MapPeers(routes, agent, port, stopping.Token);
+        MapJobOutput(routes, agent, port, stopping.Token);
         MapAssets(routes, options.AssetsDirectory);
         var initialMcp = agent.EnsureMcp();
 

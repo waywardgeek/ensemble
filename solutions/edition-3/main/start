@@ -1,0 +1,23 @@
+#!/bin/sh
+# Foreground only. Never install, rebuild, read credentials or evict a listener.
+set -eu
+here=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+if [ -n "${DOTNET_HOST_PATH:-}" ]; then
+    dotnet=$DOTNET_HOST_PATH
+elif [ -n "${DOTNET_ROOT:-}" ]; then
+    dotnet=$DOTNET_ROOT/dotnet
+else
+    dotnet=$(command -v dotnet || true)
+fi
+if [ -z "$dotnet" ] || [ ! -x "$dotnet" ]; then
+    echo 'start: supply DOTNET_HOST_PATH or DOTNET_ROOT for .NET 10; no SDK is installed automatically.' >&2
+    exit 1
+fi
+app=$here/Examples/Gui/bin/Debug/net10.0/Gui.dll
+if [ ! -f "$app" ]; then
+    echo 'start: build first: dotnet build Examples/Gui/Gui.csproj' >&2
+    exit 1
+fi
+# Keep caller cwd: relative workspace/data paths belong to the caller. The host
+# finds shipped skills beside its built assembly; assets are embedded in Gui.dll.
+exec "$dotnet" "$app" "$@"

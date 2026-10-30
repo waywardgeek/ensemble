@@ -41,6 +41,11 @@ public static partial class Gui
     // cannot block the WebSocket carrying that peer's initialization replies.
     private static partial void MapPeers(Microsoft.AspNetCore.Routing.IEndpointRouteBuilder routes,
         Agent source, int port, CancellationToken stopping);
+    // Read-only complete Job output, resolved through a live Agent and its Jobs.
+    // No caller path is accepted. Completed output is guarded and bounded; the
+    // response copy observes both mount shutdown and request cancellation.
+    private static partial void MapJobOutput(Microsoft.AspNetCore.Routing.IEndpointRouteBuilder routes,
+        Agent source, int port, CancellationToken stopping);
     // Current-process accounting comes from Engine, never reconstructed from replay.
     public static partial JsonObject MeterFrame(Agent agent);
     // Replay and live durable delivery use this exact same projection.

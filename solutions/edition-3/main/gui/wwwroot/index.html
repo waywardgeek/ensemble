@@ -1,98 +1,74 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Ensemble</title><link rel="stylesheet" href="./style.css"><script src="./speech.js" defer></script><script src="./mcp.js" defer></script><script src="./app.js" defer></script><script src="./auth.js" defer></script><script src="./peers.js" defer></script></head>
-<body><header><h1>Ensemble</h1><span id="connection" role="status">Connecting</span><span id="state">idle</span>
-<label for="agent-choice">Displayed conversation</label>
-<select id="agent-choice" aria-describedby="agent-help"></select>
-<p id="agent-help">Selection changes this tab only. Browser tools stay attached to <span id="relay-agent">the connection's original Agent</span>.</p>
-<a id="relay-link" target="_blank" rel="noopener" hidden>Open an independent browser relay for this Agent</a>
-<div class="controls"><button id="pause">Pause</button><button id="resume">Resume</button><button id="interrupt">Interrupt</button><button id="clear-tools">Clear tool traffic</button></div>
-<details id="peers-panel"><summary>Persistent peers</summary>
+<html lang="en" data-bs-theme="dark"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Ensemble</title>
+<link rel="icon" type="image/png" sizes="32x30" href="./artwork/ensemble-32.png">
+<link rel="stylesheet" href="./vendor/bootstrap-5.3.8.min.css">
+<link rel="stylesheet" href="./style.css">
+<script src="./vendor/bootstrap-5.3.8.bundle.min.js" defer></script>
+<script src="./speech.js" defer></script><script src="./mcp.js" defer></script>
+<script src="./app.js" defer></script><script src="./layout.js" defer></script>
+<script src="./auth.js" defer></script><script src="./peers.js" defer></script>
+</head><body>
+<!-- Local decorative symbols. Interactive controls own their accessible names. -->
+<svg class="icon-symbols" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false"><defs>
+ <symbol id="icon-speaker" viewBox="0 0 24 24"><path d="M11 5 6 9H3v6h3l5 4Z"/><path d="M15 8a6 6 0 0 1 0 8M18 5a10 10 0 0 1 0 14"/></symbol>
+ <symbol id="icon-speaker-off" viewBox="0 0 24 24"><path d="M11 5 6 9H3v6h3l5 4ZM16 9l5 6m0-6-5 6"/></symbol>
+ <symbol id="icon-moon" viewBox="0 0 24 24"><path d="M20.9 13.1A9 9 0 0 1 10.9 3.1 9 9 0 1 0 20.9 13.1Z"/></symbol>
+ <symbol id="icon-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M2 12h2m16 0h2M5 5l1.5 1.5m11 11L19 19M5 19l1.5-1.5m11-11L19 5"/></symbol>
+</defs></svg>
+
+<header id="status-bar" aria-label="Agent status and controls">
+ <div class="identity"><img class="brand-mark" src="./artwork/ensemble-128.png" width="128" height="120" alt=""><div class="identity-text"><strong>Ensemble</strong><span id="selected-name" title="Waiting">Waiting</span></div></div>
+ <div class="run-state"><span id="connection" role="status">Connecting</span><span id="state">unknown</span></div>
+ <div id="model-controls"><label class="visually-hidden" for="model-choice">Model</label>
+ <select class="form-select" id="model-choice" aria-describedby="model-help" disabled></select>
+ <button class="btn btn-quiet" id="set-model" type="button" disabled title="Apply the selected session model">Apply</button></div>
+ <div class="status-actions"><label class="speech-toggle icon-button" title="Speech off; enable reading new messages aloud"><input id="narrate" type="checkbox" aria-label="Speech: read new messages aloud"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use class="speech-on" href="#icon-speaker"/><use class="speech-off" href="#icon-speaker-off"/></svg></label>
+ <button class="btn btn-quiet icon-button" id="pause" aria-label="Pause" title="Pause Agent" disabled><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14M16 5v14"/></svg></button>
+ <button class="btn btn-quiet icon-button" id="resume" aria-label="Resume" title="Resume Agent" disabled><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m8 5 11 7-11 7Z"/></svg></button>
+ <button class="btn btn-quiet icon-button" id="interrupt" aria-label="Interrupt" title="Interrupt current work" disabled><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="6" width="12" height="12" rx="1"/></svg></button>
+ <button class="btn btn-quiet icon-button" id="theme-toggle" aria-label="Switch to light theme" title="Dark theme; switch to light theme" disabled><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#icon-moon"/></svg></button></div>
+ <section id="usage-meter" aria-label="Current process token usage and estimated cost">
+ <span>Cost <output id="usage-cost">?</output></span><span>Input <output id="usage-all">?</output></span>
+ <span>Cache <output id="usage-cache">?</output></span><span>Hit <output id="usage-hit">?</output></span></section>
+ <p id="funding-source" role="status">Waiting for model and funding</p>
+</header>
+<nav id="pane-navigation" aria-label="Workspace panes">
+ <button class="pane-tab" type="button" data-pane="agents" aria-pressed="false" aria-label="Agents and Settings">Agents</button>
+ <button class="pane-tab" type="button" data-pane="chat" aria-pressed="true">Chat</button>
+ <button class="pane-tab" type="button" data-pane="tools" aria-pressed="false">Tools</button>
+</nav>
+<main id="workspace" data-pane="chat">
+ <aside id="left-pane" aria-label="Agents and settings">
+ <div class="nav nav-tabs" role="tablist" aria-label="Agents and settings">
+ <button class="nav-link active" id="agents-tab" data-bs-toggle="tab" data-bs-target="#agents-panel" type="button" role="tab" aria-controls="agents-panel" aria-selected="true">Agents</button>
+ <button class="nav-link" id="settings-tab" data-bs-toggle="tab" data-bs-target="#settings-panel" type="button" role="tab" aria-controls="settings-panel" aria-selected="false">Settings</button>
+ </div>
+ <div class="tab-content">
+ <section class="tab-pane active show" id="agents-panel" role="tabpanel" aria-labelledby="agents-tab" tabindex="0">
+ <h2 class="sidebar-caption">Workspace</h2>
+ <ul id="agent-tree" role="tree" aria-label="Agent hierarchy"></ul>
+ <details><summary>Conversation selection and relay</summary>
+ <label for="agent-choice">Displayed conversation</label><select class="form-select" id="agent-choice" aria-describedby="agent-help"></select>
+ <p id="agent-help">Selection changes this tab only. Browser tools stay attached to <span id="relay-agent">the connection’s original Agent</span>.</p>
+ <a id="relay-link" target="_blank" rel="noopener" hidden>Open an independent browser relay for this Agent</a></details>
+<details id="peers-panel"><summary>Create or delete an Agent</summary>
 <p>Create a top-level peer using this host's current defaults. Blank model and primary skill inherit those defaults. Creation leaves the displayed conversation unchanged. Deleting the displayed peer returns that tab to the mounted Agent.</p>
-<label>Name <input id="peer-name" autocomplete="off"></label>
-<label>Model <input id="peer-model" autocomplete="off"></label>
-<label>Primary skill <input id="peer-skill" autocomplete="off"></label>
-<button id="peer-create" type="button">Create peer</button>
-<button id="peer-cancel" type="button" hidden>Cancel creation request</button>
-<label><input id="peer-delete-confirm" type="checkbox"> Stop and delete the named peer's registry entry; retain its saved files</label>
-<button id="peer-delete" type="button">Delete named peer</button>
+<label>Name <input class="form-control" id="peer-name" autocomplete="off"></label>
+<label>Model <input class="form-control" id="peer-model" autocomplete="off"></label>
+<label>Primary skill <input class="form-control" id="peer-skill" autocomplete="off"></label>
+<button class="btn btn-outline-primary" id="peer-create" type="button">Create peer</button>
+<button class="btn btn-outline-primary" id="peer-cancel" type="button" hidden>Cancel creation request</button>
+<label><input class="form-check-input" id="peer-delete-confirm" type="checkbox"> Stop and delete the named peer's registry entry; retain its saved files</label>
+<button class="btn btn-outline-primary" id="peer-delete" type="button">Delete named peer</button>
 <p id="peer-notice" role="status" aria-live="polite"></p>
 </details>
-<details id="settings-panel"><summary>Settings</summary>
-<label>Theme <select id="theme"><option value="system">System</option><option value="light">Light</option><option value="dark">Dark</option></select></label>
-<label>Font size <input id="font-size" type="number" min="12" max="32" step="1" value="18"> px</label>
-<label>Tool batches per turn <input id="max-tool-rounds" type="number" min="0" step="1" value="0"> (0 = auto, 200)</label>
-<label>Context target <input id="context-target-bytes" type="number" min="0" step="1000" value="400000"> UTF-8 bytes (0 = default, 400,000)</label>
-<label>Speech speed <input id="tts-speed" type="range" min="0.25" max="4" step="0.25" value="1"> <output id="speed-label">1×</output></label>
-<label><input id="pause-speaking" type="checkbox" checked> Pause Agent while speaking</label><label><input id="narrate" type="checkbox"> Narrate new assistant answers</label>
-<label>Voice <select id="voice"><option value="">Browser default</option></select></label><button id="stop-speech">Stop speech</button></details><details id="memory-settings"><summary>Selected Agent’s memory</summary>
-<form id="memory-settings-form">
-<p>Sizes are UTF-8 bytes, not tokens. Zero selects the band default. Disabling hides memory from requests but preserves files. Re-enabling reads current disk contents. Settings save in this Agent’s home, separately from appearance preferences.</p>
-<fieldset><legend>Conversation</legend>
-<label><input id="memory-conversation-enabled" type="checkbox"> Enabled</label>
-<label>Budget (bytes) <input id="memory-conversation-budget" type="number" min="0" max="9007199254740991" step="1" required></label>
-<label>High watermark (bytes) <input id="memory-conversation-high_watermark" type="number" min="0" max="9007199254740991" step="1" required></label>
-<label>Low watermark (bytes) <input id="memory-conversation-low_watermark" type="number" min="0" max="9007199254740991" step="1" required></label>
-</fieldset>
-<fieldset><legend>SOUL.md</legend>
-<label><input id="memory-soul-enabled" type="checkbox"> Enabled</label>
-<label>Budget (bytes) <input id="memory-soul-budget" type="number" min="0" max="9007199254740991" step="1" required></label>
-<label>High watermark (bytes) <input id="memory-soul-high_watermark" type="number" min="0" max="9007199254740991" step="1" required></label>
-<label>Low watermark (bytes) <input id="memory-soul-low_watermark" type="number" min="0" max="9007199254740991" step="1" required></label>
-</fieldset>
-<fieldset><legend>MEMORY.md</legend>
-<label><input id="memory-memory-enabled" type="checkbox"> Enabled</label>
-<label>Budget (bytes) <input id="memory-memory-budget" type="number" min="0" max="9007199254740991" step="1" required></label>
-<label>High watermark (bytes) <input id="memory-memory-high_watermark" type="number" min="0" max="9007199254740991" step="1" required></label>
-<label>Low watermark (bytes) <input id="memory-memory-low_watermark" type="number" min="0" max="9007199254740991" step="1" required></label>
-</fieldset>
-<fieldset><legend>64× archive</legend>
-<label><input id="memory-archive64-enabled" type="checkbox"> Enabled</label>
-<label>Budget (bytes) <input id="memory-archive64-budget" type="number" min="0" max="9007199254740991" step="1" required></label>
-<label>High watermark (bytes) <input id="memory-archive64-high_watermark" type="number" min="0" max="9007199254740991" step="1" required></label>
-<label>Low watermark (bytes) <input id="memory-archive64-low_watermark" type="number" min="0" max="9007199254740991" step="1" required></label>
-</fieldset>
-<fieldset><legend>8× archive</legend>
-<label><input id="memory-archive8-enabled" type="checkbox"> Enabled</label>
-<label>Budget (bytes) <input id="memory-archive8-budget" type="number" min="0" max="9007199254740991" step="1" required></label>
-<label>High watermark (bytes) <input id="memory-archive8-high_watermark" type="number" min="0" max="9007199254740991" step="1" required></label>
-<label>Low watermark (bytes) <input id="memory-archive8-low_watermark" type="number" min="0" max="9007199254740991" step="1" required></label>
-</fieldset>
-<fieldset><legend>Session</legend>
-<label><input id="memory-session-enabled" type="checkbox"> Enabled</label>
-<label>Budget (bytes) <input id="memory-session-budget" type="number" min="0" max="9007199254740991" step="1" required></label>
-<label>High watermark (bytes) <input id="memory-session-high_watermark" type="number" min="0" max="9007199254740991" step="1" required></label>
-<label>Low watermark (bytes) <input id="memory-session-low_watermark" type="number" min="0" max="9007199254740991" step="1" required></label>
-</fieldset>
-<p>Low watermark must be positive and no greater than high watermark after defaults resolve. A relevant policy change cancels and joins pending compression before acknowledgment.</p>
-<button type="submit">Save memory settings</button>
-<button id="memory-settings-reload" type="button">Reload acknowledged settings</button>
-</form></details><details id="recall-settings"><summary>Selected Agent’s recall</summary>
-<form id="recall-settings-form">
-<p>Saved in this Agent’s settings, applied to future turns. An in-flight recall keeps its captured policy. Disabling recall does not delete files or remove earlier attachments.</p>
-<label><input id="recall-enabled" type="checkbox"> Recall enabled</label>
-<label><input id="recall-judge-enabled" type="checkbox"> Use model judge</label>
-<label>Judge model <input id="recall-judge_model" type="text" placeholder="Current model"></label>
-<p>Empty model uses the current model; an override stays on the same provider and funding route. Availability is not guaranteed. Zero numeric values select defaults. Judge mode uses a 0.5 candidate floor; snippet quotas and the score below apply only to mechanical selection or fallback.</p>
-<label>Mechanical score floor <input id="recall-min_score" type="number" min="0" step="any" required></label>
-<label>Selected snippet limit <input id="recall-max_snippets" type="number" min="0" max="2147483647" step="1" required></label>
-<label>Minimum query length (Unicode characters) <input id="recall-min_query_length" type="number" min="0" max="2147483647" step="1" required></label>
-<label>Judge candidate limit <input id="recall-candidates" type="number" min="0" max="2147483647" step="1" required></label>
-<label>Recent messages for judge <input id="recall-context_messages" type="number" min="0" max="2147483647" step="1" required></label>
-<label>Attachment limit (UTF-8 bytes) <input id="recall-max_recall_bytes" type="number" min="0" max="2147483647" step="1" required></label>
-<button type="submit">Save recall settings</button>
-<button id="recall-settings-reload" type="button">Reload acknowledged settings</button>
-</form></details><p id="funding-source" role="status">Connecting to selected model and funding source…</p><div id="model-controls">
-  <label for="model-choice">Session model</label>
-  <select id="model-choice" aria-describedby="model-help" disabled></select>
-  <button id="set-model" type="button" disabled>Select model</button>
-  <p id="model-help">Same-provider local capabilities, not account availability or prices. Select only between turns. Billing stays unchanged; launch configuration wins on restart.</p>
-</div><section id="usage-meter" aria-label="Current process token usage and estimated cost" aria-describedby="usage-totals">
-  <span title="Estimated session token cost in USD, not an invoice">COST <output id="usage-cost">$0.00</output></span>
-  <span title="Latest response: new input plus cache writes plus cache reads">ALL <output id="usage-all">?</output></span>
-  <span title="Latest response: cache-read input tokens">CACHE <output id="usage-cache">?</output></span>
-  <span title="Session cache reads divided by all session input tokens">HIT RATE <output id="usage-hit">?</output></span>
 </section>
+ <section class="tab-pane" id="settings-panel" role="tabpanel" aria-labelledby="settings-tab" tabindex="0">
+ <section class="settings-section" aria-labelledby="ai-heading"><h2 id="ai-heading">AI settings</h2><p id="model-help">The header selects a same-provider session model between turns. Capabilities do not prove entitlement. Funding is fixed; launch configuration wins on restart.</p>
+ <label>Tool batches per turn <input class="form-control" id="max-tool-rounds" type="number" min="0" step="1" value="0"> (0 = auto, 200)</label>
+ <label>Context target <input class="form-control" id="context-target-bytes" type="number" min="0" step="1000" value="400000"> UTF-8 bytes (0 = default, 400,000)</label>
 <details id="usage-details"><summary>Usage totals and estimate limits</summary>
   <p id="usage-totals">Waiting for the current process meter.</p>
   <p>Cost is an estimate for verified model and service-tier prices, not an invoice. ? means unknown, not zero. Failed or cancelled requests may incur charges not observed here. Restored conversation does not restore these process totals.</p>
@@ -101,15 +77,15 @@
   <p id="account-status" role="status">Loading account status.</p>
   <p>These controls do not change this process's billing or selected account. Choose those explicitly at launch. Sign-in opens a separate private window; refresh status after it completes.</p>
   <ul id="account-list" aria-label="Registered accounts"></ul>
-  <label>Account label <input id="account-label" type="text" maxlength="200" autocomplete="off"></label>
-  <label><input id="account-consent" type="checkbox"> Request plan consent again</label>
+  <label>Account label <input class="form-control" id="account-label" type="text" maxlength="200" autocomplete="off"></label>
+  <label><input class="form-check-input" id="account-consent" type="checkbox"> Request plan consent again</label>
   <div class="controls">
-    <button id="account-refresh" type="button">Refresh status</button>
-    <button id="account-models" type="button" disabled>List plan models</button>
-    <button id="account-login" type="button" disabled>Sign in</button>
-    <button id="account-cancel" type="button" disabled>Cancel pending sign-in</button>
-    <button id="account-logout" type="button" disabled>Clear local credentials</button>
-    <button id="account-signout" type="button" disabled>Sign out and revoke</button>
+    <button class="btn btn-outline-primary" id="account-refresh" type="button">Refresh status</button>
+    <button class="btn btn-outline-primary" id="account-models" type="button" disabled>List plan models</button>
+    <button class="btn btn-outline-primary" id="account-login" type="button" disabled>Sign in</button>
+    <button class="btn btn-outline-primary" id="account-cancel" type="button" disabled>Cancel pending sign-in</button>
+    <button class="btn btn-outline-primary" id="account-logout" type="button" disabled>Clear local credentials</button>
+    <button class="btn btn-outline-primary" id="account-signout" type="button" disabled>Sign out and revoke</button>
   </div>
   <p>Local clearing retains registration and does not request remote revocation. Sign-out clears locally first, then attempts revocation. A pending sign-in is shared by this host; cancel it explicitly if abandoned.</p>
   <p id="account-notice" role="status"></p>
@@ -117,21 +93,95 @@
   <ul id="account-model-list" aria-label="Available plan models"></ul>
   <p>Catalog results are a snapshot for the entered account label. Availability does not imply renderer support or a price. Listing does not select a model or change billing.</p>
 </details>
-</header>
 <section aria-label="Selected Agent goal">
 <p id="goal-status" role="status">Goal: waiting for Agent status</p>
 <details id="goal-controls"><summary>Selected Agent’s goal controls</summary>
 <p>Session only. Load the goals skill first. Off retains the goal instructions; Clear removes them. Neither means completed.</p>
 <form id="goal-form">
-<label>Goal file <input id="goal-file" type="text" autocomplete="off"></label>
-<label>Idle delay (seconds) <input id="goal-delay" type="number" min="0.001" max="4294967.294" step="any" value="480"></label>
-<label><input id="goal-enabled" type="checkbox">Enable idle reminders</label>
-<button id="goal-apply" type="submit">Apply goal</button>
-<button id="goal-off" type="button">Reminders off</button>
-<button id="goal-clear" type="button">Clear goal</button>
-<button id="goal-reload" type="button">Reload acknowledged goal</button>
+<label>Goal file <input class="form-control" id="goal-file" type="text" autocomplete="off"></label>
+<label>Idle delay (seconds) <input class="form-control" id="goal-delay" type="number" min="0.001" max="4294967.294" step="any" value="480"></label>
+<label><input class="form-check-input" id="goal-enabled" type="checkbox">Enable idle reminders</label>
+<button class="btn btn-outline-primary" id="goal-apply" type="submit">Apply goal</button>
+<button class="btn btn-outline-primary" id="goal-off" type="button">Reminders off</button>
+<button class="btn btn-outline-primary" id="goal-clear" type="button">Clear goal</button>
+<button class="btn btn-outline-primary" id="goal-reload" type="button">Reload acknowledged goal</button>
 </form></details></section>
-<main id="transcript" aria-label="Conversation"></main><p id="notice" role="status"></p>
-<form id="compose"><label for="prompt">Message or hint</label><textarea id="prompt" rows="3" placeholder="Enter sends; Shift+Enter adds a line; Ctrl+Enter or Alt+H sends a hint"></textarea>
-<div class="controls"><button id="send" type="submit">Send message</button><button id="hint" type="button">Send hint</button></div></form>
-</body></html>
+</section><section class="settings-section" aria-labelledby="memory-heading"><h2 id="memory-heading">Memory</h2><details id="memory-settings"><summary>Selected Agent’s memory</summary>
+<form id="memory-settings-form">
+<p>Sizes are UTF-8 bytes, not tokens. Zero selects the band default. Disabling hides memory from requests but preserves files. Re-enabling reads current disk contents. Settings save in this Agent’s home, separately from appearance preferences.</p>
+<fieldset><legend>Conversation</legend>
+<label><input class="form-check-input" id="memory-conversation-enabled" type="checkbox"> Enabled</label>
+<label>Budget (bytes) <input class="form-control" id="memory-conversation-budget" type="number" min="0" max="9007199254740991" step="1" required></label>
+<label>High watermark (bytes) <input class="form-control" id="memory-conversation-high_watermark" type="number" min="0" max="9007199254740991" step="1" required></label>
+<label>Low watermark (bytes) <input class="form-control" id="memory-conversation-low_watermark" type="number" min="0" max="9007199254740991" step="1" required></label>
+</fieldset>
+<fieldset><legend>SOUL.md</legend>
+<label><input class="form-check-input" id="memory-soul-enabled" type="checkbox"> Enabled</label>
+<label>Budget (bytes) <input class="form-control" id="memory-soul-budget" type="number" min="0" max="9007199254740991" step="1" required></label>
+<label>High watermark (bytes) <input class="form-control" id="memory-soul-high_watermark" type="number" min="0" max="9007199254740991" step="1" required></label>
+<label>Low watermark (bytes) <input class="form-control" id="memory-soul-low_watermark" type="number" min="0" max="9007199254740991" step="1" required></label>
+</fieldset>
+<fieldset><legend>MEMORY.md</legend>
+<label><input class="form-check-input" id="memory-memory-enabled" type="checkbox"> Enabled</label>
+<label>Budget (bytes) <input class="form-control" id="memory-memory-budget" type="number" min="0" max="9007199254740991" step="1" required></label>
+<label>High watermark (bytes) <input class="form-control" id="memory-memory-high_watermark" type="number" min="0" max="9007199254740991" step="1" required></label>
+<label>Low watermark (bytes) <input class="form-control" id="memory-memory-low_watermark" type="number" min="0" max="9007199254740991" step="1" required></label>
+</fieldset>
+<fieldset><legend>64× archive</legend>
+<label><input class="form-check-input" id="memory-archive64-enabled" type="checkbox"> Enabled</label>
+<label>Budget (bytes) <input class="form-control" id="memory-archive64-budget" type="number" min="0" max="9007199254740991" step="1" required></label>
+<label>High watermark (bytes) <input class="form-control" id="memory-archive64-high_watermark" type="number" min="0" max="9007199254740991" step="1" required></label>
+<label>Low watermark (bytes) <input class="form-control" id="memory-archive64-low_watermark" type="number" min="0" max="9007199254740991" step="1" required></label>
+</fieldset>
+<fieldset><legend>8× archive</legend>
+<label><input class="form-check-input" id="memory-archive8-enabled" type="checkbox"> Enabled</label>
+<label>Budget (bytes) <input class="form-control" id="memory-archive8-budget" type="number" min="0" max="9007199254740991" step="1" required></label>
+<label>High watermark (bytes) <input class="form-control" id="memory-archive8-high_watermark" type="number" min="0" max="9007199254740991" step="1" required></label>
+<label>Low watermark (bytes) <input class="form-control" id="memory-archive8-low_watermark" type="number" min="0" max="9007199254740991" step="1" required></label>
+</fieldset>
+<fieldset><legend>Session</legend>
+<label><input class="form-check-input" id="memory-session-enabled" type="checkbox"> Enabled</label>
+<label>Budget (bytes) <input class="form-control" id="memory-session-budget" type="number" min="0" max="9007199254740991" step="1" required></label>
+<label>High watermark (bytes) <input class="form-control" id="memory-session-high_watermark" type="number" min="0" max="9007199254740991" step="1" required></label>
+<label>Low watermark (bytes) <input class="form-control" id="memory-session-low_watermark" type="number" min="0" max="9007199254740991" step="1" required></label>
+</fieldset>
+<p>Low watermark must be positive and no greater than high watermark after defaults resolve. A relevant policy change cancels and joins pending compression before acknowledgment.</p>
+<button class="btn btn-outline-primary" type="submit">Save memory settings</button>
+<button class="btn btn-outline-primary" id="memory-settings-reload" type="button">Reload acknowledged settings</button>
+</form></details><details id="recall-settings"><summary>Selected Agent’s recall</summary>
+<form id="recall-settings-form">
+<p>Saved in this Agent’s settings, applied to future turns. An in-flight recall keeps its captured policy. Disabling recall does not delete files or remove earlier attachments.</p>
+<label><input class="form-check-input" id="recall-enabled" type="checkbox"> Recall enabled</label>
+<label><input class="form-check-input" id="recall-judge-enabled" type="checkbox"> Use model judge</label>
+<label>Judge model <input class="form-control" id="recall-judge_model" type="text" placeholder="Current model"></label>
+<p>Empty model uses the current model; an override stays on the same provider and funding route. Availability is not guaranteed. Zero numeric values select defaults. Judge mode uses a 0.5 candidate floor; snippet quotas and the score below apply only to mechanical selection or fallback.</p>
+<label>Mechanical score floor <input class="form-control" id="recall-min_score" type="number" min="0" step="any" required></label>
+<label>Selected snippet limit <input class="form-control" id="recall-max_snippets" type="number" min="0" max="2147483647" step="1" required></label>
+<label>Minimum query length (Unicode characters) <input class="form-control" id="recall-min_query_length" type="number" min="0" max="2147483647" step="1" required></label>
+<label>Judge candidate limit <input class="form-control" id="recall-candidates" type="number" min="0" max="2147483647" step="1" required></label>
+<label>Recent messages for judge <input class="form-control" id="recall-context_messages" type="number" min="0" max="2147483647" step="1" required></label>
+<label>Attachment limit (UTF-8 bytes) <input class="form-control" id="recall-max_recall_bytes" type="number" min="0" max="2147483647" step="1" required></label>
+<button class="btn btn-outline-primary" type="submit">Save recall settings</button>
+<button class="btn btn-outline-primary" id="recall-settings-reload" type="button">Reload acknowledged settings</button>
+</form></details>
+ </section><section class="settings-section" aria-labelledby="accessibility-heading"><h2 id="accessibility-heading">Accessibility</h2>
+ <label>Theme <select class="form-select" id="theme"><option value="system">System</option><option value="light">Light</option><option value="dark" selected>Dark</option></select></label>
+ <label>Font size <input class="form-control" id="font-size" type="number" min="12" max="32" step="1" value="18"> px</label>
+ <label>Speech speed <input class="form-control" id="tts-speed" type="range" min="0.25" max="4" step="0.25" value="1"> <output id="speed-label">1×</output></label>
+ <label><input class="form-check-input" id="pause-speaking" type="checkbox" checked> Pause Agent while speaking</label>
+ <label>Voice <select class="form-select" id="voice"><option value="">Browser default</option></select></label>
+ <button class="btn btn-quiet icon-button" id="stop-speech" aria-label="Stop speech" title="Stop speech"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#icon-speaker-off"/></svg></button>
+ <p>Speech is opt-in using the header checkbox. Voice choices are provided by this browser.</p>
+ </section></section></div></aside>
+ <div id="left-splitter" class="splitter" role="separator" tabindex="0" aria-orientation="vertical" aria-label="Agents pane width" aria-controls="left-pane" aria-valuemin="0" aria-valuemax="100" aria-valuenow="18"></div>
+ <section id="chat-pane" aria-label="Chat"><header class="pane-heading"><div><span class="eyebrow">Conversation</span><h1 id="conversation-agent">Waiting</h1></div></header>
+ <div id="transcript" aria-label="Conversation messages" tabindex="0"></div>
+ <p id="notice" role="status"></p>
+ <form id="compose">
+ <textarea class="form-control" id="prompt" rows="1" placeholder="Select an Agent…" aria-label="Message to selected Agent"></textarea>
+ <button class="btn btn-primary" id="send" type="submit" disabled aria-label="Send" title="Send message (Enter)"><img class="send-icon" src="./artwork/paper-airplane-send.svg" alt=""></button>
+ </form></section>
+ <div id="right-splitter" class="splitter" role="separator" tabindex="0" aria-orientation="vertical" aria-label="Tools pane width" aria-controls="tools-pane" aria-valuemin="0" aria-valuemax="100" aria-valuenow="25"></div>
+ <section id="tools-pane" aria-label="Tools and artifacts"><header class="pane-heading"><div><span class="eyebrow">Activity</span><h2>Tools &amp; artifacts</h2></div><button class="btn btn-quiet" id="clear-tools" title="Clear this view; keep saved history">Clear view</button></header>
+ <div id="tool-transcript" tabindex="0" aria-label="Tool activity"></div></section>
+</main></body></html>

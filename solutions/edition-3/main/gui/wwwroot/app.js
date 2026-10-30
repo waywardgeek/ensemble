@@ -3,6 +3,10 @@
 // make finals, repeated frames, and metadata updates idempotent.
 const transcript = document.querySelector("#transcript");
 const cards = new Map();
+const toolTranscript = document.querySelector("#tool-transcript");
+let acknowledgedState = null;
+let selectionPending = true;
+const collapsedAgents = new Set();
 let socket;
 let agentID = null; // Display identity changes only on admitted replay.
 let agentRows = []; // Bounded server tree projection, not a client Agent registry.
@@ -19,6 +23,10 @@ function recordSpeech(kind, fields) {
     speechLog.push(Object.freeze({ seq: speechLog.length + 1, ms: performance.now(), kind, ...fields }));
 }
 let localPauseCause = false;
+// This tab's control intent, not another copy of the actor's pause state.
+// Only a pause requested automatically by this tab may be released on clearing
+// typing/speech. Explicit Pause takes over that intent until explicit Resume.
+let pauseIntent = null; // "automatic", "manual", or no locally owned pause.
 // Origin is a fact, not something speech callbacks can infer from field contents.
 let humanTyping = false;
 let agentClosed = false;
@@ -29,6 +37,20 @@ let goalSelectionPending = false;
 let goalDirty = false; // Unsaved form edits only, never a second live configuration.
 const speech = window.speechSynthesis;
 const notice = text => { document.querySelector("#notice").textContent = text; };
+
+// Only fixed local symbol names are passed by this module. Model text never
+// becomes markup; accessible names belong to the surrounding native buttons.
+function setButtonIcon(button, symbol) {
+    const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    svg.setAttribute("viewBox", "0 0 24 24");
+    svg.setAttribute("aria-hidden", "true");
+    svg.setAttribute("focusable", "false");
+    const use = document.createElementNS(svg.namespaceURI, "use");
+    use.setAttribute("href", `#${symbol}`);
+    svg.append(use);
+    button.classList.add("icon-button");
+    button.replaceChildren(svg);
+}
 
 function readable(part) {
     if (!part) return "";
@@ -43,7 +65,7 @@ function readable(part) {
 // A deliberately small safe Markdown renderer: paragraphs, headings, lists,
 // inline code, links, and fenced code. It never interprets provider HTML.
 function inline(parent, text) {
-    const token = /(`[^`]+`|\[([^\]]+)\]\((https?:\/\/[^\s)]+)\))/g;
+    const token = /(`[^`]+`|\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)|\*\*[^*]+\*\*|\*[^*]+\*)/g;
     let start = 0;
     for (const match of text.matchAll(token)) {
         parent.append(document.createTextNode(text.slice(start, match.index)));
@@ -51,6 +73,12 @@ function inline(parent, text) {
             const code = document.createElement("code");
             code.textContent = match[0].slice(1, -1);
             parent.append(code);
+        } else if (match[0].startsWith("*")) {
+            const strong = match[0].startsWith("**");
+            const emphasis = document.createElement(strong ? "strong" : "em");
+            const delimiter = strong ? 2 : 1;
+            emphasis.textContent = match[0].slice(delimiter, -delimiter);
+            parent.append(emphasis);
         } else {
             const link = document.createElement("a");
             link.textContent = match[2];
@@ -87,9 +115,21 @@ function markdown(parent, text) {
         if (index % 2) {
             const pre = document.createElement("pre");
             const code = document.createElement("code");
+            const long = segment.length > 1800 || segment.split("\n").length > 24;
+            const details = document.createElement("details");
+            const summary = document.createElement("summary");
+            summary.textContent = "Expand complete code";
+            const preview = document.createElement("pre");
+            preview.textContent = segment.slice(0, 1800).split("\n").slice(0, 24).join("\n") + "\n…";
             highlight(code, segment);
             pre.append(code);
-            parent.append(pre);
+            if (long) {
+                details.append(summary, pre);
+                details.ontoggle = () => { preview.hidden = details.open; };
+                parent.append(preview, details);
+            } else {
+                parent.append(pre);
+            }
             return;
         }
         for (const paragraph of segment.split(/\n\s*\n/)) {
@@ -112,19 +152,31 @@ function markdown(parent, text) {
         }
     });
 }
-// Queued speech counts as busy before playback starts. Only transitions emit
-// controls: another tab's explicit unpause is never continuously vetoed here.
+// Queued speech counts as busy before playback starts. Act only on cause
+// transitions: explicit Resume (including from another tab) must not be vetoed
+// continuously by an unchanged draft or speech queue.
 function updatePauseCause() {
-    if (agentClosed) return;
+    if (agentClosed || selectionPending || replaying || !acknowledgedState ||
+        socket?.readyState !== WebSocket.OPEN) return;
     const speaking = activeSpeech !== null || speechQueue.length > 0;
     const cause = humanTyping || (settings?.pause_while_speaking !== false && speaking);
-    if (cause !== localPauseCause && send(cause ? "pause" : "unpause")) {
-        localPauseCause = cause;
+    if (cause === localPauseCause) return;
+    localPauseCause = cause;
+    if (cause) {
+        // An already paused Agent may have been paused elsewhere. Do not claim
+        // ownership of that pause merely because a local draft now exists.
+        if (pauseIntent === "manual" || acknowledgedState === "paused") return;
+        if (!send("pause")) return;
+        pauseIntent = "automatic";
         const sources = [];
         if (humanTyping) sources.push("typing");
         if (speaking && settings?.pause_while_speaking !== false) sources.push("speech");
-        recordSpeech(cause ? "pause" : "resume", { cause: sources.join("+") || "clear" });
+        recordSpeech("pause", { cause: sources.join("+") });
+    } else if (pauseIntent === "automatic" && send("unpause")) {
+        pauseIntent = null;
+        recordSpeech("resume", { cause: "clear" });
     }
+    renderControls();
 }
 function startSpeech() {
     if (activeSpeech) return;
@@ -224,33 +276,148 @@ function narrate(card, flush = false) {
     card.narrated = next.offset;
     for (const phrase of next.phrases) enqueueSpeech(card.id, phrase, card.kind);
 }
+function actionButton(label, action) {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "btn btn-quiet";
+    button.textContent = label;
+    button.onclick = action;
+    return button;
+}
 function cardFor(id) {
     if (cards.has(id)) return cards.get(id);
     const node = document.createElement("article");
     node.dataset.partId = id;
-    const card = { id, node, text: "", kind: "text", role: "assistant", status: "", final: false };
+    const card = { id, agent: agentID, node, text: "", kind: "text", role: "assistant", status: "", final: false };
     cards.set(id, card);
-    transcript.append(node);
     return card;
 }
+function media(parent, part, card) {
+    if (part.type === "tool_result") {
+        for (const child of part.parts || []) media(parent, child, card);
+        return;
+    }
+    if (part.type !== "blob") return;
+    // Only passive media receives a data URL. Provider HTML/SVG is never markup.
+    const mime = part.mime || "";
+    if (!/^(image\/(png|jpeg|gif|webp)|audio\/(mpeg|wav|ogg|webm)|video\/(mp4|webm))$/.test(mime)) return;
+    const url = part.ref?.locator;
+    if (typeof url !== "string" || !url.startsWith(`data:${mime};base64,`)) return;
+    const box = document.createElement("div");
+    box.className = "media";
+    const element = document.createElement(mime.startsWith("image/") ? "img" : mime.startsWith("audio/") ? "audio" : "video");
+    element.src = url;
+    if (element.tagName === "IMG") element.alt = "Agent image attachment";
+    else element.controls = true;
+    const download = document.createElement("a");
+    download.href = url;
+    download.download = `attachment-${card.id.replace(/[^a-z0-9]/gi, "-")}`;
+    download.textContent = "Download attachment";
+    box.append(element, download);
+    parent.append(box);
+}
+function fullOutputLinks(card) {
+    if (card.kind !== "tool_result") return;
+    // Job metadata is published by the real projection. A handle is not a
+    // browser path, and the server rechecks this card's Agent ownership.
+    const handle = card.job?.handle;
+    if (!Number.isSafeInteger(handle) || handle <= 0) return;
+    const links = document.createElement("div");
+    links.className = "artifact-links";
+    const url = new URL("./jobs/output", document.baseURI);
+    url.searchParams.set("agent", card.agent);
+    url.searchParams.set("handle", handle);
+    const download = document.createElement("button");
+    download.type = "button";
+    download.className = "btn btn-sm btn-outline-primary";
+    download.textContent = "Download complete output";
+    const notice = document.createElement("span");
+    notice.setAttribute("role", "status");
+    download.addEventListener("click", async () => {
+        download.disabled = true;
+        notice.textContent = "Reading completed Job output (16 MiB maximum)…";
+        const controller = new AbortController();
+        const limit = 16 * 1024 * 1024;
+        try {
+            const response = await fetch(url, {
+                headers: { "X-Ensemble-Output": "1" },
+                signal: controller.signal
+            });
+            if (!response.ok) {
+                const refusal = await response.json().catch(() => null);
+                throw new Error(refusal?.error || "This Agent no longer owns available output for this Job.");
+            }
+            if (Number(response.headers.get("Content-Length")) > limit) {
+                throw new Error("Output exceeds the 16 MiB browser limit. Use the owned workspace file locally.");
+            }
+            // Do not use unbounded fetch().blob(). Enforce the cap even if a
+            // response lacks Content-Length. The bounded Blob is released after
+            // the download starts; this is not claimed to be streaming to disk.
+            const reader = response.body.getReader();
+            const chunks = [];
+            let bytes = 0;
+            while (true) {
+                const chunk = await reader.read();
+                if (chunk.done) break;
+                bytes += chunk.value.byteLength;
+                if (bytes > limit) {
+                    throw new Error("Output exceeds the 16 MiB browser limit.");
+                }
+                chunks.push(chunk.value);
+            }
+            const local = URL.createObjectURL(new Blob(chunks, { type: "text/plain" }));
+            const anchor = document.createElement("a");
+            anchor.href = local;
+            anchor.download = `job-${handle}-output.txt`;
+            anchor.click();
+            setTimeout(() => URL.revokeObjectURL(local), 1000);
+            notice.textContent = `Downloaded ${bytes.toLocaleString()} complete bytes.`;
+        } catch (error) {
+            notice.textContent = error.message;
+        } finally {
+            controller.abort();
+            download.disabled = false;
+        }
+    });
+    links.append(download, notice);
+    card.node.append(links);
+}
 function render(card) {
+    const artifact = ["tool_call", "tool_result", "blob"].includes(card.kind);
+    const pane = artifact ? toolTranscript : transcript;
+    const nearBottom = pane.scrollHeight - pane.scrollTop - pane.clientHeight < 90;
+    if (card.node.parentElement !== pane) pane.append(card.node);
     const oldDetails = card.node.querySelector("details");
     const wasOpen = oldDetails ? oldDetails.open : false;
     card.node.replaceChildren();
+    card.node.className = "part";
     card.node.dataset.role = card.role;
     card.node.dataset.kind = card.kind;
     card.node.dataset.status = card.status;
     const heading = document.createElement("div");
     heading.className = "card-heading";
     const title = document.createElement("strong");
-    title.textContent = `${card.role} · ${card.kind}${card.status ? " · " + card.status : ""}`;
-    const speaker = document.createElement("button");
-    speaker.type = "button";
-    speaker.textContent = "Speak";
+    const argument = card.kind === "tool_call" ? Object.values(card.input || {}).find(value => typeof value === "string") : null;
+    const summary = argument ? ` · ${argument.slice(0, 100)}` : "";
+    const kind = card.kind === "reasoning_summary" ? "Reasoning summary" : card.kind === "thinking" ? "Thinking" : card.kind;
+    // Labels are projections of this card, not invented people or timestamps.
+    // Keep wire-level details in a tooltip while prose reads as conversation.
+    const author = card.role === "human" ? "You" : card.role === "assistant" ? "Assistant" : card.role;
+    title.textContent = artifact ? card.name || card.toolName || kind
+        : card.kind === "text" ? author : kind;
+    title.title = `${card.role} · ${card.name || card.toolName || kind}${summary}${card.status ? " · " + card.status : ""}`;
+    if (artifact && card.status) {
+        const status = document.createElement("div");
+        status.className = "tool-state";
+        status.textContent = card.status;
+        card.node.append(status);
+    }
+    const speaker = actionButton("Speak", () => speak(card));
     speaker.setAttribute("aria-label", `Speak ${card.role} ${card.kind}`);
+    speaker.title = speaker.getAttribute("aria-label");
+    setButtonIcon(speaker, "icon-speaker");
     speaker.dataset.action = "speak";
     speaker.disabled = !card.text.trim() || (!speech && !transcriptSpeech);
-    speaker.onclick = () => speak(card);
     heading.append(title, speaker);
     card.node.append(heading);
     if (card.kind === "text") {
@@ -263,7 +430,7 @@ function render(card) {
         details.open = wasOpen;
         const summary = document.createElement("summary");
         summary.textContent = card.kind === "reasoning_summary" ? "Reasoning summary"
-            : card.kind === "thinking" ? "Thinking" : "Full tool details";
+            : card.kind === "thinking" ? "Thinking" : "Expand complete received payload";
         const pre = document.createElement("pre");
         pre.textContent = card.text;
         details.append(summary);
@@ -278,8 +445,40 @@ function render(card) {
         }
         pre.className = card.toolName === "search_files" ? "search-results" : "tool-output";
         details.append(pre);
+        if (artifact && card.kind !== "blob") {
+            const preview = document.createElement("pre");
+            preview.className = "preview";
+            const clipped = card.text.slice(0, 1400).split("\n").slice(0, 18).join("\n");
+            preview.textContent = clipped + (clipped.length < card.text.length ? "\n… (bounded preview)" : "");
+            preview.hidden = wasOpen;
+            details.ontoggle = () => { preview.hidden = details.open; };
+            card.node.append(preview);
+        }
         card.node.append(details);
     }
+    for (const part of card.parts || []) media(card.node, part, card);
+    fullOutputLinks(card);
+    if (nearBottom) pane.scrollTop = pane.scrollHeight;
+}
+// State is acknowledged, not inferred from transcript content or tool activity.
+function renderControls() {
+    const connected = socket?.readyState === WebSocket.OPEN;
+    const ready = connected && !selectionPending && acknowledgedState && !agentClosed;
+    const busy = ["inflight", "toolspending"].includes(acknowledgedState);
+    const paused = acknowledgedState === "paused";
+    document.querySelector("#state").textContent = !connected ? "disconnected"
+        : selectionPending ? "selecting" : acknowledgedState || "unknown";
+    // Fixed slots avoid moving adjacent controls as activity changes. Pause
+    // stays available during this tab's automatic pause so a person can pin it.
+    document.querySelector("#pause").disabled = !ready || (paused && pauseIntent !== "automatic");
+    document.querySelector("#resume").disabled = !ready || !paused;
+    document.querySelector("#interrupt").disabled = !ready || !(busy || paused);
+    // The actor classifies ordinary input when dequeued, even during a turn.
+    document.querySelector("#send").disabled = !ready;
+    document.querySelector("#clear-tools").disabled = !ready;
+    document.querySelector("#model-choice").disabled = !ready || busy || paused;
+    document.querySelector("#set-model").disabled = document.querySelector("#model-choice").disabled;
+    document.querySelector("#theme-toggle").disabled = !connected || !settings;
 }
 // Format acknowledged Engine values only. No browser counters or price table.
 function showUsage(frame) {
@@ -293,8 +492,7 @@ function showUsage(frame) {
         picker.append(option);
     }
     picker.value = frame.selected_model;
-    picker.disabled = agentClosed;
-    document.querySelector("#set-model").disabled = agentClosed;
+    renderControls();
     const count = value => value == null ? "?" : value.toLocaleString("en-US");
     const latest = frame.usage;
     const totals = latest.totals;
@@ -330,6 +528,17 @@ function showAgents() {
         picker.append(original);
     }
     picker.value = agentID ?? "";
+    const selected = agentRows.find(row => row.key === agentID);
+    const name = document.querySelector("#selected-name");
+    name.textContent = selected?.id || agentID || "Original unnamed conversation";
+    name.title = selected?.key || name.textContent;
+    const conversation = document.querySelector("#conversation-agent");
+    conversation.textContent = name.textContent;
+    conversation.title = name.title;
+    const input = document.querySelector("#prompt");
+    input.placeholder = `Ask ${name.textContent} anything…`;
+    input.setAttribute("aria-label", `Message to ${name.textContent}`);
+    renderAgentTree();
 }
 function handle(frame) {
     if (frame.type === "agent_tree") {
@@ -354,8 +563,12 @@ function handle(frame) {
         if (agentID !== frame.agent_id) {
             cancelSpeech(false);
             localPauseCause = false;
+            pauseIntent = null;
         }
         agentID = frame.agent_id;
+        selectionPending = false;
+        acknowledgedState = null;
+        renderControls();
         goalSelectionPending = false;
         goalDirty = false;
         showGoal(agentRows.find(row => row.key === agentID)?.goal);
@@ -371,6 +584,7 @@ function handle(frame) {
         replaying = true;
         cards.clear();
         transcript.replaceChildren();
+        toolTranscript.replaceChildren();
         for (const event of frame.data.events || []) handle(event);
         for (const part of frame.data.partials || []) handle(part);
         for (const agent of frame.data.agents || []) handle(agent);
@@ -384,21 +598,21 @@ function handle(frame) {
         notice("");
         return;
     }
-    if (frame.type === "agent_state") {
-        document.querySelector("#state").textContent = frame.state;
-        agentClosed = frame.state === "shutdown";
-        document.querySelector("#pause").disabled = agentClosed || frame.state === "paused";
-        document.querySelector("#resume").disabled = agentClosed || frame.state !== "paused";
-        for (const id of ["send", "hint", "interrupt", "clear-tools", "model-choice", "set-model"]) {
-            document.querySelector(`#${id}`).disabled = agentClosed;
-        }
-        return;
-    }
-    if (frame.type === "state_changed") {
-        document.querySelector("#state").textContent = frame.to;
+    if (frame.type === "agent_state" || frame.type === "state_changed") {
+        const wasPaused = acknowledgedState === "paused";
+        acknowledgedState = frame.state || frame.to;
+        agentClosed = acknowledgedState === "shutdown";
+        if (wasPaused && acknowledgedState !== "paused") pauseIntent = null;
+        renderControls();
+        updatePauseCause();
         return;
     }
     if (frame.type === "error" || frame.type === "lifecycle") {
+        if (frame.type === "error" && selectionPending) {
+            selectionPending = false;
+            showAgents();
+            renderControls();
+        }
         if (frame.type === "error" && goalSelectionPending) {
             goalSelectionPending = false;
             showGoal(agentRows.find(row => row.key === agentID)?.goal);
@@ -425,6 +639,7 @@ function handle(frame) {
         if (frame.tool_name) card.name = (card.name || "") + frame.tool_name;
     } else if (frame.type === "part_final") {
         const part = frame.part;
+        card.parts = part.type === "tool_result" ? part.parts : [part];
         card.kind = part.type;
         card.role = part.role || "assistant";
         card.text = readable(part);
@@ -435,11 +650,14 @@ function handle(frame) {
     } else if (frame.type === "tool_dispatched") {
         card.kind = "tool_call";
         card.name = frame.name;
+        card.input = frame.input;
         card.status = "started";
         card.text = `${frame.name}\n${JSON.stringify(frame.input || {}, null, 2)}`;
         card.final = true;
     } else if (frame.type === "tool_finished") {
         card.kind = "tool_result";
+        card.parts = frame.parts || [];
+        card.job = frame.job;
         card.role = "tool";
         card.status = frame.is_error ? "error" : "finished";
         card.text = (frame.result || (frame.parts || []).map(readable).join("\n"))
@@ -469,6 +687,7 @@ function connect() {
     agentID = null;
     socket.onopen = () => {
         document.querySelector("#connection").textContent = "Connected";
+        renderControls();
         send("subscribe");
         updatePauseCause();
     };
@@ -487,6 +706,11 @@ function connect() {
     socket.onclose = () => {
         if (connection !== socket) return;
         document.querySelector("#connection").textContent = "Disconnected — reconnecting";
+        selectionPending = true;
+        pauseIntent = null;
+        localPauseCause = false;
+        cancelSpeech(false);
+        renderControls();
         showGoal(undefined);
         clearTimeout(reconnectTimer);
         reconnectTimer = setTimeout(connect, 800);
@@ -502,7 +726,8 @@ function send(type, text = "") {
     notice("");
     return true;
 }
-document.querySelector("#agent-choice").onchange = event => {
+document.querySelector("#agent-choice").onchange = event => selectAgent(event.target.value);
+function selectAgent(key) {
     if (!socket || socket.readyState !== WebSocket.OPEN) {
         showAgents();
         notice("Not connected; selection was not sent.");
@@ -511,28 +736,43 @@ document.querySelector("#agent-choice").onchange = event => {
     // Release this tab's old pause cause before asking the server to switch.
     // The next replay can apply a still-present typing cause to the new view.
     cancelSpeech(false);
-    if (localPauseCause) send("unpause");
+    if (pauseIntent === "automatic") send("unpause");
+    pauseIntent = null;
     localPauseCause = false;
+    selectionPending = true;
+    renderControls();
     goalSelectionPending = true;
     showGoal(undefined);
-    socket.send(JSON.stringify({ type: "select_agent", agent_id: event.target.value }));
-};
-function submit(type) {
+    socket.send(JSON.stringify({ type: "select_agent", agent_id: key }));
+}
+// One input path. Browser state must not classify a message as a hint.
+function submit() {
+    if (document.querySelector("#send").disabled) {
+        notice("Wait for the selected Agent to connect; input was not sent.");
+        return;
+    }
     const input = document.querySelector("#prompt");
-    if (input.value.trim() && send(type, input.value)) {
+    if (input.value.trim() && send("prompt", input.value)) {
         input.value = "";
         humanTyping = false;
         updatePauseCause();
     }
 }
-document.querySelector("#compose").onsubmit = event => { event.preventDefault(); submit("prompt"); };
-document.querySelector("#hint").onclick = () => submit("hint");
-for (const type of ["pause", "interrupt"]) document.querySelector(`#${type}`).onclick = () => send(type);
+document.querySelector("#compose").onsubmit = event => { event.preventDefault(); submit(); };
+document.querySelector("#pause").onclick = () => {
+    if (send("pause")) pauseIntent = "manual";
+    renderControls();
+};
+document.querySelector("#interrupt").onclick = () => {
+    if (send("interrupt")) pauseIntent = null;
+};
 document.querySelector("#clear-tools").onclick = () => send("clear_tools");
 document.querySelector("#set-model").onclick = () => {
     send("set_model", document.querySelector("#model-choice").value);
 };
-document.querySelector("#resume").onclick = () => send("unpause");
+document.querySelector("#resume").onclick = () => {
+    if (send("unpause")) pauseIntent = null;
+};
 document.querySelector("#prompt").oninput = event => {
     humanTyping = !event.detail?.mcp && event.target.value.length > 0;
     updatePauseCause();
@@ -541,17 +781,22 @@ document.querySelector("#prompt").onkeydown = event => {
     if (event.key === "Escape") {
         event.preventDefault();
         cancelSpeech();
-    } else if ((event.altKey && event.key.toLowerCase() === "h") || (event.ctrlKey && event.key === "Enter")) {
-        event.preventDefault(); submit("hint");
     } else if (event.key === "Enter" && !event.shiftKey) {
-        event.preventDefault(); submit("prompt");
+        event.preventDefault(); submit();
     }
 };
 document.querySelector("#stop-speech").onclick = () => cancelSpeech();
 function applySettings() {
     if (!settings) return;
     document.documentElement.dataset.theme = settings.theme;
-    document.documentElement.style.setProperty("--font-size", `${settings.font_size}px`);
+    const dark = settings.theme === "dark" || (settings.theme === "system" && matchMedia("(prefers-color-scheme: dark)").matches);
+    document.documentElement.dataset.bsTheme = dark ? "dark" : "light";
+    const themeButton = document.querySelector("#theme-toggle");
+    setButtonIcon(themeButton, dark ? "icon-moon" : "icon-sun");
+    themeButton.setAttribute("aria-label", dark ? "Switch to light theme" : "Switch to dark theme");
+    themeButton.title = dark ? "Dark theme; switch to light theme" : "Light theme; switch to dark theme";
+    document.documentElement.style.fontSize = `${settings.font_size}px`;
+    renderControls();
     document.querySelector("#theme").value = settings.theme;
     document.querySelector("#font-size").value = settings.font_size;
     document.querySelector("#max-tool-rounds").value = settings.max_tool_rounds;
@@ -574,6 +819,8 @@ function applySettings() {
     document.querySelector("#tts-speed").value = settings.tts_speed;
     document.querySelector("#speed-label").value = `${settings.tts_speed}×`;
     document.querySelector("#narrate").checked = settings.tts_enabled;
+    document.querySelector(".speech-toggle").title = settings.tts_enabled
+        ? "Speech on; stop automatically reading new messages" : "Speech off; enable reading new messages aloud";
     document.querySelector("#pause-speaking").checked = settings.pause_while_speaking;
     updatePauseCause(); // Disabling speech pausing does not cancel the queue.
 }
@@ -682,6 +929,7 @@ document.querySelector("#recall-settings-form").addEventListener("submit", event
     patchSettings({recall});
 });
 document.querySelector("#recall-settings-reload").onclick = () => send("get_settings");
+document.querySelector("#theme-toggle").onclick = () => patchSettings({theme: document.documentElement.dataset.bsTheme === "dark" ? "light" : "dark"});
 document.querySelector("#theme").onchange = event => patchSettings({ theme: event.target.value });
 document.querySelector("#font-size").onchange = event => patchSettings({ font_size: Number(event.target.value) });
 document.querySelector("#max-tool-rounds").onchange = event => patchSettings({ max_tool_rounds: Number(event.target.value) });
@@ -708,4 +956,90 @@ if (speech) {
         }
     });
 }
+// The tree is only a view of the server projection. Selecting never changes the
+// fixed relay target or creates an Agent. Arrow keys traverse visible rows.
+function renderAgentTree() {
+    const tree = document.querySelector("#agent-tree");
+    const focused = tree.contains(document.activeElement) ? document.activeElement.dataset.agent : null;
+    tree.replaceChildren();
+    function add(row, group) {
+        const children = row.key == null ? [] : agentRows.filter(child => child.parent === row.key);
+        const item = document.createElement("li");
+        item.setAttribute("role", "treeitem");
+        item.setAttribute("aria-selected", String(row.key === agentID));
+        const line = document.createElement("div");
+        line.className = "tree-row";
+        if (children.length) {
+            const expanded = !collapsedAgents.has(row.key);
+            item.setAttribute("aria-expanded", String(expanded));
+            const toggle = actionButton(expanded ? "−" : "+", () => {
+                if (expanded) collapsedAgents.add(row.key); else collapsedAgents.delete(row.key);
+                renderAgentTree();
+                tree.querySelector(`[data-agent="${CSS.escape(row.key)}"]`)?.focus();
+            });
+            toggle.classList.add("tree-expand");
+            toggle.tabIndex = -1;
+            toggle.setAttribute("aria-label", `${expanded ? "Collapse" : "Expand"} ${row.id}`);
+            line.append(toggle);
+        }
+        const choose = actionButton("", () => selectAgent(row.key));
+        choose.classList.add("tree-select");
+        choose.disabled = row.key == null;
+        choose.dataset.agent = row.key ?? row.id;
+        choose.tabIndex = row.key === (focused ?? agentID) ? 0 : -1;
+        choose.title = `${row.key || row.id} · ${row.paused ? "paused" : row.state} · ${[row.phase, row.tool, row.detail].filter(Boolean).join(" — ")}`;
+        const name = document.createElement("span");
+        name.className = "tree-name";
+        name.textContent = row.id;
+        const state = document.createElement("span");
+        state.className = "tree-state";
+        state.textContent = row.paused ? "paused" : row.state;
+        choose.append(name, state);
+        choose.onkeydown = event => {
+            if (!["ArrowDown", "ArrowUp", "ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) return;
+            event.preventDefault();
+            const visible = [...tree.querySelectorAll(".tree-select:not(:disabled)")].filter(button => button.offsetParent !== null);
+            let next = visible.indexOf(choose);
+            if (event.key === "ArrowDown") next = Math.min(next + 1, visible.length - 1);
+            if (event.key === "ArrowUp") next = Math.max(next - 1, 0);
+            if (event.key === "Home") next = 0;
+            if (event.key === "End") next = visible.length - 1;
+            if (event.key === "ArrowRight" && children.length) {
+                if (collapsedAgents.delete(row.key)) {
+                    renderAgentTree();
+                    tree.querySelector(`[data-agent="${CSS.escape(row.key)}"]`)?.focus();
+                    return;
+                }
+                next = Math.min(next + 1, visible.length - 1);
+            }
+            if (event.key === "ArrowLeft") {
+                if (children.length && !collapsedAgents.has(row.key)) {
+                    collapsedAgents.add(row.key);
+                    renderAgentTree();
+                    tree.querySelector(`[data-agent="${CSS.escape(row.key)}"]`)?.focus();
+                    return;
+                }
+                const parent = visible.findIndex(button => button.dataset.agent === row.parent);
+                if (parent >= 0) next = parent;
+            }
+            for (const button of visible) button.tabIndex = -1;
+            visible[next].tabIndex = 0;
+            visible[next].focus();
+        };
+        line.append(choose);
+        item.append(line);
+        if (children.length) {
+            const nested = document.createElement("ul");
+            nested.setAttribute("role", "group");
+            nested.hidden = collapsedAgents.has(row.key);
+            for (const child of children) add(child, nested);
+            item.append(nested);
+        }
+        group.append(item);
+    }
+    for (const row of agentRows.filter(row => row.parent == null)) add(row, tree);
+    if (!tree.querySelector('[tabindex="0"]')) tree.querySelector(".tree-select:not(:disabled)")?.setAttribute("tabindex", "0");
+    if (focused != null) tree.querySelector(`[data-agent="${CSS.escape(focused)}"]`)?.focus();
+}
+
 connect();

@@ -10,6 +10,6 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="../Ensemble.csproj" />
-    <EmbeddedResource Include="wwwroot/*" LogicalName="EnsembleGui.Assets/%(Filename)%(Extension)" />
+    <EmbeddedResource Include="wwwroot/**/*" LogicalName="EnsembleGui.Assets/%(RecursiveDir)%(Filename)%(Extension)" />
   </ItemGroup>
 </Project>

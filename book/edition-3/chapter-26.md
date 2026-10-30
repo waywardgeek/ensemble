@@ -182,15 +182,22 @@ The status bar contains:
   operation. A refused change must not leave the display pretending it succeeded.
   Compatible model names are not proof of account entitlement. Preserve the
   distinction between running selection and persisted launch configuration.
-- A clearly labeled Speech checkbox. Speech remains opt-in. Its state is the
-  acknowledged appearance/speech setting, not an independent second toggle.
+- A speaker-icon Speech control with an accessible name and native checked
+  semantics. Speech remains opt-in. Its state is the acknowledged appearance/
+  speech setting, not an independent second toggle. Per-message Speak and Stop
+  speech also use named speaker icons. Retain keyboard access and visible focus.
 - Compact Pause/Resume and Interrupt controls with useful labels, keyboard focus,
   and adequate click targets. Do not confuse pausing admission with interrupting a
   turn, or interrupting a turn with killing independent Jobs.
-- A Light/Dark theme button. Its action must be clear, its setting must persist
-  through the existing appearance store, and it must agree with any equivalent
+- A theme button showing a moon for dark and a sun for light. Its accessible
+  name must state the switch action, not leave the meaning of the icon ambiguous.
+  Its setting must persist through the existing appearance store and agree with any equivalent
   settings control. Use dark for a new user unless a saved explicit choice says
   otherwise. Both themes need high contrast.
+
+Use the human's approved artwork proportionally for branding and the browser
+icon. Do not silently crop or redesign it, or leave a sample's placeholder in the
+working application. Bundle the assets locally with appropriate content types.
 
 An unavailable connection is not an idle Agent. Pending selection and settings
 changes are not acknowledged state. Disable controls when their target is
@@ -231,10 +238,32 @@ frames. Funding stays fixed for a running Agent. Codex renewal remains Codex's
 responsibility; public OAuth operations must not turn into Codex operations.
 
 **Middle: Chat.** Give the conversation the main reading space, with a composer
-anchored at the bottom. Keep ordinary explanations visible while tools run.
-Preserve Enter/Shift-Enter behavior, hints, selection/replay, streaming and final
-replacement, near-bottom-only autoscroll, and scroll position when the human is
-reading older material. A new answer must not silently replace an earlier one.
+anchored at the bottom. The composer has exactly two visible widgets: a one-line
+input and the supplied paper-airplane Send icon beside it. Longer or multiline
+input scrolls within that one-line area rather than taking height from the
+conversation. Name the selected Agent in the placeholder, such as “Ask Cadence
+anything…”, and keep an accessible input name. Do not add a visible label, help
+footer, or separate Hint button. Preserve the supplied artwork and its proportions.
+
+The browser sends ordinary messages, including while the Agent is working. The
+Agent classifies input against its active turn when the event queue receives it;
+stale browser state must not select a different “hint” mode. Preserve Enter to
+send and Shift-Enter to enter a newline, without a special forced-hint shortcut.
+Keep ordinary explanations visible while tools run. Preserve selection/replay,
+streaming and final replacement, near-bottom-only autoscroll, and scroll position
+when the human is reading older material. A new answer must not silently replace
+an earlier one.
+
+Density is part of usability, not an excuse to shrink fonts. Reduce unnecessary
+widget padding/gaps and paragraph margins while preserving the selected font and
+line spacing, clear grouping, focus indicators and usable click targets. A short
+message should not require a separate full-height action row above its text.
+Measure identical content before and after at the same fonts and viewport; retain
+text and semantic markup rather than hiding content to manufacture a smaller box.
+Let prose use the available pane width. Pane splitters should allow Actions or
+conversation to take most of the workspace, with small reachable minimum panes,
+not arbitrary 18–35% side-pane caps. Check mouse/keyboard movement in both
+directions and re-clamping after window/font changes.
 Private reasoning and opaque replay payloads are not chat text.
 
 **Right: Tools and artifacts.** Show tool calls, results, running work, failures,

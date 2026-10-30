@@ -6,7 +6,7 @@ namespace EnsembleGui;
 
 // Value-like presentation preferences, not an owner or an Agent service. The
 // tool budget deliberately does not live here: the Agent owns that live fact.
-public sealed record Preferences(string Theme = "system", bool TtsEnabled = false,
+public sealed record Preferences(string Theme = "dark", bool TtsEnabled = false,
     double TtsSpeed = 1, int FontSize = 18, bool PauseWhileSpeaking = true);
 
 public static partial class Gui

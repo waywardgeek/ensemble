@@ -7,6 +7,7 @@ using Application = Ensemble.Ensemble;
 Application? app = null;
 StreamWriter? trace = null;
 StreamWriter? diagnostics = null;
+int exitCode = 0;
 try
 {
     string Env(string name) => Environment.GetEnvironmentVariable(name) ?? "";
@@ -236,28 +237,78 @@ try
         throw joined.Exception;
     }
     await agent.ShutdownAsync();
-    return 0;
+    exitCode = 0;
 }
-catch (Exception error) when (error is ArgumentException or IOException or InvalidDataException or InvalidOperationException or FormatException or OverflowException or AggregateException)
+catch (Exception error)
 {
-    Console.Error.WriteLine("GUI failed: " + error.GetType().Name);
-    return 1;
+    // Report while the owning graph and its redaction policy still exist.
+    // Console diagnostics contain only fixed guidance and type names; unknown
+    // exception text may contain credentials, URLs or private filesystem paths.
+    ReportFailure("GUI failed", error);
+    exitCode = 1;
 }
 finally
 {
+    // Independent cleanup steps preserve the primary failure and attempt every
+    // owned resource even when one cleanup fails. No exception is silently lost.
     try
     {
         app?.Destroy();
     }
-    finally
+    catch (Exception error)
     {
-        try
+        ReportFailure("GUI cleanup failed", error);
+        exitCode = 1;
+    }
+    try
+    {
+        trace?.Dispose();
+    }
+    catch (Exception error)
+    {
+        ReportFailure("Trace cleanup failed", error);
+        exitCode = 1;
+    }
+    try
+    {
+        diagnostics?.Dispose();
+    }
+    catch (Exception error)
+    {
+        ReportFailure("Diagnostic cleanup failed", error);
+        exitCode = 1;
+    }
+}
+return exitCode;
+
+static void ReportFailure(string prefix, Exception error)
+{
+    var causes = new Stack<Exception>();
+    causes.Push(error);
+    bool addressInUse = false;
+    while (causes.TryPop(out var cause))
+    {
+        if (cause is System.Net.Sockets.SocketException socket
+            && socket.SocketErrorCode == System.Net.Sockets.SocketError.AddressAlreadyInUse)
         {
-            trace?.Dispose();
+            addressInUse = true;
         }
-        finally
+        if (cause is AggregateException aggregate)
         {
-            diagnostics?.Dispose();
+            foreach (var inner in aggregate.InnerExceptions)
+            {
+                causes.Push(inner);
+            }
+        }
+        else if (cause.InnerException is { } inner)
+        {
+            causes.Push(inner);
         }
     }
+    string advice = addressInUse
+        ? "Loopback port is already in use. Choose an unused --port; do not stop its owner."
+        : error is ArgumentException or FormatException or OverflowException
+            ? "Invalid launch configuration. Check supported flags and value formats."
+            : "Check private diagnostics and workspace/data permissions; no private error text is printed here.";
+    Console.Error.WriteLine($"{prefix}: {error.GetType().Name}. {advice}");
 }

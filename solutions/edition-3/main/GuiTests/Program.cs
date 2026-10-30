@@ -74,6 +74,12 @@ if (args is ["--memory-settings-tests"])
     return;
 }
 
+if (args is ["--crossover-host"])
+{
+    await CrossoverFixture.RunAsync();
+    return;
+}
+
 // Relative fixture paths must never overwrite a caller's shipped skills, even
 // when a developer launches this consumer from the solution directory.
 string originalDirectory = Environment.CurrentDirectory;

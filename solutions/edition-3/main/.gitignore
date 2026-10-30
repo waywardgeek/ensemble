@@ -5,3 +5,6 @@
 /debug.log
 /gui.log
 /cr/
+
+# Private crossover fixture homes, profiles and retained test evidence.
+/.crossover/

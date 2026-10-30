@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1254 1254" role="img" aria-label="Blue and white paper airplane send icon">
+  <defs>
+    <linearGradient id="upper" x1="0" y1="0" x2=".35" y2="1" gradientUnits="objectBoundingBox">
+      <stop stop-color="#fff"/><stop offset=".66" stop-color="#eff6ff"/><stop offset="1" stop-color="#b9d5f2"/>
+    </linearGradient>
+    <linearGradient id="center" x1="0" y1="1" x2="1" y2="0">
+      <stop stop-color="#345b95"/><stop offset=".58" stop-color="#78a4d8"/><stop offset="1" stop-color="#9ec5ef"/>
+    </linearGradient>
+    <linearGradient id="right" x1="0" y1="1" x2=".7" y2="0">
+      <stop stop-color="#b1d0ee"/><stop offset=".48" stop-color="#f4f9ff"/><stop offset="1" stop-color="#fff"/>
+    </linearGradient>
+    <linearGradient id="fin" x1="0" y1="1" x2="1" y2="0">
+      <stop stop-color="#294e83"/><stop offset=".72" stop-color="#749fd2"/><stop offset="1" stop-color="#bad7f4"/>
+    </linearGradient>
+  </defs>
+  <!-- All areas outside the airplane remain fully transparent. -->
+  <path d="M 44 558 L 1198 219 Q 1216 214 1207 234 L 250 699 L 46 598 Q 24 583 44 558 Z" fill="url(#upper)"/>
+  <path d="M 250 699 L 1207 222 L 455 779 L 371 1043 Z" fill="url(#center)"/>
+  <path d="M 455 779 L 1208 222 L 827 1021 Q 816 1043 790 1027 Z" fill="url(#right)"/>
+  <path d="M 371 1043 L 455 779 L 597 871 Z" fill="url(#fin)"/>
+</svg>
