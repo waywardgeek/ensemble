@@ -1,3 +1,20 @@
+## Current multimedia checkpoint — image-file inspection tool
+
+`inspect_image` is now a code-tools-granted structured operation. It validates
+selected-model/tool-result support before opening the Sandbox file, prepares one
+bounded derivative, and returns actual PNG bytes with dimensions/byte counts.
+Original files remain unchanged; delayed Job observations retain typed images.
+Supported tool-image adapters are Responses and Anthropic for capability-listed
+models; Gemini tool images explicitly refuse (human images remain supported).
+
+Final focused image/tool tests pass; shared Debug suite **317 passed, zero failed;
+exit zero**. Evidence: `/private/tmp/cadence-image-library/inspection-*-final.log`.
+The [notebook](edition-3-notes/voice-and-images.md) records fixture corrections,
+the initial exact-tool-inventory failure, architecture and evidence limits.
+No install, restart, push or paid requests. Next: GUI image admission and aggregate
+limits; model-turn/live acceptance and Gemini tool-image support still need work.
+Reminders remain enabled at Bill's three-minute override.
+
 ## Current multimedia checkpoint — bounded resizing foundation
 
 Bill requested resizing and its addition to Chapter 26's TL;DR; both are now in

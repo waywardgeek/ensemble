@@ -43,6 +43,11 @@ public sealed partial class Engine
         return choices.ToImmutable();
     }
 
+    public partial void ValidateMedia(IEnumerable<Part> parts, Actor actor)
+    {
+        CheckMedia(parts, Parent().Configuration(), actor: actor);
+    }
+
     private static Media MediaKind(string mime)
     {
         if (mime.StartsWith("image/", StringComparison.Ordinal))

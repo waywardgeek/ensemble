@@ -72,6 +72,9 @@ public sealed partial class Engine
     public const int MaximumImageBytes = Agent.MaximumImageOutputBytes;
     private partial byte[] ReadMedia(BlobPart blob);
 
+    // Validate capability and placement without reading media or making requests.
+    public partial void ValidateMedia(IEnumerable<Part> parts, Actor actor = Actor.Human);
+
     // Exact selected-model lookup. There is no default media row; a miss still
     // permits text. Vendor is part of the key, so names cannot cross dialects.
     public static partial bool LookupModel(Vendor vendor, string model, out ModelFeatures features);

@@ -331,3 +331,49 @@ shared Debug suite completed **316 passed, zero failed, exit zero**. Logs are
 `build.log`, `tests.log`, `release-build.log`, `release-tests.log`, and `shared.log`
 in the evidence directory above. These are local Mac/native/wire checks, not
 Linux/Windows, browser capture, provider inference, or usability acceptance.
+
+
+### Image-file tool admission — structured inspect_image
+
+Added `inspect_image` to code-tools, using the existing Agent/Tool/Job/Sandbox
+ownership path. Engine.ValidateMedia exposes the existing read-free capability
+and placement validator; the tool checks a nested image result before opening
+its actual source path. It prepares once and returns dimensions, source/output
+byte counts, and the actual PNG BlobPart. Structured Job retention preserves the
+payload through delayed `wait_for_job` observation rather than flattening it into
+bounded text output. Source files are not overwritten or reopened for projection.
+Unsupported model/surface and invalid decode errors are explicit error results.
+
+Current support is Responses and Anthropic image tool results for models already
+in the capability table. Gemini's tool-result image placement remains explicitly
+unsupported, even though its human-image projection accepts prepared derivatives.
+Do not imply curated menu membership establishes image capability.
+
+Focused tests use real Agent, SkillManager, Job, Sandbox, decoder and renderer:
+skill denial/load/revocation, delayed observation, actual resized pixels and
+transformation report, original preservation, source deletion before paired wire
+projection, malformed image and outside-path refusal, unsupported capability
+before missing-file access. Both image groups passed. No paid requests occurred.
+
+Fixture corrections: nonexistent DestroyAsync was replaced by actual Destroy;
+direct control calls record ToolObserved events, not model dialogue, so projection
+uses an explicit paired Context containing the actual returned result (not claimed
+model-turn History acceptance). An unlisted Anthropic model correctly refused;
+fixture now uses the existing haiku capability row. One-byte diagnostic truncation
+obscured that error; the test now uses a bounded 4096-byte report. These were
+fixture mistakes, not runtime/media failures. Shared regression is pending below.
+
+The first shared run finished 316 passed / one failed: the exact built-in tool
+inventory did not yet include inspect_image. Updated that name set explicitly;
+no relaxed count assertion. Also corrected the new fixture's source path to the
+tracked lowercase agent/skills directory (Mac case-insensitivity had hidden it).
+
+Final verification: build zero warnings/errors; focused image 2/2 and tool 1/1
+passed; final shared Debug suite **317 passed, zero failed, exit zero**. Evidence:
+`/private/tmp/cadence-image-library/inspection-{build,image,tool,shared}-final.log`
+(build file is `inspection-build-final.log`). Production changes reviewed for
+read-free capability checks, direct ownership, structured retention and cleanup.
+No install/restart/push or live provider requests. End-to-end model-turn acceptance,
+GUI attachment admission, aggregate limits and Gemini image tool results remain
+unfinished. Native decoder cancellation is checked before and after, not a
+preemptible CPU quota. Full source/low-level BlobPart validation is not automatic.

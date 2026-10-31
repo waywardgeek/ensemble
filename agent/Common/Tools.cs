@@ -40,7 +40,8 @@ public enum ToolKind
     AskAgent,
     WaitForAgent,
     WaitForAgentChange,
-    GoalControl
+    GoalControl,
+    InspectImage
 }
 
 public sealed partial class Tool
@@ -79,6 +80,7 @@ public sealed partial class Tool
     internal partial Task<ToolResultPart> ExecuteJobAsync(Job job, ToolCallPart call, CancellationToken cancellation);
     // Read-only projection through the executing Job’s real owning Agent.
     private static partial string Status(Job job);
+    private partial ToolResultPart InspectImage(ToolCallPart call, CancellationToken cancellation);
     // Shared state projection; detailed child status adds the existing Engine meter.
     private static partial JsonObject ChildStatusValue(Agent child, AgentWorkStatus status);
     private static partial Task<string> DetailedChildStatusAsync(Job job, JsonElement args, CancellationToken cancellation);

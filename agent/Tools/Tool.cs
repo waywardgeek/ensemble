@@ -59,7 +59,7 @@ public sealed partial class Tool
     }
 
     public partial McpClient? Remote() => remote;
-    internal partial bool HasStructuredResult() => kind == ToolKind.Remote || waitForCompletion;
+    internal partial bool HasStructuredResult() => kind is ToolKind.Remote or ToolKind.InspectImage || waitForCompletion;
     internal partial bool WaitsForCompletion() => waitForCompletion;
 
     public partial Agent Parent() => parent ?? throw new InvalidOperationException("Tool is detached");
@@ -101,6 +101,11 @@ public sealed partial class Tool
         string description;
         switch (kind)
         {
+            case ToolKind.InspectImage:
+                name = "inspect_image";
+                description = "Read and prepare an image through the Agent Sandbox. Returns actual PNG pixels plus dimensions; may resize, never overwrites the original. Requires image tool-result support.";
+                Field("path", "string", "Image file path. Source limit 32 MiB / 24 million pixels; static PNG, JPEG, WebP or GIF.", true);
+                break;
             case ToolKind.ReadFile:
                 name = "read_file";
                 description = "Read a UTF-8 text file, optionally selecting a one-based inclusive line range.";
@@ -465,6 +470,10 @@ public sealed partial class Tool
             {
                 var client = remote ?? throw new IOException("MCP tool is disconnected.");
                 return await client.CallAsync(call, cancellation);
+            }
+            if (kind == ToolKind.InspectImage)
+            {
+                return InspectImage(call, cancellation);
             }
             var text = kind switch
             {

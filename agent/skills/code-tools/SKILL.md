@@ -2,7 +2,7 @@
 name: code-tools
 description: Edit files and run independent background jobs.
 type: loadable
-tools: write_file edit_file run_command wait_for_job send_input kill_job tool_limits
+tools: inspect_image write_file edit_file run_command wait_for_job send_input kill_job tool_limits
 ---
 Use small, checked edits and test the changed behavior. Shell state does not persist
 between commands. Running jobs are not failures: retain their handles and observe
@@ -12,3 +12,9 @@ Full output remains at output_path even when an inline report is truncated.
 
 Enabled tools:
 $TOOLS
+
+Use inspect_image to deliver actual image pixels from a Sandbox file. It may
+resize and reports the dimensions; it never overwrites the source. Unsupported
+model/tool-result surfaces fail explicitly. A filename or read_file report is
+not image delivery. Cancellation cannot preempt a synchronous native decode,
+but a cancelled result must not be published as successful image inspection.

@@ -28,7 +28,7 @@ internal static class ToolTests
             Check(agent.Tools().Length == 0, "new library Agent must have an empty registry");
             Check(!agent.Engine().Render(new Context()).ContainsKey("tools"), "omit empty tools field");
             agent.InstallTools();
-            string[] expectedTools = ["read_file", "write_file", "edit_file", "run_command", "list_directory", "search_files",
+            string[] expectedTools = ["inspect_image", "read_file", "write_file", "edit_file", "run_command", "list_directory", "search_files",
                 "wait_for_job", "send_input", "kill_job", "tool_limits", "micro_handoff", "agent_status", "join_agents", "submit", "send_message_to_parent",
                 "respond_to_parent_message", "shutdown_agent", "spawn_sub_agent", "agents_status", "get_sub_agent_status", "interrupt_agent", "get_submission", "kill_agent", "send_message", "ask_agent", "wait_for_agent", "wait_for_agent_change", "goal_control"];
             Check(agent.Tools().Select(value => value.Name()).Order().SequenceEqual(expectedTools.Order()),
