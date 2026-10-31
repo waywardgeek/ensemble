@@ -1,128 +1,215 @@
-# Chapter 12: The Agent Sees Itself
+# Chapter 12: The Agent Sees Its Working Interface
 
-A coding agent that cannot see its own GUI is debugging blind. Reading the source tells it what a button should do. Watching the running interface tells it what the button did. Chapter 11 supplied the browser tools and MCP transport; this chapter makes that view available at startup through one skill, then points it at the interface the agent is using.
+Chapter 11 connected external tools to the Agent through MCP. This chapter makes
+one of those capabilities convenient at startup: an optional `gui-debug` skill
+lets the Agent inspect and operate the Ensemble page in which the conversation is
+happening. It does not give the Agent pixel vision, continuous observation, or
+access to every browser tab. It supplies a particular connected page's tools and
+a manual that explains how to use them honestly.
 
-The wiring is short and mostly mechanical. What follows it is less tidy: an observer that froze what it watched, a debugger whose escape hatch was unreachable, and a settings repair that made the server correct while leaving the screen wrong. Giving an agent eyes is useful partly because it exposes how much the programmer had been assuming.
+The distinction between *having a tool* and *having an observation* matters. A
+loaded browser skill does not mean the Agent has seen the page. The Agent calls
+`gui_snapshot` when it needs a structured view and `tts_queue` when it needs the
+speech queue. It calls again after an action to check the result. A successful
+click response reports dispatch; it does not prove the intended visible change.
 
-## TL;DR
+The implementation builds on Chapter 11 rather than adding another GUI engine,
+transcript, browser controller, or scheduler. The new library vocabulary is an
+optional ordered startup selection. The GUI flag is a convenience for choosing
+that selection. The actual browser still supplies its catalog through MCP.
 
-Extend Chapter 11 with `--gui-debug` and `--skills-dir PATH` in both the headless command and the optional GUI application. The first selects the reachable `gui-debug` skill during Agent construction; the second overrides `EN_SKILLS_DIR`. With debug enabled and no directory selected, use `./skills`. When a directory is selected and `EN_PRIMARY_SKILL` is empty, these applications select `ensemble` as primary. Keep explicit skill kinds and tool grants.
+## Startup Selection Is Configuration, Not a Conversation
 
-Startup uses the existing skill/MCP lifecycle. Assemble the primary and startup manuals before freezing the system prompt. Ordinary later `load_skill` calls still return instructions through history. Discover the peer's tools, admit only the skill's grants, hide automatic tools from model declarations, and refresh completed DOM and speech-queue content before every round. A click or input must affect the next snapshot.
+The value-like `SkillSpec` record now has a final optional member:
 
-Unloading `gui-debug` immediately removes its external tools and automatic context and closes its peers. A guessed tool name cannot bypass removal. Compiled grants and instruction text remain pending removal under Chapter 9's existing rules; this chapter adds no compaction. Preserve human typing and speech pacing without treating programmatic input as a human pause cause. Explicit unpause in any tab still unpauses the whole Agent.
-
-Build on the existing owners and common interfaces. Agent owns its skill registry and MCP manager; the optional GUI owns browser connections and framing. No new callback bundle, dispatcher or driver application is needed.
-
-### The skill
-
-Here are the supplied files, including the primary that makes the optional skill reachable. Put this in `skills/ensemble/SKILL.md`:
-
-```yaml
----
-name: ensemble
-type: primary
-description: A concise coding assistant with optional browser inspection
-tools: read_file write_file edit_file list_directory search_files run_command
-loadable-skills: gui-debug
----
-You are a coding assistant. Use the available tools to inspect facts before
-claiming results. Available skills: $SKILLS.
+```csharp
+public sealed record SkillSpec(
+    string Directory,
+    string Primary,
+    IReadOnlyDictionary<string, string>? Variables = null,
+    IReadOnlyList<string>? StartupSkills = null);
 ```
 
-And this in `skills/gui-debug/SKILL.md`:
+Existing callers remain source-compatible. The library reads no environment
+variables. `Skills` copies the selection into an immutable array at construction,
+just as it snapshots initial variables. Mutating a caller's list later cannot
+change a startup already in progress.
 
-```yaml
----
-name: gui-debug
-type: loadable
-description: Inspect and operate the connected browser
-depends: ensemble
-tools: gui_snapshot tts_queue gui_click gui_input
-mcp_servers:
-  - name: browser-debug
-    transport: websocket
----
-The current browser snapshot and speech queue arrive automatically before each
-round. Use gui_click with a visible CSS selector and gui_input with selector and
-text. Observe the next snapshot to confirm the effect. Hidden or omitted state
-is not evidence of success: report what you can actually observe.
+For an already constructed Agent with its ordinary local tools installed, the
+library setup is:
+
+```csharp
+var skills = new Skills(agent, new SkillSpec(
+    skillDirectory,
+    "ensemble",
+    StartupSkills: ["gui-debug"]));
+
+// Application hosts load persistence and open diagnostics before this step.
+// A GUI host also starts listening and supplies the browser registration first.
+await skills.InitializeAsync();
 ```
 
-The kind, dependency and grants do different jobs. `type: loadable` makes this an optional skill; the primary's `loadable-skills` makes it reachable; `depends` ensures the base is present; `tools` admits the named capabilities. Discovery alone grants nothing. An MCP peer advertising another tool does not authorize the model to use it. Reverse calls still pass through the Agent's enabled-tool dispatch.
+Do not manufacture a model `load_skill` call to implement this. Startup is host
+configuration. There is no provider response or tool-call ID to pair with an
+invented result. The existing startup mailbox operation returns reliable completion
+without appending assistant dialogue or a host tool observation.
 
-The browser entry uses the WebSocket tunnel from Chapter 11. For a deterministic check, replace only that server entry with a stdio peer's command and arguments, retaining the skill kind and grants. The existing Chapter 11 Python peer illustrates that external boundary. A subprocess and a browser use the same discovery and dispatch path; only transport creation differs. The historical wire version and course extensions retain Chapter 11's scope.
+`Common/Skills.cs` declares the shared vocabulary and frozen selection.
+`Skills/Startup.cs` resolves it; `Skills/Connections.cs` prepares and commits remote
+connections; `Agent/Skills.cs` carries completion through the existing actor. All
+parts are ordinary partial types in the same assembly. There is no separate
+startup service or copied list of active capabilities.
 
-### Skill-based MCP lifecycle
+## Validate the Whole Initial Batch
 
-Loading a skill with `mcp_servers` asks the Agent's MCP manager to start its peers. It opens the transport, initializes the client, discovers the tools, and retains the connections for cleanup. The manager exposes only admitted tools through the Agent's existing declarations and dispatcher. Jobs still own running calls and their output; a callback delay is no new server lifetime.
+Resolution begins with the primary and its dependencies. It then visits startup
+names in the host-supplied order. Each must name a loadable skill currently offered
+by the prospective active set. Thus an earlier selection may offer a later one.
+A repeated name, or a selected loadable skill already included as a dependency,
+is activated only once. Missing names, wrong skill types, unavailable selections,
+and dependency cycles fail before publication.
 
-This wiring already exists. The registry reaches `Agent.MCP()` through its actual parent interface. The composition root constructs and attaches the Agent's children before loading skills. The command selects configuration and calls that root; it does not become a collection of closures holding sibling services together. The optional GUI supplies its public transport without importing GUI code into the core.
+The prospective set is temporary algorithm state, not an authoritative registry.
+History's immutable `SkillPart` values remain the source of active instructions
+and grants. The same resolver is used during initial validation and again at
+commit, so the prepared closure cannot silently differ from the published one.
 
-At startup the application sets `AgentSpec.StartupSkills` to `[]string{"gui-debug"}`. The constructor loads the primary, activates the optional startup skill through the same admission path, and assembles both manuals before the prompt freezes. There is no model-authored call to answer yet, so inventing a `load_skill` result would invent conversation history. The accepted implementation records application-origin activation at sequence zero instead.
+For an entirely local closure, construction publishes one dependency-first
+activation. If *any* initial skill needs MCP, construction publishes no partial
+primary and grants no provisional tools. `InitializeAsync` uses the existing
+asynchronous preparation path, validates catalogs and collisions, renders all
+manuals, and commits one activation on the actor. Reverse calls remain responsive
+but cannot borrow unpublished authority. A server failure destroys prepared
+clients and leaves the batch unpublished.
 
-Once construction finishes, the distinction matters: a later `load_skill` returns its manual as a tool result and leaves the system prompt alone. Likewise, unloading a startup skill cannot rewrite the frozen prompt. Describe the immediate effect accurately: its MCP tools disappear, automatic browser context stops, and its clients close. For stdio that includes terminating and reaping the peer while the Agent can continue. Instruction removal remains pending; an old manual is not evidence of a live connection.
+`Ready()` derives from the primary and selected names in History. It does not read
+a second mutable ready flag. `RequiresBrowserStartup()` examines the complete
+initial closure, not only the primary. A stdio-only optional skill must not wait
+for a browser. A WebSocket-backed optional skill must not be declared ready before
+its actual page has initialized.
 
-### The four browser tools
+Concurrent initialization callers join the existing task. Cancelling one observer
+detaches that observer; Agent shutdown cancels and joins startup work. A failed
+startup does not arm shutdown saving over an earlier good session. Restoring a
+conversation does not restore permission to execute old tools: the current
+startup configuration rebuilds instructions, grants, and connections as described
+in Chapters 10 and 11.
 
-These are the tools from Chapter 11's browser peer:
+## Instructions Must Reach the Provider as Instructions
 
-| Tool | Automatic timing | Observable result |
-| --- | --- | --- |
-| `gui_snapshot` | Each round | Markdown DOM: panes, selectors, semantic control state and artifact previews |
-| `tts_queue` | Each round | JSON array of pending speech utterances with state and timing |
-| `gui_click` | Model call | Clicks the visible element named by `selector` |
-| `gui_input` | Model call | Sets the element named by `selector` to `text`, then sends input/change events |
+Loading a manual is not enough if the next request carries it only as tool-result
+text. The C# renderer already places active skill bodies in provider instruction
+context: Anthropic's `system`, OpenAI Chat Completions' first system message, and
+Gemini's `systemInstruction`. Startup uses that same representation. The primary
+comes first; each active manual appears once, not again as ordinary dialogue.
 
-The two automatic tools remain absent from model declarations. Their completed output appears in ephemeral context, replaced on the next round. The model sees what changed without repeatedly asking for another screenshot. Preserve Chapter 11's wait for completed automatic content; a three-second running notice cannot describe a DOM.
+This endpoint implements Chat Completions, not OpenAI Responses. A future Responses
+adapter must explicitly map these instructions to its instruction field. Evidence
+for one adapter cannot establish another adapter's behavior.
 
-The callable tools return `ok` on success in the supplied browser. That confirms the handler ran. The next snapshot establishes whether Settings opened or a field acquired its new value. A test that searches the whole request for the desired text may find only the earlier call arguments. Read the result associated with that call and the actual state in the refreshed snapshot.
+`$TOOLS` expands against the prospective allowed catalog. Automatic `per_turn_`
+and `per_round_` tools remain excluded from all model-facing declarations,
+discovery references, and expansions. Browser debugging does not use those
+automatic extensions at all. An unrelated model round receives neither an
+unsolicited DOM snapshot nor a new speech-queue dump.
 
-### Exercise
+## The Application Boundary
 
-Add the startup selection and directory override to both clients, reusing the existing skill lifecycle. Supply the two complete manuals above. Preserve fresh automatic context, actual click/input behavior, immediate external-tool removal, peer cleanup, and the human-input cause distinction described below.
+Both hosts accept a comma-separated `--startup-skills` value, with
+`EN_STARTUP_SKILLS` as the application-level default. An explicit flag overrides
+the environment value. Empty comma-separated fields are ignored. Both hosts also
+accept `--gui-debug`, which appends `gui-debug`; duplicate selections activate once.
+Without either setting, the default primary and optional-skill behavior are unchanged.
 
-From your core solution directory, build the headless executable:
+For the actual GUI:
 
 ```sh
-go build -o /tmp/ensemble-ch12 .
+dotnet run --project Examples/Gui/Gui.csproj -- --port 8097 --gui-debug
 ```
 
-With a stdio peer declared in the selected skill directory and the existing `LLM_VENDOR`, `LLM_MODEL`, `LLM_BASE_URL` and `LLM_API_KEY` configured, its protocol invocation is:
+Use an available owned loopback port and an isolated profile for exercises, not a
+user's working browser or server. Provider settings are the same application
+settings used in earlier chapters. This flag grants no provider budget or device
+permission.
 
-```sh
-/tmp/ensemble-ch12 --gui-debug --skills-dir ./skills
+The GUI constructs the Agent, loads persistence, starts logging and the HTTP
+listener, and waits for a browser only when the initial closure requires one.
+The page registers through the existing `/ws` MCP envelope channel. Readiness
+still gates user work until activation commits. There is no separate `/mcp` route,
+static fallback catalog, or guessed description for an unavailable remote tool.
+
+The CLI can use the same startup API with a supplied stdio-backed `gui-debug`
+manual, as the executable tests do. The shipped manual uses the GUI's WebSocket
+registration; the plain CLI does not magically create a browser or GUI listener
+for it. Without that transport, startup fails explicitly rather than claiming
+browser capability.
+
+## One Skill Owns Its Browser Capability
+
+The shipped `gui-debug` manual owns its own WebSocket server declaration and the
+five explicit grants: `gui_snapshot`, `gui_click`, `gui_input`, `tts_queue`, and
+`tts_say`. It is an alternative to the general `browser` skill, not a wrapper that
+leaves a separately owned dependency alive on unload. Loading both against the
+same one-shot browser registration is not a supported way to duplicate ownership.
+
+Chapter 11's relationships still apply. The MCP manager owns the browser
+registration; the claimed client belongs to the manager, its skill, and that
+registration. The client owns its remote Tools. Unloading `gui-debug` closes its
+client and removes executable browser tools immediately, while retaining the
+pending-unload manual state until reduction. It does not close unrelated GUI
+traffic. Reconnection and reactivation are not silently invented when a consumed
+registration is no longer usable.
+
+The browser responder lives in `Examples/Gui/wwwroot/mcp.js`. It provides bounded
+visible DOM text and selectors, a restricted click/input surface, and the existing
+speech queue. It does not offer JavaScript evaluation, arbitrary navigation,
+other-profile access, or pixel inspection. Password values are omitted from
+snapshots; visible text can still be sensitive and must be handled accordingly.
+
+## Preserve Input Origin, Not Just Its Value
+
+`gui_input` identifies one visible editable text field, replaces its value with
+literal text, and dispatches input and change events. Quotes, spaces, Unicode,
+and strings such as `{Enter}` remain text, not a keyboard macro language. Empty
+text clears the field. Ambiguous selectors, hidden or read-only fields, and
+non-text inputs are refused. This is DOM input, not physical keyboard provenance.
+
+The important change is the origin of that input. The MCP handler dispatches a
+marked event:
+
+```javascript
+element.dispatchEvent(new CustomEvent("input", {
+    bubbles: true,
+    detail: { mcp: true }
+}));
+element.dispatchEvent(new Event("change", { bubbles: true }));
 ```
 
-Stdin uses the existing newline-delimited input; the flag supplies no implicit prompt:
+The prompt listener maintains `humanTyping` from actual input events. MCP input
+does not create that cause. A later speech callback combines current speech with
+`humanTyping`, rather than reconstructing human intent from a nonempty field.
+Successful submission clears both the field and the human cause explicitly.
+Human whitespace still counts as typing.
 
-```json
-{"kind":"prompt","text":"Inspect the browser state, click a visible control, and report the change from the next snapshot."}
-```
+That one retained fact prevents two different freezes: the immediate pause on
+programmatic input, and the delayed pause when speech finishes while programmatic
+text remains. Speech still pauses when configured to do so. Genuine human typing
+still holds pause after speech ends. Another tab's explicit unpause is not
+continuously vetoed by an unchanged local cause, as in the previous chapters.
 
-EOF drains the submitted work and ends the session. For human terminal conversation, append `chat`. A headless process can talk to an external stdio peer; to reach the actual browser, build and run the separate GUI as shown below.
+A tool must not silently overwrite a user's unfinished draft without permission.
+Origin tracking fixes scheduling; it is not authorization to replace text.
+The manual tells the Agent to preserve human input and inspect the effect of its
+actions. A follow-up snapshot, not the requested argument string, establishes the
+resulting field value.
 
-The revised grader runs both actual clients with valid skills and a stateful external stdio peer. It checks startup instructions, directory override, fresh snapshot and TTS data, forwarded click/input arguments and results, then unloads the skill and attempts another browser call. That call must fail, the automatic context must be gone, and the peer must have stopped while the Agent remains alive. The independent browser evidence covers native speech, semantic DOM state and the real tunnel; a stdio fake cannot prove those browser properties.
+## Historical First Use
 
-| Check | Points |
-| --- | ---: |
-| Skill loads at startup | 15 |
-| Hidden automatic context is injected | 20 |
-| Snapshot reflects interaction | 15 |
-| Speech queue is visible | 10 |
-| GUI interaction has actual effects | 15 |
-| Skill unload removes external capability | 15 |
-| Corrected Chapter 11 parity | 10 |
-
-From the repository root:
-
-```sh
-go run ./cmd/grade-edition2 -ch 12
-```
-
-The default is `solutions/ch12`; supply your core solution directory as the positional argument and use the existing `-gui` option if its separate GUI module is elsewhere. The original grader remains historical: it returned 0/100 after an untyped fixture prevented startup, while its parity detector required particular method names. That run observed neither successful browser behavior nor the later real speech/input defect. Valid runtime obligations need their own evidence.
-
----
+The following account is retained from the earlier manuscript.
+It describes earlier encounters, including their failures and human reactions,
+not a claim that this C# endpoint repeated those live-provider trials. Historical
+Go snippets and tool names below describe those runs, not the current C# API. Its practical lesson is the difference between
+building a test harness and using the real interface.
 
 ## What the wiring found
 
@@ -346,23 +433,8 @@ A loop closes here. The agent described in these chapters was built by following
 
 A book that produces a working program gets to be tested by the program it produces. This section is the first time that test came back with findings, and the findings were about the book.
 
-## Taking it for a spin
 
-Use the supplied WebSocket skill for the real browser. From the core solution directory, build its separate module:
-
-```sh
-(cd gui && go build -o /tmp/ensemble-ch12-gui ./cmd)
-```
-
-With your provider environment configured, run from that same core directory:
-
-```sh
-/tmp/ensemble-ch12-gui --gui-dir gui/web/gui --gui-debug --skills-dir ./skills --port 8088
-```
-
-Leave the terminal open and connect to `http://localhost:8088` before submitting a prompt. These assets still come from disk, so the explicit `--gui-dir` matters when launching outside the GUI module. The browser supplies the peer that the startup skill has selected. Use a scratch copy or a fresh selected `--save` path when you want an independent conversation; Chapter 10's default load still applies.
-
-Ask the agent to open Settings, change the font size to 20, inspect the next automatic snapshot, then unload `gui-debug`. Tell it to use browser tools and avoid file or shell access. Observe the actual control and effective page font as well as its report. After unload, inspect the next provider request: browser declarations and automatic context should be absent even though the startup manual remains in the frozen system text.
+### Later Historical Browser Exercises
 
 The retained October 10, 2026 browser sessions used `claude-haiku-5-5`, `gpt-4o-mini` and `gemini-3.8-flash`. These are the models actually exercised, not a claim about today's catalog. The [live record](../docs/edition-2-notes/ch13.md#student-implementation-and-initial-review-submission) links the captured requests and real Chrome observations.
 
@@ -381,3 +453,47 @@ The first-edition chapter ended with a quotation-verification story. It said tha
 A literal one-line search misses a wrapped sentence. That miss establishes a search result, not the sentence's absence. Read the surrounding paragraph or normalize whitespace before comparing the quotation. The supposed correction needed the same scrutiny as the original claim.
 
 The comparison with the phantom Settings panel remains useful, with a narrower conclusion: check the observable that supports the claim. For a tab, read selected state. For a quotation, compare the actual source text. For a successful tool, inspect its correlated result. A confident diagnosis can survive an inadequate check just as easily as the bug it diagnoses.
+
+## Exercise This Endpoint
+
+Start with the ordinary default path and verify that no browser tools are enabled
+merely because a page connected. Then run with `--gui-debug`. Inspect the first
+actual model request: the manual must be in provider instruction context exactly
+once, browser declarations must be present, and there must be no fabricated
+startup `load_skill` exchange or unsolicited snapshot.
+
+Use explicit calls to request a snapshot, choose a visible selector, change a
+field with literal text, and request another snapshot. Inspect the real input
+events and their marked origin. Leave programmatic text present through speech
+completion, then verify that genuine human whitespace still holds pause. Queue
+and inspect speech, while keeping queue wiring separate from an audible or human-accessibility judgment.
+Unload the skill and verify that later calls are refused and the ordinary GUI
+connection remains available.
+
+The source-only endpoint is `solutions/ch12`; it includes the same
+library, CLI, optional GUI, manuals, and component tests as `main` at this boundary.
+The current offline verification uses real components with working local peers:
+
+- ordered startup, duplicate elimination, validation rollback, instruction placement
+  in all three adapters, frozen inputs, and no invented tool dialogue;
+- held optional-server initialization, readiness refusal, real remote dispatch,
+  joined cleanup, and preservation of an earlier save on startup failure;
+- a scoped six-check CLI executable grade, covering startup handshake, explicit
+  observations, interaction, speech-queue content, and unload;
+- an isolated actual browser with shipped `--gui-debug`, literal Unicode input,
+  human/programmatic pause-cause separation, explicit snapshots, queue wiring,
+  identity refusal, unload,
+  and normal owned-host exits;
+- a separate public-API C# consumer exercising explicit startup selection,
+  instruction rendering, network-free initialization, and complete destruction.
+
+These results do not establish real-provider integration, pixel vision, audible
+speech quality, general accessibility, or permission to control another person's
+browser. The real-provider allowance for this run is exhausted. Keep those
+exercises explicitly incomplete rather than converting a successful fake-provider
+session into evidence it cannot supply.
+
+The useful result is modest and concrete: a configured Agent can obtain evidence
+about its own working page, act through declared tools, and inspect the result.
+The interface becomes part of the engineering feedback loop without becoming a
+second owner of the Agent's conversation or lifecycle.

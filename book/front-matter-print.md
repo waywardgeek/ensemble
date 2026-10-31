@@ -5,11 +5,11 @@
 
 <p>Series: The Singularity as it Happened, Book 5</p>
 
-<p>Second Edition — Update 2, October 2026</p>
+<p>Third Edition — C#, October 2026</p>
 
 <p>By Bill Cox</p>
 
-<p>First edition with CodeRhapsody; second edition with Codex</p>
+<p>First edition with CodeRhapsody; second with Codex; third with Cadence inside Ensemble</p>
 
 <p>© 2026 by Bill Cox, waywardgeek@gmail.com</p>
 

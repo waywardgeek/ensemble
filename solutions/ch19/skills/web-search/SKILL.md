@@ -5,7 +5,7 @@ description: Search the web and fetch pages through Firecrawl
 tools: firecrawl_search firecrawl_scrape
 mcp_servers:
   - name: firecrawl
-    transport: url
+    transport: http
     url: https://mcp.firecrawl.dev/v2/mcp
     auth-env: FIRECRAWL_API_KEY
 ---

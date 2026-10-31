@@ -1,0 +1,58 @@
+{
+  "endpoint": "https://chatgpt.com/backend-api/codex/responses",
+  "requested_model": "gpt-5.6-sol",
+  "synthetic_reference_lines": 160,
+  "results": [
+    {
+      "turn": 1,
+      "http_status": 200,
+      "model": "gpt-5.6-sol",
+      "status": "completed",
+      "input_tokens": 4998,
+      "cached_tokens": 0,
+      "cache_write_tokens": 0,
+      "input_detail_keys": [
+        "cached_tokens",
+        "cache_write_tokens"
+      ],
+      "output_tokens": 5,
+      "answer_ok": true,
+      "request_sha256": "80883e1b9f8fe6451cf042188f2a98c2adf3dbad94957f346d5e1592dbf6a00c",
+      "seconds": 5.459
+    },
+    {
+      "turn": 2,
+      "http_status": 200,
+      "model": "gpt-5.6-sol",
+      "status": "completed",
+      "input_tokens": 4998,
+      "cached_tokens": 0,
+      "cache_write_tokens": 0,
+      "input_detail_keys": [
+        "cached_tokens",
+        "cache_write_tokens"
+      ],
+      "output_tokens": 5,
+      "answer_ok": true,
+      "request_sha256": "80883e1b9f8fe6451cf042188f2a98c2adf3dbad94957f346d5e1592dbf6a00c",
+      "seconds": 4.544
+    },
+    {
+      "turn": 3,
+      "http_status": 200,
+      "model": "gpt-5.6-sol",
+      "status": "completed",
+      "input_tokens": 4998,
+      "cached_tokens": 4864,
+      "cache_write_tokens": 0,
+      "input_detail_keys": [
+        "cached_tokens",
+        "cache_write_tokens"
+      ],
+      "output_tokens": 5,
+      "answer_ok": true,
+      "request_sha256": "80883e1b9f8fe6451cf042188f2a98c2adf3dbad94957f346d5e1592dbf6a00c",
+      "seconds": 6.445
+    }
+  ]
+}

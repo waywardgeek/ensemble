@@ -1,700 +1,432 @@
 # Chapter 7: Everything Is an Artifact
 
-The terminal from Chapter 6 is honest and ugly: three streams in three
-colours, wrapping at terminal width, no memory of what scrolled past.
-A tool the human cannot comfortably watch is a tool the human cannot
-steer, and steering is the entire safety argument. This chapter builds
-one reusable component, wires it to the agent through a WebSocket, and
-the agent never learns the GUI exists.
-
----
+The terminal from Chapter 6 is honest but limited. Text, thinking, and tool
+arguments compete for the same screen. A tool the human cannot comfortably
+follow is a tool the human cannot steer. This chapter adds a browser view
+without making the Agent depend on that view.
 
 ## TL;DR
 
-The agent writes observations. The GUI reads them. The core has no GUI
-import, dependency or display configuration. Chapter 5's public observation
-and input seams connect the two. GUI and WebSocket implementation live in a
-separate optional Go module; the application constructs one Ensemble and one
-Agent for both terminal and browser.
+Build the browser as an **optional application** over the public C# API. The
+Agent still owns conversation, scheduling, tools, and jobs. The GUI owns
+presentation and connection lifetime, not a second transcript or actor loop.
 
-### The observer, extended
+- A locked `History.Snapshot()` supplies immutable events and context from one
+  instant. Appending to a list is not a synchronization strategy.
+- Final response events retain Chapter 6's response sequence and parser part
+  IDs. A response-local ID of zero is valid. Provider call IDs and opaque
+  signature data remain unchanged.
+- Browser IDs combine Agent, response, and part identities. Historical records
+  without parser metadata get deterministic event/position IDs instead.
+- The host sends canonical history plus current partials on connection, then
+  live frames. An internal history frontier is not a cursor supplied by the
+  browser.
+- Progress observations are bounded and lossy. Periodic snapshot catch-up
+  recovers finalized facts. Each WebSocket has its own bounded output queue;
+  a slow browser is disconnected, not allowed to block the actor.
+- `ToolCalled` is an audit of a request. `ToolStarted` means admission succeeded
+  and execution was permitted. A refused call must never look dispatched.
+- Typing and queued speech cause **edge-triggered** pause/unpause requests.
+  Pause is Agent-wide. An unchanged local condition is not a tab's permanent
+  veto over an explicit unpause from elsewhere.
+- Full-content speaker buttons are separate from automatic narration.
+  Collapsed or scrollable presentation must not discard the rest of the text.
 
-Two tool-boundary observation types, plus turn-end display progress:
+The implementation is `Examples/Gui`, a separate .NET 10 web project using the
+installed ASP.NET Core shared framework. The core library references neither
+that project nor ASP.NET. No package installation is required.
 
-```go
-// Shared vocabulary in internal/common; public aliases expose it to clients.
-// Keep observation names distinct from mailbox reports and stored events.
+---
 
-// ToolDispatched reports the boundary before handler execution.
-type ToolDispatched struct {
-    // CallID correlates execution with its requested call.
-    CallID string          `json:"call_id"`
-    // Name identifies the selected tool.
-    Name   string          `json:"name"`
-    // Input preserves raw arguments without interpreting them.
-    Input  json.RawMessage `json:"input"`
-}
+## 7.1 Why the browser is outside the Agent
 
-// ToolFinished reports a wait result, including late reports after interrupt.
-type ToolFinished struct {
-    // CallID identifies the call that returned this result.
-    CallID  string  `json:"call_id"`
-    // Result is bounded text; full job output remains recoverable.
-    Result  string  `json:"result"`
-    // IsError distinguishes failed tool output.
-    IsError bool    `json:"is_error"`
-}
+The earlier chapters established the useful boundary: submit inputs through
+an Agent's public operations, await reliable completion when completion
+matters, and consume observations when displaying progress.
 
-// TurnEnded is progress, not a reliable request acknowledgement.
-type TurnEnded struct {
-    // Text is the final reply, excluding intermediate tool narration.
-    Text  string `json:"text"`
-    // Error is a safe diagnostic for a failed or interrupted turn.
-    Error string `json:"error,omitempty"`
-}
+The browser adds no new scheduling authority. A button sends an input to the
+same mailbox that a non-GUI caller uses. HTTP workers still return immutable
+outcomes. Only the actor records conversation facts and schedules the next
+step. Closing a tab does not cancel a turn, terminate a job, or destroy the
+Agent.
 
-func (ToolDispatched) observation() {}
-func (ToolFinished) observation()   {}
-func (TurnEnded) observation()      {}
+The optional application's composition root constructs the Ensemble, Agent,
+selected-model configuration, tools, logs, and hosting operation. Its `Common`
+directory declares the GUI functions and value-like projection. `Server`
+implements them. Static browser files live in `wwwroot`.
+
+The server operation holds its connection queues and partial text locally for
+that operation's lifetime. It does not introduce a persistent GUI owner into
+the core graph. Those values are derived display and transport state, not
+alternative authoritative conversation objects. Core destruction remains the
+existing Ensemble → Agent → owned children cascade.
+
+This distinction also limits the claim: the GUI is a trusted local control
+surface, not a security sandbox for the tools. Choose a suitable workspace.
+Binding to loopback and rejecting foreign origins does not make arbitrary
+model-generated commands safe.
+
+## 7.2 Give reconnect a trustworthy source
+
+A browser can miss progress. It may disconnect during a response, reconnect
+after completion, or simply consume its bounded queue too slowly. A list of
+recent observations cannot reconstruct completed history reliably.
+
+Use two sources:
+
+1. **Recorded facts:** finalized response parts, human messages, tool admission
+   and results, pause/resume, and terminal facts. These come from History.
+2. **Transient partials:** accumulated chunks for an unfinished response. These
+   belong only to the hosting operation and disappear when finalized or ended.
+
+History exposes a value-like atomic read:
+
+```csharp
+public sealed record HistorySnapshot(
+    ImmutableArray<Event> Events,
+    Context Context);
+
+// Declared in Common; implemented by History.
+public partial HistorySnapshot Snapshot();
 ```
 
-`ToolDispatched` fires before execution. `ToolFinished` reports the returned
-tool wait result; a job can still be running after that wait. Preserve later
-real job reports. Together with `PartDelta`, `PartFinal` and `StateChanged`,
-these observations show the turn's progress. Ensemble identifies the source
-Agent when notifying clients; tools do not acquire a copied Agent identity
-or a GUI parent. Reliable request replies remain separate from display progress.
+History locks its mutation and snapshot boundaries. Append still validates,
+sequences, writes, and flushes before publishing the new state. Only afterward
+does it publish an `EventRecorded` observation. That observation can be dropped;
+the recorded event cannot be replaced by a claim that the observer saw it.
 
-### The wire
+The host serializes subscriber registration, replay construction, and queueing
+under one short handoff lock. It never holds that lock during a network send.
+A connection receives its replay before becoming eligible for subsequent
+frames. Its internal frontier prevents already-replayed durable facts from
+being delivered again as newly recorded history.
 
-A WebSocket server subscribes through Ensemble's public identified observer
-interface and fans out JSON to connected clients. Durable content comes from
-the Agent's history; transient deltas and state observations complete the view.
-These are examples of individual envelopes, not one complete conversation:
+There is a subtle ordering trap. By the time an old delta reaches the display
+reader, History may already contain the response's final. Taking the newest
+snapshot on every delta would publish that final first and erase genuine live
+progress. The live path therefore projects through the observation's recorded
+sequence. Full catch-up happens on idle polls and connection establishment.
+A reconnect that already received the final must not receive old queued chunks
+as if the part were unfinished again.
 
-```json
-{"type":"part_delta","part_id":3,"kind":"text","chunk":"Hello"}
-{"type":"state_changed","from":"input_pending","to":"in_flight"}
-{"type":"tool_dispatched","call_id":"tc_1","name":"read_file","input":{"path":"main.go"}}
-{"type":"tool_finished","call_id":"tc_1","result":"package main...","is_error":false}
-{"type":"part_final","part_id":3,"part":{"type":"text","text":"The file contains..."}}
-{"type":"turn_ended","text":"The file contains..."}
+On a quiet observation stream, a short cancellable poll catches up finalized
+facts. This is display recovery, not an Agent timer or turn deadline. It does
+not schedule model work or cancel it.
+
+Writing an event log does not implement application restoration. This chapter
+reconnects to the same live Agent. Loading a saved application after process
+restart belongs to later chapters.
+
+## 7.3 One identity from streaming through replay
+
+Chapter 6's parser IDs are local to one response. Part `0` in the next response
+is a different part. A tool provider's call ID is a different kind of identity
+again: it correlates a call with a result and must retain its provider meaning.
+
+For finalized responses, `Event` now has:
+
+```csharp
+public readonly long ResponseID;
+public readonly ImmutableArray<int> PartIDs;
+public partial Event WithDisplay(long responseID, IEnumerable<int> partIDs);
 ```
 
-Client messages:
+`ResponseID` is the actual `RequestSent` sequence. `PartIDs` follows canonical
+part order and contains the parser's IDs, not inferred array indices. Metadata
+must describe every part, use nonnegative distinct IDs, and belong to a response
+event. Numbering and serialization preserve it. Older logs without this
+metadata remain valid.
+
+The GUI combines these facts into a string such as:
+
+```text
+root:r27:p0
+```
+
+Human messages, results, and historical responses without metadata use a
+separate event/position namespace. They never collide with a streamed response.
+No global mutable display counter, identifier registry, or signature rewriting
+is needed.
+
+The browser uses the ID as the card key. A final replaces that card's partial
+text; replay reconstructs the same card, not a duplicate. Repeated final frames
+are idempotent. The server and browser both reject resurrection of completed
+content by stale chunks.
+
+## 7.4 Truthful tool cards
+
+There are three distinct claims:
+
+1. The model requested a call.
+2. The application admitted execution.
+3. An observation of the job or control returned.
+
+`ToolCalled` records the first. It is not proof that a handler ran. The dispatcher
+validates schema arguments after separating observation options, preserves
+explanation-policy refusals, and records `ToolStarted` only when admission
+succeeds. It records that permission before starting effects. If recording
+fails, the effect must not start.
+
+A started fact does not mean an operating-system command succeeded. A command
+may fail to start, a file may be missing, or a tool may report an expected error.
+Those are outcomes, not reasons to falsify the admission history.
+
+The GUI projects admitted execution as `tool_dispatched`. Refused calls have
+no such frame. They still get their paired result and visible error status.
+The browser's plan card can therefore change from **planned** to **started**
+to **finished/error**, without portraying a refusal as real execution.
+
+`tool_finished` means the foreground observation returned. A running-job report
+can be a legitimate result: waiting stopped, while the independent job remains
+alive. Preserve the job handle and locator. Do not relabel that observation as
+process termination.
+
+`turn_ended` carries the completed answer when the turn completed normally, or
+an explicit terminal reason otherwise. It is not inferred from a transient
+return to Idle between tool rounds. The GUI derives the answer from the last
+recorded response; it does not keep another authoritative answer field.
+
+## 7.5 The wire protocol
+
+The server sends JSON over `/ws`. The page and static assets are served from
+the same loopback host. There is no SSE parser in the browser: vendor streams
+have already passed through the core Engine.
+
+Important outbound frames are:
+
+| Type | Purpose |
+|---|---|
+| `replay` | recorded display frames, current partials, and Agent state |
+| `part_delta` | Agent ID, part ID, kind, and a chunk string |
+| `part_final` | stable part ID and a typed finalized part |
+| `tool_dispatched` | admitted call ID, name, arguments, and job metadata |
+| `tool_finished` | result identity, corresponding call card, result/error/job |
+| `state_changed` | recorded effective-state transition |
+| `agent_state` | current effective state, including pause |
+| `turn_ended` | completed answer or terminal reason |
+| `lifecycle` / `error` | interruption or other visible control/error information |
+
+An empty chunk is a real empty string, not an omitted `chunk` property. Part
+zero is equally real. Streamed tool names and arguments remain distinct at the
+core boundary; their GUI projection includes readable name fragments.
+
+Inbound commands are small mappings to existing public operations:
 
 ```json
 {"type":"subscribe"}
-{"type":"prompt","text":"Run the tests"}
-{"type":"hint","text":"Skip the slow ones"}
-{"type":"interrupt"}
+{"type":"prompt","text":"Explain the selected function."}
+{"type":"hint","text":"Keep the public signature unchanged."}
 {"type":"pause"}
 {"type":"unpause"}
+{"type":"interrupt","mode":"now"}
+{"type":"interrupt","mode":"after_tool"}
+{"type":"shutdown"}
 ```
 
-### Reconnection
+Connection registration queues replay automatically. `subscribe` is idempotent;
+it does not start a new Agent or replay work. The wire spelling is **unpause**,
+although the core operation is `InputKind.Resume` and the button says “Resume.”
 
-A client subscribes. The server sends two things: a window of recent
-events from the event log (the last hour or last 100 renderable
-events, whichever is larger), and the accumulated partial content for
-anything currently streaming. The client renders the event history as
-finalized Artifacts, replays the partial content to catch up to the
-live stream position, then switches to live delivery. A fresh
-connection and a reconnection after an hour use the same path. The
-agent does not pause, restart, or notice.
+The host validates message shape and bounds input size. It rejects foreign
+WebSocket origins and non-loopback hostnames. The configured listener is
+loopback-only. This is not permission to expose it on a public interface.
 
-No client cursor or client sequence numbers. The event log has its own ordering.
-On each live observation, the hub checks for new entries since its captured
-Seq and sends their renderable content alongside the streaming content. That
-internal frontier is not a cursor supplied by the browser. The client never
-parses SSE frames. Content messages carry an artifact or call identity and a
-payload ready to render; status messages carry the effective state.
+Each connection has a bounded outgoing queue and one network writer. If the
+queue fills, disconnect that client rather than blocking all clients or the
+actor. Reconnect uses the same replay path. Dropped progress is not repaired by
+inventing extra deltas; finalized content is repaired from History.
 
-### The Artifact
+## 7.6 Render one kind of card well
 
-Everything the agent produces is an Artifact: a widget that streams,
-then finalizes.
+Every message is an artifact: a stable card that may stream and then finalize.
+Use one card map and vary rendering through type and role, not through separate
+conversation models for chat, tools, and thinking.
 
-| artifact | streaming format | finalized rendering |
-|---|---|---|
-| thinking | markdown (dim) | collapsible |
-| chat | markdown | the response |
-| tool call params | JSON (parameters as they arrive) | name + abbreviated args |
-| tool result | n/a (not streamed) | type-specific: diff for edit_file, results for search_files |
-| user message | n/a | the prompt |
+- Human and assistant text use safe Markdown: headings, paragraphs, lists,
+  links, inline code, and fenced code.
+- Thinking and tool details are collapsible. Their complete text remains in
+  the backing card and a scrollable details view.
+- Tool plans show arguments and lifecycle status. Results retain full readable
+  output; terminal escape sequences do not become browser control syntax.
+- Successful `edit_file` results can show the applied exact replacement from
+  the admitted arguments. Label it accurately: it is not a whole-file diff.
+- Search results keep their path/line output readable. Do not delete content
+  merely to make a card short.
 
-One component, `ArtifactScroll`, manages the list. It receives
-WebSocket messages, creates or updates Artifacts by display identity, streams
-chunks through the format-appropriate renderer, and replaces them
-with finalized HTML when the part completes. Different visual
-treatment comes from CSS classes, not separate component types.
+Build DOM nodes and assign `textContent`; never interpolate provider or tool
+text into `innerHTML`. A filename, fetched document, or source fragment may
+contain hostile markup. Fenced HTML must appear as code, not execute.
 
-Two rules govern what a card is allowed to do with that text, and both
-were broken in the first edition's implementation until its Chapter 13 audit.
+Display limits are acceptable only if the rest remains reachable. Collapsing
+or scrolling is different from truncating the stored value. A speaker button
+uses the full backing text, not the visible summary or the first screenful.
 
-Build the card with `textContent`. Never assemble it by interpolating
-values into `innerHTML`. A tool call's name and arguments carry text the
-agent did not write: a filename, a fetched URL, the contents of a file
-it just read. Markup arriving inside any of those executes in the page.
-This is the prompt-injection surface from the security chapter, reaching
-the user through the renderer rather than through the model, and it is
-easy to miss because the insecure version is shorter and reads better.
+The layout must work at narrow widths. Controls wrap, code can scroll, and
+focus remains visible. Geometry checks and browser DOM assertions are useful,
+but they do not establish every person's visual comfort or screen-reader
+experience.
 
-Cap what a card displays, and keep the remainder reachable. A cap with
-an ellipsis and no affordance deletes the rest permanently for a reader
-who cannot scroll past it. Put the full value in a `title` attribute or
-behind an expander, so the limit governs the display instead of the
-information.
+## 7.7 Speech is part of steering
 
-### TTS
+For someone who cannot comfortably read a busy transcript, speech is a control
+surface, not ornamental animation.
 
-Two channels. **Auto-speak** fires during streaming: full text for
-thinking and chat, an abbreviated summary for tool calls ("read file:
-main.go, line 42"), silence for tool results. **On-demand** via a
-speaker icon on every Artifact card, speaking the full accessible
-text on click.
+**Speak this artifact** is always available when the browser supports speech:
 
-The original Chrome exercise needed a speech-service wakeup after tab switches:
-a zero-volume empty utterance on `visibilitychange`. Retain and exercise that
-workaround in the browser being used; it is a recorded compatibility behavior,
-not a claim that every browser version fails identically.
+- human and assistant text: full readable text;
+- thinking: full readable thought text, never signatures or opaque metadata;
+- tool call: full name and formatted arguments;
+- tool result: full readable result, not a collapsed preview.
 
-### Pause
+Clicking the active artifact again stops it. Choosing another artifact cancels
+the old queue and starts the new request. A global Stop speech button and Escape
+from an empty input provide explicit escape paths. Speech failures are not
+allowed to strand the Agent in a permanently queued-speech state.
 
-```
-local_pause_cause = tts_queued_or_speaking OR user_typing
-```
+**Automatic narration** is a separate opt-in preference. It narrates new
+assistant text and thinking as complete clauses arrive, then flushes the final
+remainder. It announces a concise tool-call summary. It does not automatically
+read human messages, tool results, or reconnect history.
 
-The Agent checks its gate before starting each tool; the server calls the
-public Agent's `Pause` or `Unpause` on receiving those commands. Pause is
-Agent-wide. An explicit unpause in any tab unpauses it for everyone; unchanged
-local typing or speech in another tab cannot veto that decision. Rules:
+A single queue owns pending utterances and the current utterance. Both `onend`
+and `onerror` settle the current item and advance the queue. A callback from a
+cancelled utterance is ignored by identity. Queue state counts as busy before
+the browser actually starts audio; relying on `speechSynthesis.speaking` alone
+creates a pause race.
 
-1. TTS queues an utterance: send `pause`. Set the flag when the
-   utterance is queued, not when audio begins.
-2. TTS queue empties: send `unpause`, unless the user is typing.
-3. User starts typing in the input: send `pause`, even with TTS off.
-4. User sends (Enter): re-evaluate. Stay paused if TTS is speaking.
-5. ESC with empty input: cancel TTS, re-evaluate.
-6. Streaming into an already-running tool continues. Pause gates new
-   starts only.
-7. `onerror` on utterances must mirror `onend`. A Chrome `interrupted`
-   error that does not continue the queue deadlocks it.
-8. Edge-triggered: send pause/unpause on transitions, not on every
-   utterance boundary.
+The earlier browser implementation recorded a Chrome visibility workaround:
+when the page becomes visible, issue an empty zero-volume utterance through
+`speechSynthesis.speak`. Preserve it as a local compatibility measure, outside
+the narration queue. It is not a claim about every browser version, and it must
+not itself cause a busy-speech pause.
 
-### gui.log
+A fake speech boundary can verify selected text, queue transitions, and error
+cleanup. It cannot prove audible output, voice quality, or human hearing. Those
+remain separate user exercises.
 
-The fourth log. Every WebSocket message in both directions,
-timestamped. One line per message.
+## 7.8 Pause scheduling, not the mailbox
 
-| log | captures | added in |
-|---|---|---|
-| event.log | agent events (append-only) | earlier chapters |
-| api.log | LLM wire JSON | earlier chapters |
-| debug.log | diagnostics | earlier chapters |
-| **gui.log** | **WebSocket JSON, both directions** | **this chapter** |
+Chapter 5 already supplies the right C# mechanism. Pause prevents **new** model
+requests and tool dispatch, while the actor continues processing controls and
+worker completions. Do not add a second GUI-specific gate or block the actor
+thread while it waits for unpause.
 
-### Yours
+A request already in flight may finish while paused. Its response is recorded;
+a planned tool remains undispatched until unpause. A hint is accepted promptly.
+Immediate interrupt still cancels the active turn without killing independent
+jobs, and remains usable while paused. The two interrupt modes retain Chapter
+5's different boundary semantics.
 
-Markdown rendering library. ANSI-to-HTML approach. Visual styling.
-TTS voice and speed. WebSocket library. Whether finalized Artifacts
-replace or augment the streamed view. How the speaker icon looks.
+The browser has a local cause:
 
-### The exercise
-
-Build an optional public-library GUI module: one Agent, one HTTP server on
-`--port` (default 8088), serving its static files through `--gui-dir`. The
-accepted example lives in `gui/`, with `cmd/` and `web/gui/` inside it; historical
-chapter IDs in evidence remain `ch08`. The binary accepts prompts
-over WebSocket, streams observations to all connected clients,
-supports reconnection, gates tool calls on pause, and logs to gui.log.
-
-Configuration uses public flags, including `--port`, `--gui-dir`, `--vendor`,
-`--model`, `--base-url`, `--workspace`, `--event-log` and `--no-stream`.
-Explicit flags override the inherited provider environment defaults. Keep
-credentials in the intended process environment rather than command arguments.
-The original flags-only sentence conflicted with its own environment-configured
-grader; it did not justify breaking the earlier key setup.
-
-```
-go run ./cmd/grade-edition2 -ch 7 path/to/core
+```text
+input is nonempty OR speech is active OR speech is queued
 ```
 
-The grader builds the GUI module separately: `-gui DIR` selects it, defaulting
-to `gui/` under the core. It builds `./cmd` when present, otherwise the module
-root, and launches `--port` plus `--gui-dir` pointing to that module's `web/gui`.
-HTTP `/` must become available and WebSocket `/ws` accepts the messages above.
-Its faithful provider peer supplies the inherited `LLM_VENDOR`, `LLM_MODEL`,
-`LLM_API_KEY` and `LLM_BASE_URL` environment. `-gui-model MODEL` selects the
-declared Anthropic fixture row; the historical default `claude-sonnet-5` is a
-local test-table entry, not a model-discovery claim. Earlier consumer, workflow,
-media and streaming flags still apply to core parity.
+Only its transitions send controls:
 
-The optional module must resolve its public core dependency to the submitted
-core. This boundary check accompanies `websocket-streams`; source review still
-establishes actual ownership and shared-Agent use. Active-partial replay,
-handoff ordering, the fixed window, paused interrupt and browser behavior also
-retain their source/integration checks. A WebSocket score alone cannot prove
-what a card displays or what the listener hears.
+- false → true: send `pause`;
+- true → false: send `unpause`.
 
-| check | points | what it tests |
-|---|---|---|
-| `websocket-streams` | 25 | subscribe, prompt via WS; receive part_delta, part_final, state_changed, turn_ended, tool_dispatched, tool_finished with correct fields |
-| `event-replay` | 20 | reconnect after a completed turn; recover the same final/tool content and artifact IDs, without stale partials |
-| `gui-log` | 15 | gui.log contains timestamp, direction and JSON per line; both directions present |
-| `pause-holds-tools` | 20 | between real tool calls, pause prevents the next start; explicit unpause from another tab releases it; all calls complete |
-| `ch6-parity` | 20 | every Chapter 6 check still passes against the headless core |
-| **total** | **100** | |
+The server's effective state is authoritative. Another tab or application caller
+can explicitly unpause even while this tab is still typing. Unchanged typing
+must not immediately reassert pause on every key or state frame. Only a later
+local cause transition sends another request.
 
----
+This is why the model is not a distributed set of tab-owned veto tokens. The
+human needs a dependable explicit escape, not a hidden AND of every browser's
+local conditions.
 
-## 7.1 The idea in plain words
+Enter submits a prompt; Shift+Enter inserts a newline. Ctrl+Enter or Alt+H sends
+a hint. Input clearing updates the local pause cause. Buttons provide the same
+operations without requiring keyboard shortcuts.
 
-A radio station transmits regardless of how many receivers are tuned
-in. Add a radio and it hears from that moment forward. Unplug one and
-the station does not pause. Play the recording from an earlier
-timestamp and hear what you missed.
+## 7.9 Build and inspect locally
 
-The agent is the station. Observations are the broadcast: streaming
-chunks, finalized parts, state changes, tool starts, tool completions.
-The GUI is a radio. The event log is the recording; an observation buffer
-alone would lose completed history when progress is dropped.
-
-**The agent has no GUI code.** No WebSocket import, no rendering
-dependency, no display flag in its configuration. The agent writes
-observations through Ensemble's public seam from Chapter 5. An optional Go
-WebSocket server subscribes there and projects history plus progress into
-browser messages. Attach zero browsers and
-the agent runs identically. Attach three and they all see the same
-stream. Close a tab, reopen it an hour later, subscribe, and catch up from the event log in one burst.
-
-**Everything is an Artifact.** Thinking text, chat text, tool call
-arguments, tool results, user messages: they differ in how they look,
-not in what they are. Each one streams in one of three formats
-(markdown, ANSI, JSON), then optionally renders finalized HTML
-specific to its type. One component, `ArtifactScroll`, manages the
-scroll view. CSS classes make thinking dim and tool calls compact. The
-renderer per type is a detail inside the component, not a separate
-architecture.
-
-**Pace is a safety mechanism, not a preference.** A human who cannot
-watch the agent comfortably cannot steer it. The hint, the interrupt,
-the decision to let a tool call proceed: all require seeing what the
-agent is doing before it finishes doing it. TTS auto-speaks the stream
-so the human hears without looking. Pause gates tool calls while the
-human absorbs what just happened. The chapter after this one builds a
-full three-pane workbench; this one builds the component it sits on.
-
----
-
-## 7.2 Extending the broadcast
-
-Chapter 5 built `PartDelta`, `PartFinal` and `StateChanged`;
-Chapter 6 made the content incremental. They carry response content and
-stored tool-result finals, but there is no explicit tool-start announcement.
-The model requests a tool call; a display should be able to distinguish
-execution starting from a result arriving later.
-
-`ToolDispatched` fires before execution: call id, tool name, raw
-input. `ToolFinished` carries the result of waiting: call id, result, error
-flag. Chapter 4's distinction still holds. A timeout can return a handle while
-the actual job continues, and its later output must remain visible even if
-the human has interrupted the turn. `TurnEnded` announces the end of the turn
-to displays; it does not replace the reliable completion used by `Ask`.
-
-The names avoid a silent collision. The event log already has
-`tool_called` and `tool_returned` for replay. The mailbox has its
-internal worker reports to the actor. Three
-systems, three names for what looks like the same thing: the event
-is the record, the mailbox message is the signal, the observation
-is the broadcast. Using the same name for two of them compiles fine
-and produces a conversation about why something fired twice.
-
----
-
-## 7.3 One tool at a time
-
-The actor dispatches tools serially: start one, wait for its reported result,
-start the next. A continuing job may outlive that wait. It has worked this
-way since Chapter 5. What changes
-is that the property now matters.
-
-A pause gate that checks before each dispatch needs a gap between
-dispatches in which to check. Parallel dispatch closes that gap:
-three tools fire at once and a pause arriving a millisecond later has
-nothing to stop. Serial dispatch creates the gap. The gate fills it.
-
-The comment in the actor loop states the dependency rather than what
-the code does:
-
-```go
-// Serial dispatch lets the pause gate hold execution between tools.
-```
-
-A comment that states *why* an architectural choice was made survives
-the instinct to parallelize that hits every engineer who reads a
-serial loop.
-
----
-
-## 7.4 The pause gate
-
-Pause is a live Agent control, not another conversation message waiting for
-reduction. The Agent owns its gate. Common declares the public interface;
-the behavior belongs with Agent, rather than in a shared utility package.
-The GUI calls that Agent interface. It does not receive an Engine sibling,
-become the Agent's parent, or create a second gate.
-
-The accepted implementation uses a mutex and a wake channel. While paused,
-a small boundary waiter waits for unpause or cancellation and reports back to
-the actor. The actor keeps consuming its mailbox. Blocking that consumer would
-strand exactly the interrupt the human is trying to send.
-
-The wake reason is the design. Unpause permits the next dispatch; cancellation
-ends the current turn. The Agent stays alive, another prompt can start, and
-other jobs keep their real outcomes. Without context awareness, pause is a
-trap: the human would have to remember to unpause before interrupting a turn,
-under exactly the pressure where remembering extra steps fails.
-
-The gate bypasses the mailbox deliberately. A mailbox message waits
-in FIFO order behind pending tool completions, hints, and interrupts.
-Pause is about the next dispatch boundary, and the Agent-owned gate has no
-mailbox queue to wait in. A tool already admitted past that boundary continues;
-pause is neither retroactive cancellation nor process shutdown.
-
----
-
-## 7.5 The receiver
-
-The hub implements the public identified observer. Its callback handles two
-tiers: it captures new durable history and accumulates streaming content in an
-in-flight map keyed by display identity. Live deltas send only the new chunk;
-a reconnect receives the accumulated prefix. Then it returns. If a client's send
-channel is full, the message is dropped for that client. The actor
-does not wait for network I/O.
-
-Each client has a write goroutine draining a buffered channel.
-The observation callback iterates the set and does a non-blocking send on each.
-The hub is a broadcaster: the station does not wait for the
-radio.
-
-Prompts and hints from the browser use the same public `Post` entrance as
-terminal input. The actor classifies a busy user message as a hint; the browser
-does not guess which turn should receive it. Blocking library callers still use
-reliable request completion. Neither view runs another model loop.
-
-The accepted composition root owns Agents, configuration stays with Agent,
-and Engine reaches it through its actual parent. The transport owns sockets.
-Public interfaces let it reach the existing Agent without making a socket
-server a fictional parent or copying services into another bag.
-
-Network sends and their trace writes happen in the connection's writer;
-incoming messages are traced by its reader. Both stay outside the observation
-callback. Disconnect uses a separate lifetime signal, and
-shutdown joins writers before closing logs. A nonblocking send does not make
-it safe to close a data channel another broadcaster can still reach.
-
----
-
-## 7.6 The wire
-
-The protocol has no sequence numbers and no cursor. A `subscribe`
-message arrives empty. The server decides what history to send based on its
-own fixed event-log window (last hour or last 100 renderable
-events, whichever is larger), then sends any in-flight streaming
-content, then switches to live delivery.
-
-A reconnecting client and a fresh client use the same path. The
-server does not need to know whether this is a first connection or a
-tenth. The event-log window is the same either way. This is simpler
-than tracking per-connection offsets, and better:
-the client gets recent context whenever the Agent has any to give.
-
-A subscription also receives current turn and pause state, marked as replay.
-The turn snapshot uses the existing `state_changed` envelope with both `from`
-and `to` equal to the current state. Equal endpoints report a snapshot without
-inventing a transition. The student initially omitted `from`; that was a real
-contract defect, not an optional-field convention. A fresh-subscription test
-and a restored-defect mutation now check the complete envelope.
-
----
-
-## 7.7 Two tiers of state
-
-The hub holds two kinds of state, matching the two things a
-connecting client needs.
-
-**Tier 1: The event log.** Recorded facts from the append-only log:
-finalized parts, tool calls and returns, user messages. On subscribe, the hub reads the recent
-window and converts each event to a wire message the
-client renders directly. They survive a browser disconnect while the Agent
-continues. Restoring an Agent after a process restart belongs to the later
-save/load chapter; writing a log does not implement restoration.
-
-**Tier 2: In-flight partials.** Accumulated streaming content for
-anything the agent is currently producing. A map from display identity to
-the concatenated chunks received so far. On subscribe, the hub sends
-the current partial for each active part. On `PartFinal`, the
-partial is cleared. These are ephemeral: they exist only while
-content is streaming.
-
-Append-only is a history rule, not a synchronization primitive. Appending can
-replace a Go slice's backing array while another goroutine reads it. The
-history owner snapshots the requested suffix under its lock. The GUI then
-coordinates that history frontier, its partial map and subscriber admission
-under one handoff lock. A final cannot slip between a subscriber's completed
-history and its old partial, leaving the same text on two cards.
-
-The parser IDs from Chapter 6 are still local to one model response. The GUI
-must retain cards across several responses and human turns. The actor assigns
-an Agent-lifetime display ID to each part, uses it in root observations, and
-stores it on the final part. Replay therefore names the same card that received
-the live chunks. Provider call IDs and opaque signed content keep their original
-meanings. A browser identity is not permission to rewrite provider history.
-
-When a final is captured, remove its partial before publishing it. Sort active
-partials by their assigned creation identities on replay; a Go map supplies no
-stream order. On an interrupted turn, clear abandoned partials that will never
-receive a final. Completed facts still come from history, including actual late
-job output.
-
-Replay and live progress need different admission rules. A live progress update
-can be missed by a slow receiver, but silently dropping half its reconnect
-history defeats the recovery path. The accepted server admits the whole replay
-as one queued batch while adding the subscriber, then lets that connection's
-writer send it outside the lock. A 270-event replay test exceeds the live queue's
-256-batch capacity. A truncation mutant initially timed out without proving why;
-after preserving terminal status, it failed directly at 249 versus 270 facts.
-
-Another mutation removed final-part cleanup but passed: the test reconnected
-after `TurnEnded`, which had already cleared every partial. Reconnecting while
-tools were still running exposed the stale partial. The assertion had to observe
-the interval in which the two cleanup paths differed.
-
-For this chapter the window is fixed: include the last hour OR the last 100
-renderable events, whichever reaches farther back. An event with several
-rendered parts still counts as one event. A configurable policy is future work.
-
----
-
-## 7.8 The fourth log
-
-```
-2026-09-17T14:32:01.123Z > {"type":"subscribe"}
-2026-09-17T14:32:01.456Z < {"type":"part_delta","part_id":3,"kind":"text","chunk":"Hello"}
-```
-
-`>` is client-to-server. `<` is server-to-client. Each line has an RFC3339
-timestamp, a direction marker and one compact JSON payload. The whole line
-is not itself a JSON object. The optional transport owns this trace; general
-diagnostics still belong to Ensemble's logger. This is
-transport-layer tracing, the same tool as `api.log` for a different
-wire.
-
-A log missing one direction lies about what happened. The lie
-surfaces at the worst moment: the message that was not delivered,
-invisible in the record because the record only shows one side.
-
----
-
-## 7.9 Everything is an Artifact
-
-An Artifact streams, then finalizes. Thinking, chat, tool
-arguments, tool results, user messages: all Artifacts. They differ
-in CSS class and renderer, not in kind.
-
-`ArtifactScroll` manages them. On `part_delta`: find or create by
-part id, stream through the format renderer (markdown for thinking
-and chat, JSON for tool arguments). On `part_final`: replace with
-finalized HTML. On `tool_dispatched`: create a tool card. On
-`tool_finished`: update it.
-
-The alternative, ChatMessage plus ThinkingPanel plus ToolCallCard, encodes
-assumptions about what the agent produces. An Artifact that knows
-three rendering formats handles anything that fits one, which is
-everything, because LLMs produce text in exactly the three varieties
-the terminal already distinguished by colour.
-
-Visual treatment comes from CSS classes: `artifact--thinking` gets
-dim opacity, `artifact--tool` gets a compact layout. Adding a new treatment is a CSS rule.
-
-The Go grader cannot establish safe DOM rendering or usable speech. Exercise
-the actual page as well. An exercise whose output is invisible is an exercise
-nobody finishes.
-
-The student's live Gemini page revealed a less dramatic rendering error: a
-legitimate empty text part displayed its own metadata. The renderer used a
-truthiness test, then fell back to JSON. An empty string lost to the fallback.
-The same shortcut would display opaque signatures and redacted thinking as if
-they were words for the reader. Since the speaker button and automatic speech
-used the card's text, the error crossed both channels.
-
-The correction projects readable content explicitly. Empty text stays empty.
-Readable Anthropic thinking and Gemini thought text can become prose; signature
-and redacted bodies remain opaque replay material. Preserve those bytes in
-history without pretending they are something to read aloud.
-
-The focused browser test reused the retained Gemini part, plus readable and
-opaque controls from an external peer. It checked the card, automatic speech
-input and speaker-button input separately. Restoring the fallback failed all
-three checks for each empty or opaque case, while readable controls still
-produced native start/end events. No new model generation was needed to diagnose
-what was already visible in the saved page.
-
----
-
-## 7.10 The voice
-
-TTS auto-speaks the stream. Thinking and chat in full. Tool
-dispatches abbreviated: "read file: main.go, line 42." Tool results
-silent. A speaker icon on every Artifact card speaks the accessible
-text on click.
-
-The original Chrome exercise found `speechSynthesis` asleep after a tab switch.
-Its workaround sends a zero-volume empty utterance on `visibilitychange`.
-Ugly, and worth recording where the next person building the queue can find it.
-The accepted page keeps this wakeup outside the audible queue, so it does not
-hold the pause gate.
-
-`onerror` must mirror `onend`. Chrome fires `error` with reason
-`interrupted` when one utterance cancels another, which is normal queue
-behaviour. An error handler that does not advance the queue deadlocks
-it: silence, permanent, no error message. Both callbacks mean "this
-utterance is done, advance."
-
-Queue phrases from the streamed text, not an utterance for every network chunk.
-Keep unfinished phrases by artifact identity. A final flushes the remainder;
-it must not read the whole answer again. Replayed history is silent until the
-reader clicks its speaker. Keep a reference to the active utterance, and ignore
-an old cancellation callback after a newer utterance has taken its place.
-
-The native-browser test recorded a first utterance starting, a real
-`speechSynthesis.cancel()` interruption, then the second utterance starting and
-ending with pause released. A restored error-handler defect stranded the queue.
-That proves the browser received and completed speech work. It does not prove
-that a person heard an intelligible voice; listen as a separate part of using
-the interface.
-
----
-
-## 7.11 Pause in the browser
-
-```
-local_pause_cause = tts_queued_or_speaking OR user_typing
-```
-
-TTS queues an utterance: send `pause`. Queue empties: send `unpause`,
-unless the input has text. User types: `pause`. User sends: stay
-paused if TTS is speaking. ESC with empty input: cancel TTS,
-re-evaluate.
-
-Edge-triggered. Send `pause` on the transition, send `unpause` on
-the reverse. The WebSocket carries transitions; the server holds state.
-A client sending `pause` per queued utterance floods the wire with
-messages that carry no information. More subtly, it can undo another tab's
-explicit unpause. Local causes only send automatic commands when they change.
-The **Unpause everyone** button releases the one Agent gate immediately.
-An unchanged cause elsewhere cannot assert a veto, and reconnecting a tab
-must not reassert its stale local pause state.
-
-Streaming into a running tool continues. The gate is between tools,
-not inside them.
-
----
-
-## Taking it for a spin
-
-Build from the optional GUI module's own directory:
+Build the optional project separately from the core:
 
 ```sh
-go build -o /tmp/ch7gui ./cmd
+dotnet build Examples/Gui/Gui.csproj
 ```
 
-Use the inherited provider setup: `LLM_VENDOR`, a discovered `LLM_MODEL`,
-`LLM_API_KEY` in the intended child environment, and `LLM_BASE_URL` when an
-endpoint override is needed. Flags override those defaults. Keep credentials
-out of prompts, command arguments and logs. From a disposable working directory,
-launch the binary with the actual absolute asset path:
+Run it from an owned workspace, selecting a provider and model explicitly:
 
 ```sh
-/tmp/ch7gui --port 8088 --gui-dir /absolute/path/to/gui/web/gui
+dotnet run --project /path/to/Examples/Gui -- \
+  --port 8097 --workspace /path/to/owned-work \
+  --vendor anthropic --model SELECTED-MODEL --base-url PROVIDER-URL \
+  --event-log event.log
 ```
 
-The working directory receives `event.log`, `api.log`, `debug.log` and
-`gui.log`; the default tool workspace is that directory too. `--workspace`
-can select another scratch project. The HTTP server listens on localhost and
-serves the WebSocket at `/ws`. Its terminal remains another view of the same
-Agent; terminal EOF detaches that input without shutting down the browser.
+Credentials come from the existing `LLM_API_KEY` environment contract, not from
+page content or command-line arguments. `LLM_VENDOR`, `LLM_MODEL`, and
+`LLM_BASE_URL` provide defaults for their flags. `--no-stream` disables streaming;
+unknown stream capability still follows Chapter 6's plain fallback. `--gui-dir`
+selects static assets when not using the copied build output.
 
-Open `http://localhost:8088`. Dark page, input field, "idle." Type a
-prompt. Reasoning appears dim, the reply streams, TTS reads it. Ask
-for a tool and a card appears with the arguments, the result fills
-in, the reply continues.
+Keep four kinds of evidence distinct:
 
-Open a second tab. Both show the same stream. Close one, reopen:
-it subscribes, receives the event-log window, catches up in a burst. Type a hint in the terminal; both tabs see
-it. Start typing in the browser: "paused," no new tool starts.
-Type `/interrupt` in the terminal: the current turn ends even while paused.
-The Agent remains usable and running jobs continue. An explicit unpause from
-the second tab must release the gate for both, even if the first tab still
-contains unsent text.
+| Log | Contents |
+|---|---|
+| `event.log` / `--event-log` / `CH02_LOG` | canonical recorded facts |
+| `api.log` / `CH06_API_LOG` | existing sanitized request/payload trace |
+| `gui.log` / `CH07_GUI_LOG` | UTC timestamp, direction, and GUI JSON frame |
+| `debug.log` | ordinary application diagnostics |
 
-Terminal and browser, two views of one agent, neither aware of the
-other.
+GUI tracing writes `>` for received and `<` for sent frames. API and GUI traces
+redact the configured credential. They are still private working artifacts:
+conversation and tool output can contain other sensitive information. Do not
+publish them merely because one key was redacted.
 
-The retained October 9 exercise used installed Chrome and the real native
-speech service. It checked two tabs, a connection during an active partial,
-completed-history reload, safe markup, reachable long content, typing with
-Read aloud off, another tab's unpause, speaker clicks, Escape and visibility
-changes. [The browser receipt](../solutions/evidence/ch08/browser.json)
-records 180 available voices and a short sentence's queued/start/end events.
-That is an API observation, not a subjective listening result.
+Use an owned port, workspace, browser profile, and fake provider while developing.
+Do not borrow another running Agent or change someone's connected browser.
+Closing the browser leaves work running. Stopping the host explicitly tears
+down connections, stops observation, and lets the composition root destroy the
+Agent graph. The existing cooperative-callback shutdown limitation still applies.
 
-The speech check did not pass cleanly on the first try. Its first multi-tab
-record contained a native `canceled` error. A later repeat waited for speech
-that did not complete: reloading the second tab had restored its checked
-Read aloud default, accidentally enabling overlapping speech during the long
-response. Explicitly disabling that tab's voice after reload produced the
-clean automatic-speech result. A separate
-[interruption receipt](../solutions/evidence/ch08/speech.json)
-checks that a real error advances the queue. Neither result justifies
-inventing an audio-quality claim.
+## 7.10 Verification and taking it for a spin
 
-All three live provider turns ran an actual `run_command` and returned its
-marker with exit code 0:
+Test real components with small external fakes. Important cases include:
 
-| Historical model used | Observed deltas | Actual tool marker |
-| --- | ---: | --- |
-| `claude-sonnet-4-6` | 28 | `GUI_ANTHROPIC_OK` |
-| `gpt-4o-mini` | 27 | `GUI_OPENAI_OK` |
-| `gemini-3.8-flash` | 5 | `GUI_GEMINI_OK` |
+1. Round-trip finalized display IDs, including zero and noncontiguous IDs;
+   reject malformed metadata and retain historical-log compatibility.
+2. Read snapshots during concurrent appends and verify one coherent frontier.
+3. Refuse malformed and policy-disallowed tool calls without a started fact;
+   admit a valid tool and inspect its real effect and recorded result.
+4. Gate a provider after a meaningful delta. Observe it in the browser before
+   releasing completion, then reconnect during the partial response and after
+   finalization. IDs must remain stable and cards must not duplicate.
+5. Pause an active turn before a tool plan completes. Verify that no tool effect
+   occurs until unpause, while hints and interrupts still work.
+6. Verify a fresh prompt works after interruption. Reject a foreign WebSocket
+   origin without granting it actor input capability.
+7. Inspect actual narrow-layout controls and safe rendering of hostile-looking
+   code. Exercise full-content speaker buttons through a fake speech boundary.
+8. Exercise queued speech, interrupted-utterance cleanup, automatic typing pause,
+   cross-tab explicit unpause, and silent visibility wakeup.
 
-The Anthropic run also carried a terminal busy hint into the browser on the
-same Agent, and its speaker button produced native start/end events. The
-Gemini run used Bill's required model and also exposed the empty-text metadata
-card described above. Successful tool execution did not make the page correct.
-The [live summary](../solutions/evidence/ch08/live-summary.json)
-and [projection correction](../solutions/evidence/ch08/projection.json)
-retain both the success and the subsequent repair. These are observed model
-destinations, not a current availability list or a new paid run of this edition.
+The existing executable grader can test the optional server without compiling
+Go consumers:
 
-The original student GUI grader returned **55/100 FAIL** after roughly
-47 minutes. It had built an earlier binary, before the replay-status fix:
-the missing `from` field cost 25 points, while inherited CLI checks launched
-the continuing GUI server and cost another 20. The original legacy solution
-scored 100/100. Preserve those results rather than assigning a hypothetical
-score to the corrected source. Final-source race tests, browser checks and
-independent review established the bounded fixes. The revised grader now
-uses the actual separate GUI and headless entry points; its detailed evidence
-belongs in the [chapter review](../docs/edition-2-notes/enhancement-07-code.md).
+```sh
+grade-edition2 -ch 7 -executable-only \
+  -gui /absolute/path/to/wwwroot -gui-model SELECTED-STREAM-MODEL \
+  /absolute/path/to/gui-launcher
+```
 
----
+This route covers 80 points: wire behavior, reconnect replay, GUI trace, and
+pause semantics. It excludes inherited Chapter 6 scoring and Go topology
+checks. The full historical Go route remains available and unchanged in scope.
+Neither route establishes accessible speech quality or real provider acceptance.
 
-## What Chapter 8 does with this
+For a human exercise, use a bounded task in the owned workspace. Watch a
+response stream, inspect thinking and tool details, send a hint, pause and
+unpause, and interrupt while paused. Reconnect while work continues. Listen to
+individual full artifacts and try automatic narration if authorized. Keep the
+actual logs and describe failures honestly.
 
-One scroll pane, one input field, one dark page. Chapter 8 adds the
-workspace: a second `ArtifactScroll` for tool calls and results, an
-agent tree, drag bars, settings, and a sidebar that grows as chapters
-add features. The Artifact is the reusable unit. The layout is what
-remains.
+The C# endpoint's offline protocol, browser, and fake-speech evidence is recorded
+in `docs/edition-3-csharp-progress.md`. Paid-provider work and audible-user
+verification must remain explicitly incomplete when they have not been done.
+A green grade is evidence for its checks, not a replacement for these boundaries
+or for an inspection of the ownership and call paths.

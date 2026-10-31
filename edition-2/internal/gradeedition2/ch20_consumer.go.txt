@@ -1,0 +1,40 @@
+package main
+
+import (
+ "context"
+ "encoding/json"
+ "fmt"
+ "io"
+ "io/fs"
+ "net"
+ "net/http"
+ "os"
+ api CORE_PACKAGE
+ gui GUI_PACKAGE
+)
+
+func main(){
+ if err:=os.MkdirAll("data",0700);err!=nil{panic(err)}
+ SETUP_AGENT
+ // Construct the public event vocabulary outside both submitted modules.
+ PLANT_EVENT
+ SETUP_GUI
+ defer closeGUI()
+ component:=http.NewServeMux()
+ component.HandleFunc("/ws",serveWS)
+ for _,name:=range []string{"artifact-scroll.js","renderers.js"}{
+  component.HandleFunc("/"+name,func(w http.ResponseWriter,r *http.Request){b,err:=fs.ReadFile(assets,name);if err!=nil{http.Error(w,err.Error(),500);return};w.Header().Set("Content-Type","text/javascript");w.Write(b)})
+ }
+ // Only component files and transport are mounted at root. Full application
+ // and explicit disk override are distinct prefixes, not hidden shell imports.
+ component.Handle("/full/",http.StripPrefix("/full",fullHandler("")))
+ component.Handle("/disk/",http.StripPrefix("/disk",fullHandler(os.Getenv("DISK_ASSETS"))))
+ tcp,err:=net.Listen("tcp","127.0.0.1:0");if err!=nil{panic(err)};defer tcp.Close()
+ go hub.ServeMCP(tcp)
+ listener,err:=net.Listen("tcp","127.0.0.1:0");if err!=nil{panic(err)}
+ server:=&http.Server{Handler:component};defer server.Close();go server.Serve(listener)
+ json.NewEncoder(os.Stdout).Encode(map[string]string{"http":listener.Addr().String(),"mcp":tcp.Addr().String()})
+ io.Copy(io.Discard,os.Stdin)
+ fmt.Println("CONSUMER_CLOSED")
+ _ = context.Background()
+}

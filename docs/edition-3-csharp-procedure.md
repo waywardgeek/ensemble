@@ -1,5 +1,20 @@
 # Edition 3 — direct C# chapter execution
 
+## Current layout — Edition 3 promoted, 2026-10-31
+
+Bill authorized archiving V2 and promoting V3. `agent/` is the active C# 14 / .NET
+10 application; `book/` is the Edition 3 manuscript; `solutions/chNN/` contains
+immutable C# endpoints with their original numbers. `edition-1/` and `edition-2/`
+are frozen archives. Root Go code is retained grading/publishing support, not
+the active application. See `docs/edition-3-promotion.md` for preservation and
+verification. Older path/phase statements below describe historical work and do
+not authorize restarting campaigns, editing snapshots, or replacing running hosts.
+Current work is interactive with Bill; this promotion is personal, without workers.
+Bill owns pushes. No publication, provider campaign, credentials access or host
+restart is authorized by the relocation. Use the current C# architecture in
+Common and functional partial implementations, not the archived Go layout.
+
+
 ## Current exception: the final GUI crossover
 
 The direct implementation below completed the C# foundation. Bill then rejected

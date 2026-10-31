@@ -11,7 +11,7 @@ import (
 // unchanged accepted solution.
 // Targeted source mutations are recorded separately in the enhancement notes.
 func TestChapter2AcceptedSolution(t *testing.T) {
-	bin, cleanup, err := grade.Build("../../solutions/ch02")
+	bin, cleanup, err := grade.Build("../../edition-2/solutions/ch02")
 	if err != nil {
 		t.Fatal(err)
 	}

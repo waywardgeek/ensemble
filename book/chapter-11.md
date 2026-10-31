@@ -1,462 +1,263 @@
-# Chapter 11: MCP: The Extension Protocol
+# Chapter 11 — MCP Tools and a Browser That Can Answer
 
-Every tool the agent has used so far was compiled into the binary. Adding a new one means writing Go, rebuilding, and restarting. MCP, the Model Context Protocol, is a JSON-RPC 2.0 wire protocol for connecting an agent to external tool servers: processes, browsers, remote services. This chapter builds the client, the transport layer, and a course extension: ephemeral tools that the engine calls automatically, injecting their output into the context window without declaring them to the LLM.
+Until now, a tool has lived inside the application. This chapter adds tools that live in another process or in the browser. The Agent still owns admission, execution records, Jobs, and conversation. A remote server supplies a capability; it does not become a second Agent scheduler.
 
-A browser snapshot makes the distinction useful. The model needs to know which
-tab is selected before deciding what to click. Asking it to remember to request
-a snapshot adds a tool round and leaves correctness dependent on its memory.
-Automatic context puts the observation where the decision needs it. The tool
-still does real work, and the request must wait for that work to finish.
+We use the **Model Context Protocol (MCP)** for discovery and calls. Its JSON-RPC messages give us a small, inspectable boundary: initialize a connection, discover tools, call one, and correlate its reply. We use that boundary in both directions. An Agent can call a skill's server, and a peer can ask the Agent to execute an enabled local tool.
 
-## TL;DR
+The purpose is not merely to make a remote function return a string. We must preserve the architecture built in earlier chapters:
 
-The client sends `initialize`, receives capabilities, sends
-`notifications/initialized`, then calls `tools/list` to discover what the server
-offers. Admit discovered tools through the owning skill's grants. Ordinary
-admitted tools use the existing model declarations and job dispatch; hidden
-automatic tools supply completed round or turn context. The bidirectional
-channel also carries reverse requests to enabled Agent tools.
+- Common declares the vocabulary and persistent relationships; functional partial classes implement operations.
+- A discovered name is not a grant to execute it.
+- The actor remains the only publisher of conversation and skill state.
+- A Job's lifetime is independent of a caller's observation wait.
+- Destruction closes admission, joins owned work, and removes both ends of every relationship.
+- Browser inspection is on demand, not an unsolicited attachment to every request.
 
-The exercise implements the historical wire version `2024-11-05`. Its reverse
-`tools/call`, `ephemeral` field and `$/cancelRequest` notification are course
-contracts. This chapter does not claim compatibility with every current MCP
-server or present those extensions as current standard requirements.
+## 1. Put the boundary in the right place
 
-Extend Chapter 10 with replaceable transports, request correlation, actual
-job cancellation, hidden automatic context, browser tunneling and skill-owned
-server startup/shutdown. Keep the common interfaces, real parent relationships
-and optional GUI module. The exercise and check table below cover the same
-capabilities through their appropriate clients; `--mcp-pipe` is a dedicated
-protocol service, with no implicit model turn. From the repository root, grade
-with `go run ./cmd/grade-edition2 -ch 11 path/to/core`.
+The core remains one C# assembly. `Common/Mcp.cs` and `Common/McpBrowser.cs` declare the MCP vocabulary. The `Mcp/` directory implements transport, RPC, discovery, content conversion, and connection ownership. `Skills/` prepares and commits skill activations; `Agent/` schedules requests and receives worker completions; `Jobs/` runs remote calls through the existing Job machinery.
 
-## Transport
+The optional GUI project has its own Common declaration and server implementation for the WebSocket tunnel. Neither the MCP library nor the Agent depends on ASP.NET or JavaScript.
 
-One interface, multiple implementations:
+The small `IMcpTransport` interface is a real external I/O boundary, not glue between partial classes. It sends and receives JSON messages and disposes its transport resources. Production implementations cover line-oriented streams, an owned child process, and a connected WebSocket. Tests use working peers at those same boundaries.
 
-```go
-// MCPTransport carries whole messages independently of GUI framing.
-// Close must unblock both directions; one receiver and concurrent senders use it.
-type MCPTransport interface {
-    // Send writes one complete JSON-RPC message.
-    Send(msg json.RawMessage) error
-    // Recv reads one complete JSON-RPC message.
-    Recv() (json.RawMessage, error)
-    // Close releases the boundary and wakes blocked I/O.
-    Close() error
-}
+### The relationship graph
+
+| Object | Parents and responsibility |
+| --- | --- |
+| `Mcp` | Belongs to one Agent; owns its connections and optional browser registration. |
+| `McpClient` | Belongs to the manager; a skill connection also belongs to `Skills` under its `SkillName`; a browser client also belongs to its `McpBrowser` registration. Owns the RPC reader, pending replies, reverse-request work, transport, and remote Tools. |
+| Remote `Tool` | Belongs to the Agent and the client that supplies it. Calls still execute as Agent-owned Jobs. |
+| `McpBrowser` | Belongs to the manager; owns one browser transport and at most one claimed client. |
+| `McpToolDefinition` | Immutable, value-like discovery data: name, description, schema, and optional automatic frequency. It needs no holder back-pointers. |
+
+These are actual object references. A client does not rediscover its Agent by a global ID lookup or receive a copied bag of services. It reaches the Agent through its manager and reaches its granting owner through `SkillOwner()`.
+
+Parent add/remove methods validate before mutation and update both ends. Removing a relationship is not the same operation as destroying the child. Destroying a connection destroys its remote Tools, closes the transport, releases pending callers, joins reader and reverse work, and detaches the client from all its parents. Repeated destruction calls join the same cleanup task.
+
+Admission closes when destruction is requested, not when a background cleanup task happens to run. Otherwise a caller could start another RPC or reattach an object that is already being dismantled.
+
+## 2. One protocol, two explicit roles
+
+Do not confuse an application that *serves a pipe* with an outgoing MCP client. This chapter supports both roles, but not both reader modes on the same connection.
+
+### Outgoing skill connection
+
+For a skill server, Ensemble initiates the handshake:
+
+1. Send `initialize` with protocol version `2024-11-05`.
+2. Validate the reply.
+3. Send `notifications/initialized`.
+4. Request `tools/list` and validate the complete catalog.
+5. Install only the ordinary tools granted by the owning skill.
+
+A connected transport is not yet a successfully initialized skill. Missing schemas, duplicate names, incompatible protocol replies, process exit, or a failed catalog cause preparation to fail and its resources to be joined and removed.
+
+Requests use integer IDs and a pending-reply table. A reply completes its matching request, not whichever caller happens to be waiting first. The outgoing reader must also recognize peer requests while it awaits replies: a server may reverse-call the Agent during initialization or a tool call.
+
+Cancelling a reply wait removes that wait without corrupting correlation when a late reply arrives. A failed or cancelled *write* is different. It may have emitted half a frame, so the connection is closed rather than reused as though framing were intact.
+
+### Incoming CLI service
+
+The CLI's `--mcp-pipe` mode exposes enabled Agent tools on stdin/stdout. Here the external client sends `initialize`, receives the reply, and sends `notifications/initialized` before discovery or calls.
+
+```sh
+# After building Cli/Ch04.csproj; use your approved dotnet executable.
+dotnet Cli/bin/Debug/net10.0/ch04.dll --mcp-pipe --no-save
 ```
 
-**Pipe**: an in-process connected pair, for testing the actual client and codec.
-**Stdio**: spawns a subprocess, JSON-RPC over its stdin/stdout.
-**Raw**: wraps an `io.Reader` and `io.Writer`; the `--mcp-pipe` flag uses this.
-**WebSocket**: tunnels JSON-RPC through the GUI server to the browser.
+Normal skill and log startup still happens first. Stdout contains JSON-RPC frames only; diagnostics use stderr. `ServeAsync` uses the existing reverse-tool admission path, not an independent tool dispatcher or fabricated model turn. EOF returns from serving; the application then joins connection destruction and Agent shutdown. An incoming service cannot initiate outgoing RPC on that same transport.
 
-The interface belongs in `internal/common`, with a public alias for external
-clients. Raw, pipe and subprocess behavior belongs in the MCP package.
-WebSocket framing belongs in the separate GUI module, so a headless consumer
-does not acquire a browser dependency merely to call an external tool.
+This distinction resolves an easy testing mistake: an outgoing fixture waits for Ensemble to initialize it, whereas an incoming-service fixture must initialize Ensemble itself. Reversing those roles produces a deadlock, not useful protocol evidence.
 
-Agent owns the MCP manager; the manager owns its clients. A client reaches
-admission, jobs and diagnostics through manager → Agent → Ensemble. The GUI
-transport keeps its actual server parent. The composition root establishes
-those relationships. A reader and writer are boundary resources, and need no
-invented domain parent or bag of sibling services.
+## 3. Reverse calls must not wait behind themselves
 
-Serialize whole outgoing messages: a reverse reply can arrive while another
-goroutine sends a request. Closing a transport must wake blocked I/O. For a
-subprocess that includes closing its pipes, stopping its process group and
-reaping the child; closing only the Go wrapper leaves a server running after
-its skill has gone away.
+Suppose the Agent is waiting for a server's `tools/call` reply. The server asks the Agent to read a file before it can finish. If that reverse request is queued behind the waiting model turn, neither side can proceed.
 
-## Codec
+Reverse calls therefore enter a nonblocking actor control lane. The actor still validates the name, current skill grants, and arguments, and executes through ordinary Jobs. A disabled tool remains disabled; being on a trusted transport is not a grant.
 
-The codec handles JSON-RPC correlation: outgoing requests get incrementing integer IDs, responses are matched by ID and delivered to the blocked caller. A background goroutine reads the transport and dispatches: responses go to pending callers, incoming requests go to reverse tool handling.
+Discovery exposes enabled local tools, excluding automatic snapshot tools. Remote tools are not reflected back as local reverse capabilities. A successful reverse call records a host observation, not an assistant tool-use exchange that never occurred. Unsupported methods return JSON-RPC errors. Expected bad arguments and denied calls return controlled failures; invariant and persistence faults must not be disguised as successful tool results.
 
-One client can own the transport, ID counter, pending-reply map and reader.
-The accepted implementation keeps correlation there; a separately exported
-`Codec` would add an ownership layer with no other user. The mechanism matters
-more than the extra object.
+The important test is a real held operation: leave a model turn or server call waiting, issue a reverse `write_file`, verify the file and its host observation, and only then release the original operation. A mocked assertion that a callback was invoked would not establish progress through this cycle.
 
-Keep the reader free while executing a reverse call. That tool might itself
-call the peer, whose reply needs the same reader. Running the handler on the
-reader goroutine would let both sides wait forever for a message already on
-the wire. Concurrent requests also need an out-of-order reply test: two correct
-answers delivered to the wrong callers are two failures.
+## 4. Skill activation is a transaction
 
-## MCP Client
-
-The client initializes, discovers tools, calls them and closes its transport.
-Its owner supplies reverse dispatch through the existing Agent interface.
-The public embedding API exposes `Agent.MCP().Connect(ctx, name, transport)`;
-`ensemble.NewMCPTransport(reader, writer, closer)` adapts streams, and
-`ensemble.MCPPipe()` returns a connected pair. With skills enabled, the peer's
-name must match a declared server. `Connect` performs initialization and discovery
-before making the peer's tools available.
-
-`tools/call` sends `params` with a string `name` and object `arguments`. Text
-results arrive in ordered `content` blocks. Preserve a tool's `isError` result
-as a failed tool outcome; a JSON-RPC error is a protocol failure. Neither should
-be turned into a successful empty string.
-
-MCP tool calls go through the same job infrastructure as `run_command`.
-If the job is killed, its context is cancelled and the client sends
-`$/cancelRequest` with the request ID to the server. A callback deadline only
-returns control and a job handle. Interrupt ends the current turn while the
-job continues; shutdown stops the owned work and closes peers. One context
-cannot represent all four lifetimes.
-
-## Ephemeral Tools
-
-A discovered tool may carry an `ephemeral` field: `"round"` or `"turn"`. Ephemeral tools never appear in the tool declarations sent to the LLM. The model cannot call them. The engine calls them automatically:
-
-- **round**: called before every `RequestSent`. The GUI snapshot arrives fresh each round.
-- **turn**: called once when a new turn starts, for data that can stay fixed
-  through that turn. A later turn gets a fresh call.
-
-Results are combined and attached through the existing event/reducer path into
-`Context.Ephemera`, the pending field consumed by the next request. The log
-retains the arrival for replay; stale snapshots do not accumulate in dialogue.
-Gather outside the actor so reverse requests, interruption and job facts can
-still be processed. Send the gathered content back with its turn identity and
-attach it only if that turn remains active.
-
-Ephemeral errors are logged but not fatal. A GUI snapshot failure should not abort a turn.
-
-The first student implementation used an ordinary job wait for this gathering.
-An independent peer delayed its turn snapshot by 3.4 seconds. At three seconds,
-the callback returned a running notice with `Use wait_for_job`, and the provider
-request carried that notice where the snapshot should have been. The once-per-turn
-flag had already been set. When the actual result arrived, it was too late to
-serve as that turn's automatic context.
-
-A hidden tool has no model-directed caller to follow up on its handle. Its
-collector needs the completed content, or an actual failure, before releasing
-the provider request. The correction carries the handler's completed result
-through a buffered reply while preserving the ordinary callback path. Enlarging
-the three-second timeout would merely select a slower peer for the next failure.
-
-Interruption still lets the collector abandon the old turn without killing the
-job. The regression holds the old peer reply, interrupts, completes a new turn,
-then releases the old result. Its output remains available through the job,
-and none of that stale context enters the new turn. A separate slow-peer check
-holds both round and turn responses past the callback deadline and verifies that
-no provider request goes out early. These tests exercise the real jobs, actor,
-reducer and renderer, with only the external peers replaced.
-
-## Bridge
-
-The bridge is the seam between MCP's type system and the agent's. It converts
-discovered names, descriptions and input schemas into ordinary tool definitions.
-The engine can then dispatch an admitted remote tool through the same path as
-a compiled one. Inside the accepted manager's `Tools` method, the handler
-captures the client and that iteration's tool information:
-
-```go
-tool := common.ToolDefinition{
-    ToolDeclaration: common.ToolDeclaration{
-        Name: info.Name, Description: info.Description, Schema: info.Schema,
-    },
-    Ephemeral: info.Ephemeral,
-    Run: func(call common.ToolContext, args json.RawMessage) (string, error) {
-        return c.call(call.Job().Context(), info.Name, args)
-    },
-}
-```
-
-The job supplies the context. Substituting `context.Background()` here severs
-explicit kill from the outstanding RPC even though the handler looks correct
-on every successful short call. The original example made that mistake.
-
-Discovery describes what a peer offers; a skill determines what this Agent
-admits from that peer. Apply that grant before exposing definitions, then apply
-the Agent's enabled-tool policy at declaration and dispatch. Another loaded
-skill naming the same tool must not widen this server's grant. Automatic tools
-remain absent from model declarations and unavailable to guessed ordinary calls.
-The accepted registry also prevents an external definition from shadowing a
-compiled capability with the same name.
-
-## Reverse Calls
-
-The MCP channel is bidirectional. When the server sends a `tools/call` request,
-the client's reverse handler invokes the Agent's enabled-tool dispatch. The
-result goes back with the request's ID. A browser, a Python script or a remote
-service can call `read_file`, `run_command`, or another enabled ordinary tool,
-subject to the Agent's trust and skill boundaries.
-
-Treat admitting such a peer as granting access to those capabilities. A server's
-own offered-tool filter limits what it exports; it is not a filesystem sandbox
-for reverse calls. Only connect a peer you trust with the enabled Agent tools.
-Confinement arrives later. Unknown, disabled and hidden automatic names must
-still fail when guessed over this channel.
-
-Reverse execution uses real jobs and retains their facts. It does not fabricate
-a model-authored tool call in conversation just because the caller used the
-same method name. Its reply may legitimately be an ordinary running-job notice;
-the automatic collector described above has a different completion requirement.
-
-## WebSocket Tunneling
-
-The browser cannot open a port or spawn a subprocess. The GUI server already
-carries `prompt`, `hint`, `interrupt`, and `settings` messages. MCP adds one more
-type: `jsonrpc`. The server routes `{"type":"jsonrpc","payload":{...}}`
-messages between the Go MCP client and the browser's MCP server over `/ws`.
-Replies use the same envelope and retain the JSON-RPC ID. Give each peer reliable
-delivery through its connection's serialized writer; a lossy progress broadcast
-cannot carry an awaited RPC response. The current implementation uses one active
-browser MCP target, while other tabs retain ordinary chat and settings access.
-
-On the browser side, `mcp.js` handles these frames and implements the chapter's
-`initialize`, `tools/list` and `tools/call` methods. It registers four tools:
-
-- **gui_snapshot** (ephemeral/round): walks the visible DOM and returns a Markdown summary: pane layout, interactive elements with CSS selectors, artifact previews. Capped at 4096 UTF-8 bytes. The cap is reported rather than silent: the summary states how many characters it elided and how many artifacts it omitted, and it reports the state attributes of every control it lists. An observer that truncates in silence will tell you a screen looks fine when it never saw it, and a control whose state it cannot read is a control it will guess about.
-- **gui_click(selector)**: dispatches a click event on the matched element.
-- **gui_input(selector, text)**: sets the value and dispatches input/change events.
-- **tts_queue** (ephemeral/round): returns pending TTS utterances as JSON: text, state, timing.
-
-The agent receives a textual observation of the visible GUI, updated every
-round. It can click buttons and fill text fields, then inspect the changed
-state on the next request. The speech queue reveals what the application is
-trying to say and whether an utterance has started. It cannot tell whether a
-human heard intelligible audio; that still requires listening.
-
-## SKILL.md Integration
-
-Skills declare MCP servers in their frontmatter. For example, save this as
-`skills/browser-tools/SKILL.md` and list `browser-tools` in your primary skill's
-`loadable-skills` field:
-
-```markdown
----
-name: browser-tools
-description: Inspect and operate the visible browser interface.
-type: loadable
-tools: gui_snapshot gui_click gui_input tts_queue
-mcp_servers:
-  - name: browser-debug
-    transport: websocket
----
-Use the current snapshot's selectors to operate visible controls.
-Check the next snapshot before claiming the interface changed.
-```
-
-A separate code-search skill can declare this fragment, provided
-`scripts/search_server.py` implements the server and offers `search_code`:
+A skill may declare servers in its front matter:
 
 ```yaml
-tools: search_code
-mcp_servers:
-  - name: code-search
-    transport: stdio
-    command: python3
-    args: ["scripts/search_server.py"]
-```
-
-Loading a skill starts its MCP servers and discovers their tools. The
-`transport` field determines the wire: `stdio` spawns a subprocess, `websocket`
-tunnels through the GUI. Browser discovery requires both a declared skill and
-a connected browser; an already-open browser can serve a later skill load.
-The `tools` grant must include automatic tools as well as ordinary ones.
-
-Arguments are a JSON-style string array, passed literally without shell
-expansion. Relative script paths resolve from the Agent's workspace. Keep
-provider credentials with the model client; the accepted subprocess launcher
-passes only basic OS environment values to an external server. The limited
-frontmatter parser handles these declared fields without becoming a general
-YAML implementation.
-
-Unloading stops that skill's external servers and removes their executable
-tools immediately. Chapter 9's compiled tools and retained instruction text
-still follow pending removal. Those lifetimes differ because a retained manual
-does not require keeping a subprocess alive. Compaction is still a later
-feature; this chapter adds no new way to erase the retained manual.
-
-## Exercise
-
-Extend the accepted Chapter 10 agent. Implement the transport/client/bridge,
-automatic round and turn tools, reverse calls, browser tools/tunnel and skill
-server lifecycle above. Preserve prior behavior through the same Agent runtime.
-Build from the core module with `go build -o /tmp/ensemble-ch11 .`. Begin
-with a protocol peer connected to that executable:
-
-```sh
-/tmp/ensemble-ch11 --mcp-pipe
-```
-
-The flag dedicates stdin/stdout to one JSON-RPC 2.0 object per newline. The
-client initiates the handshake; replies preserve integer request IDs. Keep
-diagnostics off stdout. This service mode does not start a conversation, so
-successful initialization alone cannot prove model-driven tool execution.
-
-Then use normal chat with a skill-declared stdio peer. Inspect the actual
-provider declarations and correlated results, including an ordinary tool error.
-Verify that round content refreshes before each request, turn content runs once
-per new turn, automatic names stay hidden and a failed automatic call is logged
-without aborting the turn. Check reverse execution with an enabled file read
-and refusals for unavailable names. Exercise the separate GUI's real tunnel
-in both directions.
-
-| Check | Points | Observable |
-|-------|--------|------------|
-| mcp-handshake | 15 | initialize, initialized notification and discovery sequence |
-| tool-discovery | 15 | actual discovered schemas and admitted model-visible tools |
-| mcp-tool-call | 15 | forwarded arguments and correlated real result/error content |
-| ephemeral-round | 20 | hidden round/turn context, refresh timing and nonfatal errors |
-| reverse-call | 15 | enabled tool execution and unknown-tool refusal |
-| ws-tunnel | 10 | JSON-RPC through the actual separate GUI connection |
-| ch10-parity | 10 | Chapter 10 through its appropriate clients |
-
-```sh
-go run ./cmd/grade-edition2 -ch 11 path/to/core
-```
-
-Omit the final path to grade `solutions/ch11`. Existing `-gui DIR`,
-`-gui-model` and inherited fixture options remain available. Keep focused source
-tests for ownership, out-of-order correlation, slow automatic completion,
-callback versus kill/interrupt, per-server grants and subprocess unload/reaping.
-The numeric checks do not establish all those properties. Browser DOM and native
-speech need an actual browser in addition to a faithful JSON-RPC peer.
-
-## Taking It for a Spin
-
-Give the agent an external capability small enough to inspect. In a fresh
-scratch directory, write a word of your choice into `marker.txt`, then save
-this server as `peer.py`. It implements the historical course wire and records
-its call counts locally so the model's account can be checked:
-
-```python
-import json
-import pathlib
-import sys
-
-counts = {}
-tools = [
-    ("read_marker", "Read the exact marker file text", ""),
-    ("environment_snapshot", "Current live snapshot", "round"),
-    ("session_brief", "Session configuration", "turn"),
-]
-for line in sys.stdin:
-    message = json.loads(line)
-    if "id" not in message:
-        continue
-    method = message.get("method")
-    if method == "initialize":
-        result = {"protocolVersion": "2024-11-05", "capabilities": {"tools": {}}}
-    elif method == "tools/list":
-        result = {"tools": [
-            {"name": name, "description": description, "ephemeral": mode,
-             "inputSchema": {"type": "object", "properties": {}}}
-            for name, description, mode in tools
-        ]}
-    elif method == "tools/call":
-        name = message["params"]["name"]
-        counts[name] = counts.get(name, 0) + 1
-        pathlib.Path("peer-counts.json").write_text(json.dumps(counts))
-        if name == "read_marker":
-            text = pathlib.Path("marker.txt").read_text()
-        elif name == "environment_snapshot":
-            text = f"Snapshot number {counts[name]}"
-        else:
-            text = "Use read_marker to inspect the local marker."
-        result = {"content": [{"type": "text", "text": text}]}
-    else:
-        continue
-    print(json.dumps({"jsonrpc": "2.0", "id": message["id"],
-                      "result": result}), flush=True)
-```
-
-This little demonstration peer serves only the listed tools. It is not a
-general server implementation or a cancellation test. Save the following
-primary skill in `skills/base/SKILL.md`:
-
-```markdown
 ---
-name: base
-description: Read a local marker through the demonstration MCP peer.
-type: primary
-tools: read_marker environment_snapshot session_brief
+name: notes
+description: Read and update project notes
+type: loadable
+tools: notes_read notes_write
 mcp_servers:
-  - name: local-observer
+  - name: local
     transport: stdio
-    command: python3
-    args: ["-u", "peer.py"]
+    command: /absolute/path/to/notes-server
+    args: ["--format", "json"]
 ---
-Read the marker through read_marker when requested.
-Automatic snapshot data describes the current round.
+Use these tools for project notes. Read before replacing existing content.
 ```
 
-Build in your core module, then launch from that scratch directory. Set the
-usual `LLM_VENDOR`, available `LLM_MODEL` and `LLM_API_KEY` in the child
-environment without putting the key in a command line or transcript:
+This is the supported front-matter subset, not arbitrary YAML. Server names, transport spelling, field types, and JSON string-array arguments are validated. Use literal argument elements; this is not a shell command string. The process inherits the configured working directory and a small credential-free environment, not the application's provider secrets. Stderr is drained separately from protocol stdout.
+
+For a browser server, the declaration is simply:
+
+```yaml
+mcp_servers:
+  - name: browser
+    transport: websocket
+```
+
+A browser does not need a process command. Server names are unique within their real skill owner. Two unrelated skills may both name their server `local`; Agent-wide tool-name collisions are still refused.
+
+### Prepare outside the actor; commit on the actor
+
+Loading a server-backed skill requires asynchronous I/O, but I/O continuations must not publish grants or instructions. Activation proceeds as follows:
+
+1. Resolve and validate the dependency closure on the actor.
+2. Capture the variables and working directory needed by preparation.
+3. Start or claim the connections, initialize them, and discover their catalogs off the actor.
+4. Send one reliable commit message back to the actor.
+5. Revalidate the closure, cancellation, providers, and collisions; render the frozen manuals; install only explicit allowlisted ordinary tools; append one dependency-first activation event.
+6. On failure, destroy and join the prepared connections without publishing a partial activation.
+
+Once a commit is queued, preparation awaits its definite outcome. Cancelling an observer must not race successful publication and destroy clients the actor has just committed.
+
+The server's catalog cannot broaden the skill's `tools` list. A declared name must resolve unambiguously; discovery is evidence of availability, not authority. `$TOOLS` is rendered from usable ordinary capabilities. Loaded manuals remain in provider instruction context, not buried only in a tool-result body.
+
+### Primary startup
+
+Local-only primary skills keep their synchronous initialization path. A server-backed primary requires explicit `Skills.InitializeAsync` after persistence loading and diagnostic-log setup, before user work is accepted. Concurrent callers join one initialization; cancelling one observer does not cancel shared startup.
+
+Until the primary commits, the manager is unready and grants no provisional tools. Input and direct tool work are refused; actor controls remain responsive. Reverse calls during initialization see only actually committed grants. Startup is tracked control work, not a fake `load_skill` call with an invented call ID.
+
+A GUI must listen before a browser-backed primary can connect. `RequiresBrowserStartup()` examines the primary dependency closure: only a closure containing a WebSocket server needs that wait. A stdio-only primary initializes without any browser connection. The Agent's readiness gate remains authoritative in both cases.
+
+### Unload and persistence
+
+Unloading closes the selected skill's clients, processes, and remote Tools immediately. The manual's pending-unload state remains under the earlier chapter's conversation policy; retaining a manual does not retain executable authority. Independently owned dependency connections are not destroyed merely because another skill used them.
+
+Chapter 10's saved configuration is documentary, not executable state. Shutdown may save a configuration projection after remote Tools have been removed. A later startup rebuilds connections and grants from current configuration and manuals; it does not resurrect a process or browser connection from saved tool JSON. Failed primary startup must not overwrite a previous good session save.
+
+## 5. Remote results remain structured
+
+An ordinary MCP call is still a Job. Observation timeouts report that it is running; they do not cancel execution. Explicit Job cancellation cancels the remote request and sends the cancellation notification. A reverse call or ordinary wait does not borrow ownership of the Job lifetime.
+
+MCP content is an ordered array, not one lossy string. The codec maps supported text, image, and audio blocks into the existing neutral parts, preserving order and `isError`. Inline media uses validated base64 and MIME information. Unsupported blocks, including general resource blocks, are refused explicitly rather than silently dropped or fetched.
+
+The Job retains an atomic structured result separately from incremental process-output bytes. Its diagnostic output is written before completion publication. The first completed ordinary observation returns the structured parts and error flag; later observations do not replay the same result. Automatic collection uses a separate completion read that does not consume the public observation cursor.
+
+Provider rendering is a separate boundary. An adapter supporting inline media in tool results can render those parts; another adapter may explicitly refuse that placement. Passing an MCP codec test does not establish that every provider accepts every media form. This chapter does not add remote URI fetching or Job-handle media resolution.
+
+## 6. Automatic tools: wait for the snapshot, not the handle
+
+Some external tools provide changing context rather than a model-chosen action. This implementation recognizes `per_turn_` and `per_round_` name prefixes, and compatible discovery annotations:
+
+- `per_turn_`: collect once at the start of a turn and retain its value only for that turn.
+- `per_round_`: collect before each model request, including a later request after ordinary tool results.
+
+Conflicting prefix and annotation frequencies are refused. Only definitions granted by their actual active skill owner are eligible.
+
+Automatic tools are **not ordinary callable tools**. They never appear in provider declarations, `$TOOLS`, deferred catalogs, or discovery references. Guessed model calls and reverse calls cannot invoke them. Filtering happens at both admission and request emission, including references replayed from older recorded results.
+
+### Collection uses real Jobs
+
+A dangerous shortcut is to treat a timeout-limited observation as the snapshot. That returns a handle or “running” text, then sends the model request without the data it was supposed to contain.
+
+Instead, the collector reserves and starts a real Job, records execution through the actor, and waits for its completed result. It does not replace `tool_limits` with a hidden foreground timeout. While collection is pending, the actor remains responsive to hints, pause, interrupt, and shutdown.
+
+Interrupt abandons the collector's wait; it does not kill an independent Job. That Job can finish later and remain inspectable. Its late result is not inserted into an interrupted turn or allowed to contaminate a later one. Shutdown has the separate authority to terminate and join owned work.
+
+Pause also matters after collection: even if all results are ready, the actor must not start HTTP until scheduling resumes.
+
+### Ephemera is request context, not dialogue
+
+Completed automatic values are combined with the current manual ephemera slot immediately before the request is frozen. The actor records system ephemera; the reducer replaces the slot rather than appending durable conversation. Each request consumes the slot. Diagnostic events may record what arrived, but saved reduced dialogue and provider instruction bodies must not accumulate snapshots.
+
+The per-turn value is reused within that turn; per-round values are replaced each round. The next turn collects fresh values. Failed rendering or HTTP must not leave a stale slot waiting to leak into an unrelated request. Rendering refusal still occurs before the transport-attempt event.
+
+A server-reported snapshot failure is nonfatal context failure, not successful snapshot data. The request receives a short diagnostic naming the automatic tool and real Job handle. Full error content remains in the Job and host observation for inspection. Do not promote failed output into facts the model is asked to rely on.
+
+## 7. The browser is an on-demand MCP server
+
+The GUI already has one WebSocket for display and controls. MCP shares that socket through envelopes:
+
+```json
+{"type":"mcp","agent_id":"root","data":{"jsonrpc":"2.0","id":1,"method":"tools/list","params":{}}}
+```
+
+The reply uses the same envelope and Agent identity. The actual identity comes from the server's replay frame; it is not guessed from a tab title. All GUI controls must match that identity before dispatch. Nonmatching controls and MCP envelopes are refused without reaching tools or the model.
+
+There is one socket writer. The tunnel owns a bounded inbound MCP queue and uses the existing outbound queue. It must not silently drop reliable RPC replies. Closing MCP on skill unload does not close unrelated conversation traffic on the socket.
+
+### Registration is not activation
+
+The first eligible browser connection registers its transport. Connecting alone installs no tools and grants no capabilities. Loading the `browser` skill claims that registration, performs the outgoing handshake, discovers the browser catalog, and commits the skill's explicit allowlist.
+
+The registration is one-shot. It cannot be reused as a fresh RPC session after unload. Disconnect removes its claimed client and Tools; a new connection can establish a new registration. Observer tabs may view the conversation but cannot inject replies into another tab's active browser session. A stopped Agent may still accept a replay-only observer, without constructing new MCP ownership.
+
+Browser replies remain tied to the socket that received the request. A delayed callback from an old connection must not send its response through a newly connected socket.
+
+### The shipped browser tools
+
+The shipped skill offers five explicit tools:
+
+| Tool | Purpose |
+| --- | --- |
+| `gui_snapshot` | Return a bounded description of visible DOM content and usable selectors, with truncation reported. |
+| `gui_click` | Click a uniquely selected visible element. |
+| `gui_input` | Set an editable element's text and notify the page through its input events. |
+| `tts_queue` | Inspect current and queued speech from the page's existing speech state. |
+| `tts_say` | Add speech; with `interrupt:true`, cancel current speech and clear queued speech before the replacement. |
+
+Inspect before acting, use selectors actually observed, and inspect again to confirm the result. A DOM snapshot is not pixel vision. A queued utterance is not proof of sound or hearing. The tools omit password values from inspection, but page content can still be sensitive; callers must choose what context to expose deliberately.
+
+There are no automatic `per_turn_*` or `per_round_*` browser snapshots in this skill. The browser can be idle and connected without sending the page or speech queue into model requests. Automatic collection remains available to a different skill with an explicit need for it.
+
+## 8. Build and exercise the actual boundaries
+
+From `agent`, use the approved .NET 10 SDK:
 
 ```sh
-go build -o /tmp/ensemble-ch11 .
+dotnet build Ensemble.csproj
+dotnet run --project Tests/Tests.csproj
+dotnet build Cli/Ch04.csproj
+dotnet build Examples/Gui/Gui.csproj
 ```
 
-```sh
-EN_SKILLS_DIR=./skills EN_PRIMARY_SKILL=base /tmp/ensemble-ch11 chat
-```
+Use an offline restore source and controlled environment when network access is not authorized. Keep test homes, persistence files, ports, and browser profiles separate from a person's running application. Never infer permission to use a paid model or restart another instance from permission to run local tests.
 
-Enter:
+A useful verification sequence is:
 
-> Use read_marker exactly once. Report the exact marker and current automatic
-> snapshot number in one sentence. Do no other work.
+1. **Transport and correlation.** Use a real pipe peer to return replies out of order, close during pending RPC, send reverse requests, and emit a partial failed write. Check callers and ownership cleanup.
+2. **Skill transaction.** Hold initialization, verify no provisional grants, then release it. Fail a later dependency and verify earlier prepared processes are gone without published manuals.
+3. **Primary startup.** Test stdio without a browser, browser-backed startup after listener creation, concurrent initialization observers, shutdown during startup, and preservation of a previous save on failure.
+4. **Remote Jobs.** Verify ordered parts, exact error status, one-time observation, explicit kill, and denied/colliding names without effects.
+5. **Automatic context.** Capture real loopback model requests across two rounds and another turn. Check cadence, declaration exclusion, pause, interrupt, retained Job output, and ephemera consumption on rendering and HTTP failure.
+6. **Incoming service.** Send the handshake over actual streams, list enabled tools, read a real file with an integer correlation ID including zero, refuse a disabled write, and close stdin normally. No model HTTP should be needed.
+7. **Browser.** Use an isolated real page, load the skill, inspect and change a known element, inspect speech state, unload, and test a second observer tab's isolation. Exercise a browser-backed primary and stopped-Agent replay too.
+8. **Public consumer.** Reference Ensemble from a separate C# project. Construct the graph through public APIs, activate and unload a process-backed skill, use the incoming service, then join destruction and inspect both parent collections.
 
-After the answer, close stdin. Compare the reported marker with `marker.txt`
-and inspect `peer-counts.json`. The ordinary call reads the file; the round
-tool updates automatically before the initial request and before the request
-carrying that result. The turn tool runs once. A model may take extra rounds,
-so check the actual requests and counts rather than treating an expected count
-as proof of what happened.
+Use small working fakes for external boundaries, not mocks of the components under test. Preserve failed runs and distinguish fixture mistakes from product defects. A timeout that reveals an incorrect fixture selector is not evidence that a protocol is broken; a green CLI grade is not evidence that a hidden browser tab worked.
 
-The retained October 10, 2026 sessions used this pattern with
-`claude-haiku-5-5`, `gpt-4o-mini` and `gemini-3.8-flash`. Each successful run
-made one marker read, two round snapshots and one turn snapshot, and each final
-answer reported the correct marker and snapshot number 2. The
-[Claude](../solutions/evidence/ch12/anthropic-live.json),
-[OpenAI](../solutions/evidence/ch12/openai-live.json) and
-[Gemini](../solutions/evidence/ch12/gemini-live.json) receipts retain
-the actual inputs, replies and requests. These are historical model choices;
-select an available model when you run the exercise. The published peer and
-skill make that pattern reproducible without claiming they are byte-for-byte
-copies of the original launcher's generated files.
+### What this endpoint establishes
 
-The first Claude attempt produced no answer. Its process exited zero while
-stderr reported `invalid streamed Anthropic content`. The inherited streaming
-parser had replaced valid initial `{}` arguments with an empty accumulated
-`input_json_delta`. Keeping the initial input when no JSON bytes arrived fixed
-the call. One bounded repeat succeeded and captured a valid tool-use start block
-followed by `partial_json: ""`. The initial attempt had retained requests but
-not response frames; only the repeat supplies that wire receipt. A regression
-using the captured stream reproduces the parser failure when the defect is
-restored.
+The C# chapter has offline component, executable, separate-consumer, and isolated real-browser evidence. Its scoped CLI grader covers incoming pipe behavior, MCP discovery and calls, reverse calls, model-directed skill use against local peers, and automatic context. The optional GUI is exercised separately; the scoped grade does not certify Go package topology or browser appearance.
 
-The browser has separate evidence. Fifteen checks ran actual Chrome through
-the Go tunnel and Agent with a local provider fake. A tool click selected the
-Settings tab; tool input changed the font value and computed size. Later
-snapshots exposed the selected state, and a native utterance appeared with queue
-and start timing. A large snapshot stayed within the byte cap while disclosing
-elided characters and omitted artifacts. The [browser receipt](../solutions/evidence/ch12/browser.json)
-preserves these observations. The font assertion proves applied and effective
-state; it never reads the settings file. Disk persistence has its separate
-Chapter 8 restart check. Nor do those browser checks turn the live CLI sessions
-into live-provider browser demonstrations.
+No live paid-provider interoperability or audible/human-accessibility acceptance is claimed. Fake speech verifies queue wiring, not sound. General MCP resource mapping and broad provider media support are not silently credited. Those limits matter even when every permitted check passes.
 
-Check the actual result when testing the bridge. One deliberately broken
-argument-forwarding implementation initially passed because the assertion
-searched the whole provider request. It found the marker in the earlier tool
-call's arguments even though the result was wrong. Restricting the assertion
-to the correlated result blocks exposed the defect. A request contains both
-what the model asked for and what the tool returned. Match the assertion to
-the fact it needs to establish.
+## 9. What to carry forward
 
-The original full grader was interrupted and unscored, with exit 143. A
-separate unchanged current-chapter probe scored **80/90** on interim source;
-recursive parity was unrun. Its tool-call and ephemeral credits did not execute
-those behaviors, and its WebSocket check searched fixed filenames rather than
-running a tunnel. Independent integration, browser and live evidence established
-the valid obligations, including the later slow-peer correction. The
-[original review](../docs/edition-2-notes/ch12-code-review.md) preserves those
-limits and source versions; the [Edition 2 grader report](../docs/edition-2-notes/enhancement-11-code.md)
-records revised results separately. A handshake opens the channel. The useful
-test follows a call through it and reads what came back.
+A remote boundary changes latency and failure modes, not ownership. Keep the actor responsible for publication, the Job responsible for execution lifetime, the skill responsible for grants, and the client responsible for its connection.
+
+The most useful questions in review are concrete:
+
+- Can a discovered or detached tool gain authority without a committed owner?
+- Can shutdown leave a reader, process, pending reply, or reverse parent link behind?
+- Can a snapshot wait return a handle instead of data and still allow HTTP to start?
+- Can interruption consume or destroy a Job that it merely observes?
+- Can a stale tab, foreign Agent identity, or old socket deliver an accepted reply?
+- Does saved configuration describe state, or accidentally masquerade as authority to recreate it?
+
+Answer those questions in code and working exercises, not by trusting an architectural diagram or a passing grade. The next chapter can build on this boundary because its responsibilities remain explicit.

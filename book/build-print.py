@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
-"""One-render print build with measured PDF contents references and page labels.
+"""Measured print build with PDF contents references and page labels.
 
 Chrome does not implement target-counter(). Reserve a TOC number column in CSS,
-render once, resolve its links, and stamp references without changing layout.
+render, resolve its links, and stamp references without changing layout.
+A second render adds a blank front-matter page only when measured parity needs it.
 Front matter is unnumbered; the Preface begins Arabic page 1 on a recto page.
 """
-import re, subprocess, sys, tempfile
+import os, re, subprocess, sys, tempfile
 from collections import Counter
 from pathlib import Path
 
@@ -13,18 +14,23 @@ import pymupdf
 
 CHROME = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
 BOOK = Path(__file__).resolve().parent
+ROOT = BOOK.parent
+OUTPUT = Path(os.environ.get("BOOK_OUTPUT_DIR", BOOK))
 GEORGIA = Path("/System/Library/Fonts/Supplemental/Georgia.ttf")
 
 
 def render(html: Path, pdf: Path) -> None:
     pdf.unlink(missing_ok=True)
-    # Never attach publication rendering to an existing interactive profile.
-    with tempfile.TemporaryDirectory(prefix="book-print-chrome-") as profile:
-        subprocess.run(
+    # A private profile cannot attach to the reader's running browser.
+    with tempfile.TemporaryDirectory(prefix="edition3-print-") as profile:
+        completed = subprocess.run(
             [CHROME, "--headless=new", "--no-sandbox", f"--user-data-dir={profile}",
-             f"--print-to-pdf={pdf}", "--no-pdf-header-footer", f"file://{html}"],
-            capture_output=True, timeout=600, check=True,
+             "--no-first-run", f"--print-to-pdf={pdf}",
+             "--no-pdf-header-footer", f"file://{html}"],
+            capture_output=True, timeout=600, text=True,
         )
+        if completed.returncode:
+            sys.exit(f"FATAL: Chrome exited {completed.returncode}: {completed.stderr}")
     if not pdf.exists():
         sys.exit(f"FATAL: Chrome produced no PDF at {pdf}")
 
@@ -250,14 +256,29 @@ def clean_html(html: str) -> str:
         flags=re.S,
     )
 
-    # Chrome currently treats break-before:right as an ordinary page break.
-    # The title/TOC/dedication occupy three pages; explicitly leave the fourth
-    # blank. finish_pagination verifies physical recto parity if layout changes.
+    # Contents length changes as chapters change. Do not insert an unconditional
+    # blank page: main measures the Preface position before choosing a spacer.
     anchor = '<h1 id="preface">'
     if html.count(anchor) != 1:
         sys.exit("FATAL: expected exactly one Preface heading")
-    html = html.replace(anchor, '<div class="recto-spacer" aria-hidden="true"></div>\n' + anchor)
     return html
+
+
+
+def recto_preface_html(html: str, preface_page: int) -> str:
+    """Add a real blank page only for a measured verso Preface.
+
+    Chrome treats break-before:right like an ordinary page break. A fixed
+    spacer therefore works for one contents length and fails for another.
+    The caller rerenders once and verifies the resulting physical page parity.
+    """
+    if preface_page % 2 == 1:
+        return html
+    anchor = '<h1 id="preface">'
+    if html.count(anchor) != 1 or 'class="recto-spacer"' in html:
+        sys.exit("FATAL: expected one Preface and no existing recto spacer")
+    spacer = '<div class="recto-spacer" aria-hidden="true"></div>\n'
+    return html.replace(anchor, spacer + anchor, 1)
 
 
 def run_pandoc(src: Path) -> None:
@@ -270,22 +291,23 @@ def run_pandoc(src: Path) -> None:
     noticed, because every heading the stale TOC listed did match a page.
     Running pandoc here makes that class of staleness impossible.
     """
-    manuscript = BOOK / "the-art-of-building-ai-coding-agents.md"
+    manuscript = OUTPUT / "the-art-of-building-ai-coding-agents.md"
     front = BOOK / "front-matter-print.md"
     header = BOOK / "print-header.html"
     for f in (front, manuscript, header):
         if not f.exists():
             sys.exit(f"FATAL: missing build input {f}")
     cmd = [
-        "pandoc", front.name, manuscript.name,
-        "-o", src.name,
+        "pandoc", str(front), str(manuscript),
+        "-o", str(src),
         "--from=markdown", "--to=html", "--standalone",
         "--toc", "--toc-depth=1",
         "-M", "title=The Art of Building AI Coding Agents",
         "-M", "author=Bill Cox",
+        "-M", "publication-directory=book",
         "-H", header.name,
-        "--lua-filter", str(BOOK.parent / "scripts" / "publication-links.lua"),
-        "--lua-filter", str(BOOK.parent / "scripts" / "print-sidebars.lua"),
+        "--lua-filter", str(ROOT / "scripts" / "publication-links.lua"),
+        "--lua-filter", str(ROOT / "scripts" / "print-sidebars.lua"),
     ]
     print("pandoc: regenerate interior-print.html")
     r = subprocess.run(cmd, cwd=BOOK, capture_output=True, text=True)
@@ -300,7 +322,7 @@ def build_reading_pdf(interior_path: Path) -> None:
     Resolve those names in the original PDF, then offset explicit page targets.
     resolve_link also converts PDF coordinates to PyMuPDF page coordinates.
     """
-    output = BOOK / "The Art of Building AI Coding Agents.pdf"
+    output = OUTPUT / "The Art of Building AI Coding Agents.pdf"
     with pymupdf.open(interior_path) as interior, pymupdf.open() as reading:
         rect = interior[0].rect
         cover = reading.new_page(width=rect.width, height=rect.height)
@@ -364,8 +386,8 @@ def check_reading_pdf(interior_pdf: Path, output: Path) -> None:
 
 
 def main() -> None:
-    src = BOOK / "interior-print.html"
-    pdf = BOOK / "The Art of Building AI Coding Agents - Print Interior.pdf"
+    src = OUTPUT / "interior-print.html"
+    pdf = OUTPUT / "The Art of Building AI Coding Agents - Print Interior.pdf"
 
     run_pandoc(src)
     html = src.read_text()
@@ -377,13 +399,22 @@ def main() -> None:
     titles = [strip_tags(t) for _, t in entries]
     print(f"TOC entries: {len(titles)}")
 
-    print("render: Chrome (single layout pass)")
+    print("render: Chrome (measure layout)")
     render(src, pdf)
     check_type_size(pdf)
     mapping = build_map(pdf, titles)
     missing = [t for t in titles if t not in mapping]
     if missing:
         sys.exit(f"FATAL: headings never matched a page: {missing[:5]}")
+    recto_html = recto_preface_html(html, mapping["Preface"])
+    if recto_html != html:
+        print("render: add measured recto spacer and verify layout")
+        src.write_text(recto_html)
+        render(src, pdf)
+        mapping = build_map(pdf, titles)
+        missing = [t for t in titles if t not in mapping]
+        if missing:
+            sys.exit(f"FATAL: headings missing after recto repair: {missing[:5]}")
     first, stamped = finish_pagination(pdf, entries, mapping)
     if build_map(pdf, titles) != mapping:
         sys.exit("FATAL: page stamping changed heading locations")

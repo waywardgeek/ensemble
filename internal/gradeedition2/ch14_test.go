@@ -9,7 +9,7 @@ import (
 // TestChapter14Context drives the real optional GUI and Agent through settings,
 // completed turns, crashes and reloads; only provider/MCP peers are external fakes.
 func TestChapter14Context(t *testing.T) {
-	gui, err := filepath.Abs("../../solutions/edition-3/ch14/gui")
+	gui, err := filepath.Abs("../../edition-2/solutions/ch14/gui")
 	if err != nil {
 		t.Fatal(err)
 	}

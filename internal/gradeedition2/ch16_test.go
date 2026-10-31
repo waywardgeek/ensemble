@@ -8,7 +8,7 @@ import (
 // TestChapter16Subscription exercises the actual GUI, login command and private
 // profile with only the external issuer/provider replaced by faithful peers.
 func TestChapter16Subscription(t *testing.T) {
-	bin, clean, err := grade.Build("../../solutions/edition-3/ch16/gui")
+	bin, clean, err := grade.Build("../../edition-2/solutions/ch16/gui")
 	if err != nil {
 		t.Fatal(err)
 	}

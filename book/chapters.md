@@ -1,7 +1,9 @@
 # Chapters
 
-The second edition is complete through Gateway. Chapter 25 is reserved for
-the ongoing Codex-to-Ensemble crossover.
+The C# foundation includes Goals, Gateway, and the optional Codex path. The
+final crossover chapter is the active replacement-readiness exercise, not yet
+accepted. See the [edition guide](README.md) for historical source endpoint
+numbers, verification limits, and builds.
 
 - [Preface](preface.md)
 - [Chapter 0: The Perpetual Machine](chapter-00.md)
@@ -21,20 +23,20 @@ the ongoing Codex-to-Ensemble crossover.
 - [Chapter 14: The World's Best Context Engineering, Before Breakfast](chapter-14.md)
 - [Chapter 15: The Invisible Invoice](chapter-15.md)
 - [Chapter 16: Leaving Anthropic for OpenAI](chapter-16.md)
-- [Chapter 17: The Crossover](chapter-17.md)
-- [Chapter 18: Giving the Agent the Web, and a Status Line](chapter-18.md)
-- [Chapter 19: The Sandbox](chapter-19.md)
-- [Chapter 20: The Ensemble](chapter-20.md)
-- [Chapter 21: Managing the Swarm](chapter-21.md)
-- [Chapter 22: Forgetting on Purpose](chapter-22.md)
-- [Chapter 23: Auto-Recall](chapter-23.md)
-- [Chapter 24: While the Cache Is Broken](chapter-24.md)
-- [Chapter 25: Crossing Over to Ensemble](chapter-25.md)
-- [Chapter 26: Gateway](chapter-26.md)
-- [Epilogue](epilogue.md)
+- [Chapter 17: Giving the Agent the Web, and a Status Line](chapter-17.md)
+- [Chapter 18: The Sandbox](chapter-18.md)
+- [Chapter 19: The Ensemble](chapter-19.md)
+- [Chapter 20: Managing the Swarm](chapter-20.md)
+- [Chapter 21: Forgetting on Purpose](chapter-21.md)
+- [Chapter 22: Auto-Recall](chapter-22.md)
+- [Chapter 23: While the Cache Is Broken](chapter-23.md)
+- [Chapter 24: Gateway](chapter-24.md)
+- [Chapter 25: Goals](chapter-25.md)
+- [Chapter 26: Crossing Over to Ensemble](chapter-26.md)
+- [Epilogue: What we can rebuild](epilogue.md)
 - [A note from Bill](note-from-bill.md)
 
-Remaining chapters to be written may include:
+Ideas for future editions, not unfinished requirements of this one:
 
 - **Artifacts, deep dive.** Ch8 introduced the artifact; this goes further:
   renderers, addressable bytes, the content-addressed store that ch15 Q3
@@ -48,9 +50,7 @@ Remaining chapters to be written may include:
 - Ollama local support, asked for by multiple commenters on LinkedIn.
 - Message board for agents to collaborate.
 - Auto-healing: a bug detection triggers a coding agent with exact logs and instructions to create reporo and if done, then repair.
-- Goals: messages that don't compact away until explicity marked as done.
 - Android and/or iPhone apps to interact with agents.  In particular, I want to remotely code via my phone, listing at high speed, talking to control the agent, so I can code while I mountain bike through the hills on fire roads.
-- Switch OpenAI to reuse the Codex OAuth key, and hit the codex endpoing, until OpenAI fixes their official OAuth flow.
 - Multimedia: paste/attach/read_file images, maybe voice, and what else?
 - Screen snapshots, saved as files in io, and read.
 - full computer auotmation.

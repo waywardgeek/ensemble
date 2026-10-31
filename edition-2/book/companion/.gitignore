@@ -1,0 +1,6 @@
+__pycache__/
+# Keep the requested upload artifacts; regenerate working Markdown and HTML.
+/build/*
+!/build/*.pdf
+!/build/*.epub
+/build/*.numbered.pdf

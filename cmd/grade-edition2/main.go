@@ -49,7 +49,7 @@ func run() int {
 	}
 	path := flag.Arg(0)
 	if path == "" {
-		path = fmt.Sprintf("./solutions/ch%02d", *chapter)
+		path = fmt.Sprintf("./edition-2/solutions/ch%02d", *chapter)
 	}
 	if *jobsOnly && (*chapter != 4 || *consumer != "" || *consumerCase != "") {
 		fmt.Fprintln(os.Stderr, "-jobs-only requires Chapter 4 and excludes consumer flags")

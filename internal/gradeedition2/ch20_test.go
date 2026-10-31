@@ -9,7 +9,7 @@ import (
 // TestChapter20RootChat checks two completed real GUI turns with fleet enabled,
 // so a root missing-submit loop cannot be concealed by early process EOF.
 func TestChapter20RootChat(t *testing.T) {
-	bin, cleanup, err := grade.Build("../../solutions/edition-3/ch20/gui/cmd")
+	bin, cleanup, err := grade.Build("../../edition-2/solutions/ch20/gui/cmd")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -26,7 +26,7 @@ func TestChapter20RootChat(t *testing.T) {
 // TestChapter20Structured runs the scored schema, validation, JSON fan-in and
 // durable-row predicates through a real submitted CLI and its actual children.
 func TestChapter20Structured(t *testing.T) {
-	bin, cleanup, err := grade.Build("../../solutions/edition-3/ch20/cmd/ch02")
+	bin, cleanup, err := grade.Build("../../edition-2/solutions/ch20/cmd/ch02")
 	if err != nil {
 		t.Fatal(err)
 	}

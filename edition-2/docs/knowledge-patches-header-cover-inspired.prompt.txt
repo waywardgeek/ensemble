@@ -1,0 +1,12 @@
+Use case: stylized-concept
+Asset type: wide header illustration for the paper "Knowledge Patches: Maintaining Software by Maintaining What Builds It."
+
+Input image: the supplied book cover is a visual style and subject reference. Create a NEW landscape illustration inspired by its artwork. Do not reproduce its typography or portrait layout.
+
+Use the reference's elegant engineering-book aesthetic: warm ivory paper, deep navy ink, precise architectural drafting, beautifully rendered dark metal and brass mechanisms, subtle engraved shading and tangible layered pages. Match the mature, carefully crafted feeling of the cover.
+
+Compose one coherent scene in a wide approximately 3:1 frame. An open, substantial engineering codebook occupies the foreground. A flowing blueprint sheet rises out of its pages and sweeps horizontally across the scene, carrying a simple architectural design that transitions from navy construction lines into a small, solid precision-built mechanism. A mechanical drafting arm like the one in the cover reaches back to draw a corrected detail directly into an earlier page of the book. A restrained copper-orange curved arrow connects the discovered improvement in the constructed mechanism back to the correction on the page. The enduring knowledge is updated in the book, from which the improved mechanism can be built again.
+
+Keep the book, flowing blueprint, and drafting arm large and visually legible. Use an amber highlight to make the one corrected detail clear. Generous cream negative space, crisp dark outlines, high contrast, restrained detail readable at document-header size. Preserve the cover's physical depth, elegant craftsmanship, and material texture. Recompose for landscape; do not stretch or crop the supplied cover.
+
+No text, title, author name, letters, logos, watermarks, cartoon people, cute robots, glowing brains, lightbulb icons, or corporate infographic boxes.

@@ -1,66 +1,59 @@
-# Build the browser/terminal application by default, not the book tooling.
+# Edition 3 C# application; Go is retained for grading and publishing tools.
 .DEFAULT_GOAL := all
+DOTNET ?= dotnet
+DOTNET_PATH := $(shell command -v $(DOTNET) 2>/dev/null)
 GO ?= go
+CH ?= 1
 
-.PHONY: all build ensemble cli clean
+.PHONY: all build ensemble cli clean test test-csharp test-go test-legacy-go vet fmt lint-prose grade grade-dir fake fake-serve book ebook print
 all: build
 build: ensemble
 
-# Let Go track source, nested-module and embedded-asset dependencies.
 ensemble:
-	cd agent/gui && $(GO) build -o ../../ensemble ./cmd
+	$(DOTNET) build agent/Examples/Gui/Gui.csproj
+	@printf '%s\n' '#!/bin/sh' 'set -eu' 'export DOTNET_HOST_PATH="$${DOTNET_HOST_PATH:-$(DOTNET_PATH)}"' 'here=$$(CDPATH= cd -- "$$(dirname -- "$$0")" && pwd)' 'exec "$$here/agent/start" "$$@"' > ensemble
+	@chmod +x ensemble
 
-# Optional terminal-only client; retain the documented bin/ensemble path.
 cli:
-	mkdir -p bin
-	cd agent && $(GO) build -o ../bin/ensemble .
+	$(DOTNET) build agent/Cli/Ch04.csproj
 
 clean:
-	rm -f ensemble bin/ensemble
+	$(DOTNET) clean agent/Examples/Gui/Gui.csproj
+	$(DOTNET) clean agent/Cli/Ch04.csproj
+	rm -f ensemble
 
-.PHONY: test vet fmt lint-prose grade grade-dir fake fake-serve book ebook
+test: test-csharp test-go
+test-csharp:
+	$(DOTNET) run --project agent/Tests/Tests.csproj --no-launch-profile
 
-# The root module contains grading/tooling; runtime modules remain separate.
-# Historical first-edition graders and mutation tools live under edition-1/.
-test: vet
-	go test ./cmd/... ./internal/...
+test-go: vet
+	$(GO) test ./cmd/... ./internal/gradeedition3 ./internal/fakevendor ./internal/fakeanthropic
 
+# Historical source-layout/pricing expectations are not V3 acceptance.
+test-legacy-go:
+	$(GO) test ./cmd/... ./internal/...
 vet:
-	go vet ./cmd/... ./internal/...
-
+	$(GO) vet ./cmd/... ./internal/...
 fmt:
-	gofmt -l -w cmd internal
-
+	$(GO) fmt ./cmd/... ./internal/...
 lint-prose:
-	go run ./cmd/lintprose $(LINTFLAGS) book/preface.md book/chapter-[0-9][0-9].md
+	$(GO) run ./cmd/lintprose $(LINTFLAGS) book/preface.md book/chapter-[0-9][0-9].md
 
-# Edition 2 numbering. Chapters 17/24 are ungraded; 25 is a placeholder.
-CH ?= 1
-GRADE_CHAPTERS := 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 18 19 20 21 22 23 26
-.PHONY: $(addprefix grade,$(GRADE_CHAPTERS))
-grade:
-	go run ./cmd/grade-edition2 -ch $(CH) $(GRADEFLAGS)
-
-$(addprefix grade,$(GRADE_CHAPTERS)): grade%:
-	go run ./cmd/grade-edition2 -ch $* $(GRADEFLAGS)
-
-# Example: make grade-dir CH=26 DIR=./agent
-grade-dir:
-	@test -n "$(DIR)" || (echo 'Set DIR to the submission directory' >&2; exit 2)
-	go run ./cmd/grade-edition2 -ch $(CH) $(GRADEFLAGS) $(DIR)
+# Always supply an explicit C# executable/wrapper and chapter-specific flags.
+grade grade-dir:
+	@test -n "$(DIR)" || (echo 'Set DIR to the explicit submission or CLI wrapper; see the chapter grading scope' >&2; exit 2)
+	$(GO) run ./cmd/grade-edition3 -ch $(CH) $(GRADEFLAGS) $(DIR)
 
 VENDOR ?= anthropic
 FAKE_CH ?= 3
 fake:
-	go run ./cmd/fakevendor -ch $(FAKE_CH) -vendor $(VENDOR) chat
-
+	$(GO) run ./cmd/fakevendor -ch $(FAKE_CH) -vendor $(VENDOR) chat
 fake-serve:
-	go run ./cmd/fakevendor -vendor $(VENDOR)
+	$(GO) run ./cmd/fakevendor -vendor $(VENDOR)
 
-# The assembled manuscript is a publication deliverable, committed deliberately.
 book:
 	scripts/assemble-book.sh > book/the-art-of-building-ai-coding-agents.md
-	@wc -w < book/the-art-of-building-ai-coding-agents.md | xargs -I{} echo "book/the-art-of-building-ai-coding-agents.md: {} words"
-
 ebook: book
 	scripts/build-ebook.sh
+print: book
+	python3 book/build-print.py

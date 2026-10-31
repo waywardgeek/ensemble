@@ -1,5 +1,11 @@
 # Chapter writing procedure
 
+> **Historical procedure, not the governing workflow for this completed C# run.**
+> Bill superseded the coordinator/student procession with direct personal
+> implementation by Cadence. See the [current C# procedure](../docs/edition-3-csharp-procedure.md)
+> and [execution record](../docs/edition-3-csharp-progress.md). The earlier
+> method below is preserved as history; it supplies no fresh execution authority.
+
 ## Governing method: remaining Edition 3 chapters and Edition 4
 
 Bill has selected the [Teach Your AI system](https://github.com/waywardgeek/teach-your-ai)

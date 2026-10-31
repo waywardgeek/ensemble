@@ -4,6 +4,92 @@
 measurements and dated API observations describe that work. The second-edition
 student's results are identified separately below.*
 
+## TL;DR
+
+Keep one authoritative record of what happened. Derive the conversation context
+from that record, then translate the context into each vendor's request format.
+Translate replies back into the same shared vocabulary. Vendor differences belong
+at those boundaries, not throughout the agent.
+
+In this chapter you will:
+
+- Preserve Chapter 1's conversation behavior while adding an append-only event
+  log, replay, and an offline command that shows the request without sending it.
+- Build translators for Anthropic Messages, OpenAI Chat Completions, and Gemini
+  GenerateContent. All three use the same recorded conversation.
+- Keep recorded facts separate from what the next request includes. Redaction
+  changes the derived context; vendor ordering and missing-result recovery change
+  only the outgoing request. Neither rewrites the original events.
+- Record token counts in four non-overlapping categories: fresh input, cache
+  writes, cache reads, and output. Unknown usage is not zero usage.
+- Implement the C# vocabulary and operation declarations in Common, with method
+  bodies in their responsible modules. Agent owns History and Engine; both retain
+  their parent reference. No second transcript or service-connection layer is
+  needed.
+
+The exercise is one conversation model with three translations, not three agents.
+There is no tool execution, streaming, concurrency, or automatic retry yet.
+
+## In plain words
+
+Imagine keeping the original notes of a conversation, then preparing a copy for
+someone who requires a particular format. One recipient wants a tool's answer
+under a user heading. Another gives tools their own heading. You should not
+rewrite the original notes each time you change recipients.
+
+The agent has the same problem. Its **history** records what happened, in order:
+a person spoke, a request was sent, the model replied, or a tool result arrived.
+Its **context** is what those events mean for the conversation now. Its **request**
+is a translation of that context for one particular model API. History is the
+record; context and requests can be rebuilt from it.
+
+Suppose a tool returned private information that should no longer reach the
+model. Add an event saying to redact it. When history is replayed, the context
+contains a useful placeholder instead of that information. The original result
+remains in the log. This is exclusion from future requests, not secure deletion
+from disk.
+
+Now suppose the log contains a tool call but no answer. Perhaps execution was
+interrupted; the record does not tell us. Do not run the tool again or invent an
+outcome. Where the vendor requires a paired answer, the outgoing request can say
+that no result was recorded and the outcome is unknown. That repair belongs only
+to the request. A real recorded answer takes precedence, and an ambiguous pairing
+must be refused rather than guessed.
+
+Some information is temporary. This chapter treats an ephemeral instruction as a
+current-status slot: a newer update replaces the pending one, an empty update
+clears it, and sending the next request consumes it, even if that request fails.
+The arrival events remain in history. The temporary instruction does not become
+another permanent conversation entry or replace the stable primary instructions.
+
+Token accounting needs the same honesty. Vendors count cached tokens differently,
+so translate their numbers into the four shared categories before adding them.
+An omitted optional count may mean zero; a malformed supplied count does not.
+Keep independently known counts, mark affected counts unknown, and report the
+incomplete accounting rather than manufacture a plausible total.
+
+The program's organization should make these responsibilities easy to find.
+Agent owns History, which records and replays events, and Engine, which translates
+and sends requests. Each child knows its owning Agent, so access follows the real
+relationships rather than copied services or global searches. Construction calls
+the parent's add method, which establishes both ends. Destruction calls the
+parent's remove method, which removes the child and clears its back-reference;
+the destructor does not finish a half-completed relationship change. Destruction
+also releases owned resources. Ordinary value-like event and content records
+need no such ownership machinery.
+
+In C#, Common declares the shared types, their state and relationships, and the
+operations other modules may call. Matching partial type sections put the bodies
+in Agent, History, and Engine source directories. The compiler combines those
+parts into the same objects in one assembly. We are separating responsibilities,
+not building wrappers to connect duplicate objects.
+
+You can inspect the result without buying a model response: replay a saved log
+and render it for each vendor. The formats should differ; the recorded facts
+should not. Local fakes test the protocol and failure behavior. They cannot prove
+that a real provider accepts the request, and a passing grade cannot prove that
+the code respects these ownership rules. We must inspect those directly.
+
 ## 2.0 The interface that was a client
 
 Somewhere in my source tree there is an interface called `AIClientInterface`,
@@ -61,13 +147,13 @@ a clean win.
 
 The tell is in the code, and you can see it without knowing the story:
 
-```go
-// DON'T. This is the mistake, in its natural habitat.
-type AIClientInterface interface {
-	SendMessage(msgs []ClaudeMessage) (*ClaudeResponse, error)
-	CountTokens(msgs []ClaudeMessage) (int, error)
-	// ...eighteen more methods, each shaped by what ClaudeClient
-	//    already happened to do
+```csharp
+// DON'T: this interface exposes a vendor's vocabulary.
+public interface IAIClient
+{
+    Task<ClaudeResponse> SendMessageAsync(IReadOnlyList<ClaudeMessage> messages);
+    int CountTokens(IReadOnlyList<ClaudeMessage> messages);
+    // ...eighteen more operations shaped by ClaudeClient.
 }
 ```
 
@@ -79,32 +165,34 @@ requirements, and then defends them.
 
 ## 2.1 Taking Chapter 1 apart
 
-Chapter 1 gave you this and told you to enjoy it:
+Chapter 1's C# solution stores completed conversation pairs as immutable
+messages. Each message has a role and a string:
 
-```go
-type Message struct {
-	Role    string `json:"role"`
-	Content string `json:"content"`
+```csharp
+// Chapter 1 value-like message, not a relationship-bearing owner.
+public sealed partial class Message
+{
+    public readonly string Role;
+    public readonly string Content;
+    public partial Message(string role, string content);
 }
-
-type Conversation []Message
 ```
 
-That struct carried a working agent, and you have talked to it. Now list what
+That shape carried a working agent in Chapter 1. Now list what
 it cannot say.
 
 It cannot say what the model actually returned as opposed to what you decided
 to send back. It cannot hold a tool call, or the result of one, or tell them
 apart from prose. It cannot record that something was removed, so a redaction
 is indistinguishable from a conversation that never had the content. It has no
-place for token counts, so `usage` lives in two integers on Engine and dies
+place for token counts, so `usage` lives in a value on Engine and dies
 with the process. It cannot say which model produced a reply, which will matter
 the first time you switch models mid-conversation and a vendor asks for
 material only the original model can read. And its one structural field,
 `Role`, belongs to a vendor. It is one company's word for one company's rule,
 and it is about to be three companies' words for three rules.
 
-Every one of those is a fact about the conversation, and the struct has room
+Every one of those is a fact about the conversation, and that value has room
 for none of them. It was a data structure for one vendor's request body,
 small enough to mistake for the other thing.
 
@@ -134,18 +222,49 @@ before there are tools. The governing rule: data structures are destiny. If they
 fix is the rewrite §2.0 just described. So the shape gets built before the
 capability. Later code gets a vocabulary for the facts it will need to record.
 
-Extend your own accepted Chapter 1 before consulting the reference solution.
-The reviewer compares the completed attempt afterward. The grader reads the
-binary's behavior; it cannot tell whether the chapter taught you enough to
-build it without an answer key.
+Start from the runnable C# Chapter 1 endpoint at `solutions/ch01`.
+Keep its Ensemble → Agent → Engine relationships and complete parent add/remove
+operations. Add History as another strongly owned child of Agent. Remove Agent's
+completed-pair list rather than keeping a second transcript beside History.
 
-History is the new owner in this chapter. Agent owns it alongside Engine;
-History owns the log, reduction, loading and dumping. Shared event/context
-types stay in `internal/common`, and the behavior stays in `internal/history`.
-Engine's vendor translators receive owner access and return facts for Agent to
-append through History. Neither spoke imports the other. Keep the separate
-optional GUI module as a small public-API stub over the same Agent as the CLI;
-browser and WebSocket behavior come in their own chapter.
+This is a deliberate change in failure semantics. Chapter 1 commits a pair only
+after a successful exchange. Chapter 2 records the human input and request attempt
+as facts even if the network fails; the failure is another event, not grounds to
+erase the attempt. History reduces those events into the next Context.
+
+Use C# 14 on .NET 10. The existing Go grader can assess a compiled C# executable
+because the boundary is JSON, HTTP and process behavior, not the source language.
+Read Common first, then construction/destruction, the reducer, and finally the
+vendor boundaries. The CLI is a consumer of those operations, not another owner
+of conversation state.
+
+Ensemble owns Agents; each Agent owns History and Engine. Each child takes
+its parent in its constructor and calls the parent's add method. That method
+establishes both ends before returning. The parent's remove method likewise
+removes the child and clears its back-reference; callers do not finish a partial
+relationship change. Refused changes leave both ends unchanged. Destroy cascades
+through owned children and calls those complete remove methods. History closes its log;
+Engine disposes its HTTP client. Neither owns the other.
+
+Common declares all shared types, persistent fields, relationships and partial
+operations. Application, Agent, History, Engine and Serialization implement
+those declarations. These source directories compile together into one assembly
+and namespace; partial types do not connect separate objects or DLLs. Common
+contains no algorithms. Functional modules use Common's declarations, not
+another spoke's private helpers.
+
+Engine reaches configuration, History and logging through its parents. History
+owns recording, reduction, loading and dumping. Engine normalizes replies and
+records their events through History before publishing the answer. The CLI owns
+no transcript. A construction-only GUI stub consumes the same core without a
+windowing framework; browser and WebSocket behavior belong to later chapters.
+
+Events, context snapshots, provenance and parts are explicitly value-like and
+immutable. They need no holder back-pointers or logical Destroy operations.
+Derived Context is not a second authoritative log. ImmutableArray prevents a
+caller from mutating a returned view. Exact JSON arguments use JsonElement,
+cloned away from the parser's document lifetime, never rounded through double.
+Comments explain relationships, contracts and reasons, not merely syntax.
 
 ## 2.2 "But I only use one vendor"
 
@@ -234,23 +353,27 @@ saves the afternoon.
 
 The original event shape, retained here as shared vocabulary:
 
-```go
-type Seq uint64
-
-// Event is the unit of the log. Exactly one payload pointer is non-nil,
-// selected by Type. Verbose on purpose: it round-trips as JSON with no
-// registry, and it makes the reducer's switch exhaustive by construction.
-type Event struct {
-	Seq  Seq       `json:"seq"`
-	Type EventType `json:"type"`
-	Time time.Time `json:"time"`
-
-	Message  *MessageData  `json:"message,omitempty"`
-	Request  *RequestData  `json:"request,omitempty"`
-	Response *ResponseData `json:"response,omitempty"`
-	Tool     *ToolData     `json:"tool,omitempty"`
-	Redact   *RedactData   `json:"redact,omitempty"`
-	Error    *ErrorData    `json:"error,omitempty"`
+```csharp
+public sealed partial class Event
+{
+    public readonly long Seq;
+    public readonly EventKind Kind;
+    public readonly DateTimeOffset? Time;
+    public readonly Actor? Actor;
+    public readonly ImmutableArray<Part> Parts;
+    public readonly Provenance? From;
+    public readonly Usage? Usage;
+    public readonly string CallID, Name, Error, Reason;
+    public readonly JsonElement? Args;
+    public readonly bool IsError;
+    public readonly long RedactFrom, RedactTo;
+    public readonly Redaction? Level;
+    public partial Event(EventKind kind, long seq = 0, DateTimeOffset? time = null,
+        Actor? actor = null, IEnumerable<Part>? parts = null, Provenance? from = null,
+        Usage? usage = null, string callID = "", string name = "", JsonElement? args = null,
+        bool isError = false, string error = "", long redactFrom = 0, long redactTo = 0,
+        Redaction? level = null, string reason = "");
+    public partial Event Numbered(long seq, DateTimeOffset time);
 }
 ```
 
@@ -302,17 +425,13 @@ Given the current context and just the next event, nothing else, you can
 compute the new context.
 
 ```
-newContext = Apply(context, event)
+newContext = History.Reduce(context, event)
 ```
 
-That notation describes information flow: everything needed to advance the
-context is in the context plus one event. It is not a demand for value
-semantics. In Go a reducer can mutate a context through a pointer; with
-`Context` in common, a free function in History's package keeps that behavior
-with its owner. A `Context` full of slices copied by value gives you two contexts
-sharing one backing array, a bug that looks exactly like renderer
-non-determinism and that §2.8 will make you hunt for in four other places
-first.
+Here Reduce is pure: it returns a new immutable Context and never modifies the
+input Context or Event. The log retains immutable values, and renderers receive
+derived snapshots. No copied list shares a mutable backing array with a caller.
+History owns the reduction operation; Common declares it without a body.
 
 The consequence that matters most is about *where* decisions get made.
 Classification is the reducer's job. The same arriving bytes mean different
@@ -338,7 +457,7 @@ Chapter 5; do not add its machinery to this synchronous exercise.
 
 Every pair not in that table is identity, and that sentence, more than the
 table, is what makes the reducer total. Write it as the `default` of the
-switch, and do not write it as a `panic`. What lands in the default is a
+switch, and do not throw an exception for it. What lands in the default is a
 *known* event arriving in a state that simply does not transition on it. An
 event type you do not recognize never reaches the switch at all, because the
 loader refused the log before you got here (§2.8), and that is the loud
@@ -371,24 +490,30 @@ removed. Dialogue, in order, with each entry attributed to whoever produced it.
 Pending ephemera. Token accounting. Opaque replay material, carried and never
 read. The shared shape is:
 
-```go
-type Context struct {
-	Turn     TurnState `json:"turn"`
-	Dialogue []Entry   `json:"dialogue"`
-	Ephemera PartList  `json:"ephemera"` // pending; delivered once, then cleared
-	Usage    Usage     `json:"usage"`    // running totals, vendor-normalized
+```csharp
+public sealed partial class Entry
+{
+    public readonly long Seq;
+    public readonly Actor Actor;
+    public readonly ImmutableArray<Part> Parts;
+    public partial Entry(long seq, Actor actor, IEnumerable<Part> parts);
 }
 
-type Entry struct {
-	Seq   Seq      `json:"seq"`
-	Actor Actor    `json:"actor"`
-	Parts PartList `json:"parts"`
+public sealed partial class Context
+{
+    public readonly ImmutableArray<Entry> Dialogue;
+    public readonly ImmutableArray<Part> Ephemeral;
+    public readonly Phase Phase;
+    public readonly Usage Usage;
+    public partial Context(IEnumerable<Entry>? dialogue = null, IEnumerable<Part>? ephemeral = null,
+        Phase phase = Phase.Idle, Usage? usage = null);
 }
 ```
 
 `Context.Usage` is historical accounting derived from response events. Engine
-still owns the measured usage of its live exchanges. Loading an old log for
-offline rendering does not pretend that today's Engine made those requests.
+normalizes the counts from each reply and records them in History; it does not
+maintain a competing cumulative counter. Loading a log reconstructs the usage
+recorded in that log, not usage newly incurred by the current process.
 
 The actors are `Human`, `Agent`, `System`, and `Tool`. There is no `To`
 field, on purpose: addressing is a property of the room a conversation happens
@@ -396,51 +521,84 @@ in, and a `To` field invites a routing layer this book does not want to build.
 The `Tool` actor earns its keep in §2.6, where you watch three vendors disagree
 about who a tool is.
 
-Two words are missing from that struct. `Role` is gone. `Content` as a string
+Two words are missing from that class. `Role` is gone. `Content` as a string
 is gone. What replaced the string is the decision the rest of the chapter
 hangs on.
 
 ### Parts
 
-```go
-type Part interface{ isPart() }
+```csharp
+// Immutable, value-like content: no holder back-pointers.
+public enum RefKind { Path = 1, Uri, Handle }
 
-type TextPart   struct{ Text string }
-type BlobPart   struct{ MIME string; Ref Ref }
-type OpaquePart struct{ From Provenance; Data json.RawMessage }
-
-type ToolCallPart struct {
-	CallID string // the id AS ISSUED, by the model named in From
-	From   Provenance
-	Name   string
-	Args   json.RawMessage
-	Opaque json.RawMessage // replay material bound to THIS CALL
+public sealed partial class BlobRef
+{
+    public readonly RefKind Kind;
+    public readonly string Locator;
+    public partial BlobRef(RefKind kind, string locator);
 }
 
-type ToolResultPart struct {
-	CallID  string
-	Parts   []Part
-	IsError bool // a tool that ran and failed is CONTENT, not ErrorOccurred
+public abstract partial class Part { protected partial Part(); }
+
+public sealed partial class TextPart : Part
+{
+    public readonly string Text;
+    public partial TextPart(string text);
 }
 
-type RedactedPart struct {
-	Stub string
-	Ref  Ref // zero when the superseded content had no locator
+public sealed partial class BlobPart : Part
+{
+    public readonly string Mime;
+    public readonly BlobRef Ref;
+    public partial BlobPart(string mime, BlobRef reference);
+}
+
+public sealed partial class OpaquePart : Part
+{
+    public readonly Provenance From;
+    public readonly JsonElement Data;
+    public partial OpaquePart(Provenance from, JsonElement data);
+}
+
+public sealed partial class ToolCallPart : Part
+{
+    public readonly string CallID;
+    public readonly string Name;
+    public readonly Provenance From;
+    public readonly JsonElement Args;
+    public readonly JsonElement? Opaque;
+    public partial ToolCallPart(string callID, Provenance from, string name, JsonElement args, JsonElement? opaque = null);
+}
+
+public sealed partial class ToolResultPart : Part
+{
+    public readonly string CallID;
+    public readonly ImmutableArray<Part> Parts;
+    public readonly bool IsError;
+    public partial ToolResultPart(string callID, IEnumerable<Part> parts, bool isError = false);
+}
+
+public sealed partial class RedactedPart : Part
+{
+    public readonly string Kind;
+    public readonly string Reason;
+    public readonly long Bytes;
+    public readonly BlobRef? Ref;
+    public partial RedactedPart(string kind, long bytes, string reason, BlobRef? reference = null);
 }
 ```
 
-These names describe the variants, not a required Go decoding framework. The
-accepted student used one tagged Part struct with explicit fields, like Event,
-and kept the same JSON shapes. A sealed interface is also a choice; the wire
-contract and preserved distinctions are what matter.
+These declarations describe a closed family of value-like content variants.
+Their constructors validate and copy inputs in Serialization/Values.cs;
+JsonCodec reads and writes the tagged wire shapes. Part supplies only a common
+content vocabulary; its inheritance does not model containment or ownership.
 
 An entry's content is a list of typed parts: prose, a tool call, a tool result,
 a reference to bytes that live somewhere else, a vendor's opaque replay
 material, or the stub left behind when something was removed. A string can be
-the first of those and nothing else. A string is the Chapter 1 mistake wearing
-a struct.
+the first of those and nothing else. A string alone has the limitation we deliberately accepted in Chapter 1.
 
-`BlobPart` holds no bytes. It holds a `Ref{Kind, Locator}`, where the kind is a
+`BlobPart` holds no bytes. It holds a `BlobRef` with `Kind` and `Locator`, where the kind is a
 local path, a remote URI, or a framework handle, and there is deliberately no
 "inline" kind: base64 is a rendering decision made while building one vendor's
 request, and it never gets written back into the log. A bare path cannot
@@ -491,11 +649,17 @@ with a trap in it.
 The naive version of this field is `Vendor string`. It is wrong, and you will
 not find out until a user switches models in the middle of a conversation.
 
-```go
-type Provenance struct {
-	Vendor  Vendor  `json:"vendor"`
-	Model   string  `json:"model"` // OPEN set. Never switch on it.
-	Surface Surface `json:"surface"`
+```csharp
+public enum Vendor { Anthropic = 1, OpenAI, Gemini }
+public enum Surface { Messages = 1, ChatCompletions, GenerateContent }
+
+public sealed partial class Provenance
+{
+    public readonly Vendor Vendor;
+    public readonly string Model;
+    public readonly Surface Surface;
+    public partial Provenance(Vendor vendor, string model, Surface surface);
+    public partial bool Matches(Provenance target);
 }
 ```
 
@@ -555,7 +719,7 @@ and is never switched on, only compared: is this the same model that issued
 that signature? Make it an enum and you need a rebuild to record a model you
 have no other opinion about.
 
-Start the constants at `iota + 1`, so the zero value is invalid. Provenance
+Start each enum at 1, so the zero value is invalid. Provenance
 can never be reconstructed, so "nobody populated it" is precisely the bug you
 need to be loud, and a zero value that silently means "Anthropic" is a default
 wearing a disguise. Marshal them as readable strings, refusing unknown ones on
@@ -586,7 +750,7 @@ the fuse burns in production, on the agent you care most about, long after the
 design decision is unrecoverable.
 
 The natural thing to write, and the thing the reference solution once had, is
-a fifth field, `Redacted map[Seq]bool`, to remember which events have been
+a fifth field, `Dictionary<long, bool> Redacted`, to remember which events have been
 superseded. It grows forever, one entry per redaction for the life of the
 actor, and it is redundant, because the log already records every `Redacted`
 event permanently. The context does not need to remember that a redaction
@@ -598,21 +762,14 @@ unchanged because compaction replaces entries with a summary entry.
 
 ### The redaction family
 
-```go
-type RedactData struct {
-	From        Seq       `json:"from"`
-	To          Seq       `json:"to"`
-	Level       Redaction `json:"level"`
-	Replacement PartList  `json:"replacement,omitempty"` // RedactSummary only
-	Reason      string    `json:"reason,omitempty"`
-}
+```csharp
+public enum Redaction { Result = 1, Tool, Dialogue, Summary }
 
-const (
-	RedactResult   Redaction = iota + 1 // result content -> stub; the call survives
-	RedactTool                          // call and result both go
-	RedactDialogue                      // prose and reasoning go
-	RedactSummary                       // span replaced by compressed prose
-)
+// History assigns a sequence when recording this value.
+var redaction = new Event(EventKind.Redacted,
+    redactFrom: 10, redactTo: 12, level: Redaction.Summary,
+    parts: [new TextPart("The earlier exchange was summarized.")],
+    reason: "replace this range with a concise explanation");
 ```
 
 A span, a level, and an optional replacement, for a chapter that only ever
@@ -673,14 +830,27 @@ chapter. This one owes it only a shape it will not have to break.
 
 ### Usage
 
-```go
-type Usage struct {
-	Input      int `json:"input"`       // neither read from nor written to cache
-	CacheWrite int `json:"cache_write"` // typically costs MORE than plain input
-	CacheRead  int `json:"cache_read"`  // typically an order of magnitude LESS
-	Output     int `json:"output"`
+```csharp
+public sealed partial class Usage
+{
+    public readonly long? Input;
+    public readonly long? CacheWrite;
+    public readonly long? CacheRead;
+    public readonly long? Output;
+    public partial Usage(long? input = 0, long? cacheWrite = 0, long? cacheRead = 0, long? output = 0);
+    public partial Usage Add(Usage other);
 }
 ```
+
+Each counter is a nullable, nonnegative 64-bit integer. Null means unknown, not
+zero. Omitted optional cache counts default to zero; malformed supplied counts
+do not. Invalid required totals, invalid subtractions and overflow make the
+affected result unknown and produce a diagnostic; independent valid fields
+remain usable. An unknown addend makes that cumulative bucket unknown. Retain
+known output usage even when input usage is invalid. The optional Chat
+Completions cache-write field is usage.prompt_tokens_details.cache_write_tokens,
+alongside cached_tokens.
+
 
 Four integers, and they are the instrument that makes everything above
 tunable. You cannot set a token threshold you cannot measure, and you cannot
@@ -759,13 +929,12 @@ something you already model, it has leaked.
 > A parser turns one vendor's response back into truth. Distortion lives in
 > those two places and nowhere else.
 
-```go
-type Renderer interface {
-	Render(*Context, Config) (*http.Request, error)
-}
-
-type Parser interface {
-	Parse(status int, body []byte) ([]Event, error)
+```csharp
+// Common declarations; implementations belong in Engine/.
+public sealed partial class Engine
+{
+    public partial JsonObject Render(Context context);
+    public partial ImmutableArray<Event> Parse(int httpStatus, string responseBody);
 }
 ```
 
@@ -823,6 +992,12 @@ that is what Anthropic wanted, you will discover it in the copy-paste.
 Authorship is a rendering decision, and `Actor: Tool` is what §2.5 was
 modeling.
 
+A failed Gemini tool result must still convey failure even when its text is a
+valid JSON object. Wrap the complete object under `error`, preserving its fields;
+do not overwrite an existing field to add a flag. Successful objects can remain
+objects. The C# implementation wraps non-object output under `text`, nested
+under `error` for failures. Valid JSON does not establish success.
+
 ### Exhibit B: the merged message
 
 A tool result and the human's next instruction, in the same Anthropic user
@@ -861,6 +1036,29 @@ before putting all results first, preserving order within the results and
 within the remaining content. The original log and Context keep arrival order;
 only Anthropic's disposable request gets that grouping. The student's first
 tests passed with the bad ordering. An independent offline replay exposed it.
+
+An interruption can leave history with a tool call and no recorded result. That
+absence does not establish whether the tool ran, failed or succeeded. While
+rendering, look for the real recorded result correlated to each call, including
+one that arrived later; use it whenever present. Do not rerun the tool to repair
+a transcript.
+
+For a missing result, use this bridge's recovery policy: emit a deterministic,
+wire-only `tool_result` with the exact call ID as `tool_use_id`,
+`is_error: true`, and the text “No result was recorded; execution outcome
+unknown.” The error flag describes the missing record, not a diagnosed tool
+failure; do not fabricate success either. Normalize only the disposable wire
+projection. Never mutate history or Context or append synthetic facts to either.
+Group all results immediately after their assistant `tool_use` message, before
+any intervening user text. Validate call/result pairing, adjacency and block
+order before sending; if the history cannot be represented safely, return a
+local error instead of malformed HTTP.
+
+Test a single missing result and a partially completed multi-call batch with
+intervening user text. A real result arriving later must supersede the placeholder
+in a freshly rendered projection. Check deterministic replay and an unchanged
+dumped log. These are renderer tests over supplied history; Chapter 2 still
+requires no actor or tool-execution machinery.
 
 ### Exhibit C: parsing back
 
@@ -979,7 +1177,9 @@ the second no matter how good your seam is, because Gemini is stranger, and
 hours are evidence about the vendor. Context diffs are evidence about the
 design, and they are also the only instrument a grader can read.
 
-### How the bet went
+### How the bet went in the earlier editions
+
+These results belong to the earlier Go implementations, not this C# trial.
 
 Built in the fixed order, verified against live APIs on 2026-09-12:
 
@@ -1099,8 +1299,12 @@ In default protocol mode, one JSON object occupies one line:
 | input | output and effect |
 | --- | --- |
 | `{"user":"Hello"}` | one `{"assistant":"..."}` answer |
-| `{"ephemeral":"STATUS=ready"}` | `{"ack":"ephemeral"}`; queue for the next request, without making a model call |
+| `{"ephemeral":"STATUS=ready"}` | `{"ack":"ephemeral"}`; replace the pending slot, without making a model call |
 | EOF | `{"usage":{"input":0,"cache_write":0,"cache_read":0,"output":0}}`, with actual cumulative counts in place of the zeros; exit 0 |
+
+The pending ephemeral value is one replaceable slot, not a queue. A newer update
+replaces it; an empty update clears it. Rendering does not consume it.
+`RequestSent` consumes it even when the subsequent HTTP attempt fails.
 
 The ephemeral payload is a string, including when it is empty. Its arrival is
 logged as System input, delivery consumes the pending material, and it never
@@ -1138,7 +1342,8 @@ Event payloads nest under the matching envelope field. Messages use
 return uses `tool:{call_id,parts,is_error}`. `is_error` may be omitted for false.
 Errors use `error:{message}`. Redaction uses `redact:{from,to,level,reason}`,
 plus `replacement` for a summary. Its levels are `redact_result`, `redact_tool`,
-`redact_dialogue`, `redact_summary`; From/To are an inclusive sequence span.
+`redact_dialogue`, `redact_summary`; JSON `from`/`to` are an inclusive sequence
+span, represented by `RedactFrom` and `RedactTo` in C#.
 
 Parts use a `type` tag: `text`, `blob`, `opaque`, `tool_call`, `tool_result` or
 `redacted`, with the lowercase field names from §2.5 (`call_id` and `is_error`
@@ -1180,6 +1385,34 @@ a model is wrong in exactly the places you did not think to model; §2.6 has
 the receipt, a `null` the fake accepted for weeks and the live API refused. A
 green grader is a claim about your plumbing. If you want your agent to work
 live, you have to run it live.
+
+### Build and grade the C# solution
+
+The solution is under `agent`. Common, Application, Agent,
+History, Engine and Serialization compile into one core assembly. Cli, GuiStub
+and Tests reference it. There are no external NuGet package dependencies.
+The GUI stub only constructs and destroys the shared owners; it is not a GUI.
+
+```sh
+dotnet run --project solutions/ch02/Tests/Tests.csproj -c Release
+dotnet run --project solutions/ch02/GuiStub/GuiStub.csproj -c Release
+dotnet publish solutions/ch02/Cli/Ch02.csproj -c Release -o ./bin/ch02
+./bin/grade-edition2 -ch 2 -json ./bin/ch02/Ch02
+./bin/grade-edition3 -ch 1 -json ./bin/ch02/Ch02
+```
+
+For a private SDK, invoke dotnet by its full path and set DOTNET_ROOT to that
+SDK directory for the apphost. This requires no global PATH change. The apphost
+is Ch02.exe on Windows. In the exercise, ./ch02 means this built executable.
+Supply the executable to the grader: its source-directory mode assumes Go.
+The grader need not be rewritten merely because the solution language changed.
+
+Run gates sequentially, stopping on failure. A passing grade needs both parsed
+passed:true and exit zero. Keep failures as evidence when correcting them.
+The Edition 3 Chapter 1 gate adds real delayed-header and delayed-body
+lifetime phases to the ordinary parity checks; allow at least six minutes. Tests use real components and working
+loopback HTTP fakes, never mocks of internal calls. A green grade does not
+verify the architecture: inspect declarations, relationships and access paths.
 
 ### The checks
 
@@ -1251,11 +1484,8 @@ as well as replay, and the interleaved-result case from Exhibit B. Exact Ref
 carryforward through the reducer remains a source-test and review obligation;
 a secret-free rendered stub alone cannot prove which locator survived inside.
 
-From the repository root, grade your own directory with:
-
-```bash
-go run ./cmd/grade-edition2 -ch 2 path/to/your/solution
-```
+Use the compiled-executable invocation in **Build and grade the C# solution**
+above. The grader's source-directory mode applies to Go solutions, not C#.
 
 The revised table preserves 100 points. The old four-point URI-render check is
 removed from this chapter's scope and its points join the corrected redaction
@@ -1271,84 +1501,45 @@ are building one context and three ways in and out of it.
 
 ## 2.9 Drive it yourself
 
-Ungraded. Do it anyway.
+Run the actual CLI, not only component tests. With current models and provider
+access you are authorized to use, try one short text session per vendor. Set
+the model, endpoint and credential through the environment contract above;
+keep credentials out of commands, logs, rendered requests and Git.
 
-Chapter 1 ended by telling you to talk to the thing you built, because that was
-a better argument for the architecture than a diagram. This chapter's payoff is
-quieter and, once you see it, larger: the same conversation, through three
-different vendors, from one log.
-
-Start with the free, keyless grader above, pointed at your own implementation.
-The first edition's convenience launchers run its reference solution; they do
-not demonstrate the program you just wrote.
-
-The fake's scripted replies do not depend on understanding what you said.
-A fake proves your plumbing, not your prompting.
-
-Build from your implementation directory, then use your actual chat interface
-against all three. Before each invocation, set `LLM_MODEL`, `LLM_API_KEY` and
-`LLM_BASE_URL` for that provider, using a discovered model rather than a name
-remembered from the book:
-
-```
-go build -o ch02 .
+```sh
 LLM_VENDOR=anthropic CH02_LOG=anthropic.jsonl ./ch02 chat
 LLM_VENDOR=openai CH02_LOG=openai.jsonl ./ch02 chat
 LLM_VENDOR=gemini CH02_LOG=gemini.jsonl ./ch02 chat
 ```
 
-Ask the model to invent a codename, ask an unrelated question, then ask for the
-codename back. Recall is the visible payoff; inspecting requests independently
-checks that the whole history was sent. In the student's October 9 terminal
-runs, Anthropic remembered “Quiet Lantern,” OpenAI “Blue Falcon,” and Gemini
-“SILENT VOYAGER.” Each session had its own word and log. The Anthropic session's
-four totals were:
+Ask for a codename, ask an unrelated question, then ask for the codename back.
+Inspect the outgoing requests to establish that earlier turns were sent; the
+model saying it remembers is not proof of how it received the information.
+End with EOF and inspect the four usage totals.
 
-```
-{"usage":{"input":324,"cache_write":0,"cache_read":0,"output":23}}
-```
+Then exercise the offline seam:
 
-This is the protocol-form representation of the totals displayed by chat.
-Four counters, disjoint by construction. None of the three vendors reports
-that shape, and §2.5 is the argument for why it is the one you record. The
-[live record](../solutions/evidence/ch02/live.txt) retains all three
-runs and an initial OpenAI HTTP 404. Discovery listed that model; the request
-still failed. No retry or guessed explanation was substituted for the result.
-
-The thing most worth trying: record one session, then render it as two
-different vendors without touching the network.
-
-```
+```sh
 CH02_LOG=anthropic.jsonl ./ch02 dump
 LLM_VENDOR=anthropic LLM_MODEL=offline ./ch02 render anthropic.jsonl
+LLM_VENDOR=openai LLM_MODEL=offline ./ch02 render anthropic.jsonl
 LLM_VENDOR=gemini LLM_MODEL=offline ./ch02 render anthropic.jsonl
 ```
 
-The student's nine-event Anthropic log produced 718 bytes of Anthropic JSON
-and 650 bytes of Gemini JSON, including the trailing newline. One opens with `system` and
-`messages`, the other with `systemInstruction` and `contents`. Nothing is
-shared but the conversation, and `seam-render` grades exactly this. Each of the
-three live logs was rendered twice to each of the three targets: all nine pairs
-matched byte for byte with no key and an unreachable endpoint. These were text
-conversations; the run does not claim live tools, media or signature replay.
+Render twice per target and compare bytes. Remove credentials and point the
+endpoint at an unreachable loopback address: render and dump must need no
+provider. The log is vendor-neutral even though the requests differ.
 
-Then record against one vendor and render as another. A conversation that
-happened in Anthropic's format becomes a well-formed Gemini request. Nothing
-about that should work, and it does, because the log is nobody's wire format.
+Through the JSON-lines interface, send an ephemeral directive and two user
+turns. Inspect the log and requests: the directive is recorded, delivered with
+the first request only, and absent from persistent Dialogue. Also test replacing
+and clearing the pending slot without making a request.
 
-Try the ephemeral directive too, through the JSON-lines interface, and inspect
-the saved log and request projection. The student's purple-kettle instruction
-was delivered once. The model later claimed its earlier answer had been made
-up, even though that answer remained in the dialogue. Model narration and the
-record disagreed; the event/request boundary supplied the evidence.
+If provider access is unavailable or unauthorized, exercise the actual CLI
+against an owned local fake and report the live portion as blocked. Do not call
+the fake a model demonstration.
 
-Commit the reviewed state with only your intended paths, then give it a fresh
-tag. Keep actual grader results and any accepted exception in the chapter
-record; never move an old tag or turn an accepted exception into a score of 100.
-
-You now own a record of every conversation your agent will ever have that no
-vendor's schema can reach into, and it will replay through renderers you have
-not written yet, for wire formats that do not exist yet. The one in §2.0 cost
-a year and was still being paid for in the first-edition account. This time,
-that cost is a lesson the student can apply before paying it again.
-
+You now have one authoritative record, a derived context and three disposable
+vendor projections. The architectural test is whether you can explain where
+each fact lives and follow each relationship in the code—not merely whether
+the program produced the expected reply.

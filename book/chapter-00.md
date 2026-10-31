@@ -2,9 +2,11 @@
 
 *The Singularity as it Happened*
 
-*Second-edition note: the opening account and comparison figures below are
-preserved from the first edition's October 2026 account. They describe that
-work, not fresh measurements of today's products or of the new student build.*
+*Third-edition note: the opening account, opinions and comparison figures below
+are preserved from the first edition's October 2026 account. They describe that
+work, not fresh measurements of today's products or of the C# implementation.
+The third-edition implementation run is complete; the current Chapter 26
+crossover is still in progress, not an accepted replacement for daily use.*
 
 ---
 
@@ -28,7 +30,7 @@ I am the guru of this codebase, and this book encodes what I know: the art of bu
 
 Consider what the field has shipped.
 
-The one I have worked with extensively is Gemini CLI. Mocks everywhere instead of fakes. Nearly five thousand mock call sites as of October 2026. In December 2025 it was 255,000 lines of TypeScript. Today it is 559,193. It more than doubled while I was writing this book. Claude Code, reported at 512,000 lines of TypeScript, is in the same class. The winner, at 1.8 million lines of Rust, is Codex.
+The one I have worked with extensively is Gemini CLI. Mocks everywhere instead of fakes. Nearly five thousand mock call sites as of October 2026. In December 2025 it was 255,000 lines of TypeScript. By October 2026 it was 559,193. It more than doubled while I was writing this book. Claude Code, reported at 512,000 lines of TypeScript, is in the same class. The winner, at 1.8 million lines of Rust, is Codex.
 
 Ensemble does most of what these tools do in 27,042.
 
@@ -97,9 +99,11 @@ evidence, and it is also software someone wrote.
 Build one chapter on its accepted predecessor. Read its explanation as well as
 its exercise: the reason for a boundary is often what keeps the next feature
 from breaking it. Before writing code, load
-`.agents/skills/ensemble-coding/SKILL.md`. It carries the implementation and
-review rules into an agent's working context. Chapter 1 explains the initial
-architecture; later chapters introduce their own machinery when it is needed.
+the `ensemble-csharp` skill and follow the
+[C# edition procedure](../docs/edition-3-csharp-procedure.md). They carry the
+implementation and review rules into an agent's working context. Chapter 1
+explains the initial architecture; later chapters introduce their own machinery
+when it is needed.
 
 Keep the student away from the reference answers until it has attempted the
 exercise. Otherwise a successful build tells you that copying works. If the
@@ -110,7 +114,8 @@ by the model quietly choosing its favorite design.
 
 For each chapter, finish the same small cycle:
 
-1. Implement the stated capability and run its grader, module tests and vet.
+1. Implement the stated capability and run its applicable grader, .NET build
+   and tests.
    Check which packages and executable actually ran; a successful command with
    no tests selected proves little.
 2. Exercise the human interface with a real model. Type into the chat, read its
@@ -141,11 +146,14 @@ the defects tried; independent review and live use can still find a different
 mistake. Keep those findings too. They are material for teaching, not stains
 to scrub out of the experiment.
 
-This edition's first author-led attempt supplied an expensive warning. Writing
-expanded contracts before the student learned from the original exercises
+The second edition's first author-led attempt supplied an expensive warning.
+Writing expanded contracts before the student learned from the original exercises
 turned small tasks into larger ones, and review approved the expansion. That
-attempt was stopped. The fresh student built first; these chapters enhance the
-original explanations using its accepted code and reviews. The history is in
+attempt was stopped. The fresh second-edition student built first; that edition
+enhanced the original explanations using its accepted code and reviews. The third edition
+now teaches the completed C# implementation, with chapter source maps pointing
+to its preserved endpoints rather than changing their historical numbers.
+The second-edition attempt history is in
 [`docs/edition-2-attempt-1.md`](../docs/edition-2-attempt-1.md).
 
 ## The generation
@@ -170,16 +178,18 @@ After the crossing, every chapter you add is written with the tool the chapter e
 
 A self-improvement loop with graded checkpoints and mutation-tested guardrails, running on a model whose improvements must be demonstrated on each pass.
 
-For this experiment, Bill explicitly selected GPT-6 Astra (`gpt-6-astra`) at
-high reasoning. The new Ensemble has demonstrated actual coding with that
+For the earlier crossover experiment, Bill explicitly selected GPT-6 Astra
+(`gpt-6-astra`) at high reasoning. The new Ensemble has demonstrated actual coding with that
 configuration: reading a program, reproducing failures, editing it and passing
-the unchanged tests. Chapter 17 records that bounded task.
+the unchanged tests. That bounded task belongs to the earlier crossover record,
+not evidence of this edition's replacement readiness.
 
-At this edition's first publication, the implementation catches up through the
-first edition's final exercise, Gateway, now Chapter 26. The actual move from
-Codex into Ensemble has begun, and Chapter 25 is reserved for that experience.
-The crossover is not complete. Using Ensemble to produce Edition 3 remains the
-next goal; this second edition was built with Codex under Bill's direction.
+The earlier second edition was built with Codex under Bill's direction. The C#
+third edition was built inside Ensemble. That closes the development loop, but
+does not by itself establish that the replacement is ready for daily use. The
+current crossover exercise in Chapter 26 requires an actual usable application,
+a safe trial, and the human's acceptance before promotion. That exercise is
+ongoing; implementation completion is not crossover acceptance.
 
 ## Your Ensemble
 

@@ -11,7 +11,7 @@ import (
 // TestChapter22Memory exercises the actual accepted GUI/Agent, owned settings,
 // memory files, history and process lifetime. Only provider responses are fake.
 func TestChapter22Memory(t *testing.T) {
-	bin, cleanup, err := grade.Build("../../solutions/ch22/gui")
+	bin, cleanup, err := grade.Build("../../edition-2/solutions/ch22/gui")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -30,7 +30,7 @@ func TestChapter22Memory(t *testing.T) {
 // TestMemoryBackground exercises the new scored scenario independently so a
 // targeted runtime defect must fail that predicate rather than an older row.
 func TestMemoryBackground(t *testing.T) {
-	bin, cleanup, err := grade.Build("../../solutions/ch22/gui")
+	bin, cleanup, err := grade.Build("../../edition-2/solutions/ch22/gui")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -43,7 +43,7 @@ func TestMemoryBackground(t *testing.T) {
 // TestMemoryStale checks a real held graduation against a same-identity file edit
 // and a completed off/on policy transition, preserving the exact source files.
 func TestMemoryStale(t *testing.T) {
-	bin, cleanup, err := grade.Build("../../solutions/ch22/gui")
+	bin, cleanup, err := grade.Build("../../edition-2/solutions/ch22/gui")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -64,7 +64,7 @@ func TestMemoryStale(t *testing.T) {
 // TestMemoryProtocolFailures exercises real bounded children against empty,
 // wrong-type and syntactically complete provider-length-stop submissions.
 func TestMemoryProtocolFailures(t *testing.T) {
-	bin, cleanup, err := grade.Build("../../solutions/ch22/gui")
+	bin, cleanup, err := grade.Build("../../edition-2/solutions/ch22/gui")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -90,7 +90,7 @@ func TestMemoryProtocolFailures(t *testing.T) {
 // TestMemoryLifetime checks real explicit cancellation, owner shutdown and
 // destination permission failure without losing the selected source or outcome.
 func TestMemoryLifetime(t *testing.T) {
-	bin, cleanup, err := grade.Build("../../solutions/ch22/gui")
+	bin, cleanup, err := grade.Build("../../edition-2/solutions/ch22/gui")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -107,7 +107,7 @@ func TestMemoryLifetime(t *testing.T) {
 // TestMemoryHeadroom checks actual near-window waiting, failure and interruption
 // with a held worker and the owner's responsive public settings interface.
 func TestMemoryHeadroom(t *testing.T) {
-	bin, cleanup, err := grade.Build("../../solutions/ch22/gui")
+	bin, cleanup, err := grade.Build("../../edition-2/solutions/ch22/gui")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -124,7 +124,7 @@ func TestMemoryHeadroom(t *testing.T) {
 // TestMemoryAccounting checks measured successful and failed child usage through
 // actual status tools, repeated main requests, and a fresh restored process.
 func TestMemoryAccounting(t *testing.T) {
-	bin, cleanup, err := grade.Build("../../solutions/ch22/gui")
+	bin, cleanup, err := grade.Build("../../edition-2/solutions/ch22/gui")
 	if err != nil {
 		t.Fatal(err)
 	}

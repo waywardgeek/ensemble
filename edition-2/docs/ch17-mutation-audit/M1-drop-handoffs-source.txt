@@ -1,0 +1,145 @@
+Chapter 17 — Auto-Recall
+============================================================
+
+[FAIL]      Archived text the user never mentioned reaches the model, so the archive is actually indexed and searched.  (0/10)
+       handoffs/handoff-2026-01-01.md matches the query as well as anything
+       in the archive, and there were exactly three matching chunks competing
+       for three slots, so nothing crowded it out — yet it was not
+       recalled. That source root is not being indexed. recalled block was:
+       [Auto-recalled memories] From decision.md — Zorblax rollout
+       decision: > markalpha The zorblax rollout was settled in favour of a
+       staged approach. From learnings.md — Zorblax rollout learning: >
+       marklearningsrc The zorblax rollout taught us to stage the cutover.
+
+[PASS]      Results are ranked by term rarity, term frequency and document length, not merely by containing the word.  (10/10)
+
+[PASS]      Words like "the" and "we" are stripped, so a short document full of them cannot outrank a real match.  (5/5)
+
+[PASS]      A long document is indexed section by section, so retrieving one part does not cost the context of the whole file.  (10/10)
+
+[PASS]      Each source keeps a share of the result, so the source with the most text on a topic cannot take every slot.  (10/10)
+
+[PASS]      A model reads the candidates and its verdict decides what is attached; changing its answer changes the output.  (15/15)
+
+[PASS]      Prose, HTTP 500, a hang, and an empty archive all degrade to top-N BM25 or to silence. Never a crash, never a dead turn.  (10/10)
+
+[PASS]      internal/recall imports the hub and stdlib only, and no existing spoke imports it back.  (10/10)
+
+[PASS]      Recalled material lands as its own permanent entry carrying its bytes, and is never merged into the user's message.  (10/10)
+
+[PASS]      The attached block is bounded, so an archive that matches well everywhere cannot swallow the context window.  (10/10)
+
+------------------------------------------------------------
+score: 90/100 — FAIL
+{"from":"idle","observation":"state_changed","to":"input_pending"}
+{"from":"input_pending","observation":"state_changed","to":"in_flight"}
+{"chunk":"Und","kind":"text","observation":"part_delta","part_id":1}
+{"chunk":"ers","kind":"text","observation":"part_delta","part_id":1}
+{"chunk":"too","kind":"text","observation":"part_delta","part_id":1}
+{"chunk":"d.","kind":"text","observation":"part_delta","part_id":1}
+{"observation":"part_final","part_id":1,"seq":5,"text":"Understood."}
+{"from":"in_flight","observation":"state_changed","to":"idle"}
+{"observation":"turn_ended","text":"Understood."}
+{"assistant":"Understood."}
+{"usage":{"input":0,"cache_write":0,"cache_read":0,"output":0}}
+{"from":"idle","observation":"state_changed","to":"input_pending"}
+{"from":"input_pending","observation":"state_changed","to":"in_flight"}
+{"chunk":"Und","kind":"text","observation":"part_delta","part_id":1}
+{"chunk":"ers","kind":"text","observation":"part_delta","part_id":1}
+{"chunk":"too","kind":"text","observation":"part_delta","part_id":1}
+{"chunk":"d.","kind":"text","observation":"part_delta","part_id":1}
+{"observation":"part_final","part_id":1,"seq":5,"text":"Understood."}
+{"from":"in_flight","observation":"state_changed","to":"idle"}
+{"observation":"turn_ended","text":"Understood."}
+{"assistant":"Understood."}
+{"usage":{"input":0,"cache_write":0,"cache_read":0,"output":0}}
+{"from":"idle","observation":"state_changed","to":"input_pending"}
+{"from":"input_pending","observation":"state_changed","to":"in_flight"}
+{"chunk":"Und","kind":"text","observation":"part_delta","part_id":1}
+{"chunk":"ers","kind":"text","observation":"part_delta","part_id":1}
+{"chunk":"too","kind":"text","observation":"part_delta","part_id":1}
+{"chunk":"d.","kind":"text","observation":"part_delta","part_id":1}
+{"observation":"part_final","part_id":1,"seq":5,"text":"Understood."}
+{"from":"in_flight","observation":"state_changed","to":"idle"}
+{"observation":"turn_ended","text":"Understood."}
+{"assistant":"Understood."}
+{"usage":{"input":0,"cache_write":0,"cache_read":0,"output":0}}
+{"from":"idle","observation":"state_changed","to":"input_pending"}
+{"from":"input_pending","observation":"state_changed","to":"in_flight"}
+{"chunk":"Und","kind":"text","observation":"part_delta","part_id":1}
+{"chunk":"ers","kind":"text","observation":"part_delta","part_id":1}
+{"chunk":"too","kind":"text","observation":"part_delta","part_id":1}
+{"chunk":"d.","kind":"text","observation":"part_delta","part_id":1}
+{"observation":"part_final","part_id":1,"seq":5,"text":"Understood."}
+{"from":"in_flight","observation":"state_changed","to":"idle"}
+{"observation":"turn_ended","text":"Understood."}
+{"assistant":"Understood."}
+{"usage":{"input":0,"cache_write":0,"cache_read":0,"output":0}}
+{"from":"idle","observation":"state_changed","to":"input_pending"}
+{"from":"input_pending","observation":"state_changed","to":"in_flight"}
+[09:19:18.273] memory: session graduation refused, memories left in place: compressor answered without calling submit
+{"chunk":"Und","kind":"text","observation":"part_delta","part_id":1}
+{"chunk":"ers","kind":"text","observation":"part_delta","part_id":1}
+{"chunk":"too","kind":"text","observation":"part_delta","part_id":1}
+{"chunk":"d.","kind":"text","observation":"part_delta","part_id":1}
+{"observation":"part_final","part_id":1,"seq":12,"text":"Understood."}
+{"from":"in_flight","observation":"state_changed","to":"idle"}
+{"observation":"turn_ended","text":"Understood."}
+{"assistant":"Understood."}
+{"usage":{"input":0,"cache_write":0,"cache_read":0,"output":0}}
+{"from":"idle","observation":"state_changed","to":"input_pending"}
+{"from":"input_pending","observation":"state_changed","to":"in_flight"}
+{"chunk":"Und","kind":"text","observation":"part_delta","part_id":1}
+{"chunk":"ers","kind":"text","observation":"part_delta","part_id":1}
+{"chunk":"too","kind":"text","observation":"part_delta","part_id":1}
+{"chunk":"d.","kind":"text","observation":"part_delta","part_id":1}
+{"observation":"part_final","part_id":1,"seq":5,"text":"Understood."}
+{"from":"in_flight","observation":"state_changed","to":"idle"}
+{"observation":"turn_ended","text":"Understood."}
+{"assistant":"Understood."}
+{"usage":{"input":0,"cache_write":0,"cache_read":0,"output":0}}
+{"from":"idle","observation":"state_changed","to":"input_pending"}
+{"from":"input_pending","observation":"state_changed","to":"in_flight"}
+{"chunk":"Und","kind":"text","observation":"part_delta","part_id":1}
+{"chunk":"ers","kind":"text","observation":"part_delta","part_id":1}
+{"chunk":"too","kind":"text","observation":"part_delta","part_id":1}
+{"chunk":"d.","kind":"text","observation":"part_delta","part_id":1}
+{"observation":"part_final","part_id":1,"seq":5,"text":"Understood."}
+{"from":"in_flight","observation":"state_changed","to":"idle"}
+{"observation":"turn_ended","text":"Understood."}
+{"assistant":"Understood."}
+{"usage":{"input":0,"cache_write":0,"cache_read":0,"output":0}}
+{"from":"idle","observation":"state_changed","to":"input_pending"}
+{"from":"input_pending","observation":"state_changed","to":"in_flight"}
+{"chunk":"Und","kind":"text","observation":"part_delta","part_id":1}
+{"chunk":"ers","kind":"text","observation":"part_delta","part_id":1}
+{"chunk":"too","kind":"text","observation":"part_delta","part_id":1}
+{"chunk":"d.","kind":"text","observation":"part_delta","part_id":1}
+{"observation":"part_final","part_id":1,"seq":5,"text":"Understood."}
+{"from":"in_flight","observation":"state_changed","to":"idle"}
+{"observation":"turn_ended","text":"Understood."}
+{"assistant":"Understood."}
+{"usage":{"input":0,"cache_write":0,"cache_read":0,"output":0}}
+{"from":"idle","observation":"state_changed","to":"input_pending"}
+{"from":"input_pending","observation":"state_changed","to":"in_flight"}
+{"chunk":"Und","kind":"text","observation":"part_delta","part_id":1}
+{"chunk":"ers","kind":"text","observation":"part_delta","part_id":1}
+{"chunk":"too","kind":"text","observation":"part_delta","part_id":1}
+{"chunk":"d.","kind":"text","observation":"part_delta","part_id":1}
+{"observation":"part_final","part_id":1,"seq":4,"text":"Understood."}
+{"from":"in_flight","observation":"state_changed","to":"idle"}
+{"observation":"turn_ended","text":"Understood."}
+{"assistant":"Understood."}
+{"usage":{"input":0,"cache_write":0,"cache_read":0,"output":0}}
+{"from":"idle","observation":"state_changed","to":"input_pending"}
+{"from":"input_pending","observation":"state_changed","to":"in_flight"}
+{"chunk":"Und","kind":"text","observation":"part_delta","part_id":1}
+{"chunk":"ers","kind":"text","observation":"part_delta","part_id":1}
+{"chunk":"too","kind":"text","observation":"part_delta","part_id":1}
+{"chunk":"d.","kind":"text","observation":"part_delta","part_id":1}
+{"observation":"part_final","part_id":1,"seq":5,"text":"Understood."}
+{"from":"in_flight","observation":"state_changed","to":"idle"}
+{"observation":"turn_ended","text":"Understood."}
+{"assistant":"Understood."}
+{"usage":{"input":0,"cache_write":0,"cache_read":0,"output":0}}
+exit status 1

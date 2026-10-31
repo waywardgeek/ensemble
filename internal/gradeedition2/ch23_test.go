@@ -11,7 +11,7 @@ import (
 // provider HTTP. The full command separately measures the real 15-second timeout;
 // focused regressions reuse that evidence instead of paying the delay each time.
 func TestChapter23Recall(t *testing.T) {
-	bin, clean, err := grade.Build("../../solutions/ch23/gui")
+	bin, clean, err := grade.Build("../../edition-2/solutions/ch23/gui")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -25,7 +25,7 @@ func TestChapter23Recall(t *testing.T) {
 			t.Errorf("%s: %s", id, e)
 		}
 	}
-	if err := recallTopology("../../solutions/ch23", "../../solutions/ch23/gui"); err != "" {
+	if err := recallTopology("../../edition-2/solutions/ch23", "../../edition-2/solutions/ch23/gui"); err != "" {
 		t.Error(err)
 	}
 }
@@ -33,7 +33,7 @@ func TestChapter23Recall(t *testing.T) {
 // TestRecallCompaction exercises actual graduation and failed-attempt restarts,
 // then checks retired-source recall and durable attachment bytes.
 func TestRecallCompaction(t *testing.T) {
-	bin, clean, err := grade.Build("../../solutions/ch23/gui")
+	bin, clean, err := grade.Build("../../edition-2/solutions/ch23/gui")
 	if err != nil {
 		t.Fatal(err)
 	}

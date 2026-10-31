@@ -8,7 +8,7 @@ import (
 // TestChapter8Settings runs real optional-GUI processes and their WebSocket
 // settings path, including process restart in the same disposable directory.
 func TestChapter8Settings(t *testing.T) {
-	dir, err := filepath.Abs("../../solutions/ch08/gui")
+	dir, err := filepath.Abs("../../edition-2/solutions/ch08/gui")
 	if err != nil {
 		t.Fatal(err)
 	}

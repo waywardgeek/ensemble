@@ -11,7 +11,7 @@ import (
 // Run the real accepted program against the original external-provider fake.
 // Changing one captured header then isolates the correction from legacy checks.
 func TestChapter1VersionAndPreservedChecks(t *testing.T) {
-	bin, cleanup, err := grade.Build("../../solutions/ch01")
+	bin, cleanup, err := grade.Build("../../edition-2/solutions/ch01")
 	if err != nil {
 		t.Fatal(err)
 	}

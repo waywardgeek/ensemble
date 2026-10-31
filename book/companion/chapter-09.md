@@ -1,105 +1,59 @@
-# Chapter 9: Skills
+# Chapter 9 — Skills
 
-Chapter 8 follows a preference from its saved value to the behavior it actually controls. Skills pose a similar question at a larger scale: when an Agent says it has learned a capability, what has changed?
+A tool needs both permission and an explanation. Registering a file writer gives the runtime a handler; it does not tell the model when to use it. A paragraph saying “write the file” teaches an intention; it does not grant execution. A skill joins these two facts: a rendered manual and a named set of capabilities, activated together and recorded as such.
 
-A new paragraph in the conversation is not necessarily a new instruction. A newly advertised tool is not necessarily executable. A hidden tool may still execute if dispatch never checks whether it is enabled. And a successful call after unloading may prove nothing about the capability supposedly being unloaded.
+The primary manual establishes the Agent’s working rules and tells it which additional manuals it may request. Supporting dependencies load before the manual that needs them. This keeps the initial instruction set manageable without reducing later capabilities to unexplained function signatures.
 
-The [source chapter](../edition-3/chapter-09.md) contains that last trap in miniature. A historical OpenAI session loaded `code-tools`, wrote a scratch file, marked the skill for unload, and then successfully read the file. It looked like evidence that pending unload preserved the acquired tools. But `read_file` had belonged to the primary skill all along. The demonstration had carefully tested the lifetime of the wrong tool.
+## The record says what was taught
 
-Skills make these distinctions explicit. Each skill packages instructions, tools, and dependencies in a named Markdown file. The Agent can acquire a new manual and the means to act on it without becoming a different Agent. The interesting work is keeping those two halves together, through dependency resolution, prompt rendering, provider protocols, and execution.
+Each Agent owns a concrete Skills manager. Common declares its relationships, persistent fields, immutable skill values, and required partial operations. The functional Skills files implement catalog parsing, resolution, variable substitution, and activation; Agent implements the attachment relationship. No Go-style package interface or runtime adapter is needed to connect these parts.
 
-## A Small File, Several Different Powers
+The manager keeps catalog definitions and registered variables. History owns the activation facts. Active manuals and grants are derived from skill parts in reduced Context rather than duplicated in a mutable enabled-tools set. Engine renders from those same facts, and Jobs checks them before reserving work or causing effects.
 
-The workbench now has one Agent worth using. Adding every future capability directly to its system prompt would turn that prompt into a communal cupboard: identity, operating instructions, project facts, tool descriptions, and preferences all squeezed together. Any edit could disturb the supposedly stable prefix, and the Agent would receive material unrelated to its current task.
+That common source prevents two unpleasant states: a model being shown a tool that dispatch considers disabled, and dispatch allowing a tool whose manual never entered the conversation. Registered handlers remain the Agent’s catalog, not automatic permission in a skill-configured Agent. Library callers that do not configure skills retain the earlier explicit-installation behavior.
 
-A skill supplies a smaller unit of composition. Its file lives at `skills/<directory>/SKILL.md`, with frontmatter followed by an ordinary Markdown body. The frontmatter gives it a name, a description, a type, and lists of tools, dependencies, and further skills it offers. The body supplies its instructions. This is packaging for existing capabilities, not a way to manufacture handlers by naming them. The source corrected an earlier example that advertised an undefined `think` tool. A name in a manual cannot implement a function.
+A tool granted by several manuals still has one effective permission. Its provenance is the earliest recorded activation that grants it, including that activation’s sequence. The answer to “why can this run?” is therefore a conversation fact, not whichever dictionary happened to be inspected last.
 
-The three skill types have different jobs. A `primary` skill defines the Agent’s initial identity and loads at creation. A `loadable` skill can be offered for later acquisition. A `dependency` loads automatically when needed and stays out of the Agent’s discovery list. Both the primary and its startup dependencies contribute instructions and tools. When skills are configured, `load_skill` and `unload_skill` remain available so the Agent can manage acquisition even if the primary declares only a reader.
+## A small catalog, a complete activation
 
-The file format is deliberately smaller than general YAML. Scalar fields and two list forms suffice: space-separated names on one line or an indented list. The parser requires an opening frontmatter boundary, a name, and a valid type, and reports malformed files with their paths. It splits only at the frontmatter boundaries, leaving later Markdown horizontal rules in the body. Otherwise, an innocent separator halfway through a manual could become a configuration event.
+The host supplies one skill directory. The manager recursively reads `SKILL.md` files in sorted order and rejects duplicate names; there is no hidden home-directory fallback or precedence contest between roots. The front matter deliberately supports a small documented subset rather than general YAML. Predictable errors are more valuable here than accepting an ambiguous configuration language by accident.
 
-The directory locates a definition; the declared name identifies it in dependency lists and load requests. Duplicate names are errors. Letting directory traversal order choose which definition wins would make the Agent’s identity depend on an accident of discovery.
+Discovery is narrower than “every file found.” Only active manuals’ explicit offers make loadable skills available. A dependency is not independently requestable merely because it sits in the same directory. Loading resolves the entire dependency graph, detects cycles, checks types and handler names, and refuses the operation if any required piece is invalid.
 
-None of this discovery grants capability. Finding a file means the registry knows a definition exists. Offering it means the Agent may ask to load it. Loading it means its instructions and tools become active. Those are separate states, even when a small example makes them happen close together.
+Validation completes before mutation. Newly needed dependencies and the requested manual are rendered, then recorded in one dependency-first activation event. Publication succeeds as a whole or not at all. A repeated load adds no duplicate manual. A broken dependency must not leave half its closure active.
 
-## A Load Must Succeed as a Whole
+Construction applies the same discipline to the primary. If activation fails after the manager attaches and installs its controls, those additions are removed and the relationship is detached. Destruction clears both sides of the relationship without destroying the parent. These are ordinary ownership rules doing useful work, not a special plugin framework.
 
-Consider the source’s small scratch-file example. The primary `base` skill enables `read_file` and offers `code-tools`. Loading `code-tools` adds `write_file` and requires a hidden `helper` dependency, which adds `list_directory` and instructions to stay in the scratch directory. The next model request must carry both manuals and the newly enabled tools. The dependency’s instructions are not optional decoration attached to its function names.
+## Render once means remember once
 
-The registry first resolves the entire dependency graph. A visiting set detects a cycle such as A depending on B depending on A. A resolved order lets dependencies activate before the skill that needs them. An unavailable requested name, wrong type, missing dependency, or cycle rejects the load without partially activating the graph.
+Variables are substituted when a manual activates. The resulting text is the remembered manual. Updating a registered variable later affects future loads, not what the primary or an already loaded manual said. Editing or deleting the source Markdown likewise cannot rewrite a recorded activation during replay.
 
-The order matters more than the recursion. Suppose the first dependency grants a writer and the second is missing. Enabling as traversal proceeds would return an error while leaving the writer available. The caller asked for one capability and received a failed request with a useful side effect. Resolving first and activating afterward keeps failure intelligible.
+The primary is rendered first and stays fixed. Later manuals enlarge the complete instruction block without mutating that first body. This matters for built-in substitutions as well as custom values: a rendered tool list is a snapshot, not a live getter hidden inside prose.
 
-After activation, the available-skills list is recomputed from the `loadable-skills` lists of all loaded skills. Only discovered definitions of type `loadable` qualify, and already loaded skills disappear from that list. A dependency does not become directly loadable because another file happens to offer its name.
+Variable values come from the host. Core does not inspect the environment. Substitution is deliberately simple: names match case-sensitively, unknown references remain literal, and inserted text is not scanned again as another template. Neither recursive expansion nor shell syntax is smuggled into an instructional Markdown file. The host still has to choose supplied values carefully; a value intentionally placed in a manual will reach the model.
 
-This produces progressive disclosure. `code-tools` can offer `refactor-tools`, which can offer something more specialized. The Agent sees the next choices made available by its current manuals, rather than the whole directory as a menu. That does not require the definitions to form a literal tree: dependencies and shared offers can make a graph. The useful boundary is reachability from what has already loaded.
+## A manual belongs in instruction context
 
-Progressive disclosure reduces what the Agent must consider, but it is not itself an execution guard. The enabled-tool set must govern both provider declarations and local dispatch. If a hidden `write_file` handler remains callable through the installed-handler table, the model can bypass disclosure simply by producing the name. The ordinary response to that guessed call is a tool error, with no write. After the skill loads, the same installed handler can execute.
+A successful load result reports that loading succeeded. It is not the delivery mechanism for the manual itself. Anthropic receives manuals in its top-level system field, OpenAI Chat Completions in the initial system message, and Gemini in `systemInstruction.parts`. The primary comes first, followed by other active rendered bodies, each once.
 
-This boundary controls admission to the tool. It does not turn the helper’s scratch-directory prose into a filesystem sandbox. Instructions describe how the Agent should use a capability; dispatch determines whether that capability is available at all.
+Skill entries are excluded from ordinary dialogue projection. Burying the manual only inside tool-result prose would give it the wrong role and make its survival depend on ordinary result retention. Clearing a verbose load result must not erase the manual or revoke its grant. Nor should signed provider content be rewritten to carry new instructions.
 
-## One Agent Owns the Registry
+The actor captures an immutable Context before rendering a request. Declarations use that snapshot’s grants, rather than consulting a live set halfway through serialization. Dispatch checks recorded grants again before execution. A model that guesses a disabled tool name receives a paired error using the actual call ID; it does not create a job or file.
 
-Several Agents can read the same skills directory without sharing a mutable skill state. Loading a writer into one must not grant it to another. The primary choice, enabled tools, offered skills, rendered bodies, and pending removals belong to the particular Agent.
+The local skill controls run synchronously at the actor’s admission point, recording their call and result without an independent Job. The next model request sees the new instructions and capabilities. Skill loading has not invented another scheduler.
 
-That ownership does not justify importing the skills implementation directly into the Agent package. The existing star-shaped package structure still applies. Common holds the lifecycle interface and shared types; the skills package owns parsing, traversal, and rendering; the composition root constructs the registry and injects it into the Agent. The registry also receives its required Agent parent through the common interface. Both sides are attached before the primary loads, because rendering can consult the owning Agent’s declarations.
+## Unloading is intentionally unfinished here
 
-The application supplies construction inputs. The CLI and optional GUI translate `EN_SKILLS_DIR` and `EN_PRIMARY_SKILL` into a per-Agent skill specification. The registry does not discover its identity by consulting process environment whenever it needs an answer. An embedding application can therefore create different Agents in one process without a process-wide primary rewriting their identities.
+This chapter marks a non-primary manual pending removal. Its instructions and tools remain active. The primary cannot be unloaded, and repeated pending requests do not add redundant state.
 
-Application variables follow the same boundary. The command’s `EN_CUSTOM_VAR` is one example of translating configuration into a rendering callback, not a reason to give the registry environmental authority. Omitting the optional skill specification preserves the earlier public tool-registration behavior. Skills are a way to assemble an Agent, not a forced migration for every existing consumer.
+That behavior avoids claiming to solve a harder context problem early: abruptly removing tools while the retained conversation still describes their availability. Compaction-time instruction removal belongs to later work. The result text must say what actually happened, rather than presenting a pending marker as immediate revocation. Later MCP support will separately close live remote connections on unload; retaining instructions and retaining executable resources are not the same lifetime.
 
-## Render Once, at the Relevant Time
+## Deferred schemas do not defer authority
 
-The primary and other startup bodies form the initial system prompt. Their text is rendered at creation and remains intact. Later loads render new bodies and add them to that instruction context. The initial identity survives; the collection of manuals grows.
+Portable rendering sends full declarations for enabled tools. An explicit Anthropic-only option supports tool search for a model the host knows can handle it. The host makes that capability assertion; a model-name heuristic cannot prove provider support.
 
-`$TOOLS` expands from the owning Agent’s currently enabled declarations. `$SKILLS` expands from its currently loadable set. Application variables use registered callbacks. Constructor-supplied variables must be installed before primary rendering, or the first and most consequential body would miss them.
+Initial tools stay eager. Tools reachable through the primary’s catalog but granted only later can have deferred declarations. A successful load records the newly granted names as result metadata, which Anthropic renders as tool references in the correctly paired loader result. Searching prose for names would lose that structure during replay or redaction.
 
-A dynamic body renders after activation, so it can describe the tools just acquired and the next skills just revealed. The original primary’s `$SKILLS` expansion does not get rewritten to match. It records the choices at creation; the new manual supplies the later view. This is an intentional sequence of rendered instructions, not a live template silently rewriting every earlier paragraph.
+The deferred schemas still travel in every request. This saves model context, not outbound bytes. More importantly, appearing in the catalog never grants dispatch. Deferral changes how the model discovers a schema; History still establishes whether the Agent may use it. Without a live catalog during offline rendering, the safe representation is the ordinary enabled declarations, not an invented reconstruction of missing manuals.
 
-The same distinction applies to application context. If `$CUSTOM_VAR` renders as a creation-time value in the primary, replacing its callback changes future renderings, not that existing text. In the accepted implementation described by the source, unknown placeholders remain verbatim. A visible `$CUSTOM_VAR` is easier to diagnose than an unexplained hole in a sentence.
-
-Rendering callbacks run outside the registry lock. This detail is easy to lose in an otherwise tidy design: `$TOOLS` asks for declarations, and declarations consult the same enabled-tool state. Calling the callback while holding that lock can deadlock the first manual useful enough to mention its own tools.
-
-Substitution also moves data across a privacy boundary. Whatever a callback returns becomes model-visible instruction text. A convenient environment variable is not automatically an appropriate variable to render, particularly when it contains a credential.
-
-Skills do not make every piece of context an instruction. Memories, project notes, and changing user-preference data belong in message history as data, separate from the system’s operating instructions. This chapter adds neither memory storage nor a memory-saving tool. Keeping that distinction now avoids building a constitution out of yesterday’s project notes.
-
-## Instructions and Tool Disclosure Travel Separately
-
-The simplest delivery path puts all startup instructions in the system prompt and startup tools in the provider’s normal tool declarations. A later load adds rendered instructions to the system prompt and updates the ordinary declarations. That is the source chapter’s policy for providers other than Anthropic, and the fallback for Anthropic cases that cannot use incremental disclosure.
-
-It costs prefix stability. Changing SYSTEM can invalidate a cache, and changing tool declarations can do so too. Preserving an old prefix by putting new operating instructions only in a tool result would preserve the wrong thing. A tool result can report that loading succeeded; it is not a substitute for delivering the loaded manual in the provider’s instruction context. The current source explicitly supersedes its earlier frozen-system design on this point.
-
-Anthropic’s accepted path in the source separates tool discovery from instruction delivery more finely. Under the documented [tool-search protocol](https://platform.claude.com/docs/en/agents-and-tools/tool-use/tool-search-tool) used there, the full tool catalog still travels in every request. Startup tools use ordinary declarations. Undisclosed tools carry `defer_loading`. A successful model-called `load_skill` reveals newly acquired tools through `tool_reference` blocks in that call’s paired `tool_result`.
-
-The wire result’s shape matters. The source records an accepted Edition 3 exercise in which mixing human-readable load status with `tool_reference` blocks caused HTTP 400. A corrected result containing references only was accepted, and the Agent then used the loaded writer. The helpful sentence was the protocol error.
-
-Canonical history still records the textual load status. The provider renderer projects the successful discovery result into reference-only content for that provider. This preserves the application’s readable history without pretending that its canonical representation is always the wire representation.
-
-The references disclose tools, not instructions. The documented API used by the source supplies no separate mid-turn instruction channel, so loaded manuals still join SYSTEM. Keeping the catalog stable can avoid unnecessary declaration changes; it cannot guarantee a cache hit when the instruction text grows.
-
-There are limits to when this form is legitimate. A direct or manual load has no model call whose result can carry the references. A load without a paired discovery result has the same problem, and an unsupported model cannot use the protocol merely because the application prefers it. These paths use ordinary enabled tool definitions. The renderer must not invent a model call or enabling event to make the incremental representation fit.
-
-These are the provider mechanisms and observed correction recorded by the current source, not a fresh claim about every model’s present support. The distinction is especially useful here because the source also preserves earlier live Claude, OpenAI, and Gemini sessions. Those sessions loaded the example graph, wrote and read their markers, marked a skill pending unload, and exited normally. Their captured system text stayed identical within each session. They establish behavior of the earlier frozen-system design, not verification of the instruction delivery now required.
-
-## Provenance Makes the Projection Possible
-
-The provider renderer needs to know whether a tool belongs in the startup declarations or was enabled by a particular discovery call. It does not need to know how a skills directory is organized.
-
-Each enabled tool therefore records its first enabling source and event sequence. Initial tools have sequence zero. A dynamically acquired tool records the existing `tool_called` sequence of the actual `load_skill` call that enabled it. There is no separate skills counter to reconcile with conversation history.
-
-First means first. If the primary already supplies `read_file`, another skill mentioning it does not reclassify the reader as newly acquired. It retains its initial provenance. Otherwise, the renderer could try to disclose an old tool through a new event, or later lifetime reasoning could mistake a shared capability for one introduced by the latest skill.
-
-This metadata lets the Anthropic renderer pair references with the successful result that actually enabled them, without importing the registry implementation. It also distinguishes a manual load, which has no enabling model call and uses ordinary declarations. A stable event identity connects the application’s capability transition to the provider’s conversation structure.
-
-## Pending Unload Means Still Loaded
-
-Loading has an effective transition now. Unloading does not yet have its removal boundary.
-
-`unload_skill` accepts a loaded name, marks it pending, and reports that state. An unloaded name is an error. Pending unload retains both instructions and tools. It does not rewrite prior manuals or disable their handlers. Actual removal is deferred until the later compaction boundary; this chapter records the intent without implementing that compactor.
-
-That is not merely reluctance to delete a map entry. The model has already received instructions and, potentially, disclosed tool definitions. The application needs a coherent point at which its capability set and the model’s context can agree about removal. Anthropic’s context-editing facility can clear selected tool results, but that does not semantically retract a manual or revoke an application capability. Deleting one piece of conversation content is not a general unlearning operation.
-
-The historical unload demonstration at the start now has a precise diagnosis. Reading after pending unload exercised a startup capability, so it could not reveal premature removal of the dynamic writer. The source’s focused test instead checked that `write_file` remained declared after pending unload. Declaration and dispatch use the same admission predicate, and restoring early removal made that check fail. The revised grader also exercised a dynamic write after marking unload. Those checks concern the capability whose lifetime is actually changing.
-
-The Agent can now expand its working instructions and executable tool set without replacing its initial identity. Its registry has one owner, loads are whole-graph transitions, provider projections have real event anchors, and pending unload says exactly what has not happened yet. None of this saves the conversation across process death. The next chapter takes up that separate lifetime: allowing the conversation to outlive the process that created it.
+Source: [Chapter 9](../chapter-09.md).

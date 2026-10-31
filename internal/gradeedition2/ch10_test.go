@@ -10,7 +10,7 @@ import (
 // TestChapter10Persistence runs both actual application clients. The provider
 // alone is fake; files, restart, reducer replay and exit saving remain real.
 func TestChapter10Persistence(t *testing.T) {
-	core, err := filepath.Abs("../../solutions/edition-3/ch10")
+	core, err := filepath.Abs("../../edition-2/solutions/ch10")
 	if err != nil {
 		t.Fatal(err)
 	}

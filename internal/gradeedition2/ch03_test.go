@@ -9,7 +9,7 @@ import (
 // TestChapter3AcceptedSolution runs the real CLI, filesystem and tool loop.
 // Inherited parity also exercises the capture fake's terminating reply.
 func TestChapter3AcceptedSolution(t *testing.T) {
-	bin, cleanup, err := grade.Build("../../solutions/ch03")
+	bin, cleanup, err := grade.Build("../../edition-2/solutions/ch03")
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -62,7 +62,7 @@ func TestHistoricalTimeoutIsExceeded(t *testing.T) {
 func buildTimeoutControl(t *testing.T, deadline string) string {
 	t.Helper()
 	dir := t.TempDir()
-	if err := os.CopyFS(dir, os.DirFS(filepath.Join("..", "..", "solutions", "ch01"))); err != nil {
+	if err := os.CopyFS(dir, os.DirFS(filepath.Join("..", "..", "edition-2", "solutions", "ch01"))); err != nil {
 		t.Fatal(err)
 	}
 	path := filepath.Join(dir, "internal", "engine", "engine.go")

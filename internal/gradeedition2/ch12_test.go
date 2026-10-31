@@ -9,7 +9,7 @@ import (
 
 // TestChapter12GUIDebug exercises both actual startup clients and external peers.
 func TestChapter12GUIDebug(t *testing.T) {
-	core, err := filepath.Abs("../../solutions/edition-3/ch12")
+	core, err := filepath.Abs("../../edition-2/solutions/ch12")
 	if err != nil {
 		t.Fatal(err)
 	}

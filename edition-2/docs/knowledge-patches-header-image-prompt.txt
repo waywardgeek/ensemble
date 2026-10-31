@@ -1,0 +1,31 @@
+Create a wide editorial header illustration for a technical paper titled
+"Knowledge Patches: Maintaining Software by Maintaining What Builds It."
+Landscape composition, approximately 3:1, suitable for the top of a document.
+Do not render the title or any other text inside the image.
+
+The central subject is a large, open engineering codebook. A human engineer and
+a small, abstract AI collaborator work beside it, examining a discovered flaw
+and adding one clear correction to a page. Make their shared attention and
+exchange of understanding visible: the human is an active participant.
+
+From the book, two broad, easy-to-follow paths extend toward the right. Along
+the upper path, the correction repairs an existing modular software structure.
+Along the lower path, a fresh builder follows the revised book and assembles
+a second working structure from separate pieces. Both structures satisfy the
+same visible functional pattern, but need not have identical internal shapes.
+Use simple architectural blocks to represent software, without miniature code.
+
+A clear return arrow carries a discovered lesson from the building work back
+into an earlier page of the book. The book is visibly the enduring source of
+knowledge; the software structures are its reproducible products. Integrate the
+correction into the page itself rather than depicting an accumulating pile of
+patches stuck onto the finished software.
+
+Style: thoughtful technical editorial illustration, crisp geometric forms,
+subtle paper texture, restrained depth, generous white space. White or warm-white
+background, dark charcoal outlines, deep blue for construction paths, and one
+warm amber accent for the new lesson. Strong contrast and large readable shapes
+for a reader with low vision. The composition must remain understandable in
+grayscale and at document-header size. Favor one coherent scene over a crowded
+infographic. Avoid tiny labels, fake code, decorative circuitry, glowing brains,
+humanoid robots, logos, watermarks, and claims of effortless or perfect automation.

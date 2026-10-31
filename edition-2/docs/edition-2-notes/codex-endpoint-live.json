@@ -1,0 +1,1135 @@
+{
+  "date": "2026-10-11",
+  "endpoint": "https://chatgpt.com/backend-api/codex/responses",
+  "credential": "Codex file-backed ChatGPT; no API-key fallback",
+  "runs": [
+    {
+      "exit": 0,
+      "seconds": 90.941,
+      "prompt_sent": true,
+      "transcript": "Type a message, /model NAME between turns, /interrupt to end this turn, Ctrl-D to quit. Messages while busy are hints.\r\nCreate double.py containing def double(n): return n * 2, run python3 to assert double(21) == 42, then submit the result. Do not spawn children. Keep your answer brief.\r\n2026/10/11 17:25:44 cache lens openai/gpt-6-astra: tools:cold input:cold; prefix_bytes=0 prompt_bytes=13611 predicted=0.0000\r\n2026/10/11 17:25:44 OpenAI billing source: codex\r\nwrite_file {\"path\":\"double.py\",\"content\":\"def double(n): return n * 2\\n\"}2026/10/11 17:25:46 cache grant: input_tokens=2029 read_tokens=0 granted=0.0000 predicted=0.0000\r\n\r\n2026/10/11 17:25:46 cache lens openai/gpt-6-astra: tools:identical input:appended; prefix_bytes=13610 prompt_bytes=13913 predicted=0.9782\r\nrun_command {\"command\":\"python3 -c 'from double import double; assert double(21) == 42'\"}2026/10/11 17:25:48 cache grant: input_tokens=2080 read_tokens=0 granted=0.0000 predicted=0.9782\r\n\r\n2026/10/11 17:25:48 cache lens openai/gpt-6-astra: tools:identical input:appended; prefix_bytes=13912 prompt_bytes=14199 predicted=0.9798\r\nsubmit {\"result\":\"Created double.py with `def double(n): return n * 2`. Verified `double(21) == 42` using python3; assertion passed.\"}2026/10/11 17:25:51 cache grant: input_tokens=2134 read_tokens=0 granted=0.0000 predicted=0.9798\r\n\r\nCreated double.py with `def double(n): return n * 2`. Verified `double(21) == 42` using python3; assertion passed.\r\n",
+      "binary_sha256": "a8a25963b6c1d215e74efcdef37af54bdb03c5979e9a142ee108ad5b02b8c3c3",
+      "stage": "initial-short-no-affinity",
+      "requests": [
+        {
+          "body_sha256": "0fe8bb60a42b836c1d7881665bc9e6ebcd824c9c15b75cf66ee97cce198c2cc6",
+          "model": "gpt-6-astra",
+          "reasoning": {
+            "effort": "high",
+            "summary": "auto"
+          },
+          "store": false,
+          "stream": true,
+          "prompt_cache_key": "ensemble-72c49d08ffdd0f2b0079ab65f91266a4bb1c4aeb99785fa2b2c5a93836444e98",
+          "input_items": 2
+        },
+        {
+          "body_sha256": "971795bc8f55f55f7a12838bb5876e6b109bd96100366f6556addfa802e0ee30",
+          "model": "gpt-6-astra",
+          "reasoning": {
+            "effort": "high",
+            "summary": "auto"
+          },
+          "store": false,
+          "stream": true,
+          "prompt_cache_key": "ensemble-72c49d08ffdd0f2b0079ab65f91266a4bb1c4aeb99785fa2b2c5a93836444e98",
+          "input_items": 4
+        },
+        {
+          "body_sha256": "40c03e6911d75acbe4f98bc3a2bf29d9ef0ba25dfd87c00c5d51c66fa0c06752",
+          "model": "gpt-6-astra",
+          "reasoning": {
+            "effort": "high",
+            "summary": "auto"
+          },
+          "store": false,
+          "stream": true,
+          "prompt_cache_key": "ensemble-72c49d08ffdd0f2b0079ab65f91266a4bb1c4aeb99785fa2b2c5a93836444e98",
+          "input_items": 6
+        }
+      ],
+      "completed_responses": [
+        {
+          "model": "gpt-6-astra",
+          "status": "completed",
+          "usage": {
+            "input_tokens": 2029,
+            "input_tokens_details": {
+              "cached_tokens": 0,
+              "cache_write_tokens": 0
+            },
+            "output_tokens": 32,
+            "output_tokens_details": {
+              "reasoning_tokens": 0
+            },
+            "total_tokens": 2061,
+            "attribution": {
+              "items": {
+                "fc_0b2c5d543aceaa65016acc290a4f44819a835f6551afeb435f": {
+                  "input_tokens": 2,
+                  "cached_tokens": 0,
+                  "cache_write_tokens": 0,
+                  "output_tokens": 32
+                },
+                "msg_0b2c5d543aceaa65016acc2908e788819aa109053315d7ef11": {
+                  "input_tokens": 46,
+                  "cached_tokens": 0,
+                  "cache_write_tokens": 0,
+                  "output_tokens": 0,
+                  "content": [
+                    {
+                      "input_tokens": 46,
+                      "cached_tokens": 0,
+                      "cache_write_tokens": 0,
+                      "output_tokens": 0
+                    }
+                  ]
+                },
+                "msg_0b2c5d543aceaa65016acc2908e788819aa3209f9ae4d5c73a": {
+                  "input_tokens": 30,
+                  "cached_tokens": 0,
+                  "cache_write_tokens": 0,
+                  "output_tokens": 0,
+                  "content": [
+                    {
+                      "input_tokens": 30,
+                      "cached_tokens": 0,
+                      "cache_write_tokens": 0,
+                      "output_tokens": 0
+                    }
+                  ]
+                }
+              },
+              "request_fields": {
+                "instructions": {
+                  "input_tokens": 30,
+                  "cached_tokens": 0,
+                  "cache_write_tokens": 0,
+                  "output_tokens": 0
+                },
+                "tools": {
+                  "input_tokens": 1921,
+                  "cached_tokens": 0,
+                  "cache_write_tokens": 0,
+                  "output_tokens": 0
+                }
+              }
+            }
+          },
+          "output": [
+            {
+              "type": "function_call",
+              "id": "fc_0b2c5d543aceaa65016acc290a4f44819a835f6551afeb435f",
+              "call_id": "call_15046cbfdff443539f9d58b86a7723aa",
+              "name": "write_file",
+              "arguments": "{\"path\":\"double.py\",\"content\":\"def double(n): return n * 2\\n\"}",
+              "status": "completed"
+            }
+          ]
+        },
+        {
+          "model": "gpt-6-astra",
+          "status": "completed",
+          "usage": {
+            "attribution": {
+              "items": {
+                "msg_004c90d8b01ca8bf016acc290b266887d09c1099b88c75d0fa": {
+                  "cache_write_tokens": 0,
+                  "cached_tokens": 0,
+                  "content": [
+                    {
+                      "cache_write_tokens": 0,
+                      "cached_tokens": 0,
+                      "input_tokens": 30,
+                      "output_tokens": 0
+                    }
+                  ],
+                  "input_tokens": 30,
+                  "output_tokens": 0
+                },
+                "msg_004c90d8b01ca8bf016acc290b267c87d0818489aa09519222": {
+                  "cache_write_tokens": 0,
+                  "cached_tokens": 0,
+                  "content": [
+                    {
+                      "cache_write_tokens": 0,
+                      "cached_tokens": 0,
+                      "input_tokens": 46,
+                      "output_tokens": 0
+                    }
+                  ],
+                  "input_tokens": 46,
+                  "output_tokens": 0
+                },
+                "fc_004c90d8b01ca8bf016acc290b262087d09725a46b861052f2": {
+                  "cache_write_tokens": 0,
+                  "cached_tokens": 0,
+                  "input_tokens": 34,
+                  "output_tokens": 0
+                },
+                "fc_004c90d8b01ca8bf016acc290b264887d0b69ddee7ee795f83": {
+                  "cache_write_tokens": 0,
+                  "cached_tokens": 0,
+                  "content": [
+                    {
+                      "cache_write_tokens": 0,
+                      "cached_tokens": 0,
+                      "input_tokens": 17,
+                      "output_tokens": 0
+                    }
+                  ],
+                  "input_tokens": 17,
+                  "output_tokens": 0
+                },
+                "fc_004c90d8b01ca8bf016acc290c476887d08f1d27275a14deb9": {
+                  "cache_write_tokens": 0,
+                  "cached_tokens": 0,
+                  "input_tokens": 2,
+                  "output_tokens": 36
+                }
+              },
+              "request_fields": {
+                "tools": {
+                  "cache_write_tokens": 0,
+                  "cached_tokens": 0,
+                  "input_tokens": 1921,
+                  "output_tokens": 0
+                },
+                "instructions": {
+                  "cache_write_tokens": 0,
+                  "cached_tokens": 0,
+                  "input_tokens": 30,
+                  "output_tokens": 0
+                }
+              }
+            },
+            "input_tokens": 2080,
+            "input_tokens_details": {
+              "cache_write_tokens": 0,
+              "cached_tokens": 0
+            },
+            "output_tokens": 36,
+            "output_tokens_details": {
+              "reasoning_tokens": 0
+            },
+            "total_tokens": 2116
+          },
+          "output": []
+        },
+        {
+          "model": "gpt-6-astra",
+          "status": "completed",
+          "usage": {
+            "input_tokens": 2134,
+            "input_tokens_details": {
+              "cached_tokens": 0,
+              "cache_write_tokens": 0
+            },
+            "output_tokens": 48,
+            "output_tokens_details": {
+              "reasoning_tokens": 0
+            },
+            "total_tokens": 2182,
+            "attribution": {
+              "items": {
+                "fc_0fb87a39e923f424016acc290d36c8819993ddd499a90d3ed2": {
+                  "input_tokens": 16,
+                  "cached_tokens": 0,
+                  "cache_write_tokens": 0,
+                  "output_tokens": 0,
+                  "content": [
+                    {
+                      "input_tokens": 16,
+                      "cached_tokens": 0,
+                      "cache_write_tokens": 0,
+                      "output_tokens": 0
+                    }
+                  ]
+                },
+                "fc_0fb87a39e923f424016acc290d36c881999a7875dee412863a": {
+                  "input_tokens": 34,
+                  "cached_tokens": 0,
+                  "cache_write_tokens": 0,
+                  "output_tokens": 0
+                },
+                "fc_0fb87a39e923f424016acc290d36c88199b6c2403a07366297": {
+                  "input_tokens": 38,
+                  "cached_tokens": 0,
+                  "cache_write_tokens": 0,
+                  "output_tokens": 0
+                },
+                "fc_0fb87a39e923f424016acc290d36c88199bb2c10a38deb1485": {
+                  "input_tokens": 17,
+                  "cached_tokens": 0,
+                  "cache_write_tokens": 0,
+                  "output_tokens": 0,
+                  "content": [
+                    {
+                      "input_tokens": 17,
+                      "cached_tokens": 0,
+                      "cache_write_tokens": 0,
+                      "output_tokens": 0
+                    }
+                  ]
+                },
+                "fc_0fb87a39e923f424016acc290eb1c8819992334f82feb0d77a": {
+                  "input_tokens": 2,
+                  "cached_tokens": 0,
+                  "cache_write_tokens": 0,
+                  "output_tokens": 48
+                },
+                "msg_0fb87a39e923f424016acc290d36c881999253634c83f6fb41": {
+                  "input_tokens": 30,
+                  "cached_tokens": 0,
+                  "cache_write_tokens": 0,
+                  "output_tokens": 0,
+                  "content": [
+                    {
+                      "input_tokens": 30,
+                      "cached_tokens": 0,
+                      "cache_write_tokens": 0,
+                      "output_tokens": 0
+                    }
+                  ]
+                },
+                "msg_0fb87a39e923f424016acc290d36c881999adb92b505b8fbc4": {
+                  "input_tokens": 46,
+                  "cached_tokens": 0,
+                  "cache_write_tokens": 0,
+                  "output_tokens": 0,
+                  "content": [
+                    {
+                      "input_tokens": 46,
+                      "cached_tokens": 0,
+                      "cache_write_tokens": 0,
+                      "output_tokens": 0
+                    }
+                  ]
+                }
+              },
+              "request_fields": {
+                "instructions": {
+                  "input_tokens": 30,
+                  "cached_tokens": 0,
+                  "cache_write_tokens": 0,
+                  "output_tokens": 0
+                },
+                "tools": {
+                  "input_tokens": 1921,
+                  "cached_tokens": 0,
+                  "cache_write_tokens": 0,
+                  "output_tokens": 0
+                }
+              }
+            }
+          },
+          "output": [
+            {
+              "type": "function_call",
+              "id": "fc_0fb87a39e923f424016acc290eb1c8819992334f82feb0d77a",
+              "call_id": "call_9193da8f107c405faf400e3d2fddbb51",
+              "name": "submit",
+              "arguments": "{\"result\":\"Created double.py with `def double(n): return n * 2`. Verified `double(21) == 42` using python3; assertion passed.\"}",
+              "status": "completed"
+            }
+          ]
+        }
+      ],
+      "generated_code": "def double(n): return n * 2\n",
+      "independent_assertion_passed": true,
+      "saved": true
+    },
+    {
+      "exit": 0,
+      "seconds": 8.616,
+      "completed": true,
+      "prompt_sha256": "a6d1a6661974aa5f3f50683890fd6d63c2679be33df82891c76aa981ed76e7fb",
+      "reference_rows": 200,
+      "transcript": "Type a message, /model NAME between turns, /interrupt to end this turn, Ctrl-D to quit. Messages while busy are hints.\r\n2026/10/11 17:28:17 cache lens openai/gpt-6-astra: tools:cold input:cold; prefix_bytes=0 prompt_bytes=45874 predicted=0.0000\r\n2026/10/11 17:28:17 OpenAI billing source: codex\r\nwrite_file {\"path\":\"triple.py\",\"content\":\"def triple(n): return n * 3\\n\"}2026/10/11 17:28:19 cache grant: input_tokens=8241 read_tokens=0 granted=0.0000 predicted=0.0000\r\n\r\n2026/10/11 17:28:19 cache lens openai/gpt-6-astra: tools:identical input:appended; prefix_bytes=45873 prompt_bytes=46160 predicted=0.9938\r\nrun_command {\"command\":\"python3 -c 'from triple import triple; assert triple(14) == 42'\"}2026/10/11 17:28:22 cache grant: input_tokens=8293 read_tokens=0 granted=0.0000 predicted=0.9938\r\n\r\n2026/10/11 17:28:22 cache lens openai/gpt-6-astra: tools:identical input:appended; prefix_bytes=46159 prompt_bytes=46462 predicted=0.9935\r\nsubmit {\"result\":\"LONG_OK\"}2026/10/11 17:28:25 cache grant: input_tokens=8347 read_tokens=0 granted=0.0000 predicted=0.9935\r\n\r\nLONG_OK\r\n",
+      "binary_sha256": "a8a25963b6c1d215e74efcdef37af54bdb03c5979e9a142ee108ad5b02b8c3c3",
+      "stage": "long-no-affinity",
+      "requests": [
+        {
+          "body_sha256": "3dc17910cefe5d330ff3118946e6a249b666de6a023011cc4fc5c35729407401",
+          "model": "gpt-6-astra",
+          "reasoning": {
+            "effort": "high",
+            "summary": "auto"
+          },
+          "store": false,
+          "stream": true,
+          "prompt_cache_key": "ensemble-b5ee072584cd5122c6f6b79b55de7ec4c753a84777f9a58b5a2328890449f111",
+          "input_items": 2
+        },
+        {
+          "body_sha256": "4c6802ad6142361d33e7f396abdcfcadcb3fd13431eabca2acf68af1fe92ce9f",
+          "model": "gpt-6-astra",
+          "reasoning": {
+            "effort": "high",
+            "summary": "auto"
+          },
+          "store": false,
+          "stream": true,
+          "prompt_cache_key": "ensemble-b5ee072584cd5122c6f6b79b55de7ec4c753a84777f9a58b5a2328890449f111",
+          "input_items": 4
+        },
+        {
+          "body_sha256": "b4f76ecbcab63c662710864c8471f3af78e6e87c5b5b358b011ae1a03facc0ed",
+          "model": "gpt-6-astra",
+          "reasoning": {
+            "effort": "high",
+            "summary": "auto"
+          },
+          "store": false,
+          "stream": true,
+          "prompt_cache_key": "ensemble-b5ee072584cd5122c6f6b79b55de7ec4c753a84777f9a58b5a2328890449f111",
+          "input_items": 6
+        }
+      ],
+      "completed_responses": [
+        {
+          "model": "gpt-6-astra",
+          "status": "completed",
+          "usage": {
+            "attribution": {
+              "items": {
+                "msg_01bf71e5ede24206016acc29a1a0a487d09cec1f5b27a8e316": {
+                  "cache_write_tokens": 0,
+                  "cached_tokens": 0,
+                  "content": [
+                    {
+                      "cache_write_tokens": 0,
+                      "cached_tokens": 0,
+                      "input_tokens": 30,
+                      "output_tokens": 0
+                    }
+                  ],
+                  "input_tokens": 30,
+                  "output_tokens": 0
+                },
+                "msg_01bf71e5ede24206016acc29a1a0bc87d08583b0499530c733": {
+                  "cache_write_tokens": 0,
+                  "cached_tokens": 0,
+                  "content": [
+                    {
+                      "cache_write_tokens": 0,
+                      "cached_tokens": 0,
+                      "input_tokens": 6258,
+                      "output_tokens": 0
+                    }
+                  ],
+                  "input_tokens": 6258,
+                  "output_tokens": 0
+                },
+                "fc_01bf71e5ede24206016acc29a29e8087d0b4b01513dd6cf9c6": {
+                  "cache_write_tokens": 0,
+                  "cached_tokens": 0,
+                  "input_tokens": 2,
+                  "output_tokens": 33
+                }
+              },
+              "request_fields": {
+                "tools": {
+                  "cache_write_tokens": 0,
+                  "cached_tokens": 0,
+                  "input_tokens": 1921,
+                  "output_tokens": 0
+                },
+                "instructions": {
+                  "cache_write_tokens": 0,
+                  "cached_tokens": 0,
+                  "input_tokens": 30,
+                  "output_tokens": 0
+                }
+              }
+            },
+            "input_tokens": 8241,
+            "input_tokens_details": {
+              "cache_write_tokens": 0,
+              "cached_tokens": 0
+            },
+            "output_tokens": 33,
+            "output_tokens_details": {
+              "reasoning_tokens": 0
+            },
+            "total_tokens": 8274
+          },
+          "output": []
+        },
+        {
+          "model": "gpt-6-astra",
+          "status": "completed",
+          "usage": {
+            "input_tokens": 8293,
+            "input_tokens_details": {
+              "cached_tokens": 0,
+              "cache_write_tokens": 0
+            },
+            "output_tokens": 36,
+            "output_tokens_details": {
+              "reasoning_tokens": 0
+            },
+            "total_tokens": 8329,
+            "attribution": {
+              "items": {
+                "fc_008635ac9b308993016acc29a3e3348198a3b7df034d38ed9f": {
+                  "input_tokens": 17,
+                  "cached_tokens": 0,
+                  "cache_write_tokens": 0,
+                  "output_tokens": 0,
+                  "content": [
+                    {
+                      "input_tokens": 17,
+                      "cached_tokens": 0,
+                      "cache_write_tokens": 0,
+                      "output_tokens": 0
+                    }
+                  ]
+                },
+                "fc_008635ac9b308993016acc29a3e3348198b1cc70286922c5f3": {
+                  "input_tokens": 35,
+                  "cached_tokens": 0,
+                  "cache_write_tokens": 0,
+                  "output_tokens": 0
+                },
+                "fc_008635ac9b308993016acc29a558d08198af4785f000878ab2": {
+                  "input_tokens": 2,
+                  "cached_tokens": 0,
+                  "cache_write_tokens": 0,
+                  "output_tokens": 36
+                },
+                "msg_008635ac9b308993016acc29a3e33481988a3067c28fec267e": {
+                  "input_tokens": 30,
+                  "cached_tokens": 0,
+                  "cache_write_tokens": 0,
+                  "output_tokens": 0,
+                  "content": [
+                    {
+                      "input_tokens": 30,
+                      "cached_tokens": 0,
+                      "cache_write_tokens": 0,
+                      "output_tokens": 0
+                    }
+                  ]
+                },
+                "msg_008635ac9b308993016acc29a3e3348198a59557e127eaa170": {
+                  "input_tokens": 6258,
+                  "cached_tokens": 0,
+                  "cache_write_tokens": 0,
+                  "output_tokens": 0,
+                  "content": [
+                    {
+                      "input_tokens": 6258,
+                      "cached_tokens": 0,
+                      "cache_write_tokens": 0,
+                      "output_tokens": 0
+                    }
+                  ]
+                }
+              },
+              "request_fields": {
+                "instructions": {
+                  "input_tokens": 30,
+                  "cached_tokens": 0,
+                  "cache_write_tokens": 0,
+                  "output_tokens": 0
+                },
+                "tools": {
+                  "input_tokens": 1921,
+                  "cached_tokens": 0,
+                  "cache_write_tokens": 0,
+                  "output_tokens": 0
+                }
+              }
+            }
+          },
+          "output": [
+            {
+              "type": "function_call",
+              "id": "fc_008635ac9b308993016acc29a558d08198af4785f000878ab2",
+              "call_id": "call_b8659bb4b47f4bf28b152203e6a8aaae",
+              "name": "run_command",
+              "arguments": "{\"command\":\"python3 -c 'from triple import triple; assert triple(14) == 42'\"}",
+              "status": "completed"
+            }
+          ]
+        },
+        {
+          "model": "gpt-6-astra",
+          "status": "completed",
+          "usage": {
+            "attribution": {
+              "items": {
+                "msg_058b535191ea706f016acc29a6a36887d0bdf850ffbb43d251": {
+                  "cache_write_tokens": 0,
+                  "cached_tokens": 0,
+                  "content": [
+                    {
+                      "cache_write_tokens": 0,
+                      "cached_tokens": 0,
+                      "input_tokens": 30,
+                      "output_tokens": 0
+                    }
+                  ],
+                  "input_tokens": 30,
+                  "output_tokens": 0
+                },
+                "msg_058b535191ea706f016acc29a6a37487d0bea7006df84287d0": {
+                  "cache_write_tokens": 0,
+                  "cached_tokens": 0,
+                  "content": [
+                    {
+                      "cache_write_tokens": 0,
+                      "cached_tokens": 0,
+                      "input_tokens": 6258,
+                      "output_tokens": 0
+                    }
+                  ],
+                  "input_tokens": 6258,
+                  "output_tokens": 0
+                },
+                "fc_058b535191ea706f016acc29a6a30487d097039c3b4498706f": {
+                  "cache_write_tokens": 0,
+                  "cached_tokens": 0,
+                  "input_tokens": 35,
+                  "output_tokens": 0
+                },
+                "fc_058b535191ea706f016acc29a6a32487d0bfca650f8a1e54f7": {
+                  "cache_write_tokens": 0,
+                  "cached_tokens": 0,
+                  "content": [
+                    {
+                      "cache_write_tokens": 0,
+                      "cached_tokens": 0,
+                      "input_tokens": 17,
+                      "output_tokens": 0
+                    }
+                  ],
+                  "input_tokens": 17,
+                  "output_tokens": 0
+                },
+                "fc_058b535191ea706f016acc29a6a33487d08604f9310b88990b": {
+                  "cache_write_tokens": 0,
+                  "cached_tokens": 0,
+                  "input_tokens": 38,
+                  "output_tokens": 0
+                },
+                "fc_058b535191ea706f016acc29a6a35087d0ae1518c87e6662bb": {
+                  "cache_write_tokens": 0,
+                  "cached_tokens": 0,
+                  "content": [
+                    {
+                      "cache_write_tokens": 0,
+                      "cached_tokens": 0,
+                      "input_tokens": 16,
+                      "output_tokens": 0
+                    }
+                  ],
+                  "input_tokens": 16,
+                  "output_tokens": 0
+                },
+                "fc_058b535191ea706f016acc29a9023887d0929a83ca3b25f489": {
+                  "cache_write_tokens": 0,
+                  "cached_tokens": 0,
+                  "input_tokens": 2,
+                  "output_tokens": 18
+                }
+              },
+              "request_fields": {
+                "tools": {
+                  "cache_write_tokens": 0,
+                  "cached_tokens": 0,
+                  "input_tokens": 1921,
+                  "output_tokens": 0
+                },
+                "instructions": {
+                  "cache_write_tokens": 0,
+                  "cached_tokens": 0,
+                  "input_tokens": 30,
+                  "output_tokens": 0
+                }
+              }
+            },
+            "input_tokens": 8347,
+            "input_tokens_details": {
+              "cache_write_tokens": 0,
+              "cached_tokens": 0
+            },
+            "output_tokens": 18,
+            "output_tokens_details": {
+              "reasoning_tokens": 0
+            },
+            "total_tokens": 8365
+          },
+          "output": []
+        }
+      ],
+      "generated_code": "def triple(n): return n * 3\n",
+      "independent_assertion_passed": true,
+      "saved": true
+    },
+    {
+      "exit": 0,
+      "seconds": 7.844,
+      "completed": true,
+      "prompt_sha256": "a6d1a6661974aa5f3f50683890fd6d63c2679be33df82891c76aa981ed76e7fb",
+      "reference_rows": 200,
+      "transcript": "Type a message, /model NAME between turns, /interrupt to end this turn, Ctrl-D to quit. Messages while busy are hints.\r\n2026/10/11 17:30:05 cache lens openai/gpt-6-astra: tools:cold input:cold; prefix_bytes=0 prompt_bytes=45874 predicted=0.0000\r\n2026/10/11 17:30:05 OpenAI billing source: codex\r\nwrite_file {\"path\":\"triple.py\",\"content\":\"def triple(n): return n * 3\\n\",\"overwrite\":true}2026/10/11 17:30:08 cache grant: input_tokens=8241 read_tokens=0 granted=0.0000 predicted=0.0000\r\n\r\n2026/10/11 17:30:08 cache lens openai/gpt-6-astra: tools:identical input:appended; prefix_bytes=45873 prompt_bytes=46195 predicted=0.9930\r\nrun_command {\"command\":\"python3 -c 'from triple import triple; assert triple(14) == 42'\"}2026/10/11 17:30:10 cache grant: input_tokens=8297 read_tokens=8064 granted=0.9719 predicted=0.9930\r\n\r\n2026/10/11 17:30:10 cache lens openai/gpt-6-astra: tools:identical input:appended; prefix_bytes=46194 prompt_bytes=46497 predicted=0.9935\r\nsubmit {\"result\":\"LONG_OK\"}2026/10/11 17:30:13 cache grant: input_tokens=8351 read_tokens=8192 granted=0.9810 predicted=0.9935\r\n\r\nLONG_OK\r\n",
+      "binary_sha256": "e14cde3acbd9958fa437c81724fe280ef5c076b315369d57f8091e5137cfd407",
+      "stage": "long-with-affinity",
+      "requests": [
+        {
+          "body_sha256": "4abd10b60868d025c9c41d423315ca41570295b06428da793c8b1fa9f9f585ef",
+          "model": "gpt-6-astra",
+          "reasoning": {
+            "effort": "high",
+            "summary": "auto"
+          },
+          "store": false,
+          "stream": true,
+          "prompt_cache_key": "ensemble-1163b1566fff51847224471228e1b4a87047216f27f70af711afdb4610d92c7d",
+          "input_items": 2
+        },
+        {
+          "body_sha256": "3d0810063ede3bc6231cba087d4cd98ce9d01284c5b3488ef13b97e40cab66bb",
+          "model": "gpt-6-astra",
+          "reasoning": {
+            "effort": "high",
+            "summary": "auto"
+          },
+          "store": false,
+          "stream": true,
+          "prompt_cache_key": "ensemble-1163b1566fff51847224471228e1b4a87047216f27f70af711afdb4610d92c7d",
+          "input_items": 4
+        },
+        {
+          "body_sha256": "36a5f9e8d2c32dd80cd33ca2432df16e711ce138228c81949fbfb57d3cc7361c",
+          "model": "gpt-6-astra",
+          "reasoning": {
+            "effort": "high",
+            "summary": "auto"
+          },
+          "store": false,
+          "stream": true,
+          "prompt_cache_key": "ensemble-1163b1566fff51847224471228e1b4a87047216f27f70af711afdb4610d92c7d",
+          "input_items": 6
+        }
+      ],
+      "completed_responses": [
+        {
+          "model": "gpt-6-astra",
+          "status": "completed",
+          "usage": {
+            "input_tokens": 8241,
+            "input_tokens_details": {
+              "cached_tokens": 0,
+              "cache_write_tokens": 0
+            },
+            "output_tokens": 37,
+            "output_tokens_details": {
+              "reasoning_tokens": 0
+            },
+            "total_tokens": 8278,
+            "attribution": {
+              "items": {
+                "fc_09cca59aee8d7878016acc2a0f426c81988daccce0fea99c16": {
+                  "input_tokens": 2,
+                  "cached_tokens": 0,
+                  "cache_write_tokens": 0,
+                  "output_tokens": 37
+                },
+                "msg_09cca59aee8d7878016acc2a0df3fc819888b8ec8feedbc6e0": {
+                  "input_tokens": 6258,
+                  "cached_tokens": 0,
+                  "cache_write_tokens": 0,
+                  "output_tokens": 0,
+                  "content": [
+                    {
+                      "input_tokens": 6258,
+                      "cached_tokens": 0,
+                      "cache_write_tokens": 0,
+                      "output_tokens": 0
+                    }
+                  ]
+                },
+                "msg_09cca59aee8d7878016acc2a0df3fc8198adcd39e7668ad510": {
+                  "input_tokens": 30,
+                  "cached_tokens": 0,
+                  "cache_write_tokens": 0,
+                  "output_tokens": 0,
+                  "content": [
+                    {
+                      "input_tokens": 30,
+                      "cached_tokens": 0,
+                      "cache_write_tokens": 0,
+                      "output_tokens": 0
+                    }
+                  ]
+                }
+              },
+              "request_fields": {
+                "instructions": {
+                  "input_tokens": 30,
+                  "cached_tokens": 0,
+                  "cache_write_tokens": 0,
+                  "output_tokens": 0
+                },
+                "tools": {
+                  "input_tokens": 1921,
+                  "cached_tokens": 0,
+                  "cache_write_tokens": 0,
+                  "output_tokens": 0
+                }
+              }
+            }
+          },
+          "output": [
+            {
+              "type": "function_call",
+              "id": "fc_09cca59aee8d7878016acc2a0f426c81988daccce0fea99c16",
+              "call_id": "call_c5f679963a76443b903fc8ce870164bb",
+              "name": "write_file",
+              "arguments": "{\"path\":\"triple.py\",\"content\":\"def triple(n): return n * 3\\n\",\"overwrite\":true}",
+              "status": "completed"
+            }
+          ]
+        },
+        {
+          "model": "gpt-6-astra",
+          "status": "completed",
+          "usage": {
+            "input_tokens": 8297,
+            "input_tokens_details": {
+              "cached_tokens": 8064,
+              "cache_write_tokens": 0
+            },
+            "output_tokens": 36,
+            "output_tokens_details": {
+              "reasoning_tokens": 0
+            },
+            "total_tokens": 8333,
+            "attribution": {
+              "items": {
+                "fc_0f20647933263295016acc2a1084348198afba7136f9089d60": {
+                  "input_tokens": 39,
+                  "cached_tokens": 0,
+                  "cache_write_tokens": 0,
+                  "output_tokens": 0
+                },
+                "fc_0f20647933263295016acc2a1084348198b8f7847fd6692856": {
+                  "input_tokens": 17,
+                  "cached_tokens": 0,
+                  "cache_write_tokens": 0,
+                  "output_tokens": 0,
+                  "content": [
+                    {
+                      "input_tokens": 17,
+                      "cached_tokens": 0,
+                      "cache_write_tokens": 0,
+                      "output_tokens": 0
+                    }
+                  ]
+                },
+                "fc_0f20647933263295016acc2a11cd688198a4ffed5df952caba": {
+                  "input_tokens": 2,
+                  "cached_tokens": 0,
+                  "cache_write_tokens": 0,
+                  "output_tokens": 36
+                },
+                "msg_0f20647933263295016acc2a1084348198a148f824fcc1daa3": {
+                  "input_tokens": 30,
+                  "cached_tokens": 30,
+                  "cache_write_tokens": 0,
+                  "output_tokens": 0,
+                  "content": [
+                    {
+                      "input_tokens": 30,
+                      "cached_tokens": 30,
+                      "cache_write_tokens": 0,
+                      "output_tokens": 0
+                    }
+                  ]
+                },
+                "msg_0f20647933263295016acc2a1084348198be436f1159db7a4d": {
+                  "input_tokens": 6258,
+                  "cached_tokens": 6083,
+                  "cache_write_tokens": 0,
+                  "output_tokens": 0,
+                  "content": [
+                    {
+                      "input_tokens": 6258,
+                      "cached_tokens": 6083,
+                      "cache_write_tokens": 0,
+                      "output_tokens": 0
+                    }
+                  ]
+                }
+              },
+              "request_fields": {
+                "instructions": {
+                  "input_tokens": 30,
+                  "cached_tokens": 30,
+                  "cache_write_tokens": 0,
+                  "output_tokens": 0
+                },
+                "tools": {
+                  "input_tokens": 1921,
+                  "cached_tokens": 1921,
+                  "cache_write_tokens": 0,
+                  "output_tokens": 0
+                }
+              }
+            }
+          },
+          "output": [
+            {
+              "type": "function_call",
+              "id": "fc_0f20647933263295016acc2a11cd688198a4ffed5df952caba",
+              "call_id": "call_105bd4904def4fbf8efb080ecd21eb4c",
+              "name": "run_command",
+              "arguments": "{\"command\":\"python3 -c 'from triple import triple; assert triple(14) == 42'\"}",
+              "status": "completed"
+            }
+          ]
+        },
+        {
+          "model": "gpt-6-astra",
+          "status": "completed",
+          "usage": {
+            "input_tokens": 8351,
+            "input_tokens_details": {
+              "cached_tokens": 8192,
+              "cache_write_tokens": 0
+            },
+            "output_tokens": 18,
+            "output_tokens_details": {
+              "reasoning_tokens": 0
+            },
+            "total_tokens": 8369,
+            "attribution": {
+              "items": {
+                "fc_0995f375422cde75016acc2a1336748198896f0a309671b280": {
+                  "input_tokens": 17,
+                  "cached_tokens": 0,
+                  "cache_write_tokens": 0,
+                  "output_tokens": 0,
+                  "content": [
+                    {
+                      "input_tokens": 17,
+                      "cached_tokens": 0,
+                      "cache_write_tokens": 0,
+                      "output_tokens": 0
+                    }
+                  ]
+                },
+                "fc_0995f375422cde75016acc2a1336748198a0c400256277fa14": {
+                  "input_tokens": 38,
+                  "cached_tokens": 0,
+                  "cache_write_tokens": 0,
+                  "output_tokens": 0
+                },
+                "fc_0995f375422cde75016acc2a1336748198a17223a0999cc763": {
+                  "input_tokens": 39,
+                  "cached_tokens": 0,
+                  "cache_write_tokens": 0,
+                  "output_tokens": 0
+                },
+                "fc_0995f375422cde75016acc2a1336748198b57146efc6020894": {
+                  "input_tokens": 16,
+                  "cached_tokens": 0,
+                  "cache_write_tokens": 0,
+                  "output_tokens": 0,
+                  "content": [
+                    {
+                      "input_tokens": 16,
+                      "cached_tokens": 0,
+                      "cache_write_tokens": 0,
+                      "output_tokens": 0
+                    }
+                  ]
+                },
+                "fc_0995f375422cde75016acc2a14f678819887054dbc9d649661": {
+                  "input_tokens": 2,
+                  "cached_tokens": 0,
+                  "cache_write_tokens": 0,
+                  "output_tokens": 18
+                },
+                "msg_0995f375422cde75016acc2a133674819894714258da780d94": {
+                  "input_tokens": 6258,
+                  "cached_tokens": 6211,
+                  "cache_write_tokens": 0,
+                  "output_tokens": 0,
+                  "content": [
+                    {
+                      "input_tokens": 6258,
+                      "cached_tokens": 6211,
+                      "cache_write_tokens": 0,
+                      "output_tokens": 0
+                    }
+                  ]
+                },
+                "msg_0995f375422cde75016acc2a1336748198bf95cc476be6a2b5": {
+                  "input_tokens": 30,
+                  "cached_tokens": 30,
+                  "cache_write_tokens": 0,
+                  "output_tokens": 0,
+                  "content": [
+                    {
+                      "input_tokens": 30,
+                      "cached_tokens": 30,
+                      "cache_write_tokens": 0,
+                      "output_tokens": 0
+                    }
+                  ]
+                }
+              },
+              "request_fields": {
+                "instructions": {
+                  "input_tokens": 30,
+                  "cached_tokens": 30,
+                  "cache_write_tokens": 0,
+                  "output_tokens": 0
+                },
+                "tools": {
+                  "input_tokens": 1921,
+                  "cached_tokens": 1921,
+                  "cache_write_tokens": 0,
+                  "output_tokens": 0
+                }
+              }
+            }
+          },
+          "output": [
+            {
+              "type": "function_call",
+              "id": "fc_0995f375422cde75016acc2a14f678819887054dbc9d649661",
+              "call_id": "call_b71f4f1b3df54288bbb8ab0e46462682",
+              "name": "submit",
+              "arguments": "{\"result\":\"LONG_OK\"}",
+              "status": "completed"
+            }
+          ]
+        }
+      ],
+      "generated_code": "def triple(n): return n * 3\n",
+      "independent_assertion_passed": true,
+      "saved": true
+    }
+  ],
+  "final_source_sha256": {
+    "go.mod": "624c330ca8389fb692fb9214974b27960110598edef84c92a181aeb872b8dc0f",
+    "go.sum": "3c3b10e2a2a275ca59bcd6873dcb27fa2a21f938513b8cbc203b0bb9902f26b6",
+    "chat.go": "e5c6316ed85b336d1d0880da4363eae4d0231431b8a56a6140663a57c1a2ad6a",
+    "main.go": "9e9bb89e06c39a38745b6fc9a5c62197c4840582452fdc89e0e5f1f6d5a0769e",
+    "ch07/go.mod": "d5aa149cfde3f9a33f6ab8f2eb09d5fb8254c229a23be3228f6bb754f7b97ef9",
+    "ch07/go.sum": "360972b31eca22eaf085883cd3a4ae0ab338365187178add277273e082034cfe",
+    "ch07/main.go": "c34c316c78ef18ffefa92bf4555243240793047a5292eea3f2078dd8471df8dd",
+    "ensemble/fleet.go": "5e2756f97699c4d946338a3ab2e016625d36025464be49690a5e09e899676100",
+    "ensemble/config.go": "a5d5d815a5cbb7f86916d9830ecefbacb5f0f12b8b5244f9c01bf7ad0f423e63",
+    "ensemble/auth.go": "339ceaece75434d20982f9bcf2b70a317732154b902d539a0ab064abbd340bf7",
+    "ensemble/spec.go": "b9c940ef3f01d369016861a8a86f5aeb8d56b36107da68d35c7de38c093d535c",
+    "ensemble/registry.go": "29f405ad489d322e6e26430905293fcb53fa1ce5112363276477c0b5a17f59c6",
+    "ensemble/ensemble.go": "ad9b19ca8c611d465203e4857c90fe3736f68873ed450dace8fa570c9cf232b8",
+    "authcli/authcli.go": "1da0287d347c7673ab6cfee4bd4767bfca644e76716a286aa2dac06df57a0335",
+    "ch06/go.mod": "818ac242b162fc6446178d7a3b6e13c4692e629a149de64f1a2188b8fc51dc9d",
+    "ch06/go.sum": "360972b31eca22eaf085883cd3a4ae0ab338365187178add277273e082034cfe",
+    "ch06/main.go": "62ba3f93ddb88fe2d432013c28bd2a52a1c2345a1e800a7184540df0e9c02d14",
+    "ch05/go.mod": "4819bb1e331c429eb2e3542fd48d2979b85b690310aebb508cdefb237be703fc",
+    "ch05/go.sum": "360972b31eca22eaf085883cd3a4ae0ab338365187178add277273e082034cfe",
+    "ch05/main.go": "edff42ba5f8840f85790455e4de8c3b80e2b43163cedee0d743d0c85e7e4abc9",
+    "gui/go.mod": "61abb686039b16c3384f456a2e4ca43eba1abc96932ebe6c1e9bcdfd8c25763b",
+    "gui/tree.go": "69b9b3a80a25b5f687f3d75bf4ede1f51e0b719fe8c2e14572674d6e4168f030",
+    "gui/go.sum": "cb8f405714e3326c7d4451bc4b02f31047261f86a5da45a48e7d9375812481b1",
+    "gui/settings.go": "d1d67eafa817595b57011e13ad16eff467fb376d00f57555ad3c70aef1eae80b",
+    "gui/assets.go": "7d5c6d002bbe4d05018f53dc22591bc5f8cb0e673cabaf1337e9eb63871bea32",
+    "gui/mcp.go": "d581b7b4f28f932a8a8dbdedf60c7ede2106f7d2f5f468aa7f3b86ac1fe79ca2",
+    "gui/relay.go": "cbec4f60766ab3daf3804317d788adfc0adf6bcc12132c33643b5651ccfe21d5",
+    "gui/gui.go": "6c163d7616ecf5d71477ddd70f285b94a0535c03eda2a5d2844854d9afd2acca",
+    "gui/cmd/main.go": "ef7508b56bd660db22020dce3036e3e861637004359fcc2d76d6af716495ff57",
+    "gui/cmd/virtual-user/main.go": "f8ebbcf8beecf86b711a1dbe58de2edfa1688a5ca14befddce0a79b861f4c477",
+    "internal/tools/fleet.go": "0413bf437cb6afb334ab1bc342d72455e8636f55f1375d07697a7f4fbac490f0",
+    "internal/tools/skills.go": "beeaf7d53ac3ec815ceb867b8e3a55cacbe53e0456aca84e2358cf8bfe9e82f4",
+    "internal/tools/tools.go": "947a77a84623bba039fe8b2005e3a4a188d5fbf7e0a79e8eb41587f47a9101f8",
+    "internal/tools/management.go": "84dcfca54cddf1716196cb98eeeb4faea43034916c86d9b40229a544d41bf683",
+    "internal/tools/context.go": "8a5dccefaf52e83073cb78fcc5d621ffd0e49a075a24703cbafe77ca9ba720fd",
+    "internal/tools/supervision.go": "1070466755f39dd133797f60a44b727a27c8fe6a45845f54451fe9089318492e",
+    "internal/tools/status.go": "012282f2467b7881dad0f044da3a44d923f3483c581d9da5e3f4dff7f950248d",
+    "internal/memory/memory.go": "355ed51cabdd5854e9815d8dda93d92f16d52e7b5cf8ce033092e09918ceab17",
+    "internal/auth/codex.go": "b5feb693a79f91968eb1cdd072a6c2797943e9e317f7a9cca4bbbcfd19f4ad98",
+    "internal/auth/store.go": "cf74246383f8c47709bfba38c98185290e006397f3b0e84105aa2ffbe582c8be",
+    "internal/auth/oauth.go": "e77b56afbbd7767eef6a0162e2c66926135baf535a4a3d64d8b84884b3bae2db",
+    "internal/auth/identity.go": "f3d427bd13c2073c8f785a4f8a20eaee3394c0891b0928c64730457ac49b2dc7",
+    "internal/agent/recall.go": "da0afbde169597c6a23d05804867d0e54f855ee573b810f2a52bf7236b1ac839",
+    "internal/agent/memory.go": "effe5332e94faac59766f964de094dca884b91bf674cccb502c5537f64e3549d",
+    "internal/agent/save.go": "5466e586c8f59cdb333c60bd6d258c7c585698112c5597a3a96a7f73e89dcb58",
+    "internal/agent/activity.go": "665a2d0a5e9ddf1f789d57acb0436eb9168a0f4539a55d28a4797e7f4c431bb5",
+    "internal/agent/dispatch.go": "126a65f220648160ff95143f36be9527af241b38bd462b8158af030154027da8",
+    "internal/agent/mailbox.go": "fca7bf44d727bd6f47fc04a8bc60c30cd78f01a89eeedd1af2c8d15d90b0b52b",
+    "internal/agent/agent.go": "ed03aaf29cc3d4350bb8986873295aef180a191b77f64f124fce5ea9b87b9eb9",
+    "internal/agent/pause.go": "a38b6764deb0817d30c27a756f4c2b1c474a1df9cea2e450edc4d6d909178cad",
+    "internal/agent/mcp.go": "d2d303257135471222a51acaf35e5a6f78b26e12a36c2acac11be4d683bea656",
+    "internal/agent/context.go": "93915512ba4c0dfc463ee2c703f695ab29bffd702e76c76d01f1652d50a8abf0",
+    "internal/agent/model.go": "ef0048b585a41e10a220b2cbc669039ffbdc968a1769b5e63659b1bdac05c20d",
+    "internal/agent/actor.go": "58cd69f793f2300b8d0800d5ab1da8816dfc07b663339182974f423871350363",
+    "internal/mcp/transport.go": "a2e44de6d821e86a71337566f0d9e6830b078b18386d4b3de10a72613a4f9102",
+    "internal/mcp/client.go": "e6e5b6bb2b4b191093d88fdf2dd12c6713a2e493d22c8ec1ae1ca22049282a49",
+    "internal/mcp/http.go": "a1352e0fd8bffb696a8c52d87ab1920c4cd32721ce70ea4bc9ec913a27ea11a8",
+    "internal/mcp/mcp.go": "0e96c4c0238f93c255071f7c384350ee5772b0082041ed5e4c367bb3c55defe4",
+    "internal/recall/recall.go": "9c37c4d48437f37011252621f5201d2684186e8e5133d8e3a711bdd6075bbb43",
+    "internal/recall/index.go": "a951428a842df3b8de41d7cbf8e2a1e1238a832e7ac8e3c22c12579516214b57",
+    "internal/recall/judge.go": "fc2698d04d4142934b270789ac110e223f1c7606d03d0bf702a7d9c53d6f16f2",
+    "internal/common/recall.go": "4f5e5c228ce5ede67ab153a5dc82822492716d92dddca151836dab346a7bb97c",
+    "internal/common/memory.go": "678928434d229226cc97f48ddd9a23fbc3f04ef8dc6990086f71356ea7a0b171",
+    "internal/common/fleet.go": "0e50fe2981b48f59845dd774cc19049a82359d302d47fd11fc4368dcdad9c47b",
+    "internal/common/skills.go": "63f3465f8590cbbeabc299c279c44bbcd379a27826aa56c8455b5a1eb392c24c",
+    "internal/common/enums.go": "e57a72dee5f75dd36ea0db4396b7cdf3d630d670142e2715eacbcfed5fb85add",
+    "internal/common/auth.go": "ab1785d3e959050c2b593332e4c53c29146903f42b0d46325b144b854845dff2",
+    "internal/common/save.go": "4a166d4b13f532b42a5765cbf96266b55d9bdbf903c78b7f68efcc5de1467c2a",
+    "internal/common/stream.go": "3399d7f6246498a55a7c8d89ce71adac6b3da838e124955537f5883f2b3bcd58",
+    "internal/common/types.go": "c1183f51b00860a96e8bdf79fdfeb036b54634925a986ccb87570021b6895cb5",
+    "internal/common/cache.go": "1c97359c253459016b9671f0bcd266c818456bd5f1aba9eca888fb6cba1abb21",
+    "internal/common/activity.go": "810dba3f169527bbbbddaa300bf290bf21318b25c70267ee4dcfcdb9accecf2b",
+    "internal/common/mcp.go": "33a3ebe484c413ea5ccdc5766bdc676b2c59597e76955f4dc6ea88fee5246469",
+    "internal/common/context.go": "9fe9e43936abec7b8cd443244b30dc0960edd7ad3cf6ba5594bc31bc9792d2be",
+    "internal/common/sandbox.go": "23d15a905c8dfa9822013b6eec1c22f8d3e1b216f9116f294daa6670e7482292",
+    "internal/common/usage.go": "87b7766617645b776e2fd7bbb2f982be96ad58d07ada1de881281f2bb3b4901c",
+    "internal/common/actor.go": "5849046b1aec2f137bdc90d8d65fc2b134219e56d919eb25577107deada63c57",
+    "internal/cachelens/lens.go": "c1f8551f941e746c2f9c116f765aef51f0dd410d4a6909e12748ce632e290ebe",
+    "internal/sandbox/command.go": "443278d8ea41dc4cea62dea76c03f74ce74000607924ccf675c92441a7c67ca8",
+    "internal/sandbox/files.go": "ab4817675ed17ad222d41603744ccef4bd5f974fb5e2cd377c7997f3d71f763e",
+    "internal/history/reduce.go": "9bf72072d2e9c7f66b3a2288bd6eb09d73f5b760b09f8aed0c06912164e257c7",
+    "internal/history/journal.go": "ea21d3c7b97f1a0e9697333d82a9915c9f56639984b135a77edd5f6e275285aa",
+    "internal/history/save.go": "8a5a5bbd286fa20ca9694b6995fc1adcf000be94f68f0b3c192b87b85a7c60dc",
+    "internal/history/history.go": "8e4892607ee0baa11f6f844e91003e6eb3ab6cf225fc6fd2306faea43406db20",
+    "internal/skills/skills.go": "9aa7daa89f29f6a7760d5d59349e355736f1dc2e6b133bf079111f28a9f74999",
+    "internal/skills/parse.go": "315c91dc579aa82f6db1bb8098669454581a5a7dd3f0906a8ff2ae92fe77e07c",
+    "internal/jobs/process.go": "7deef5ef809695c76dbc8547351a9c5b3fc7991d70e24faa552d6b7c97e89b6d",
+    "internal/jobs/jobs.go": "d5b890e4a9e6e87a8f57b8c875e94bd92a7cd4b9d8fdae4144abf2e0b7e49c55",
+    "internal/fleet/fleet.go": "7b963c26dcefe8bb36e0067f15d014065b6d4e8b52477fe6be14046e52f8da60",
+    "internal/fleet/management.go": "6a444904fc8fc8150c88d89a3f496697415a27898ccc16d1b427af63fb3ca8e1",
+    "internal/engine/codex.go": "26b3ea38e69d3938b5188e532653b2a8ab5fa7b5736c9ac0f6cf6fb644f52a9d",
+    "internal/engine/responses_stream.go": "a099e3e6a8cc81dbc1a051284da7ad5ae1d30f7daecaa91b92eea82e5422b9e0",
+    "internal/engine/media.go": "5715aca2d887f2d33801bd7534ec08f17412d85b991ddeb96d560043870bab5c",
+    "internal/engine/responses.go": "27e517921d6466c8443d232de4bc211c7cad4773621012d7535251cd94840135",
+    "internal/engine/provider_error.go": "f0e5cbc033c7c49a64d5703e56b4bd47221310eb61336278bcc621646dd7b675",
+    "internal/engine/sse.go": "75065d21f6917482c11834ac9baffc4d421a91d3ae5a45efa422338ef0a86e6c",
+    "internal/engine/stream.go": "8be4e7afcc4814991efcd00da5ca404b4c585ce547876c89ac01ca4911408a07",
+    "internal/engine/gemini.go": "859473fa76018c405003ee0f00aa5d3b13745d77d99e610c471b6b32f43478de",
+    "internal/engine/cache.go": "7524a5097fb43a67b4b90c82f63decf45a62f59f227c26cd687d228cbbbbeb31",
+    "internal/engine/anthropic.go": "52c9eac9a23159490335f0848dfff9fc136c6103a2e70e3c528cb2af87284aa4",
+    "internal/engine/judge.go": "83319f96b0d227920d2f873948e030bf5d2521048c29a9873f26ea450049bda3",
+    "internal/engine/compress.go": "016ec7cf35b23c1532b38462b0abc24f6d8bea532d6b9100f3aa2bc8e8d91124",
+    "internal/engine/capabilities.go": "cdfbfa3c0dd9175bfe02a6a907209314967a56d152facfab10ef59824f4bdf89",
+    "internal/engine/openai.go": "1b1d290941ab03f778431d440308bbf112801688e8edbc1606b38633ef486cdb",
+    "internal/engine/engine.go": "376b6edde8fde0d48da7236b91c3c8868bb9e6069e06cd73d465d98d3c63f4ef",
+    "internal/engine/openai_stream.go": "52e85db202c9a6d7d24fa97e4a3b126e0f344fa2a1a1e931159964bc68b26283",
+    "internal/engine/usage.go": "b642ff2e9963eaa0f806a686bec8230135d4efb0dddda05356d555f5c730e200",
+    "internal/engine/gemini_stream.go": "88060a9f49f91927b586e568951739b55737371926570c5d8e9556ad4fd845e0",
+    "internal/engine/anthropic_stream.go": "32aa6cc455e0f8e49234413f7a92203eb5f72cf33689d964c5620ecbb39cc4ab"
+  },
+  "limits": [
+    "Initial short run finished its task in about seven seconds, but launcher waited until its 90-second bound before sending EOF; 90.941 is launcher duration.",
+    "The first two binaries omitted session-id. Final source binding applies to the third binary only.",
+    "No invoice, guaranteed cache rate, GUI live session or independent reviewer is claimed."
+  ]
+}

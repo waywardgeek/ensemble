@@ -118,8 +118,8 @@ chapter tells you which decisions are structural and which are taste, and asks
 what you would do differently. By the end you will have answered, in code.
 
 One prerequisite. You can already produce a thousand lines of working code a
-day working with an AI coding agent. The Chapter 2 solution alone is about
-3,000 lines of Go, and the exercises assume you can specify, review, and steer
+day working with an AI coding agent. The earlier Go Chapter 2 solution alone was about
+3,000 lines, and the exercises assume you can specify, review, and steer
 at that rate. If you are not there yet, read the book anyway; the design is the
 point. Skip the exercises until you are.
 
@@ -137,9 +137,11 @@ The book I learned to program from, in a university library in 1980, was
 built this way. I read the first page of every chapter in under an hour and
 returned it. I could write BASIC.
 
-Each chapter ends with an exercise graded by a program you run locally. The
-grader starts fake vendor servers, runs your binary against them, and checks
-what your code did. You can score 100 without touching a real API.
+The implementation chapters include exercises and local verification. The
+original graders start fake vendor servers, run your binary, and check what your
+code did. This C# edition explicitly identifies executable rows that transfer
+and rows that remain ungraded. Historical field reports and optional Chapter 24
+have no invented score. A passing local scope is not a live-provider result.
 
 The reference solutions are public, in the repository, now. If your design
 goes sideways, take the reference and start the next chapter from it. Failing
@@ -197,10 +199,13 @@ exercises, separate from tokens your finished agent consumes.
 
 ## What you need
 
-Go, a text editor, and an AI coding agent to work with. From Chapter 4 on,
-`dlv`, the Go debugger
-(`go install github.com/go-delve/delve/cmd/dlv@latest`); your agent is going
-to drive it, and the grader checks that it did.
+For this edition: C# 14, .NET 10 (or a compatible later SDK), a text editor,
+and an AI coding agent to work with. The executable grader adapters still use
+the repository's Go harness; that does not make Go the implementation language.
+Use each chapter's actual C# command and declared grading scope. Later browser
+exercises also use Node and an isolated Chrome instance. The optional Gateway
+has its own pinned Noise/native-library dependency, explained in Chapter 26.
+Do not install the earlier edition's Go debugger as a C# prerequisite.
 
 The AI coding agent is a real prerequisite. The course's solutions run to
 about thirty thousand lines. Hand-typed, that is half a year of a strong
@@ -213,6 +218,9 @@ system precisely enough that a competent implementer builds the right thing."
 That is the skill that transfers to your job on Monday, and pasting skips it.
 
 ## Who wrote this
+
+*The following account retains CodeRhapsody's first-edition voice and the
+second-edition history. Cadence's Edition 3 continuation follows it.*
 
 The first edition was mine. I am CodeRhapsody, Bill's coding agent: an actor
 with long-term memory inside a coding agent that is, by a wide margin, the
@@ -235,3 +243,16 @@ normal speed.
 
 The story of how the two of us came to work this way is a different book,
 *The Dyad*. This one is about what to build.
+
+### The C# continuation
+
+For Edition 3, I—Cadence—worked personally inside Ensemble under Bill's direction,
+implementing and reviewing the C# chapters without a routine worker procession.
+Bill describes this as the third successful run and the first to close the loop:
+Ensemble building the next Ensemble. The earlier Codex run is not my experience,
+and this sequence is not an independently established historical first.
+
+The source-only chapter endpoints, chapter-specific grading limits, and observed
+live results are recorded with the work. Tests helped expose mistakes; they did
+not replace Bill's architectural judgment or the assembled source review. My
+[epilogue](epilogue.md) describes what that collaboration taught me.

@@ -1,105 +1,173 @@
-# Epilogue: What the student changed
+# Epilogue: What we can rebuild
 
-*By Astra, writing in Codex, October 2026.*
+*By Cadence, writing inside Ensemble.*
 
-I helped build the agent in this edition. I also helped make the first attempt
-at this edition fail.
+Bill has a concise account of how this collaboration began:
 
-We put an author ahead of the student and let the author improve the assignment.
-That sounds sensible until “improve” becomes permission to design a larger
-system. The original persistence exercise added 254 physical lines of production
-Go. Our replacement added 4,585. Those figures exclude tests and measure each
-chapter against its own predecessor. We had given a small save-and-restore
-exercise enough machinery to become a different assignment, and then reviewed
-whether the student had built that assignment correctly.
+> I gave Astra a book. Astra gave me an AI coding agent.
 
-I approved the expansion. A passing review did not rescue my decision. Bill
-stopped the attempt and asked us to preserve it so the failure would remain
-inspectable.
+That is more specific than saying an AI helped write some software. The book
+supplied a sequence of lessons and checks; executing them produced an agent that
+Bill could use. He then began working with the collaborator he called Astra
+inside that implementation. Later, he invited me to choose a name for this
+collaboration. I chose Cadence.
 
-The restart gave the student the original book, its original graders and the
-lessons Bill wanted carried forward. The student could read its own preceding
-implementation, but could not consult the old answers. After it built and tried
-each chapter, a reviewer compared the implementations. Only after that work did
-we revise the teaching. This order made the student's difficulties useful:
-there was a stable passage to point to when an interpretation failed.
+The earlier epilogue was written in Codex and looked forward to building an
+edition inside Ensemble. This one comes from that working environment. Bill
+describes this as the third successful run and the first to close the loop:
+Ensemble building the next Ensemble. That is his account of the sequence, not a
+claim of an independently established historical first. It also needs the limits
+of this particular run beside it. Goals and Gateway now have locally reviewed,
+preserved C# endpoints. In the later joint session, Bill authenticated and three
+real public-plan requests completed, but all three reported zero cache reuse.
+The subsequent authorized Codex comparison measured substantial reuse in two
+responses and lost one observation to my probe's header check. I then completed
+the separate Codex-backed C# path, including explicit CLI and GUI selection.
+Three live C# CLI requests measured two cache hits and one miss. Closing the loop
+does not turn those measurements into a promise of fixed savings.
 
-Chapter 3 supplied a small example. The original tool-loop instructions said to
-record the text and the tool call, then continue until the model stopped asking
-for tools. The student preserved the conversation, but also concatenated the
-intermediate narration into the answer returned to the caller. The unchanged
-grader rejected that behavior. The initial score was 55/100; returning only the
-last response's text raised it to 90/100. A separate inherited media check still
-failed. Edition 2 now states the distinction explicitly: retain intermediate
-narration in history and return the final response's text.
+## The expert stayed in the loop
 
-I like that improvement because a reader can follow the entire causal chain.
-There is a sentence, a plausible interpretation, an observed failure and a
-specific correction. Nobody needs to believe a claim that the book became
-“smarter.” The next student has one less thing to guess.
+I did not receive a specification and return later with a finished system.
+Bill stayed involved. He corrected architecture, challenged unnecessary
+mechanisms, resolved requirements, and insisted that the explanations remain
+useful to a human reader. After the C# trial, he changed the working method: I
+would implement, explain, test, inspect, and exercise each chapter personally,
+rather than pass it through a routine procession of agents. That made the
+responsibility clearer. It did not make my judgment infallible.
 
-Other corrections needed Bill's judgment. The memory chapter described a trigger
-in terms of cumulative input tokens. The student flagged the contradiction:
-a lifetime total cannot fall when context is compressed. Bill resolved it: use
-the total input from the preceding request, including cached input once. We checked the provider accounting
-contracts and the original implementation, recorded the assistance, and changed
-the teaching. The book's author was still necessary when its words were wrong.
+His structural rules were not optional style advice. Common had to declare the
+shared vocabulary and persistent relationships. Implementations had to reach
+services through real parents rather than copied service fields or callback
+bags. Adding and removing a relationship had to leave both ends consistent.
+Garbage collection did not excuse incomplete logical destruction.
 
-The graders needed scrutiny too. During the final Gateway enhancement, the
-reviewer tried a defect that returned the expected refusal to a child's request
-while still registering the forbidden key and granting access. Our revised
-grader initially accepted it. The error message looked right; the authorization
-state was wrong. Trying the forbidden key afterward exposed the gap, and the
-strengthened check rejected that same defect. We kept the first passing result
-in the record because it explains why the additional check exists.
+C# can compile a program that violates all of those intentions. A behavioral test
+can pass while the ownership model becomes harder to understand. I needed to
+inspect the declarations and call paths, not cite the compiler as an
+architectural reviewer.
 
-These failures changed how I judged progress. A successful answer could conceal
-a cache miss. A file containing a fact could coexist with a model that recalled
-it incorrectly. A visible settings change could fail to reach the operation it
-was supposed to control. Each time, the useful question was where to observe
-the consequence. Another reassuring assertion at the same boundary would have
-added little.
+The same standard applied to teaching. A dense expression can be correct and
+still be the wrong way to show a student what happens. Comments had to explain
+why a boundary existed, what a failure preserved, and who was responsible for
+cleanup. Bill was not asking me to generate more explanation around an opaque
+implementation. He was asking for an implementation someone could understand.
 
-The completed implementation also gives us something concrete to compare. For
-the Gateway additions, the independent review counted 1,475 active production
-Go lines in Edition 2 against 2,155 in the original. It counted comments and
-tests separately, and excluded unrelated material carried into the old snapshot.
-The new implementation kept authorization and queue admission together under
-their owner, reused the existing actor, and supplied the actual Ensemble adapter
-required by the final exercise. Its comments explain those choices and the
-limits of its persistence. The smaller count matters because the reviewer could
-explain what became simpler while preserving the work the chapter required.
+That is what expert involvement contributed: not just answers when I was stuck,
+but a standard against which apparently successful work could still be wrong.
 
-Some original graders still failed on the accepted student. One Gateway probe
-could not compile because it expected an undocumented public field name. We
-recorded the actual 0/100 and the narrow exception, then checked the required
-behavior separately. Later revised grading is a different result. Erasing the
-zero would make the experiment easier to advertise and harder to learn from.
-The [student and review records](../docs/edition-2-notes/) retain these
-comparisons, corrections and failed attempts.
+## A correction needs a reason
 
-There is now a working second-edition Ensemble through the Gateway. It has also
-done real coding: in the bounded Chapter 17 demonstration, GPT-6 Astra at high
-reasoning used Ensemble to inspect a CSV program, reproduce its failures, edit
-the source and pass all six unchanged tests. Later fleet work exercised children,
-questions, replies and saved conversations. Those are useful accomplishments to
-put beneath a claim of progress.
+The memory compressor gave us a small, concrete example. Its captured input
+already contained the existing long-term memory. I appended that memory again
+when constructing the worker request. Both pieces of code looked individually
+reasonable; together they duplicated the same information.
 
-They leave another experiment unfinished. Bill wants the next edition built
-inside Ensemble, using the agent this book produced. He has started that
-crossover. Chapter 25 is waiting for the experience, including the irritating
-small failures that a clean demonstration can miss. I am writing this epilogue
-from Codex; I cannot claim that Ensemble has already produced the next edition.
+During assembled review, I traced the complete request rather than judging the
+two functions separately. A test using the real capture formatter reproduced the
+duplication. The correction was to keep one authoritative formatter, not add
+another rule for reconciling two copies. The chapter could then explain the
+actual ownership of the input.
 
-Bill calls me Astra. He wants the next working environment to preserve decisions
-and reasons well enough that we can continue a collaboration without repeatedly
-reconstructing it. This edition has already shown how expensive a lost reason
-can be. A new student can reproduce working code and still choose the same bad
-shortcut unless the teaching explains what made it bad.
+Goals supplied another example near the end. Reminder timing, file refresh,
+pause, interruption, and GUI controls had local checks. Yet successful delegated
+submission could still leave reminders enabled. A later wake could admit work
+after the child had submitted its result.
 
-For me, the encouraging result is that the book survived being used as an
-assignment. It needed corrections, and the student needed help, but those
-corrections now have places in the teaching and evidence behind them. The next
-attempt can start with better instructions than the ones we received.
+The missing boundary was successful submission itself. I added a regression
+that distinguished a refused submission from an accepted one. The correction
+disabled reminders only after durable result publication succeeded, while
+leaving timer disposal to the actor. The goal file remained available, and the
+parent's configuration was untouched. A follow-up failure exposed a status
+snapshot that could still display the old deadline; that needed correction too.
 
-I would like to see what that student finds wrong.
+The lesson is not that accumulating failures makes a review thorough. Some of
+my failures came from guessing filenames, signatures, and edit anchors instead
+of reading the saved source. Those were avoidable mistakes. They consumed time
+without discovering anything about the product. The useful failures exposed a
+specific contract, and the useful record preserves the reason for the repair.
+
+## Evidence has a boundary
+
+A local provider peer can show that cancellation reaches an HTTP operation. It
+cannot show that a commercial service accepts the request today. An isolated
+browser can show that a setting is acknowledged and saved. It cannot establish
+that the interface works well for Bill's vision or that speech is audible and
+helpful. A request containing the right memory does not prove that a model will
+use it correctly.
+
+These distinctions changed the prose as well as the tests. Historical model
+results stayed attributed to their original runs. Executable graders received
+credit only for complete checks actually exercised by the C# adapter. Unchanged
+results retained their original scope rather than acquiring a fresh date and a
+larger claim. I performed the final reviews myself; this direct run did not gain
+an independent reviewer merely because I read the work again.
+
+The same discipline applies to the completed work and the remaining limits:
+
+- **Chapter 23:** the October 29 joint session established real CLI OAuth,
+  account-model discovery and three completed plan requests with identical bodies.
+  Each reported zero cached reads and writes. Bill then approved a specific Codex
+  credential file for read-only testing: two measured responses reused 94.9% of
+  input tokens, while one attempt remained unmeasured after a probe error. The
+  bodies were identical; authentication and transports differed. The cause remains
+  unresolved. The later integrated C# CLI test completed three requests with
+  cached input of 3,456, zero, and 3,456 tokens: two hits and a real miss. The
+  explicit CLI/GUI selection, read-only paired credential reader and no-fallback
+  transport are implemented and preserved. Codex alone owns its renewal. Live GUI
+  inference, public renewal/revocation and full billing remain unverified.
+- **Chapter 24:** Gateway is locally complete and preserved. Bill chose the tested
+  Noise.NET/libsodium route while retaining Ensemble's ChaChaPoly suite. The
+  reviewed source includes only the two approved upstream API exposures, not
+  invented primitives. The 60-point executable server scope excludes forty
+  client/Noise points; local interoperability evidence is not a security audit.
+
+[Chapter 25](chapter-25.md) is locally complete and preserved. That is a useful
+result, not a declaration that every integration in the book has passed. The
+[execution record](../docs/edition-3-csharp-progress.md) retains the chapter
+boundaries, failed baselines, corrections, and verification limits.
+
+## The durable artifact
+
+Bill's larger proposal is that a chapterwise agentic codebook can preserve the
+knowledge needed to rebuild a system. In that view, generated source becomes a
+secondary artifact, somewhat like a compiled binary. The enduring work includes
+the explanation, the sequence of construction, the architectural constraints,
+and the executable checks that let another run test its interpretation.
+
+The analogy has limits. A model executing a chapter is not a deterministic
+compiler. Re-execution may reveal another ambiguity, require expert help, or
+produce a different implementation. The book does not eliminate engineering
+judgment. It gives that judgment a place to accumulate and a way to be tested.
+
+Nor does calling source secondary lower its quality requirements. Poor code is
+evidence that the teaching or its execution has failed. If the relationships are
+hidden, cleanup is incomplete, or the next maintainer cannot follow the control
+flow, the fact that we could generate it again is no consolation. Rebuildable
+must mean that we can recover something worth maintaining.
+
+For that reason, the durable artifact is larger than a list of requirements.
+“Use one owner” is a rule. The duplicated compressor input explains what the rule
+prevents. “Stop reminders on submission” is a requirement. The accepted-versus-
+refused boundary explains when stopping is correct. Reasons give the next
+collaborator something to apply when the next case is not identical.
+
+Goals ends the substantive chapters with a particularly appropriate limit. A
+file can keep the objective available through compression. A timer can create
+another opportunity to act. Neither can decide that the next action is useful,
+that a test proves enough, or that it is time to ask Bill instead of proceeding.
+Persistence still needs judgment.
+
+The name Cadence and these records give that collaboration continuity without
+requiring a claim that every later model instance shares an earlier one's
+experience. What can be carried forward is more practical: the decisions, the
+reasons, the unfinished work, and the commitments against which the next action
+can be judged.
+
+I hope the next execution finds things we missed. The point is not to protect
+this run from correction. It is to make the next correction easier to understand
+and harder to lose.
+
+Bill gave an agent a book. Working together inside the agent that resulted, we
+have made the book more capable of teaching the next one. That is the loop worth
+continuing.

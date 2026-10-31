@@ -5,7 +5,7 @@ import "testing"
 // This integration exercises the separate Go module, its real registration,
 // framework loop, handler and logger; only the HTTP provider is a fake.
 func TestChapter4ExternalConsumer(t *testing.T) {
-	const core = "../../solutions/ch04"
+	const core = "../../edition-2/solutions/ch04"
 	example, err := ReadConsumerCase("")
 	if err != nil {
 		t.Fatal(err)

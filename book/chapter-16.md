@@ -20,197 +20,95 @@ of unlimited inference or a measured tenfold saving.
 
 ---
 
-## TL;DR
+## TL;DR — Specification Brief
 
-### The delta
+Add OpenAI Responses and an explicit ChatGPT-plan funding mode without giving
+Agents copies of account credentials. One `Credentials` object belongs to the
+`Ensemble` root. An Engine reaches it through its Agent and asks for a fresh bearer
+immediately before sending. API-key billing remains a separate choice; a failed
+plan request never becomes an API charge.
 
-Chapter 15 left the agent with three vendor renderers, a
-ModelFeatures table, capability flags, cache breakpoints, and
-per-vendor endpoints. This chapter:
+`Common` declares the vocabulary and ownership. `Auth` implements protected
+storage, PKCE login, signed identity validation, renewal, discovery and sign-out.
+`Engine` implements Responses projection and streaming. CLI and GUI provide human
+account controls; neither is another credential store. History records ordinary
+conversation and compatible opaque replay data, not OAuth secrets.
 
-1. Introduces a **credential provider** abstraction that decouples
-   authentication from inference.
-2. Implements **OAuth 2.0 + PKCE** for OpenAI's ChatGPT plan, so
-   an existing subscription becomes the API credential.
-3. Adds **Responses API** transport for selected OpenAI models,
-   preserving **Chat Completions** for earlier model rows.
-4. Adds a **capability profile** for the ChatGPT plan's
-   restrictions.
-5. Streams **reasoning summaries** as first-class events, separate
-   from assistant output.
-6. Implements a **billing mode** state machine with explicit,
-   announced transitions.
+The preserved reference endpoint has a scoped 70-point transport grade; signed
+local issuer tests separately exercise the credential owner. In the October 29,
+2026 joint session, Bill completed real CLI login with Ensemble's own registration.
+Account-specific model discovery and three plan-funded Responses calls succeeded
+through current main. Renewal, sign-out, GUI login and billing reconciliation were
+not exercised live. The cache result was zero reported reuse; see Chapter 23.
+These observations supplement, rather than expand, the earlier executable grade.
 
-### Types (conceptual; adapt to your codebase)
+## The coding brief
 
-```go
-// CredentialProvider returns a bearer token for inference.
-// Both credential kinds produce the same Authorization header.
-// Renewal belongs to the provider rather than the renderer.
-type CredentialProvider interface {
-    GetBearerToken(ctx context.Context) (string, error)
-    Kind() CredentialKind
-}
+Extend the previous chapter's C# solution; do not replace its actor, Jobs,
+History, meter or speech queue. Read the current primary protocol references in
+this chapter before attempting a live integration. Their changing service details
+are separate from the following ownership and safety contracts.
 
-type CredentialKind int
-const (
-    CredentialAPIKey CredentialKind = iota + 1
-    CredentialChatGPTOAuth
-)
+### Ownership and authentication
 
-// OAuthProfile stores the state of one ChatGPT OAuth
-// registration. The OIDC sub claim is the account identity.
-type OAuthProfile struct {
-    ClientID       string    // issued by OpenAI
-    Subject        string    // validated OIDC account identity
-    Email          string    // display only
-    AccessToken    string    // secret
-    RefreshToken   string    // secret; rotates on refresh
-    IDToken        string    // secret — validated on receipt
-    ExpiresAt      time.Time // access token expiry
-    GrantedScopes  []string  // must include plan-use scope
-    HostID         string    // stable per-installation UUID
-}
+- Declare `Credentials` and immutable public account values in Common. Construct
+  the store with its strong `Ensemble` parent; parent add/remove operations update
+  both ends. Destroying the root joins Agents before destroying shared credentials.
+  Destroy cancels and joins auth operations and detaches; it does **not** log out.
+- Use only an explicitly selected private directory. Never import another tool's
+  account, inspect its credential files, or place OAuth state in History, skills,
+  logs, ordinary configuration or browser snapshots.
+- Implement authorization-code PKCE with random state, nonce and verifier, exact
+  callback validation, and signed identity validation. A returned client ID is a
+  registration, not proof of the user's identity. Save it before consuming the
+  one-use code; only a verified ID token can bind the subject.
+- Share one protected, versioned file and cross-process lock. Reread under the
+  lock; serialize refresh through durable replacement. Refuse damaged data rather
+  than interpreting it as an empty store. Keep accounts and registrations separate.
+- Renew near expiry and allow one same-funding-source recovery after inference
+  HTTP 401. Reuse a newer durable grant if another owner already rotated it.
+  Bound transient refresh retries; never automatically replay an uncertain
+  authorization-code exchange. Clear local tokens on terminal grant rejection.
+- Distinguish local logout from remote sign-out. Clear locally before attempting
+  revocation; report whether the provider confirmed it. Preserve registration and
+  saved plan selection either way.
 
-type BillingMode int
-const (
-    BillingChatGPT BillingMode = iota + 1
-    BillingAPI
-    BillingChatGPTThenAPI
-)
-```
+### Transport, policy and presentation
 
-### Rules
+- Make `Surface.Responses` and `BillingMode` explicit immutable Configuration
+  choices. Plan mode requires OpenAI Responses, streaming and an account label,
+  with no API key. Keep existing provider/surface defaults for other callers.
+- Project tools, instructions and results from the existing vocabulary. Preserve
+  exact call identity and compatible opaque reasoning; request encrypted reasoning
+  for stateless replay. Unsupported media must refuse, not vanish.
+- Parse JSON and SSE. Require `response.completed`; failed/incomplete terminal
+  events, unfinished fallback items and EOF without success cannot run tools.
+  A nonempty terminal output wins. An empty one uses only completed streamed items.
+- Preserve real arrival order for tool explanation. The exact supported
+  `gpt-6-astra` capability row requires ordinary visible text before tools; a
+  reasoning summary is not an explanation. Refuse tool-first calls with paired
+  results before effects, even if later terminal text is reordered ahead of them.
+- Keep reasoning effort and summary policy per Agent. The supported row defaults
+  to `medium`/`auto`; efforts are `low`, `medium`, `high`, `xhigh`, `max`. Explicit
+  `off` omits summary requests. Do not infer capabilities or prices from a name.
+- Display returned summaries separately, stream them incrementally, and admit
+  final-only suffixes once to the existing speech queue. Replay is silent. Browser
+  projection must never expose encrypted reasoning. Expected plan-authorization
+  refusal records one durable error for narration, not duplicate turn-end speech.
+- Discover visible plan models through the credential owner, retaining server
+  order. A catalog entry establishes neither renderer support nor price. CLI model
+  flags/environment bypass discovery; the GUI catalog is read-only, not a picker.
+- Announce model and funding source before inference. Successful login atomically
+  saves the future plan choice; explicit launch overrides do not rewrite it.
+  Never change a running Agent's model/account/billing after account management.
+- Keep plan token counts, but do not apply API-dollar estimates to them. Use only
+  supported cache fields: this endpoint supports an optional OpenAI
+  `prompt_cache_key`, not the historical explicit-cache extensions discussed in
+  earlier development records. Preserve Anthropic/Gemini behavior.
 
-1. **Credential abstraction.** The HTTP inference layer calls
-   `GetBearerToken()` and receives a valid bearer token without
-   implementing renewal itself. Both credential kinds produce `Authorization: Bearer <token>`. The
-   credential provider stays off the renderer interface. Ensemble
-   owns the auth service; Engine resolves a bearer into request-local
-   transport configuration. Rendering and offline replay need no token.
-
-2. **PKCE.** Generate a cryptographically random verifier, compute
-   the S256 challenge, send the challenge in the authorization
-   request, and the verifier in the token exchange. Generate fresh
-   `state` and `nonce` for every authorization attempt.
-
-3. **Loopback listener.** Bind to `127.0.0.1` (not `localhost`),
-   any available port, path `/auth/callback`. The path must be
-   exactly `/auth/callback` and the host must be the literal
-   `127.0.0.1`. Only the port may vary.
-
-4. **Host identity.** Generate a stable `urn:uuid:<v4>` once per
-   installation. Persist it. Send as `ext_agent_host_id` in every
-   authorization request. Never derive from username, hostname,
-   email, or MAC address.
-
-5. **Dynamic registration.** The first authorization uses
-   `client_id=dynamic_agent_client`. OpenAI returns an issued
-   `client_id` on the authorization callback. Persist it before
-   exchanging the authorization code. Reauthorization and token
-   exchange use the issued `client_id`; a conflicting returning
-   callback ID must be rejected. The bootstrap is a
-   registration entrypoint, never valid for token exchange.
-
-6. **ID token validation.** Validate the returned JWT: fetch
-   OpenAI's published JWKS, check the signature, verify issuer,
-   audience (must match issued `client_id`), expiry, and nonce.
-   The OIDC `sub` claim is the stable account identity. Retain the
-   issued client ID as well, so registrations remain separate.
-
-7. **Scope checking.** A successful login does not imply plan
-   usage. The granted scopes must include
-   `chatgpt.tokens.use.direct`. Without it, ChatGPT-plan
-   inference is forbidden even if identity was successfully saved.
-   Request `openid profile email offline_access resource.invoke
-   chatgpt.tokens.use.direct`, with `resource=https://api.openai.com/v1`
-   on authorization and code exchange. Inspect the granted scope.
-
-8. **Proactive refresh.** Refresh the access token when
-   `now >= expires_at - 5 minutes`. Each refresh returns a new
-   refresh token; the old one is invalidated immediately.
-   Serialize refresh per profile, including processes sharing its
-   storage. Never allow concurrent refreshes for the same session.
-   Save both new tokens atomically before using either.
-
-9. **Terminal refresh errors.** Six errors are terminal:
-   `invalid_grant`, `invalid_refresh_token`, `token_expired`,
-   `refresh_token_expired`, `refresh_token_invalidated`,
-   `refresh_token_reused`. Mark the credential unusable, keep
-   the issued `client_id`, re-authenticate. Temporary
-   network/5xx errors: retry with backoff. Never delete valid
-   credentials on a transient failure.
-
-10. **Responses API format.** ChatGPT-plan requests use the
-    Responses API endpoint. They require `store: false` and
-    `stream: true`, full history in `input`, and namespaced local
-    function tools. The plan's HTTP route excludes fields
-    including `temperature`, `top_p`, `max_output_tokens`,
-    `previous_response_id`, and `top_logprobs` (not `logprobs`).
-    Model restrictions as a capability data structure, not
-    scattered special cases. Require terminal completion before
-    committing output or executing a streamed tool call; preserve
-    completed output items even when the terminal `output` is empty.
-
-11. **Cache breakpoints.** On the supported API-key route, set
-    `prompt_cache_options.mode: "explicit"` and place
-    `prompt_cache_breakpoint` markers on eligible content blocks,
-    including the developer-role constitution, within the four-marker
-    budget. The measured ChatGPT route rejected the options field;
-    its accepted capability profile omits both options and markers.
-    Keep the cache lens and actual usage counters on both routes.
-
-12. **Reasoning summaries.** Request
-    `reasoning.summary: "auto"` on models that support it.
-    Stream summary events incrementally. Map them to separate
-    observer events: never buffer a full summary, never
-    concatenate into assistant text, never drop summaries
-    adjacent to tool calls.
-
-13. **Billing mode.** `chatgpt` uses only OAuth credentials.
-    `api` uses only the API key. `chatgpt_then_api` prefers
-    OAuth, falls back to API only on
-    `subscription_sharing_usage_limit_exceeded` and only when
-    `allow_metered_fallback` is true. Announce the billing
-    transition before the first metered request. Never silently
-    switch billing. Deferring automatic fallback is permitted; this
-    chapter's accepted implementation supports only `api` and `chatgpt`.
-
-14. **Credential isolation.** Access tokens, refresh tokens, ID
-    tokens, and API keys never appear in prompts, agent memories,
-    conversation context, logs, debug output, or any
-    model-visible state.
-
-15. **Sign-out.** Revoke the refresh token via OpenAI's
-    revocation endpoint. Clear local tokens. Retain the issued
-    `client_id` and host ID. If remote revocation fails, clear
-    locally and inform the user.
-
-### Yours
-
-- File layout for the OAuth subsystem
-- Profile storage format (JSON, keychain, or your existing
-  secret store)
-- How auth status is displayed to the user
-- Whether `chatgpt_then_api` is implemented now or deferred
-- Multiple-account support: the schema should support it even if
-  the UX exposes only one account
-
-### Exercise
-
-```sh
-go run ./cmd/grade-edition2 -ch 16
-```
-
-Extend Chapter 15; the accepted result is `solutions/ch16`.
-Run the command from the repository root. It builds the core and
-its separate GUI; an explicit core path and `-gui DIR` select other
-submissions. The grader provides a fake OAuth
-server and a fake Responses API server. Complete the OAuth flow,
-perform inference through the Responses API, refresh tokens
-proactively, and stream reasoning summaries as separate events.
-
----
+Test real owners, files, sockets, processes and host lifecycles with working
+boundary fakes. Keep local component evidence, executable evidence, live provider
+proof and audible/human-accessibility evaluation distinct.
 
 ## The idea in plain words
 
@@ -255,7 +153,7 @@ editing the earlier context. ([Launch policy](https://www.anthropic.com/claude-o
 
 Several chapters depend on owning that editing policy: Chapter 2's
 ephemera, the changing GUI and speech views in Chapters 12–13,
-the cuts in Chapter 14, the later memory in Chapter 22, and Chapter 23's recorded
+the cuts in Chapter 14, the later memory in Chapter 21, and Chapter 22's recorded
 recall attachments, which survive until a checkpoint. They do not
 all have the same lifetime. They do share the ability to stop
 sending material without asking a provider to make the cut.
@@ -285,45 +183,69 @@ It is a refactor.
 
 ## The credential seam
 
-The existing pattern is a static API key: resolved at startup,
-stored on the configuration struct, passed to every request
-unchanged. This client treats it as a constant. The service can
-still revoke or expire it; a constant in configuration is not a
-promise from the provider.
+There is no `AuthProvider` interface, copied service bag or host-held bearer cache.
+The concrete path is:
 
-OAuth credentials are not constants. An access token expires in
-about an hour. The refresh token that renews it is invalidated
-the moment a new one is issued. A concurrent refresh can lock the
-account out of both tokens. The HTTP layer must handle all of this
-without implementing token rotation in every renderer.
+```text
+Engine → Agent → Ensemble → Credentials
+```
 
-The `CredentialProvider` interface has two methods.
-`GetBearerToken` returns a valid bearer token or an error.
-`Kind` returns whether the credential is an API key or an OAuth
-token. The HTTP layer calls `GetBearerToken` and places the
-result in the `Authorization` header. Renewal stays with the
-provider; HTTP can request it after an authentication failure
-without taking ownership of the stored tokens.
+`Common/Auth.cs`, `AuthProtocol.cs` and `AuthLogin.cs` declare the shared types,
+persistent fields and partial operations. Their implementations live in `Auth` in
+the same assembly. For example, the public declarations include:
 
-The API-key provider is a single field wrapping a string. It
-returns that string every time and never fails. The OAuth
-provider holds protected profile state and coordinates token refresh.
-It checks the expiry, refreshes if needed, and returns the
-current access token. Both providers produce an identical header.
+```csharp
+public partial Credentials(Ensemble parent, string directory);
+public partial Task<string?> SelectedPlanAccountAsync(
+    CancellationToken cancellation = default);
+public partial Task<string> GetBearerTokenAsync(
+    string label, CancellationToken cancellation = default);
+public partial void Destroy();
+```
 
-The credential provider stays off the renderer interface. Ensemble
-owns the auth store. Agent selects a funding mode, and Engine
-obtains the bearer just before HTTP through its request-local
-configuration. The renderer needs only the selected route's public
-capabilities: for example, whether tools need a namespace. It does
-not need an access token to turn history into bytes.
+These are declarations from the partial owner, not a separate interface to inject
+into Engines. `new Credentials(app, directory)` registers with the real parent.
+`Ensemble.RemoveCredentials` clears the reverse link itself. Public `AuthAccount`
+and `PlanModel` records are explicitly value-like snapshots; they contain no
+access, refresh or ID tokens and need no holder back-pointers.
 
-This distinction also keeps offline replay offline. Rendering a
-saved conversation must not refresh a credential or require an
-account. A developer adding another renderer learns the neutral
-conversation and that provider's wire format, without implementing
-OAuth. The seam's job is to make the caller's life boring.
+`Engine.SendAsync` renders without credentials, then resolves the selected bearer
+through the parent path immediately before HTTP. Token acquisition failure has a
+fixed safe error. An actual plan HTTP 401 permits exactly one retry of the same
+request bytes. The internal rejected-bearer operation compares that exact bearer
+under the file lock, so a delayed 401 cannot unnecessarily rotate a newer grant.
+API-key requests never enter this path. Other statuses and interrupted successful
+streams do not trigger an inference retry.
 
+The Engine still owns wire exchange and its process meter; the actor still owns
+durable admission, tool effects and History. A successful retry yields one
+completed response and one meter update, not two conversational turns.
+
+### One protected store, not copied account state
+
+The C# implementation uses `credentials.json` beside `credentials.lock` in the
+explicit directory. It requires private Unix permissions and refuses unsupported
+storage-policy platforms. Version 2 stores a nullable `selected_plan_account`,
+installation identity, and account registrations/grants. Version 1 remains
+readable as having no saved selection. A read does not silently migrate the file.
+
+The decoder validates the entire candidate, including unique labels, registration
+identity, dates, token completeness and selected-label membership. A damaged file
+is an error, not a successful empty login. The local operation gate coordinates
+one owner; the file lock coordinates processes. Each writer rereads the file under
+that lock, writes a private temporary file, then replaces the primary before
+publishing success. This is atomic replacement, not a hardware power-loss/fsync
+guarantee.
+
+The file is the authoritative credential and selection state. The owner retains
+only an active login attempt and lifecycle resources, not a second token cache.
+Refresh, registration updates and logout preserve the selected label; successful
+login changes it in the same write as the validated grant. Matching email strings
+do not authorize registration sharing.
+
+Credentials are private, but they are not hidden from the person operating the
+application. The user controls the store and may clear it. Ordinary snapshots and
+saved Agent configuration deliberately omit it.
 
 ## OAuth from first principles
 
@@ -348,9 +270,9 @@ with the path `/auth/callback`. The host must be the literal
 `127.0.0.1`; the OpenAI documentation says "Do not substitute
 with `localhost`." The path must be exactly `/auth/callback`;
 their documentation says "`/callback` does not match
-`/auth/callback`." Only the port may vary. This makes the coding
-agent, for exactly one HTTP request, a web server. A tool-calling engine that reads files and
-runs processes now listens on a socket and serves a redirect.
+`/auth/callback`." Only the port may vary. For the duration of login, the host becomes a small callback server. A
+tool-calling application that reads files and runs processes now also listens
+on a socket and serves the browser callback.
 
 The authorization request includes several things that matter beyond
 PKCE. A `state` parameter prevents cross-site request forgery: the
@@ -378,13 +300,26 @@ access, `resource.invoke` and `chatgpt.tokens.use.direct`. These
 small fields are part of the protocol, not labels to improvise.
 ([Registration and sign-in](https://developers.openai.com/siwc/token-sharing-open-source/sign-in).)
 
-The user's browser opens. They sign in. OpenAI redirects to the
-loopback listener. The agent extracts the code, the state, and the
-issued client ID, then shuts down the HTTP server. One request
-served. The agent returns to reading files. A reader who has
-followed this book from chapter 1 will notice the irony: the tool
-that runs shell commands now runs a shell command's inverse,
-listening for network input instead of producing it.
+The C# library returns the private authorization URL; it does not launch a
+browser. CLI `auth login` binds an owned listener first, prints the URL in the
+dedicated local command, and waits with bounded cancellation and cleanup. The
+GUI uses a user-opened separate sign-in window. The URL never enters the main
+DOM, WebSocket transcript, or model context: it may contain an ID-token hint.
+A blocked popup fails before login starts.
+
+An unsolicited wrong-state callback does not consume the active attempt. A
+matched denial or failed exchange does. Callback pages contain no codes, state,
+URL, or account information. The listener may therefore serve more than one
+request before the valid callback finishes the attempt; it is not a one-request
+server. Hosts ask the owner whether the attempt remains pending instead of
+copying its mutable state.
+
+Persist the issued client ID before exchanging the one-use code. Failed exchange
+leaves a pending registration with no subject or tokens, ready for a later login.
+Only the signed, validated identity binds the subject. Do not automatically retry
+an uncertain code exchange. A changed registration from another process
+invalidates the pending attempt. There is no implemented `/complete` headless
+redirect; use the documented local loopback flow rather than inventing one.
 
 
 ## Identity is not permission
@@ -397,7 +332,7 @@ The token exchange returns three tokens: an access token for API
 calls, a refresh token for renewal, and an ID token for identity.
 The ID token is a signed JWT. Validating it requires fetching
 OpenAI's published JWKS (JSON Web Key Set), verifying the
-signature against those keys, and then checking five claims:
+signature against those keys, and then checking the identity claims:
 issuer exactly matches the trusted `https://auth.openai.com` URL,
 audience matches the issued
 `client_id`, the token has not expired, and the nonce matches the
@@ -424,6 +359,14 @@ the granted scopes. The current [sign-in contract](https://developers.openai.com
 likewise makes that grant a separate inference gate.
 
 
+The C# validator is deliberately narrow RS256, using .NET RSA/SHA-256 rather
+than a general JWT framework. It rejects ambiguous JSON/key selection and checks
+audience, authorized party, timestamps, nonce and subject continuity; a supplied
+access-token hash must also match. A decoded JWT is not a verified identity.
+The tests sign genuine local RSA tokens and exercise refusals, but do not prove
+that a real account can complete this flow.
+
+
 ## Tokens that expire
 
 The access token is valid for about one hour. The refresh token
@@ -442,10 +385,10 @@ succeeds and the second one submits a dead token. The server
 treats that as a potential replay attack and may invalidate both
 tokens.
 
-The fix is mechanical: serialize refresh operations per profile.
-A mutex handles goroutines within one process; two clients
-sharing a credential file need cross-process coordination too.
-The accepted store locks and reloads the profile before deciding
+The fix is mechanical: serialize credential updates. The C# owner serializes
+local operations across its shared store; two processes using that file also
+coordinate through its file lock.
+The owner locks and reloads the store before deciding
 whether to refresh. A second request uses the replacement already
 saved by the first instead of rotating the old token again.
 Save both new tokens atomically before using either of them. If the process crashes between receiving the tokens and
@@ -466,8 +409,8 @@ unusable. Keep the issued `client_id` and host ID, discard the
 tokens, and re-authenticate from scratch. The user signs in
 again, but the agent remembers who it is.
 
-Network errors and HTTP 5xx are transient. Retry with
-exponential backoff. The critical distinction: a terminal error
+Network errors and HTTP 5xx are transient. The C# refresh path makes
+at most three attempts with bounded exponential backoff. The critical distinction: a terminal error
 is the server saying the credential is dead. A transient exchange
 failure does not establish that: a reachable server can return a
 temporary error too. Retain the stored credentials. A 401 on
@@ -477,88 +420,130 @@ source, and clears tokens only after a terminal refresh rejection.
 ([Error recovery](https://developers.openai.com/siwc/token-sharing-open-source/errors-and-recovery).)
 
 
+After an inference HTTP 401, Engine asks Credentials about the exact rejected
+bearer. Under the existing lock, the owner reuses a newer valid grant if another
+process already rotated it, or refreshes the rejected token. Engine retries the
+same request body once. A second 401 ends the exchange. API-key requests, quota
+errors, and failed or interrupted streams do not enter this recovery path. Only
+the successful completed response contributes to the Engine meter.
+
+`LogoutAsync` clears local tokens and retains registration, host identity and
+saved plan selection. `SignOutAsync` clears locally **before** attempting remote
+revocation, then reports whether revocation was confirmed. A network failure
+cannot undo local logout. Destroying Credentials is different again: cancel and
+join operations, dispose HTTP resources and detach from Ensemble, without
+logging the account out.
+
+
 ## The Responses API
 
-The Responses API is a different wire format for the same
-conversation. Messages become input items. System-role messages
-become developer-role messages. The streaming event names change.
-HTTP 200 opens the transport; `response.completed` establishes
-completed inference. An incomplete or failed stream does not become
-a successful conversation fact merely because text appeared.
-The local conversation stays vendor-neutral while its encoding changes.
+Chat Completions, Responses and funding are separate choices. Existing OpenAI
+callers keep Chat Completions unless they select Responses or an explicitly
+Responses-only model row. API-key mode can use Responses too. Plan mode validates
+OpenAI + Responses + streaming + nonempty account, rejects an API key, and uses a
+redirect-disabled client with HTTPS endpoints except literal loopback HTTP tests.
 
-ChatGPT-plan HTTP requests carry restrictions. `store: false` and
-`stream: true` are mandatory, and `input` carries the required
-history. The current route profile excludes `temperature`, `top_p`, `max_output_tokens`,
-`previous_response_id`, `background`, `conversation`,
-`metadata`, `max_tool_calls`, `moderation`, `multi_agent`,
-`prompt`, `prompt_cache_retention`, `safety_identifier`,
-`top_logprobs`, `truncation`, and `user`. The original printed
-list omitted `user` while including `previous_response_id`; the
-HTTP route excludes both. The capability table keeps these route
-restrictions separate from the model table. A renderer reads the
-selected profile instead of repeating policy decisions throughout
-its message loop.
+The exact `gpt-6-astra` row is explicit capability data, not a model-name pattern.
+It selects Responses, streaming, application reasoning defaults `medium`/`auto`,
+and ordinary explanation before tools. It does not establish account availability,
+media support or an API price. `--reasoning-effort` and `--reasoning-summary`
+override their `OPENAI_REASONING_*` environment values; each Agent freezes its own
+Configuration. Unsupported explicit values refuse before HTTP. `off` omits the
+summary request. Other models do not inherit these settings by guesswork.
 
-Local function tools go inside a namespace on this plan route.
-Preserve the returned namespace separately from the function name,
-and carry the call ID into the `function_call_output`. A model
-asking to read a file is only half the transaction: the next request
-must contain the actual result correlated to that call.
-([Current plan limitations](https://developers.openai.com/siwc/token-sharing-open-source/preview-limitations),
-[models and inference](https://developers.openai.com/siwc/token-sharing-open-source/models-and-inference).)
+References: [model documentation](https://developers.openai.com/api/docs/models/gpt-6-astra)
+and [reasoning guide](https://developers.openai.com/api/docs/guides/reasoning).
 
-The top-level `instructions` field is legal on the plan route.
-It is a plain string, so it cannot carry its own content-block
-breakpoint. That does not make its bytes inherently uncacheable:
-a later reusable prefix can include earlier instructions. This
-renderer uses a developer-role content block for the constitution
-so the supported API-key route can place an explicit boundary there.
+### Projection uses the existing vocabulary
 
-The first subscription attempt exposed a route difference that the
-original chapter had missed. It returned HTTP 400 with
-`invalid_parameter`, naming `prompt_cache_options`. The same explicit
-mode had worked on the API-key route. The accepted plan profile
-therefore omits both that option and its associated breakpoint
-markers. Only the option's rejection was measured; the marker
-omission is a conservative choice for the paired mechanism.
-Changing credentials did not change the model name, but it changed
-which request was admissible.
+`Engine/Responses.cs` projects text, tool calls, tool results and compatible opaque
+items from Context. Shared final rendering combines primary and skill instructions
+once; it does not create a second manual store. Human text is a user message,
+ordinary assistant text is an assistant message, and system-like input uses the
+developer role. The top-level `instructions` field is also supported; the current
+plan limitations allow instructions **or** developer messages, contrary to an
+older grader's blanket prohibition.
 
-Keep explicit caching on the supported API-key route: set
-`prompt_cache_options.mode` to `"explicit"` and place the markers
-on eligible content blocks, within the four-marker budget. The
-published GPT-6.1 Sol standard rates for prompts through 272K input
-tokens are $2 per million fresh input tokens, $0.10 cached input,
-$2.50 cache writes and $10 output, verified October 11. Cache reads
-are 0.05x fresh input; cache writes are 1.25x. Those API prices
-explain why the boundary matters. They are not a subscription
-invoice or proof that a request received a cache grant.
-([September 29 model release](https://developers.openai.com/api/docs/changelog).)
+For plan tools, the final projection uses a named namespace:
 
-The migration is per-model. `SurfaceResponses` is a fact in the
-ModelFeatures table, set on specific model rows. Earlier models
-stay on Chat Completions; newer models move to Responses. A test
-pins the boundary so that a blanket vendor-wide flip cannot
-silently move tested models onto an untested surface.
+```json
+{
+  "model": "gpt-6-astra",
+  "instructions": "Explain tool actions before calling them.",
+  "input": [
+    {"type": "message", "role": "user", "content": [
+      {"type": "input_text", "text": "Inspect the requested file."}
+    ]}
+  ],
+  "tools": [{
+    "type": "namespace",
+    "name": "ensemble",
+    "description": "Ensemble tools",
+    "tools": [{
+      "type": "function",
+      "name": "read_file",
+      "description": "Read text from a file",
+      "parameters": {
+        "type": "object",
+        "properties": {"path": {"type": "string"}},
+        "required": ["path"]
+      }
+    }]
+  }],
+  "include": ["reasoning.encrypted_content"],
+  "reasoning": {"effort": "medium", "summary": "auto"},
+  "store": false,
+  "stream": true
+}
+```
 
-The first-edition coder found four artifacts waiting for this
-migration in that implementation. `provenance.go` declared `SurfaceResponses` and never
-wired it. `delta.go` documented that `StreamAll` deliberately
-excluded `StreamReasoningSummary`. `openai.go` carried a comment
-that encrypted reasoning was "a Responses-API concept ... for a
-renderer that can use it." The `gpt-5.6-sol` row recorded that
-function tools with reasoning were refused on Chat Completions,
-and that the fix was the Responses API. This chapter was someone
-doing it. The new implementation keeps the same lesson without
-requiring those historical filenames: authentication and wire
-format have separate seams, and the selected Responses models can
-now use reasoning and tools together.
+This illustrates the shape, not the complete installed tool catalog. A returned
+function call retains its native item and call ID. A `function_call_output` uses
+that same call ID; the actor's ordinary result becomes its output text. Compatible
+opaque reasoning replays with exact surface/model provenance. It is neither
+assistant prose nor a tool result. A billing switch adjusts the disposable tool
+namespace rather than mutating History. Blob/media projection currently refuses
+explicitly; documented provider media support does not make our renderer support it.
 
+### Streaming progress is not execution authority
+
+The SSE reader tracks output indices, completed items, displayed text and stable
+part IDs in request-local assembly state. Deltas can update the page immediately.
+Only a successful `response.completed` can finalize a response. When its output
+is nonempty it is authoritative; when empty, only completed item-done values may
+supply the fallback. Added skeletons and unfinished argument deltas are not facts.
+Failed/incomplete terminal events and missing terminal success refuse tools.
+
+Explanation policy uses actual SSE arrival order, not reordered terminal output.
+A completed visible message can explain a subsequent tool even without deltas;
+a summary cannot. Tool-first responses get paired refusals through the normal
+actor, with no `ToolStarted` or effect. A later model request can consume those
+refusals normally.
+
+The GUI projects `summary_text` to distinct collapsed **Reasoning summary** cards.
+Encrypted reasoning remains only in canonical compatible replay data. The existing
+per-part speech cursor admits incremental text and final-only suffixes once;
+reconnect/replay is silent. These are public summaries, not a private reasoning
+trace and not a promise that the provider always returns a summary.
+
+### Keep usage and price separate
+
+Responses usage maps cached input into the existing disjoint count buckets. Missing
+or malformed required counts remain unknown; an omitted optional cache count is
+zero. The Engine meter distinguishes billing mode, so plan usage never receives
+an API-dollar estimate. Unknown models/tiers keep valid counts without invented
+rates. Historical preview price tables are not production pricing authority.
+
+The supported optional OpenAI cache-routing field is `prompt_cache_key`. Historical
+`cache_control`, `prompt_cache_retain` and `prompt_cache_min_tokens` experiments are
+not implemented as Responses guarantees. The executable exercise checks configured
+API routing and default plan omission; it does not infer a provider prohibition
+or live cache hit from that difference.
 
 ### The stream that had already finished its tool call
 
-After removing the unsupported cache option, the subscription
+In the historical implementation, after removing an unsupported cache option,
+the subscription
 request reached the model and still failed. The body contained SSE,
 but the parser selected its whole-JSON branch. Fixing that decision
 exposed the second assumption: a completed `read_file` item had
@@ -569,13 +554,15 @@ The parser needs both parts of the protocol. Detect the stream
 without waiting to buffer its entire body, retain completed items
 by output index, and use them when terminal output is empty.
 A nonempty terminal output remains authoritative. In either case,
-terminal success and usage must arrive before those items become
-conversation facts or executable tool calls. The fact that a tool's
+terminal success must arrive before those items become conversation facts or
+executable tool calls. Usage may remain unknown; it is not an execution gate. The fact that a tool's
 arguments have streamed is no permission to execute a response
 that subsequently fails.
 
-The captured stream made both defects reproducible without another
-model call. A parser test that always repeats every completed item
+That captured stream made both defects reproducible without another
+model call. In the C# run, a headerless loopback stream separately exposed the
+same dispatch assumption; the scoped executable grade verifies the correction
+without another provider call. A parser test that always repeats every completed item
 in the terminal array cannot expose the second defect. The real
 route had done less repetition than the fake, which was enough to
 lose a perfectly good tool call.
@@ -623,8 +610,8 @@ returned no public summary at all. More reasoning is not a guarantee
 of a summary. Completion and shutdown must not depend on hearing one.
 
 The observer receives summary events through the existing
-observation interface. Summary deltas are a new event kind,
-separate from assistant-text deltas. They are delivered
+observation interface. Summary deltas have a distinct kind in that existing
+path, separate from assistant-text deltas. They are delivered
 incrementally, kept separate from the assistant's visible text,
 and preserved when a tool call is adjacent. A response that
 interleaves reasoning, tool calls, and assistant text must emit
@@ -634,206 +621,196 @@ the response continues, without merging them into the answer or
 speaking the encrypted item that accompanies them.
 
 
-## The billing state machine
+The selected C# row supports `auto` and explicit `off`, not the historical
+`detailed`/`concise` choices above. A final may include text beyond its delivered
+deltas: admit that suffix once through the existing per-part speech cursor.
+Replay remains silent. Local transcript tests prove queue admission, not hearing.
+Reasoning summaries do not satisfy the selected model's ordinary pre-tool
+explanation requirement; that is Ensemble admission policy, not a provider promise.
 
-The agent now has two funding sources: a ChatGPT subscription
-and a metered API key. Switching between them is a state
-transition that the user must authorize and the agent must
-announce.
 
-Three modes. `chatgpt`: all inference uses the OAuth credential.
-`api`: all inference uses the API key. `chatgpt_then_api`:
-inference starts on the subscription and falls back to the API
-key only when the subscription quota is exhausted. The fallback
-requires an explicit flag (`allow_metered_fallback`) to be true.
-The safe default is false: a surprised bill is worse than a
-paused agent.
+## Funding selection and account controls
 
-The error codes that drive transitions are specific.
-`subscription_sharing_usage_limit_exceeded` is the signal for
-a plan-usage limit, which can be app-specific rather than the
-whole subscription being empty; if fallback is allowed, the agent transitions
-to API billing and announces the switch before sending the first
-metered request. `subscription_sharing_usage_unavailable` means
-temporary overload: back off, do not fall back.
-`subscription_sharing_unsupported_capability` means the request
-used a feature the plan route does not support: adapt the request
-or report the limitation. A 401 needs credential or permission
-diagnosis. Attempt the bounded same-source renewal described above;
-a terminal refresh error requires reauthorization, while a transient
-failure does not justify deleting the account or spending elsewhere.
+### Funding is consent, not fallback order
 
-The announcement rule is the mechanism that prevents silent cost.
-Before the first metered request, the agent emits a clear
-observer event naming the billing source. The user hears it (or
-sees it, or reads the log) before any money is spent. Metered
-fallback is a decision, never an accident.
+The implementation has two funding modes: `api` and `chatgpt`. It deliberately
+has no “try plan, then spend API credits” mode. An expired grant, denied permission,
+quota refusal, server error or network failure does not change the chosen payer.
+A plan HTTP 401 can renew and retry once against the same source; that is not
+payment fallback.
 
-The accepted implementation takes the permitted smaller choice:
-it rejects `chatgpt_then_api` and implements no automatic fallback.
-Both supported modes announce their selected funding source before
-the first request. A successful login selects `chatgpt` for later
-launches unless explicitly overridden. Logout leaves that selection
-in place, so removing a subscription credential cannot silently
-activate an API key already present in the environment.
+Only an explicitly supplied `--credentials-dir` / `EN_CREDENTIALS_DIR` is consulted.
+Successful login saves the selected plan label atomically with the grant. On a
+later launch, absent billing selection uses that saved choice; absent account
+selection uses its label. Plan launches default to OpenAI Responses only when those
+choices were not explicitly supplied. An incompatible explicit choice refuses.
+An explicit `--billing api` or `EN_BILLING=api` overrides the launch without rewriting
+the saved plan choice. Flags override their environment settings.
 
-Model discovery uses the OAuth token. `GET /v1/models` returns
-the models available under the subscription, filtered by
-`visibility: "list"`. The `slug` field goes in the request; the
-`display_name` goes in the UI. The same endpoint, hit with an
-API key, returns a different model list reflecting the API-key
-tier's access. Two credentials, two views of the same catalog.
+Logout leaves plan selected. A signed-out next launch therefore refuses before
+inference instead of discovering an ambient API key and charging it. A damaged
+selection file also refuses. Identity-only login saves the choice too, but does
+not grant inference permission. A running GUI Agent never changes its immutable
+funding, model or account after account-management operations.
 
-Choose from the account's actual catalog and the model routes the
-application supports. A name being available from the provider does
-not add a missing transport row to the program. The public endpoint
-for this exercise is `https://api.openai.com/v1/responses`; it does
-not use another application's private credential store or a backend
-endpoint. ([Account-specific model discovery](https://developers.openai.com/siwc/token-sharing-open-source/models-and-inference).)
+Before inference, CLI stderr and the GUI's visible funding banner identify the
+model and API metering or selected plan label. The GUI uses its existing usage
+frame, so reconnect shows the same running configuration. This description is
+not a token, provider instruction or new accounting store.
 
+### Human commands, not model tools
+
+From the C# endpoint directory, the standalone commands are:
+
+```sh
+dotnet run --project Cli/Ch04.csproj -- --credentials-dir /private/path/auth auth status
+dotnet run --project Cli/Ch04.csproj -- --credentials-dir /private/path/auth --account work auth models
+dotnet run --project Cli/Ch04.csproj -- --credentials-dir /private/path/auth --account work auth login
+dotnet run --project Cli/Ch04.csproj -- --credentials-dir /private/path/auth --account work auth logout
+dotnet run --project Cli/Ch04.csproj -- --credentials-dir /private/path/auth --account work auth signout
+```
+
+Choose your own private path. These are human operations, not commands to run
+without account authorization. They construct no Agent, skill loader, conversation
+or inference request. `status` returns redacted metadata. `login` prints a private
+URL and waits for its owned loopback callback; it does not launch a browser.
+`logout` means local clearing; `signout` additionally attempts provider revocation.
+
+The GUI's account panel offers the same concepts through guarded HTTP operations,
+not WebSocket conversation messages or model-callable tools. It opens a separate
+sign-in window during the user's gesture, before awaiting the URL. A blocked popup
+starts no login. The main DOM never receives an authorization link, and one window
+closing must not cancel another client's attempt. Fixed-safe failure messages avoid
+reflecting callback or issuer data.
+
+The model catalog is fresh account-specific discovery. `ModelsAsync` uses the
+owner's protected client and current bearer, selects only `visibility: list`,
+retains server order, and rejects ambiguous visible entries. Hidden entries are
+not choices. The GUI renders names as text and discards a held result if its label
+has changed; it does not select a model. Catalog availability, renderer capability,
+application explanation policy, permission and price are five different facts.
+
+### Narration is part of error handling
+
+With narration enabled, public summary text is admitted incrementally under the
+label “Reasoning summary.” Final-only suffixes are caught up once, and replay is
+silent. Credential acquisition refusal produces one durable `error_occurred`;
+the existing narrator speaks its content once, possibly as several labeled
+sentences. `turn_ended.error` is not another narration source. This keeps an
+unattended visible failure from becoming unexplained silence without leaking
+credentials or inventing a model reply.
 
 ## Exercise, graded
 
-```sh
-go run ./cmd/grade-edition2 -ch 16
-```
+Use a C# 14/.NET 10 endpoint and the existing executable grader. Run it against
+an owned GUI process, private directories and loopback peer. Do not bind the user's
+working port or reuse a connected browser profile. No real credential belongs in
+the fake fixture.
 
-Run from the repository root, optionally supplying the core path and
-`-gui DIR` for its separate GUI. Keep the seven original weights:
+### Know the scope before reading the score
 
-| Check | Points | Observable behavior |
-|---|---|---|
-| credential-provider | 15 | Selected credentials authenticate actual requests; an unusable selection cannot become an API-key request |
-| oauth-flow | 15 | Real login follows the loopback/PKCE flow, validates identity and checks the inference grant |
-| token-refresh | 15 | Expiring credentials rotate and subsequent inference uses the replacement bearer |
-| responses-format | 15 | Plan format, completed output and the correlated file result survive the real tool loop |
-| cache-breakpoints | 10 | API-key developer content carries an explicit breakpoint; the plan profile omits the paired explicit mechanism |
-| reasoning-summaries | 15 | Public summary deltas reach the GUI before completion and remain separate from assistant text |
-| billing-mode | 15 | Actual failures preserve the selected funding source without unauthorized fallback |
+The original Go Chapter 16 route is retained. The C# adapter is explicitly
+`-executable-only`; it does not add an issuer override to the production host
+merely to grade login. It seeds synthetic protected credentials for transport
+checks and excludes the original OAuth-flow and token-refresh checks, 15 points
+each. The remaining weights are unchanged:
 
-**Total: 100 points, seven checks; no inherited parity row.**
+| Executable check | Points | Evidence required |
+|---|---:|---|
+| No auth leakage | 15 | Synthetic access/refresh/ID tokens absent from model input, socket messages and scanned artifacts; encrypted replay absent from browser messages |
+| Responses format | 15 | Selected bearer, streaming/stateless request, namespaced plan tools, ordinary explanation, real file bytes, exact call/result correlation and opaque reasoning replay |
+| Summary stream | 15 | Separate summaries, final suffixes and a causal gate that releases the terminal only after incremental summary delivery |
+| Plan limits | 15 | Quota/admission failures remain plan-funded, no API fallback; signed-out plan sends no inference request |
+| Cache routing | 10 | Configured API `prompt_cache_key` preserved; default plan request omits it and historical invented cache fields |
+| **Scoped total** | **70** | **Not a full 100-point OAuth grade** |
 
-The grader starts external OAuth and Responses fakes and runs the
-actual clients against them. Signed JWTs, a published fake JWKS,
-rotating tokens and real tool-result bytes exercise the boundaries
-without accessing a personal account. A login that never reaches
-inference cannot prove a billing rule; a copied error code cannot
-prove that the Agent treated the turn as failed.
+The fake's explained-tool scenario deliberately places ordinary text before the
+tool. That satisfies this model's admission policy without weakening it for the
+grader. Historical unexplained-tool scenarios remain available to the original
+route. Likewise, the adapter accepts documented `instructions` rather than copying
+an obsolete prohibition from the old fixture.
 
-The numeric run is a bounded sample of the contract. Review the
-actual owner relationships, the full identity-validation cases,
-cross-process refresh coordination and atomic replacement separately.
-The retained browser tests exercise incremental summary speech;
-visible WebSocket events alone do not prove native speech delivery.
-Neither a fake summary nor a passing score guarantees that a live
-model will provide one.
+The recorded reference run achieved **70/70**, parsed `passed:true` and process exit
+zero: seven clean host sessions, eight inference requests, and zero requests in
+the signed-out case. Retained per-run observations include the actual requests,
+socket messages, errors and exits. The gate verifies that the summary is consumed
+before terminal success, not merely present somewhere in a final HTML page.
 
-For a human run, build the core from your implementation directory.
-The matching reader snapshot is `solutions/ch16`:
-
-```sh
-go build -o /tmp/ensemble-ch18 .
-```
-
-Use a fresh workspace and a dedicated profile. This keeps the
-exercise's conversation and sign-in separate from another application's
-credentials. The profile directory contains secrets; the ordinary
-conversation save does not.
+A representative repository-root invocation is:
 
 ```sh
-chapter18_work=$(mktemp -d)
-cd "$chapter18_work"
-mkdir -p skills/base profile
-chmod 700 profile
-export EN_HOME="$chapter18_work/profile"
-export EN_PRIMARY_SKILL=base
-cat > skills/base/SKILL.md <<'EOF'
----
-name: base
-type: primary
-description: Read the local scheduling exercise and explain the result.
-tools: read_file
----
-Read requested files before answering. Keep public explanations separate
-from tool results. Never invent file contents or a successful operation.
-EOF
-cat > schedule.txt <<'EOF'
-Two identical workers. Each job uses one worker and cannot be split.
-Job duration prerequisites
-A   4        none
-B   3        none
-C   5        A
-D   2        A
-E   4        B
-F   3        C,E
-G   2        D,E
-H   1        F,G
-EOF
+go run ./cmd/grade-edition2 \
+  -ch 16 \
+  -executable-only \
+  -gui /absolute/path/to/owned-gui-wrapper \
+  -json \
+  solutions/ch16
 ```
 
-Sign in through your browser, inspect the safe status and discover
-models available to that account:
+Build the GUI first. The wrapper must invoke the built `Gui.dll` with `dotnet`
+and forward `"$@"`; do not put a build tool between the grader and the host lifecycle.
+Use the project's controlled environment and existing dependencies. The grader
+starts and joins the owned host; successful compilation alone is not an exercise.
+Retain failed fixtures when diagnosing a failure, and inspect exit status as well
+as the JSON report.
 
-```sh
-/tmp/ensemble-ch18 auth login
-/tmp/ensemble-ch18 auth status
-/tmp/ensemble-ch18 auth models
-```
+### Credential-owner evidence is separate
 
-`auth login --print-url` also prints the authorization URL while
-opening the browser. It does not print access or refresh tokens.
-The client uses `EN_HOME` when supplied; otherwise it chooses its
-own `ensemble` directory under the operating system's user-config
-location. Keep the same selection for login and inference. A
-verified identity without plan permission is shown as disabled for
-inference, rather than silently spending through an API key.
+The reference component suite has 20 focused Auth groups using real protected
+files, local RSA-signed issuer responses, actual loopback sockets and two processes.
+It tests registration persistence before exchange, identity and callback refusals,
+rotating refresh, failed-save nonpublication, local-first logout/revocation,
+account separation, fresh discovery, saved selection and one-retry 401 recovery.
+These are actual components with working boundary fakes, not mocks of internal
+method calls. They establish local behavior, not production issuer compatibility.
 
-The recorded task used `gpt-6.1-sol`. If it is available to your
-account, start the supported Responses route explicitly:
+Eight focused Responses groups cover JSON/SSE, terminal admission, provenance,
+usage, summary delivery, explanation policy and the headerless stream correction.
+The earlier full 127-group pass predates that last dispatch correction; the eight
+focused groups, clean host builds and final executable grade cover the correction.
+Do not silently relabel an earlier broad pass as testing a later edit.
 
-```sh
-LLM_VENDOR=openai LLM_MODEL=gpt-6.1-sol \
-OPENAI_BILLING_MODE=chatgpt OPENAI_REASONING_EFFORT=high \
-OPENAI_REASONING_SUMMARY=detailed \
-/tmp/ensemble-ch18 --skills-dir skills chat
-```
+Standalone CLI auth lifecycle exercises and actual isolated two-client GUI checks
+supply further host evidence: callback guards, cleanup, read-only catalog, visible
+funding before inference, silent replay, summary suffixes and narrow layout. They
+do **not** establish successful host signed login. Successful signed exchanges
+remain local library-issuer evidence. Speech-queue transcripts prove admission,
+not human hearing or accessibility quality.
 
-Enter this prompt and wait for the completed answer:
+### Joint live exercise — October 29, 2026
 
-```text
-Read schedule.txt. Find a minimum-duration schedule for the two workers. Give each worker's job intervals and prove that a shorter schedule is impossible.
-```
+Bill approved a dedicated private credential directory and authenticated in his own
+browser. The CLI login exited successfully; a separate status command reported
+signed-in plan access, and account-specific model discovery succeeded. Three
+isolated CLI runs then used the visible `gpt-6-astra` model, explicit
+`--billing chatgpt --surface responses`, streaming and `store:false` at the public
+Responses endpoint. All three reached `response.completed` and answered `OK`.
+No other application's credentials were inspected or borrowed.
 
-A lower bound is the dependency chain A–C–F–H: 4+5+3+1 = 13.
-One feasible schedule places that chain on the first worker and
-B0–3, E3–7, D7–9, G9–11 on the second. The Agent must actually
-read the file; knowing the answer in advance is no substitute for
-checking the tool result in the next request.
+Each response reported 3,641 input and 5 output tokens, with zero cached-read and
+zero cache-write tokens. Chapter 23 records the controlled inputs and limits.
+This establishes real CLI login, discovery and bounded plan inference in that
+session—not live renewal, 401 recovery, logout/revocation, GUI login, audible
+quality or human accessibility. No API-key fallback or dollar-charge claim follows
+from successful plan inference. The live session deliberately left the account
+signed in; exercising revocation would be a separate authorized action.
 
-A summary may arrive while the model is working. You can send a
-hint through the existing chat input, but do not wait for a summary
-as the condition for ending the session. After the answer completes,
-EOF ends chat normally and saves the conversation. To exercise
-API-key billing instead, use the same launch with
-`OPENAI_BILLING_MODE=api` and the provider key configured as in
-Chapter 0. That is an explicit change of funding source.
-
-When finished with the dedicated profile:
-
-```sh
-/tmp/ensemble-ch18 auth logout
-```
-
-Logout attempts remote revocation, removes local tokens and keeps
-the registration and host identity. If remote revocation cannot
-be confirmed, the client reports that fact. It does not turn
-subscription billing into API billing on your behalf.
+The later [Chapter 23](chapter-23.md) work completed the separate Codex-backed
+C# route, including explicit CLI/GUI selection and no silent billing fallback.
+Its three actual C# CLI responses measured two cache hits and one miss. Codex
+alone renews that grant; this does not change the public OAuth ownership or the
+limits of this chapter's live exercise.
 
 
-## Taking it for a spin
+## Taking it for a spin — historical evidence
 
-The actual student API-key run used the scheduling task above with
-GPT-6.1 Sol, high reasoning and detailed summaries. It read the
+The following is the retained earlier student account, not a C# live-provider
+run. Its model names, measurements and failed shutdown belong to that run.
+The C# implementation and local results above do not inherit its OAuth, model
+availability, cache-hit or billing evidence.
+
+The actual student API-key run used a two-worker precedence-scheduling
+puzzle with GPT-6.1 Sol, high reasoning and detailed summaries. It read the
 file and produced a valid schedule with makespan 13. The three
 requests included one prompt and a hint-triggered continuation;
 they were not two independent prompted turns. Ninety summary deltas
@@ -878,3 +855,19 @@ parsing changed. The migration required a Responses renderer; the
 claim that no renderer changed would erase the very work the
 chapter teaches. Its payoff is smaller and more useful: changing
 provider and funding source did not require rebuilding the Agent.
+
+
+## The C# boundary
+
+The same architectural lesson holds at the locally verified C# boundary:
+credential acquisition and Responses encoding changed without replacing the
+Agent scheduler, Jobs, canonical History or tool loop. Common owns the shared
+vocabulary; Auth and Engine implement their respective operations. The GUI
+projects public state rather than owning a second account store.
+
+The preserved endpoint remains the original offline implementation boundary.
+The later joint session on current main adds observed CLI login, account-model
+discovery and three successful plan responses; it does not retroactively rerun
+that endpoint's tests. Live renewal/revocation, GUI login, audible quality, human
+accessibility and account billing remain unverified. A model name or an encrypted
+artifact is not permission; a green fake-provider grade is not a provider bill.

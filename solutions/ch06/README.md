@@ -1,20 +1,102 @@
-Build the CLI in this module:
+# Edition 3 — Chapter 6 C# endpoint
 
-    go build -o ensemble-cli .
+C# 14 / .NET 10. Common declares the core vocabulary, persistent fields,
+relationships and cross-module operations. Functional directories implement the
+matching partial types in one assembly. CLI, tests and examples are separate
+assemblies using that public API; no additional packages are required.
 
-Set `LLM_VENDOR` (`anthropic`, `openai`, or `gemini`), `LLM_MODEL`, and
-`LLM_API_KEY`, then run `ensemble-cli chat` from your chosen workspace. Model
-names are explicit; select one available to your provider account. Messages
-while the agent is busy are hints; `/interrupt` ends the current turn while
-other jobs continue. EOF waits for the current turn and shuts down the Agent.
+## Read in this order
 
-Known models stream by default. `EN_DISABLE_STREAMING=1` requests one-piece
-responses. Unknown models remain usable for text with streaming off. Replies
-go to stdout; reasoning and tool arguments go to stderr. Redirected streams
-contain no ANSI formatting. The CLI writes wire frames to `api.log` and facts
-to `ch02.jsonl` (override the latter with `CH07_AGENT_LOG`). Authentication
-headers are excluded and the configured key is redacted from wire traces.
+1. `Common/Owners.cs`, `Common/Actor.cs`, `Common/Streaming.cs`: Ensemble owns
+   Agents; Agent owns History, Engine, Jobs and Tools. The Agent mailbox owns
+   conversation mutation and scheduling. Reliable request tasks are separate
+   from bounded, lossy Agent/root observation queues.
+2. `Agent/Actor.cs`: controls remain responsive during HTTP and foreground Job
+   waits. Workers return completion messages; they do not write History. Chunk
+   messages are transient. Recorded final events precede final observations.
+3. `Engine/Engine.cs`, `Engine/Streaming.cs`, `Engine/Parse.cs`: frozen request
+   bytes, untimed cancellable HTTP, one JSON/SSE response seam and shared final
+   decoding. Parser-supplied IDs correlate deltas with finals even when arrival
+   order differs from final order. Partial arguments never authorize effects.
+4. `Engine/Render.cs`, `Engine/Media.cs`: explicit model capabilities, request-only
+   local-media resolution, unknown-model plain fallback, and configuration
+   opt-out. Stream capability is not inferred from media support.
+5. `Jobs`: reserve → record call → start effects; full output on disk, serialized
+   unseen-output cursor, observation bounds, process lifetime and explicit kill.
+   Job handles are Ensemble-wide but each Jobs owner limits lookup to its children.
+6. `History` and `Serialization`: one authoritative conversation, exact JSON
+   arguments and provenance-aware opaque data. Deltas do not inflate history or
+   accounting. Host-only tool observations do not invent model dialogue.
+7. `Application/Ensemble.cs`: complete two-way relationships and optional sanitized
+   tracing through real parents. The caller owns the trace writer and closes it
+   after the root is destroyed.
+8. `Examples/Observer` and `Examples/Workflow`: delivered-stream statistics and
+   multi-Agent display respectively. Reliable tasks govern completion; observations
+   never advance workflow stages. `Examples/Consumer` retains the small custom
+   tool example from Chapter 4.
 
-The no-argument CLI accepts the existing JSON-lines exercise protocol. The
-separate [Chapter 7 application](ch07/README.md) demonstrates the public library
-and reports delta counts, finalized parts and time to first delta.
+## Build and exercise
+
+Use the approved SDK in an owned offline environment, with first-run setup and
+telemetry disabled. Build from this endpoint directory:
+
+```sh
+dotnet run --project Tests
+dotnet build Cli/Ch04.csproj
+dotnet build Examples/Observer/Observer.csproj
+dotnet build Examples/Workflow/Workflow.csproj
+```
+
+The CLI project retains its historical name. Its output is `ch04.dll`, but it
+references this endpoint's current library. Run binaries from an owned scratch
+workspace, not the source directory. Configure `LLM_VENDOR`, `LLM_MODEL`,
+`LLM_BASE_URL`, and `LLM_API_KEY`; use dummy credentials with an owned loopback
+fake. Job output goes to `cr/io/<handle>` under the working directory.
+
+The CLI retains `chat`, `dump`, `render`, `-media-capabilities`, JSON stdin, and
+`CH02_LOG`. JSON inputs include blocking `user`, live `kind: prompt`, `hint`,
+`pause`, `resume`, `interrupt`, `shutdown`, and direct `tool` operations as
+specified in Chapter 5. EOF drains accepted turns; shutdown cancels them.
+
+Streaming is requested for declared capable models unless `-no-stream` or
+`EN_DISABLE_STREAMING=1` opts out. Plain parsing emits finalized parts without
+synthetic deltas. Live JSON (`kind: prompt`) emits flushed `part_delta` and
+`part_final` records with response-local IDs. Legacy blocking requests keep
+reliable reply-only output. Interactive `chat` previews chunks on stderr and
+writes each reliable completed answer once to stdout. It suppresses ANSI styling
+when stderr is redirected. `CH06_API_LOG` selects the sanitized payload trace,
+which defaults to `api.log`; do not commit traces or credentials.
+
+From the repository root, a compiled grader can exercise the CLI and external
+aggregate observer launchers:
+
+```sh
+grade-edition2 -ch 6 -executable-only -json \
+    -stream-model claude-3-haiku-20240307 \
+    -stream-exercise /absolute/observer /absolute/cli
+```
+
+This 80-point scope excludes inherited Chapter 5 and Go-specific consumer/topology
+checks. The full Go route remains intact. All-vendor parser tests, source review,
+gated pre-EOF visibility, interrupts and the actual three-role workflow remain
+separate evidence. See `docs/edition-3-csharp-progress.md` in the repository for
+results and limitations; a green grade is not an architecture verdict.
+
+## Lifetime and evidence limits
+
+`ai_callback_delay`, patterns and inline caps control observation, never job
+execution deadlines. Busy hints and interrupts stop foreground observation but
+preserve independent Jobs. `FlushAsync` waits for accepted turns and foreground
+controls, not independent background work; it does not resume a paused Agent.
+
+Destruction stops and joins work before detaching History or parents. .NET cannot
+forcibly stop an arbitrary managed callback: cooperative cancellation is required,
+and a callback that ignores it can delay shutdown. PTY processes are killed and
+joined. The PTY implementation uses macOS `/usr/bin/script`, not a claimed portable
+Linux implementation. Completed output files remain after logical destruction.
+
+Progress is bounded and lossy. Aggregate counts describe delivered observations,
+not billing or a reliable transcript. Use History usage and reliable request
+results for authoritative facts. Model capability rows and fake-provider passes
+do not establish live provider availability, streaming acceptance, media decoding,
+or paid integration. Those exercises remain incomplete without separate authority.

@@ -10,7 +10,7 @@ import (
 // TestChapter11MCP exercises real commands, Agent/jobs, subprocess tools and GUI
 // transport with only external protocol/provider peers replaced by small fakes.
 func TestChapter11MCP(t *testing.T) {
-	core, err := filepath.Abs("../../solutions/edition-3/ch11")
+	core, err := filepath.Abs("../../edition-2/solutions/ch11")
 	if err != nil {
 		t.Fatal(err)
 	}

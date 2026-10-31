@@ -49,7 +49,7 @@ func main() {
 	flag.Usage = usage
 	vendor := flag.String("vendor", "anthropic", "dialect the chapter should speak: anthropic, openai, or gemini")
 	ch := flag.Int("ch", 0, "run this chapter's solution against the fake (1, 2 or 3); 0 = serve only")
-	solution := flag.String("solution", "", "solution directory to run (default ./solutions/chNN)")
+	solution := flag.String("solution", "", "solution directory to run (default ./edition-2/solutions/chNN)")
 	scriptName := flag.String("script", "", "reply script: tools (a tool call, then an answer) or text (answers only); default by chapter")
 	addr := flag.String("addr", "", "fixed listen address, e.g. 127.0.0.1:8089 (default: a free port)")
 	quiet := flag.Bool("q", false, "do not trace requests on stderr")
@@ -91,8 +91,8 @@ func main() {
 			fmt.Printf("export %s\n", kv)
 		}
 		fmt.Printf("\n# then, for example:\n")
-		fmt.Printf("#   (cd solutions/ch03 && go run . chat)\n")
-		fmt.Printf("#   (cd solutions/ch03 && echo '{\"user\":\"what is here?\"}' | go run .)\n\n")
+		fmt.Printf("#   (cd edition-2/solutions/ch03 && go run . chat)\n")
+		fmt.Printf("#   (cd edition-2/solutions/ch03 && echo '{\"user\":\"what is here?\"}' | go run .)\n\n")
 		fmt.Printf("Ctrl-C to stop.\n")
 		stop := make(chan os.Signal, 1)
 		signal.Notify(stop, os.Interrupt, syscall.SIGTERM)
@@ -103,7 +103,7 @@ func main() {
 
 	dir := *solution
 	if dir == "" {
-		dir = fmt.Sprintf("./solutions/ch%02d", *ch)
+		dir = fmt.Sprintf("./edition-2/solutions/ch%02d", *ch)
 	}
 	if st, err := os.Stat(dir); err != nil || !st.IsDir() {
 		fatalf("no solution directory at %s (run from the repository root, or pass -solution)", dir)

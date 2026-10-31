@@ -1,0 +1,19 @@
+# Chapter 08 independent review
+
+## Decision
+
+**Accepted. No material findings or author revision requested.** This is a fresh review of the saved draft, not a reconstruction of an earlier reviewer’s verdict.
+
+## Rationale
+
+- **Voice and readability:** The saved-1.75/native-1.8 opening gives the chapter a concrete problem and an organizing question: did the preference reach its consumer? The ensuing ownership, persistence, turn-budget, and speech discussions answer that question rather than inventorying controls. Short paragraphs, restrained humor, and specific failure stories keep substantial technical content readable for an AI-coding-fluent successor TL. The prose has no code dumps, assignments, recipes, TL;DR, or grading narrative. Its depth is earned; no quota-driven trimming or expansion is warranted.
+- **Causal knowledge:** Draft lines 29–91 retain the important requirements beyond the source’s initial sketch: GUI/core ownership, sparse patches versus complete snapshots, false/zero presence, candidate decoding, shared entry validation, persistence before publication, failure visibility, subscription ordering, and captured next-turn budgets. The explanation connects storage success to the distinct question of execution behavior. It preserves the final-response allowance and protection of History/signed content (source lines 132–150), rather than reducing the budget to a saved integer.
+- **Browser and speech semantics:** Draft lines 13–27 and 93–125 retain routing identity, component reuse, independent scrolling, divider operation, semantic control state, live system-theme changes, and initial snapshot application. The typing/acknowledgement ordering in draft line 113 matches source lines 486–496. Automatic speech, explicit Speak, and next-utterance rate changes remain distinct. The native fractional-rate defect, floating-point test mistake, and unexplained earlier timeout are not conflated.
+- **Accuracy and attribution:** Historical ownership, ignored-budget, tree-state, and fractional-rate stories are attributed to the source. The tree-state account matches source lines 442–447. Draft lines 117–125 correctly separate the earlier 2×-range evidence from the later saved/control range reaching 5 and the native 0.5–3 clamp (source lines 515–549). API callbacks are not presented as listening evidence, and historical provider runs are not present availability claims. Receipt links are source-attributed, not represented as independently inspected evidence.
+- **Continuity and scope:** The draft builds on Chapter 7’s shared artifact component, single Agent, reconnect behavior, and speech/pause distinctions without reteaching the chapter. It separates process-restart settings restoration from conversation save/load. The one-node recursive tree does not imply child execution. The ending preserves the named model/coding destination as an ambition requiring verification, not an accomplished crossover (draft lines 129–137; source lines 558–620).
+
+## Full-read confirmation and limits
+
+Fully read the approved set: `book/companion/voice.md` (140 lines); current `book/edition-3/chapter-08.md` (620 lines, including all exercise/instruction material and the ending); accepted `book/companion/chapter-07.md` (137 lines); `docs/companion-notes/chapter-07-author.md` (20 lines); complete `book/companion/chapter-08.md` (137 lines); and `docs/companion-notes/chapter-08-author.md` (20 lines). Recovered clipped output with bounded reads and checked specific claims against the actual current source.
+
+No linked legacy process, voice, grading, or execution documents were loaded. No evidence-file inspection, code/runtime validation, builds, graders, lint, or Git operations were performed. This is an editorial/source-fidelity review, not a claim that the application currently exhibits the described behavior. Only this review note was written; the manuscript was not changed.

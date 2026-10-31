@@ -1,0 +1,80 @@
+[
+  {
+    "claim": "route",
+    "exit": 1,
+    "intended_failure": true,
+    "output": "--- FAIL: TestCodexToolLoopAndCredentialReread (0.00s)\n    codex_test.go:35: request did not use the selected route and current credential pair\n    codex_test.go:35: request did not use the selected route and current credential pair\nFAIL\nFAIL\tensemble/ensemble\t0.010s\nFAIL\n"
+  },
+  {
+    "claim": "account",
+    "exit": 1,
+    "intended_failure": true,
+    "output": "--- FAIL: TestCodexToolLoopAndCredentialReread (0.00s)\n    codex_test.go:35: request did not use the selected route and current credential pair\n    codex_test.go:35: request did not use the selected route and current credential pair\nFAIL\nFAIL\tensemble/ensemble\t0.010s\nFAIL\n"
+  },
+  {
+    "claim": "instructions",
+    "exit": 1,
+    "intended_failure": true,
+    "output": "--- FAIL: TestCodexToolLoopAndCredentialReread (0.00s)\n    codex_test.go:43: Codex delivery/instruction contract missing\n    codex_test.go:43: Codex delivery/instruction contract missing\nFAIL\nFAIL\tensemble/ensemble\t0.010s\nFAIL\n"
+  },
+  {
+    "claim": "cache-mode",
+    "exit": 1,
+    "intended_failure": true,
+    "output": "--- FAIL: TestCodexToolLoopAndCredentialReread (0.00s)\n    codex_test.go:46: explicit caching leaked to Codex\n    codex_test.go:46: explicit caching leaked to Codex\nFAIL\nFAIL\tensemble/ensemble\t0.010s\nFAIL\n"
+  },
+  {
+    "claim": "cache-key",
+    "exit": 1,
+    "intended_failure": true,
+    "output": "--- FAIL: TestCodexToolLoopAndCredentialReread (0.00s)\n    codex_test.go:50: cache key is missing or unstable\n    codex_test.go:50: cache key is missing or unstable\nFAIL\nFAIL\tensemble/ensemble\t0.010s\nFAIL\n"
+  },
+  {
+    "claim": "reread",
+    "exit": 1,
+    "intended_failure": true,
+    "output": "--- FAIL: TestCodexToolLoopAndCredentialReread (0.00s)\n    codex_test.go:35: request did not use the selected route and current credential pair\nFAIL\nFAIL\tensemble/ensemble\t0.010s\nFAIL\n"
+  },
+  {
+    "claim": "redirect",
+    "exit": 1,
+    "intended_failure": true,
+    "output": "--- FAIL: TestCodexRefusesFallbackAndRedirect (0.01s)\n    --- FAIL: TestCodexRefusesFallbackAndRedirect/302 (0.00s)\n        codex_test.go:131: request retried or redirected: 10\n    --- FAIL: TestCodexRefusesFallbackAndRedirect/307 (0.00s)\n        codex_test.go:131: request retried or redirected: 10\nFAIL\nFAIL\tensemble/ensemble\t0.016s\nFAIL\n"
+  },
+  {
+    "claim": "model",
+    "exit": 1,
+    "intended_failure": true,
+    "output": "--- FAIL: TestCodexRejectsInvalidSelection (0.01s)\n    codex_test.go:173: invalid selection sent 1 requests\nFAIL\nFAIL\tensemble/ensemble\t0.014s\nFAIL\n"
+  },
+  {
+    "claim": "cache-affinity-header",
+    "exit": 1,
+    "intended_failure": true,
+    "output": "--- FAIL: TestCodexToolLoopAndCredentialReread (0.00s)\n    codex_test.go:54: cache affinity header differs from body key\n    codex_test.go:54: cache affinity header differs from body key\nFAIL\nFAIL\tensemble/ensemble\t0.012s\nFAIL\n"
+  },
+  {
+    "claim": "judge-instructions",
+    "exit": 1,
+    "intended_failure": true,
+    "output": "--- FAIL: TestCodexAuxiliaryRequests (0.00s)\n    codex_test.go:247: auxiliary request lost its Codex contract\nFAIL\nFAIL\tensemble/ensemble\t0.009s\nFAIL\n"
+  },
+  {
+    "claim": "explicit-file",
+    "exit": 1,
+    "intended_failure": true,
+    "output": "--- FAIL: TestCodexConfiguration (0.00s)\n    codex_test.go:215: explicit file ignored\nFAIL\nFAIL\tensemble/ensemble\t0.007s\nFAIL\n"
+  },
+  {
+    "claim": "missing-account",
+    "exit": 1,
+    "intended_failure": true,
+    "output": "--- FAIL: TestCodexRejectsInvalidSelection (0.00s)\n    codex_test.go:176: invalid selection sent 1 requests\nFAIL\nFAIL\tensemble/ensemble\t0.011s\nFAIL\n"
+  },
+  {
+    "claim": "endpoint",
+    "exit": 1,
+    "intended_failure": true,
+    "output": "--- FAIL: TestCodexEndpointBoundary (0.00s)\n    codex_test.go:10: accepted unsafe/stale endpoint https://api.openai.com\n    codex_test.go:10: accepted unsafe/stale endpoint https://chatgpt.com.evil.test/backend-api/codex\n    codex_test.go:10: accepted unsafe/stale endpoint http://chatgpt.com/backend-api/codex\n    codex_test.go:10: accepted unsafe/stale endpoint https://chatgpt.com/backend-api/codex?redirect=1\n    codex_test.go:10: accepted unsafe/stale endpoint https://user@chatgpt.com/backend-api/codex\n    codex_test.go:10: accepted unsafe/stale endpoint https://chatgpt.com/other\nFAIL\nFAIL\tensemble/internal/engine\t0.005s\nFAIL\n"
+  }
+]

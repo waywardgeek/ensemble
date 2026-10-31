@@ -96,3 +96,6 @@ save.json.bak
 save.json.journal
 request.json
 prior_request.json
+
+# .NET intermediate output in active and archived source trees.
+**/obj/

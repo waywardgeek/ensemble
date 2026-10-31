@@ -1,10 +1,9 @@
-# Publishing the companion on KDP
+# Publishing the C# human companion
 
-The publication title is **The Art of Building AI Coding Agents: A Human Companion**,
-by Bill Cox. The series is **The Singularity as it Happened**, **Book 6**.
-The approved manuscript is not rewritten by the build.
+**The Art of Building AI Coding Agents: A Human Companion (C# Edition)**,
+by Bill Cox. Series: **The Singularity as it Happened — Book 6**.
 
-## Build
+## Build locally
 
 From the repository root:
 
@@ -12,70 +11,68 @@ From the repository root:
 python3 book/companion/build-publication.py
 ```
 
-This assembles the preface, Chapters 0–27, and epilogue in that exact order. It
-excludes the voice guide, README, restart notes, and editorial records. Outputs
-are isolated in `book/companion/build/`; the original book and Edition 3 artifacts
-are never overwritten.
+The thin edition wrapper reuses `book/companion/build-publication.py`, the shared
+`book/build-print.py`, CSS, and contents/link helpers. It assembles exactly the
+unchanged approved preface, Chapters **00–25**, and epilogue, in that order.
+There is **no companion Chapter 26**. Source chapters and the old companion's
+assembled manuscript are not rewritten. All outputs stay in this directory's
+`build/` subdirectory.
 
-The workflow reuses the maintained `book/build-print.py`, `book/print-header.html`,
-`book/epub.css`, and the repository's contents/link helpers. Like the original
-print workflow, it requires **macOS**, Google Chrome in `/Applications`, Georgia
-and Menlo fonts, **Pandoc** (tested with 3.9.0.2), **Poppler** (`pdftotext` and
-`pdfinfo`), and **PyMuPDF** available to `python3`.
+Requirements match the existing companion workflow: macOS, Google Chrome in
+`/Applications`, Georgia/Menlo fonts, Pandoc, Poppler (`pdftotext`, `pdfinfo`),
+and Python with PyMuPDF. Chrome runs headlessly with a fresh temporary profile;
+no interactive browser session is reused.
 
-Individual formats and an optional ebook cover:
+Use `--format markdown`, `--format epub`, or `--format print` for individual
+formats; `print` builds both PDFs. `--cover /path/to/image.png` overrides the
+approved local `cover.png` for the EPUB and reading PDF only.
 
-```sh
-python3 book/companion/build-publication.py --format markdown
-python3 book/companion/build-publication.py --format print
-python3 book/companion/build-publication.py --format epub --cover /path/to/companion-cover.png
-```
+## Generated files
 
-The ebook cover is optional for building, not a substitute for choosing the final
-KDP cover. The current committed EPUB has **no embedded cover**, pending the new
-companion artwork. Do not reuse the original edition's cover without updating its
-subtitle and series numbering. `--cover` embeds a front-cover image into the EPUB;
-it does **not** produce a paperback wrap or change the interior PDF.
+All paths below are relative to `book/companion/`:
 
-## Files to upload
+| Purpose | File | Current pages |
+| --- | --- | --- |
+| Assembled Markdown | `build/companion.md` | Reflowable |
+| Kindle manuscript | `build/The Art of Building AI Coding Agents - A Human Companion - CSharp Edition.epub` | Reflowable |
+| KDP print interior, **no cover** | `build/The Art of Building AI Coding Agents - A Human Companion - CSharp Edition - Print Interior.pdf` | **180** |
+| Website reading PDF, cover + interior | `build/The Art of Building AI Coding Agents - A Human Companion - CSharp Edition.pdf` | **181** |
 
-- **Kindle manuscript:** `build/The Art of Building AI Coding Agents - A Human Companion.epub`
-- **Print manuscript:** `build/The Art of Building AI Coding Agents - A Human Companion - Print Interior.pdf`
-- **Reading/debug copy:** `build/companion.md` (not a KDP upload).
+The print interior is **6 × 9 inches**, no bleed, black text, 11.5-point Georgia
+body and 11.5-point Menlo code. Inside/outer margins are 0.875/0.5 inches;
+top/bottom margins are 0.75 inches. The dedication to Caitlin Cox is unchanged
+and 12 point, on physical page 3. Preface starts at physical page 7, printed
+page 1 (physical page 8 in the reading PDF). Front matter is unnumbered.
 
-The PDF is a **6 × 9-inch, no-bleed, black-text interior**, currently **357 pages**.
-It has a title page, copyright page, a 12-point dedication to Caitlin Cox,
-numbered contents references, and unnumbered front matter. The Preface starts on physical page 7 and printed page 1. Body type
-is 11.5-point Georgia; inline code is 11.5-point Menlo. Inside margins are 0.875 in,
-outer margins 0.5 in, and top/bottom margins 0.75 in.
+`cover.png` is the unchanged existing human-companion website artwork, reused
+with user authorization from
+`/Users/bill/projects/coderhapsody/web/website/public/the-art-of-building-ai-coding-agents-a-human-companion.png`.
+It is embedded in the EPUB and prepended to the reading PDF. The artwork is not
+new C#-specific artwork; the interior title page and EPUB title identify the
+C# edition. This front-cover image is **not a paperback wrap**.
 
-The EPUB is reflowable. Its navigation contains the 30 manuscript sections without
-a duplicate in-spine contents page. Repository source/evidence links become public
-GitHub links; local contents anchors stay inside the book. The build checks EPUB
-navigation and internal links, printed font sizes, all PDF contents destinations,
-page references, black text, and page labels. It fails rather than silently
-omitting a missing chapter.
-
-The PDF and EPUB are committed as requested. Intermediate Markdown/HTML are ignored.
-Rebuild and commit the binaries together with any publication-source changes.
-
-## Before publishing
-
-1. Enter the title, author, and **Book 6** series details consistently in KDP.
-2. Upload the PDF as a **6 × 9, no-bleed** interior. Select the desired paper type.
-3. Use KDP's cover calculator/template with the **actual final PDF page count**
-   and selected paper type to assemble the full back/spine/front cover. KDP may
-   append a blank page to an odd-length interior; use its processed page count. A front-cover
-   PNG alone is not the paperback cover upload. Leave barcode placement to the
-   KDP template; do not invent an ISBN or spine width.
-4. Inspect the PDF in KDP's Print Previewer and the EPUB in Kindle Previewer,
-   including long chapter titles, links, and navigation. Local checks are not
-   KDP acceptance. Order a physical proof before approving print publication.
-
-This script builds files only. It does not log into KDP, upload, or publish.
-
-## Regression checks
+## Checks and publication boundary
 
 ```sh
 python3 -m unittest discover -s book/companion -p 'test_*.py'
+python3 -m unittest discover -s book/companion -p 'test_*.py'
 ```
+
+The seven existing and three edition-specific tests pass. The build verifies
+28 ordered EPUB navigation entries, navigation outside the reading spine,
+cover packaging and internal links; printed type sizes and dedication;
+28 PDF contents destinations/references, black text, and page labels. The
+reading-PDF check reopens the saved artifact and verifies all 49 copied links,
+coordinates, cover-offset destinations, and labels. Saved PDFs were also
+checked for 432 × 648-point geometry on every page, embedded Georgia/Menlo
+fonts, and no text outside page bounds. External source links resolve to public
+repository URLs using `book/companion` as their source base; this is
+structural link checking, not a network availability check.
+
+Before KDP publication, inspect the actual files in Kindle Previewer and KDP's
+Print Previewer and order a physical proof. Generate the separate paperback
+wrap using KDP's template, the final processed page count, and selected paper.
+No ISBN or spine width has been invented. Local checks are not KDP acceptance.
+
+This workflow only builds local files. It does not upload, deploy, publish,
+commit, or push them. The website PDF has not been installed on the website.

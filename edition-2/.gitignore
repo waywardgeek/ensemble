@@ -1,0 +1,98 @@
+/grade
+/fakevendor
+*.test
+.DS_Store
+testdata/slowtool/
+testdata/mutants/
+
+# Compiled binaries.
+#
+# `go build` names its output after the directory, so a build inside ch05/
+# leaves ch05/ch05, and `go build -o bin` leaves ch05/bin. The exercise SOURCE
+# under ch0* IS tracked -- the grader compiles and drives it, and it is the
+# only thing that proves the public API is usable from outside the module.
+# Only the build output belongs here.
+#
+# This was previously spelled `/ch0`, which matched NOTHING: gitignore does
+# not prefix-match without a wildcard, so `/ch0` matches only a root entry
+# named exactly "ch0". Three 9MB binaries were committed while that rule
+# looked like it was working.
+#
+# These patterns are deliberately depth-independent. From Chapter 5 on, a
+# submission is repo-root-shaped (agent/ + chNN/), so a snapshot under
+# solutions/ nests a SECOND copy of the whole layout: solutions/ch07/ch05/bin
+# is a real path. Depth-anchored spellings like `solutions/*/bin` cannot keep
+# up with that, and two binaries were staged before this was fixed. A pattern
+# with no slash matches at any depth; `**/` means the same thing explicitly.
+#
+# The graders BUILD these binaries into the submission tree every time they
+# run, so deleting them by hand does not keep them gone. Only the ignore rule
+# does.
+bin
+**/ch0*/ch0*
+# ...but the same shape names SOURCE as well as binaries: the chapter
+# exercises live in directories like solutions/ch06/ch06/ (section 6.10's
+# author/editor/reviewer pipeline, with its own go.mod). The rule above
+# swallowed those whole, so a fresh clone had no exercise and Chapter 6
+# scored 45/100. A trailing slash matches directories only, so this
+# re-includes the exercise source while the built binaries -- which are
+# files, not directories -- stay ignored.
+!**/ch0*/ch0*/
+
+# Agent working directories: tool output and scratch, created by any manual
+# run. Run OUTPUT, not source.
+cr/
+
+# Event logs are run OUTPUT, not source. Tracking one meant every manual run of
+# a solution showed up as a modification and added noise to every git status.
+# The rule covers *.log rather than one filename because the default log name is
+# derived from the executable: a binary built from solutions/ch03 writes
+# ch03.log, and one you named yourself writes whatever you named it.
+*.log
+
+# Built binaries and runtime state. These were previously anchored to /agent/
+# because solutions/chNN/ tracked files with the same names, and an unanchored
+# pattern would have shadowed them. That is no longer true: 72MB of committed
+# binaries -- solutions/ch05, ch09-ch13 and ch17 -- were purged from history on
+# 2026-09-27, which is what makes the depth-independent spelling safe now.
+#
+# Depth-independence matters here for the same reason it does for `bin` above:
+# a snapshot under solutions/ nests a second copy of the whole repo layout, so
+# the binary can appear at solutions/ch17/ensemble or deeper, and a rule spelled
+# solutions/*/ensemble cannot keep up.
+#
+# CAREFUL: `ensemble` and `virtual-user` name DIRECTORIES as well as binaries --
+# agent/skills/ensemble/SKILL.md holds the primary skill, and agent/cmd/
+# virtual-user/ is source. A bare slashless pattern would ignore those whole,
+# silently untracking the primary skill. Trailing slash matches directories
+# only, so the re-includes below keep the source while the built files -- which
+# are files, not directories -- stay ignored. Same idiom as `!**/ch0*/ch0*/`.
+**/ensemble
+!**/ensemble/
+**/virtual-user
+!**/virtual-user/
+
+# Always files, never directories, so no re-include is needed.
+settings.json
+virtual-user.jsonl
+
+# dlv drops these next to the package it builds. Slashless so it matches
+# at any depth, for the same reason as `bin` above.
+__debug_bin*
+
+# Python bytecode from helper scripts
+__pycache__/
+.nightly/
+
+# Agent runtime artifacts.
+#
+# Running a grader against a solution snapshot executes the agent with that
+# snapshot as its working directory, so it writes these files INTO the tree
+# you are about to commit. The ch19 snapshot picked up request.json and
+# prior_request.json exactly that way: grade first, `git add` second, and the
+# cache lens output ships as part of the solution.
+save.json
+save.json.bak
+save.json.journal
+request.json
+prior_request.json

@@ -1,77 +1,55 @@
 # Chapter 0: The Perpetual Machine
 
-## The repository wasn't enough
+An experienced engineer can recognize the parts of an AI coding assistant: an HTTP client, a conversation, some tools, a terminal, perhaps a browser. None looks especially mysterious. Then a tool hangs, a second agent starts working on the same problem, and the conversation grows too large to send. Suddenly the hard questions sound familiar. Who owns this operation? Which result is authoritative? What can be reconstructed after failure? Who is allowed to stop what?
 
-Bill asked a model to read CodeRhapsody's documentation and source, then design a better next-generation coding agent. In [his account of the attempt](../edition-3/chapter-00.md), the resulting design failed badly. The model could read what he had built without understanding what he had learned building it.
+This book is about those questions. Ensemble is the running example: a coding agent built as a library, with front ends and external services around it. The model is important, but it is not the application. Much of the interesting engineering happens before the model receives a request and after it returns an answer.
 
-Bill reports spending a couple thousand hours building coding tools with language models. That experience includes approaches that consumed days before being abandoned and discoveries that changed the architecture. A source tree contains the surviving decisions, but not necessarily the reasons the alternatives lost. Once a problem has been solved, the solution can look as though it was obvious all along.
+There is a second experiment underneath the first. The system is described in an executable codebook: explanations, architectural constraints, a construction sequence, and checks that another AI can use to build it. This companion carries the engineering knowledge without the assignments, exact schemas, and grading machinery. A reader can understand the design here and consult the corresponding codebook chapter when an exact contract matters.
 
-His attempt to start the instructional book exposed the same gap. He asked another model for an outline about building an AI coding agent. It produced pages before he could stop it, but he found the outline wrong and hallucinated. Fluency supplied a book-shaped answer where the missing ingredient was experience with this particular system.
+The distinction is useful because an instruction precise enough to execute is not always a pleasure to read. A schema must enumerate fields. An explanation needs to tell you why the schema has that boundary at all.
 
-These are Bill's reported failures, not a benchmark of what every model can learn from a repository. They explain why more files alone may not transfer the knowledge needed to develop Ensemble, the coding agent this book describes.
+## The second program
 
-## What survives the session
+Writing a small assistant becomes interesting when it starts helping to write its successor. The current application supplies tools and working context while the next one is built. Defects discovered during construction can become changes to the implementation, but also corrections to the book that taught it.
 
-A model can bring broad technical knowledge and still lack the experience that makes a local design decision clear. Working alongside a project's developer does not automatically make that experience a durable part of the model.
+Bill calls this the codebook's larger ambition: preserve enough engineering knowledge that the source can be rebuilt, rather than preserving only the latest source. The analogy is a compiler, with an important qualification. An AI executing prose is not deterministic. It can misunderstand, drift, or produce a plausible implementation with the wrong ownership model. Checks and expert judgment remain part of construction.
 
-Humans continue consolidating memories after an experience, with sleep playing an important role. Human memory is neither complete nor reliable, but learning can change how someone approaches the next day's work without rereading an account of the previous day. Ordinary LLM inference uses the model's trained weights without updating them. A model can adapt to an explanation in context, apply a newly supplied distinction, and reason from a failure it has just observed. Those useful capabilities do not, by themselves, alter its trained parameters for the next session.
+A source repository answers what the current implementation does. A good codebook also explains what must remain true when the implementation changes, and why. That distinction becomes valuable when an apparently helpful simplification removes the thing that made the system work.
 
-Saved summaries, external memory, and retrieval can carry experience across sessions. Their usefulness depends on what was recorded and what the system supplies when the knowledge is needed. Retrieval cannot recover a reason that was never recorded, although a model may infer it correctly. Fine-tuning or online training can change weights; those are additional processes, not automatic consequences of a successful coding conversation. The sleep comparison concerns persistence of experience, not an equivalence between biological consolidation and model training.
+The human companion has a different job again. It should make the architecture available to someone who does not intend to reproduce every exercise. An engineer reading on a train should leave with useful ideas about event histories, long-running work, ownership, cache accounting, context management, and delegated computation. No grader needs to accompany the train ride.
 
-For this project, the practical consequence is deliberate preservation: record the judgments, the constraints that made them useful, and the failures that changed them, then supply that knowledge to later work. Otherwise a model may offer an excellent general solution to a problem whose local constraints it was never told. The record also has to serve the next human lead, who did not share the original developer's experience.
+## The architect is still present
 
-Bill calls the instructional book an **agentic codebook**: knowledge organized so an agent can construct the system and check the result. This companion translates that executable knowledge for a human successor. Rebuilding a boundary and understanding when to move it are different accomplishments; the latter requires its rationale, tradeoffs, and conditions. Neither transfer happens merely because the human and model collaborated successfully once.
+Bill has used Go successfully in CodeRhapsody while supervising the assistant throughout the work. He listens to its reasoning and corrects architectural drift as it happens. Autonomous execution of a codebook changes that arrangement. The instructions and implementation language must support the intended design without the same continuous rescue.
 
-## An expert who stays in the loop
+The failed Go execution made the distinction expensive. Bill discarded twenty-one chapters after Astra spent thirty hours unable to complete Chapter 21. He also found a problem in the instruction setup: the architectural rules had been presented as file content rather than installed as governing instructions. It would be convenient to turn that history into a controlled language experiment. It was not one. It exposed a failure of implementation and instruction delivery, and made the cost of fighting a language's familiar idioms impossible to ignore.
 
-Ensemble is designed for an expert who steers. Bill describes listening to agents' reasoning and catching mistakes before they land. Intervention can correct an assumption while the model is still choosing a direction, before code, tests, and documentation accumulate around the wrong requirement.
+The C# edition therefore makes the model unusually explicit. Common declares the shared vocabulary. Functional modules implement it. Objects retain their real parent relationships. Relationship operations update both ends. Logical destruction is complete and intentional. These are Bill's longstanding engineering rules, not conventions invented to appease a language model.
 
-That saves wasted implementation but costs human attention. Making every minor step await inspection would simply move the bottleneck. The design problem is to expose consequential decisions and permit timely correction while routine work proceeds. Steering therefore reaches into the runtime: when the human can contribute, what is visible, and what happens to work already under way. It is not just a chat box between prompts.
+C# is useful here because it accommodates those rules directly. Partial types and members separate declarations from implementations at compile time. Ordinary references can represent a graph without a second graph of handles or interface wrappers. Garbage collection reclaims unreachable storage, including cycles, while explicit destruction repairs the application's relationships. Familiar HTTP, JSON, and concurrency libraries keep the infrastructure ordinary.
 
-This design center does not rule out unattended work on a bounded task with a reliable way to judge the result. It explains why Ensemble makes room for an operator whose project knowledge the model may lack.
+The language does not enforce every architectural rule. All the partial pieces compile into one assembly, so directory-level dependency discipline still requires review. The gain is that following the design does not require runtime machinery whose sole purpose is connecting a declaration to its body.
 
-## Small enough to understand
+## Follow the ownership
 
-A compact implementation helps people and models inspect the code they are changing. When relevant behavior is scattered or buried, a locally plausible edit can violate a distant assumption. A reviewer then has to reconstruct those dependencies to understand the change.
+The book begins with one conversation because a small program makes authority visible. A request contains the conversation so far. A response contributes text and measured usage. Failed operations must not leave a half-published turn behind.
 
-File size can warn of that problem, but splitting a long file does not automatically solve it. The useful question is whether a responsibility has a clear home and a change can be understood with its actual dependencies. Several unnecessary layers can make a small file harder to reason about than a longer, straightforward implementation. Removing explanations of ownership or non-obvious decisions to improve a line count defeats the purpose.
+Typed history then separates what happened from the next provider request. Tools introduce effects. Jobs give slow effects a lifetime that does not depend on a caller's patience. The actor gives conversation state one owner while requests, tools, and users remain active around it.
 
-Passing checks cannot decide whether an abstraction has earned its place. A program can satisfy every exercised behavior while making the next change needlessly difficult.
+Once those boundaries are sound, interfaces become consumers rather than rival owners. Streaming improves observation without becoming a second answer. A GUI can stop without destroying the conversation. Skills can change instructions and available operations. Persistence can reconstruct committed facts instead of restoring a heap of incidental state.
 
-## When the teaching becomes the bug
+The later chapters apply the same reasoning at larger scales. Memory replaces a working context without erasing history. Recall brings selected earlier material back without repeatedly injecting the same snippets. Children have explicit parents and completion contracts. Gateway introduces a network boundary without changing who owns local work. Goals preserve an objective and create an opportunity to resume, while leaving authority and judgment where they belong.
 
-The codebook describes how to construct Ensemble in stages, checking each added capability while preserving earlier behavior. Its ambition is that another model can build a usable agent from the teaching, and that later attempts improve both the implementation and the book.
+This sequence is deliberately cumulative. An agent that cannot distinguish a wait from a cancellation should not yet supervise a fleet. A memory system that cannot distinguish an archive from a working view should not decide which parts of a conversation may disappear.
 
-An author-led attempt showed how that process could go wrong. Expanded contracts were written before the implementer had learned from the original exercises. Small tasks became larger ones. Review approved the expansion. The attempt was stopped.
+## Receipts, not legends
 
-Review was present; it accepted work whose scope had already drifted. More detailed teaching had become a source of requirements instead of a clearer explanation grounded in the build.
+The project includes historical incidents, local tests, browser exercises, and bounded live-provider runs. They answer different questions. A fake can demonstrate that a cancellation reaches a transport. A live request can show that a service accepted particular credentials and bytes. Neither alone establishes that a complicated assistant is generally reliable.
 
-The replacement approach put implementation first. A fresh implementer worked from the original tasks, and the accepted code and reviews informed the enhanced chapters. Missing contracts, ambiguities, and difficult decisions supplied concrete material for correction rather than reasons to invent more machinery.
+The companion uses those experiences where they explain a decision. It does not reproduce the score tables or ask a single successful run to support a larger claim. The detailed contracts and execution record remain available in the codebook.
 
-A new feature still needs an intended behavior before anyone can decide whether it works. Implementation tests that intention against experience; the teaching then incorporates what the build exposed. An unspecified output format remains a product decision, however smoothly a model fills the gap. Coherent code alone cannot establish that the chosen behavior is the intended one.
+The current implementation sequence is complete through Goals. The crossover into the new running system is a separate, ongoing piece of work, and its account is reserved for the final chapter. There is no need to manufacture an ending in advance.
 
-## What a successful check establishes
+For now, start with the least impressive-looking part of the system: a paid HTTP request, a list of messages, and a loop.
 
-Some valid implementations failed the old checks because a grader assumed a particular layout or demanded behavior the chapter had deferred. Independent review could accept a documented exception while preserving the failed result. Other failures were genuine bugs and required correction. Treating every failure as a product defect makes code imitate accidental test details; dismissing inconvenient failures as test defects removes the protection.
-
-The codebook uses fake external services to make behavior observable. A fake vendor server supplies controlled responses while the real client and agent logic execute. Later checks must still exercise the earlier machinery: bypassing it can make a new feature appear to work while hiding a regression. Substituting scripted internal interactions for that behavior can merely demonstrate that the test's assumptions agree with themselves.
-
-Deliberate defects, or mutations, test whether checks detect the behavior they claim to protect. If removing history retention makes the intended history check fail, that supports a specific claim: the check detects that removal. If the edit merely prevents compilation, the failed command shows that the program no longer builds, not that the history check works.
-
-Mutations establish sensitivity to the defects tried, not every possible defect. They cannot rescue a requirement that implementation and test have both misunderstood. Independent source review can examine clarity and ownership as well as find errors outside the checks. Actual use adds another kind of evidence: expected structured messages in a harness do not establish that conversation with the agent is usable. Conversely, one successful conversation does not establish every protocol guarantee.
-
-The reconstruction experiment has a further limitation. If the builder has already read the reference answer, successful code may demonstrate copying rather than learning from the explanation. The code can remain useful while proving less about the teaching.
-
-The chapter record therefore distinguishes intended behavior, what was exercised, the result, help received, and accepted limitations. Keeping a failed score beside an independently justified acceptance preserves information that a green check would erase. A later edition can repair the flawed grader without rewriting the earlier result.
-
-## Building with the thing being built
-
-The instructional book calls an agent **self-wielding** when it becomes the primary tool for its own continued development, by analogy with a compiler becoming self-hosting. Improvements to Ensemble could then help build the next improvement. Using it for development also exposes shortcomings that bounded checks may miss.
-
-Unlike a compiler, a coding agent contributes judgments through a model rather than deterministically translating a complete description. A newer model may produce clearer code, sharper tool descriptions, or better error handling. It may also make a different mistake. Regeneration offers an opportunity for improvement, not proof of it.
-
-The original Chapter 0 account reports a bounded coding demonstration: Ensemble read a program, reproduced failures, edited it, and passed unchanged tests. It described the broader crossover as unfinished at that stage. Chapter 25 records the later second-edition crossover, when Bill and Cadence worked on the book inside Ensemble. That later use is not a fresh Edition 3 result, and neither account establishes a recurring self-improvement cycle.
-
-The proposed loop is concrete: build the agent, use it to help develop another capability, check the result, and correct the teaching from implementation feedback. The next build inherits those corrections. Each pass still needs evidence of what improved; passing checks alone cannot establish better design or better teaching.
-
-The next chapter turns to Ensemble's initial architecture: where responsibilities belong and how those boundaries keep the growing system understandable.
+*Implementation details: [codebook Chapter 0](../chapter-00.md).*

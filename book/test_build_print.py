@@ -25,8 +25,17 @@ class PrintBuildTests(unittest.TestCase):
         self.assertNotIn('id="contents"', clean)
         self.assertNotIn('Duplicate markdown contents', clean)
         self.assertNotIn('page-break-after: always;', clean)
-        self.assertIn('class="recto-spacer"', clean)
+        self.assertNotIn('class="recto-spacer"', clean)
         self.assertIn('Actual prose', clean)
+
+    def test_measured_recto_spacer_preserves_already_correct_layout(self):
+        html = '<h1 id="preface">Preface</h1><p>Unchanged prose</p>'
+        self.assertEqual(build.recto_preface_html(html, 5), html)
+        repaired = build.recto_preface_html(html, 4)
+        self.assertEqual(repaired.count('class="recto-spacer"'), 1)
+        self.assertTrue(repaired.endswith(html))
+        with self.assertRaises(SystemExit):
+            build.recto_preface_html(repaired, 4)
 
     def test_missing_preface_is_rejected(self):
         with self.assertRaises(SystemExit):

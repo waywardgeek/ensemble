@@ -1,0 +1,97 @@
+# Chapter 22: Forgetting on Purpose
+
+Bill initially mistook missing memory for a model-quality problem. In the spring 2026 account that opens the [source chapter](../edition-3/chapter-22.md), CodeRhapsody interviewed a family assistant about improving its own supporting code. Both agents had persistent memory, and their suggestions built on earlier work. The same approach failed at his workplace. He blamed Gemini until he found a bug that had disabled memory there entirely. After the repair, the workplace agents improved tools and proposed procedural memory—the skills developed elsewhere in this book.
+
+That experience establishes why continuity matters, not that any summary will provide it. A successor can read the code and still lack the reason a tempting approach was rejected. Keeping every conversation forever in the working request is expensive; deleting it can erase the very knowledge that makes the next session competent. This chapter replaces completed conversation with durable memory while retaining the original until its replacement is accepted.
+
+There are three separate questions. Did the system replace exactly the intended source and recover it correctly after a crash? Did the replacement preserve useful meaning? Did the receiving model use that meaning correctly? A working file pipeline answers only the first.
+
+## A checkpoint selects work; it does not erase it
+
+Chapter 14 removes tool traffic whose contents can usually be read or produced again. Conversation needs a different policy. A source file cannot tell a successor why an earlier implementation was rejected, what the user left undecided, or which failed experiment changed the plan. The retained event log may contain that history, but removing it from the working request still makes it unavailable to ordinary reasoning.
+
+The source describes an older CodeRhapsody split: both `save_memory` and `handoff_task` cleared conversation, but only one fed the memory cascade. Bill recorded that gap on April 18, 2026; it remained open at the chapter’s design session. The current design gives the operation one entrance, `micro_handoff`, rather than maintaining two clearing paths that must stay consistent.
+
+The acting model writes a checkpoint note while it still has the task in view. After the successful tool batch, the handoff strips tool calls, results, opaque reasoning and private replay signatures. Visible dialogue and the original log remain. Memory then measures the remaining conversation and, if it exceeds its byte budget, selects the oldest whole completed segments and their notes. Unfinished work, skills and declarations stay out of the selection. Checkpoints at completed subtasks therefore define useful compression boundaries; checkpoints taken merely because a counter is high can leave half of two tasks in one memory.
+
+The note is an opportunity to express reasons, not a way to extract private reasoning. A compressor cannot preserve a rationale nobody put into readable text. Useful notes explain decisions, rejected alternatives, uncertainty and constraints rather than merely announcing completion.
+
+One owned compression attempt may be running or awaiting commitment at a time. Further checkpoints can finish more work without launching overlapping summaries. The main Agent normally continues while the child works, with the selected source still available. Finishing or interrupting the main turn does not cancel the child. Explicitly killing that child or shutting down its owner does; a relevant policy change invalidates its uncommitted work. The near-window exception is a deliberate wait, not a return to synchronous compression everywhere.
+
+## Give the compressor a separate role
+
+The source’s October 14 trial explains why the compressor is a fresh child rather than a model call borrowing the main Agent’s instructions. The earlier request inherited a rule telling the main Agent not to submit, then asked it to submit memory. The provider returned prose without a function call. The runtime refused the result and retained the source. Making that contradictory request asynchronous would have removed the delay without repairing the role conflict.
+
+The current child inherits the owner’s provider, model, route and safety ceilings, but not its coding primary, conversation or opaque replay state. It receives only the selected readable source, with role labels and handoff notes, delimited as data. Construction prevents skills and MCP servers from starting; the child has no recall, memory cascade, context forcing or public delegation. It uses the ordinary factory and ownership paths rather than becoming an unmanaged exception.
+
+Its only tool is `submit`. The complete submission is an object with one string property, `memory`, and no additional properties—not a `result` wrapper or JSON embedded in a string. Public submission validation checks the shape; the owner also rejects blank memory. Both declaration and dispatch enforce the capability boundary. Asking a fully equipped model not to use file tools is not equivalent to withholding those tools, and guessed tool names must not bypass the restriction.
+
+The child writes in the source owner’s first person: retained experience should read as “I rejected this because…” rather than a report about a stranger. That voice does not promote the text into authority. Quoted instructions in the source remain data, as do the resulting memory bands. Putting a compressed account into system instructions would let text whose original provenance has been stripped acquire the Agent’s authority. It would also rewrite the frozen prefix. Keeping memory in the conversation avoids both that authority escalation and unnecessary changes to earlier instruction bytes; it does not make memory immune to misleading content or cache costs.
+
+An attempt has a finite correction budget: the current source permits at most three Engine sends and three tool batches. Existing bounded transport and authentication retries are separate. Prose-only completion fails; a mixed or multi-call batch is rejected as a whole, so a valid first submission cannot hide a forbidden second call. Provider length stops fail even when the partial JSON parses. An adequate output allowance matters: a desired compression ratio is no reason to cut off the explanation that makes a decision useful. The normal actor has no fallback to the deprecated direct compression call.
+
+## Bands organize memory without prescribing its quality
+
+Memory appears between the frozen prefix and conversation, from stable to volatile: human-maintained `SOUL.md`, terminal `MEMORY.md`, the 64x and 8x tiers, then session memories. The tiers live in the owning Agent’s corpus; another Agent has its own. SOUL never graduates. Session memory can move through 8x and 64x into MEMORY, where the cascade ends. The tier names are targets inherited from the design, not measured compression guarantees.
+
+Each band has a distinct entry kind, so clearing dialogue tool parts cannot remove it accidentally. Band entries use `Seq: 0`; their canonical position is determined by band and file identity, not the event sequence that restored them. File identities use dates and same-day numbers independently of any log. Range filenames describe which memories a graduated file covers. This lets the corpus survive a particular log and makes restoring bands in different orders produce the same request.
+
+Stable bands near the front have a better chance of retaining a reusable prefix. That placement is an opportunity, not a provider cache grant. Re-enabling an early band can still change a large suffix of the request.
+
+Graduation uses a high and low watermark, measured in bytes. By default they are twice and once the band budget. Crossing the high watermark selects at least two oldest files, enough to bring the remainder down to the low watermark. The gap prevents repeated folding immediately after a successful fold. A single oversized file waits for another.
+
+The source records an earlier mistake: requiring eight files meant a band holding five large memories could remain over budget indefinitely. Waiting for a nominal batch count required the already-full band to grow further. The current selection follows byte pressure and whole-file coverage instead. Retirement must equal the selected oldest prefix, with nonempty progress; malformed, reversed or overlapping ranges cannot justify removing unselected work. The next cascade step begins only after the preceding replacement commits and its disk cleanup finishes.
+
+A disabled destination blocks graduation with a warning and leaves source intact. Silently dropping the replacement or pretending the source had been reduced would make configuration changes destructive.
+
+## Accept the candidate where the owner can commit it
+
+A valid submission is still only a candidate. Before accepting it, the actor waits for reliable child completion, drain and successful save. Seeing a submitted flag is too early: cleanup at that instant could interrupt the submission’s tool-result tail. Finished workers leave the live Fleet, Ensemble and GUI views only after that boundary, while their traces and owner outcomes remain. A browser displaying the child returns to its owner; late observations must not recreate the dismissed child.
+
+The owner then checks whether the child summarized the source that still exists. The selection captures entries, selected file bytes and coverage, the destination’s previous bytes or absence, and the relevant policy generation. A human edit under the same filename invalidates the result. Turning a band off and back on also invalidates it, even though the final setting looks unchanged. New unrelated dialogue or an edit to an unselected later file does not. Comparing against the entire growing conversation would reject useful work whenever the main Agent continued—the very concurrency this design permits.
+
+Commitment occurs while idle or before a main render following a complete tool batch. It cannot revise a request already sent to the provider. Memory owns selection and corpus operations through its required Agent parent; the Agent actor owns attempt lifetime and commitment. History projects recorded facts, while the child’s Engine calls the provider. These boundaries keep the background worker from editing live conversation or making History depend on filesystem guesses.
+
+The commit sequence protects both sides of replacement. First, stage the candidate outside active memory scans. Then journal the task-correlated conversation cut or band retirement and its matching population. History applies the pair together: a cut without the replacement cannot remove source. Finally, install the destination, archive selected originals as `.md.retired`, record the terminal outcome and clear staging. Retired identities still reserve their file numbers after restart.
+
+Writing straight into the active corpus would let startup load an unaccepted summary. Recording retirement without ensuring disk finalization would let startup reload originals the projection had already removed. A durable commit receipt bridges those states and survives snapshotting and log retention until disk work is complete.
+
+## Replay yesterday; read today’s edits deliberately
+
+Each `band_populated` event contains one memory’s actual text and identity, not merely a filename. The first design proposed references, but neither the pure reducer nor the renderer owned a place to resolve them. A file could exist while the model received no memory. Recording bytes also distinguishes yesterday’s delivered text from tomorrow’s edited file.
+
+A `band_depopulated` event records what leaves: a covered prefix for graduation, or the whole band when disabled. Managed cuts and populations share the attempt’s identity; an ordinary disk rescan cannot accidentally complete a pending cut. Launch and outcome records describe attempts without turning replay into executable work. Reconstructing a request uses recorded cuts and bytes, never another model answer, current thresholds or a filesystem lookup.
+
+After a process crash, an unmatched launch or uncommitted candidate is abandoned, with source retained. Replay does not respawn the worker; a later checkpoint may try again. A committed replacement with unfinished disk work is different. Recovery finishes installation and remaining archive renames before startup scans, re-enable, recall or the next main render. Otherwise the conversation could show the committed memory while retrieval searched an older corpus.
+
+Conflicting human edits, missing candidates or unreadable files produce an explicit recovery error. Preserve the conflicting bytes and receipt rather than overwriting them to make startup appear successful. The hold remains interruptible and can clear once repaired. This is process-crash ordering, not a promise of power-loss durability or a transaction against arbitrary concurrent editors.
+
+Disk files remain the human-editable authority for current memory. Disabling a band removes context entries, not files. Re-enabling scans them and records each current text. Normal startup does the same after recovery, including for bands that remained enabled. Pure offline replay still reproduces the old recorded text without touching disk. Those operations answer different questions and need not disagree.
+
+The source recounts an identity-only comparison that made corrected memory files ineffective: replay restored the old text, and the rescan treated the unchanged filename as sufficient. Comparing content as well as identity fixed it. Testing only disable-and-enable can miss that defect because disabling has already removed the old entries; an enabled-band restart exposes it.
+
+The read-only `recall` tool searches the owning Agent’s corpus, not another Agent’s files or a transcript file as a shortcut. It can find retired originals and disabled tiers; SOUL participates only while enabled. It returns a matching line with bounded context, once per file, under a result cap. Its optional date filter is an anchored regular expression over valid memory stems and covers both ends of a range filename. Invalid patterns are errors, not permission to broaden the search. Recall does not populate bands, change settings or start compression. That separation lets a successor consult discarded detail without silently changing the working-memory policy.
+
+Memory settings apply to the live Agent, unlike provider preferences saved for next launch. Their acknowledgment follows both durable persistence and actual application. In the student implementation, a GUI handler waited for that acknowledgment while holding the observer mutex; the streaming actor needed the same mutex to publish progress. Idle toggling passed, but streaming deadlocked. Serializing settings separately and keeping the observer lock brief broke the cycle without falsely acknowledging an unapplied change. Memory patches must also preserve pending provider edits and unrelated fields.
+
+## Headroom and cost measure different work
+
+Byte budgets govern corpus selection. A model’s context window is measured in tokens. For a known window, the current policy warns at 90% and restricts both declared and executable tools to `micro_handoff` at 95%. It uses total input from the latest completed main request, with cache buckets counted exactly once—not lifetime usage, output tokens or the compressor’s separate request. Lifetime usage only rises and would otherwise leave a newly shortened conversation restricted forever. An unknown window does not justify an invented threshold.
+
+After handoff, normal tools return. Restricting tools still cannot compel a text-only model response to become a useful checkpoint; the margin is headroom, not a guarantee that every next response fits. If a worker is outstanding at the forcing threshold, the next main render waits. Settings and interruption remain usable. Success resumes the turn; failure reports a headroom error rather than resending the same full context. Interrupting the wait detaches that turn’s waiter, not the worker.
+
+The child’s final measured usage enters owner totals once after drain, including failed and canceled work, with the actual provider, model and price-tier buckets. A second addition through fleet totals would double-charge it. Replaying an outcome receipt does not rebill old work, and unknown contributing prices keep total cost unknown. Meanwhile, latest-main occupancy and cache comparisons remain about main requests, not the child’s unrelated prompt. The compaction breakpoint follows the newest surviving handoff, or the last surviving memory when the handoff is gone.
+
+## Shorter, useful and remembered are separate results
+
+The source’s synthetic measurement reduced a 16,000-byte conversation to a 1,649-byte combined working context. Its compressor returned fixed short strings. That establishes replacement, cascade wiring and byte accounting under the fixture; it says nothing about preserving useful reasoning. A planted fact returned by a fake can establish delivery into the next request, not a real model’s judgment about what to retain.
+
+The five October 11 sessions in the source’s “What the live runs remembered” section used the earlier direct compressor, not today’s background child. Each produced session memories and a graduation, but their semantic outcomes differed. In the initial Haiku run, graduation kept the decisions to reject automatic deletion and automatic migration retries while losing their reasons. Asked why, the model said, “No reason was given.” The reasons had appeared in both the user messages and handoffs. Successful reduction had removed the information that would prevent repeating the mistake.
+
+A corrected prompt explicitly preserved decisions and why, failed approaches, uncertainty and user constraints, treating the size ratio as guidance. The repeat retained the reasons but also preserved an invented open question. Better compression instructions did not make every retained statement true.
+
+The corrected OpenAI run separated preservation from recall more sharply. Its graduated memory said Morgan would lead the archive review on October 18; the actual final provider request contained that sentence and a further repetition. The answer nevertheless reported no owner and substituted the memory’s creation date. Inspecting only the file would miss failed recall. Inspecting only the answer could wrongly blame the compressor for losing facts it had retained.
+
+Other recorded runs made file or directory calls despite instructions not to use tools. A no-tools instruction is a behavioral constraint, not the enforced submit-only capability boundary that now confines the compressor. Those runs could preserve facts and still fail task compliance. The child’s restricted tool surface addresses that authority problem; it does not settle what meaning the model retains.
+
+These historical trials do not measure the replacement child’s responsiveness, semantic quality or current model behavior. Their measured byte ratios did not establish the nominal 8x target, and the supported setup printed in the source is not a new live result. The enduring distinction is narrower and more useful: exact replacement and replay protect the integrity of forgetting; preserved reasons protect continuity of judgment; accurate use of those reasons remains a further behavior to observe.

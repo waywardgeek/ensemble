@@ -1,39 +1,67 @@
-# Chapter 24: While the Cache Is Broken
+# Chapter 24: Gateway
 
-Chapter 23 preserves a stable request prefix so the provider can reuse it. That creates an opportunity, not a cache grant. An agent can produce correct answers, execute tools successfully, and still consume far more input budget than expected because the repeated context receives no cached-token credit.
+In Bill’s Deephold game, agents waited for their turns inside blocked tool handlers. The game needed a message router, not more elaborate waiting tools. The same design became concrete in Puffin, where a family-care application needed dependable communication across independently running programs.
 
-In the [source chapter's account](../edition-3/chapter-24.md#why-this-chapter-exists), Bill wanted to use a ChatGPT subscription with Ensemble. His paired requests reused the same model and request bytes, yet the public OAuth route produced fewer cache hits than the API-key route. Support replied that caching was not guaranteed. That did not resolve the practical problem: a coding agent repeatedly sends its working context, and successful inference alone does not establish an economical connection.
+Gateway moves that responsibility outside the Agent. It authenticates peers, checks routing policy, stamps provenance, and keeps messages for offline recipients. It owns no Ensemble Agent and makes no model calls. A standalone interviewer, an Ensemble adapter, and a future home-automation client can share the transport without sharing an Agent framework.
 
-The chapter's response is an optional detour through Codex's endpoint using an existing Codex sign-in. It is not a replacement authentication system or a prerequisite for later features. If Ensemble's public OAuth route already gives satisfactory reuse for the workload, there is no reason to take it.
+## Establish identity before accepting instructions
 
-## A different connection, not a different Agent
+An internet message cannot authenticate itself by saying “I am your operator.” Gateway establishes identity before placing the sender’s content in a model request. The operator registers peers and keys, assigns group memberships, and decides which groups a recipient accepts.
 
-The source defines three explicit OpenAI connection choices. `OPENAI_BILLING_MODE=chatgpt` selects Ensemble's public OAuth registration, `api` selects an API key, and `codex` selects this adapter. Public OAuth and Codex credentials belong to different access paths; changing only the destination URL is insufficient. The adapter does not send Ensemble's public OAuth grant to Codex's endpoint.
+Noise-KK runs inside the WebSocket. Both endpoints already know the other’s static public key: the client pins Gateway’s key, and Gateway looks up the configured client key. This remains useful behind a terminating reverse proxy. TLS may protect both network legs, but the proxy terminates those connections; the inner Noise session provides application-to-application confidentiality and authentication across it.
 
-The ordinary path keeps the existing ownership boundaries. The authentication component supplies credentials, the Engine sends HTTP and parses responses, and the Agent owns the conversation. Tools still become jobs, results still enter local history, and that history supplies the next request. A second agent loop would duplicate machinery unrelated to the connection problem.
+The client first opens `/v1/ws` with its Agent ID. That cleartext ID selects a candidate key, not a trusted identity. The two Noise handshake messages establish directional session keys while binding the application prologue and Agent ID. Encrypted JSON follows, starting with a `hello` that repeats identity and protocol version. The client is connected only after an identity-matched encrypted welcome.
 
-For Codex mode, the CLI selects `EN_CODEX_AUTH_FILE` first, then `CODEX_HOME/auth.json`, then `~/.codex/auth.json`. The adapter reads `tokens.access_token` and `tokens.account_id` together before each request. Rereading lets it pick up credentials renewed by Codex without restarting Ensemble. Codex alone owns renewal: Ensemble neither writes the file nor refreshes another application's token. An API-key Codex profile or a sign-in held only in the operating-system keychain does not provide the file-backed ChatGPT credential this adapter needs.
+The implementation preserves `Noise_KK_25519_ChaChaPoly_SHA256` through pinned Noise.NET code and libsodium. X25519 keys are agreement keys, not signing keys despite occasional historical `ed25519:` labels. The wrapper delegates the cryptography rather than inventing a compatible-looking cipher.
 
-A missing file or rejected credential produces an actionable sign-in error, not automatic fallback to public OAuth or an API key. In particular, selecting an API key after a Codex failure would turn a repairable authentication problem into an unannounced spending decision. Ensemble's own `auth` commands continue to manage its public registration, not Codex's sign-in.
+Key files contain private bytes; public keys are derived on load. First creation publishes a fully written private file exclusively, so two creators adopt the winner instead of each returning a different identity. A malformed existing key refuses rather than being silently replaced. Noise protects traffic, not a stolen endpoint key or plaintext queue files on disk.
 
-Supported Responses models go to `https://chatgpt.com/backend-api/codex/responses` with bearer authorization and `ChatGPT-Account-ID`. Incompatible models are rejected before credentials are sent, redirects are refused, and tokens never enter prompts, saves, or logs. These boundaries keep a narrowly selected connection from becoming a general credential-forwarding mechanism.
+A failed handshake cannot evict an existing live client. Only a fully authenticated replacement can supersede that identity’s current session. Replacement revokes the old session before closing its socket, preventing buffered old requests from acting as the new connection.
 
-## Why the cache key was not enough
+## Trust follows the route that admitted the message
 
-The [implementation account cited by the source](../../docs/edition-2-notes/codex-endpoint-chapter.md) records an initially convincing failure. A terminal session created a Python function, ran its assertion, and submitted the result. Every request reported zero cached tokens. A second run added a longer stable reference and still received none. The tool loop worked; the purpose of the detour did not.
+Groups combine capability and trust. A sender needs `send-message`, and sender and recipient must share a route the recipient has explicitly accepted. Among those eligible groups, Gateway selects the strongest trust level: `owner`, `trusted`, or `external`. Membership in an unrelated owner group cannot lend owner authority to a message admitted through a weaker group.
 
-The missing detail came from Codex's client source: its backend uses the HTTP `session-id` header for cache affinity. The described adapter therefore sends the same stable identity in that header and the body's `prompt_cache_key`. It derives the identity from the Agent's data directory and model, hashing it so the directory itself stays local. A fresh identity on each request would defeat affinity. The body key alone had been insufficient in the recorded runs; neither field guarantees a hit.
+Gateway supplies source identity, authorizing group, trust, and timestamp. A readable header naming the source, group, and trust sits above the original content. The sender cannot manufacture those authenticated fields by writing a similar header in its body. The body remains untrusted input, and the model can still mishandle it; routing admission is not a replacement for tool authority checks.
 
-The request carries `store: false`, `stream: true`, instructions, and the complete local input. Explicit cache options and breakpoints are omitted on this route. Cached context is still transmitted; the provider's response reports how much received reuse credit. Local history must preserve streamed text, tool results, and eligible encrypted reasoning across requests, while the existing streaming parser, tool loop, and usage accounting remain in place.
+The stamp is fixed at admission and survives queueing and replay. A later membership change does not rewrite an already queued message as owner-authorized. For new calls, live policy belongs to the Router, not stale copies stored in each connection: removing a capability affects the next call from an existing session.
 
-A response counts only when its terminal completion arrives. An overload error or interrupted stream is not a completed request with zero cached usage. Confusing those cases would make a connection failure look like evidence about cache behavior.
+MCP discovery provides `initialize`, `tools/list`, and `tools/call` inside the encrypted Gateway frames. Its tools expose messaging, group listing, contactability declaration, and narrowly granted child registration. When MCP capabilities are advertised, those requests take precedence; legacy raw RPC remains a compatibility path. These are Gateway’s framing choices around MCP requests, not a claim to define a new standard MCP transport.
 
-## What the recorded runs establish
+Declaring contactability replaces the accepted groups and cannot join a new group. Registering a child requires an unused identity with a supplied public key and memberships drawn only from the parent’s own. Administrator operations require the administrator capability rather than merely a familiar-looking group name. A reply still passes ordinary routing policy; having received a question does not grant a return channel by itself.
 
-The source reports an October 11, 2026 [paired endpoint probe](../../docs/codex-endpoint-probe.md) using the same GPT-5.6 Sol request body. Both completed public OAuth requests reported zero cached tokens out of 4,998; both completed Codex requests reported 4,864 cached tokens out of 4,998. A further request on each route failed with overload and supplied no cache measurement. This was evidence about those credentials, endpoints, and requests at that time, not a current service-wide comparison.
+## Receipt means the application accepted delivery
 
-The implementation account also records a corrected terminal run with GPT-6 Astra at high reasoning. An inert reference supplied a substantial stable prefix while the Agent wrote a function, ran an assertion, and submitted its result through the real tool loop. The first request received no cached tokens. The next two received 8,064 of 8,297 and 8,192 of 8,351 input tokens as cached grants. These were live provider calls around a synthetic task, not a representative production workload or a permanent cache guarantee. The earlier misses matter because they separate successful routing and tool execution from successful reuse.
+Every recipient has a sequenced queue. `SendAsync` succeeds when the Router authorizes and admits the message, not when the recipient has finished responding. Offline recipients accumulate queued envelopes.
 
-An external HTTP fake can expose route selection, credential rereading, refusal behavior, stream handling, replay, and accounting without establishing anything about the backend's cache policy. The recorded live run answers a different question: whether that particular connection actually received cache grants during tool use. Neither kind of evidence substitutes for the other, and no new verification is claimed here.
+On delivery, the client invokes its application’s handler. Only after that handler returns successfully does it send a receipt. A handler that cannot accept work must refuse instead of acknowledging a silently dropped message. `LastAckedSeq()` advances when that receipt is successfully written, not when a notification inside the handler happens to fire.
 
-Returning to `chatgpt` selects Ensemble's existing public OAuth flow, with base-URL overrides unset and the Codex credential file untouched. The reason to retire the workaround is satisfactory measured reuse on that route with a stable prefix, not merely a successful login or a plausible answer.
+After reconnect, the client explicitly supplies its last acknowledged sequence. Gateway replays the remaining queue. There is no hidden reconnect or retry loop. The hello receipt may recover a lost acknowledgment up to the queue’s allocation frontier; later receipts can advance only through what that session actually sent. Receipts are monotonic, and draining a queue does not reset its sequence numbers.
+
+This provides at-least-once delivery within the retained snapshot and application-acceptance boundaries. It cannot provide exactly-once application work. An application might accept a prompt, acknowledge it, and crash before saving the resulting task. Conversely, delivery may be repeated when an acknowledgment was lost. The recipient has to define what acceptance means for its own operation.
+
+The client’s cancellation scopes stay separate. The token supplied to `ConnectAsync` owns the whole connection lifetime, not just the handshake. Canceling an individual RPC wait removes that correlation; a late response is ignored without closing the connection. `Close` interrupts transport and is safe from a callback; joining disposal waits for callbacks, reader, and cleanup. Incoming callbacks are serial, so a callback must not await an RPC response that only the same reader can dispatch, or await disposal that must join the callback itself. No background retry is implied by any of those operations.
+
+## A prompt owns its answer
+
+The optional Ensemble bridge borrows an existing Agent. Each incoming prompt goes through `Agent.SubmitAsync`, which synchronously admits it to the actor mailbox and returns that request’s `Task<string>`. A bridge-owned observer waits for that exact task before replying.
+
+This is the important ownership boundary when the Agent is busy. Another delivery creates another logical request with its own result; it cannot steal an answer by waiting for a shared idle event or sampling a lossy transcript stream. Admission is still not synchronous History publication, and a receipt may precede model completion.
+
+Only messages marked `async` request a reply. The response uses the authenticated sender and preserves the conversation ID without asking for another automatic response, avoiding reply loops. Turn failures are logged locally rather than shipping exception text to the remote peer. Observers also handle the startup race where a delivery arrives before `ConnectAsync` has returned its Client; bridge readiness follows accepted contactability, not merely an open socket.
+
+Canceling the bridge closes its connection and joins observer and client cleanup. It does not undo work already admitted to the borrowed Agent. The application separately owns Agent shutdown, saving History after the actor has joined, and Ensemble destruction. Transport lifetime and task lifetime are related, but neither silently owns the other.
+
+## Queue durability is useful and bounded
+
+The host snapshots policy, memberships, contactability, child identities, queues, and receipt positions every thirty seconds and again on orderly shutdown. It retains the highest allocated sequence even for an empty queue, so a later message cannot reuse a receipt number.
+
+Periodic saves leave a crash window. Individual file replacements also do not form a transaction across all queues and policy. Those limits are better understood as concrete windows than hidden behind a claim of “durable messaging.” The data directory needs protection because it contains both the private key and pending plaintext content.
+
+Only absent state gets empty defaults. Malformed JSON, duplicate fields, or a blocked path is an error, not permission to forget queued work. Save failure leaves live state intact for a later retry and remains visible. Shutdown closes admission, joins sessions and the timer, then attempts its final save; failure must reach the application’s exit result.
+
+The concurrency rules serve the same boundary. Socket writes never hold the policy lock. Each session serializes encryption with sending so nonce order matches frame order. A write failure after encryption terminates that session; retrying as though the nonce had not advanced would be unsafe. Pending handshakes are owned sessions too, so shutdown cannot overlook them.
+
+The independent interviewer exercises the public client rather than reaching into Ensemble. It accepts answers only from the authenticated subject and matching conversation, and it refuses a full inbox instead of acknowledging a dropped answer. That small consumer illustrates the design’s value: the router establishes identity, policy, and delivery; the application decides what a question and its answer mean.
+
+[Implementation chapter](../chapter-24.md)

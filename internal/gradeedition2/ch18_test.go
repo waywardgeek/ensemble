@@ -10,7 +10,7 @@ import (
 // It targets the accepted restart snapshot and independently supplied Sonnet 4.6
 // rates; the middle-model control remains deliberately unpriced.
 func TestChapter18Combined(t *testing.T) {
-	core := "../../solutions/edition-3/ch18"
+	core := "../../edition-2/solutions/ch18"
 	cli, cleanCLI, err := grade.Build(core + "/cmd/ch01")
 	if err != nil {
 		t.Fatal(err)

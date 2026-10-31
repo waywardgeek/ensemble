@@ -1,160 +1,100 @@
-# Chapter 13: The Channel Nobody Tested
+# Chapter 13 — A listener who can only hear
 
-This chapter is for me. Accessibility is an afterthought everywhere, never in the critical path of creating a product. Since I am in control here, your AI coding agent gets decent a11y from the start, if you follow this codebook accurately.
+Chapter 12 gave the Agent tools for looking at and operating its browser. This chapter asks a different question: what reaches a user who relies on the application's speech? A correct screen is not an answer. The speech channel has its own ordering, filtering, interruption and failure behavior.
 
-The test has to run over data as close as possible to what a blind or low-vision coder actually receives. So in this chapter we build a virtual blind coder, one that can only hear TTS output, and it has to drive the AI coding agent successfully.
+The first-edition investigation used a restricted listener to expose gaps in that channel. We retain its useful discoveries below, but build the current endpoint in C# 14/.NET 10. The listener is an instrument, not a substitute for a person listening to the result.
 
-If you care about SWEs with low vision, please do not skip this chapter.
+## TL;DR: what you build
 
-An automated observer can complete a task without depending on the channel under test. The historical GUI experiment in Chapter 12 found real interaction defects, alongside findings supplied by human observation and source inspection. Its DOM-based work did not establish that speech carried the same useful information. The screen could look right while the listener missed the message.
+1. **One speech pipeline.** Thinking and response text enter a per-part raw buffer. Resolve Markdown fences before splitting phrases, strip presentation syntax, expand identifiers, preserve paragraph boundaries, and explicitly flush unfinished tails. Successful tool bodies stay automatically silent; dispatch names and failures are spoken separately. Whole finals without preceding deltas must enter the same path exactly once.
+2. **One admission log.** Record each utterance when it reaches the front of the speech queue, before choosing native playback or silent transcript mode. Include source labels. Record typing/speech pause transitions too. Admission is not proof of sound or completed playback.
+3. **A genuinely restricted consumer.** `Examples/Listener` constructs an Agent with exactly five custom tools: `say`, `listen`, `sleep`, `set_speech_speed`, and `save_history`. It installs no builtins or Skills manager. Guessed file, browser-inspection and evaluation tools must fail ordinary dispatch.
+4. **Complete lifetimes.** The listener owns a fresh target GUI, browser profile and private browser connection. Its Session joins Agent Jobs before closing that connection and stopping the owned processes. EOF, interruption, deadline and failed startup must not strand a pending sleep or browser.
+5. **Layered verification.** Check the formatter, actual page, executable speech harness, restricted listener and cleanup separately. None establishes real-provider compatibility or audible accessibility by itself.
 
-The first-edition speech investigation exposed that gap. This chapter preserves its findings and builds the instrument that was missing: an observer whose only account of the target agent comes through the speech transcript.
+The existing C# solution remains one core assembly. `Examples/Gui` and `Examples/Listener` are separate applications referring to it. The GUI owns speech presentation; the Agent still owns scheduling and durable conversation.
 
-## TL;DR
+## 13.1 Build the speech channel before judging it
 
-Two deliverables. A speech pipeline that turns a stream of arbitrary text fragments into utterances a person can listen to, and a small blind virtual-user client that perceives the target through its speech transcript alone. Chapter 12's historical driver is not a prerequisite project.
+`Examples/Gui/wwwroot/speech.js` is a small pure formatter. `speechPhrases(raw, offset, flush)` returns completed phrases and a new raw-source offset. The page retains that offset on the displayed part. It does not replace displayed text with a spoken copy or run independent regular expressions on each delta.
 
-### The speech pipeline contract
+A delta is not a sentence. It may stop inside a word, Markdown link, identifier or fence marker. Keep the raw text until there is enough structure to release a phrase. At ordinary sentence punctuation, retain the necessary lookahead rather than guessing what the next delta contains. At an explicit flush, release the final tail even without punctuation.
 
-Text arrives as arbitrary fragments. The GUI receives decoded text deltas, frequently mid-word, and the pipeline owns the job of turning that into speech.
+Fences come first. Their delimiters and bodies span lines, so removing them after splitting on newlines is too late. Recognize a complete fence as one source span and replace it with “code block”; a partial fence remains buffered until completion or final flush. Remove link destinations while preserving the label, strip inline backticks and heading/emphasis/bullet markers, and turn a lone newline into whitespace. A blank line remains a paragraph boundary. These transformations describe the supported prose subset, not a complete Markdown parser.
 
-1. **Buffer until a phrase boundary.** Never speak a fragment as it arrives. A word split across three chunks is one word.
-2. **A sentence-ending period is a boundary. A single newline is not.** Prose wraps, and splitting at the wrap breaks the sentence. Treat a lone newline as a space and a blank line as a boundary.
-3. **Provide an explicit `flush()`.** End of stream, a tool announcement, and an error each force the buffer to be spoken. Without this, a response ending in a colon is never heard.
-4. **Filter for the ear before speaking.** Emphasis markers, inline code markers, headings, bullets, and link syntax are removed. A fenced code block is named rather than read.
-5. **Resolve fenced blocks against the whole buffer, before splitting.** A fence broken into separate lines can never match a fence pattern, and the orphaned markers get spoken aloud.
-6. **Expand identifiers.** `camelCase`, `snake_case`, and `HTTPServer` are read as separate words. Ordinary words are left alone.
-7. **Speak parts that arrive whole.** A final delivered to the renderer without preceding deltas is still spoken, and a part that streamed is not spoken twice. Provider nonstream mode alone does not prove that renderer path was exercised.
-8. **Speak errors.** An error that is displayed and not spoken does not exist for a listener.
-9. **Record a transcript.** Every filtered utterance entering the channel is recorded with its text and source before audio bypass or the Read aloud setting can suppress sound. Preserve text, thinking, tool-announcement and error origins. Tool results stay automatically silent.
+Identifier expansion is similarly modest:
 
-### The pause gate
+| Source | Spoken words |
+| --- | --- |
+| `queueChunk` | queue Chunk |
+| `max_tool_rounds` | max tool rounds |
+| `HTTPServer` | HTTP Server |
+| `ALL CAPS` | ALL CAPS |
+| `Hello ordinary World.` | Hello ordinary World. |
 
-The browser derives its automatic tool-dispatch pause from queued speech and actual human typing:
+Do not confuse removing code notation with removing its content. Inline identifiers can carry meaning; a fenced implementation is usually better named than read token by token. Manual artifact reading still uses the same formatter.
 
-```
-local_pause_cause = speaking OR human_typing
-```
+### Release points and whole finals
 
-10. **One derived predicate, not three call sites.** Compute the value, compare it against the previous value, and send only on an edge.
-11. **A human-entered space counts as typing.** Keep Chapter 12's event provenance; programmatic input cannot become a human cause during a later speech callback.
-12. **Automatic release requires both local causes clear.** Explicit unpause from any tab still releases the Agent for everyone. Escape cancels speech regardless of input contents; human typing may still hold the local cause.
+`narrate(card, flush)` uses the part's raw cursor. Model deltas append text; a final replaces the displayed text with the authoritative complete value and flushes only its unconsumed suffix. If no delta arrived, the cursor is zero and the entire final is eligible. A duplicate final finds no remaining suffix.
 
-### The blind persona
+Before a tool dispatch or error announcement, `flushNarration()` releases pending prose tails. Tool calls announce the tool name, not its arguments. Successful tool-result bodies stay silent unless the person explicitly asks to read the artifact. Failed tools enter the labeled error path. Provider failures arrive as durable `error_occurred` lifecycle frames; control refusals arrive as `error` frames. Both must speak, while ordinary lifecycle notices and terminal turn completion must not duplicate those errors.
 
-13. **Deny the DOM.** The listener Agent has exactly `hear`, `type`, `submit`, `wait`, and `sleep`. No snapshot, click, file, shell or skill-lifecycle tools. Enforce the same boundary at dispatch, including guessed names.
-14. **Bypass audio without bypassing processing.** The blind peer opens the real GUI in transcript mode. It reads the same filtered entries that would enter the speech queue, without waiting for native synthesis.
-15. **Drive the actual client.** Typing and submission reach the real target; waiting observes its completion; hearing advances a transcript cursor. End the peer's whole lifetime on EOF, including a pending sleep. Keep ordinary sleep working while the session is alive.
+Replay is silent. A restored or muted partial part remains suppressed through its final. Starting midway through a restored fence would otherwise expose code whose opening delimiter was never observed by the speech cursor. New live parts can narrate normally.
 
-### Yours
+## 13.2 Admission, playback and the two pause causes
 
-Which markdown constructs to filter beyond the required set. What to call a fenced block when you skip it. Whether the transcript is a ring buffer and how large. The wording of a tool announcement. Whether an error preempts the queue or joins the back of it.
+The page owns one current native utterance and a FIFO of future phrases. Queued speech already counts as busy. Only when `startSpeech()` removes the next phrase does it append an utterance to `window._ttsLog`. This is the last shared point before native playback and `?speech=transcript` diverge.
 
-### Exercise
+Each entry has increasing `seq`, millisecond timestamp `ms`, and `kind`. Utterances include `text`, `source`, and `part_id`; pause and resume entries include `cause`. Sources distinguish `thinking`, response `text`, `tool-announcement`, `error`, and deliberately requested speech. Thinking and errors also receive spoken prefixes so the distinction is available to a native listener, not merely a JSON reader.
 
-```
-go run ./cmd/grade-edition2 -ch 13
-```
+In transcript mode the same queue admits and records phrases but makes no native synthesis call. In ordinary mode the current acknowledged rate and selected voice are copied onto each new `SpeechSynthesisUtterance`. Completion and error callbacks advance the same FIFO. Stale callbacks cannot finish a newer utterance. Cancelling clears current and future speech; it does not append all cancelled future paragraphs as if they had been heard.
 
-## 13.1 The idea in plain words
-
-A fire alarm inspector who checks the panel will never discover that a speaker in the east stairwell is disconnected. The wiring diagram is correct, the current draw is nominal, the panel reports green. Finding that fault requires somebody to stand in the stairwell during a test and notice the silence.
-
-A DOM observer has a similar blind spot. It can read the text it needs from `gui_snapshot`, complete a task, and report success without checking what reached speech. The earlier GUI work established useful visual behavior. It supplied no equivalent assurance about missing utterances or awkward phrase boundaries.
-
-The instinct at this point is to give the observer better reporting. Add a tool that returns the speech queue, describe it well, and ask the agent to check it. That helps only if the returned data and the task make the missing behavior observable. Chapter 12's confident phantom-panel report shows the danger of asking for a conclusion without supplying the state needed to support it.
-
-The alternative is to remove the channel the observer has been leaning on. Take away the DOM, leave speech, and give it a task it cannot finish without listening. Now a defect in the speech channel is not a line in a report. It is a task that fails.
-
-The principle generalizes beyond accessibility: test over data as close as possible to what the user actually receives. A DOM snapshot is not what a listener receives. It is a different signal, richer in some ways and poorer in others, and an observer consuming it can miss a failure that matters to someone listening.
-
-## 13.2 The channel that reported on itself
-
-This investigation started with a suspicion rather than a bug report. Bill, who listens to this agent for hours a day and had no way to audit the channel he was listening to, put it this way:
-
-> I'm worried the TTS feedback, available via the MCP tunnel, isn't evaluated by any agent. It needs work.
-
-The first-edition account records that concern before describing the investigation. Its findings explain why the listener is useful, even though this edition already carries forward several repairs.
-
-In that implementation, four event paths met in the artifact renderer. Streaming deltas went in as they arrived, for both text and thinking. Tool dispatch announced itself. A part arriving complete flushed the buffer. Errors rendered to the screen.
-
-Three of those four had defects. The fourth, error rendering, had no speech call at all: it built a div, set its text, appended it, scrolled, and returned. For a user who works by listening, the one message class that most needs to interrupt was the only class that made no sound.
-
-The agent did have a tool for inspecting speech state. It was called `tts_queue`, and it read a variable named `window._ttsQueue`. The reported source inspection found reads of that name but no writer. The tool always fell through to its backup path, which returned either an empty array or a single synthetic entry whose text was the string `(speaking)`.
-
-That tool was declared `ephemeral: "round"`, the MCP mechanism that injects a tool's output into every round automatically. So the agent had been receiving speech telemetry continuously, and the telemetry had been contentless the entire time.
-
-The older GUI-skill grader checked that this injection worked. It asserts that `tts_queue` output reaches the request context, which is a claim about the engine rather than about speech. A pipe that carries nothing is still a pipe. The check was green while the channel behind it was dead, which is a useful thing to know about green checks.
-
-The historical pause gate had a related omission. The design specified:
-
-```
-paused = tts_speaking OR user_typing
-```
-
-Only the typing half was ever wired. Every pause and unpause message in the client came from a keystroke handler, and the client contained no reference to speech state at all. The Go side was correct, checking the gate before every tool dispatch. One of the mechanism's two inputs had simply never been connected.
-
-The speech module advertised pause integration in its opening comment:
+Typing and speech are separate causes of one transition-based pause decision:
 
 ```javascript
-// TTS — Text-to-speech for artifacts with Chrome wake-up and pause integration.
+const speaking = activeSpeech !== null || speechQueue.length > 0;
+const cause = humanTyping ||
+    (settings?.pause_while_speaking !== false && speaking);
 ```
 
-The historical source inspection found that comment and no other occurrence of `pause` in the file.
+Human whitespace is still a draft. Programmatic input is not human typing, even when a later speech callback recomputes the cause. Send pause/unpause only when the combined cause changes. This avoids floods of pause commands and respects another tab's explicit override rather than continuously reasserting a private veto.
 
-The repair makes the cause explicit in one place. Chapter 12's accepted browser already does this, including the distinction between a person composing text and MCP filling the same field:
-
-```javascript
-function pace() {
-  const next = speaking || humanTyping;
-  if (next !== localPaused) {
-    localPaused = next;
-    send({ type: next ? "pause" : "unpause" });
-  }
-}
-```
-
-Speech starting, speech ending, input and successful submission all update their cause and call this function. Comparing against the previous value makes automatic messages edge-triggered: more keystrokes do not create more pause messages while the cause remains true. An actual human space still counts as composing. Programmatic field contents remain programmatic when speech ends.
-
-This is a local decision about when to send a command. The Agent has one pause gate, and an explicit unpause in another tab releases it. An unchanged cause in the first tab cannot immediately reinstate a private veto. The transition rule preserves both the listening pause and that deliberate override.
-
-Escape now cancels speech even with text in the input field:
-
-```javascript
-document.addEventListener("keydown", (event) => {
-  if (event.key === "Escape") speech.cancel();
-});
-```
-
-Cancellation empties the speech queue and unfinished speech buffers. It does not erase the person's typed text. The cause calculation then decides whether typing still requests a pause. Stopping the voice and releasing the Agent are different actions when the person is still composing.
+Escape cancels speech even when the prompt contains a draft. It leaves that draft intact, so the typing cause can continue to hold the Agent paused. Stopping the voice and releasing the Agent are different operations.
 
 ## 13.3 A user who can only listen
 
-Removal is the operative word. A prompt asking the listener to avoid the DOM leaves the capability available when the task becomes difficult. Build its Agent with only the five required tools and reject unknown operations at the peer as well. Inspect the consuming Agent's declarations: a narrow peer attached to an ordinary skill-enabled coding Agent would still leave file and lifecycle capabilities beside it.
+A prompt that says “do not inspect the DOM” is not a capability boundary. The separate C# listener creates an empty library Agent, then constructs only these custom Tools:
 
-The accepted implementation uses a small optional application, `gui/cmd/virtual-user`, through the public Ensemble API. It creates the Ensemble root and an Agent without builtins or skills, then attaches a raw MCP transport to the browser peer. No second actor loop or core API is needed. The separate GUI module continues to own browser automation; the core remains independent of it.
-
-| Tool | Arguments | Effect |
+| Tool | Required arguments | Result |
 | --- | --- | --- |
-| `hear` | `{}` | Returns new transcript entries with their source, advancing the cursor |
-| `type` | `{"text":"..."}` | Replaces the actual chat input |
-| `submit` | `{}` | Submits that input and records which turn to await |
-| `wait` | `{}` | Waits for that submitted turn to end, then returns new transcript entries |
-| `sleep` | `{"milliseconds":150}` | Waits the requested nonnegative finite duration |
+| `say` | `text` | Submits one target turn through the actual form; refuses while a previous turn is pending |
+| `listen` | `timeout_seconds` | Returns newly admitted utterances with sources and explicit `pending`/status fields |
+| `sleep` | `seconds` | Waits the nonnegative finite duration, cancellably |
+| `set_speech_speed` | `rate` | Updates the target and waits for acknowledgement; valid range is 0.25–4 |
+| `save_history` | `path` | Writes typed submissions and heard entries as semantic JSONL |
 
-The peer privately operates the real page, but exposes no arbitrary selector, evaluation, click or snapshot operation to the model. Its process receives only the environment needed to launch the browser, without the model credential. The listener must obtain target information from returned speech entries rather than another view of the same answer.
+`Common/Session.cs` declares Session state, resource handles and operations. `Channel/Session.cs` implements the five tools, one semantic history and its independent hearing cursor. `Browser/Protocol.cs` owns correlated DevTools commands; `Browser/Lifetime.cs` launches and closes the resources. `Program.cs` composes the session and owns its overall deadline. All partial Session sections compile into the same application assembly; they are not separate services connected by callback bags.
 
-Speech in this mode produces no audio. Opening the page with `?speech=transcript` uses the real renderer and filters, records each utterance, and skips native synthesis. A long reasoning trace can therefore be inspected without waiting for every word to be spoken. This tests the text channel a synthesizer would receive; it does not make the observer capable of judging sound.
+The Session's private browser connection sets the actual prompt, observes the explicit `turn_ended` boundary, reads admitted `_ttsLog` utterances, and acknowledges rate changes. It exposes no selector, DOM snapshot, screenshot, arbitrary evaluation, target response text or raw tool-result body to the model. Chrome receives no provider credential. The target and listener have separately supplied provider configurations.
 
-Keep navigation outside this exercise. The application owns its running commentary of thinking and response text; keyboard and screen-reader navigation remain separate concerns. One restricted listener is enough to test this channel. That scope decision does not claim that a transcript covers the application's entire accessibility surface or that all low-vision and blind users need the same interface.
+Before submitting, `say` marks the target pending. Only its real completion frame clears that flag. A momentary idle display before acknowledgement therefore cannot masquerade as a completed turn. `listen` returns promptly for new speech; a timeout with `pending:true` is not idle. Subsequent calls advance the hearing cursor, while `save_history` does not consume it. Saved entries have only `seq`, `kind`, `source`, and `text`: typed prompts and source-labeled heard speech, not the listener Agent's reasoning or ordinary tool transcript.
 
-### Closing the listener
+Here, “heard” means admitted to the speech channel. It does not mean a microphone captured sound. Keyboard navigation and general screen-reader usability remain separate concerns.
 
-A small client can still leak a lifetime. The student's first peer closed its browser on stdin EOF but left a pending Node sleep timer alive. The Go client closed the transport, then waited for the peer before returning. Its model turn could finish while process cleanup continued waiting for a timer that no longer served a session.
+### Why these tools wait for completion
 
-The independent probe made the difference visible: idle EOF exited in 125 ms; EOF during a 4000 ms sleep took 3865 ms. The peer did eventually exit, so calling this a permanent hang would misdescribe the measurement. A longer requested sleep would make the same ownership error more expensive.
+Ordinary custom tools use Jobs and may return a timed running report. This listener deliberately has no `wait_for_job`. Returning a running handle for `listen` could consume its hearing cursor later without delivering those entries to the model. Returning a running handle for a long `sleep` would likewise leave no supported observation operation.
 
-The correction shared the existing close-browser-and-exit handler between EOF and SIGTERM. On the corrected peer, the same pending-sleep probe exited in 127 ms; its idle control took 126 ms. Normal sleep still works while the session remains open. A separate real-client check covers a pending sleep whose job has returned an ordinary running callback before the model finishes. Ending the owned process ends its timers; no arbitrary sleep ceiling or new cancellation framework is needed. The [paired receipts](../docs/edition-2-notes/ch14-code-review.md#correction-round-1-accepted-with-inherited-grader-exception) preserve both versions.
+The custom Tool constructor therefore has an optional `waitForCompletion` parameter, defaulting to false. The listener opts in. Dispatch still reserves and starts a real Job, but awaits that worker before ordinary observation. The existing structured-result path returns the complete value once, without the byte cap truncating a semantic listen result. There is no second result store or scheduler. Cancellation detaches a waiting observer; Job ownership and shutdown still govern the actual operation. Existing coding tools keep their previous behavior.
+
+### Closing the session
+
+The listener uses a new or empty caller-selected directory, a fresh browser profile, and owned loopback ports. It never attaches to the human's page or running Ensemble. Task mode finishes its reliable Agent turn; stdin mode treats EOF as session shutdown. SIGINT, SIGTERM, deadline and startup failure all enter the same explicit cleanup.
+
+First shut down the listener Agent and join its Jobs, including pending sleeps. Then destroy the core root, dispose the browser connection, stop the owned browser, and stop the owned GUI. A short graceful process wait has a kill-tree fallback. Output streams are drained into the session's logs. Long sleeps are sliced only for the platform's delay range, not silently capped by product policy.
+
+An earlier Go/Node listener closed its browser on EOF but retained a sleep timer. Its idle exit took 125 ms, while EOF during a four-second sleep took 3865 ms. The corrected historical peer exited in 127 ms with the sleep pending. Those measurements are lessons about ownership, not C# performance claims. The current endpoint has its own process-tree cleanup tests.
 
 ## 13.4 The run that succeeded for the wrong reason
 
@@ -207,147 +147,83 @@ A visual-content check does not establish correct speech segmentation. A DOM sna
 
 ## 13.6 The bug nobody could hear
 
-Listening is a better instrument than looking, for this channel. It is still not sufficient.
+A complete part can be rendered without any preceding deltas. The historical handler displayed that text and called `flush()` on an empty buffer. It produced no speech at all.
 
-A part that arrives complete, with no deltas preceding it, was rendered to the screen and never queued for speech. The handler set the element's content and called `flush()`, which empties a buffer that in this path is already empty.
+The C# final handler feeds the authoritative text through the same raw-cursor path as deltas, so zero prior deltas is an ordinary case rather than a separate formatter. Test the actual page with a whole `part_final` and no earlier `part_delta`, then repeat the final and reconnect. Require one utterance, no duplicate and silent replay.
 
-In the historical implementation, disabling provider streaming reached that path. In this implementation, the Engine can synthesize display deltas even for a plain provider response. Switching off HTTP streaming does not prove that the renderer ever received a final without deltas.
+Disabling provider streaming is useful but insufficient evidence for this branch: the Engine may synthesize display deltas from a plain response. A final-only page check and a nonstream executable check answer different questions. Keep both.
 
-The student's first mutation check demonstrated the trap: removing whole-final speech still passed its nonstream test. The fix was in the test boundary. Preserve actual Agent finals but drop transient deltas at the external WebSocket boundary, then observe the real renderer and transcript. That reaches the missing branch; restoring the defect now loses the utterance. A separate check catches duplicate final speech.
+## 13.7 Using the instrument carefully
 
-A listener who expects a reply can notice silence. Silence alone cannot tell them which text was omitted or whether the model produced any. Compare the emitted final with the speech transcript as well as inspecting the feed sites; the expectation must come from a boundary outside the failing channel.
+The historical investigation's most useful surprise was not another speech filter. The listener received an exit code through the model's narration and concluded the channel had no gap. That is why source labels matter. Correct words can still support an incorrect causal conclusion.
 
-The naive repair introduces a worse bug. Queue the final part unconditionally and every streamed response gets spoken twice, once from its deltas and once from its final. The pipeline needs to know whether a given part already streamed.
+Tool bodies are intentionally not automatic speech. A person can deliberately read an artifact with its speaker button; the model may also explain the result in its own prose. A listener who hears that explanation has not proved raw tool-result delivery. Conversely, absence of a secret string proves nothing if the tool never read the planted file successfully. Correlate the successful tool result before asserting that its contents stayed silent.
 
-The renderer already knows whether a card received deltas. The accepted implementation marks `card.streamed` on a delta and uses that fact when a final arrives:
+Likewise, a transcript demonstrates text admission, not voice quality. Fake native callbacks can verify queue and pause wiring. Neither establishes pronunciation, audible pacing, interruption comfort or accessibility for a particular person. Those remain human exercises with authorized native audio.
 
-```javascript
-if (!message.replay && ["text", "thinking"].includes(kind))
-  speech.chunk(id, card.streamed ? "" : card.text, true, kind);
-```
+## 13.8 Exercise: build and verify the C# endpoint
 
-An empty final chunk still flushes the saved tail. A final without prior deltas supplies its complete text, and history replay remains silent. The speech buffer holds unfinished text by part identity, with a back-pointer to its owning Speech queue. It cannot join the tail of a thinking part to a response merely because they arrived nearby.
+### Source map and builds
 
-## 13.7 Why a daily listener was not enough
-
-The first-edition account describes a daily listener who depended on the channel but raised a suspicion rather than a list of its defects. That is a reason to build a better instrument, not a reason to doubt the listener.
-
-Missing errors and missing finals produce no corresponding utterance to inspect. A pause input that never engages may show up only as a tool starting too soon. Empty telemetry needs an independent check that the queue was actually empty. Audible defects can be difficult to attribute too: an odd pause may come from segmentation, network timing or the voice itself. The retained account does not measure how quickly people adapt to these defects, and the chapter need not invent that explanation to show why a second observation point helps.
-
-Preserve the distinction between guidance and evidence during a supervised run. Supplying the task, identifying a stale binary or freeing a port makes the experiment possible. Supplying a missing selector or the expected answer changes what success demonstrates. Chapter 12's historical corrections are a reminder to record human and source-inspection assistance rather than retroactively calling every finding autonomous.
-
-## 13.8 What a program cannot verify
-
-A grader for this chapter can check a great deal. Whether a word survives being split across three fragments. Whether a wrapped sentence produces one utterance. Whether any markup marker reaches the channel. Whether a part that arrived whole was spoken, and whether a part that streamed was spoken twice. Whether the pause gate releases only when both of its causes are clear.
-
-Those observations need different boundaries. Filtered text and its source belong in the transcript. Queue progress and pause transitions belong to the real application around it. The executable grading harness drives that application with an external provider and speech synthesizer fake; it does not discover and load arbitrary JavaScript modules or replace the Agent and renderer.
-
-Native browser callbacks supply separate evidence that the actual synthesizer started and ended utterances. Chapter 12's cause-based pause controls still apply with native speech here, including human whitespace, programmatic input, explicit other-tab unpause and actual subsequent submission. The extra control tab closes before the single-tab speech sequence; this does not settle the earlier unexplained two-tab queue stall.
-
-What those checks do not establish is how any of it sounds.
-
-Pronunciation needs a listener. Whether `HTTP Server` is clearer than an unexpanded identifier is a judgment about ears. Prosody and comfort at a chosen rate vary with the listener and voice. A browser's accepted rate value is not a measured words-per-minute rate, and this chapter has no retained measurement supporting the original fixed browser-speed ceiling or dedicated-engine comparison.
-
-The boundary deserves to be stated plainly in the chapter that builds the instrument. These checks verify that the intended text reaches the speech channel at the intended boundaries and that measured state transitions occur. A human decides whether the result is worth listening to.
-
-## 13.9 Exercise, graded
-
-Build both deliverables: the speech pipeline on the existing GUI path and the restricted public listener application. Keep filtering with the unfinished-text buffer and its actual Speech owner. Reuse the native queue, renderer identities, Agent and MCP transport. A separate transcript algorithm that produces the right fixture text while the GUI still speaks broken fragments does not satisfy the exercise.
-
-Provide an executable `tts-harness.sh` at the core solution root, or `scripts/tts-harness.sh`. A normal invocation receives a prompt as its first argument, optionally followed by `--type-during-turn TEXT`. The grading process supplies:
-
-| Input | Meaning |
-| --- | --- |
-| `LLM_BASE_URL` | The local external provider to exercise |
-| `WORKSPACE` | The prepared workspace; file fixtures use absolute paths rather than assuming this changes the GUI process directory |
-| `TTS_LOG` | Destination for observed JSON-lines speech and gate records |
-| `STREAMING=off` | Request plain provider delivery; otherwise stream |
-
-The supplied implementation's root script launches `gui/tts-harness.mjs`. It uses the real GUI, Agent, provider parser, renderer and speech pipeline in a browser. Only the external provider and asynchronous synthesizer are fakes. Install the GUI module's optional Node dependencies and a usable Chromium browser before running it. No paid provider is needed for grading.
-
-The optional description invocation is:
+Use the approved .NET 10 SDK and existing package cache. From the solution directory:
 
 ```sh
-./tts-harness.sh --describe
+"$DOTNET" build Ensemble.csproj
+"$DOTNET" build Examples/Gui/Gui.csproj
+"$DOTNET" build Examples/Listener/Listener.csproj
+"$DOTNET" run --project Tests/Tests.csproj
+node Tests/SpeechTests.mjs
 ```
 
-The supplied harness returns:
+The portable formatter test fragments input at every split and also one character at a time. It checks whole and fragmented fences, wrapped prose, paragraph boundaries, identifiers and final tails. It does not launch a browser or claim sound. The listener is a separate assembly consuming the public core API, not code linked into the core to obtain private access.
 
-```json
-{"read_file_tool":"read_file","read_file_arg":"path","supports_type_during_turn":true,"supports_streaming_off":true,"log_format":"jsonl"}
-```
+### Executable speech grading
 
-This describes public capabilities; it does not prescribe a JavaScript class or module filename. The actual prompt run writes JSON lines to `TTS_LOG`, with numeric `ms` and `seq`, `kind: "utterance"` and the actual filtered `text`, plus its `source`. Gate records use `kind: "pause"` or `kind: "resume"` with the observed `cause`, including `typing` where applicable. Record real events; do not construct the expected sequence independently of the running page. Finish and clean up owned children on every path. The grader bounds a harness run at 90 seconds and can terminate its process group.
+The public `scripts/tts-harness.sh` entry point launches the real GUI, submits the prompt through the actual form, and writes the page's admitted-speech JSONL. It runs in transcript mode. It does not reconstruct the provider answer or replace the formatter under test.
 
-From the repository root:
+Supply existing paths through `TTS_NODE`, `TTS_DOTNET`, `TTS_GUI`, `TTS_CHROME`, and `TTS_PUPPETEER`; see `scripts/README.md`. No installation is performed. The caller supplies a fresh `WORKSPACE`, `TTS_LOG`, its loopback `LLM_BASE_URL`, and `STREAMING=on|off`. `--describe` reports the real `read_file`/`path` contract without launching. `--type-during-turn TEXT` generates a human input event during a response and later clears it.
+
+From the repository root, with those explicit paths set:
 
 ```sh
-go run ./cmd/grade-edition2 -ch 13
+go run ./cmd/grade-edition2 -ch 13 -executable-only -json agent
 ```
 
-The default is `solutions/ch13`; a positional argument selects your core directory and the existing `-gui` option selects its optional GUI module if necessary. The revised rubric preserves the actual original grader's weights, which differed from its printed chapter table:
+The command name is retained from the shared grader. This scoped adapter runs the nine Chapter 13 checks, including its zero-point launch check, over five fresh GUI launches. It excludes inherited Go/Chapter 12 grading rather than pretending C# satisfies that topology.
 
 | Check | Points | Observation |
 | --- | ---: | --- |
 | `tts-discrimination` | 20 | Successful file results stay automatically silent; distinct model answers are spoken |
-| `tts-filters-markup` | 20 | Required markup is removed and a fence is named |
+| `tts-filters-markup` | 20 | Markup is removed and a fence is named |
 | `tts-buffers-fragments` | 10 | Words survive fragment boundaries |
-| `tts-speaks-unstreamed` | 15 | Plain provider output is spoken exactly once |
-| `tts-gate-both-causes` | 10 | Typing pause and subsequent release are observed in order |
-| `tts-speaks-errors` | 10 | The actual error reaches speech |
+| `tts-speaks-unstreamed` | 15 | Plain provider output is spoken once |
+| `tts-gate-both-causes` | 10 | Typing pause and subsequent release are ordered |
+| `tts-speaks-errors` | 10 | Actual provider failure reaches speech |
 | `tts-boundaries` | 5 | Wrap, paragraph and trailing-tail boundaries remain meaningful |
-| `tts-expands-identifiers` | 5 | Identifiers expand; ordinary capitalization survives |
-| Corrected Chapter 12 parity | 5 | Prior obligations remain intact |
+| `tts-expands-identifiers` | 5 | Identifiers expand while ordinary capitalization survives |
 
-The transcript grader does not independently establish every clause in the TL;DR. The final-only renderer branch needs its direct delivery check because a nonstream provider can still produce synthetic deltas. The numeric gate check observes ordered typing pause and release; those edges alone do not prove human whitespace or both orders of overlapping speech and typing. Keep the actual browser controls for those causes. The actual listener's five-tool boundary, dispatch refusal, hearing cursor, submission and pending-sleep shutdown need their public-client/browser evidence. Native audio and human listening remain separate again. Keep those obligations visible rather than claiming a numeric speech score proves them all.
+The gate's name is broader than its numeric observation. It does not by itself prove both overlap orders, human whitespace, programmatic-input discrimination, final-only delivery, listener restriction or lifetime cleanup. Those need their focused checks. The prior chapter's unchanged evidence remains valid within its original scope; it is not newly earned through this score.
 
-The original student run scored **95/100 FAIL**: all new speech checks passed 95/95 and inherited parity failed 0/5 on the invalid earlier skill fixture. That build preceded the finished blind client and later cleanup correction. Its score is historical evidence, not a final-source pass.
+### Restricted-listener exercise
 
-A stronger check later exposed a gap inside that speech score. The old fixture requested `notes.txt`, but the harness launched the GUI in a different directory from its prepared workspace. The actual file read failed. Silence could not prove suppression of file contents that had never arrived. Using the planted file’s absolute path exercises the existing reader successfully; compare that correlated result with the transcript before claiming that its bytes stayed silent. An absence check needs something real to exclude.
+Configure `LLM_VENDOR`, `LLM_MODEL`, `LLM_BASE_URL`, and `LLM_API_KEY` for the target. Configure the four corresponding `LISTENER_*` values separately. The listener has no credential fallback. For offline verification, use working loopback provider fakes with dummy keys, not paid services.
 
-The historical fence investigation ran the example whole and fragmented. Keep that distinction when checking your buffer: an intact fence that fails proves a different cause from a split token. Preserve line structure until filters that need it have run. An early grader review found the same mistake in bullets: flattening a single newline first let the second line's bullet escape an anchored filter. A normal two-item list is enough to expose it; no new markup language is required.
-
-## 13.10 Taking it for a spin
-
-Work in a scratch copy of your solution so the target save and listener history do not join an earlier experiment. From the core directory, install the optional driver dependencies and build both actual applications:
+From the solution directory, with a new session path and an existing browser:
 
 ```sh
-(cd gui && npm ci)
-(cd gui && npx playwright install chromium)
-(cd gui && go build -o /tmp/ensemble-ch13-gui ./cmd)
-(cd gui && go build -o /tmp/ensemble-ch13-listener ./cmd/virtual-user)
+"$DOTNET" Examples/Listener/bin/Debug/net10.0/Listener.dll \
+  --dotnet "$DOTNET" \
+  --gui "$PWD/Examples/Gui/bin/Debug/net10.0/Gui.dll" \
+  --browser "$CHROME" \
+  --directory "$SESSION_DIR" \
+  --timeout 120 \
+  --task 'Ask the target to explain HTTPServer, queueChunk and max_tool_rounds. Listen until pending is false, report the admitted words and sources, and save semantic history to speech.jsonl.'
 ```
 
-The listener supports `--browser /path/to/chromium` if you already have a browser. Configure the target's provider through the existing environment. To keep the target focused on prose instead of loading tools, create `skills/listener-target/SKILL.md`:
+Inspect the listener's actual model declarations and deliberately attempt an undeclared tool. Check pending versus idle, repeated listens, source labels, rate acknowledgement, a sleep longer than the ordinary observation delay, and a saved history containing only typed/heard entries. End separate sessions through EOF, SIGINT, SIGTERM, deadline and failed startup while a real sleep is pending; verify their owned descendants exit. Never use another person's browser/profile to obtain that evidence.
 
-```yaml
----
-name: listener-target
-type: primary
-description: Brief answers for the speech listener exercise
----
-Answer briefly in two sentences. No tools are needed.
-```
+## 13.9 What this endpoint establishes
 
-Start the target GUI from the core directory, leaving its terminal open:
+The C# run has 71 passing component groups, a separate restricted listener, focused real-page exercises with working socket/native-speech fakes, real owned GUI/browser/listener exchanges against loopback provider fakes, and the scoped executable speech grade of 95/95. Process-lifetime checks cover pending-sleep cancellation and owned cleanup. The first grade was 65/95: its model fixture accidentally disabled streaming, and it exposed a real missing narration path for provider lifecycle errors. Correcting both and adding the lifecycle regression preceded the final passing grade.
 
-```sh
-EN_PRIMARY_SKILL=listener-target /tmp/ensemble-ch13-gui \
-  --skills-dir ./skills --gui-dir gui/web/gui --port 8088
-```
-
-In another terminal, configure the listener's own provider environment and run from the same core directory:
-
-```sh
-/tmp/ensemble-ch13-listener --agent-url http://localhost:8088 \
-  --persona blind --peer gui/virtual-user.mjs \
-  --task 'Ask the target to explain queueChunk, max_tool_rounds and HTTPServer in two short sentences using inline code markup, and to choose one fruit to mention. Then report exactly the spoken transcript, including its chosen fruit. Use only the five available tools.'
-```
-
-The peer opens a quiet transcript-mode tab itself. Close other talking tabs when isolating this channel. The supported persona here is `blind`; there is no required sighted mode to invoke for comparison. The listener writes its actual history to `virtual-user.jsonl` and reports what `hear` or `wait` returned. Keep that result beside the target's speech entries, because the model can add Markdown when quoting a transcript even though no Markdown entered target speech.
-
-The retained October 10, 2026 sessions used `claude-haiku-5-5`, `gpt-4o-mini` and `gemini-3.8-flash`. They are recorded model identities, not current catalog recommendations. All three listener processes exited zero and used the restricted interface to type, submit and receive the target's real transcript. The [live receipts](../docs/edition-2-notes/ch14.md#student-implementation-and-initial-review-submission) retain their earlier-source provenance.
-
-The filtered entries contain `queue Chunk`, `max tool rounds` and `HTTP Server`, with no inline backticks. Claude's listener received two response entries, but its target never chose the requested fruit; it said “fruit-sized” instead. The listener reported that omission. GPT-4o mini's listener heard the chosen apple in three response sentences rather than the requested two. Gemini's eleven entries include both thinking and response sources, followed by a report of the apple. These are useful channel results with different target-content limits, not three claims that every instruction was followed.
-
-No human listened to judge these runs. Transcript mode bypassed native audio. The separate native-browser checks exercised real speech callbacks and pause, and the later peer-lifetime correction has its own deterministic evidence. Neither was a final-source paid repeat. After checking the words and their sources, turn ordinary audio back on and listen: the question of whether this voice and phrasing are usable for you remains yours to answer.
+The historical first-edition and later Go listener sessions are not C# integration evidence. No real provider, native audible quality, human listening or full accessibility claim follows from this offline boundary. Turn on ordinary audio only with appropriate authority and listen: whether the voice and phrasing are usable remains a human question.

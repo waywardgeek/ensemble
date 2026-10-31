@@ -1,6 +1,6 @@
 # The Art of Building AI Coding Agents {.unnumbered .unlisted}
 
-*A Human Companion*
+*A Human Companion (C# Edition)*
 
 The Singularity as it Happened — Book 6
 

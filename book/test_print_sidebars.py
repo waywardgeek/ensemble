@@ -4,7 +4,7 @@ from pathlib import Path
 import subprocess
 import unittest
 
-FILTER = Path(__file__).resolve().parent.parent / 'scripts' / 'print-sidebars.lua'
+FILTER = Path(__file__).resolve().parents[1] / 'scripts' / 'print-sidebars.lua'
 
 
 def parse(text, filtered=True):

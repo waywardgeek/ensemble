@@ -1,0 +1,302 @@
+package grade
+
+// Chapter 7 harness — build the exercise, drive it, and measure the SHAPE of
+// the stream it reports.
+//
+// The exercise is run TWICE against the same script: once normally, and once
+// with CH07_NO_STREAM=1. The second run is what makes "streaming is not a
+// mode" checkable rather than assertable. Both runs must produce the same
+// final text and the same parts; only the chunk count may differ.
+
+import (
+	"bufio"
+	"encoding/json"
+	"fmt"
+	"os"
+	"os/exec"
+	"path/filepath"
+	"strings"
+	"time"
+
+	"github.com/waywardgeek/ensemble/internal/fakevendor"
+)
+
+// Ch7Delta is one observed PartDelta.
+type Ch7Delta struct {
+	PartID uint64
+	Kind   string
+	Chunk  string
+	Resp   int // response index (0-based), incremented on each turn
+}
+
+// Ch7PartFinal is one observed part_final, capturing the kind for ordering.
+type Ch7PartFinal struct {
+	PartID uint64
+	Kind   string // "text", "tool_call", or "thinking"
+}
+
+// Ch7Exec is one execution of the exercise binary.
+type Ch7Exec struct {
+	Ran       bool
+	ExitErr   string
+	Stdout    string
+	Stderr    string
+	Lines     []map[string]any
+	Deltas    []Ch7Delta
+	FinalText map[uint64]string // part_id -> finalized text, text parts only
+	FinalTool map[uint64]string // part_id -> finalized tool name
+	Finals    []Ch7PartFinal    // ordered part finals, all kinds
+	Assistant string
+	Stats     []map[string]any
+}
+
+// KindCount counts deltas of one kind.
+func (r Ch7Exec) KindCount(kind string) int {
+	n := 0
+	for _, d := range r.Deltas {
+		if d.Kind == kind {
+			n++
+		}
+	}
+	return n
+}
+
+// IDsByKind returns the set of distinct part IDs used by each delta kind,
+// scoped to the given response index. Part IDs reset between responses, so
+// cross-kind checks must compare within a single response.
+func (r Ch7Exec) IDsByKind(resp int) map[string]map[uint64]bool {
+	m := map[string]map[uint64]bool{}
+	for _, d := range r.Deltas {
+		if d.Resp != resp {
+			continue
+		}
+		if m[d.Kind] == nil {
+			m[d.Kind] = map[uint64]bool{}
+		}
+		m[d.Kind][d.PartID] = true
+	}
+	return m
+}
+
+// TextByPart concatenates text deltas per part, in arrival order.
+func (r Ch7Exec) TextByPart() map[uint64]string {
+	out := map[uint64]string{}
+	for _, d := range r.Deltas {
+		if d.Kind == "text" {
+			out[d.PartID] += d.Chunk
+		}
+	}
+	return out
+}
+
+type Ch7Result struct {
+	Base string
+
+	BuildOK  bool
+	BuildErr string
+
+	Stream Ch7Exec
+	Plain  Ch7Exec
+
+	Ch6Result *Ch6Result
+	Ch6Err    string
+
+	HelpersErr string
+}
+
+// ch7Replies is the script both runs see.
+//
+// One response carrying reasoning, reply text, AND a tool call, so a single
+// turn exercises all three delta kinds. The text is deliberately longer than
+// a few characters: at three runes per chunk a short reply cannot distinguish
+// a real incremental parser from one that emits the whole thing at once.
+func ch7Replies() []fakevendor.Reply {
+	return []fakevendor.Reply{
+		{
+			Thinking: "The caller wants the configuration file. I should call the tool before answering.",
+			Text:     "Let me take a look at that configuration for you.",
+			ToolName: "think",
+			ToolArgs: `{"seconds":0,"thought":"inspecting the configuration"}`,
+			ToolID:   "call_ch7_1",
+			Usage:    fakevendor.Canonical{Input: 120, Output: 64},
+		},
+		{
+			Text:  "The configuration sets the listen address to port 8080.",
+			Usage: fakevendor.Canonical{Input: 190, Output: 24},
+		},
+	}
+}
+
+// Ch7Run builds and drives the student's binary.
+func Ch7Run(dir string) (*Ch7Result, error) {
+	dir, _ = filepath.Abs(dir)
+	r := &Ch7Result{Base: dir}
+
+	tmp, err := os.MkdirTemp("", "ch7grade")
+	if err != nil {
+		return nil, err
+	}
+	defer os.RemoveAll(tmp)
+
+	// Build from the student's tree.
+	bin, cleanup, err := Build(dir)
+	if err != nil {
+		r.BuildErr = err.Error()
+		return r, nil
+	}
+	defer cleanup()
+	r.BuildOK = true
+
+	r.Stream = driveCh7(bin, tmp, false)
+	r.Plain = driveCh7(bin, tmp, true)
+
+	// ch6 parity.
+	ch6, err := Ch6Run(dir)
+	if err != nil {
+		r.Ch6Err = err.Error()
+	} else {
+		r.Ch6Result = ch6
+	}
+
+	return r, nil
+}
+
+// driveCh7 runs the exercise once and parses its observation stream.
+func driveCh7(bin, tmp string, noStream bool) Ch7Exec {
+	run := Ch7Exec{
+		FinalText: map[uint64]string{},
+		FinalTool: map[uint64]string{},
+	}
+
+	srv := fakevendor.New(ch7Replies())
+	defer srv.Close()
+
+	name := "stream"
+	if noStream {
+		name = "plain"
+	}
+	logPath := filepath.Join(tmp, name+".log")
+
+	cmd := exec.Command(bin)
+	// One directory per drive. Both drives share tmp for their logs,
+	// but a chapter-11 agent loads ./save.json from its working
+	// directory, so the second drive would otherwise resume the first.
+	runDir, cleanupDir := freshRunDir("ch7-" + name)
+	defer cleanupDir()
+	cmd.Dir = runDir
+	cmd.Env = append(os.Environ(),
+		"LLM_BASE_URL="+srv.URL(),
+		"LLM_VENDOR=anthropic",
+		"LLM_MODEL=fake-model",
+		"LLM_API_KEY=test-key",
+		"CH07_LOG="+logPath,
+		"CH07_AGENT_LOG="+filepath.Join(tmp, name+"-agent.log"),
+	)
+	if noStream {
+		cmd.Env = append(cmd.Env, "EN_DISABLE_STREAMING=1")
+	}
+
+	var stdout, stderr strings.Builder
+	cmd.Stdout = &stdout
+	cmd.Stderr = &stderr
+	stdin, err := cmd.StdinPipe()
+	if err != nil {
+		run.ExitErr = err.Error()
+		return run
+	}
+	if err := cmd.Start(); err != nil {
+		run.ExitErr = err.Error()
+		return run
+	}
+
+	fmt.Fprintln(stdin, `{"kind":"prompt","text":"what does the configuration say?"}`)
+	stdin.Close()
+
+	done := make(chan error, 1)
+	go func() { done <- cmd.Wait() }()
+	select {
+	case err := <-done:
+		if err != nil {
+			run.ExitErr = err.Error()
+		}
+	case <-time.After(30 * time.Second):
+		// A generous bound that still distinguishes a hang from slow. A
+		// stream parser that waits for a terminator the fake never sends
+		// blocks forever, and that must read as a failure, not a timeout of
+		// the whole grader.
+		_ = cmd.Process.Kill()
+		run.ExitErr = "exercise did not exit within 30s (stream parser may be waiting for input that never comes)"
+	}
+
+	run.Ran = true
+	run.Stdout = stdout.String()
+	run.Stderr = stderr.String()
+
+	sc := bufio.NewScanner(strings.NewReader(run.Stdout))
+	sc.Buffer(make([]byte, 0, 64*1024), 8*1024*1024)
+	respIdx := 0
+	finalized := map[uint64]bool{} // part_ids finalized so far
+	for sc.Scan() {
+		line := strings.TrimSpace(sc.Text())
+		if line == "" || !strings.HasPrefix(line, "{") {
+			continue
+		}
+		var m map[string]any
+		if json.Unmarshal([]byte(line), &m) != nil {
+			continue
+		}
+		run.Lines = append(run.Lines, m)
+
+		if s, ok := m["assistant"].(string); ok {
+			run.Assistant = s
+			continue
+		}
+
+		switch m["observation"] {
+		case "part_delta":
+			id := uint64(numOf(m["part_id"]))
+			// A delta whose part_id was already finalized starts a new response.
+			if finalized[id] {
+				respIdx++
+				finalized = map[uint64]bool{}
+			}
+			d := Ch7Delta{
+				PartID: id,
+				Kind:   strOf(m["kind"]),
+				Chunk:  strOf(m["chunk"]),
+				Resp:   respIdx,
+			}
+			run.Deltas = append(run.Deltas, d)
+		case "part_final":
+			id := uint64(numOf(m["part_id"]))
+			finalized[id] = true
+			kind := "thinking" // default: neither text nor tool means thinking/opaque
+			if t, ok := m["text"].(string); ok {
+				run.FinalText[id] = t
+				kind = "text"
+			}
+			if t, ok := m["tool"].(string); ok {
+				run.FinalTool[id] = t
+				kind = "tool_call"
+			}
+			run.Finals = append(run.Finals, Ch7PartFinal{PartID: id, Kind: kind})
+		case "stream_stats":
+			run.Stats = append(run.Stats, m)
+		}
+	}
+	return run
+}
+
+func numOf(v any) float64 {
+	if f, ok := v.(float64); ok {
+		return f
+	}
+	return 0
+}
+
+func strOf(v any) string {
+	if s, ok := v.(string); ok {
+		return s
+	}
+	return ""
+}

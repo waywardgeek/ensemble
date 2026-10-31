@@ -14,7 +14,7 @@ func TestChapter19Sandbox(t *testing.T) {
 	if runtime.GOOS != "darwin" {
 		t.Skip("macOS Seatbelt exercise")
 	}
-	core := "../../solutions/edition-3/ch19"
+	core := "../../edition-2/solutions/ch19"
 	bin, clean, err := grade.Build(core + "/cmd/ch01")
 	if err != nil {
 		t.Fatal(err)

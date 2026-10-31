@@ -1,3 +1,36 @@
+# 2026-10-31 — Edition 3 promoted; V2 archived
+
+Bill authorized the V1-style V2 archive and promotion. The canonical manuscript
+is now `book/`, active C# is `agent/`, and preserved C# endpoints/evidence are
+under `solutions/`. V2 is under `edition-2/`; V1 is unchanged. The pre-move source
+boundary was `7c0a3000`. Details and current commands are in the root README and
+`docs/edition-3-promotion.md`; older paths below are historical receipts.
+
+Verified SHA-256 and modes for 5,880 relocated V2 files, 685 archived support
+files, 4,103 promoted V3 endpoint files, and 21 evidence files. Only two C# test
+paths changed; runtime implementation bytes are unchanged. Root build/CLI and
+current Go grader checks pass. Isolated C# runner reports **313 passed, 0 failed**;
+all three external GUI groups pass. The actual promoted CLI earns **65/65** on
+Chapter 5's public executable route. Book tests pass (12); companion tests pass
+(3); current local manuscript links resolve. The assembled manuscript and EPUB
+were regenerated. Evidence: `/private/tmp/cadence-v3-promotion/` (manifest,
+preservation report, root-make/test logs, `grade-ch05.json`, publication logs).
+
+Honest limits: the full historical Go suite is not green (old Go fixture-layout
+and usage-pricing assumptions); it remains available as `make test-legacy-go`,
+separate from current V3 acceptance. The fresh two-pass PDF build did not complete:
+Chrome wrote an intermediate PDF but returned nonzero during teardown, with
+macOS display warnings and a watchdog-expiry diagnostic. No unique cause claimed;
+retained V3 PDFs were not replaced by partial output. Publishing tests and EPUB
+success are not visual approval or a successful print rebuild.
+
+The old ignored root Go executable is preserved at `edition-2/ensemble`.
+`make` now builds C# and creates the root launcher; no host was launched, restarted,
+installed or deployed. The independently installed Cadence application, credentials,
+and unrelated `.swp` were untouched. Local commit only; Bill owns pushes.
+
+---
+
 # Edition 3 GUI crossover — integrated V3 and human acceptance
 
 ## 2026-10-31 — Chapter 5 teaches and grades non-disruptive hints

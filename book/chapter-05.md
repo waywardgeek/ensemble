@@ -1,8 +1,8 @@
 # Chapter 5: Two Seams and a Loop
 
 The historical CodeRhapsody incidents below retain the first edition's
-measurements. The exercise and ownership rules incorporate the accepted
-Ensemble implementation.
+measurements. The exercise and ownership rules below describe the C# implementation.
+Historical Go runs are not evidence that this endpoint used a real provider.
 
 The agent framework from Chapter 4 is good enough to write an
 author-editor orchestrator. Imagine what it could do with a GUI
@@ -38,264 +38,169 @@ mid-tool-call arrives before the tool finishes.
 
 ## TL;DR
 
-**What you build.** Three things added to Chapter 4's star topology:
+Give each Agent one mailbox and one asynchronous loop that owns its conversation.
+Callers send typed requests; model and tool workers return immutable outcomes.
+Only the Agent applies those outcomes to History and decides what starts next.
+A private completion task reliably completes each admitted request. A separate,
+bounded observer stream reports progress without being allowed to stall work.
 
-1. An **observer** interface in the hub (outbound seam).
-2. A **mailbox** queue in the Agent implementation or its own spoke (inbound seam).
-3. An **actor loop** owned by the Agent that drains the mailbox and notifies
-   observers. Engine remains its single-request transport child.
+Pause stops scheduling, not background jobs. Interrupt ends the current turn,
+not the Agent. Shutdown closes admission, drains workers and jobs, then destroys
+the owning relationships. The old synchronous `SendAsync` becomes a convenience
+wrapper over this same actor; it must not remain a second implementation.
 
-Plus identity-tagged observations at the existing Ensemble root, media
-capabilities alongside the existing `Ref` vocabulary in the hub, and a
-three-agent exercise that proves the framework can run completely different agents without changing a line inside it.
+The actor also gives local media and a small multi-Agent workflow one consistent
+entry point. They are clients of the framework, not reasons to add a second
+orchestrator in the CLI. Common declares the actual C# types, relationships, and
+operations; partial implementations provide their bodies in the functional
+modules.
 
-**The observer seam.** One interface, three event types. The following
-shapes show the shared vocabulary; public aliases expose it to external
-clients without importing common:
+## Shared contracts
 
-```go
-// Observer receives notifications. Observe must not block.
-type Observer interface {
-    Observe(Observation)
-}
+The library remains one compiled C# assembly. Common declares the actual partial
+objects, their persistent fields, and every operation used across modules.
+Agent supplies orchestration; Engine renders and performs one frozen HTTP
+exchange; History owns recorded facts and reduction; Jobs owns execution.
+Neither the CLI nor a GUI belongs in Common or in the Agent's loop.
 
-type Observation interface{ observation() }
+The public entry points have different promises:
 
-type PartDelta struct {          // streaming chunk
-    PartID uint64 `json:"part_id"`
-    Chunk  string `json:"chunk"`
-}
+| Operation | Promise |
+| --- | --- |
+| `SubmitAsync(parts)` | Queue a distinct request; return its reliable final text or error. |
+| `SendAsync(text, cancellation)` | Submit text and wait; cancelling this wait does not cancel the turn. |
+| `PostAsync(input)` | Acknowledge admission of a live message, hint, or control. |
+| `DispatchAsync(call, cancellation)` | Dispatch a host tool through the actor; return its reliable report. |
+| `RunAsync(input, cancellation)` | Sequential channel-based facade over the same actor. |
+| `WaitAsync(predicate, cancellation)` | Consume matching lossy Agent progress. |
+| `FlushAsync(cancellation)` | Wait for foreground quiescence without closing admission. |
+| `ShutdownAsync()` | Close admission, cancel and join owned work; do not resurrect the actor. |
 
-type PartFinal struct {          // completed part
-    Seq    uint64   `json:"seq"`
-    PartID uint64   `json:"part_id"`
-    Part   Part     `json:"part"`
-}
+`AgentInput` is an immutable value carrying `Kind` and `Text`. `InputKind` contains
+`Message`, `Hint`, `Pause`, `Resume`, `InterruptNow`, `InterruptAfterTool`, and
+`Ephemeral`. A live message while busy becomes input to the current turn;
+concurrent submissions remain distinct queued requests. The private mailbox
+also carries HTTP/tool/control completions and lifetime operations.
 
-type StateChanged struct {       // turn-state transition
-    From   string `json:"from"`
-    To     string `json:"to"`
-}
+`Observation` is a value with kind, event sequence, optional part, text,
+state transition and nullable admission outcome. Kinds are `Input`,
+`StateChanged`, `PartFinal`, `TurnEnd`, and `Error`. Each public submission,
+live input and direct dispatch publishes exactly one accepted/refused input
+outcome, including validation failures. A request's eventual completion is a
+separate fact. Progress publication is nonblocking and bounded; the reliable
+request task does not depend on progress being read.
 
-type AgentID string
-```
+Ensemble owns named or anonymous Agents and a merged progress stream.
+`AgentObservation` contains the actual Agent reference and its observation.
+`FindAgent(name)` searches the root's actual children, with ordinal unique names
+within that root. `WaitAnyAsync` watches merged progress, not a group of results.
+Each Agent retains independent History, Engine, Tools, Jobs and mailbox.
 
-`Observe` must not block: a slow observer that holds up the loop
-recreates the deafness this chapter exists to fix. Agent identity remains
-outside each Agent's event log; the framework tags observations externally
-when coordinating multiple agents.
+`BlobRef` and `ModelFeatures` are value-like declarations. Exact selected-model
+capabilities govern local-file media projection. Logs retain locators; requests
+inline bytes. Unknown models may send text, but not undeclared attachments.
+URI and job-handle rendering remain deferred. See §5.9 for the one authoritative
+capability policy.
 
-**The mailbox.** One inbound queue carries everything:
-
-```go
-type Inbound interface{ inbound() }
-
-type UserMessage struct{ Text string }
-type Hint        struct{ Text string }
-type Interrupt   struct{}
-```
-
-A prompt, a hint, a tool finishing, and an interrupt are the same
-kind of event to the loop. Public `Post` must not wait for execution or
-drop an admitted message. The queue is a mutex-guarded slice with a signal channel;
-nothing in it is clever. The worker outcome is an internal message with
-its originating turn and full result metadata, not a text-only public shortcut.
-
-**The actor loop.** The Agent owns one conversation goroutine. When the
-mailbox has a message, the loop drains it:
-
-- Live `UserMessage` or `Hint`: start a turn when idle; while active, attach
-  text to the current turn's pending context.
-- Worker report: record the result, check for outstanding calls, continue
-  the turn or go idle.
-- `Interrupt`: end the active turn, keep the actor receiving input and retain
-  real results from jobs that continue.
-
-The synchronous Ask API still exists. It posts a
-request with its own buffered reply channel and waits for that request's
-text or error. Concurrent blocking requests queue as separate turns;
-they are not hints for the active turn. Callers that do not need blocking
-use `Post` directly and watch through an observer. One agent owns one
-actor, whether a caller uses the blocking or non-blocking API.
-
-**The Wait primitive.**
-
-```go
-func (a *agent) Wait(ctx context.Context,
-    pred func(Observation) bool) (Observation, error)
-```
-
-Blocks until an observation satisfies `pred` or the context cancels.
-Use it for observing progress, not acknowledging a blocking request.
-The observation stream is bounded and may drop events; waiters can also
-consume one another's events. Neither an idle notification nor shared
-last-text state identifies which request completed. Request replies are
-reliable control messages, separate from this non-blocking observation seam.
-
-**Ref and ModelFeatures.** The existing blob part already carries a `Ref`.
-This chapter gives local-path media a real renderer:
-
-```go
-type RefKind uint8
-const (
-    RefPath   RefKind = iota + 1
-    RefURI
-    RefHandle
-)
-
-type Ref struct {
-    Kind    RefKind `json:"kind"`
-    Locator string  `json:"locator"`
-}
-
-func (r Ref) Zero() bool { return r.Kind == 0 }
-```
-
-`ModelFeatures` declares what media a model accepts:
-
-```go
-type Media uint8
-const (
-    MediaImage    Media = 1 << iota
-    MediaAudio
-    MediaVideo
-    MediaDocument
-)
-
-type ModelFeatures struct {
-    Media Media
-}
-
-func LookupModel(model string) (ModelFeatures, bool)
-```
-
-No default media row. An unknown model returns `false`; attaching media
-then fails with an error naming the model and the unsupported media type.
-Ordinary text does not require a row in a media capability table. Lookup
-policy belongs with rendering; common holds the shared types.
-Dropping a part silently is the Chapter 1 mistake: a format the model
-cannot read is a lie, not a degradation.
-
-**Rules.** Seven checks.
-
-1. **Chapter 4 still passes.** The actor upgrade changes no observable
-   behavior from Chapter 4's star topology. (`ch4-parity`, 10)
-2. **The agent hears hints mid-tool.** A slow tool runs for three
-   seconds. During that work, a hint arrives. The observer stream shows
-   the hint *before* the correlated tool report. A callback may report a
-   still-running job; the check does not confuse that report with execution ending. (`not-deaf`, 25)
-3. **Replay matches live.** Replay the event-log prefix just before the last
-   `request_sent`; rendering that prefix matches the captured live
-   vendor request byte for byte. (`replay-is-live`, 15)
-4. **Observers fire.** The observation stream contains both state
-   transitions (`StateChanged`) and completed content (`PartFinal`).
-   (`observer-fires`, 15)
-5. **Multiple Agents remain distinguishable.** The application runs author,
-   editor and reviewer in sequence. Observations identify their Agent; the
-   application advances only after that request actually completes.
-   (`multi-agent-observations`, 15)
-6. **Unsupported media refused.** Present media the model does not
-   support. The renderer returns an error naming the model and the
-   media type, not a silent drop. (`loud-refusal`, 10)
-7. **Hub stays clean.** `go list -deps` on `internal/common/` shows
-   no implementation-spoke dependencies. Shared vocabulary does not import
-   its implementations.
-   (`hub-clean`, 10)
-
-Seven checks, sum 100: `ch4-parity` 10, `not-deaf` 25,
-`replay-is-live` 15, `observer-fires` 15, `multi-agent-observations` 15,
-`loud-refusal` 10, `hub-clean` 10.
-
-**Yours.** The shape of the mailbox, the structure of the actor loop,
-how many goroutines the framework uses. The grader checks the
-properties, not the implementation.
-
-**Exercise.** Build a three-agent workflow in `ch06/`. An author
-writes a draft, an editor improves it, a reviewer approves it. Each
-agent has its own prompt and tools. The framework coordinates them.
-A single binary reads JSON events on stdin, writes observations on
-stdout, and logs to `CH06_LOG`.
+**Verification is scoped.** The full retained Go grader includes Go consumer
+imports and dependency checks. It is not a C# architecture test. For this
+chapter's current executable contract, build the CLI and supply its executable
+(or a wrapper that forwards arguments) to the explicit Edition 3 route:
 
 ```sh
-go run ./cmd/grade-edition2 -ch 5 path/to/yours
+EN_STARTUP_SKILLS=code-tools go run ./cmd/grade-edition3 -ch 5 -executable-only \
+  -media-models /your/owned/media-models.json -json /your/owned/build/ch04
 ```
 
-The grader finds the `ch06` workflow module inside the submitted core or
-beside it; `-workflow path/to/workflow` selects another location. It builds
-and runs that actual application, without falling back to the core CLI.
-Chapter 4's `-consumer` and `-consumer-case` flags remain available for the
-inherited external-consumer check.
+This is a **65-point** report: retained replay checks 15, retained media checks
+10, and four real-CLI scenarios worth 10 each: early hints, already-aged hints,
+Interrupt `now`, and Interrupt `after_tool`. The hint scenarios run gated shell
+jobs plus a pending file write through a local fake provider. They inspect actual
+effects, original call/result pairing, distinct running handles and subsequent
+completion through those handles. They check current and remaining observation
+deadlines, repeated hints, a shorter wait, a fast write, and a fresh next-batch
+observation that must not inherit the cap. Interrupt scenarios require the
+opposite tail behavior: no undispatched effects, explicit not-executed results,
+and continued access to the already-admitted job. Timing windows allow ordinary
+local scheduling jitter; use an otherwise quiet machine when investigating a
+timing failure. These checks require a POSIX shell and local loopback HTTP.
 
-Media probes render a local image through each adapter, refuse unsupported
-audio and refuse an image on an unknown model. The Anthropic fixture uses the
-older Sonnet 4.6 row declared by this chapter’s accepted solution. To test another
-implemented capability table, save this grader-only mapping
-as `media-models.json` and pass `-media-models media-models.json`:
+For C#, `EN_STARTUP_SKILLS=code-tools` enables the execution tool used by the
+retained replay fixture. Run in an isolated home without provider credentials.
+The hint fixtures supply their own minimal environment and dummy provider key.
+The model mapping selects fixture models; it does not add production aliases or
+prove live capability:
 
 ```json
-{"anthropic":"claude-sonnet-4-6","openai":"gpt-5.4-mini","gemini":"gemini-3.8-flash"}
+{"anthropic":"claude-3-haiku-20240307","openai":"gpt-4o","gemini":"gemini-2.5-flash"}
 ```
 
-The replay check captures real HTTP requests and compares them with rendering
-the corresponding pre-request log prefixes. The workflow fake calls `think`
-and returns three role texts. Its observations and ordered completion markers
-do not, by themselves, establish that every manuscript tool works, stored edits
-reach the reviewer, or a saturated progress stream cannot lose request replies.
-Keep those required behaviors covered by real public-API integration tests and
-source review. Passing a marker check does not waive them.
+The unchanged Edition 2 `-ch 5 -executable-only` route still reports only its
+historical 25 replay/media points. Default Edition 3 Chapter 5 grading retains
+the historical Go consumer/workflow route; `-executable-only` deliberately selects
+the language-neutral CLI checks and refuses those source-artifact flags.
 
+**The remaining 35 points are not awarded by this executable route.** Its score
+is not an architecture or full workflow certificate. Separately test held/frozen
+HTTP, late-response refusal after Interrupt, pause, reliable replies under
+observation loss, shutdown joins, complete ownership operations, and the real
+external C# workflow. Review shared observation behavior for `wait_for_job` and
+`send_input`, literal-next-call `tool_limits`, hints racing observer admission,
+and the mandatory-completion host-adapter exception. Inspect Common and the
+functional call paths; compilation alone cannot enforce the spoke dependency
+rule. A marker check cannot prove that stored edits reached the reviewer or that
+every manuscript tool ran. Keep those exercises and source review alongside—not
+inside—the score.
 
 ## §5.1 The idea in plain words
 
-Chapter 2 built a renderer that turned the event log into
-`history.md`. It watched the stream and produced a view: an
-observer. The reader has already built one and can now name it.
+Chapter 2 separated recorded facts from derived conversation context and vendor
+requests. Chapter 4 lets a command keep running while the model receives a job
+handle. But the Agent itself still follows a synchronous loop: ask the model,
+wait for a tool, ask the model again. A second caller cannot reliably say “pause”
+or add useful information while that loop is waiting.
 
-A deaf loop processes one request at a time. The model sends back a
-tool call, the engine runs the tool, and nothing else can happen
-until the tool finishes. A user typing a hint while a three-second
-build runs gets no acknowledgment. A second agent waiting for its
-turn gets nothing at all. The engine is a for-loop, and a for-loop
-has no ears.
+The fix is not to scatter locks around that loop. Give conversation decisions
+one owner, with three pieces that work together.
 
-The fix is three pieces that work together.
+**An observer is a one-way window.** The Agent publishes state transitions,
+completed parts, and progress. A display or logger watches them without owning
+the conversation. Slow observation must not stop work. A bounded delivery queue
+may discard a progress update; it must never be the only path by which a waiting
+caller receives its answer. Each admitted request has its own reliable completion task
+and exactly one terminal outcome.
 
-**An observer is a one-way window.** The Agent notifies observers
-when something happens: a state transition, a completed response, a
-streaming chunk. Observers cannot call back into the engine. They
-watch and react. A logger is an observer. A GUI is an observer. A
-parent managing a child agent is an observer. What matters is that
-the framework defines the interface, observers implement it, and
-nothing inside the framework knows what the observers do. A GUI, a gateway, and a sub-agent
-supervisor all plug in here without any of them changing a line of
-framework code.
+**A mailbox is a one-way door.** Prompts, hints, controls, and worker completions
+enter one ordered queue. In C# a Channel provides the ordinary asynchronous queue
+and wake-up behavior. Posting does not wait for the tool or model to finish.
+The queue synchronizes delivery; it does not give a sender permission to edit
+History. A hint arriving during a request cannot rewrite the bytes already sent,
+but it can affect the next safe scheduling decision.
 
-**A mailbox is a one-way door.** The Agent accepts messages through
-a queue: prompts, hints, tool completions, interrupts. `Post` does not wait
-for execution or a receiver. The queue is a slice guarded by a mutex with a channel to
-signal "something arrived." Prompts, hints, and tool completions
-enter through the same door because the loop that processes them
-needs to see them in order. A hint that arrives while a tool is
-running goes into the queue after the prompt that started the turn
-and before the tool completion that ends it. The ordering is the
-whole point. A separate queue per message type destroys it.
+**An actor loop drains the mailbox.** The Agent makes short decisions: record an
+input, freeze a model request, admit a tool, apply a returned result, or settle a
+turn. Work that waits on the network or a process runs outside that loop. Its
+completion is another message, not a worker-side History write. The Agent's old
+blocking API waits for a reply from this same actor. It is not an alternative
+execution engine.
 
-**An actor loop drains the mailbox.** The Agent runs its actor on its own
-goroutine. It blocks on the mailbox's signal channel until something
-arrives, drains the queue, and processes each message in order. After
-processing, it notifies observers. The loop is the smallest possible
-concurrency primitive: one goroutine, one queue, one notify step. It
-replaces the synchronous for-loop from Chapter 4 with something that
-can hear. The mailbox synchronizes delivery; the job subsystem synchronizes
-worker state. Neither gives workers permission to mutate the conversation.
+Ownership remains the model from Chapter 4. Ensemble owns Agents. Each Agent
+owns its History, Engine, Tools, and Jobs; Jobs owns the running Job objects.
+Pause and interrupt do not destroy that graph. A paused Agent still accepts
+controls and worker completions. An interrupted turn must distinguish a tool
+that started from a call that never reached dispatch: preserve the real job's
+handle, and pair each skipped call with an explicit not-executed result. Do not
+invent effects or silently replay the skipped tail on a later turn.
 
-These three pieces are independent additions to the star topology
-from Chapter 4. The observer interface and public mailbox input types
-go into `internal/common/`; private worker messages stay with their owner. The
-mailbox implementation goes into a new spoke or an existing one. The
-Agent-owned actor replaces the engine's synchronous ask while preserving the public
-blocking API. Internal orchestration helpers are retired, not retained as a
-second execution path.
+Shutdown is different. It closes admission, accounts for admitted work, drains
+owned workers and processes, and only then detaches the children. That ordering
+keeps the parent paths available while workers finish. Garbage collection cannot
+perform this logical cleanup for us.
+
+The media and multi-Agent examples use these same paths. Vendor requests may
+contain inline media bytes, but the canonical log keeps the original locator.
+A role tool reaches another Agent through its actual owning Ensemble and waits
+on a private reply. There is no hidden workflow engine in the command-line host.
 
 ## §5.2 The framework that imported its own GUI
 
@@ -337,407 +242,246 @@ ninety-five percent of the world that is not the engine.
 
 ## §5.3 The outbound seam
 
-An observer receives events. It does not ask for them, it does not
-call back into the engine, and it does not block. Those three
-constraints are the interface:
+The actor publishes an immutable observation after recording the corresponding
+fact. A display may receive a completed text, tool call, or result as a
+`PartFinal`, not merely a string stripped of its arguments and correlation.
+`StateChanged` reflects the reducer's actual transitions; `TurnEnd` describes a
+terminal outcome. History remains the durable source for prompts, hints,
+request boundaries and completed content. Observations cannot reconstruct it.
 
-```go
-type Observer interface {
-    Observe(Observation)
-}
-```
+Each Agent owns a bounded channel configured to drop old progress when full.
+Ensemble has a separate bounded merged channel. Publishing to both is a direct,
+nonblocking operation through the Agent's real parent. It does not call an
+arbitrary observer, create a task per event, or retain an unbounded callback queue.
+A slow display may miss progress, but cannot delay recording or request replies.
 
-`Observe` takes one argument. The argument is a sealed interface:
-the framework defines every type that implements it, and external
-code cannot add new ones. Three types carry the information:
+This endpoint offers **shared consuming streams**, not broadcast subscriptions.
+Two `WaitAsync` callers compete for Agent observations. A waiter also consumes
+nonmatching values while looking for its predicate. Root and Agent streams are
+separate views, but two readers of either one are not two subscribers. If a later
+requirement needs independent subscribers, each needs its own bounded queue;
+sharing a channel reader would not implement broadcast.
 
-```go
-type PartDelta struct {          // streaming chunk
-    PartID uint64 `json:"part_id"`
-    Chunk  string `json:"chunk"`
-}
-```
+Admission publishes an `Input` outcome with `Accepted` true or false. This
+includes invalid inputs and refusals after shutdown. The reliable task carries
+the actual exception; an observer may miss its diagnostic. Shutdown closes work
+admission, while observations remain readable until logical destruction. Calls
+after destruction are disposed-object errors, not new events from a live Agent.
 
-A `PartDelta` arrives for every streaming chunk the vendor sends.
-`PartID` identifies which part is being streamed so that an observer
-can assemble the complete response without confusing concurrent parts. `Chunk` is a
-string because it is text. A `[]byte` JSON field would base64-encode it,
-adding about a third to the byte count before JSON overhead.
-
-The streaming rule: do not model streaming as a mode. Model
-non-streaming as a stream of length one. A non-streaming vendor emits
-one delta plus the finalizer. Observers that care about liveness
-render deltas; observers that do not ignore them and act on
-finalizers. Adding streaming later therefore adds no new event kinds.
-
-Tool results are the proof the rule is right: they are observable but
-never stream, which needs no special case. They are always length one.
-
-Deltas are transient. They are never appended to the durable log;
-finalized content and other conversation facts are recorded. The log is the state. The stream
-is the experience. Replaying the log must produce the same context
-as the live run, minus the animation. The `replay-is-live` check
-tests exactly this: replay the prefix just before the last `request_sent`
-and compare the rendered request byte for byte with the captured request.
-The marker records delivery and consumes pending ephemera, so including it
-would reconstruct the state after that request was sent.
-
-```go
-type PartFinal struct {          // completed part
-    Seq    uint64   `json:"seq"`
-    PartID uint64   `json:"part_id"`
-    Part   Part     `json:"part"`
-}
-```
-
-A `PartFinal` arrives when a part is complete: the full neutral part,
-including text, a tool call or a tool result, with its sequence number
-and display identity. A text-only field loses the call arguments and
-correlation that an observer needs. Durable replay uses the event log,
-which also contains prompts, hints and request boundaries; the lossy
-observation stream cannot replace it.
-
-```go
-type StateChanged struct {       // turn-state transition
-    From   string `json:"from"`
-    To     string `json:"to"`
-}
-```
-
-A `StateChanged` fires on every transition: `Idle` to
-`InputPending`, `InputPending` to `InFlight`, `InFlight` to
-`ToolsPending`, any terminal state back to `Idle`. The GUI uses this
-to show a spinner. An application uses this to display progress; request completion tells it
-when a particular submitted turn finished.
-The grader uses this to verify the observer seam works.
-
-The observation types carry no agent identity. For a single agent,
-that is all you need. For a multi-agent framework, the coordinator
-tags agent identity externally when it routes observations. The type
-is cheap because external tagging is just a wrapper.
-
-The observer is told, never asked. The Agent calls `Observe` after
-every action: after recording a response, after transitioning state,
-after a tool completes. Observers receive future events from the same code path that updates
-the context. Attaching late does not replay earlier observations; history
-remains the separate source for past facts.
-
-### Why Observe must not block
-
-A blocking observer recreates the deafness. The Agent calls
-`Observe` on the actor goroutine. If `Observe` takes a lock, writes
-to a slow network, or waits for a response, the actor goroutine
-stalls. The mailbox fills up. Hints arrive and wait. The queue that
-was supposed to fix the problem becomes the problem.
-
-If an observer needs to do slow work, it copies the observation and
-posts it to its own queue. The observer's goroutine drains its own
-queue. The actor never waits for that slow work.
+Chapter 5 does not stream HTTP tokens. Its external workflow displays a complete
+text part as one delta followed by a finalizer. That is a presentation choice,
+not evidence of incremental provider delivery. Chapter 6 supplies streaming.
 
 ## §5.4 The inbound seam
 
-The agent is deaf, but the obvious explanation is wrong. It is not
-that the tool runs inline. The tool already runs on its own goroutine
-since Chapter 4. It is that the conversation loop parks in a `select` awaiting
-the job report, and that is the same loop that would drain
-inbound events. The drainer is parked. Hints arrive and sit in a
-channel that nobody reads until the tool finishes.
+Chapter 4 already put a tool's execution outside the conversation loop. The
+remaining deafness came from awaiting its report in the same loop that should
+hear human input. Moving execution was not enough; move the wait too.
 
-The fix: deliver tool completions INTO the queue instead of awaiting
-them in a `select`. The mailbox carries everything the Agent can
-hear:
+Use one `Channel<Mail>` with one reader. Public messages and private worker
+outcomes enter that same queue. Channel delivery preserves enqueue order;
+it does not invent a global physical order for simultaneous callers. Each
+message is handled before the next scheduling decision.
 
-```go
-type Inbound interface{ inbound() }
+The public vocabulary is intentionally smaller than the private mailbox:
 
-type UserMessage   struct{ Text string }
-type Hint          struct{ Text string }
-type Interrupt struct{}
+```csharp
+await agent.PostAsync(new AgentInput(InputKind.Hint, "Keep the examples short."));
+await agent.PostAsync(new AgentInput(InputKind.Pause));
+await agent.PostAsync(new AgentInput(InputKind.Resume));
 ```
 
-One queue carries public input and private worker messages. The small
-mailbox sketch below uses `any` for those internal messages; public `Post`
-accepts only the public input vocabulary. The implementation
-is a mutex-guarded slice with a buffered channel of capacity one as
-the signal:
+These tasks acknowledge admission, not completion of a model turn. The actor
+validates before changing conversation state or queuing effects. Refused input
+must leave it usable for the next valid request. One lazy-started mailbox reader
+belongs to the Agent; no separately owned Actor wrapper is needed.
 
-```go
-type Box struct {
-    mu    sync.Mutex
-    queue []any
-    Wake  chan struct{}
-}
-
-func (b *Box) Post(msg any) {
-    b.mu.Lock()
-    b.queue = append(b.queue, msg)
-    b.mu.Unlock()
-    select {
-    case b.Wake <- struct{}{}:
-    default:
-    }
-}
-
-func (b *Box) Drain() []any {
-    b.mu.Lock()
-    q := b.queue
-    b.queue = nil
-    b.mu.Unlock()
-    return q
-}
-```
-
-`Post` does not wait for a receiver. Its brief mutex protects enqueueing;
-it is not a lock-free guarantee. If the channel is full, the signal is already
-pending and the loop will drain the queue. `Drain` returns everything
-and clears the queue. The mutex protects the slice; the channel is
-just a wake signal. The queue preserves arrival order and nothing else.
-
-### Why one queue
-
-A prompt, a hint, a tool completion, and an interrupt arrive through
-the same door because the order they arrived in is the order they
-matter in. A hint that arrived during a tool call matters now. A
-tool completion that arrived after an interrupt still contains real output.
-Its former turn is over; its job may still be alive.
-
-Separate queues destroy this ordering. If prompts and hints go to
-different channels, a `select` chooses between them, and Go's
-`select` is pseudo-random when both are ready. The hint might be
-processed before the prompt that it was meant to modify, or after
-the tool that it was meant to interrupt. A single FIFO preserves
-arrival order, and arrival order is causal order.
-
-### Tool completions enter the mailbox
-
-This is the change that breaks the deafness. In Chapter 4, the Agent
-dispatcher waits for the job report. The wait has a limit, but the same
-conversation loop cannot process human input while it is parked.
-
-In Chapter 5, workers execute the tool and wait for its report.
-They post their outcomes to the mailbox. The Agent is back at its
-mailbox drain loop, free to
-process hints and interrupts while the tool runs. The tool result
-arrives as a message, not a return value, and the actor processes it
-in queue order alongside everything else.
+HTTP and foreground-observation workers return immutable outcomes to this
+mailbox. They do not append History, select the next tool, or schedule another
+model request. A running Job owns its independent execution/output state;
+its report is a snapshot, not evidence that execution has finished.
 
 ## §5.5 The actor loop
 
-The actor is the Agent's conversation goroutine with a mailbox. It blocks on the signal
-channel, drains the queue, and processes each message. After
-processing, it notifies observers.
+The implementation in `Agent/Actor.cs` follows three readable steps: receive a
+mail message, apply its facts, then advance if scheduling is allowed. All lasting
+scheduling fields are declared in `Common/Actor.cs`. Async methods provide waits;
+there is no second scheduler framework hidden beside the Agent.
 
-```go
-func (r *runtime) run() {
-    for {
-        <-r.owner.box.Wake
-        for _, message := range r.owner.box.Drain() {
-            switch m := message.(type) {
-            case common.UserMessage:
-                r.input(m.Text)
-            case common.Hint:
-                r.input(m.Text)
-            case response:
-                r.receive(m)
-            case report:
-                // Record the real result, including reports from older turns.
-                r.recordReport(m)
-            case common.Interrupt:
-                r.interrupt(common.ErrInterrupted)
-                // Keep draining: interruption does not end the actor.
-            }
-        }
-    }
-}
+**Start a turn.** Record the message, render a frozen request string, record
+`RequestSent`, then release HTTP to Engine's `SendAsync`. There is at most one
+model request per Agent. Engine returns immutable, unnumbered response events;
+the actor assigns their place in History. Engine neither reads live History nor
+writes it. A hint received after freezing cannot change those request bytes.
+
+**Apply a response.** Record returned facts before publishing progress. Validate
+duplicate call IDs before any effect. Dispatch tool calls serially in response
+order. Jobs reserves an ordinary job and records `ToolCalled` before starting
+its handler. That synchronous admission prefix runs on the actor; the subsequent
+observation wait runs outside it and posts its report back. Controls that do not
+allocate jobs retain their Chapter 4 contracts.
+
+**Record a report.** The actor appends `ToolReturned`, including the actual job
+locator where applicable, before asking the model to consume it. Host-invoked
+direct tools instead record `ToolObserved`: a real audit outcome that does not
+invent an assistant tool call in model dialogue. Both preserve output evidence.
+A returned `running` snapshot does not mean the worker ended.
+
+**Apply a hint.** Record `HintReceived` without changing the active turn's reducer
+state. During HTTP it affects the next request, never the frozen request already
+in flight. During ordinary foreground tool observation, shorten the observation
+ceiling to the default three seconds **measured from that observation's start**.
+If three seconds have already elapsed, return promptly with the real report;
+otherwise wait only for the remainder, unless a result or shorter deadline wins.
+Do not cancel the Job or refuse undispatched calls merely because a hint arrived.
+Dispatch every remaining finalized call normally, once, with the same observation
+ceiling while the hint is pending. The next request sees the hint and all paired
+results, including actual running-job handles. Idle hints are retained until a
+proper trigger; pause still prevents new scheduling.
+
+### Hear the human without throwing away the work
+
+A finalized model response may contain a long file write or a carefully prepared
+shell command followed by other calls. The human's hint asks the model to listen
+soon, not to discard that prepared work. Shortening observation and cancelling
+execution are different operations. Keep execution owned by the Job and make the
+observer responsive; do not manufacture success or an `interrupted; not executed`
+result for a call that should still run.
+
+For an ordinary observation with start time `s`, requested delay `d`, and default
+hint ceiling `D = 3 seconds`, a pending hint changes its deadline to:
+
+```text
+s + min(d, D)
 ```
 
-This is schematic: `runtime` belongs to the Agent, and `recordReport`
-stands for its report-handling branch. The excerpt omits request replies,
-shutdown, error handling and round limits. Notifications follow successful
-reduction, so observers see stored facts. The shape remains drain, switch,
-notify; method names are not the exercise contract.
+The start is the start of this observation, not the Job's original launch and not
+the hint's arrival. A hint during a twenty-minute observation that has already
+lasted ten seconds therefore returns promptly. A hint after one second leaves at
+most two seconds. Repeated hints cannot restart that clock. A requested half-second
+wait stays half a second, and an immediately available result stays immediate.
 
-**Starting a turn** records the prompt as a `MessageReceived` event,
-renders the context and records the request boundary before handing
-HTTP to a worker. That worker returns response facts through the mailbox.
-A synchronous HTTP call on the actor would merely move the deafness from
-tools to the network. Tool calls enter `ToolsPending`; dispatch remains
-serial within their batch, with each wait performed outside the actor.
-When no further calls or pending hints remain, the turn can finish.
+Apply this rule both to a new ordinary tool's initial observation and to controls
+that observe an existing Job, including `wait_for_job` and `send_input`. Preserve
+the original call ID, output cursor/cap, real Job ID, state, and completed result.
+One-shot `tool_limits` still belongs to the literal next call; the hint ceiling
+shortens observation without rewriting arguments or leaking a limit into a later
+call. No stale timer may produce an extra return after the observer has finished.
 
-**Applying a hint** records the hint as a `HintReceived` event and
-attaches it to the pending context. The next vendor request will
-include it. A hint arriving during HTTP cannot rewrite bytes already sent;
-record the request boundary before releasing the transport worker. The hint does not start a new turn and does not change
-the turn state.
+A pending hint also caps each remaining ordinary observation in the same finalized
+batch. Two slow calls may therefore take roughly six seconds in total; a fast
+write between them finishes normally. This is a per-observation bound, not a
+three-second promise for an arbitrarily large batch. The hint is delivered with
+the paired results on the next request. After delivery, a later observation uses
+its own requested delay: neither an old wake signal nor a stale hint flag may
+keep capping unrelated waits.
 
-**Recording a result** records the tool result as a `ToolReturned` event,
-checks whether all outstanding calls have results, and if so, sends
-the accumulated results back to the vendor for the next round.
+Keep the Agent authoritative for pending-hint state. A newly admitted observer
+must notice a hint that arrived before it captured a wake signal; an active
+observer must notice one that arrives afterward. A content-free wake signal can
+shorten the current timer, but must not become a sticky substitute for the actual
+mailbox message. Explicit host adapters declared `waitForCompletion` retain their
+mandatory-completion contract when their consumer has no Job-wait interface;
+this exception is not permission to bypass the cap for ordinary model tools.
 
-**`interrupt`** ends the active turn and cancels its in-flight model
-request. The Agent remains usable, and other jobs continue. Pair outstanding
-calls honestly: a wait was interrupted, not necessarily its job. Refuse calls
-that were never dispatched. A later real report must not become a duplicate
-vendor result or finish a newer turn. The accepted implementation retains it
-as `job_report`, with the bytes still in the job output file.
+**Interrupt remains different.** It deliberately ends the turn and can refuse its
+undispatched tail. A hint preserves finalized pending calls and lets the model
+choose what to change after receiving the hint. Neither operation silently kills
+independent Jobs.
 
-### Ask, rebuilt
+**Finish a turn.** Record terminal facts before completing the request task.
+`TurnEnded` restores the reducer to Idle; `TurnInterrupted` records interruption.
+These are replayable facts, not a fabricated error used to force a state change.
+The Chapter 2 states remain Idle, InputPending, InFlight and ToolsPending.
+Scheduling flags are transient actor control, not another canonical transcript.
 
-The synchronous Ask API from Chapter 4 still
-works; the accepted public method also takes a caller context. It delegates to the agent's owned actor:
+### Reliable completion is not observation
 
-```go
-func (a *agent) Ask(ctx context.Context, text string) (string, error) {
-    reply := a.Submit(ctx, text)
-    select {
-    case result := <-reply:
-        return result.Text, result.Err
-    case <-ctx.Done():
-        return "", ctx.Err()
-    }
-}
-```
+`SubmitAsync` creates a `TaskCompletionSource<string>` with asynchronous
+continuations and places it in the request message. The actor settles it exactly
+once. A slow or cancelled caller cannot block the actor while it delivers the
+outcome. Concurrent submissions queue separate turns; they do not read a shared
+last-answer field or watch for an arbitrary Idle transition.
 
-`Submit` creates a one-element buffered reply channel, posts the request,
-and returns that channel. `Ask` waits for its reply, caller cancellation,
-or actor shutdown. The actor continues processing its mailbox. The buffer
-lets the actor finish even if the caller has cancelled.
-The actor returns that request's text and error, not shared last-text state.
-When persistence is configured, save before replying; a failed save is a
-failed completion, not durable success. The accepted library's empty `LogPath`
-leaves persistence with its embedding caller. Notify observers of the same outcome without making observation
-delivery a prerequisite for returning to the caller.
+`SendAsync` waits on that same task. Caller cancellation detaches its wait;
+explicit interrupt is how an application ends the turn. `RunAsync` is a sequential
+input-channel adapter over submission, not a preserved copy of the old tool loop.
+With logging enabled, append/flush precedes publication and completion. An append
+failure cannot be reported as durable success; fault cleanup still joins workers
+and detaches the graph.
 
-The excerpt shows the request-specific reply; production also handles
-shutdown without losing an already completed reply. Starting the actor is lazy
-and idempotent. Repeated callers use the same Agent-owned mailbox consumer;
-an additional public Actor wrapper is unnecessary.
-Shutdown stops new work, cancels in-flight model requests, stops managed
-processes, joins workers, records their outcomes and saves. An arbitrary Go
-tool may not be cancellable: shutdown must wait for it, not discard its real
-result and pretend it stopped. Repeated shutdown is safe; later requests
-return a distinguishable stopped error.
+### Limits and lifetime
 
-Delete `Engine.Ask` and any sibling orchestration loop after migrating their
-callers, including legacy CLI prompt formats and embedding programs. Keep
-one-request rendering and transport in Engine and reduction/persistence
-in History. The Agent actor orders multi-round orchestration, turn setup,
-runtime context mutation and save-before-reply. Workers send facts through
-the mailbox; they do not append directly to live History. The synchronous API survives; the duplicate implementation does not.
+A positive `ToolRoundLimit` permits that many tool **batches** per human turn.
+Zero selects the named default of 200; a negative value disables the cap. After
+the last permitted batch, the model may consume its results and answer. If it
+requests another batch, execute none of it, pair every call as not executed, and
+return a distinguishable limit error. Do not edit signed assistant content or
+leave dangling results. The immutable Configuration supplies one policy per Agent.
 
-The same ownership rule applies to the tool-round limit. A positive N permits
-N dispatched tool batches in one human turn. Zero selects the named default
-of 200, not infinity. Read the effective setting once at turn start; chapter
-8's persisted setting must feed this same policy. After the Nth batch, allow
-the model to consume its results and finish. If it asks for another batch,
-execute none of it, record explicit not-executed results for every call and
-return a distinguishable limit error. Do not leave dangling calls or edit
-signed assistant content. A later instruction can start a new turn.
+Pause blocks new model/tool scheduling but continues processing inputs and
+completions. Resume continues automatically. Handle-free job controls can act
+while foreground work is held; they do not start a competing conversation turn.
 
-### Where is the concurrency?
+Immediate interrupt cancels HTTP and the current foreground observation, not
+independent Jobs. `after_tool` retains the current HTTP response or dispatched
+tool boundary, then refuses the remaining calls. Both modes end the active turn
+and leave the same Agent available. A late completion cannot dispatch stale calls
+or settle a newer request. The actor collects its outstanding completion before
+starting the next turn; independent Jobs keep their own output and handles.
 
-One actor goroutine owns the engine. A tool execution worker runs the
-handler; a separate job-report worker waits for completion, the callback
-deadline or an output pattern. These must be separate: a blocked handler
-must not prevent the model from receiving a running-job report. A callback
-is not cancellation. Both workers belong to the shutdown join.
+Shutdown closes admission, cancels in-flight transport/observation and controls,
+settles admitted requests, stops Jobs with reason `shutdown`, and joins workers.
+History and the parent paths remain attached until this cleanup finishes.
+Repeated shutdown joins the same lifetime. `Destroy` then removes relationships
+through the owning parents' methods, even when a joined fault must propagate.
 
-Workers return results and context effects through the mailbox rather than
-mutating the engine. The job subsystem synchronizes process state, output
-and completion; the actor owns the conversation. Count ownership boundaries,
-not a fixed number of goroutines.
+.NET cannot forcibly stop an arbitrary managed callback. The callback receives
+cancellation and must cooperate; one that ignores it can delay shutdown.
+PTY processes can be killed and drained. Do not claim a callback has vanished
+merely because a cancellation token was signalled or its Job status is killed.
 
-The minimalism is deliberate. Every lock is a place where two
-goroutines disagree about what is happening. Two goroutines can
-disagree in testable ways. Ten goroutines with a shared map disagree
-in ways that show up in production at 3 AM on a Saturday.
+## §5.6 Wait and flush
 
-> CodeRhapsody's Chapter 4 grader exposed five real concurrency bugs
-> in 120 parallel test runs. The root cause of every one was a parent
-> holding stale facts about a child: reading a field on one goroutine
-> while the actor goroutine wrote it. The fix each time was the same:
-> move the read to the actor goroutine, or make the mailbox the only
-> path between them. Two goroutines with one lock is not a style
-> preference. It is what survived the race detector.
+Use `WaitAsync(predicate, cancellation)` for display progress. Use the relevant
+request task for orchestration. A lossy state event cannot identify which of
+several queued prompts completed. `Ensemble.WaitAnyAsync` applies the same rule
+to the merged stream; it does not gather a group of reliable answers.
 
-That historical two-goroutine fix established the ownership boundary.
-The job-report worker preserves it while allowing callbacks before a tool
-returns. The goal is still minimal concurrency, with one execution owner
-and explicit messages across every boundary.
+`FlushAsync` is useful at a CLI's EOF: wait until active/queued turns and
+foreground controls settle. It does not close admission, resume paused work,
+or wait for independent background Jobs. Later inputs may extend the wait.
+Cancelling the waiter does not cancel those turns. Shutdown that discards
+unfinished work faults the pending flush rather than claiming it drained.
 
-## §5.6 The Wait primitive
-
-This chapter does not introduce agent state. It exposes it. The
-reader has had a state machine since Chapter 2: `TurnState` with
-`Idle`, `InputPending`, `InFlight`, `ToolsPending`. This chapter adds
-`Interrupted`, deliberately as a state rather than a flag, because
-the interrupted turn must not resume dispatch when a late result arrives.
-Replay reduces recorded facts; it does not execute tools. The state machine is a fact. The observer seam
-makes it visible. `Wait` makes it waitable.
-
-```go
-func (a *agent) Wait(ctx context.Context,
-    pred func(Observation) bool) (Observation, error)
-```
-
-`Wait` blocks until an observation satisfies `pred` or the context
-cancels. The current actor consumes a bounded observation channel; it is
-not a subscription replaying every event to every waiter.
-
-**Blocking send** uses the request-scoped completion described above, not
-`Wait` for a shared idle transition.
-
-**Wait for agent**, **join**, and **wake-any** can use observations to watch
-agent state. But an orchestration decision that requires completion cannot
-rest on a lossy progress stream. Track the relevant request completions
-reliably, then publish the resulting progress. A shared idle event cannot
-acknowledge a particular prompt, and a slow observer must not stall the
-actor just to prevent a dropped progress notification.
-
-The original check named `wake-once` verified observations and turn-ended
-records from distinct Agents. It did not measure wakeup count or simultaneous
-completion. The Edition 2 label is `multi-agent-observations`. This application
-coordinates stages sequentially; reliable request completion tells it when
-to pass a result to the next Agent. No grouped-results API is required.
+This is deliberately less machinery than a workflow engine. The application
+retains the author request task, then starts the editor after success, then the
+reviewer. Observations explain progress; reliable tasks decide transitions.
 
 ## §5.7 Hints and interrupts
 
-A hint is the same event as a prompt, distinguished by turn state.
-A message that arrives while the turn is idle starts a new turn. A
-message that arrives while the turn is in flight or tools-pending
-is a hint. Classification belongs to the Agent
-conversation owner using the current reduced state, not the stdin reader
-whose view can already be stale. Blocking `Ask`/`Submit` calls deliberately
-queue separate requests instead of becoming hints.
+A hint changes information for the next safe decision. An interrupt ends the
+current turn. Neither is permission to delete the Agent or kill independent
+work. The same mailbox accepts both while HTTP or a tool observation is waiting.
 
-The `HintReceived` event type exists for exactly this reason:
-without it, the reducer cannot distinguish
-"a new prompt arrived" from "a hint arrived during an active turn."
-Both carry text. The difference is when they arrived relative to
-the turn, and the turn state is the reducer's business.
+Test the two controls separately with a held real Job and several finalized
+calls in one batch. For a hint, assert that the current observation obeys its
+original three-second ceiling, every remaining call executes once, and the next
+request contains the hint with truthful results and stable running handles.
+Include a short observation, a fast result, repeated hints, and a fresh next-batch
+observation that must not inherit the ceiling. Release the held Jobs and retrieve
+their real completions through the same handles.
 
-> Bill's ruling on callbacks is absolute: a callback added to break
-> a Go dependency cycle is a red flag. The mailbox breaks no cycles.
-> It is the mechanism by which concurrent events enter a sequential
-> loop, not a workaround for a dependency the compiler rejected.
-> The Agent owns the conversation goroutine, queue and notification step.
-> If you find yourself adding function-pointer fields to break a
-> compile error, the dependency is real, and the fix is to move the
-> interface to the hub.
-
-An `Interrupt` ends the active turn, not the actor's lifetime. The actor
-continues draining its mailbox and recording results. A Go handler may
-still complete after the interrupt; its real output is not garbage. An
-explicit job kill has different semantics: it suppresses late output for
-that killed job. Shutdown must stop managed processes, join workers and
-save their outcomes rather than silently applying kill semantics to every
-non-cancellable Go function.
+For explicit Interrupt, assert that the first Job remains accessible but the
+undispatched calls never run and receive not-executed results. Then submit a fresh
+prompt and prove the Agent still answers. Repeat at the HTTP boundary: release a
+late response containing calls and prove that an ended turn cannot cause their
+effects. Use gates rather than sleeps to establish which boundary the test
+actually reached.
 
 ### The stdin protocol
 
-The CLI reads stdin on its own goroutine and posts to the
-agent's mailbox. The protocol is JSON lines:
+The CLI reads stdin asynchronously and posts to the Agent's mailbox. The protocol is JSON lines:
 
 ```json
 {"kind":"prompt","text":"Write a haiku about refactoring"}
@@ -751,120 +495,111 @@ Backward compatibility with the Chapter 1 format:
 {"user":"Write a haiku about refactoring"}
 ```
 
-A message with a `"user"` key and no `"kind"` key is treated as a
-separate request through the blocking adapter. This preserves the older
-protocol's request/reply behavior. Explicit live `prompt` or `hint` messages
-use current turn state; they can become hints while the Agent is busy.
+A message with a `"user"` key and no `"kind"` key queues a separate reliable
+request. The CLI continues reading stdin and emits `{"assistant":"..."}` replies
+in request order. Optional `parts` uses the public Part JSON format and takes
+precedence over `user` text, including an empty array. Media bytes are resolved
+only when projecting a request. Live `prompt` and `hint` inputs instead use the
+actor's current turn state; they can become hints while the Agent is busy.
+
+The C# CLI also accepts these direct actor operations:
+
+```json
+{"kind":"pause"}
+{"kind":"resume"}
+{"kind":"interrupt","mode":"after_tool"}
+{"kind":"tool","id":"host-1","name":"list_directory","arguments":{"path":"."}}
+{"kind":"shutdown"}
+```
+
+Interrupt mode defaults to `now`. Direct tool dispatch returns `tool_result`;
+its audit result is not an invented model-requested call. Live inputs have an `ack` after admission; direct tools acknowledge queuing and
+return their outcome later; shutdown acknowledges after joining. Live mode additionally
+emits lossy `observation` records with kind, sequence, text, accepted flag, state
+transition and optional part. These are progress, not request replies. Explicit
+interrupt/shutdown produces an error outcome for an unfinished reliable request.
+
+EOF calls `FlushAsync`: wait for active/queued turns and foreground controls, not
+independent background Jobs. Then shutdown cancels and joins remaining Jobs.
+Flush does not resume paused work; send `resume` or `shutdown` before EOF if work
+is paused. Explicit shutdown cancels instead of draining queued turns. Cancelling
+a flush waiter detaches only that waiter. New inputs may extend a flush wait;
+it is a quiescence wait, not a frozen-prefix barrier.
 
 ## §5.8 Managing multiple agents
 
-A single-agent framework is a special case. The same engine, the same
-mailbox, the same observer seam scales to N agents with one addition:
-a coordinator that tracks which agents exist and routes observations.
+Ensemble already owns the peer Agents. It is not supplemented by another
+coordinator root or mutable name registry. Construction supplies the real parent
+and optional name; `AddAgent` validates ownership and name uniqueness before
+changing either relationship end. `RemoveAgent` completes both ends. Destroying
+one root cannot touch a same-named Agent belonging to another root.
 
-```go
-// Ensemble already owns the peer Agents; it is not a second coordinator root.
-type AgentObservation struct {
-    Agent       Agent
-    Observation Observation
-}
-
-func (e *Ensemble) WaitAny(ctx context.Context,
-    pred func(AgentObservation) bool) (AgentObservation, error)
+```csharp
+var author = new Agent(app, authorConfiguration, name: "author");
+var editor = new Agent(app, editorConfiguration, name: "editor");
+var reviewer = new Agent(app, reviewerConfiguration, name: "reviewer");
 ```
 
-Each Agent has its own mailbox and execution loop. It reports observations
-through its Ensemble parent, which supplies the source identity in an envelope.
-`WaitAny` consumes one matching observation from that merged progress stream.
-It does not gather a group of request results. The application retains each
-request's own completion for decisions that must not be lost.
+Each immutable Configuration supplies its role's `PrimaryInstructions`.
+Installing tools appends tool-use guidance; it must not erase that role prompt.
+Each Agent owns its own concrete Tool objects, History, Engine, Jobs and mailbox.
+Two held requests on different Agents may progress concurrently; one Agent never
+has two model requests in flight.
 
-A Go program constructing three agents and passing messages between
-them is not an agent spawning children through its own tool surface.
-Multi-agent requires nothing beyond a framework, a prompt, and
-tools. This exercise is just Go. The
-distinction matters because a sub-agent chapter adds a tool surface
-for spawning; this chapter proves it is not necessary.
+The merged observation envelope carries the actual source Agent. A hint addressed
+to `author` uses `app.FindAgent("author")`, not a global fleet lookup followed by
+filtering. A callback reaches diagnostics through Job → Jobs → Agent → Ensemble.
+Application data such as the manuscript has one authoritative home, not one copy
+per role.
 
-> A framework that manages agents is a parent. The
-> observation stream is how the parent watches its children. A
-> future agent supervisor can use progress from this seam alongside reliable
-> completion. Its spawning and waiting contract is not defined by this exercise.
-> The alternative is reading the child's history file. One
-> supervision call built that way returned 307,984 bytes, roughly
-> 13% of a context window, because it had no volume contract. The
-> observer seam, delivering events as they happen, returned 3,447
-> bytes for the same purpose.
-
-The third agent is the proof. If adding it requires a single
-change inside the framework package, the seam is incomplete.
+This chapter's peers are constructed by application code. They are not children
+spawned by a model tool. Adding the reviewer must not require a new library
+workflow API; the application simply constructs another Agent and awaits its
+reliable request. Sub-Agent ownership and spawning contracts remain later work.
 
 ## §5.9 Media capabilities
 
-Accepting images does not imply accepting audio. Accepting audio does
-not imply accepting video. A renderer that silently drops
-an unsupported part is the Chapter 1 mistake: the model does not see
-what the programmer sent, and neither one knows.
+Image, audio, video, and document support are independent facts. `ModelFeatures`
+uses separate flags for them. Do not infer audio support from image support, or
+silently omit a part the selected model cannot accept.
 
-`ModelFeatures` declares what a model accepts:
+`Engine.LookupModel(vendor, model, out features)` is an exact lookup. The small
+Chapter 5 table declares images for `claude-3-haiku-20240307`, `gpt-4o`, and
+`gpt-4o-mini`, and image/audio/video/PDF input for `gemini-2.5-flash`, each under
+its own vendor. These are the renderer's supported declarations, not a claim
+that a paid live request was run or that a model remains available indefinitely.
+An unknown identifier still works for text; there is no default attachment row.
 
-```go
-type Media uint8
-const (
-    MediaImage    Media = 1 << iota
-    MediaAudio
-    MediaVideo
-    MediaDocument
-)
+The renderer checks capabilities before reading a file or starting HTTP. An
+unsupported attachment produces an error such as:
 
-type ModelFeatures struct {
-    Media Media
-}
+```text
+Model 'claude-3-haiku-20240307' does not support audio media.
 ```
 
-`LookupModel(model) (ModelFeatures, bool)` has no default row.
-An unknown model returns `false`. If a blob needs rendering, the renderer
-refuses rather than guessing its support; text alone is still allowed. For
-an unsupported audio attachment, the diagnostic names both facts:
+`BlobRef` is value-like: it has no owning parent because it describes an address,
+not an owned file. Its `Kind` and `Locator` remain in canonical events and survive
+as a locator when a blob is redacted. Rendering calls `Data()` only on local-path
+references and creates disposable vendor JSON containing the actual bytes:
 
-```
-error: model "claude-3-haiku-20240307" does not support audio;
-       cannot render BlobPart with Ref{Kind:RefPath, Locator:"recording.mp3"}
-```
+- Anthropic uses an image block with a base64 source and MIME type.
+- OpenAI Chat Completions uses an `image_url` block containing a data URI.
+- Gemini uses `inlineData` with its MIME type and base64 data.
 
-The error names the model and the media type. The programmer reads
-the error and knows what to change. A silent drop would do nothing,
-and the programmer would debug the prompt for an hour before
-discovering the audio was never sent.
+The surrounding text parts retain their order. History does not acquire base64
+content or a second authoritative file cache. A missing file is an error; a saved
+locator cannot guarantee that external content remains available forever.
 
-The blob part uses the `Ref` already carried by the event log:
-
-```go
-type RefKind uint8
-const (
-    RefPath   RefKind = iota + 1
-    RefURI
-    RefHandle
-)
-
-type Ref struct {
-    Kind    RefKind `json:"kind"`
-    Locator string  `json:"locator"`
-}
-```
-
-Three locator kinds cover the three ways content arrives: a local
-file path, a remote URI, and a handle to a job's output. The Ref
-carries through redaction: when a `BlobPart` is superseded, its `Ref`
-survives in the `RedactedPart`, so the address survives. This does not guarantee that an external file
-or job output remains available forever. Local-path rendering reads the actual
-file bytes into the vendor attachment; preserving a locator alone is not media
-support. URI and handle attachment rendering remain deferred.
+URI and job-handle attachments remain deferred. Unsupported tool-result media
+placements also fail explicitly: this adapter cannot turn a blob into empty
+text and pretend the model received it. Anthropic's nested result blocks can
+carry supported images; the current OpenAI and Gemini tool-result projections
+are text/structured-result projections, not media containers.
 
 ## §5.10 Exercise: Author, Editor, Reviewer
 
-Build `ch06/main.go` in a separate Go module importing the public core,
-as the Chapter 4 consumer did. Three agents, three roles:
+Build `Examples/Workflow/Workflow.csproj` as a separate C# assembly referencing
+the public library, as the Chapter 4 consumer did. Three agents, three roles:
 
 **The author** receives a topic and writes a first draft. Its tools
 are `write_draft` (stores text) and `word_count` (returns the count).
@@ -894,11 +629,11 @@ only on the author in this application; it is not an Ensemble builtin or a
 substitute for the actual manuscript tools.
 
 The workflow is sequential: author writes, editor edits, reviewer
-reviews. The application advances through reliable `Ask` or `Submit` completions.
-`Post` delivers live hints; `Wait` watches progress.
+reviews. The application advances through reliable `SendAsync` or `SubmitAsync` completions.
+`PostAsync` delivers live hints; `WaitAsync` watches progress.
 Each agent uses the same vendor (the fake from Chapter 2) with a
-different system prompt. The workflow is hardcoded Go. Every new
-collaboration pattern is a new Go program. That is the limit this
+different system prompt. The workflow is ordinary C# application code. Every new
+collaboration pattern is a new application program. That is the limit this
 chapter reaches; agent-created collaboration remains later work. The
 framework works; the rigidity is in the glue code, not in the
 framework itself.
@@ -913,10 +648,10 @@ The binary reads JSON events on stdin, writes observations as JSON
 lines on stdout, and logs to the path in `CH06_LOG`. The grader
 drives the fake vendor to script specific responses for each agent.
 
-The reference workflow is in
-[`solutions/ch05/ch06/`](../solutions/ch05/ch06/).
-Keep the historical `ch06` application directory and `CH06_LOG` name for
-compatibility. Build that module separately. The local provider fake supplies
+The C# workflow is in `agent/Examples/Workflow`.
+Keep the historical `CH06_LOG` environment name for protocol compatibility.
+Build that project separately. This offline exercise requires a loopback
+endpoint; it does not grant paid-provider access. The local provider fake supplies
 the ordinary Anthropic adapter environment (`LLM_VENDOR=anthropic`, a model,
 a dummy `LLM_API_KEY`, and its loopback `LLM_BASE_URL`), not a new vendor enum.
 The grader starts the application without arguments in a disposable directory.
@@ -929,7 +664,7 @@ It sends a prompt, a hint addressed to the author during `think`, then EOF:
 
 Emit observations with the `observation` discriminator and external `agent`
 tag. The kinds are `state_changed`, `part_delta` and `part_final`; their
-payload fields are shown above. A hint acknowledgment is a delta whose
+payload fields are specified in the exercise walkthrough below. A hint acknowledgment is a delta whose
 `chunk` begins `hint:`. After each actual request completes, the application
 emits its completion record and stage marker:
 
@@ -946,150 +681,96 @@ another's. EOF waits for the submitted workflow before shutdown.
 
 ## §5.11 What this chapter does not build
 
-Streaming observations arrive as `PartDelta`, but the vendor seam
-from Chapter 2 does not stream yet. It returns a complete response in
-one block. The `PartDelta` type exists so that when streaming lands,
-observers get incremental updates without an interface change.
+There is no streaming transport, GUI, model-driven spawning, grouped-results API,
+URI fetching, or job-handle attachment resolver here. The workflow's whole-part
+delta is not a token stream. `BlobRef` can describe URI and handle locators, but
+this renderer rejects them explicitly. These omissions are boundaries, not
+silent fallbacks.
 
-The `Ref` type supports `RefURI` and `RefHandle` alongside `RefPath`,
-but the renderers only handle `RefPath` so far. A vendor that accepts
-a URL instead of inlined bytes needs the URI form; a tool whose
-output is too large for inline needs the handle form. Both are future
-extensions to the renderer, not to the Ref type.
-
-Sub-agent spawning and its supervision contract remain future work.
-Today the Go application constructs peer Agents and passes results between
-them. These seams provide useful foundations without claiming that a lossy
-`Wait` supplies every future join contract. You now have a hint
-channel and a terminal to type into. Streaming and the GUI still lie ahead.
+The actor and progress seam provide foundations for later chapters. They do not
+turn a lossy `Wait` into a future supervision contract. Keep the current surface
+small and teach its exact promises before adding new ones.
 
 ## Taking it for a spin
 
-Run the exercise against the fake vendor and watch the observations
-stream on stdout. Three agents have their own state transitions. The
-following abridged shape is illustrative, not a captured provider transcript:
+Build the actual library tests, CLI and separate consumer using the approved
+.NET 10 SDK. The working CLI project retains the historical `Ch04.csproj` and
+`ch04` assembly names; that is a filename, not the chapter boundary.
+
+```sh
+dotnet run --project agent/Tests/Tests.csproj
+dotnet build agent/Cli/Ch04.csproj
+dotnet build agent/Examples/Workflow/Workflow.csproj
+```
+
+Use an owned loopback fake and dummy credentials for local exercises. Set
+`LLM_VENDOR`, `LLM_MODEL`, `LLM_BASE_URL`, `LLM_API_KEY`, and an owned `CH06_LOG`
+path for the workflow, then run its compiled DLL. The exercise fake must actually
+call `think`, `write_draft`, `word_count`, `read_draft`, `edit_draft`, and `review`;
+a fake that merely returns final prose does not test manuscript sharing.
+
+Send the topic, wait until the author's real `think` Job starts, then send the
+addressed hint shown in §5.10 and EOF. Inspect all three captured role prompts and
+tool declarations. The next author request must contain the hint, the first
+Job's real running report and actual results for every remaining finalized call.
+Verify those calls execute exactly once; a hint must not produce a not-executed
+substitute. Verify the
+stored author's text reaches the editor, the edited text reaches the reviewer,
+and the review decision and notes are actually returned by `review`. The three
+reliable pipeline markers must occur in order before exit zero. Tagged progress
+may be dropped; those markers do not depend on it.
+
+Illustrative output shape, not a captured provider transcript:
 
 ```json
 {"observation":"state_changed","agent":"author","from":"idle","to":"input_pending"}
-{"observation":"state_changed","agent":"author","from":"input_pending","to":"in_flight"}
 {"observation":"part_delta","agent":"author","part_id":1,"chunk":"A draft about the ocean."}
 {"observation":"part_final","agent":"author","seq":3,"part_id":1,"part":{"type":"text","text":"A draft about the ocean."}}
 {"observation":"turn_ended","agent":"author"}
 {"pipeline":"author_done"}
 ```
 
-The editor and reviewer produce their own tagged progress and completion
-records after their requests finish. The non-streaming response produces a
-whole-part delta and finalizer; there are no live token chunks yet.
+The consumer's `state_changed` fields are `from` and `to`; whole-text
+`part_delta` carries `part_id` and `chunk`; `part_final` carries `seq`, `part_id`
+and the complete serialized `part`. Display IDs are unique within this consumer
+run; they are not durable History identities. Agent sequence numbers remain local
+to that Agent. The shared application log records the same output lines, while
+`CH06_LOG.author.jsonl`, `.editor.jsonl` and `.reviewer.jsonl` preserve separate
+canonical histories.
 
-The observation stream is the display story; request replies carry completion.
-The framework tells you
-what happened, in order, and you decide what it means. A logger writes
-it to a file. A GUI renders it as a chat. The application displays progress
-and uses the separate request reply
-to decide when to send the next prompt. The observer seam carries all
-three without knowing about any of them.
+Also exercise the single-Agent CLI: queued legacy replies, a live prompt and hint
+during held HTTP, pause/resume, both interrupt modes, direct host tools, explicit
+shutdown and EOF. Do not use a sleep alone as proof that a tool has started.
+Check its real dispatch event or gated handler before sending the control.
 
-Now try it with a real vendor. Build your own core from its module root:
-
-```sh
-go build -o /tmp/ch5agent .
-```
-
-Use the credential procedure from Chapter 0: configure the intended child's
-`LLM_VENDOR`, discovered `LLM_MODEL`, and `LLM_API_KEY` without printing keys
-or putting them in command arguments. Use a scratch working directory for
-jobs. `CH02_LOG` selects the core event log; the separate workflow uses
-`CH06_LOG`. Start the actual human interface:
-
-```sh
-CH02_LOG=/tmp/ch5-chat.jsonl /tmp/ch5agent chat
-```
-
-Type ordinary text. Ask for a bounded job such as a shell sleep followed by
-printing a marker. While it runs, type a hint. The hint acknowledgment should
-arrive before the tool finishes. Type `/interrupt`, then a new question.
-The new turn should answer while the older job continues. Inspect its retained
-output afterward. Ctrl-C also interrupts the current turn; Ctrl-D ends the
-session and runs shutdown. An interrupt is not a way to quit the Agent.
-
-The accepted implementation did this on October 9 with
-`claude-haiku-5-5`. A 12-second shell job was still running when the CLI
-acknowledged `Hint: remember the marker COMET.` at 22:45:22.121672 UTC.
-Interrupt followed at 22:45:22.172780. The new turn answered `COMET` at
-22:45:23.081200; the job's real report arrived at 22:45:34.088930 with
-`REAL_LATE_RESULT`. The interface was usable roughly eleven seconds before
-the old work finished. That is the point of keeping the actor alive.
-
-The [retained CLI transcript](../solutions/evidence/ch06/live-cli-transcript.json)
-and event log preserve one correction: the initial implementation emitted
-`job_finished` with status `running` when the shell handler returned after
-launch. The final guard emits that event only for a terminal job snapshot.
-The real late output in the demonstration was correct; the record was kept
-and no paid run was repeated for the metadata repair.
-
-Build the three-role application from its own module root:
-
-```sh
-go build -o /tmp/ch5workflow .
-```
-
-Run it from a scratch directory with the same provider setup, then supply
-one topic as JSON. All three roles use the same vendor and different prompts:
-
-```sh
-CH06_LOG=/tmp/ch5-workflow.jsonl /tmp/ch5workflow
-```
+For local media, `parts` takes precedence over fallback text. `kind:1` below is
+the public codec's local-path Ref kind:
 
 ```json
-{"kind":"prompt","text":"Write about the ocean at dawn"}
+{"user":"ignored fallback","parts":[{"type":"text","text":"Describe this."},{"type":"blob","mime":"image/png","ref":{"kind":1,"locator":"/your/owned/image.png"}}]}
 ```
 
-EOF waits for this workflow. An interruption of a role returns that request's
-error rather than advancing with an incomplete draft. The historical example
-module remains named `ch06`; the book's new chapter number does not rename
-its source or evidence paths.
+With a declared image-capable model, inspect the captured request's actual bytes,
+not just its MIME label. The saved event must retain only the locator. Unsupported
+media on a text-only/unknown model must fail before a network request. Replay the
+logged prefix preceding each `RequestSent` through the same vendor/model renderer
+and compare it byte-for-byte with the live request. Replay must need no provider
+key and must not rewrite canonical History.
 
-The October 9 Gemini run used `gemini-3.8-flash` for all three roles. The
-author called `write_draft`, `word_count`, and `think`. Asked for 60 words,
-it first stored 59, saw the actual count, added the word `night`, rewrote the
-draft and counted 60. The editor called `read_draft` and `edit_draft`; the
-reviewer called `review` and accepted the
-edited draft. The reviewer received the stored edited text, not merely a
-claim that an editor had run. The full tagged observations and three separate
-Agent logs remain in [the workflow evidence](../solutions/evidence/ch06/live-workflow-transcript.txt).
+The local verification of this C# endpoint covers actor/component behavior,
+three-vendor image projection, Gemini WAV/PDF byte projection, representative
+video-container bytes, the scoped executable grade, and the external three-role
+workflow. Video bytes do not prove a decodable movie. Loopback fixtures do not
+prove current model availability, remote acceptance, or live-provider behavior.
+Real-provider exercises remain incomplete because the authorized allowance is
+exhausted. No installation into the working Ensemble follows from these tests.
 
-Media received its own, different demonstration. A separate public-API client
-sent a local 96×96 red PNG to `gpt-5.4-mini`, which answered `red`. The same
-renderer refused an audio part with `model "gpt-5.4-mini" does not support audio
-media`. These [media receipts](../solutions/evidence/ch06/live-media-transcript.txt)
-show actual image consumption and a local refusal; audio, video and PDF
-positive cases were checked deterministically at the rendering boundary,
-not presented as additional live model runs.
+### Historical context, not carried evidence
 
-| Retained run | Input tokens | Output tokens |
-| --- | ---: | ---: |
-| Anthropic human CLI | 4,431 | 177 |
-| Gemini author | 5,695 | 1,157 |
-| Gemini editor | 1,310 | 591 |
-| Gemini reviewer | 663 | 324 |
-| OpenAI image client | 63 | 4 |
-
-All recorded cache-read and cache-write counts were zero. This was one
-feature-specific demonstration per vendor, not every feature on every vendor.
-Original grading remained **80/100 FAIL**: inherited logger-shape parity and
-a text-only unknown-model refusal probe failed. Independent review accepted
-those documented exceptions; neither was evidence that unsupported media had
-been silently dropped.
-
-One review mistake also belongs in the lesson. The initial reviewer demanded
-grouped completion from the misleading one-wakeup paragraph, and the student
-agreed before stopping at the undefined contract. Bill withdrew that requirement.
-A real correction remained: changing Gemini's `mimeType` key survived a test
-that only looked for bytes somewhere in the request. The repaired test decoded
-the actual attachment fields and caught both wrong MIME and wrong data keys.
-A mutation can reveal a weak test; an agreeable reviewer cannot settle missing
-scope. The [chapter record](../docs/edition-2-notes/ch06.md) preserves both
-corrections and the original results.
-
-The agent was deaf. Now it listens.
+The retained Go chapter described a Gemini ocean-writing workflow and an
+Anthropic cartoon-image test, and linked a historical ocean conversation. Those
+runs motivated the exercise, but they are not runs of this C# endpoint. The
+important lesson survives: application code supplies roles and manuscript tools;
+the actor handles transport, hints, jobs and reliable completion without knowing
+what an author or editor is. Streaming, the GUI and model-created collaboration
+still come later.

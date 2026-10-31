@@ -1,25 +1,53 @@
-# Epilogue: What the student changed
+# Epilogue: What we can rebuild
 
-The first attempt to revise the book failed before the student could provide the intended lesson. An author was placed ahead of the student to improve each assignment. A small persistence exercise became a larger system: 254 physical lines of production Go in the original implementation, 4,585 in its replacement, excluding tests and measured against each version's predecessor. The reviewer approved the expansion. Bill stopped the attempt and preserved it for inspection.
+Bill describes the origin of this work in a sentence: “I gave Astra a book. Astra gave me an AI coding agent.” The book carried a construction sequence, explanations, and checks. Executing it produced an application he could use. Work on a later implementation then took place inside the environment that earlier work had produced.
 
-The [original epilogue](../edition-3/epilogue.md) records the problem plainly: the review had checked whether the student built the revised assignment correctly, not whether the revision still served the original task. The failure wasn't that large programs are necessarily bad. The assignment had changed before its supposed improvement was tested.
+That is a more interesting result than a large pile of generated source. It also leaves a harder question. Which of the judgments that made the application useful can the next execution recover?
 
-The restart reversed that order. The student used the original book and graders, with access to its own preceding implementation but not the old answers. A reviewer compared implementations after the student had built and tried each chapter. Only then did the teaching change. That preserved a stable instruction against which a misunderstanding could be explained.
+The C# work did not answer that by removing the expert. Bill corrected the architecture, challenged unnecessary mechanisms, resolved requirements, and insisted that the code remain teachable. Compilation could establish that partial declarations had matching implementations. It could not establish that the relationships were sensible, that the assistant had preserved one authoritative fact, or that the next reader could follow the cleanup.
 
-## Corrections with a cause
+Two late repairs show what that involvement was protecting.
 
-The tool-loop assignment told the student to record text and tool calls, then continue until the model stopped requesting tools. The student also concatenated intermediate narration into the answer returned to the caller. The unchanged grader rejected it. Returning only the final response's text raised the recorded score from 55 to 90 out of 100; a separate inherited media check still failed. The corrected teaching distinguishes what belongs in conversation history from what the caller receives.
+## The input that was already there
 
-The memory assignment contained a different error. It described a compression trigger using cumulative input tokens. A lifetime total cannot fall when context is compressed. Bill clarified that the trigger should use input from the preceding request, including cached input once. The authors checked the accounting contracts and original implementation, recorded the assistance, and corrected the explanation. Here the student's difficulty exposed a wrong instruction, not a wrong implementation.
+The memory compressor's captured input already contained the existing long-term memory. A later step appended that memory again while preparing the worker request.
 
-A Gateway check exposed a wrong test. A deliberately defective implementation returned the expected refusal to a child's key-registration request while still registering the forbidden key. The revised grader initially passed it. Trying that key afterward revealed the unauthorized access. The stronger check rejected the same defect, and the initial passing result remained in the record to explain why the test had changed.
+Taken separately, each function looked reasonable. Capture included the information needed to understand the conversation. Request construction made sure the summarizer had the current memory. Taken together, they sent the same material twice.
 
-These are three different repairs: clarify the result contract, correct the measurement, observe the forbidden consequence. Treating all three as “the model made a mistake” would discard the knowledge needed to prevent their recurrence.
+A local test of either function could have reinforced the mistake. The useful test used the real capture formatter and traced the complete request. Once the duplicated input was visible, the repair was to keep one authoritative formatting path, not introduce a policy for reconciling two copies.
 
-## Beyond the construction tests
+The same mistake can occur without an LLM anywhere nearby. One layer adds a default, another layer helpfully adds it again, and neither knows which one owns the decision. Model requests make the cost easy to observe: the duplicate consumes context and money, and may change the emphasis of the input. The structural problem is older than the API.
 
-Daily use added another kind of evidence. As [Chapter 25](chapter-25.md) records, the second-edition crossover exposed an old executable behind a changed speech control, stale JavaScript after a server restart, and a total HTTP deadline that killed legitimate responses. A source edit, a build, an installation and an observed running change were separate events. Construction tests hadn't eliminated those integration failures.
+The chapter needs to preserve the reason for the repair. “Include memory exactly once” is a useful assertion. Knowing that capture already owns its inclusion tells the next engineer where a new feature belongs.
 
-That crossover advances beyond the original epilogue's then-unfinished plan. It doesn't establish a recurring autonomous improvement cycle, or new Edition 3 execution results. Likewise, the local tests behind [Goals](chapter-27.md) establish timer, admission and display behavior, not that a real model will reliably choose the right next action. A reminder provides another opportunity to inspect unfinished work; it doesn't supply the missing judgment.
+## The task that was already done
 
-The durable result is more specific than a successful demonstration. The next implementation can distinguish an answer from its history, current context from lifetime usage, a refusal message from denied access, and saved instructions from evidence of completed work. The codebook makes those distinctions executable. This companion preserves the failures and reasons behind them, so the next technical lead can change the implementation without having to rediscover why they matter.
+Goals initially had local checks for file refresh, reminders, pause, interruption, and GUI controls. A delegated Agent could nevertheless publish its result and leave reminders enabled. Later, a timer could admit more work for a task whose parent had already received completion.
+
+The missing boundary was successful submission. It was not enough to disable reminders whenever the model tried to submit: a malformed result or failed durable write leaves the task unfinished. It was not enough to wait for generic idle status: an idle Agent may still owe the parent an answer.
+
+The correction stopped reminders only after durable publication succeeded. The actor retained responsibility for timer disposal. The goal file remained available, and the parent's configuration stayed unchanged. A follow-up check then exposed a stale status snapshot still showing the old deadline; the visible account of the task needed to agree with its new state too.
+
+Each individual feature had a plausible implementation. Their composition lacked one important transition. The failure became understandable only by following the whole operation from the parent's request through the child's accepted result and into the later timer wake.
+
+This is why ownership and lifecycle occupy so much of a book nominally about talking to language models. The network call is only one participant. The application also has to know what has ended, which obligations remain, and which object is allowed to make that decision.
+
+## Preserve reasons, not a legend
+
+A passing test is evidence about the path it exercised. It is not an architectural review, a provider agreement, or a prediction that the next model will cooperate. A local fake can show that cancellation reaches the transport. It cannot establish that a commercial endpoint accepts today's credentials. A speech transcript can expose missing words without showing that a listener can comfortably understand them.
+
+The useful response is to keep the evidence attached to the claim. Historical observations stay historical. A current experiment reports the request that was admitted, the result that was measured, and the attempts that never reached measurement. A defect found by inspection is not promoted into a demonstrated runtime failure. An experiment that required expert correction is not presented as unattended success.
+
+That discipline keeps the book open to improvement. It also prevents ordinary setup mistakes from acquiring the prestige of discoveries. Guessing a filename or a method signature and receiving an error consumes time; it need not reveal anything about the product. Reading the source before making the change is still cheaper.
+
+The agentic codebook attempts to preserve enough knowledge to rebuild the system. This companion attempts to make that knowledge available to an engineer without requiring the engineer to execute every specification. Neither artifact makes judgment obsolete. They make the judgments visible enough to question and specific enough to test.
+
+Calling generated source a secondary artifact does not lower its quality requirements. Regenerating tangled ownership or incomplete cleanup is not a useful kind of reproducibility. The result still has to be worth maintaining, and its explanations must remain accurate as it changes.
+
+The next execution may use a better model, encounter a changed provider, or reveal an ambiguity nobody noticed. The durable contribution is a route back to the decisions: what was authoritative, what the alternative broke, what observation supported the repair, and what remained uncertain.
+
+That is knowledge an engineer can carry into a different agent, or a different kind of program altogether.
+
+*Related account: [codebook epilogue](../epilogue.md).*
+
+Source: [Codebook epilogue](../epilogue.md).

@@ -1,0 +1,23 @@
+# Chapter 26 companion independent review
+
+## Scope and disposition
+
+Read the complete current `book/companion/voice.md`, Edition 3 Chapter 26 through its exercises, launch instructions and ending, accepted companion Chapter 25 and its author note. Recovered clipped source and voice output. Requested stable-file release once for both Chapter 26 files, waited for the editor's explicit release of both, then fully read `book/companion/chapter-26.md` and `docs/companion-notes/chapter-26-author.md`.
+
+No material correction found. Recommend acceptance on this review, with one optional clarification below; final acceptance belongs to the editor. No manuscript or author-note edits made.
+
+## Findings against the actual source
+
+**Authentication and authority — no material mismatch.** Source §26.1, “Why the agent needs a router,” §26.2 and §26.3, “Trust stamped at the boundary,” distinguish the pinned-key Noise-KK session from its WebSocket transport, and configured identity from routing permission. Companion “Authentication across an intermediary” and “Identity is not authority” retain those distinctions, including X25519 rather than signing keys, the candidate URL identity, encrypted `hello`, authorizing-group trust selection, replaceable contactability and policy-checked replies. The passive-intermediary and endpoint limits do not inflate the cryptographic claim. The paragraph beginning “The readable header” correctly refuses to equate authentic provenance with model obedience. The Puffin paragraph also preserves the source's unresolved adapter-to-human identity mapping rather than claiming Discord users are already authenticated by Gateway.
+
+**Delegation — optional clarification, not blocking.** Source §26.3, “Trust stamped at the boundary,” describes narrow-only child registration; TL;DR exercise row 7 expressly requires independent child connection via Noise-KK, and §26.7 also requires an independently connecting child. Companion “Delegation narrows; administration changes policy” accurately preserves subset-only grants, non-replacement of an existing key, and the separation between network identity and task/process ownership. It does not expressly repeat independent connection. Adding that short fact could prevent a reader from imagining that registration lends the child the parent's session. Existing authentication and identity explanations already support the correct reading, so this is optional, not a missing authorization boundary. The separate runtime-administration account correctly retains operator-owned `group-admin`, immutable configured memberships and removal of stale contactability references.
+
+**Acceptance and recovery — no material omission.** Source §§26.4–26.6 supply the callback deadlock, FIFO admission, worker publication/shutdown and replay mechanisms. Companion “Acceptance must leave reception running” and “What a receipt can recover” preserve their causal links rather than merely naming APIs. In particular, sender-side queue admission, receiver acceptance and final/durable model completion remain distinct. Explicit reconnect, duplicate replay, post-ack task loss, retained sequence allocation, periodic nontransactional snapshots and plaintext data-directory risk are all present. The recorded callback-notification test mistake is correctly attributed to the source, not presented as new reviewer verification.
+
+**Historical evidence and attribution — no overclaim.** Source §26.6, “What the actual interview said,” bounds the three-process/four-request result. Companion “What the interview established” keeps it second-edition history, retains the original transcript link, and separates model opinions from measured friction and zero cache reads from cache benefit. It expressly excludes refusal, child narrowing and reconnect conclusions from the successful interview alone. The opening attributes the Deephold/OpenClaw/Puffin account to Bill's source account; no invented anecdote, quotation or unsupported performance number appears.
+
+## Form and limits
+
+Source and companion H1 are exactly `# Chapter 26: Gateway`. The prose is human-first and explanatory, without exercise recipes, API dumps, tables, quotas or repetitive closing morals. Essential exercise knowledge survives as mechanisms and limits. Chapter 25 carryover is accurate. The author note's stated choices and historical-evidence limits match the saved manuscript; its reported length comparison is descriptive, not an acceptance quota.
+
+This was a document review, not independent corroboration of linked execution evidence. No waived legacy documents, implementation investigation, Git, children, builds, runtime tests, graders or lint campaign were used. Only this review note was written.

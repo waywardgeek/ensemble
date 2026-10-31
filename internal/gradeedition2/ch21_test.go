@@ -13,7 +13,7 @@ import (
 // TestStructuredManagement23 exercises corrected submission, owned durable
 // retrieval and exact GUI replay through the real optional application.
 func TestStructuredManagement23(t *testing.T) {
-	bin, cleanup, err := grade.Build("../../solutions/ch21/gui")
+	bin, cleanup, err := grade.Build("../../edition-2/solutions/ch21/gui")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -74,7 +74,7 @@ func TestManagementReplayText23(t *testing.T) {
 // TestManagementRootBuildFailure23 prevents an unexecuted root-chat predicate
 // from earning the combined regression row when only the core can be built.
 func TestManagementRootBuildFailure23(t *testing.T) {
-	bin, cleanup, err := grade.Build("../../solutions/ch21")
+	bin, cleanup, err := grade.Build("../../edition-2/solutions/ch21")
 	if err != nil {
 		t.Fatal(err)
 	}
