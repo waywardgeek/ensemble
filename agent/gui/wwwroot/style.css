@@ -201,6 +201,8 @@ code { font-size: .9em; color: inherit; }
    multiline input scrolls inside instead of taking space from the conversation. */
 #compose { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: .25rem; flex: none; min-height: 0; border-top: 1px solid var(--edge); background: var(--surface); padding: .25rem .4rem; }
 #compose textarea { --input-height: calc(1.5em + .5rem + 2px); width: 100%; line-height: 1.5; height: var(--input-height); min-height: var(--input-height); max-height: calc(7.5em + .5rem + 2px); padding: .25rem .35rem; resize: none; overflow-y: auto; }
+/* Keep the composer calm while typing; focus indicators elsewhere stay intact. */
+#compose textarea:focus { border-color: var(--control-edge); box-shadow: none; outline: none !important; }
 /* Keep the hit target generous while the transparent artwork stays compact.
    Hover and keyboard focus still identify this as an actionable control. */
 #send {

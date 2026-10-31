@@ -1,3 +1,19 @@
+# 2026-10-31 — Keep the message input’s unfocused appearance
+
+Bill clarified that the bright focus border meant the bottom message-entry box,
+not the transcript. Added a composer-only focus rule retaining its normal border
+color and removing the focus glow/outline. Other controls retain their focus
+indicators. Twelve real-Chrome theme/font/viewport checks passed: mouse and keyboard
+focus leave input border/background/shadow/outline unchanged, text entry works,
+and Send keeps its keyboard-focus indicator. GUI build passed without warnings or
+errors; GUI assembly and symbols staged by rename and verified. No restart,
+launcher changes or other installation edits. Prior blue bubble was accepted by
+Bill (“Looks great”). Evidence: `/private/tmp/cadence-gui-sizing/`
+(`check-composer-focus.cjs`, `composer-focus-geometry.json`,
+`build-composer-focus.log`, `staging-composer-focus.json`).
+
+---
+
 # 2026-10-31 — Restore visible blue to the dark AI bubble
 
 Bill reported that #08151f appeared black, with no visible blue. Adjusted only the
