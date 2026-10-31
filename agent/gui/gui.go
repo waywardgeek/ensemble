@@ -21,6 +21,8 @@ import (
 type Server struct {
 	application    *ApplicationConfigStore
 	activeProvider ProviderSettings
+	digest         *digestAuthentication
+	serving        bool
 	agent          ensemble.Agent
 	root           *ensemble.Ensemble
 	views          map[ensemble.Agent]*agentView
@@ -236,7 +238,17 @@ func (s *Server) Handler(directory string) http.Handler {
 	}
 	mux.Handle("/", http.FileServer(assets))
 	mux.HandleFunc("/ws", s.socket)
-	return mux
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		s.mu.Lock()
+		s.serving = true
+		guard := s.digest
+		s.mu.Unlock()
+		if guard == nil {
+			mux.ServeHTTP(w, r)
+			return
+		}
+		guard.handler(mux).ServeHTTP(w, r)
+	})
 }
 func (s *Server) socket(w http.ResponseWriter, r *http.Request) {
 	// Gorilla's default browser origin policy requires the same HTTP host.

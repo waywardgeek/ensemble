@@ -27,6 +27,9 @@ func main() {
 	}
 }
 func run() (runErr error) {
+	if len(os.Args) > 1 && (os.Args[1] == "auth-init" || os.Args[1] == "auth-reset" || os.Args[1] == "gui-auth") {
+		return runGUIAuth(os.Args[1:], os.Stdout)
+	}
 	if len(os.Args) > 1 && os.Args[1] == "auth" {
 		root := ensemble.New(os.Stderr)
 		if err := authcli.Configure(root); err != nil {
@@ -64,6 +67,7 @@ func run() (runErr error) {
 		defaultPort = application.Snapshot().GUIPort
 	}
 	port := flag.Int("port", defaultPort, "localhost HTTP port")
+	guiAuthFile := flag.String("gui-auth-file", "", "private GUI Digest credentials (default: data directory/gui-auth.json)")
 	directory := flag.String("gui-dir", "", "override embedded GUI assets with a disk directory")
 	vendor := flag.String("vendor", "", "anthropic, openai or gemini")
 	flag.StringVar(&cfg.Model, "model", cfg.Model, "discovered provider model")
@@ -89,7 +93,7 @@ func run() (runErr error) {
 		var incompatible string
 		flag.Visit(func(f *flag.Flag) {
 			switch f.Name {
-			case "config":
+			case "config", "gui-auth-file":
 			case "port", "gui-dir", "gui-debug":
 				fmt.Fprintf(os.Stderr, "GUI launch override: --%s=%s\n", f.Name, f.Value.String())
 			default:
@@ -134,6 +138,28 @@ func run() (runErr error) {
 		cfg.DataDir = "cr"
 	} else {
 		registryDirectory = filepath.Dir(application.Path())
+	}
+	explicitGUIAuth := false
+	flag.Visit(func(value *flag.Flag) {
+		explicitGUIAuth = explicitGUIAuth || value.Name == "gui-auth-file"
+	})
+	authPath, err := guiAuthPath("127.0.0.1", cfg.DataDir, *guiAuthFile, explicitGUIAuth)
+	if err != nil {
+		return err
+	}
+	authReserved := []string{
+		filepath.Join(registryDirectory, "debug.log"), filepath.Join(registryDirectory, "api.log"), filepath.Join(registryDirectory, "gui.log"),
+		filepath.Join(registryDirectory, "ensemble.json"), cfg.SavePath, cfg.SavePath + ".journal", cfg.SavePath + ".bak", cfg.LogPath, spec.LogPath, configPath,
+	}
+	if application == nil {
+		currentSettings := filepath.Join(cfg.DataDir, "settings.json")
+		authReserved = append(authReserved, currentSettings, currentSettings+".tmp")
+	}
+	if spec.SavePath != "" {
+		authReserved = append(authReserved, spec.SavePath, spec.SavePath+".journal", spec.SavePath+".bak")
+	}
+	if err := checkGUIAuthPath(authPath, authReserved...); err != nil {
+		return err
 	}
 	// Each log records a different boundary. Keep provider frames, transport
 	// messages and diagnostics separate so reconnect/debugging remains legible.
@@ -185,6 +211,11 @@ func run() (runErr error) {
 		return err
 	}
 	defer hub.Close()
+	if authPath != "" {
+		if err := hub.ConfigureDigestAuth(authPath); err != nil {
+			return err
+		}
+	}
 	server := &http.Server{Addr: "127.0.0.1:" + strconv.Itoa(*port), Handler: hub.Handler(*directory)}
 	// Report listener failure through its own completion channel: a bind error
 	// must not leave a seemingly live application waiting only for a signal.
@@ -222,6 +253,9 @@ func run() (runErr error) {
 		inputDone <- input.Err()
 	}()
 	fmt.Fprintf(os.Stderr, "Open http://localhost:%d; terminal messages while busy are hints. /interrupt ends the turn.\n", *port)
+	if authPath != "" {
+		fmt.Fprintln(os.Stderr, "GUI authentication enabled (SHA-256 Digest).")
+	}
 	select {
 	case err := <-failures:
 		return err

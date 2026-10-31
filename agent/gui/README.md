@@ -36,11 +36,63 @@ Application file edits made outside the GUI require a restart before further GUI
 saves; the running process intentionally holds a validated configuration snapshot.
 
 Only `--port`, `--gui-dir` and `--gui-debug` may override a file-configured launch;
-they are reported explicitly. Provider/agent flags alongside `--config` are
+they are reported explicitly. The separate `--gui-auth-file` credential override
+is also allowed. Provider/agent flags alongside `--config` are
 rejected instead of silently creating a competing configuration. Without `--config`,
 the original environment/flag startup remains available for existing callers and
 graders. The public three-argument `gui.New` integration remains unchanged;
 file-configured applications use `gui.LoadApplicationConfig` and `gui.NewConfigured`.
+
+## Optional GUI login with SHA-256 Digest
+
+The launcher listens on `127.0.0.1`. Without a default credential file, local
+development remains unauthenticated. To require a browser login, initialize
+credentials locally from this module, then start or restart the GUI:
+
+```sh
+go run ./cmd auth-init --config /absolute/path/to/session/settings.json --username ensemble
+go run ./cmd --config /absolute/path/to/session/settings.json --port 8088
+```
+
+Open `http://127.0.0.1:8088/` and enter the generated password. The built command
+is `ensemble auth-init`. It generates a password with 128 bits of
+cryptographic randomness and prints it once; save it for the browser prompt.
+Server startup never creates or prints a password. `auth-init` refuses to overwrite
+an existing file; `ensemble auth-reset` replaces an existing valid credential
+file and prints a fresh password once. Both accept `--config PATH`, `--file PATH`
+and `--username NAME` (default `ensemble`). Repeat a custom username on reset.
+Restart after initialization or reset: changing the file does not update a
+running server or revoke its existing connections.
+The old `gui-auth` syntax is rejected before startup.
+
+The default file is `rootDataDir/gui-auth.json`: `cr/gui-auth.json` relative to
+the working directory for a legacy launch, or under the application's `data_dir`
+with `--config`. A relative `data_dir` resolves against the configuration file's
+directory. Setup's `--file` overrides the destination; launch with
+`--gui-auth-file` pointing to that same file. Both explicit relative overrides
+resolve against the working directory. An explicitly selected file must exist;
+invalid credential files fail startup.
+
+The file contains only `version` (1), `username`, `realm` (`Ensemble`) and `ha1`,
+the SHA-256 digest of `username:realm:password`. It contains no actual password,
+but **HA1 is itself a usable login credential**: theft permits authentication
+without recovering the password. Keep the file private, owned by the server's
+user with mode `0600`.
+
+Loaded credentials protect every HTTP asset and WebSocket upgrade, including
+loopback access. Custom embedders call `Server.ConfigureDigestAuth(path)` and
+handle its error before serving any requests; the constructors do not enable
+authentication automatically.
+
+Wrong logins trigger per-source-address cooldowns after three failures: 1, 2, 4,
+8, 16, then at most 32 seconds, without a global account lockout. Challenges
+expire after five minutes. A bounded replay cache rejects reused proofs while
+allowing parallel requests whose nonce counts arrive out of order.
+
+SHA-256 Digest with `qop=auth` authenticates access; it supplies no TLS, traffic
+encryption or message-body integrity. Its intended scope is an attacker who can
+connect but cannot intercept or modify traffic. The WebSocket's same-origin
+policy remains an additional browser check.
 
 ## Legacy environment/flag launch
 

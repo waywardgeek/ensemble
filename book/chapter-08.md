@@ -547,6 +547,41 @@ grader uses the appropriate GUI and core entry points. The
 [grader review](../docs/edition-2-notes/enhancement-08-code.md) records its
 new results and their limits.
 
+### Optional: a login for the current GUI
+
+The current launcher listens on `127.0.0.1`; local development remains
+unauthenticated until a credential file is initialized. To require a browser
+login, run from `agent/gui/`, then start or restart the GUI:
+
+```sh
+go run ./cmd auth-init --config /absolute/path/to/session/settings.json
+go run ./cmd --config /absolute/path/to/session/settings.json --port 8088
+```
+
+Open `http://127.0.0.1:8088/` with username `ensemble` and the password printed
+once by setup. The built command is `ensemble auth-init`; `ensemble auth-reset`
+rotates an existing valid credential file. `auth-init` refuses an existing file.
+Both accept `--username`, `--file`
+and `--config`. Restart after either operation to load the credentials;
+rotation does not revoke an already running server's connections.
+The old `gui-auth` syntax is rejected before startup.
+
+The default is `cr/gui-auth.json`, or `gui-auth.json` under the configured root
+`data_dir`. A relative `data_dir` resolves against the configuration file's
+directory. Pair setup's `--file` with the launcher's `--gui-auth-file` for a custom
+path. Keep the file owner-only (`0600`): its SHA-256 HA1 verifier contains no
+plaintext password, but possession of HA1 is enough to log in.
+
+Loaded credentials protect HTTP assets and WebSocket upgrades on loopback too.
+SHA-256 Digest with `qop=auth` provides authentication without traffic encryption
+or message-body integrity. Five-minute challenges and a bounded replay cache
+reject reused proofs; repeated wrong logins incur per-source backoff up to
+32 seconds. The same-origin WebSocket check still applies. Custom embedders
+configure `Server.ConfigureDigestAuth(path)` before serving requests. The
+[GUI README](../agent/gui/README.md#optional-gui-login-with-sha-256-digest) gives
+the setup details and limits. This current optional feature adds no requirement
+to the historical exercise or its grader.
+
 ## What is not graded and why
 
 The layout, the drag bars, the theming, the agent tree, the sidebar
