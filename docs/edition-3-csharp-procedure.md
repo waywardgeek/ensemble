@@ -67,7 +67,7 @@ requirements or silently choose a consequential new architecture.
 
 ## Standard
 
-Use the genuinely loaded `ensemble-csharp` skill and Bill's current instructions.
+Use the genuinely loaded `ensemble-coding` skill and Bill's current instructions.
 Saving or reading a skill file is not activation. Make saved skill updates for
 future loading; do not claim they entered current runtime instructions without
 observing that. Never restart Ensemble merely to refresh a skill.

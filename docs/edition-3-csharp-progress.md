@@ -1,4 +1,25 @@
-## Current multimedia checkpoint — live Gemini Agent image turn
+## Current multimedia checkpoint — laptop paste and bounded voice input
+
+Bill's native laptop paste/send test succeeded: actual pixels reached the model,
+and Bill confirmed the result. The installation receipt is
+`/private/tmp/cadence-image-install/staging.json`. Phone paste remains unverified.
+Native ensemble-coding is now loaded; 180-second reminders were explicitly restored.
+
+Voice admission now has an immutable, strict PCM WAV value: mono 16 kHz / 16 bit,
+nonempty aligned samples, consistent canonical headers, maximum 60 seconds /
+1,920,044 total bytes. Allocation is bounded before copying and the owned snapshot
+is validated. It is not a general audio decoder or speech detector. No microphone,
+transcription endpoint, capture lifecycle or automatic-send wiring is implemented
+by this slice. Main-model funding is unchanged.
+
+Three focused voice groups and the shared **324/0** suite passed, exit zero; build
+had no warnings/errors. Evidence: `/private/tmp/cadence-voice-implementation/` and
+the [implementation notebook](edition-3-notes/voice-and-images.md). These source
+changes are not installed. Next: owned capture/transcription cancellation and the
+release-to-send-once path, then page capture, remaining live checks, graders and
+full chapter prose. No restart or push.
+
+## Earlier multimedia checkpoint — live Gemini Agent image turn
 
 The real Ensemble Agent/Engine/Sandbox/History/tool path passed an isolated,
 non-streaming `gemini-3-flash-preview` live test: exactly two HTTP-200 requests,

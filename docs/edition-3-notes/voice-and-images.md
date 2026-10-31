@@ -710,3 +710,71 @@ the corresponding owned run receipts, and the local harness source/build logs.
 The earlier shared 321/0 result remains applicable: only evidence notes changed.
 Remaining acceptance includes streaming, other exact newer IDs, other live
 providers, native phone clipboard and usability, voice and capture, then graders.
+
+
+## Paste-test installation — staged, awaiting Bill's restart
+
+Bill authorized staging so he can test image pasting on his laptop. All 13 files
+from the prior settings-dialog installation receipt still matched before staging.
+The GUI host build passed with zero warnings/errors. Nine files were replaced or
+added by verified temporary-file rename, preserving existing modes. All 15 files
+in the Mac runtime set match the build, including SkiaSharp.dll and the macOS
+native library. Other platforms' native assets were deliberately not installed.
+A separate reflection/dependency-resolver smoke test decoded a synthetic 1×1 PNG
+using the actual installed managed/native files; it exited zero. Launcher and
+installed skills were verified unchanged. Settings, credentials, live process,
+network/authentication configuration and port 8088 were not altered.
+
+Receipt: `/private/tmp/cadence-image-install/staging.json`; build/smoke evidence
+in that directory. This supersedes the settings-dialog receipt for subsequent
+installation comparisons. No restart, browser reload or human paste acceptance
+has yet been observed. Installed skill manuals were preserved, so this staging
+does not claim new inspect_image grants. After Bill restarts, re-establish the
+three-minute goal reminders if needed: their configuration is session-local.
+
+
+## Laptop paste accepted; voice WAV admission implemented
+
+After staging, Bill pasted an image from his laptop. Actual image pixels arrived
+with his message and were described; Bill confirmed, “Perfect! It works!” This is
+native laptop paste/send/model-understanding acceptance, not phone clipboard,
+voice or screenshot acceptance. No copy of his image is added to this notebook.
+The prior installation receipt remains the baseline for later comparisons.
+
+In this session code-tools, goals and ensemble-coding activated successfully.
+The agreed 180-second reminders were explicitly restored and reported enabled,
+available and error-free. I incorrectly described that update beforehand as a
+read-only query; it establishes current configuration, not its previous state or
+a new timer firing. The coding manual is now genuinely loaded, superseding the
+older live-catalog refusal. No additional restart was performed by me.
+
+Implemented PcmVoiceAudio as an immutable value: declarations/state in
+Common/VoiceAudio.cs, factory implementation in Serialization/VoiceAudio.cs.
+It accepts only the canonical 44-byte RIFF/WAVE PCM header with mono, 16 kHz,
+16-bit little-endian samples. Nonempty sample data must be aligned and both
+container lengths must match the actual bytes. No compression, extended headers,
+additional chunks, trailing bytes or browser-supplied duration are accepted.
+The maximum is 960,000 samples / 60 seconds / 1,920,044 bytes including the header
+(about 1.83 MiB, not an exact 1.9 MiB). The byte ceiling is checked before copying;
+the bounded owned snapshot is then validated, preventing caller mutation between
+validation and retained admission. Sample count and duration derive from that
+snapshot instead of duplicated mutable metadata. The unchecked constructor is
+private. No dependency or I/O owner was added.
+
+Reason: server-verifiable duration is needed before paid transcription. Accepting
+compressed MediaRecorder bytes plus a client duration would not establish that
+bound without a suitable server decoder. Canonical PCM is larger on the wire but
+needs no extra codec dependency and has a simple auditable duration calculation.
+This validator is not a general WAV reader, speech detector or transcription
+quality check; structurally valid digital silence is deliberately accepted.
+The eventual network handler must call it before paying for transcription; that
+handler, browser recording and release-to-send lifecycle are NOT wired yet.
+
+Tests build WAV independently of product constants. Three focused groups passed:
+one sample and the exact minute boundary, over-limit/empty refusal, all shorter
+prefixes, all 352 single-bit header mutations, malformed/extra/odd data, hostile
+32-bit lengths/rates, and immutable-copy/private-constructor checks. Build had
+zero warnings/errors; final shared suite **324 passed, zero failed, exit zero**.
+Evidence: /private/tmp/cadence-voice-implementation/build-wave.log,
+wave-focused.log and wave-shared.log. No microphone, audio provider request,
+installation, restart, new funding route or push occurred for this slice.

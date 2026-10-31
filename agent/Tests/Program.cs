@@ -637,6 +637,17 @@ try
         Console.WriteLine($"{passed} passed; {failures} failed");
         return failures == 0 ? 0 : 1;
     }
+    if (args is ["--voice-tests"] || args.Length == 0)
+    {
+        CheckCase("Voice WAV format and duration boundaries", VoiceAudioTests.Boundaries);
+        CheckCase("Voice WAV malformed header and length refusals", VoiceAudioTests.HeaderRefusals);
+        CheckCase("Voice WAV immutable admission", VoiceAudioTests.SnapshotOwnership);
+        if (args.Length != 0)
+        {
+            Console.WriteLine($"{passed} passed; {failures} failed");
+            return failures == 0 ? 0 : 1;
+        }
+    }
     if (args is ["--image-tests"] || args.Length == 0)
     {
         CheckCase("Bounded image preparation and resizing", () => ImageTests.Preparation(temp));
