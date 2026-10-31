@@ -71,7 +71,7 @@ input:not([type="checkbox"]), select { max-width: 100%; }
    model or actions. On narrow windows this strip scrolls locally,
    rather than consuming the conversation's height with stacked controls. */
 #status-bar { flex: none; display: block; padding: 2px .25rem; border-bottom: 1px solid var(--edge); background: var(--surface); }
-.brand-mark { flex: none; width: 48px; height: auto; object-fit: contain; }
+.brand-mark { flex: none; width: 36px; height: auto; object-fit: contain; }
 .icon-symbols { position: absolute; width: 0; height: 0; overflow: hidden; }
 .header-scroll { min-width: 0; overflow-x: auto; }
 /* Equal side tracks center the model independently of the wider usage/actions
@@ -101,7 +101,7 @@ input:not([type="checkbox"]), select { max-width: 100%; }
 .card-heading .icon-button { padding: 0.15rem; }
 /* Fixed, left-aligned numeric slots keep labels close and changing values
    stable. Full accounting remains available in the meter's details/title. */
-#usage-meter { grid-column: 1; grid-row: 1; justify-self: center; display: flex; gap: .15rem; min-width: 0; overflow-x: auto; font-size: .7rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+#usage-meter { grid-column: 1; grid-row: 1; justify-self: center; display: flex; gap: .15rem; min-width: 0; overflow-x: auto; font-size: .85rem; color: var(--muted); font-variant-numeric: tabular-nums; }
 #usage-meter > span { display: inline-flex; flex: none; gap: .15ch; align-items: baseline; white-space: nowrap; }
 #usage-meter output { display: inline-block; width: 8ch; overflow: hidden; text-overflow: ellipsis; text-align: left; color: var(--bs-body-color); }
 #usage-meter #usage-cost { width: 8ch; }
@@ -203,7 +203,15 @@ code { font-size: .9em; color: inherit; }
    multiline input scrolls inside instead of taking space from the conversation. */
 #compose { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: .25rem; flex: none; min-height: 0; border-top: 1px solid var(--edge); background: var(--surface); padding: .25rem .4rem; }
 #compose textarea { --input-height: calc(1.5em + .5rem + 2px); width: 100%; line-height: 1.5; height: var(--input-height); min-height: var(--input-height); max-height: calc(7.5em + .5rem + 2px); padding: .25rem .35rem; resize: none; overflow-y: auto; }
-#send { width: 44px; height: 44px; min-width: 44px; padding: 3px; }
+/* Keep the hit target generous while the transparent artwork stays compact.
+   Hover and keyboard focus still identify this as an actionable control. */
+#send {
+    width: 44px; height: 44px; min-width: 44px; padding: 7px;
+    --bs-btn-bg: transparent; --bs-btn-border-color: transparent;
+    --bs-btn-hover-bg: var(--selected); --bs-btn-hover-border-color: var(--control-edge);
+    --bs-btn-active-bg: var(--selected); --bs-btn-active-border-color: var(--control-edge);
+    --bs-btn-disabled-bg: transparent; --bs-btn-disabled-border-color: transparent;
+}
 .send-icon { display: block; width: 100%; height: 100%; object-fit: contain; }
 #notice { flex: none; margin: 0; padding: 0 0.3rem; max-height: 15%; overflow: auto; color: var(--accent); font-size: .82rem; }
 #notice:not(:empty) { padding-block: 0.0875rem; }

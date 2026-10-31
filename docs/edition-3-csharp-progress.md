@@ -1,3 +1,18 @@
+# 2026-10-31 — Smaller GUI artwork and clearer usage text
+
+Bill requested smaller Send/Ensemble artwork, larger usage stats, and a transparent
+Send background. CSS now uses a 36px logo (was 48), 7px Send padding (airplane
+28px rather than 36), and .85rem usage text (was .7rem). The existing SVG was
+already transparent; the button is now transparent at rest, retaining hover,
+focus styling and its 44px hit target. Normal header height measured 49px versus
+50px; other 44px controls now set the minimum, so no larger height reduction claimed.
+Static real-Chrome checks passed 12 dark/light, viewport and font combinations;
+GUI build passed with zero warnings/errors. Evidence: `/private/tmp/cadence-gui-sizing/`.
+These are geometry/style checks, not visual approval. No model requests, runtime
+behavior changes, installation or restart; built binaries are not yet staged.
+
+---
+
 # 2026-10-31 — Edition 3 promoted; V2 archived
 
 Bill authorized the V1-style V2 archive and promotion. The canonical manuscript
