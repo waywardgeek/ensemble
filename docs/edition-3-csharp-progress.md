@@ -1,3 +1,16 @@
+# 2026-10-31 — Restore visible blue to the dark AI bubble
+
+Bill reported that #08151f appeared black, with no visible blue. Adjusted only the
+dark AI fill to #0c2030, between that near-black result and the earlier #102a3d.
+Borders remain absent; user/light-mode fills and typography are unchanged. Twelve
+layout checks passed, including AI text contrast >= 7:1; GUI build passed with
+zero warnings/errors. GUI assembly and symbols staged by rename and hash-verified;
+no restart or launcher changes. Human color acceptance remains pending.
+Evidence: `/private/tmp/cadence-gui-sizing/` (`check-bubble-blue.cjs`,
+`bubble-blue-geometry.json`, `build-bubble-blue.log`, `staging-bubble-blue.json`).
+
+---
+
 # 2026-10-31 — Subtle, borderless conversation bubbles
 
 At Bill’s request, removed text-bubble outlines, the heavier AI leading edge,
