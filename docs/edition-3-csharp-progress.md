@@ -1,3 +1,21 @@
+# 2026-10-31 — Subtle, borderless conversation bubbles
+
+At Bill’s request, removed text-bubble outlines, the heavier AI leading edge,
+and reasoning side rules. Dark-mode AI fill changed from #102a3d to #08151f
+(approximately halved RGB channels). User backgrounds, light-theme backgrounds,
+fonts and padding remain unchanged; Actions cards are unaffected. Removed the
+unused message-border color variables. Twelve real-Chrome layout checks passed,
+including border widths, background preservation and AI text contrast >= 7:1.
+An initial test wrongly layered new CSS over old CSS and retained deleted rules;
+the corrected fixture replaces the stylesheet, matching a reload. GUI build passed
+with zero warnings/errors. Only the GUI assembly and symbols were staged by rename
+and verified; launcher/directory repairs and running host were untouched.
+Evidence: `/private/tmp/cadence-gui-sizing/` (`check-bubbles.cjs`,
+`bubble-geometry.json`, `build-bubbles.log`, `staging-bubbles.json`).
+Human visual acceptance awaits restart/reload; these checks are not pixel review.
+
+---
+
 # 2026-10-31 — Dark airplane for light theme
 
 Bill accepted the transparent Send artwork in dark mode but found the pale plane
