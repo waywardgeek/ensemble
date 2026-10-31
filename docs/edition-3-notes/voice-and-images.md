@@ -454,3 +454,57 @@ case verifies atomic message refusal. Logs:
 /private/tmp/cadence-image-library/gui-images-*-final.log. Core shared code did not
 change in this slice; its prior 318/0 evidence remains distinct. No clipboard,
 live provider, installation, restart or push occurred.
+
+## Browser paste composer — implementation and verification
+
+Added an embedded `images.js` component owning attachment entries, FileReaders,
+object URLs and one pending send. Paste preserves accompanying plain text, shows
+numbered/removable previews, and bounds four PNG/JPEG/WebP/GIF sources to 32 MiB.
+The browser does not declare pixels valid: server preparation remains authoritative
+and rejects animation/invalid data. Native browser preview decoding has its own
+resource behavior; server pixel ceilings are not a browser-wide memory guarantee.
+
+The existing form/selection/socket code remains authoritative. Reading and pending
+admission disable Send. A matching socket, sequence and Agent acknowledgment clears
+the draft; refusal retains it. Selection discards attachments, aborts pending reads
+and makes stale callbacks inert. Pending selection-change notices explicitly warn
+that a previous send may already have been admitted. Disconnect discards unsent
+attachments while retaining text; an uncertain sent draft remains blocked across
+reconnect and requires explicit discard. There is no automatic retransmission.
+Preview URLs are revoked on removal, clear and page exit. Existing media cards,
+speech opt-in and manual/automatic pause ownership are preserved, not replaced.
+
+Evidence directory: `/private/tmp/cadence-image-browser/`. Real headless installed
+Chrome uses synthetic ClipboardEvents/DataTransfers, not the system clipboard.
+`agent/GuiTests/image-browser.cjs` drives an isolated real crossover host and checks
+preview/removal/caption, actual server preparation acknowledgment, duplicate form
+submission, phone-width geometry and real socket reconnect without resend. Controlled
+component cases cover refusal, stale reader callbacks, pending-send guard and wrong
+acknowledgment identity. These are not native Pixel 9 clipboard or real-provider tests.
+
+Failures and corrections: bundled Playwright Chromium was absent; used installed
+Chrome without downloading. First implementation constructed the component before
+`notice` initialization: real startup defect, corrected by moving construction.
+The initial test omitted finite waits; its owned process was cancelled and bounded
+waits/page-error reporting added. Reusing the fixture directory failed exclusive
+Job-file creation before startup; preserved evidence and used a fresh directory.
+A wrong `#model` fixture selector became actual `#model-choice`. A duplicate-send
+component mutant initially survived because the form independently disabled Send;
+added a direct component guard assertion. The final duplicate and selection mutants
+failed their intended assertions (2 versus 1 sends; retained versus cleared draft).
+Neither mutation touched repository or live application code. Existing speech-pause
+regression passed with controlled native speech; this does not establish audible or
+native-device acceptance, nor repair the separately known disconnect/pause leak.
+
+Final positive browser/default-GUI results and owned fixture exit are recorded in
+the progress checkpoint after collection. Core remains at the earlier 318/0 result;
+this slice changes browser assets only. No installation, live provider request,
+restart of the working application or push. Cumulative request budgets, image-tool
+model-turn acceptance, Gemini tool media, voice/capture and external graders remain.
+
+Final collection: `browser-final.log` passes all three browser groups (including
+wrong acknowledgment identity checks); `gui-final.log` passes five groups;
+`speech.log` passes 24 assertions. All corresponding processes exited zero.
+The fresh owned host at fixture-fresh.G71VIf was stopped using its documented
+stop file; host process exited zero and joined its provider/child work. Source
+syntax and whitespace checks passed. No live host or provider was used.

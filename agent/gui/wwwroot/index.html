@@ -7,7 +7,7 @@
 <link rel="stylesheet" href="./style.css">
 <script src="./vendor/bootstrap-5.3.8.bundle.min.js" defer></script>
 <script src="./speech.js" defer></script><script src="./mcp.js" defer></script>
-<script src="./app.js" defer></script><script src="./layout.js" defer></script>
+<script src="./images.js" defer></script><script src="./app.js" defer></script><script src="./layout.js" defer></script>
 <script src="./auth.js" defer></script><script src="./peers.js" defer></script>
 <script src="./settings.js" defer></script>
 </head><body>
@@ -69,6 +69,9 @@
  <div id="transcript" aria-label="Conversation messages" tabindex="0"></div>
  <p id="notice" role="status"></p>
  <form id="compose">
+ <div id="image-previews" aria-label="Attached images" hidden></div>
+ <p id="image-status" role="status" hidden></p>
+ <button id="discard-image-draft" class="btn btn-quiet" type="button" hidden>Discard uncertain draft</button>
  <textarea class="form-control" id="prompt" rows="1" placeholder="Select an Agent…" aria-label="Message to selected Agent"></textarea>
  <button class="btn btn-primary" id="send" type="submit" disabled aria-label="Send" title="Send message (Enter)"><img class="send-icon" src="./artwork/paper-airplane-send.svg" alt=""></button>
  </form></section>

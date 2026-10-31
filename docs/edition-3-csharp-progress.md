@@ -1,3 +1,25 @@
+## Current multimedia checkpoint — browser image paste
+
+Browser paste now retains accompanying text, shows removable previews, and submits
+prepared images through the addressed transport. Matching admission acknowledgments
+clear the draft; refusals retain it. Selection aborts readers and discards local
+attachments; late callbacks are inert. An uncertain disconnect blocks resend across
+reconnect and requires explicit discard. Readers and object URLs are composer-owned.
+
+Final synthetic Chrome browser checks, five GUI regression groups and 24 existing
+speech/pause assertions passed. Duplicate-send and stale-selection browser mutants
+failed their intended assertions. The isolated host shut down through its stop file
+and exited zero. Evidence: `/private/tmp/cadence-image-browser/` and the
+[implementation notebook](edition-3-notes/voice-and-images.md), including the startup
+ordering defect, fixture failures and corrections. Core remains at its separately
+verified 318/0 checkpoint. Native phone clipboard, human usability and live providers
+are NOT established by synthetic ClipboardEvents or viewport geometry.
+
+Next: cumulative request policy, image-tool model-turn acceptance and Gemini tool
+media, then voice/capture. Continue synthetic/isolated work while Bill is away.
+No install/restart/push; working port 8088 untouched. External graders and full
+chapter prose remain downstream of implementation and acceptance.
+
 ## Current multimedia checkpoint — bounded GUI image transport
 
 The server now accepts explicit addressed `image_prompt` envelopes, prepares

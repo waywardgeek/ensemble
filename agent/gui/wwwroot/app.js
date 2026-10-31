@@ -38,6 +38,14 @@ let goalSelectionPending = false;
 let goalDirty = false; // Unsaved form edits only, never a second live configuration.
 const speech = window.speechSynthesis;
 const notice = text => { document.querySelector("#notice").textContent = text; };
+const imageComposer = new ImageComposer(document.querySelector("#prompt"),
+    document.querySelector("#image-previews"), document.querySelector("#image-status"),
+    document.querySelector("#discard-image-draft"), () => {
+        resizeComposer();
+        humanTyping = document.querySelector("#prompt").value.length > 0;
+        renderControls();
+        updatePauseCause();
+    }, notice);
 
 // Only fixed local symbol names are passed by this module. Model text never
 // becomes markup; accessible names belong to the surrounding native buttons.
@@ -492,7 +500,7 @@ function renderControls() {
     document.querySelector("#resume").disabled = !ready || !paused;
     document.querySelector("#interrupt").disabled = !ready || !(busy || paused);
     // The actor classifies ordinary input when dequeued, even during a turn.
-    document.querySelector("#send").disabled = !ready;
+    document.querySelector("#send").disabled = !ready || imageComposer.blocked;
     document.querySelector("#clear-tools").disabled = !ready;
     document.querySelector("#model-choice").disabled = !ready || busy || paused;
     document.querySelector("#theme-toggle").disabled = !connected || !settings;
@@ -593,6 +601,7 @@ function handle(frame) {
             localPauseCause = false;
             pauseIntent = null;
         }
+        imageComposer.selectionChanged(frame.agent_id);
         agentID = frame.agent_id;
         selectionPending = false;
         acknowledgedState = null;
@@ -725,6 +734,7 @@ function connect() {
         if (connection !== socket) return;
         try {
             const frame = JSON.parse(event.data);
+            if (imageComposer.acknowledge(frame, connection)) return;
             if (frame.type === "connection") {
                 connection.relayAgentID = frame.relay_agent_id;
             } else if (frame.type === "mcp") handleMcp(connection, frame);
@@ -736,6 +746,7 @@ function connect() {
         if (connection !== socket) return;
         document.querySelector("#connection").textContent = "Disconnected — reconnecting";
         selectionPending = true;
+        imageComposer.disconnect();
         pauseIntent = null;
         localPauseCause = false;
         cancelSpeech(false);
@@ -762,6 +773,7 @@ function selectAgent(key) {
         notice("Not connected; selection was not sent.");
         return;
     }
+    imageComposer.selectionChanged(key);
     // Release this tab's old pause cause before asking the server to switch.
     // The next replay can apply a still-present typing cause to the new view.
     cancelSpeech(false);
@@ -800,6 +812,10 @@ function submit() {
         return;
     }
     const input = document.querySelector("#prompt");
+    if (imageComposer.hasImages) {
+        imageComposer.send(socket, agentID);
+        return;
+    }
     if (input.value.trim() && send("prompt", input.value)) {
         input.value = "";
         resizeComposer();
@@ -808,6 +824,17 @@ function submit() {
     }
 }
 document.querySelector("#compose").onsubmit = event => { event.preventDefault(); submit(); };
+document.querySelector("#prompt").addEventListener("paste", event => {
+    if (!socket || socket.readyState !== WebSocket.OPEN || selectionPending || !agentID || agentClosed) {
+        if (Array.from(event.clipboardData?.items || []).some(item => item.kind === "file")) {
+            event.preventDefault();
+            notice("Wait for the selected Agent before pasting images.");
+        }
+        return;
+    }
+    imageComposer.paste(event, agentID);
+});
+window.addEventListener("pagehide", () => imageComposer.clear());
 document.querySelector("#pause").onclick = () => {
     if (send("pause")) pauseIntent = "manual";
     renderControls();
