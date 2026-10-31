@@ -643,6 +643,7 @@ try
         CheckCase("Cumulative image request limits", () => ImageBudgetTests.RequestLimits(temp));
         await AsyncCase("Image inspection authority, Jobs and payload delivery", () => ImageTests.Inspection(temp));
         await AsyncCase("Interactive image messages and busy hints", ActorTests.ImageInputs);
+        await AsyncCase("Model-issued image inspection and retained History", () => ActorTests.ImageToolTurns(temp));
         if (args.Length != 0)
         {
             Console.WriteLine($"{passed} passed; {failures} failed");

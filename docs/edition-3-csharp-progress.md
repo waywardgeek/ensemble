@@ -1,4 +1,22 @@
-## Current multimedia checkpoint — cumulative image request limits
+## Current multimedia checkpoint — model-turn image tool acceptance
+
+Real Agent/HTTP fixtures now demonstrate model-issued image inspection through
+Responses and Anthropic: actual paired image bytes in the following request,
+retained pixels after deleting the original, a real follow-up tool, and canonical
+History with one inspection call/result. Five focused image groups and the final
+shared suite passed **320/0, exit zero**. No runtime changes were required.
+Evidence: `/private/tmp/cadence-image-library/model-turn-*-final.log` and the
+[implementation notebook](edition-3-notes/voice-and-images.md), including the
+masked fixture assertion and missing follow-up grant corrections.
+
+Bill's Gemini minimum is **Gemini 3 Flash and newer**. The public GenerateContent
+v1beta discovery schema and current SDK confirm inline media in function responses;
+current guide examples use Interactions. Next: implement/verify the exact supported
+Gemini model path, then voice and page capture. Legacy Gemini 2.5 fixtures are not
+Bill's acceptance target. No paid/live model checks, installation, restart or push.
+Phone/user checks, exercises, external graders and full chapter prose remain pending.
+
+## Earlier multimedia checkpoint — cumulative image request limits
 
 Each renderer now has a fresh request-local allowance: 32 transmitted images and
 32 MiB of image payload reservations across human History, tool results and ephemera.

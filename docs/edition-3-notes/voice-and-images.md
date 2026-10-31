@@ -543,3 +543,45 @@ Official function-calling guide restriction: its multimodal example says Gemini 
 series, but currently demonstrates the Interactions API (`function_result` content
 blocks), not Ensemble's GenerateContent wire. Do not transpose those fields into
 GenerateContent. Verify its own REST/SDK conversion and model support next.
+
+
+## Model-issued image inspection: verified local acceptance
+
+Added a three-request real Agent/HTTP fixture for Responses and Anthropic. The fake
+model asks for `inspect_image`; the next request must contain the correctly paired
+image bytes and text. The fixture checks that the source was not overwritten, deletes
+it, asks for a separately granted caption-file read, and verifies the third request
+still carries the derivative and the caption nonce. Canonical History has exactly
+one inspection call/result with the actual PNG; decoded dimensions are 2048 × 16
+from a 4096 × 32 source, and the synthetic magenta pixels and resize report survive.
+A one-byte ordinary output cap cannot flatten the structured image result.
+
+Fixture corrections: an HTTP disconnect initially masked the fake provider's precise
+assertion; the fixture now surfaces its owned server task's error. The minimal primary
+skill omitted `read_file`, which code-tools deliberately does not grant. Granting the
+follow-up explicitly fixed that refusal; an upfront advertised-tool assertion now
+catches this setup error before tool execution. No runtime policy was weakened.
+Five focused image groups and final shared regression passed **320/0, exit zero**.
+Evidence: `/private/tmp/cadence-image-library/model-turn-*-final.log`; earlier failed
+logs retain the diagnostic and authority mistakes. This is real actor/History/HTTP
+integration with fake providers, not paid-provider acceptance. No install/restart/push.
+
+### Gemini contract and Bill's target clarification
+
+Bill explicitly uses **Gemini 3 Flash and newer**. Gemini 2.5 fixtures are compatibility
+or refusal evidence, not his multimedia acceptance target. Verify exact newer model
+IDs and capability support; do not enable an arbitrary model-name prefix or alter the
+curated menu/funding as a side effect.
+
+Public sources are retained under `/private/tmp/cadence-gemini-media/`. The v1beta
+GenerateContent discovery schema defines `FunctionResponse.parts`, `FunctionResponsePart`
+with `inlineData`, and blob `data`, `mimeType`, and optional `displayName`. Its response
+JSON can reference named blobs through `$ref`, and call IDs remain explicit. The current
+Python SDK's Developer API `_Part_to_mldev` passes `function_response` through; it does
+not contain a rejection for that media field. Thus the REST wire location is verified,
+not merely inferred from the Interactions SDK. The current function-calling and Gemini 3
+guides nevertheless demonstrate Interactions, including `gemini-3-flash-preview`; they
+are not a GenerateContent live acceptance result or proof every newer model is available.
+No credential use or paid requests occurred. Keep Gemini tool media refused until the
+specific supported model path is implemented and verified. Existing Gemini human-image
+wire tests remain separate evidence.
