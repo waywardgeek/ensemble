@@ -29,6 +29,15 @@ do not create a second conversation or media pipeline.
   user presses Send. Preserve their order and the intended recipient. A preview
   is not delivery to the Agent. Validate format, size, and image dimensions before
   accepting the attachment; refusals leave the user's remaining draft intact.
+- **Resize oversized images safely.** Use a maintained image library to decode
+  and proportionally downsize images that exceed delivery dimensions or byte
+  limits, without enlarging small images or overwriting original files. Bound
+  source bytes, decoded pixels, frame count, and output bytes; reject unsafe or
+  malformed input before expensive processing. Preserve readable detail where
+  possible, report the resulting dimensions and any reduction, and refuse clearly
+  if a useful bounded image cannot be produced. Deliver the actual resized bytes,
+  not only resize metadata. Test this shared behavior for pasted images,
+  screenshots, and image-file inspection; provider-specific limits remain explicit.
 - **Capture the connected page.** Provide an Agent-callable screenshot operation
   for the connected Ensemble page, with explicit capture authority and a truthful
   result. The result must make actual image pixels available to the Agent, not

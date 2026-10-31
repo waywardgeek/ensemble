@@ -1,3 +1,21 @@
+## Current multimedia checkpoint — bounded resizing foundation
+
+Bill requested resizing and its addition to Chapter 26's TL;DR; both are now in
+source. Agent-owned image preparation uses pinned SkiaSharp 4.154.0, preserves
+original files, bounds source bytes/pixels, applies EXIF orientation, refuses
+animation, and emits a bounded PNG derivative with dimensions/byte counts.
+Debug and Release native image tests pass on this Mac, including high-entropy
+byte-limit resizing and exact derivative delivery in Responses/Anthropic/Gemini
+wire projections. Shared Debug suite: **316 passed, zero failed; exit zero**.
+Evidence: `/private/tmp/cadence-image-library/`. See the
+[implementation notebook](edition-3-notes/voice-and-images.md) for policy,
+licensing choice, failures/corrections and explicit native-platform limits.
+
+Next: integrate preparation at GUI/image-file admission, aggregate request limits,
+then the remaining voice/capture paths and actual provider/native-phone checks.
+Arbitrary low-level BlobPart creation still does not automatically validate/decode.
+No install, restart, push or live provider request occurred.
+
 ## Current multimedia checkpoint — bounded image reads
 
 All provider renderers now enforce an 8 MiB per-image application limit before

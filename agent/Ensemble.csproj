@@ -8,6 +8,10 @@
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
   </PropertyGroup>
   <ItemGroup>
+    <PackageReference Include="SkiaSharp" Version="4.154.0" />
+    <PackageReference Include="SkiaSharp.NativeAssets.Linux.NoDependencies" Version="4.154.0" />
+  </ItemGroup>
+  <ItemGroup>
     <Compile Include="Common/**/*.cs;Application/**/*.cs;Auth/**/*.cs;Agent/**/*.cs;History/**/*.cs;Engine/**/*.cs;Serialization/**/*.cs;Tools/**/*.cs;Jobs/**/*.cs;Skills/**/*.cs;Mcp/**/*.cs;Sandbox/**/*.cs;Memory/**/*.cs;Recall/**/*.cs" />
   </ItemGroup>
 </Project>

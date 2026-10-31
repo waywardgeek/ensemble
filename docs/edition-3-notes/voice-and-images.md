@@ -252,3 +252,82 @@ and passing external grades, not the other way around.
   limits, supported-format policy, GUI admission and image-file tool. A byte limit
   alone does not establish image validity or prevent decompression bombs. No new
   dependency was added, no provider contacted, and no live application changed.
+
+## Bounded resizing foundation — implementation and dependency decision
+
+Bill requested image resizing and its inclusion in the Chapter 26 TL;DR. Added
+that specification without advancing the full chapter ahead of acceptance.
+
+Implemented `Agent.PrepareImage(path)` and `Agent.PrepareImage(bytes)` with an
+immutable `PreparedImage` delivery value. Declarations/policy stay in Common;
+bodies stay in Agent. The path overload uses the owning Agent's Sandbox stream.
+No original is overwritten. Preparation produces actual inline PNG bytes for
+admission into History; it is not a provider-render-time transformation.
+
+Policy defaults (application limits, not advertised provider limits): source
+1 byte–32 MiB, at most 24,000,000 pixels, each source edge at most 32,768;
+output long edge at most 2,048, at most 8 MiB. PNG/JPEG/WebP/static GIF are
+accepted after actual codec decoding; incomplete decode refuses. Animation is
+explicitly refused rather than silently selecting a frame. EXIF orientation is
+applied before metadata is discarded. PNG output preserves alpha and avoids
+JPEG artifacts in screenshots. Oversized encoded output reduces dimensions by
+0.75, always sampling from the original decoded image, for at most eight encode
+attempts. Dimensions/byte counts and `Resized` are returned for caller reporting.
+The UI must show this transformation; returning those facts is not yet UI work.
+
+### Library choice and actual package inspection
+
+Pinned SkiaSharp and SkiaSharp.NativeAssets.Linux.NoDependencies 4.154.0.
+SkiaSharp's package LICENSE.txt is MIT; its native dependencies/notices still
+ship with upstream packages. macOS/Windows native assets are transitive; Linux
+is explicit. Active agent/NuGet.Config now explicitly permits nuget.org; frozen
+endpoints were not changed. No global install or credential use occurred.
+
+Initially considered ImageSharp because it is managed. Its public license offers
+Apache terms for open-source/source-available use, but the inspected 4.1.3
+package includes a mandatory Release-build license-key check. I rejected adding
+registration/key provisioning to the executable book, not the library's decoding
+quality. I did not bypass the check or select an old package merely to evade it.
+Skia's native packaging is the deliberate tradeoff. Public license/package/API
+receipts and logs: `/private/tmp/cadence-image-library/`.
+
+### Evidence and corrections
+
+`--image-tests` passes against the actual native decoder on this Mac. It checks
+real dimensions and decoded pixels, alpha, no enlargement, 4096×2048 → 2048×1024,
+all eight EXIF transforms, source preservation, outside/rooted symlink refusal,
+empty/malformed/truncated input, 32 MiB source bound, 25-million-pixel rejection,
+two-frame GIF refusal, and a deterministic noisy image above 8 MiB that must be
+reduced further to meet the output-byte limit. Responses, Anthropic and Gemini
+wire projections retain the exact derivative bytes and canonical History after
+the source test file is deleted. No provider request was sent.
+
+Failures/corrections: first restore failed with the existing cleared sources;
+explicit source restore succeeded. I initially misreported the combined job's
+failure as restore failure before reading its final log; it was then compilation.
+An Engine type/member collision prompted moving the delivery policy to Agent
+with an Engine compatibility constant. Test registration incorrectly used `Case`
+instead of the actual `CheckCase`; corrected. Skia reports FrameCount zero for
+static images, not one; the initial guard rejected a real PNG. Read package docs,
+corrected the guard and added actual animation/orientation controls. No failed
+run is counted as passing evidence.
+
+### Remaining boundaries
+
+This is an admission foundation, not an installed GUI feature or a live Gemini
+acceptance result. Existing arbitrary low-level BlobPart construction does not
+automatically call preparation. GUI/image-file tools must call it once and retain
+its returned bytes; aggregate request limits still need implementation. Pixel
+bounds prevent allocating the declared giant raster, but the native decoder is
+not a process sandbox or a hard CPU/total-memory quota. Concurrent preparation
+and metadata parsing are not globally resource-budgeted. Native Linux/Windows
+execution has not been tested. Color-profile fidelity and human legibility of
+resized screenshots are not established by these synthetic tests. Changes are
+source-only; live 8088, installed binaries and credentials are untouched.
+
+Final verification for this slice: Debug and Release builds completed with zero
+warnings/errors. Focused real-image tests passed in both configurations. The
+shared Debug suite completed **316 passed, zero failed, exit zero**. Logs are
+`build.log`, `tests.log`, `release-build.log`, `release-tests.log`, and `shared.log`
+in the evidence directory above. These are local Mac/native/wire checks, not
+Linux/Windows, browser capture, provider inference, or usability acceptance.

@@ -17,7 +17,7 @@ if (args is ["--auth-renew-child", var renewDirectory, var renewIssuer])
     return await AuthRenewalTests.Child(renewDirectory, renewIssuer);
 }
 
-// A small dependency-free executable suite. Assertions inspect real model state
+// A small executable suite without a separate test framework. Assertions inspect real model state
 // and real wire bodies; the only fake is an actual loopback HTTP provider.
 var failures = 0;
 var passed = 0;
@@ -636,6 +636,15 @@ try
         await AsyncCase("Automatic completion and server errors", ActorTests.AutomaticPauseAndError);
         Console.WriteLine($"{passed} passed; {failures} failed");
         return failures == 0 ? 0 : 1;
+    }
+    if (args is ["--image-tests"] || args.Length == 0)
+    {
+        CheckCase("Bounded image preparation and resizing", () => ImageTests.Preparation(temp));
+        if (args.Length != 0)
+        {
+            Console.WriteLine($"{passed} passed; {failures} failed");
+            return failures == 0 ? 0 : 1;
+        }
     }
     if (args is ["--media-tests"])
     {

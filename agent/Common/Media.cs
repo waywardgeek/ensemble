@@ -69,7 +69,7 @@ public sealed partial class Engine
 
     // Request-time bytes use the actual Agent boundary. BlobRef stays a
     // value-like locator; it neither owns nor carries a filesystem service.
-    public const int MaximumImageBytes = 8 * 1024 * 1024;
+    public const int MaximumImageBytes = Agent.MaximumImageOutputBytes;
     private partial byte[] ReadMedia(BlobPart blob);
 
     // Exact selected-model lookup. There is no default media row; a miss still
