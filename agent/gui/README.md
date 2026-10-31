@@ -226,3 +226,33 @@ user text containing `$TOOLS` is data, not another substitution instruction.
 Already-rendered skills and restored conversation History are not rewritten by
 a User edit. Restart loads the saved values for subsequent skill activation;
 it does not retroactively change restored instructions.
+
+
+### Prepared image input transport
+
+The server accepts an `image_prompt` control containing `agent_id`, `sequence`,
+`text`, and `images: [{"mime":"image/png","data":"<base64>"}]`. The browser
+composer integration is not yet implemented. Use synthetic fixtures until it is.
+
+`sequence` is a positive JavaScript-safe integer, strictly increasing per socket;
+refused sequences are consumed too. The explicit Agent must match the socket's
+current selection. A client must not automatically replay an uncertain send after
+reconnection. `image_accepted` reports actor admission, not model completion, and
+includes dimensions, byte counts and resizing status without image bytes.
+Errors include `image_sequence` when it could be parsed.
+
+Up to four PNG/JPEG/WebP/GIF sources are allowed, with 32 MiB combined decoded
+source bytes and 32 KiB UTF-8 text. Base64 must be unspaced. The entire WebSocket
+text frame is bounded by the base64 representation of 32 MiB plus 64 KiB envelope
+overhead; escaped/extra fields count toward that independent wire limit. Ordinary
+controls retain their 1 MiB admission limit and refuse image fields. The server
+prepares bounded PNG derivatives once, then uses the existing 16 MiB combined
+prepared-input limit and selected model's media policy. Failed preparation admits
+none of the images. These limits are not a global multi-socket memory/CPU quota.
+
+Image-bearing trace frames are replaced by type/byte-count/redaction summaries,
+including nested History media. This does not detect arbitrary private payloads
+hidden as ordinary prose. Public-origin authentication/origin rules are unchanged.
+
+Run the isolated server checks with `GuiTests.dll --image-tests`; the default GUI
+suite also includes them. They make no live model or native clipboard requests.

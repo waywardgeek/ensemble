@@ -1,3 +1,25 @@
+## Current multimedia checkpoint — bounded GUI image transport
+
+The server now accepts explicit addressed `image_prompt` envelopes, prepares
+images once, and acknowledges actor admission with dimensions/resize metadata.
+Per-socket sequences reject repeats; uncertain reconnects must never auto-resend.
+Ordinary controls retain 1 MiB admission limits; image sources have independent
+wire, text, count and combined-byte bounds. Image-bearing inbound/outbound traces
+are summarized without media payloads. Failed preparation admits no partial input.
+
+Real isolated WebSocket image tests and all five default GUI regression groups
+passed, exit zero, including existing selection and public-origin guards.
+Evidence: `/private/tmp/cadence-image-library/gui-images-*-final.log` and the
+[implementation notebook](edition-3-notes/voice-and-images.md). Core remains at
+its separately verified 318/0 checkpoint; no core changes in this slice.
+
+Next: browser paste previews/removal, attachment and acknowledgment state, stale
+selection/disconnect handling and synthetic browser tests. The browser composer
+is still text-only. Add cumulative request limits; native phone, live providers,
+image-tool model turns, Gemini tool media, voice and capture remain unfinished.
+No install/restart/push; live8088 untouched. Bill remains away; use synthetic
+fixtures without his clipboard. Three-minute reminders remain the intended setting.
+
 ## Current multimedia checkpoint — interactive image input and busy hints
 
 Immutable prepared image parts now accompany AgentInput text into canonical

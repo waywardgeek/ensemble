@@ -62,6 +62,11 @@ static async Task<JsonElement> Frame(ClientWebSocket socket, string type, Cancel
             return json.RootElement.Clone();
     }
 }
+if (args is ["--image-tests"])
+{
+    await ImageControlsTests.RunAsync();
+    return;
+}
 if (args is ["--goal-tests"])
 {
     await GoalControlsTests.RunAsync();
@@ -436,5 +441,6 @@ finally
     }
 }
 await PeerControlsTests.RunAsync();
+await ImageControlsTests.RunAsync();
 await PublicOriginTests.RunAsync();
 Console.WriteLine("PASS external GUI consumer: embedded assets, disk override, full caller-owned mount, WebSocket controls, two hosting lifetimes, Agent survival");

@@ -410,3 +410,47 @@ media. The attachment wire needs explicit count/source/combined bounds, payload-
 free tracing, fixed selected-Agent routing, server preparation, and browser
 preview/removal ownership. GUI and native clipboard acceptance are not established
 by this actor fixture. Work stays on isolated fixtures, not the live server.
+
+
+## GUI attachment transport — isolated server implementation
+
+Added an image_prompt WebSocket envelope with explicit agent_id, positive safe-
+integer sequence (strictly increasing per socket), text and one to four images
+with mime and unspaced base64 data. Source formats: PNG/JPEG/WebP/GIF, decoded by
+PrepareImage and normalized to PNG once. Sources are capped at 32 MiB combined,
+text at 32 KiB, and prepared delivery at the existing 16 MiB aggregate input cap.
+A bounded larger receive buffer supports this envelope; ordinary controls still
+refuse above 1 MiB. This changes the maximum socket buffering budget and does not
+claim a global multi-connection memory or decoder-concurrency quota.
+
+The server reserves sequences even on refusal, requires the current selected
+Agent address, and acknowledges only after PostAsync accepts the immutable input.
+image_accepted includes per-image original/output dimensions, sizes and resized
+status, not pixel payloads. Errors carry image_sequence when parsed. This is
+admission, not model completion. Sequence scope is a live socket; clients must
+never automatically replay an uncertain send after reconnect. Image fields on
+ordinary controls refuse rather than silently disappear. No browser composer
+integration has been implemented yet.
+
+Trace projection replaces any frame containing image fields, MIME markers or
+image data URIs with a type/byte-count/redaction summary, covering inbound images
+and nested outbound History/tool payloads. Ordinary diagnostic frames retain
+existing behavior. This is not a promise to detect arbitrary private content
+hidden in ordinary text.
+
+A public GUI-consumer WebSocket fixture keeps the Agent paused (no provider
+requests), sends a real noisy PNG exceeding the ordinary 1 MiB control limit,
+checks retained pixel equality/text, duplicate and wrong-Agent refusal, missing
+address/data, malformed raster, misplaced image fields, ordinary-control size
+refusal, later valid admission, preparation metadata and trace privacy.
+Initial fixture compilation failed because I guessed an internal StartAsync API,
+used uppercase Surface instead of the real parameter, and treated Context as an
+entry sequence. Public History.Events and the existing actor construction contract
+corrected the fixture; no product visibility was expanded. The next focused run
+passed. Final focused image check and all five default GUI regression groups passed,
+exit zero, including selection, peer controls, image controls, public-origin
+security and external consumer lifetimes. The added valid-first/bad-second-image
+case verifies atomic message refusal. Logs:
+/private/tmp/cadence-image-library/gui-images-*-final.log. Core shared code did not
+change in this slice; its prior 318/0 evidence remains distinct. No clipboard,
+live provider, installation, restart or push occurred.

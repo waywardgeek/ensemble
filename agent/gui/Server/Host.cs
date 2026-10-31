@@ -118,7 +118,7 @@ public static partial class Gui
         {
             // Keep the protocol trace separate, but use the root's one
             // diagnostic policy before bytes reach this caller-owned writer.
-            agent.Parent().Log($"{direction} {json}", trace);
+            agent.Parent().Log($"{direction} {TraceProjection(json)}", trace);
         }
         var peers = new Dictionary<WebSocket, (Channel<string> Queue, Agent Selected, long Cursor)>();
         // One reader and preview buffer per viewed conversation. A tab switch
@@ -530,6 +530,7 @@ public static partial class Gui
                 await relayAgent.WorkStatusAsync(lifetime.Token);
                 if (!Select(socket, queue, relayAgent)) return;
                 var buffer = new byte[8192];
+                long lastImageSequence = 0;
                 while (!lifetime.IsCancellationRequested)
                 {
                     using var content = new MemoryStream();
@@ -541,19 +542,35 @@ public static partial class Gui
                         {
                             return;
                         }
-                        if (received.MessageType != WebSocketMessageType.Text || content.Length + received.Count > 1024 * 1024)
+                        if (received.MessageType != WebSocketMessageType.Text || content.Length + received.Count > MaximumImageControlBytes)
                         {
-                            throw new InvalidDataException("Expected a text control under 1 MiB");
+                            throw new InvalidDataException("Control exceeds the bounded image envelope or is not text.");
                         }
                         content.Write(buffer, 0, received.Count);
                     }
                     while (!received.EndOfMessage);
+                    long? imageSequence = null;
                     try
                     {
                         using var json = JsonDocument.Parse(content.ToArray());
                         Trace(">", json.RootElement.GetRawText());
                         var command = json.RootElement;
                         string type = command.GetProperty("type").GetString() ?? "";
+                        if (type != "image_prompt" && command.TryGetProperty("images", out _))
+                            throw new InvalidDataException("Images require an image_prompt envelope.");
+                        if (type != "image_prompt" && content.Length > MaximumOrdinaryControlBytes)
+                            throw new InvalidDataException("Ordinary controls must be under 1 MiB.");
+                        if (type == "image_prompt")
+                        {
+                            imageSequence = command.GetProperty("sequence").GetInt64();
+                            if (imageSequence <= lastImageSequence || imageSequence > 9007199254740991L)
+                                throw new InvalidDataException("Repeated or invalid image sequence.");
+                            // Reservation includes refusals: no automatic retry can
+                            // turn an uncertain outcome into another admission.
+                            lastImageSequence = imageSequence.Value;
+                            if (!command.TryGetProperty("agent_id", out _))
+                                throw new InvalidDataException("Image messages require an explicit Agent.");
+                        }
                         // Capture the acknowledged display target for this command.
                         // Tree recovery may change future admissions, never this one.
                         Agent selected;
@@ -723,6 +740,24 @@ public static partial class Gui
                                     }
                                 }
                                 break;
+                            case "image_prompt":
+                                var imageAdmission = PrepareImageInput(selected, command, lifetime.Token);
+                                await selected.PostAsync(imageAdmission.Input);
+                                lock (gate)
+                                {
+                                    Queue(socket, queue, new JsonObject
+                                    {
+                                        ["type"] = "image_accepted", ["agent_id"] = AddressOf(selected),
+                                        ["sequence"] = imageSequence,
+                                        ["images"] = JsonSerializer.SerializeToNode(imageAdmission.Images.Select(image => new
+                                        {
+                                            original_width = image.OriginalWidth, original_height = image.OriginalHeight,
+                                            width = image.Width, height = image.Height, resized = image.Resized,
+                                            source_bytes = image.SourceBytes, output_bytes = image.OutputBytes
+                                        }))
+                                    });
+                                }
+                                break;
                             case "prompt":
                                 await selected.PostAsync(new AgentInput(InputKind.Message, text));
                                 break;
@@ -778,11 +813,11 @@ public static partial class Gui
                                 throw new ArgumentException("Unknown GUI control");
                         }
                     }
-                    catch (Exception error) when (error is JsonException or ArgumentException or KeyNotFoundException or InvalidOperationException or InvalidDataException or IOException or UnauthorizedAccessException)
+                    catch (Exception error) when (error is JsonException or ArgumentException or KeyNotFoundException or InvalidOperationException or InvalidDataException or IOException or UnauthorizedAccessException or FormatException or NotSupportedException)
                     {
                         lock (gate)
                         {
-                            Queue(socket, queue, new JsonObject { ["type"] = "error", ["message"] = "Invalid or unavailable control" });
+                            Queue(socket, queue, new JsonObject { ["type"] = "error", ["message"] = "Invalid or unavailable control", ["image_sequence"] = imageSequence });
                         }
                     }
                 }
