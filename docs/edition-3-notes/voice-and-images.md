@@ -202,3 +202,25 @@ and passing external grades, not the other way around.
   provide the specific contract without an unbounded reference-page download.
 - Public source receipts are under `/private/tmp/cadence-media-api-5gdn6lg6/`;
   none of these research requests used credentials or made model calls.
+
+## Second implementation slice — typed Responses tool images
+
+- Verified the official SDK list elements: `input_text` with `text`, and
+  `input_image` with `image_url` and optional `detail`. Image-bearing function
+  outputs now use that ordered array; text-only outputs retain their prior string
+  contract. A shared formatter handles human and tool image blocks.
+- The media preflight permits Responses tool images, but still rejects other
+  modalities, unsupported models and remote/mismatched references before reads.
+  Actual file reads retain the Agent's Sandbox. Redaction markers remain readable
+  text and never cause their private retained locators to be opened or sent.
+- Ten focused Responses groups passed, with new assertions for ordered mixed
+  tool output, actual inline/rooted bytes, call pairing, unchanged canonical parts,
+  redaction privacy and outward-path/symlink refusal. The previous negative image
+  case is now an unsupported audio case, not a weakened missing-payload check.
+- Evidence: `build-tool-images.log`, `responses-tool-images.log`, and the successful
+  shared run `shared-tool-images.log` (315 passed, zero failed; exit zero) under the implementation evidence directory.
+  No provider call, image-file tool, GUI ingress, installation or restart yet.
+- Next: bounded byte reads and image format validation. `OpenRegularRead` already
+  provides a Sandbox-owned stream; use it rather than checking length after an
+  unbounded `ReadFile`. Keep global resource policy explicit and test malformed,
+  missing, oversized and format-mismatched payloads before enabling user tools.

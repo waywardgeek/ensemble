@@ -146,6 +146,44 @@ internal static class ResponsesTests
                     && content[index]!["image_url"]!.GetValue<string>() == "data:image/png;base64," + pixel
                     && content[index]!["detail"]!.GetValue<string>() == "auto", "actual inline/rooted pixels reach the wire");
             }
+            var call = new Entry(2, Actor.Agent,
+                [new ToolCallPart("image-call", config.Target(), "inspect_image", J("{}"))]);
+            var marker = new RedactedPart("text", 9, "budget",
+                new BlobRef(RefKind.Path, "/private/not-opened"));
+            Part[] resultParts = [new TextPart("before"), inline, marker, file, new TextPart("after")];
+            Context ToolContext(Part[] values) => new Context([call,
+                new Entry(3, Actor.Tool, [new ToolResultPart("image-call", values)])]);
+            var toolContext = ToolContext(resultParts);
+            var toolWire = agent.Engine().Render(toolContext);
+            var output = toolWire["input"]!.AsArray().Last()!;
+            var blocks = output["output"]!.AsArray();
+            Check(output["call_id"]!.GetValue<string>() == "image-call" && blocks.Count == 5,
+                "typed image tool output retains call pairing and order");
+            Check(blocks[0]!["text"]!.GetValue<string>() == "before"
+                && blocks[2]!["text"]!.GetValue<string>() == "[redacted text: 9 bytes; budget]"
+                && blocks[4]!["text"]!.GetValue<string>() == "after",
+                "typed tool text includes readable redaction in order");
+            foreach (int index in new[] { 1, 3 })
+            {
+                Check(blocks[index]!["type"]!.GetValue<string>() == "input_image"
+                    && blocks[index]!["image_url"]!.GetValue<string>() == "data:image/png;base64," + pixel,
+                    "tool result delivers actual inline and Sandbox image bytes");
+            }
+            Check(!toolWire.ToJsonString().Contains("not-opened")
+                && ((ToolResultPart)toolContext.Dialogue[1].Parts[0]).Parts.SequenceEqual(resultParts),
+                "tool projection preserves canonical parts and redaction privacy");
+            foreach (string path in new[] { outside, "../outside.png", "outward.png" })
+            {
+                bool denied = false;
+                try { agent.Engine().Render(ToolContext([new BlobPart("image/png", new BlobRef(RefKind.Path, path))])); }
+                catch (Exception error) when (error is IOException or UnauthorizedAccessException or ArgumentException)
+                { denied = true; }
+                Check(denied, "tool image reads enforce the same Sandbox boundary");
+            }
+            ExpectUnsupported(agent, ToolContext([new BlobPart("image/png",
+                new BlobRef(RefKind.Uri, "https://example.invalid/image.png"))]), "remote tool image refuses");
+            ExpectUnsupported(agent, ToolContext([new BlobPart("audio/wav",
+                new BlobRef(RefKind.Path, "not-present"))]), "tool modality refuses before read");
             Check(context.Dialogue[0].Parts.SequenceEqual(parts) && file.Ref.Locator == "image.png",
                 "projection does not replace canonical parts or file references");
             Check(!wire.ToJsonString().Contains(inside), "wire does not expose a private filesystem locator");
@@ -235,10 +273,9 @@ internal static class ResponsesTests
                 item!["type"]!.GetValue<string>() == "function_call_output")!["output"]!.GetValue<string>() == "",
                 "a genuinely empty result remains empty");
 
-            // This repair must not silently discard actual media on a surface
-            // whose tool-media projection has not been implemented.
-            var image = new BlobPart("image/png", new BlobRef(RefKind.Uri,
-                "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+lA3sAAAAASUVORK5CYII="));
+            // Unsupported modalities must still refuse rather than disappear.
+            var image = new BlobPart("audio/wav", new BlobRef(RefKind.Uri,
+                "data:audio/wav;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+lA3sAAAAASUVORK5CYII="));
             var media = new Context([call, new Entry(2, Actor.Tool, [new ToolResultPart("redacted-call", [image])])]);
             bool refused = false;
             try
@@ -249,7 +286,7 @@ internal static class ResponsesTests
             {
                 refused = true;
             }
-            Check(refused, "real Responses tool media remains explicitly unsupported");
+            Check(refused, "Responses audio tool media remains explicitly unsupported");
         }
         finally
         {

@@ -81,13 +81,7 @@ public sealed partial class Engine
                     case BlobPart blob:
                         // Project has validated modality and placement. Reuse the
                         // Agent-owned Sandbox read; never expose its file locator.
-                        string encoded = Convert.ToBase64String(ReadMedia(blob.Ref));
-                        AppendContent(new JsonObject
-                        {
-                            ["type"] = "input_image",
-                            ["image_url"] = $"data:{blob.Mime};base64,{encoded}",
-                            ["detail"] = "auto"
-                        });
+                        AppendContent(ResponsesImage(blob));
                         break;
                     default:
                         throw new InvalidOperationException("Unexpected Responses projection part");
@@ -119,16 +113,45 @@ public sealed partial class Engine
         return request;
     }
 
-    private static string ResponsesResult(ToolResultPart result)
+    private JsonObject ResponsesImage(BlobPart blob)
     {
-        if (result.Parts.Any(part => part is not TextPart and not RedactedPart))
+        string encoded = Convert.ToBase64String(ReadMedia(blob.Ref));
+        return new JsonObject
         {
-            throw new NotSupportedException("Responses tool media projection is not implemented");
+            ["type"] = "input_image",
+            ["image_url"] = $"data:{blob.Mime};base64,{encoded}",
+            ["detail"] = "auto"
+        };
+    }
+
+    private JsonNode ResponsesResult(ToolResultPart result)
+    {
+        if (result.Parts.Any(part => part is not TextPart and not RedactedPart and not BlobPart))
+        {
+            throw new NotSupportedException("Unsupported Responses tool-result part");
         }
-        // Budget redaction leaves readable markers inside canonical tool results.
-        // They are not media. Use the common formatter without reading their
-        // private locators or changing the retained History.
-        return JsonCodec.Text(result.Parts);
+        // Preserve the existing string contract for ordinary results, including
+        // readable redaction markers without opening their private locators.
+        if (!result.Parts.Any(part => part is BlobPart))
+        {
+            return JsonValue.Create(JsonCodec.Text(result.Parts))!;
+        }
+        var content = new JsonArray();
+        foreach (var part in result.Parts)
+        {
+            if (part is BlobPart blob)
+            {
+                content.Add(ResponsesImage(blob));
+            }
+            else
+            {
+                content.Add(new JsonObject
+                {
+                    ["type"] = "input_text", ["text"] = JsonCodec.Text([part])
+                });
+            }
+        }
+        return content;
     }
 
     private static List<Part> ParseResponses(JsonElement root, Provenance from)

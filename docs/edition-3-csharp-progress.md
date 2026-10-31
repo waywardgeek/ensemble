@@ -1,3 +1,16 @@
+## Current multimedia checkpoint — Responses image tool outputs
+
+Typed image tool results now preserve ordered text, redaction markers and actual
+inline/Sandbox image bytes. Text-only results retain their existing string wire
+contract. Ten focused Responses groups and all 315 shared groups passed; both
+runs exited zero. Evidence: `/private/tmp/cadence-multimedia-implementation/`,
+`responses-tool-images.log` and `shared-tool-images.log`.
+
+This is projection evidence, not live-provider or end-to-end feature acceptance.
+Next: bounded image reads/validation, then real image-file and GUI ingress paths.
+No installation or restart occurred. See the ongoing
+[implementation notebook](edition-3-notes/voice-and-images.md).
+
 ## Current multimedia checkpoint — Responses human image input
 
 First narrow implementation slice passes ten focused Responses groups and the

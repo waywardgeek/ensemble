@@ -70,12 +70,12 @@ public sealed partial class Engine
             if (part is BlobPart blob)
             {
                 Media kind = MediaKind(blob.Mime);
-                // This adapter implements human images, not arbitrary modalities
-                // or placements. Refuse before opening even a supported path.
+                // Responses accepts human images and typed image tool outputs,
+                // not arbitrary modalities or assistant/system images.
                 if (config.Surface == Surface.Responses
-                    && (kind != Media.Image || actor != Actor.Human || inToolResult))
+                    && (kind != Media.Image || (!inToolResult && actor != Actor.Human)))
                 {
-                    throw new NotSupportedException("Responses supports image input in human entries only");
+                    throw new NotSupportedException("Responses supports images in human entries and tool results only");
                 }
                 string category = kind == Media.None ? blob.Mime : kind.ToString().ToLowerInvariant();
                 bool known = LookupModel(config.Vendor, config.Model, out var features);
@@ -89,7 +89,7 @@ public sealed partial class Engine
                 {
                     throw new NotSupportedException($"Model '{config.Model}' requires local paths or matching base64 data URIs for {category} media from {blob.Ref.Kind}.");
                 }
-                if (inToolResult && config.Vendor != Vendor.Anthropic)
+                if (inToolResult && config.Vendor != Vendor.Anthropic && config.Surface != Surface.Responses)
                 {
                     throw new NotSupportedException($"Model '{config.Model}' cannot render {category} media inside this adapter's tool-result content.");
                 }
