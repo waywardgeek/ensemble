@@ -184,6 +184,37 @@ internal static class ResponsesTests
                 new BlobRef(RefKind.Uri, "https://example.invalid/image.png"))]), "remote tool image refuses");
             ExpectUnsupported(agent, ToolContext([new BlobPart("audio/wav",
                 new BlobRef(RefKind.Path, "not-present"))]), "tool modality refuses before read");
+            File.WriteAllBytes(Path.Combine(root, "empty.png"), []);
+            using (var oversized = File.Create(Path.Combine(root, "oversized.png")))
+            {
+                oversized.SetLength(Engine.MaximumImageBytes + 1L);
+            }
+            var invalidImages = new BlobPart[]
+            {
+                new("image/png", new BlobRef(RefKind.Path, "empty.png")),
+                new("image/png", new BlobRef(RefKind.Path, "oversized.png")),
+                new("image/png", new BlobRef(RefKind.Path, "missing.png")),
+                new("image/png", new BlobRef(RefKind.Uri, "data:image/png;base64,")),
+                new("image/png", new BlobRef(RefKind.Uri, "data:image/png;base64,not-base64!")),
+                new("image/png", new BlobRef(RefKind.Uri, "data:image/png;base64," +
+                    new string('A', ((Engine.MaximumImageBytes + 2) / 3) * 4 + 4))),
+                // This fits the encoded-length ceiling but decodes one byte over.
+                new("image/png", new BlobRef(RefKind.Uri, "data:image/png;base64," +
+                    Convert.ToBase64String(new byte[Engine.MaximumImageBytes + 1])))
+            };
+            foreach (var invalid in invalidImages)
+            {
+                foreach (var invalidContext in new[]
+                {
+                    new Context([new Entry(1, Actor.Human, [invalid])]), ToolContext([invalid])
+                })
+                {
+                    bool refused = false;
+                    try { agent.Engine().Render(invalidContext); }
+                    catch (Exception error) when (error is IOException or InvalidDataException or FormatException) { refused = true; }
+                    Check(refused, "missing, empty, malformed and oversized image payloads refuse");
+                }
+            }
             Check(context.Dialogue[0].Parts.SequenceEqual(parts) && file.Ref.Locator == "image.png",
                 "projection does not replace canonical parts or file references");
             Check(!wire.ToJsonString().Contains(inside), "wire does not expose a private filesystem locator");

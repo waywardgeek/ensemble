@@ -115,7 +115,7 @@ public sealed partial class Engine
 
     private JsonObject ResponsesImage(BlobPart blob)
     {
-        string encoded = Convert.ToBase64String(ReadMedia(blob.Ref));
+        string encoded = Convert.ToBase64String(ReadMedia(blob));
         return new JsonObject
         {
             ["type"] = "input_image",

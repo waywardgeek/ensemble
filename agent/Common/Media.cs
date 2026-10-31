@@ -69,7 +69,8 @@ public sealed partial class Engine
 
     // Request-time bytes use the actual Agent boundary. BlobRef stays a
     // value-like locator; it neither owns nor carries a filesystem service.
-    private partial byte[] ReadMedia(BlobRef reference);
+    public const int MaximumImageBytes = 8 * 1024 * 1024;
+    private partial byte[] ReadMedia(BlobPart blob);
 
     // Exact selected-model lookup. There is no default media row; a miss still
     // permits text. Vendor is part of the key, so names cannot cross dialects.

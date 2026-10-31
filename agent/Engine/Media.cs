@@ -101,21 +101,66 @@ public sealed partial class Engine
         }
     }
 
-    private partial byte[] ReadMedia(BlobRef reference)
+    private partial byte[] ReadMedia(BlobPart blob)
     {
-        // Project checks model/surface capabilities before any renderer reads
-        // bytes. Path opens then enforce the owning Agent's boundary, including
-        // relative paths and symlink races. Inline data performs no filesystem I/O.
+        // Project refuses unsupported capabilities/references before any reads.
+        // Non-image modalities retain their existing contract.
+        var reference = blob.Ref;
+        if (MediaKind(blob.Mime) != Media.Image)
+        {
+            return reference.Kind == RefKind.Path
+                ? Parent().Sandbox().ReadFile(reference.Locator) : reference.Data();
+        }
+        byte[] bytes;
         if (reference.Kind == RefKind.Path)
         {
-            return Parent().Sandbox().ReadFile(reference.Locator);
+            using var input = Parent().Sandbox().OpenRegularRead(reference.Locator);
+            long length = input.Length;
+            if (length <= 0 || length > MaximumImageBytes)
+            {
+                throw new InvalidDataException("Image must contain 1 to 8388608 bytes.");
+            }
+            bytes = new byte[(int)length];
+            input.ReadExactly(bytes);
+            // A growing file cannot bypass the allocation bound. A truncated
+            // file fails ReadExactly; either failure disposes the owned stream.
+            if (input.ReadByte() != -1)
+            {
+                throw new InvalidDataException("Image changed size while being read.");
+            }
         }
-        return reference.Data();
+        else
+        {
+            string prefix = $"data:{blob.Mime};base64,";
+            if (reference.Kind != RefKind.Uri || !reference.Locator.StartsWith(prefix, StringComparison.Ordinal))
+            {
+                throw new NotSupportedException("Images require local paths or matching base64 data URIs.");
+            }
+            int encodedLength = reference.Locator.Length - prefix.Length;
+            int maximumEncodedLength = ((MaximumImageBytes + 2) / 3) * 4;
+            if (encodedLength <= 0 || encodedLength > maximumEncodedLength)
+            {
+                throw new InvalidDataException("Encoded image exceeds the image byte limit or is empty.");
+            }
+            int padding = reference.Locator.EndsWith("==", StringComparison.Ordinal) ? 2
+                : reference.Locator.EndsWith('=') ? 1 : 0;
+            int decodedCeiling = ((encodedLength + 3) / 4) * 3 - padding;
+            if (decodedCeiling > MaximumImageBytes)
+            {
+                throw new InvalidDataException("Decoded image exceeds the image byte limit.");
+            }
+            bytes = Convert.FromBase64String(reference.Locator[prefix.Length..]);
+            if (bytes.Length == 0 || bytes.Length > MaximumImageBytes)
+            {
+                throw new InvalidDataException("Image must contain 1 to 8388608 bytes.");
+            }
+        }
+        return bytes;
     }
 
     private JsonObject AnthropicBlob(BlobPart blob)
     {
-        string encoded = Convert.ToBase64String(ReadMedia(blob.Ref));
+        string encoded = Convert.ToBase64String(ReadMedia(blob));
         return new JsonObject
         {
             ["type"] = "image",
@@ -130,7 +175,7 @@ public sealed partial class Engine
 
     private JsonObject OpenAIBlob(BlobPart blob)
     {
-        string encoded = Convert.ToBase64String(ReadMedia(blob.Ref));
+        string encoded = Convert.ToBase64String(ReadMedia(blob));
         string uri = "data:" + blob.Mime + ";base64," + encoded;
         return new JsonObject
         {
@@ -141,7 +186,7 @@ public sealed partial class Engine
 
     private JsonObject GeminiBlob(BlobPart blob)
     {
-        string encoded = Convert.ToBase64String(ReadMedia(blob.Ref));
+        string encoded = Convert.ToBase64String(ReadMedia(blob));
         return new JsonObject
         {
             ["inlineData"] = new JsonObject

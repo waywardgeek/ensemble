@@ -1,3 +1,16 @@
+## Current multimedia checkpoint — bounded image reads
+
+All provider renderers now enforce an 8 MiB per-image application limit before
+unbounded file/base64 allocation, using the Agent Sandbox for file streams.
+Empty, missing, malformed-base64 and oversized payload tests cover human and
+Responses tool-result images. Final shared regression: 315 passed, zero failed,
+exit zero. Evidence: `/private/tmp/cadence-multimedia-implementation/shared-bounds.log`.
+
+This is byte/resource validation, not image decoding or live-provider acceptance.
+Next: format/dimension validation and aggregate policy, then actual image tools
+and GUI admission. See [implementation notebook](edition-3-notes/voice-and-images.md)
+for failure correction and limits. No installation or restart.
+
 ## Current multimedia checkpoint — Responses image tool outputs
 
 Typed image tool results now preserve ordered text, redaction markers and actual

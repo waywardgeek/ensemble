@@ -224,3 +224,31 @@ and passing external grades, not the other way around.
   provides a Sandbox-owned stream; use it rather than checking length after an
   unbounded `ReadFile`. Keep global resource policy explicit and test malformed,
   missing, oversized and format-mismatched payloads before enabling user tools.
+
+## Third implementation slice — bounded image bytes
+
+- Introduced an explicit 8 MiB per-image application limit, shared by Responses,
+  Chat Completions, Anthropic and Gemini rendering. This is conservative local
+  resource policy, not a claim about provider upload limits. Other modalities
+  retain their existing behavior.
+- Path images use the existing Agent Sandbox `OpenRegularRead`, reject empty or
+  oversized files before allocation, read exactly the bounded length, and reject
+  extra trailing bytes. Disposal is lexical on success/failure. This catches
+  observed truncation/growth, not same-size concurrent rewrites or a file changing
+  after the final read; it is not an immutable filesystem snapshot.
+- Inline images bound the encoded length and decoded ceiling before copying or
+  decoding. Empty, malformed base64, missing files and oversized encoded/decoded
+  payloads now refuse explicitly. Standalone `BlobRef.Data()` is unchanged;
+  runtime rendering uses the confined bounded path, not that standalone helper.
+- Ten Responses and two cross-provider media groups passed before the final
+  decoded-ceiling tightening; the final version passed all 315 shared groups
+  with exit zero (including Responses and cross-provider media groups).
+  Logs: `build-bounds.log`, `responses-bounds.log`, `media-bounds.log`, and
+  `shared-bounds.log` in the implementation evidence directory.
+- The first focused test failed because I incorrectly assumed InvalidDataException
+  was covered by an IOException catch filter. The implementation correctly refused
+  empty input. Correcting the fixture's exception list produced the focused pass.
+- Remaining: image content/format and pixel-dimension validation, aggregate request
+  limits, supported-format policy, GUI admission and image-file tool. A byte limit
+  alone does not establish image validity or prevent decompression bombs. No new
+  dependency was added, no provider contacted, and no live application changed.
