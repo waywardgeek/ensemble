@@ -778,3 +778,68 @@ zero warnings/errors; final shared suite **324 passed, zero failed, exit zero**.
 Evidence: /private/tmp/cadence-voice-implementation/build-wave.log,
 wave-focused.log and wave-shared.log. No microphone, audio provider request,
 installation, restart, new funding route or push occurred for this slice.
+
+## Browser PCM recorder core — verified synthetic Web Audio slice
+
+Added `voice-pcm.js`, `voice-worklet.js`, and `voice-recorder.js`. This is not yet
+hold-to-talk UI or transcription. The recorder accepts an already-authorized,
+one-track audio stream; it never calls getUserMedia, selects an Agent, or sends
+HTTP/WebSocket requests. Each instance is one capture and owns its track,
+AudioContext, nodes, port, and preparation/finish/cleanup promises.
+
+Reasons and contract:
+- Use a 16 kHz mono AudioContext and verify the actual worklet sample rate. Convert
+  samples to explicitly little-endian PCM16 with bounded storage, then produce the
+  same canonical WAV accepted by PcmVoiceAudio. This avoids trusting compressed
+  container timestamps or adding an audio decoder just to bound paid duration.
+- The default sample ceiling is 960,000 (60 seconds); a caller may choose a lower
+  ceiling, never a higher one. Reaching it cancels; it does not auto-send a partial
+  recording. The worklet's output is silent, not microphone monitoring.
+- Finish is idempotent internally; cancellation rejects pending finish and makes
+  later completion inert. Tracks stop immediately; cleanup joins owned promises
+  and AudioContext closure. Native addModule is not claimed abortable.
+- Review caught a mutable-container ownership edge. The recorder now takes a
+  private MediaStream membership snapshot with the original track object, so a
+  caller cannot remove the track to evade cleanup or add an unrelated track that
+  cleanup would stop. Recheck liveness after asynchronous preparation as well.
+- Unknown worklet controls, ended tracks, interrupted contexts, malformed sample
+  messages, and module-load failures refuse rather than return partial audio.
+
+Verification: `node agent/GuiTests/voice-browser.cjs` runs an owned loopback server
+and isolated installed Chrome, with generated oscillator audio and muted hardware
+output. The microphone API is forbidden by the fixture. Twelve browser groups
+passed, including finish/cancel races, preparation gates, private track ownership,
+source/context loss, limits, copied WAV bytes, and complete context cleanup. An
+external C# probe references the built library and calls public
+PcmVoiceAudio.FromWave on the actual browser-produced bytes. Its final receipt is
+`/private/tmp/cadence-voice-browser/probe-result.json`.
+The admitted native fixture had 13356 bytes, 6656 samples, and 0.416 seconds; this is a generated waveform, not recorded speech.
+
+Two browser-response-only mutants were rejected by their intended assertions:
+a mislabeled 8 kHz WAV header and copying captured samples to audio output. The
+latter is checked with a real analyser while Chrome remains hardware-muted.
+Neither mutation changed repository files. Modules are tested under a mount
+prefix; the real GUI consumer also checks their embedded and mounted URLs and
+JavaScript content types. GUI build had zero warnings/errors; all five GUI
+regression groups passed, exit zero. Final native job and GUI jobs exited zero;
+owned browsers, HTTP servers, tracks and contexts were closed. Evidence is in
+`/private/tmp/cadence-voice-browser/` (`positive-final.log`, `probe-result.json`,
+`mutant-*-final.log`, `gui-build-final.log`, `gui-regression-final.log`).
+
+Fixture correction: the first run incorrectly used page.evaluate(clean), referring
+to a browser function as a Node variable. The preceding waveform assertions had
+passed; corrected it to execute the helper inside the page. Preserve this as a
+fixture mistake, not an audio failure. Added checks after the ownership review
+were rerun on final source. Core code did not change; carry the existing 324/0
+shared C# result rather than imply it was rerun for these assets.
+
+Limits and next integration: no native microphone permission, phone browser,
+real speech, transcription, keyboard/button gesture, Agent/socket routing, or
+pause/TTS interaction is certified by this slice. These modules are not connected
+to the composer and have not been installed. The hold controller must own late
+permission grants and a capture lease for the original Agent/socket. Proposed
+server flow is transcription followed by an automatic browser validity check and
+commit, not direct send from an HTTP completion callback. It must retain the
+release-to-send-once contract without an editable draft or extra Send button,
+redact audio from traces, cancel/join owned HTTP work, and keep transcription
+funding separate. No paid call, microphone access, live restart, or push occurred.

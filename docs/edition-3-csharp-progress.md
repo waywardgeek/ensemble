@@ -1,4 +1,28 @@
-## Current multimedia checkpoint — laptop paste and bounded voice input
+## Current multimedia checkpoint — browser PCM recorder core
+
+A browser recorder now owns one audio track, AudioContext, worklet, bounded PCM
+storage, and joined cleanup. It outputs the canonical mono 16 kHz / PCM16 WAV,
+with a 60-second ceiling. Cancel, sample-limit exhaustion, ended sources, context
+suspension and preparation failure cannot return partial audio. Private stream
+membership preserves the original owned track without stopping later unrelated
+tracks. The worklet does not monitor audio through its output.
+
+Twelve native Chrome checks passed with a synthesized stream, as did a public C#
+validator probe on the actual captured bytes. Both wrong-rate and feedback mutants
+failed intended assertions. Modules work beneath a mount prefix and are served
+by the real GUI host. Final GUI build and five regression groups passed, exit zero;
+all owned fixture work joined. Evidence and corrections:
+`/private/tmp/cadence-voice-browser/` and the
+[implementation notebook](edition-3-notes/voice-and-images.md).
+
+The component never requests a microphone and is not connected to the composer or
+transcription yet. No phone, microphone, live speech or send-once acceptance is
+claimed. No installation/restart/push or paid audio request. Core C# was unchanged;
+its previous 324/0 result remains applicable. Next: permission/hold controller,
+explicit transcription funding, cancellation and automatic commit to the original
+Agent. Keep the live application on 8088 running.
+
+## Earlier multimedia checkpoint — laptop paste and bounded voice input
 
 Bill's native laptop paste/send test succeeded: actual pixels reached the model,
 and Bill confirmed the result. The installation receipt is

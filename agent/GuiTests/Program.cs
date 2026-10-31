@@ -130,6 +130,15 @@ try
             Check(page.Contains("/app.js", StringComparison.Ordinal), "Embedded index missing");
             foreach (string asset in new[] { "app.js", "auth.js", "mcp.js", "speech.js", "style.css" })
                 Check((await http.GetStringAsync(origin + "/" + asset, cancellation)).Length > 100, "Asset missing: " + asset);
+            foreach (var asset in new[] { ("voice-recorder.js", "export class PcmVoiceRecorder"),
+                ("voice-worklet.js", "registerProcessor('pcm-voice'"), ("voice-pcm.js", "export const VOICE_PCM") })
+            {
+                using var response = await http.GetAsync(origin + "/" + asset.Item1, cancellation);
+                Check(response.IsSuccessStatusCode && response.Content.Headers.ContentType?.MediaType is
+                    "text/javascript" or "application/javascript", "Voice module content type: " + asset.Item1);
+                Check((await response.Content.ReadAsStringAsync(cancellation)).Contains(asset.Item2),
+                    "Embedded voice module missing: " + asset.Item1);
+            }
             using var favicon = await http.GetAsync(origin + "/artwork/music-note.svg", cancellation);
             Check(favicon.IsSuccessStatusCode && favicon.Content.Headers.ContentType?.MediaType == "image/svg+xml",
                 "music-note favicon is embedded and served with its SVG content type");
@@ -251,6 +260,12 @@ try
         Check(mountedPage.RequestMessage!.RequestUri!.AbsolutePath == "/assistant/", "Mount omitted directory redirect");
         Check((await mountedPage.Content.ReadAsStringAsync(cancellation)).Contains("./app.js"), "Page URLs escaped mount");
         Check((await http.GetStringAsync(url + "/assistant/app.js", cancellation)).Contains("""new URL("./ws", document.baseURI)"""), "Socket URL escaped mount");
+        foreach (string asset in new[] { "voice-pcm.js", "voice-recorder.js", "voice-worklet.js" })
+        {
+            using var module = await http.GetAsync(url + "/assistant/" + asset, cancellation);
+            Check(module.IsSuccessStatusCode && module.Content.Headers.ContentType?.MediaType is
+                "text/javascript" or "application/javascript", "Mounted voice module unavailable: " + asset);
+        }
         using var account = new HttpRequestMessage(HttpMethod.Get, url + "/assistant/auth/status");
         account.Headers.Add("X-Ensemble-Auth", "1");
         using var accountResponse = await http.SendAsync(account, cancellation);
