@@ -37,9 +37,10 @@ public sealed partial class Engine
         // Documented 128,000-token window (not availability or entitlement):
         // https://developers.openai.com/api/docs/models/gpt-4o-mini
         (Vendor.OpenAI, "gpt-4o-mini", new(Media.Image, Stream: true, ContextWindow: 128_000)),
-        // Ordinary pre-tool explanation is Ensemble policy. Responses media
-        // remains unsupported even if the provider itself can accept images.
-        (Vendor.OpenAI, "gpt-6-astra", new(Media.None, Stream: true,
+        // Ordinary pre-tool explanation is Ensemble policy. Human image input
+        // follows the documented Responses contract; tool media is separate.
+        // https://developers.openai.com/api/docs/guides/images-vision
+        (Vendor.OpenAI, "gpt-6-astra", new(Media.Image, Stream: true,
             ReasoningEfforts: ["low", "medium", "high", "xhigh", "max"],
             ReasoningSummaries: ["auto"], RequireToolExplanation: true, ResponsesOnly: true)),
         // Documented input-token limit, not a combined input/output allowance.

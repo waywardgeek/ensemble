@@ -62,13 +62,21 @@ public sealed partial class Engine
 
     // Walk nested tool results too. A supported model does not make an API
     // surface support every placement; refusing is safer than silently dropping.
-    private static void CheckMedia(IEnumerable<Part> parts, Configuration config, bool inToolResult = false)
+    private static void CheckMedia(IEnumerable<Part> parts, Configuration config, bool inToolResult = false,
+        Actor actor = Actor.Human)
     {
         foreach (var part in parts)
         {
             if (part is BlobPart blob)
             {
                 Media kind = MediaKind(blob.Mime);
+                // This adapter implements human images, not arbitrary modalities
+                // or placements. Refuse before opening even a supported path.
+                if (config.Surface == Surface.Responses
+                    && (kind != Media.Image || actor != Actor.Human || inToolResult))
+                {
+                    throw new NotSupportedException("Responses supports image input in human entries only");
+                }
                 string category = kind == Media.None ? blob.Mime : kind.ToString().ToLowerInvariant();
                 bool known = LookupModel(config.Vendor, config.Model, out var features);
                 if (!known || kind == Media.None || (features.Media & kind) == 0)

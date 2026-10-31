@@ -1,3 +1,17 @@
+## Current multimedia checkpoint — Responses human image input
+
+First narrow implementation slice passes ten focused Responses groups and the
+shared suite: **315 passed, zero failed**. It sends actual inline/rooted image
+bytes with ordered text, preserving canonical parts and Sandbox confinement.
+No GUI image ingress or image tool output is claimed yet; no live vision test,
+installation, or restart occurred. Notes and remaining work:
+[Voice and Images notebook](edition-3-notes/voice-and-images.md).
+
+Desktop Chrome supports the proposed native capture mechanism; MDN currently
+lists Chrome Android as unsupported. The proposed explicit phone refusal/manual
+screenshot attachment path needs Bill's assessment. Transcription/provider and
+remaining media-contract work continues under the active goal.
+
 ## Current boundary — Chapter 26 multimedia execution and teaching notebook
 
 The execution goal is enabled with 480-second idle reminders. Work is personal;

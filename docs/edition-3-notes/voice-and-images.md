@@ -157,3 +157,48 @@ No credentials, raw private audio/images, or unnecessary transcript copies belon
 here. Do not claim a feature works because it was proposed, built, staged, or
 accepted by a synthetic fixture. The full chapter follows verified implementation
 and passing external grades, not the other way around.
+
+## First implementation slice — Responses human images
+
+- The official images guide uses `gpt-6-astra` with Responses `input_image`;
+  implemented that input placement, not arbitrary media capability. The model
+  row now advertises images, and preflight still rejects unknown models, other
+  modalities, non-human image entries, and image tool results before reading files.
+- Adjacent text and images remain ordered in one message content array. Tool and
+  native opaque items end that group. Rendering uses Engine → Agent → Sandbox;
+  it does not mutate canonical parts, expose file locators, or introduce a second
+  filesystem owner. Inline and rooted payload bytes are asserted in tests.
+- Ten Responses groups and the full shared suite (315 passed, zero failed) passed.
+  Evidence: `/private/tmp/cadence-multimedia-implementation/`, especially
+  `responses-images.log` and `shared-images.log`. This is local projection,
+  Sandbox, and existing fake-provider coverage—not live vision acceptance.
+- The first edit attempt guessed obsolete type/declaration names and failed before
+  changing any source. Its shell lacked fail-fast handling and then ran the old
+  tests. Those passes were not patch evidence. I read the actual declarations,
+  rebuilt the checked patch, and ran the new focused and full tests successfully.
+  This was my workflow error, not a product failure.
+- Still needed: bounded image validation/decoding, typed GUI message admission,
+  tool-result images and image-file inspection, paste/preview ownership, capture,
+  transcription, live provider/platform checks, exercises and external graders.
+  No application binaries were installed or restarted for this slice.
+
+## Capture and tool-output contract findings
+
+- MDN's current browser compatibility data lists `getDisplayMedia` as unsupported
+  on Chrome Android and Safari iOS, supported on desktop Chrome. Its capture-handle
+  API is likewise desktop-Chrome-only among those primary targets. This is
+  documentation evidence, not a native phone check.
+- Proposed initial capture scope: real connected-page pixels on desktop Chrome,
+  explicit refusal on unsupported browsers; a phone OS screenshot can instead be
+  supplied as an image. This platform limitation still needs Bill's assessment.
+  DOM reconstruction is not an acceptable silent substitute for actual capture.
+- OpenAI's function-calling guide and official Python SDK describe
+  `function_call_output.output` as text or typed content. The exact list schema is
+  being checked before enabling the currently refused tool-image path. Sources:
+  <https://developers.openai.com/api/docs/guides/function-calling>, and
+  <https://github.com/openai/openai-python/tree/main/src/openai/types/responses>.
+- The broad Responses reference exceeded the bounded download cap; I did not
+  treat that incomplete fetch as reviewed. Smaller official SDK schema files
+  provide the specific contract without an unbounded reference-page download.
+- Public source receipts are under `/private/tmp/cadence-media-api-5gdn6lg6/`;
+  none of these research requests used credentials or made model calls.

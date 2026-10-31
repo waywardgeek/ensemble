@@ -112,6 +112,87 @@ internal static class ResponsesTests
         finally { app.Destroy(); }
     }
 
+    public static void ImageInputs(string temp)
+    {
+        const string pixel = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+lA3sAAAAASUVORK5CYII=";
+        string root = Path.Combine(temp, "responses-image-input");
+        string inside = Path.Combine(root, "inside");
+        Directory.CreateDirectory(inside);
+        string outside = Path.Combine(root, "outside.png");
+        File.WriteAllBytes(outside, Convert.FromBase64String(pixel));
+        File.WriteAllBytes(Path.Combine(inside, "image.png"), Convert.FromBase64String(pixel));
+        File.CreateSymbolicLink(Path.Combine(inside, "outward.png"), outside);
+        var app = new Application(TextWriter.Null);
+        try
+        {
+            var config = new Configuration(Vendor.OpenAI, "gpt-6-astra", "http://127.0.0.1:1",
+                surface: Surface.Responses, sandboxRoot: inside);
+            var agent = new Agent(app, config, Path.Combine(inside, "jobs"));
+            var inline = new BlobPart("image/png", new BlobRef(RefKind.Uri, "data:image/png;base64," + pixel));
+            var file = new BlobPart("image/png", new BlobRef(RefKind.Path, "image.png"));
+            Part[] parts = [new TextPart("before"), inline, new TextPart("between"), file, new TextPart("after")];
+            var context = new Context([new Entry(1, Actor.Human, parts)]);
+            var wire = agent.Engine().Render(context);
+            var message = wire["input"]!.AsArray().Single()!;
+            var content = message["content"]!.AsArray();
+            Check(message["role"]!.GetValue<string>() == "user" && content.Count == 5,
+                "mixed input is one ordered human message");
+            Check(content[0]!["text"]!.GetValue<string>() == "before"
+                && content[2]!["text"]!.GetValue<string>() == "between"
+                && content[4]!["text"]!.GetValue<string>() == "after", "image projection preserves text order");
+            foreach (int index in new[] { 1, 3 })
+            {
+                Check(content[index]!["type"]!.GetValue<string>() == "input_image"
+                    && content[index]!["image_url"]!.GetValue<string>() == "data:image/png;base64," + pixel
+                    && content[index]!["detail"]!.GetValue<string>() == "auto", "actual inline/rooted pixels reach the wire");
+            }
+            Check(context.Dialogue[0].Parts.SequenceEqual(parts) && file.Ref.Locator == "image.png",
+                "projection does not replace canonical parts or file references");
+            Check(!wire.ToJsonString().Contains(inside), "wire does not expose a private filesystem locator");
+            Check(agent.Engine().Render(new Context(ephemeral: [inline])).ToJsonString().Contains("input_image"),
+                "ephemeral images use the same projection");
+            foreach (string path in new[] { outside, "../outside.png", "outward.png" })
+            {
+                bool denied = false;
+                try
+                {
+                    agent.Engine().Render(new Context([new Entry(2, Actor.Human,
+                        [new BlobPart("image/png", new BlobRef(RefKind.Path, path))])]));
+                }
+                catch (Exception error) when (error is IOException or UnauthorizedAccessException or ArgumentException)
+                {
+                    denied = true;
+                }
+                Check(denied, "Responses image path must remain inside its Agent's Sandbox");
+            }
+            foreach (var actor in new[] { Actor.System, Actor.Agent })
+            {
+                ExpectUnsupported(agent, new Context([new Entry(3, actor,
+                    [new BlobPart("image/png", new BlobRef(RefKind.Path, "not-present.png"))])]),
+                    "unsupported image placement refuses before filesystem access");
+            }
+            foreach (string mime in new[] { "audio/wav", "video/mp4" })
+            {
+                ExpectUnsupported(agent, new Context([new Entry(4, Actor.Human,
+                    [new BlobPart(mime, new BlobRef(RefKind.Path, "not-present"))])]),
+                    "unimplemented Responses modalities refuse before filesystem access");
+            }
+            var unknown = new Agent(app, config.WithModel("unverified-model"), Path.Combine(inside, "unknown-jobs"));
+            ExpectUnsupported(unknown, new Context([new Entry(5, Actor.Human,
+                [new BlobPart("image/png", new BlobRef(RefKind.Path, "not-present.png"))])]),
+                "unknown model capabilities refuse before filesystem access");
+        }
+        finally { app.Destroy(); }
+
+        static void ExpectUnsupported(Agent agent, Context context, string reason)
+        {
+            bool refused = false;
+            try { agent.Engine().Render(context); }
+            catch (NotSupportedException) { refused = true; }
+            Check(refused, reason);
+        }
+    }
+
     public static void RedactedResults()
     {
         var app = new Application(TextWriter.Null);

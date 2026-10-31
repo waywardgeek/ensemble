@@ -13,23 +13,35 @@ public sealed partial class Engine
         var input = new JsonArray();
         foreach (var entry in entries)
         {
+            string role = entry.Actor switch
+            {
+                Actor.Agent => "assistant",
+                Actor.System => "developer",
+                _ => "user"
+            };
+            JsonArray? content = null;
+            // Adjacent text/images describe one message. A tool or native opaque
+            // item ends that content group without reordering canonical parts.
+            void AppendContent(JsonObject block)
+            {
+                if (content is null)
+                {
+                    content = new JsonArray();
+                    input.Add(new JsonObject
+                    {
+                        ["type"] = "message", ["role"] = role, ["content"] = content
+                    });
+                }
+                content.Add(block);
+            }
             foreach (var part in entry.Parts)
             {
+                if (part is not TextPart and not BlobPart) content = null;
                 switch (part)
                 {
                     case TextPart text:
-                        string role = entry.Actor switch
-                        {
-                            Actor.Agent => "assistant",
-                            Actor.System => "developer",
-                            _ => "user"
-                        };
                         string type = entry.Actor == Actor.Agent ? "output_text" : "input_text";
-                        input.Add(new JsonObject
-                        {
-                            ["type"] = "message", ["role"] = role,
-                            ["content"] = new JsonArray(new JsonObject { ["type"] = type, ["text"] = text.Text })
-                        });
+                        AppendContent(new JsonObject { ["type"] = type, ["text"] = text.Text });
                         break;
                     case ToolCallPart call:
                         var item = new JsonObject
@@ -66,10 +78,17 @@ public sealed partial class Engine
                             input.Add(JsonNode.Parse(opaque.Data.GetRawText()));
                         }
                         break;
-                    case BlobPart:
-                        // This surface has not yet implemented multimodal projection.
-                        // Refusing is safer than silently changing the user's request.
-                        throw new NotSupportedException("Responses media projection is not implemented");
+                    case BlobPart blob:
+                        // Project has validated modality and placement. Reuse the
+                        // Agent-owned Sandbox read; never expose its file locator.
+                        string encoded = Convert.ToBase64String(ReadMedia(blob.Ref));
+                        AppendContent(new JsonObject
+                        {
+                            ["type"] = "input_image",
+                            ["image_url"] = $"data:{blob.Mime};base64,{encoded}",
+                            ["detail"] = "auto"
+                        });
+                        break;
                     default:
                         throw new InvalidOperationException("Unexpected Responses projection part");
                 }

@@ -728,6 +728,7 @@ try
         CheckCase("Responses selected-model reasoning policy", ResponsesTests.ReasoningPolicy);
         await AsyncCase("Responses selected-model explanation dispatch", ResponsesTests.ReasoningDispatch);
         CheckCase("Responses projection and explicit route", ResponsesTests.Projection);
+        CheckCase("Responses image input and Sandbox", () => ResponsesTests.ImageInputs(temp));
         CheckCase("Responses redacted tool results", ResponsesTests.RedactedResults);
         CheckCase("Responses plain decoding and provenance", ResponsesTests.Plain);
         await AsyncCase("Responses SSE terminal gate and summaries", ResponsesTests.Streaming);

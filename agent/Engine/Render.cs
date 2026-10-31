@@ -213,7 +213,7 @@ public sealed partial class Engine
         var results = new Dictionary<(int Index, string ID), ToolResultPart>();
         for (int i = 0; i < entries.Length; i++)
         {
-            CheckMedia(entries[i].Parts, config);
+            CheckMedia(entries[i].Parts, config, actor: entries[i].Actor);
             foreach (var part in entries[i].Parts)
             {
                 if (part is ToolCallPart call)
