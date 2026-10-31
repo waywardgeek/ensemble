@@ -37,11 +37,24 @@ the runtime correctly refused its calls. A later redundant suite registration
 also had a mistyped method name; it was corrected and the duplication removed.
 These were test mistakes, not product failures or additional coverage.
 
-The build is NOT installed: coordinate rollout and human usability acceptance
-with Bill. Goals was explicitly enabled at 480 seconds and reported busy in this
-session. The isolated tests, not an assumed live eight-minute wake, establish its
-reminder behavior. The progress-note insertion initially refused a wrong title
-anchor without changing the file; this entry preserves the prior account below.
+Implementation was committed as `23ba55a7`. Bill subsequently authorized staging;
+all 20 installed files were verified against the tested GUI build (seven changed).
+Bill restarted V3 himself. No process was stopped by Cadence during staging.
+
+The live hint test then passed: one job wrote 30,000 numbered lines (1,890,000
+bytes) over 31.30 seconds while Bill sent repeated hints. Both 120-second and
+60-second observation requests returned a running handle, and the same job
+continued without replay. Completion exited zero; the line count and SHA-256
+matched the intended contents. File: `/private/tmp/cadence-live-hint-kq353iuy/numbered.txt`;
+SHA-256: `d0ee5a6c328ff5e25c0b6b96411f27cde787da0f72027e33f76fa694607d6885`.
+This establishes live responsive hint delivery and preserved write execution,
+not exact three-second timing or live multi-call batch coverage; those remain
+covered by the isolated tests above. Bill celebrated the successful result.
+
+Goals was explicitly enabled at 480 seconds during implementation and disabled
+when that work finished. The isolated tests, not an assumed live eight-minute
+wake, establish reminder behavior. The prior GUI preparation account below is
+historical, not the current installed boundary.
 
 ## Current boundary — density corrections built/tested; live8089 replacement awaits agreement
 
