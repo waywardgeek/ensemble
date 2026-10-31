@@ -1,3 +1,22 @@
+## Current boundary — Chapter 26 multimedia execution and teaching notebook
+
+The execution goal is enabled with 480-second idle reminders. Work is personal;
+keep the live 8088 application and its authenticated public-origin setup running.
+The initial audit found text-only GUI ingress, explicit Responses media refusals,
+and a browser bridge without pixel capture or speech input. No multimedia runtime
+change or live media/provider test has yet been made in this audit.
+
+Bill confirmed Pixel 9/Android Chrome, hold-to-talk/release-to-send, separately
+metered transcription, and bounded live tests across supported platforms/providers,
+including Claude and Gemini. Model/API support, pricing and capture mechanisms
+still need verification; live permission is not background capture or silent
+funding fallback. Safe switching of an existing Agent's provider is separate work.
+
+Maintain [the Voice and Images implementation notebook](edition-3-notes/voice-and-images.md)
+as code is built: decisions/reasons, rejected alternatives, failures/corrections,
+evidence and limits, and lessons for the next execution. Write the full chapter
+only after working implementation, exercises, external graders and passing results.
+
 ## Current boundary — coding guidance adopted; native activation prepared
 
 Bill explicitly adopted the repository coding skill as his instructions for the
