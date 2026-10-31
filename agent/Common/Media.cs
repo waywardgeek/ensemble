@@ -21,7 +21,7 @@ public readonly record struct ModelFeatures(Media Media, bool Stream = false,
     ImmutableArray<string> ReasoningEfforts = default,
     ImmutableArray<string> ReasoningSummaries = default,
     bool RequireToolExplanation = false, bool ResponsesOnly = false,
-    long? ContextWindow = null);
+    long? ContextWindow = null, bool FunctionResponseImages = false);
 
 public sealed partial class Engine
 {
@@ -43,6 +43,12 @@ public sealed partial class Engine
         (Vendor.OpenAI, "gpt-6-astra", new(Media.Image, Stream: true,
             ReasoningEfforts: ["low", "medium", "high", "xhigh", "max"],
             ReasoningSummaries: ["auto"], RequireToolExplanation: true, ResponsesOnly: true)),
+        // GenerateContent function-response image placement was verified with
+        // this exact model. No prefix inference or account entitlement implied.
+        // https://ai.google.dev/gemini-api/docs/function-calling
+        (Vendor.Gemini, "gemini-3-flash-preview",
+            new(Media.Image, Stream: true, ContextWindow: 1_048_576,
+                FunctionResponseImages: true)),
         // Documented input-token limit, not a combined input/output allowance.
         // https://ai.google.dev/gemini-api/docs/models/gemini-2.5-flash
         (Vendor.Gemini, "gemini-2.5-flash",

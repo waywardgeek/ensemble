@@ -25,7 +25,8 @@ internal static partial class ActorTests
         foreach (var sample in new[]
         {
             (Vendor.OpenAI, "gpt-6-astra", Surface.Responses),
-            (Vendor.Anthropic, "claude-3-haiku-20240307", Surface.Messages)
+            (Vendor.Anthropic, "claude-3-haiku-20240307", Surface.Messages),
+            (Vendor.Gemini, "gemini-3-flash-preview", Surface.GenerateContent)
         })
         {
             string home = Path.Combine(root, sample.Item3.ToString());
@@ -70,9 +71,11 @@ internal static partial class ActorTests
                         using var json = JsonDocument.Parse(body);
                         if (request == 0)
                         {
-                            var names = json.RootElement.GetProperty("tools").EnumerateArray()
-                                .Where(tool => tool.TryGetProperty("name", out _))
-                                .Select(tool => tool.GetProperty("name").GetString()).ToHashSet();
+                            var tools = json.RootElement.GetProperty("tools").EnumerateArray().ToArray();
+                            var declarations = sample.Item3 == Surface.GenerateContent
+                                ? tools.SelectMany(tool => tool.GetProperty("functionDeclarations").EnumerateArray())
+                                : tools.Where(tool => tool.TryGetProperty("name", out _));
+                            var names = declarations.Select(tool => tool.GetProperty("name").GetString()).ToHashSet();
                             Check(names.Contains("inspect_image") && names.Contains("read_file"),
                                 "Fixture must advertise both inspection and follow-up read authority.");
                         }
@@ -141,7 +144,26 @@ internal static partial class ActorTests
 
     private static void AssertModelImage(JsonElement wire, Surface surface, string encoded)
     {
-        if (surface == Surface.Responses)
+        if (surface == Surface.GenerateContent)
+        {
+            var parts = wire.GetProperty("contents").EnumerateArray()
+                .SelectMany(entry => entry.GetProperty("parts").EnumerateArray()).ToArray();
+            var call = parts.Single(part => part.TryGetProperty("functionCall", out var value)
+                && value.GetProperty("id").GetString() == "image-call");
+            Check(call.GetProperty("thoughtSignature").GetString() == "fixture-signature-image-call",
+                "Gemini replay lost the call's original thought signature.");
+            var result = parts.Single(part => part.TryGetProperty("functionResponse", out var value)
+                && value.GetProperty("id").GetString() == "image-call").GetProperty("functionResponse");
+            Check(result.GetProperty("name").GetString() == "inspect_image", "Gemini lost function-name pairing.");
+            var image = result.GetProperty("parts").EnumerateArray().Single().GetProperty("inlineData");
+            Check(image.GetProperty("mimeType").GetString() == "image/png"
+                && image.GetProperty("data").GetString() == encoded, "Gemini lost actual derivative bytes.");
+            var content = result.GetProperty("response").GetProperty("content").EnumerateArray().ToArray();
+            Check(content.Any(part => part.TryGetProperty("text", out _)), "Gemini lost accompanying text.");
+            Check(content.Single(part => part.TryGetProperty("$ref", out _)).GetProperty("$ref").GetString()
+                == image.GetProperty("displayName").GetString(), "Gemini image reference is not paired.");
+        }
+        else if (surface == Surface.Responses)
         {
             var result = wire.GetProperty("input").EnumerateArray().Single(part =>
                 part.GetProperty("type").GetString() == "function_call_output"
@@ -185,6 +207,31 @@ internal static partial class ActorTests
         var args = request == 0
             ? JsonSerializer.SerializeToNode(new { path = "source.png", ai_callback_delay = 3, max_output_bytes = 1 })!
             : JsonSerializer.SerializeToNode(new { path = "caption.txt" })!;
+        if (surface == Surface.GenerateContent)
+        {
+            var parts = new JsonArray(new JsonObject { ["text"] = text });
+            if (request < 2)
+            {
+                parts.Add(new JsonObject
+                {
+                    ["functionCall"] = new JsonObject { ["id"] = id, ["name"] = name, ["args"] = args },
+                    ["thoughtSignature"] = "fixture-signature-" + id
+                });
+            }
+            return new JsonObject
+            {
+                ["modelVersion"] = model,
+                ["candidates"] = new JsonArray(new JsonObject
+                {
+                    ["content"] = new JsonObject { ["role"] = "model", ["parts"] = parts },
+                    ["finishReason"] = "STOP"
+                }),
+                ["usageMetadata"] = new JsonObject
+                {
+                    ["promptTokenCount"] = 10, ["candidatesTokenCount"] = 10, ["totalTokenCount"] = 20
+                }
+            };
+        }
         if (surface == Surface.Responses)
         {
             var output = new JsonArray(new JsonObject

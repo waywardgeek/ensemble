@@ -1,4 +1,28 @@
-## Current multimedia checkpoint — model-turn image tool acceptance
+## Current multimedia checkpoint — Gemini 3 Flash tool images
+
+Exact `gemini-3-flash-preview` support is implemented for GenerateContent image
+function responses, without extending support by name prefix. Text/reference order,
+actual inline pixels, error wrappers, redaction privacy, call names/IDs and thought
+signatures are preserved. Existing Sandbox and cumulative request limits apply;
+text-only behavior is unchanged. Six focused groups and final shared suite passed
+**321/0, exit zero**. The real Agent/HTTP fixture now covers Gemini as well as
+Responses and Anthropic, including original deletion and retained media replay.
+
+A separately announced real API contract probe made one metadata GET and exactly
+two GenerateContent inference requests, with no retries. Gemini correctly identified
+a synthetic red/blue image in a function response. Published-rate arithmetic gives
+an estimated **$0.00155**, not an actual bill. This is not yet a live Ensemble model
+turn, streaming acceptance, or proof for other newer Gemini IDs. No private media,
+credential copies/logging, installation, restart, model-menu/funding change, or push.
+Evidence: `/private/tmp/cadence-gemini-media/` and the
+[implementation notebook](edition-3-notes/voice-and-images.md).
+
+Next: hold-to-talk/transcription ownership and bounded local fixtures, page capture,
+remaining live model/phone checks, exercises and external graders, then full chapter
+prose. Current speech SDK research confirms `gpt-transcribe`; no voice feature or
+audio request is claimed. Bill's Gemini minimum remains **3 Flash and newer**.
+
+## Earlier multimedia checkpoint — model-turn image tool acceptance
 
 Real Agent/HTTP fixtures now demonstrate model-issued image inspection through
 Responses and Anthropic: actual paired image bytes in the following request,

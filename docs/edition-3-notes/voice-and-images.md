@@ -585,3 +585,79 @@ are not a GenerateContent live acceptance result or proof every newer model is a
 No credential use or paid requests occurred. Keep Gemini tool media refused until the
 specific supported model path is implemented and verified. Existing Gemini human-image
 wire tests remain separate evidence.
+
+## Gemini 3 Flash function-response images — implementation and live contract probe
+
+Bill explicitly uses Gemini 3 Flash and newer; 2.5 is retained only as legacy
+coverage, not his acceptance target. The implementation now has an exact
+`gemini-3-flash-preview` capability row, including its published/discovered
+1,048,576 input-token window and a separate `FunctionResponseImages` capability.
+No model-name prefix implies support; no curated menu, running provider, funding,
+or installation was changed. Other newer IDs still require verification.
+
+### Source and account evidence
+
+Public v1beta discovery confirms `FunctionResponse.parts` with
+`FunctionResponsePart.inlineData`, including MIME, base64 data, and displayName;
+response JSON may refer to a named blob with a single-key `$ref` object. Current
+Python SDK Developer API conversion passes functionResponse through. The current
+guide's examples use Interactions, so they were not copied into GenerateContent.
+Public sources and extracts are under `/private/tmp/cadence-gemini-media/`.
+
+The standard pricing page lists Gemini 3 Flash Preview input text/image/video at
+$0.50/million tokens and output including thinking at $3.00/million tokens. A
+single authenticated metadata GET for `gemini-3-flash-preview` succeeded and
+advertised GenerateContent. Only the authorized Gemini key source was used;
+credentials were never printed, placed in argv, copied into fixtures, or logged.
+The key was supplied through a private pipe. No funding fallback occurred.
+
+An announced, non-retrying two-request GenerateContent contract probe then used a
+64×32 synthetic red/blue PNG as a function result. Both requests returned 200;
+the second request preserved the first returned model content and call ID and
+provided real bytes in functionResponse.parts. The final answer correctly named
+red on the left and blue on the right. Sanitized receipt:
+`tool-image-probe-result.json`. Prompt tokens were 75 + 1,351 = 1,426; candidate
+plus thought tokens were (10 + 166) + (19 + 84) = 279. Standard-rate arithmetic
+estimates $0.00155, not a verified bill or entitlement. The second request reported
+1,081 image tokens: this probe does not show that shrinking an image necessarily
+reduces image-token charges. There were no retries or private media.
+
+This was a real API wire-contract check, **not a live Ensemble model turn** and
+not streaming/phone/browser acceptance. Those boundaries remain separate.
+
+### Runtime and local tests
+
+Image-bearing Gemini results now contain ordered text and `$ref` content plus
+named inline image parts. Names are response-local and never expose source paths.
+ReadMedia remains Engine→Agent→Sandbox and shares the request budget. Error
+results retain their error wrapper; text-only object/string projection is unchanged.
+Redaction markers do not expose private retained-output locators. Nested image
+results and other unsupported mixed structures explicitly refuse rather than
+flattening pixels into metadata. Call IDs, function names, and thought signatures
+remain paired through replay.
+
+The real Agent/HTTP model-turn fixture now covers Gemini 3 Flash as well as
+Responses/Anthropic: actual inspect_image dispatch, resized pixels, deletion of
+the original, a real follow-up read_file, retained History and signature replay.
+New focused cases cover mixed/error ordering, unique image references, redaction
+privacy, text-only compatibility, unsupported nested/modality/model cases, and
+Gemini tool-result request budgeting. Six focused groups passed, exit zero;
+build-final.log and focused-final.log are in the evidence directory above.
+
+An edit script initially stopped on an incorrect CheckCase registration anchor;
+the actual existing test uses AsyncCase. Earlier file edits were inspected, the
+single missing registration was completed, and only then were builds/tests run.
+An inspection grep also referenced a nonexistent README; the actual skill manual
+was inspected instead. Neither was a product defect or passing stale-code test.
+Final shared regression passed **321 groups, zero failures, exit zero**
+(`shared-final.log`). Final build and six focused groups also exited zero. No
+live Ensemble model-turn, streaming, phone, installation, restart, or push is
+claimed. The legacy 2.5 refusal remains a compatibility case, not Bill's target.
+
+Preparation for voice: the current public OpenAI SDK's audio model schema includes
+`gpt-transcribe`, and transcription-create parameters support file/model plus
+non-streaming responses. Source files are under `/private/tmp/cadence-voice-contract/`.
+No audio request or microphone access occurred. Its deprecated-model shutdown
+comment should be reconciled with the previously collected guide before teaching
+an exact date. Voice ownership, explicit separate funding, capture cancellation,
+and a server-verifiable duration/byte bound remain implementation work.

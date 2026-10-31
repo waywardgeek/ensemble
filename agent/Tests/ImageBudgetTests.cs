@@ -53,12 +53,13 @@ internal static class ImageBudgetTests
                 (Vendor.OpenAI, "gpt-6-astra", Surface.Responses),
                 (Vendor.OpenAI, "gpt-4o", Surface.ChatCompletions),
                 (Vendor.Anthropic, "claude-3-haiku-20240307", Surface.Messages),
-                (Vendor.Gemini, "gemini-2.5-flash", Surface.GenerateContent)
+                (Vendor.Gemini, "gemini-2.5-flash", Surface.GenerateContent),
+                (Vendor.Gemini, "gemini-3-flash-preview", Surface.GenerateContent)
             })
             {
                 var config = new Configuration(sample.Item1, sample.Item2,
                     "http://127.0.0.1:1", surface: sample.Item3);
-                var agent = new Agent(app, config, Path.Combine(home, sample.Item3.ToString()));
+                var agent = new Agent(app, config, Path.Combine(home, sample.Item2));
                 try
                 {
                     var entries = Enumerable.Range(1, Engine.MaximumRequestImages)
@@ -81,7 +82,9 @@ internal static class ImageBudgetTests
                         "Exact byte boundary lost file or inline images.");
                     Refuse(() => agent.Engine().Render(new Context(byteEntries, ephemeral: [tiny])));
 
-                    if (sample.Item1 == Vendor.Anthropic || sample.Item3 == Surface.Responses)
+                    bool toolImages = sample.Item1 == Vendor.Anthropic || sample.Item3 == Surface.Responses
+                        || sample.Item2 == "gemini-3-flash-preview";
+                    if (toolImages)
                     {
                         using var empty = JsonDocument.Parse("{}");
                         var call = new ToolCallPart("image-budget-call", config.Target(),

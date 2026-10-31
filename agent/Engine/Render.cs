@@ -617,6 +617,63 @@ public sealed partial class Engine
         return obj ?? new JsonObject { ["text"] = text };
     }
 
+    private static bool GeminiResultHasMedia(IEnumerable<Part> parts)
+    {
+        foreach (var part in parts)
+        {
+            if (part is BlobPart)
+            {
+                return true;
+            }
+            if (part is ToolResultPart nested && GeminiResultHasMedia(nested.Parts))
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private JsonObject GeminiFunctionResponse(ToolResultPart result, string name, ImageRequestBudget budget)
+    {
+        var response = new JsonObject { ["name"] = name, ["id"] = result.CallID };
+        if (!GeminiResultHasMedia(result.Parts))
+        {
+            // Preserve historical object/string/error projection for text-only results.
+            response["response"] = GeminiResult(result);
+            return response;
+        }
+        if (result.Parts.Any(part => part is not TextPart and not BlobPart and not RedactedPart))
+        {
+            throw new NotSupportedException("Gemini image results require flat text, image and redacted parts.");
+        }
+
+        var content = new JsonArray();
+        var media = new JsonArray();
+        foreach (var part in result.Parts)
+        {
+            if (part is BlobPart blob)
+            {
+                // Names are local to this response. Never expose a source path
+                // or copy bytes into the response JSON as a text placeholder.
+                string displayName = "image-" + media.Count;
+                var image = GeminiBlob(blob, budget);
+                ((JsonObject)image["inlineData"]!)["displayName"] = displayName;
+                media.Add(image);
+                content.Add(new JsonObject { ["$ref"] = displayName });
+            }
+            else
+            {
+                string text = part is TextPart value ? value.Text : JsonCodec.Text([part]);
+                content.Add(new JsonObject { ["text"] = text });
+            }
+        }
+        var valueObject = new JsonObject { ["content"] = content };
+        response["response"] = result.IsError
+            ? new JsonObject { ["error"] = valueObject } : valueObject;
+        response["parts"] = media;
+        return response;
+    }
+
     // Gemini requires the function name on a response. Recover it from the
     // correlated call; the call ID itself is not a substitute for that name.
     private JsonObject RenderGemini(List<Entry> entries, Configuration config, ImageRequestBudget budget)
@@ -674,12 +731,7 @@ public sealed partial class Engine
 
                         parts.Add(new JsonObject
                         {
-                            ["functionResponse"] = new JsonObject
-                            {
-                                ["name"] = name,
-                                ["id"] = result.CallID,
-                                ["response"] = GeminiResult(result)
-                            }
+                            ["functionResponse"] = GeminiFunctionResponse(result, name, budget)
                         });
                         break;
                 }

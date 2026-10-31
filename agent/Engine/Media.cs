@@ -94,7 +94,11 @@ public sealed partial class Engine
                 {
                     throw new NotSupportedException($"Model '{config.Model}' requires local paths or matching base64 data URIs for {category} media from {blob.Ref.Kind}.");
                 }
-                if (inToolResult && config.Vendor != Vendor.Anthropic && config.Surface != Surface.Responses)
+                bool geminiImageResult = config.Vendor == Vendor.Gemini
+                    && config.Surface == Surface.GenerateContent && kind == Media.Image
+                    && features.FunctionResponseImages;
+                if (inToolResult && config.Vendor != Vendor.Anthropic
+                    && config.Surface != Surface.Responses && !geminiImageResult)
                 {
                     throw new NotSupportedException($"Model '{config.Model}' cannot render {category} media inside this adapter's tool-result content.");
                 }
