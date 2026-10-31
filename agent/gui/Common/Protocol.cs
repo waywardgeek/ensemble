@@ -14,6 +14,12 @@ public sealed record Projection(ImmutableArray<JsonObject> Frames, string State,
 // to the core ownership graph and no callback is used to schedule model work.
 public static partial class Gui
 {
+    // These operations share the mount's explicit origin policy. Null means
+    // refusal, not permission to infer authority from forwarding headers.
+    private static partial string? ValidatePublicOrigin(string? origin);
+    private static partial string? RequestOrigin(HttpContext context, int port, string? publicOrigin);
+    private static partial bool MatchesOrigin(HttpRequest request, string expected, bool required = false);
+
     // The operation borrows the Agent. Cancellation joins HTTP, sockets and the
     // observation loop; the caller remains responsible for Agent destruction.
     public static partial Task RunAsync(Agent agent, GuiOptions options,
@@ -36,11 +42,11 @@ public static partial class Gui
     // never enters the conversation, WebSocket projection, or GUI trace.
     private static partial void MapAuth(Microsoft.AspNetCore.Routing.IEndpointRouteBuilder routes,
         Microsoft.AspNetCore.Routing.IEndpointRouteBuilder? callbackRoutes,
-        Agent agent, int port, CancellationToken stopping);
+        Agent agent, int port, string? publicOrigin, CancellationToken stopping);
     // Trusted mounted peer controls use HTTP so browser-dependent construction
     // cannot block the WebSocket carrying that peer's initialization replies.
     private static partial void MapPeers(Microsoft.AspNetCore.Routing.IEndpointRouteBuilder routes,
-        Agent source, int port, CancellationToken stopping);
+        Agent source, int port, string? publicOrigin, CancellationToken stopping);
     // The mounted Agent and its owning ancestors must outlive this borrowed GUI.
     // Share this eligibility rule between tree projection and HTTP enforcement.
     private static partial bool CanDeleteAgent(Agent source, Agent target);
@@ -48,7 +54,7 @@ public static partial class Gui
     // No caller path is accepted. Completed output is guarded and bounded; the
     // response copy observes both mount shutdown and request cancellation.
     private static partial void MapJobOutput(Microsoft.AspNetCore.Routing.IEndpointRouteBuilder routes,
-        Agent source, int port, CancellationToken stopping);
+        Agent source, int port, string? publicOrigin, CancellationToken stopping);
     // Current-process accounting comes from Engine, never reconstructed from replay.
     public static partial JsonObject MeterFrame(Agent agent);
     // Replay and live durable delivery use this exact same projection.

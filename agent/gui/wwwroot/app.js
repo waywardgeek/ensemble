@@ -903,6 +903,24 @@ function showGoal(goal) {
         busy: "Working", scheduled: "Waiting for idle reminder", paused: "Paused",
         off: "Reminders off — goal retained", file_error: "Goal file error — reminders off"
     };
+    const header = document.querySelector("#header-goal");
+    header.classList.toggle("motto", !!goal && !goal.file);
+    if (!goal) {
+        header.textContent = "Goal …";
+        header.title = "Waiting for acknowledged goal configuration.";
+    } else if (!goal.file) {
+        header.textContent = "Don’t Be Evil";
+        header.title = "No goal configured.";
+    } else {
+        const seconds = goal.idle_seconds;
+        const interval = Number.isFinite(seconds) && seconds > 0
+            ? (seconds % 60 === 0 ? `${seconds / 60} min` : `${seconds} s`)
+            : "interval unknown";
+        const configured = goal.last_error ? "Goal file error" : goal.available ? "Goal on" : "Goal unavailable";
+        const reminders = goal.enabled ? `reminders ${interval}` : "reminders off";
+        header.textContent = `${configured} · ${reminders}`;
+        header.title = `${header.textContent} — goal configuration, not Agent activity.`;
+    }
     const status = document.querySelector("#goal-status");
     if (goal) {
         const details = [labels[goal.phase] || goal.phase];

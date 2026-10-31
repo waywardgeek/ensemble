@@ -11,7 +11,11 @@ namespace EnsembleGui;
 // page/socket query chooses a fixed browser relay target for that connection;
 // select_agent changes only its conversation view. The caller must keep the
 // Ensemble alive until ServeAsync has drained; peers may close independently.
+// PublicOrigin optionally admits one HTTPS origin behind an authenticated local
+// reverse proxy. It is not authentication; the proxy must gate every route,
+// including WebSockets. Forwarded headers do not grant host/origin authority.
 // Trusted peer POST controls use this mounted Agent as the explicit defaults
 // source and cannot delete it. Pending creation does not block socket traffic.
 public sealed record GuiOptions(int Port = 8090, string? AssetsDirectory = null,
-    string SettingsPath = "settings.json", string TracePath = "gui.log", string BasePath = "");
+    string SettingsPath = "settings.json", string TracePath = "gui.log", string BasePath = "",
+    string? PublicOrigin = null);

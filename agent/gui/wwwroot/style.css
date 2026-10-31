@@ -76,6 +76,8 @@ input:not([type="checkbox"]), select { max-width: 100%; }
    group. Intrinsic minimums keep groups separate when the header must scroll. */
 .header-row { display: grid; grid-template-columns: minmax(max-content,1fr) auto minmax(max-content,1fr); align-items: center; column-gap: .4rem; min-width: max-content; }
 .header-start { display: flex; align-items: center; gap: .25rem; }
+#header-goal { min-width: 0; overflow: hidden; text-overflow: ellipsis; margin-inline-start: auto; padding-inline: .4rem; font-size: .75rem; color: var(--muted); white-space: nowrap; }
+#header-goal.motto { font-style: italic; color: color-mix(in srgb, var(--muted) 65%, var(--surface)); }
 .header-end { grid-column: 3; grid-row: 1; display: grid; grid-template-columns: minmax(max-content,1fr) auto; align-items: center; column-gap: .4rem; }
 .run-state { width: 17ch; min-width: 0; display: flex; gap: .5rem; font-size: .8rem; }
 .run-state > * { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }

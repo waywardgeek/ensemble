@@ -6,7 +6,7 @@ namespace EnsembleGui;
 
 public static partial class Gui
 {
-    private static partial void MapJobOutput(IEndpointRouteBuilder routes, Agent source, int port, CancellationToken stopping)
+    private static partial void MapJobOutput(IEndpointRouteBuilder routes, Agent source, int port, string? publicOrigin, CancellationToken stopping)
     {
         routes.MapGet("/jobs/output", async (HttpContext context) =>
         {
@@ -14,15 +14,12 @@ public static partial class Gui
             context.Response.Headers["X-Content-Type-Options"] = "nosniff";
             context.Response.Headers.ContentSecurityPolicy = "default-src 'none'; sandbox";
             var request = context.Request;
-            string expectedOrigin = $"{request.Scheme}://{request.Host}";
-            bool local = context.Connection.RemoteIpAddress is { } remote && IPAddress.IsLoopback(remote);
-            bool host = request.Host.Host is "localhost" or "127.0.0.1" or "::1" or "[::1]";
-            bool origin = !request.Headers.ContainsKey("Origin")
-                || request.Headers.Origin.ToString() == expectedOrigin;
-            // Custom-header fetch excludes simple cross-site requests. Origin and
-            // loopback checks retain the existing local GUI boundary.
+            string? expectedOrigin = RequestOrigin(context, port, publicOrigin);
+            bool origin = expectedOrigin is not null
+                && MatchesOrigin(request, expectedOrigin);
+            // Preserve custom-header and same-site requirements through the proxy.
             bool sameSite = request.Headers["Sec-Fetch-Site"].ToString() is "" or "none" or "same-origin";
-            if (!local || !host || request.Host.Port != port || !origin || !sameSite
+            if (!origin || !sameSite
                 || request.Headers["X-Ensemble-Output"] != "1")
             {
                 return Results.StatusCode(StatusCodes.Status403Forbidden);

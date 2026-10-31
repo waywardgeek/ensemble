@@ -37,7 +37,7 @@ try
             flags[flag] = "1";
             continue;
         }
-        if (flag is not ("--data-dir" or "--agent-name" or "--sandbox" or "--port" or "--gui-dir" or "--vendor" or "--model" or "--base-url" or "--workspace" or "--event-log" or "--settings" or "--skills-dir" or "--primary-skill" or "--startup-skills" or "--save" or "--save-log" or "--archive-log" or "--cache-lens" or "--prompt-cache-key" or "--surface" or "--billing" or "--account" or "--credentials-dir" or "--codex-auth-file" or "--reasoning-effort" or "--reasoning-summary" or "--safe-mode" or "--enable-web-search") || i + 1 >= args.Length)
+        if (flag is not ("--data-dir" or "--agent-name" or "--sandbox" or "--port" or "--public-origin" or "--gui-dir" or "--vendor" or "--model" or "--base-url" or "--workspace" or "--event-log" or "--settings" or "--skills-dir" or "--primary-skill" or "--startup-skills" or "--save" or "--save-log" or "--archive-log" or "--cache-lens" or "--prompt-cache-key" or "--surface" or "--billing" or "--account" or "--credentials-dir" or "--codex-auth-file" or "--reasoning-effort" or "--reasoning-summary" or "--safe-mode" or "--enable-web-search") || i + 1 >= args.Length)
         {
             throw new ArgumentException("Unknown or incomplete GUI flag");
         }
@@ -49,7 +49,7 @@ try
                 throw new ArgumentException("Missing route/account option value");
             }
         }
-        if (flag is "--port" or "--gui-dir" or "--settings")
+        if (flag is "--port" or "--public-origin" or "--gui-dir" or "--settings")
         {
             hostFlags[flag] = value;
         }
@@ -213,6 +213,7 @@ try
             ? int.Parse(portText, System.Globalization.CultureInfo.InvariantCulture) : 8090,
         AssetsDirectory: hostFlags.GetValueOrDefault("--gui-dir"),
         SettingsPath: settingsPath,
+        PublicOrigin: hostFlags.GetValueOrDefault("--public-origin"),
         TracePath: Env("CH07_GUI_LOG") is { Length: > 0 } guiLog ? guiLog : Path.Combine(actorHome, "gui.log"));
     // Fleet restoration belongs to this application composition root, not the
     // reusable GUI mount, which only borrows the Agent supplied by its caller.

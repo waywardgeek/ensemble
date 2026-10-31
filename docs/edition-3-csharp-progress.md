@@ -1,5 +1,38 @@
 # 2026-10-31 — Compact header, curated models, Thinking prose, and port 8088
 
+## Current boundary — explicit authenticated-proxy origin; goal/motto header
+
+Bill confirmed Cloudflare login protects his phone-access hostname. I reproduced
+V3's HTTP 400 with that Host against the loopback listener. Added an opt-in,
+HTTPS-only public origin shared by page, WebSocket, peer, account and output
+routing, without trusting forwarded headers or opening the listener externally.
+Public WebSockets/mutations require the exact origin; guarded GETs preserve
+browser omission of Origin. OAuth callbacks remain local-only. The private
+launcher now supplies the approved public origin on port 8088; no tunnel,
+credential, or running-process change was made.
+
+Final GUI build: zero warnings/errors. All GUI groups, including a real HTTP/
+WebSocket public-origin refusal/acceptance matrix, passed. The first new fixture
+omitted StartAsync on its caller-owned host and timed out before assertions;
+corrected and rerun in a private env-i environment. Evidence:
+`/private/tmp/cadence-public-origin/` (test-2.log, gui-build.log, staging.json).
+All 20 installed build files match; only changed DLL/PDB files were replaced
+by rename. The user must restart/reload; actual Cloudflare/phone access is not
+verified by the local simulated-proxy tests.
+
+The goal header shows acknowledged goal/reminder configuration, not activity;
+no configured file shows the subdued italic “Don’t Be Evil.” Unknown connection/
+selection state stays unknown. Twelve layout cases pass configured/on/off/error/
+unknown states without exceeding the header slot (header.log and header/).
+
+**Still queued, not completed:** the remaining pause bug (socket loss demonstrably
+forgets automatic ownership; the AFK incident was not traced), safe cross-vendor
+switching (keys are present, not copied; fixed runtime provider/funding is the
+actual restriction), and the gear-accessed settings dialog/sub-tabs. Those were
+not silently implemented as part of this origin fix. Chapter 26 now records the
+proxy boundary and its acceptance tests.
+
+
 Completed the queued refinements: 36-pixel header controls reduce the normal
 18-pixel layout from 49 to 41 pixels without changing the logo or usage text;
 Create Agent is theme-aware; a new multicolor music-note SVG is the tab favicon.

@@ -7,7 +7,7 @@ public static partial class Gui
 {
     private static partial void MapAuth(Microsoft.AspNetCore.Routing.IEndpointRouteBuilder routes,
         Microsoft.AspNetCore.Routing.IEndpointRouteBuilder? callbackRoutes,
-        Agent agent, int port, CancellationToken stopping)
+        Agent agent, int port, string? publicOrigin, CancellationToken stopping)
     {
         routes.Map("/auth/{operation}", Handle);
         // Keep the credential owner's fixed callback path across launches.
@@ -26,19 +26,13 @@ public static partial class Gui
             string operation = (string?)request.RouteValues["operation"] ?? "callback";
             bool callback = operation == "callback";
 
-            // The host allowlist also runs on this route group. Check the exact listening
-            // port here; never trust forwarded-host headers for local authority.
-            string origin = $"http://{request.Host}";
-            bool local = request.Scheme == "http" && request.Host.Port == port
-                && request.Host.Host is "127.0.0.1" or "localhost" or "[::1]";
-            bool sameOrigin = request.Headers.Origin.Count == 0
-                || request.Headers.Origin.ToString() == origin;
-            // Custom headers cannot be sent by a foreign HTML form or simple
-            // cross-origin fetch. We provide no CORS/preflight permission. POST
-            // additionally requires Origin, including rejecting the null origin.
-            bool guarded = request.Headers["X-Ensemble-Auth"].ToString() == "1"
-                && sameOrigin && (request.Method == "GET" || request.Headers.Origin.ToString() == origin);
-            if (!local || (!callback && !guarded))
+            string? origin = RequestOrigin(context, port, publicOrigin);
+            // The issuer callback keeps its registered local redirect URI. The
+            // public origin does not rewrite account protocol or credential paths.
+            bool localCallback = origin is not null && origin.StartsWith("http://", StringComparison.Ordinal);
+            bool guarded = origin is not null && request.Headers["X-Ensemble-Auth"].ToString() == "1"
+                && MatchesOrigin(request, origin, required: request.Method != "GET");
+            if (origin is null || (callback ? !localCallback : !guarded))
             {
                 response.StatusCode = StatusCodes.Status403Forbidden;
                 await response.WriteAsync("Account request refused.");

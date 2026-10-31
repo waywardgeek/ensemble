@@ -436,4 +436,5 @@ finally
     }
 }
 await PeerControlsTests.RunAsync();
+await PublicOriginTests.RunAsync();
 Console.WriteLine("PASS external GUI consumer: embedded assets, disk override, full caller-owned mount, WebSocket controls, two hosting lifetimes, Agent survival");

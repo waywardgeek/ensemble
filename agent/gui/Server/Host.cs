@@ -75,6 +75,7 @@ public static partial class Gui
     {
         cancellation.ThrowIfCancellationRequested();
         int port = options.Port;
+        string? publicOrigin = ValidatePublicOrigin(options.PublicOrigin);
         if (port is < 1 or > 65535)
         {
             throw new ArgumentException("Port must be between 1 and 65535");
@@ -149,7 +150,7 @@ public static partial class Gui
                 }
                 try
                 {
-                    if (context.Request.Host.Host is not ("127.0.0.1" or "localhost" or "[::1]"))
+                    if (RequestOrigin(context, port, publicOrigin) is null)
                     {
                         context.Response.StatusCode = StatusCodes.Status400BadRequest;
                         return;
@@ -175,9 +176,9 @@ public static partial class Gui
         {
             ((IEndpointConventionBuilder)callbackRoutes).Add(GuardEndpoint);
         }
-        MapAuth(routes, callbackRoutes, agent, port, stopping.Token);
-        MapPeers(routes, agent, port, stopping.Token);
-        MapJobOutput(routes, agent, port, stopping.Token);
+        MapAuth(routes, callbackRoutes, agent, port, publicOrigin, stopping.Token);
+        MapPeers(routes, agent, port, publicOrigin, stopping.Token);
+        MapJobOutput(routes, agent, port, publicOrigin, stopping.Token);
         MapAssets(routes, options.AssetsDirectory);
         var initialMcp = agent.EnsureMcp();
 
@@ -461,9 +462,10 @@ public static partial class Gui
         {
             // Loopback is not an origin check. A hostile web page must not gain
             // local tool authority merely by opening this WebSocket endpoint.
-            string origin = http.Request.Headers.Origin.ToString();
-            if (!http.WebSockets.IsWebSocketRequest ||
-                (origin.Length != 0 && origin != $"http://{http.Request.Host}"))
+            string? origin = RequestOrigin(http, port, publicOrigin);
+            bool publicRequest = origin is not null && origin == publicOrigin;
+            if (!http.WebSockets.IsWebSocketRequest || origin is null
+                || !MatchesOrigin(http.Request, origin, required: publicRequest))
             {
                 http.Response.StatusCode = StatusCodes.Status403Forbidden;
                 return;

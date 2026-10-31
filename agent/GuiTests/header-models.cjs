@@ -15,12 +15,34 @@ const current=fs.readFileSync(path.join(root,'style.css'),'utf8');
 
  const renderSource=fs.readFileSync(path.join(root,'app.js'),'utf8');
  const renderer=renderSource.slice(renderSource.indexOf('function showUsage(frame)'),renderSource.indexOf('function showAgents()'));
+ const goalRenderer=renderSource.slice(renderSource.indexOf('function showGoal('),renderSource.indexOf('function updateGoal('));
  const rows=[['OpenAI','gpt-6-astra','GPT-6 Astra'],['OpenAI','gpt-5.6-sol','GPT-5.6 Sol'],['Anthropic','claude-opus-5','Claude Opus 5'],['Anthropic','claude-sonnet-5','Claude Sonnet 5'],['Anthropic','claude-opus-4-6','Claude Opus 4.6'],['Gemini','gemini-3.8-flash','Gemini 3.8 Flash'],['Gemini','gemini-4-argon','Gemini 4 Argon']];
  const results=[];
  for(const theme of ['dark','light'])for(const width of [1600,1024,640])for(const font of [18,28]){
  await page.setViewportSize({width,height:900});await page.goto(`http://127.0.0.1:${server.address().port}/`);
  await page.evaluate(({theme,font})=>{document.documentElement.dataset.bsTheme=theme;document.documentElement.style.fontSize=font+'px';document.querySelector('#peer-open').disabled=false;},{theme,font});
  await page.addScriptTag({content:'function renderControls() {}\n'+renderer});
+ await page.addScriptTag({content:'let socket={readyState:1}; let goalSelectionPending=false; let goalDirty=false;\n'+goalRenderer});
+ const goals=[
+  [null,'Goal …'],
+  [{file:null,available:true,enabled:false,phase:'unconfigured'},'Don’t Be Evil'],
+  [{file:'GOAL.md',available:true,enabled:true,idle_seconds:480,phase:'busy'},'Goal on · reminders 8 min'],
+  [{file:'GOAL.md',available:true,enabled:false,idle_seconds:480,phase:'paused'},'Goal on · reminders off'],
+  [{file:'GOAL.md',available:true,enabled:true,idle_seconds:90,phase:'scheduled'},'Goal on · reminders 90 s'],
+  [{file:'GOAL.md',available:true,enabled:false,last_error:'fixture error',phase:'file_error'},'Goal file error · reminders off']
+ ];
+ for(const [goal,label] of goals){
+  await page.evaluate(goal=>showGoal(goal),goal);
+  assert.equal(await page.locator('#header-goal').innerText(),label);
+  const bounds=await page.evaluate(()=>{const g=document.querySelector('#header-goal').getBoundingClientRect(),p=document.querySelector('.header-start').getBoundingClientRect();return {right:g.right,parent:p.right};});
+  assert(bounds.right<=bounds.parent+1,'Goal display exceeds its header slot');
+ }
+ await page.evaluate(()=>{socket.readyState=3;showGoal({file:'GOAL.md',enabled:true});});
+ assert.equal(await page.locator('#header-goal').innerText(),'Goal …');
+ await page.evaluate(()=>{socket.readyState=1;goalSelectionPending=true;showGoal({file:null});});
+ assert.equal(await page.locator('#header-goal').innerText(),'Goal …');
+ await page.evaluate(()=>{goalSelectionPending=false;showGoal({file:null,available:true,phase:'unconfigured'});});
+
  for(const vendor of ['OpenAI','Anthropic','Gemini']){
  const frame={selected_model:rows.find(row=>row[0]===vendor)[1],model_vendor:vendor,model_choices:rows.filter(row=>row[0]===vendor).map(row=>row[1]),recommended_models:rows.map(([v,id,label])=>({vendor:v,id,label,enabled:v===vendor})),usage:{totals:{}},total_cost_usd:null,hit_rate:null};
  await page.evaluate(frame=>showUsage(frame),frame);

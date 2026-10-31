@@ -1024,3 +1024,27 @@ private or unreceived reasoning. Normal incremental narration reads this prose
 without a click when speech is enabled, avoids repeating previously narrated
 text, and remains silent for history replay or an opted-out listener. Tool payload
 expanders remain separate controls.
+
+### An authenticated tunnel needs an explicit origin
+
+The GUI normally accepts only loopback hosts and origins. Putting Cloudflare
+Access in front of it does not automatically change those checks: the public
+Host differs, and the browser uses an HTTPS Origin even when the local proxy
+connection is HTTP. Rejecting that mismatch produced an HTTP 400 during our
+crossover; deleting the guard would have been the wrong fix.
+
+An optional `--public-origin https://ensemble.example.test` admits exactly that
+HTTPS origin through a loopback connection. The authenticated proxy must gate
+**all** routes, including WebSockets. This setting is not authentication, does
+not bind the server to external interfaces, and does not trust forwarded headers
+to expand authority. Keep the same policy for page routing, WebSockets, peer
+controls, account requests and job-output reads, while retaining each endpoint's
+additional request guards. Ordinary same-origin GET fetches may omit Origin;
+public WebSockets and mutations must supply the configured origin. Provider
+OAuth callbacks keep their local redirect URI; remote chat access is not a
+change to the login protocol.
+
+Exercise the real HTTP/WebSocket routes with local and configured public hosts,
+wrong hosts and origins, spoofed forwarding headers, missing custom headers,
+and the local-only callback exception. A simulated proxy test does not establish
+that the user's Cloudflare deployment or phone session works after installation.

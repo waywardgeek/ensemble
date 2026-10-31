@@ -1,5 +1,12 @@
 # Ensemble — current Edition 3 application
 
+For a GUI behind an authenticated **local** HTTPS proxy, explicitly supply
+`--public-origin https://ensemble.example.test`. The listener remains loopback;
+this only admits the exact public Host/Origin. Protect every route (including
+WebSockets) with the proxy's login gate. No forwarded header grants authority,
+and provider OAuth callbacks remain local. Without this option, public hosts
+are refused. See Chapter 26's authenticated-tunnel requirement.
+
 Active C# 14 / .NET 10 source lives here. Build from the repository root with
 `make` (GUI) or `make cli`; use `DOTNET=/path/to/dotnet` if needed. The root
 README describes safe launch and test commands. Source-only historical endpoints
