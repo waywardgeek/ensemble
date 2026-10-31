@@ -213,6 +213,9 @@ code { font-size: .9em; color: inherit; }
     --bs-btn-disabled-bg: transparent; --bs-btn-disabled-border-color: transparent;
 }
 .send-icon { display: block; width: 100%; height: 100%; object-fit: contain; }
+/* The original pale artwork suits dark mode; retain its transparent silhouette
+   but darken its folds against the light composer and hover surfaces. */
+[data-bs-theme="light"] .send-icon { filter: brightness(.32); }
 #notice { flex: none; margin: 0; padding: 0 0.3rem; max-height: 15%; overflow: auto; color: var(--accent); font-size: .82rem; }
 #notice:not(:empty) { padding-block: 0.0875rem; }
 #pane-navigation { display: none; }

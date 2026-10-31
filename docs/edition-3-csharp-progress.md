@@ -1,3 +1,17 @@
+# 2026-10-31 — Dark airplane for light theme
+
+Bill accepted the transparent Send artwork in dark mode but found the pale plane
+hard to see in light mode. A light-theme-only brightness filter now darkens the
+existing SVG, preserving transparency, dimensions and dark-mode artwork. Twelve
+real-Chrome theme/font/viewport checks passed, including rendered canvas pixel
+checks; GUI build passed with zero warnings/errors. Only Ensemble.Gui.dll and its
+matching symbols were staged by rename and verified; the launcher, directory
+repair and all other installation files were untouched. No restart was performed.
+Evidence: `/private/tmp/cadence-gui-sizing/` (`check-light.cjs`,
+`light-plane-geometry.json`, `build-light.log`, `staging-light.json`).
+
+---
+
 # 2026-10-31 — Smaller GUI artwork and clearer usage text
 
 Bill requested smaller Send/Ensemble artwork, larger usage stats, and a transparent
