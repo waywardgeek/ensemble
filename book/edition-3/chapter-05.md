@@ -103,28 +103,54 @@ URI and job-handle rendering remain deferred. See §5.9 for the one authoritativ
 capability policy.
 
 **Verification is scoped.** The full retained Go grader includes Go consumer
-imports and dependency checks. It is not a C# architecture test. The C# endpoint
-uses the unchanged executable replay/media checks through:
+imports and dependency checks. It is not a C# architecture test. For this
+chapter's current executable contract, build the CLI and supply its executable
+(or a wrapper that forwards arguments) to the explicit Edition 3 route:
 
 ```sh
-go run ./cmd/grade-edition2 -ch 5 -executable-only \
+EN_STARTUP_SKILLS=code-tools go run ./cmd/grade-edition3 -ch 5 -executable-only \
   -media-models /your/owned/media-models.json -json /your/owned/build/ch04
 ```
 
-This is a **25-point** report: replay 15 and media 10. It excludes Go consumer,
-workflow, topology and inherited Chapter 4 parity checks. The mapping selects
-fixture models; it does not add production aliases or prove live capability:
+This is a **65-point** report: retained replay checks 15, retained media checks
+10, and four real-CLI scenarios worth 10 each: early hints, already-aged hints,
+Interrupt `now`, and Interrupt `after_tool`. The hint scenarios run gated shell
+jobs plus a pending file write through a local fake provider. They inspect actual
+effects, original call/result pairing, distinct running handles and subsequent
+completion through those handles. They check current and remaining observation
+deadlines, repeated hints, a shorter wait, a fast write, and a fresh next-batch
+observation that must not inherit the cap. Interrupt scenarios require the
+opposite tail behavior: no undispatched effects, explicit not-executed results,
+and continued access to the already-admitted job. Timing windows allow ordinary
+local scheduling jitter; use an otherwise quiet machine when investigating a
+timing failure. These checks require a POSIX shell and local loopback HTTP.
+
+For C#, `EN_STARTUP_SKILLS=code-tools` enables the execution tool used by the
+retained replay fixture. Run in an isolated home without provider credentials.
+The hint fixtures supply their own minimal environment and dummy provider key.
+The model mapping selects fixture models; it does not add production aliases or
+prove live capability:
 
 ```json
 {"anthropic":"claude-3-haiku-20240307","openai":"gpt-4o","gemini":"gemini-2.5-flash"}
 ```
 
-Separately test held HTTP, busy hints, both interrupt modes, pause, reliable
-replies under observation loss, shutdown joins, complete ownership operations,
-and the real external C# workflow. Inspect Common and the functional call paths;
-compilation alone cannot enforce the spoke dependency rule. A marker check cannot
-prove that stored edits reached the reviewer or that every manuscript tool ran.
-Keep actual CLI exercises and source review alongside—not inside—the score.
+The unchanged Edition 2 `-ch 5 -executable-only` route still reports only its
+historical 25 replay/media points. Default Edition 3 Chapter 5 grading retains
+the historical Go consumer/workflow route; `-executable-only` deliberately selects
+the language-neutral CLI checks and refuses those source-artifact flags.
+
+**The remaining 35 points are not awarded by this executable route.** Its score
+is not an architecture or full workflow certificate. Separately test held/frozen
+HTTP, late-response refusal after Interrupt, pause, reliable replies under
+observation loss, shutdown joins, complete ownership operations, and the real
+external C# workflow. Review shared observation behavior for `wait_for_job` and
+`send_input`, literal-next-call `tool_limits`, hints racing observer admission,
+and the mandatory-completion host-adapter exception. Inspect Common and the
+functional call paths; compilation alone cannot enforce the spoke dependency
+rule. A marker check cannot prove that stored edits reached the reviewer or that
+every manuscript tool ran. Keep those exercises and source review alongside—not
+inside—the score.
 
 ## §5.1 The idea in plain words
 
@@ -302,12 +328,66 @@ invent an assistant tool call in model dialogue. Both preserve output evidence.
 A returned `running` snapshot does not mean the worker ended.
 
 **Apply a hint.** Record `HintReceived` without changing the active turn's reducer
-state. During HTTP it affects the next request. During foreground tool observation
-it cancels only that observation, obtains the real running/completed report,
-and pairs every undispatched batch-tail call with its exact-ID not-executed
-result. No skipped effect is replayed later. The next request sees the hint and
-paired results. Idle hints are retained until a proper trigger; pause still
-prevents new scheduling.
+state. During HTTP it affects the next request, never the frozen request already
+in flight. During ordinary foreground tool observation, shorten the observation
+ceiling to the default three seconds **measured from that observation's start**.
+If three seconds have already elapsed, return promptly with the real report;
+otherwise wait only for the remainder, unless a result or shorter deadline wins.
+Do not cancel the Job or refuse undispatched calls merely because a hint arrived.
+Dispatch every remaining finalized call normally, once, with the same observation
+ceiling while the hint is pending. The next request sees the hint and all paired
+results, including actual running-job handles. Idle hints are retained until a
+proper trigger; pause still prevents new scheduling.
+
+### Hear the human without throwing away the work
+
+A finalized model response may contain a long file write or a carefully prepared
+shell command followed by other calls. The human's hint asks the model to listen
+soon, not to discard that prepared work. Shortening observation and cancelling
+execution are different operations. Keep execution owned by the Job and make the
+observer responsive; do not manufacture success or an `interrupted; not executed`
+result for a call that should still run.
+
+For an ordinary observation with start time `s`, requested delay `d`, and default
+hint ceiling `D = 3 seconds`, a pending hint changes its deadline to:
+
+```text
+s + min(d, D)
+```
+
+The start is the start of this observation, not the Job's original launch and not
+the hint's arrival. A hint during a twenty-minute observation that has already
+lasted ten seconds therefore returns promptly. A hint after one second leaves at
+most two seconds. Repeated hints cannot restart that clock. A requested half-second
+wait stays half a second, and an immediately available result stays immediate.
+
+Apply this rule both to a new ordinary tool's initial observation and to controls
+that observe an existing Job, including `wait_for_job` and `send_input`. Preserve
+the original call ID, output cursor/cap, real Job ID, state, and completed result.
+One-shot `tool_limits` still belongs to the literal next call; the hint ceiling
+shortens observation without rewriting arguments or leaking a limit into a later
+call. No stale timer may produce an extra return after the observer has finished.
+
+A pending hint also caps each remaining ordinary observation in the same finalized
+batch. Two slow calls may therefore take roughly six seconds in total; a fast
+write between them finishes normally. This is a per-observation bound, not a
+three-second promise for an arbitrarily large batch. The hint is delivered with
+the paired results on the next request. After delivery, a later observation uses
+its own requested delay: neither an old wake signal nor a stale hint flag may
+keep capping unrelated waits.
+
+Keep the Agent authoritative for pending-hint state. A newly admitted observer
+must notice a hint that arrived before it captured a wake signal; an active
+observer must notice one that arrives afterward. A content-free wake signal can
+shorten the current timer, but must not become a sticky substitute for the actual
+mailbox message. Explicit host adapters declared `waitForCompletion` retain their
+mandatory-completion contract when their consumer has no Job-wait interface;
+this exception is not permission to bypass the cap for ordinary model tools.
+
+**Interrupt remains different.** It deliberately ends the turn and can refuse its
+undispatched tail. A hint preserves finalized pending calls and lets the model
+choose what to change after receiving the hint. Neither operation silently kills
+independent Jobs.
 
 **Finish a turn.** Record terminal facts before completing the request task.
 `TurnEnded` restores the reducer to Idle; `TurnInterrupted` records interruption.
@@ -384,13 +464,20 @@ A hint changes information for the next safe decision. An interrupt ends the
 current turn. Neither is permission to delete the Agent or kill independent
 work. The same mailbox accepts both while HTTP or a tool observation is waiting.
 
-This distinction is easiest to test with a held real Job and two model calls in
-one batch. Send a hint or interrupt after the first Job starts. Assert its real
-handle and output remain accessible, the second call never runs, and its result
-says not executed. Then submit a fresh prompt and prove the Agent still answers.
-Repeat at the HTTP boundary: release a late response containing calls and prove
-that an ended turn cannot cause their effects. Use gates rather than sleeps to
-establish which boundary the test actually reached.
+Test the two controls separately with a held real Job and several finalized
+calls in one batch. For a hint, assert that the current observation obeys its
+original three-second ceiling, every remaining call executes once, and the next
+request contains the hint with truthful results and stable running handles.
+Include a short observation, a fast result, repeated hints, and a fresh next-batch
+observation that must not inherit the ceiling. Release the held Jobs and retrieve
+their real completions through the same handles.
+
+For explicit Interrupt, assert that the first Job remains accessible but the
+undispatched calls never run and receive not-executed results. Then submit a fresh
+prompt and prove the Agent still answers. Repeat at the HTTP boundary: release a
+late response containing calls and prove that an ended turn cannot cause their
+effects. Use gates rather than sleeps to establish which boundary the test
+actually reached.
 
 ### The stdin protocol
 
@@ -625,7 +712,9 @@ a fake that merely returns final prose does not test manuscript sharing.
 Send the topic, wait until the author's real `think` Job starts, then send the
 addressed hint shown in §5.10 and EOF. Inspect all three captured role prompts and
 tool declarations. The next author request must contain the hint, the first
-Job's real running report and the skipped tail's not-executed result. Verify the
+Job's real running report and actual results for every remaining finalized call.
+Verify those calls execute exactly once; a hint must not produce a not-executed
+substitute. Verify the
 stored author's text reaches the editor, the edited text reaches the reviewer,
 and the review decision and notes are actually returned by `review`. The three
 reliable pipeline markers must occur in order before exit zero. Tagged progress

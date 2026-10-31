@@ -96,6 +96,13 @@ func TestChapter5ValidationBeforeLaunch(t *testing.T) {
 		name  string
 		flags []string
 	}{
+		{"executable wrong chapter", []string{"-ch", "4", "-executable-only"}},
+		{"executable false", []string{"-ch", "5", "-executable-only=false"}},
+		{"executable with core", []string{"-ch", "5", "-executable-only", "-core", module}},
+		{"executable with workflow", []string{"-ch", "5", "-executable-only", "-workflow", module}},
+		{"executable with unrelated flag", []string{"-ch", "5", "-executable-only", "-stream-model", "fake"}},
+		{"executable bad media", []string{"-ch", "5", "-executable-only", "-media-models", invalidJSON}},
+		{"executable missing media", []string{"-ch", "5", "-executable-only", "-media-models", filepath.Join(dir, "absent.json")}},
 		{"missing core", []string{"-ch", "5", "-consumer", module, "-workflow", module}},
 		{"missing consumer", []string{"-ch", "5", "-core", module, "-workflow", module}},
 		{"missing workflow", []string{"-ch", "5", "-core", module, "-consumer", module}},

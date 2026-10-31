@@ -23,6 +23,7 @@ func run(args []string) int {
 	flags := flag.NewFlagSet("grade-edition3", flag.ContinueOnError)
 	chapter := flags.Int("ch", 1, "Edition 3 chapter to grade (1, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 18, 19, 20 or 21)")
 	asJSON := flags.Bool("json", false, "emit the report as JSON")
+	executableOnly := flags.Bool("executable-only", false, "Chapter 5 public CLI replay/media and non-disruptive hint checks")
 	core := flags.String("core", "", "Chapter 4/5/6/7/8/9/10/11/12/13 core source module directory")
 	consumer := flags.String("consumer", "", "Chapter 4/5/6/7/8/9/10/11/12/13 external consumer module directory")
 	consumerCase := flags.String("consumer-case", "", "Chapter 4/5/6/7/8/9/10/11/12/13 JSON case file (default: shout example)")
@@ -67,6 +68,42 @@ func run(args []string) int {
 			chapter18Flags = true
 		}
 	})
+	if set["executable-only"] {
+		if !*executableOnly || *chapter != 5 || flags.NArg() != 1 || strings.TrimSpace(flags.Arg(0)) == "" {
+			fmt.Fprintln(os.Stderr, "-executable-only requires -ch 5 and one CLI_TARGET")
+			return 2
+		}
+		for name := range set {
+			if name != "ch" && name != "json" && name != "executable-only" && name != "media-models" {
+				fmt.Fprintln(os.Stderr, "Chapter 5 -executable-only does not accept -"+name)
+				return 2
+			}
+		}
+		models, err := gradeedition2.ReadMediaModels(*mediaModels)
+		if err != nil {
+			fmt.Fprintln(os.Stderr, err)
+			return 2
+		}
+		bin, cleanup, err := grade.Build(flags.Arg(0))
+		if err != nil {
+			fmt.Fprintln(os.Stderr, err)
+			return 2
+		}
+		defer cleanup()
+		report := gradeedition3.Chapter5Executable(bin, models)
+		if *asJSON {
+			if err := report.WriteJSON(os.Stdout); err != nil {
+				fmt.Fprintln(os.Stderr, err)
+				return 2
+			}
+		} else {
+			report.WriteText(os.Stdout)
+		}
+		if !report.Passed {
+			return 1
+		}
+		return 0
+	}
 	// Chapters 14-16 directly grade the GUI target; parity artifact flags do not apply.
 	if (*chapter == 14 || *chapter == 15 || *chapter == 16) && (chapter4Flags || chapter5Flags || chapter6Flags || chapter7Flags) {
 		fmt.Fprintln(os.Stderr, "Chapters 14/15/16 take a direct GUI_TARGET; omit CLI/parity artifact flags")

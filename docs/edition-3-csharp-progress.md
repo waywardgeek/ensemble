@@ -1,5 +1,52 @@
 # Edition 3 GUI crossover — integrated V3 and human acceptance
 
+## 2026-10-31 — Chapter 5 teaches and grades non-disruptive hints
+
+Bill authorized updating the chapter **and its public grader**, personally, with
+no host restart or runtime reimplementation. Chapter 5 now consistently teaches
+per-observation `start + min(requested delay, 3 seconds)`: pending finalized calls
+execute once, real jobs/results survive, and the next request receives the hint.
+Repeated hints cannot reset the deadline; shorter/fast observations stay fast;
+the cap is not sticky or a total-batch bound. Explicit Interrupt retains tail
+refusal. Frozen HTTP and mandatory-completion adapter exceptions remain explicit.
+Chapter 4's nearby control references required no change.
+
+New explicit command: `EN_STARTUP_SKILLS=code-tools go run ./cmd/grade-edition3
+-ch 5 -executable-only -media-models <owned-map.json> -json <CLI-wrapper>` (one
+shell line). Chapter 5 supplies the C#-supported model map and isolation guidance.
+The route reuses unchanged Edition 2 replay/media checks (25 points), adding four
+10-point real-CLI scenarios: early/repeated hint, aged hint, Interrupt now, and
+Interrupt after_tool. Held shell jobs and a fast pending write verify actual
+exact-once effects, original result pairing, stable distinct handles, recovered
+completion, half-second observations and non-sticky next-batch waits. Interrupt
+checks recover the admitted job but refuse the tail. Default Edition 3 Go grading
+and historical Edition 2 endpoints are unchanged. **65/65 is scoped executable
+evidence, not the remaining 35 points or an architecture certificate.** The
+chapter lists source-review and additional workflow/control/HTTP obligations.
+
+Evidence: `/private/tmp/cadence-hint-grader/`. Isolated offline CLI build passed
+with zero warnings/errors. `report-final.json` is the public-route 65/65 report;
+`final-race.log` records both grader packages passing with the four real-CLI
+scenarios under Go's race detector (`EDITION3_HINT_CLI=<wrapper>` enables them).
+Four temporary-source mutants were rejected for their intended behaviors:
+skip-tail (provider advanced without the next effect), instant wake (too early),
+sticky cap (fresh wait returned running), reset-from-hint (aged wait took another
+3 seconds). Exact changes and failures are `negative-*.patch` and
+`final-negative-*.log`. Reset needs the aged case: its early-case extra 0.6 seconds
+fits the intentional jitter allowance. These are controlled policy mutations,
+not a claim to have rerun an entire historical implementation.
+
+Fixture development corrected the wrapper mode (`chat`, not `agent`), explicit
+`code-tools` activation, unsupported default media identifiers, and a local
+variable-name compile error. Those failed runs are not product regressions or
+negative-control passes. Final source review added CLI-drain exit validation;
+`report-drain.json` confirms the final version at 65/65 with runner exit zero,
+followed by both grader packages passing again. The earlier race run predates
+only this added drain-error assertion.
+All providers are local fakes; no credentials, live campaign, installation,
+restart, workers, or pushes. Unrelated `.swp` is preserved. Final disk observation
+exceeded 17 GiB free. The runtime/install evidence below remains unchanged.
+
 ## 2026-10-30 — crossover accepted; non-disruptive hint caps
 
 Bill confirmed the first real Cadence V3 crossover and accepted the installed
