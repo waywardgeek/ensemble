@@ -1,3 +1,28 @@
+## Current boundary — coding guidance adopted; native activation prepared
+
+Bill explicitly adopted the repository coding skill as his instructions for the
+current session, and authorized correcting stale guidance. Corrected its chapter
+range to 00–27. Reading the file was not native activation: the live `load_skill`
+request refused `ensemble-coding` because this Agent's startup catalog lacks it.
+
+Prepared `agent/skills/ensemble-coding/SKILL.md` as an instruction-only native
+loadable skill and added it to the primary skill's offers. Its body is identical
+to `.agents/skills/ensemble-coding/SKILL.md`; a regression test checks that equality
+and guards against extra tool/dependency grants. The launcher already uses
+`agent/Skills`, but discovery is construction-time: no live refresh, restart,
+launcher edit, binary staging, credential access, or live inference was done.
+After Bill's next restart, request actual activation and verify the result.
+
+Four focused `--skill-tests` cases passed, including real isolated activation and
+complete manual projection into Responses' top-level `instructions` field, not
+ordinary dialogue. The first test wrongly expected a developer message in the
+input array; corrected it after inspecting the actual renderer. No production
+provider code changed. Existing skill cases are moved, not duplicated, in the
+default test registration. Build: zero warnings/errors. Evidence:
+`/private/tmp/cadence-coding-skill/`. This does not establish activation in the
+current live Agent. Historical snapshots/evidence remain unchanged; stale active
+guidance may be corrected without rewriting history.
+
 ## Current boundary — multimedia opening draft; crossover moved to Chapter 27
 
 Bill requested only TL;DR and In Plain Words before implementation. Read

@@ -80,6 +80,19 @@ try
         Console.WriteLine($"{passed} passed, {failures} failed");
         return failures == 0 ? 0 : 1;
     }
+    if (args is ["--skill-tests"] || args.Length == 0)
+    {
+        await AsyncCase("Chapter 9 transactional skills and capability gating", SkillTests.Capabilities);
+        await AsyncCase("Chapter 9 parser, ownership and provider instruction placement", SkillTests.Projection);
+        await AsyncCase("Chapter 9 real discovery exchanges and deferred references", ActorTests.SkillExchange);
+        await AsyncCase("Native coding guidance discovery and instruction-only activation", SkillTests.NativeCodingGuidance);
+        if (args is ["--skill-tests"])
+        {
+            Console.WriteLine($"Skill tests: {passed} passed, {failures} failed");
+            return failures == 0 ? 0 : 1;
+        }
+    }
+
     if (args is ["--goal-tests"] || args.Length == 0)
     {
         await AsyncCase("goals opt-in configuration and tool contract", () => MeterTests.GoalsConfiguration(temp));
@@ -848,9 +861,6 @@ await AsyncCase("Chapter 3 tools and loop", () => ToolTests.Run(temp));
     await AsyncCase("Chapter 19 rooted Job output", ActorTests.RootedJobFiles);
     await AsyncCase("Chapter 5 named Agents and caller roles", ActorTests.NamedAgents);
     await AsyncCase("Chapter 8 captured runtime tool budget", ActorTests.RuntimeBudget);
-    await AsyncCase("Chapter 9 transactional skills and capability gating", SkillTests.Capabilities);
-    await AsyncCase("Chapter 9 parser, ownership and provider instruction placement", SkillTests.Projection);
-    await AsyncCase("Chapter 9 real discovery exchanges and deferred references", ActorTests.SkillExchange);
     await AsyncCase("Chapter 7 atomic snapshots and durable display identity", GuiCoreTests.SnapshotsAndIdentity);
     await AsyncCase("Chapter 7 truthful tool and pause lifecycle", GuiCoreTests.LifecycleFacts);
     await AsyncCase("Chapter 6 HTTP parser and stream identity", StreamingTests.Parser);

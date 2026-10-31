@@ -8,7 +8,7 @@ description: Current Edition 3 C# architecture, ownership, KISS, teaching and ve
 ## Canonical layout
 
 - `agent/`: active C# 14 / .NET 10 application.
-- `book/`: current Edition 3 manuscript, Chapters 00–26, and companion.
+- `book/`: current Edition 3 manuscript, Chapters 00–27, and companion.
 - `solutions/chNN/`: preserved C# chapter endpoints. Their historical numbers
   differ from some current manuscript numbers; see `book/README.md`.
 - `edition-1/` and `edition-2/`: frozen archives. Do not rewrite their sources,

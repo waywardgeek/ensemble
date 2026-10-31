@@ -93,6 +93,55 @@ internal static class SkillTests
         }
     }
 
+    public static async Task NativeCodingGuidance()
+    {
+        string repository = Directory.GetCurrentDirectory();
+        string skillsRoot = Path.Combine(repository, "agent", "Skills");
+        string nativePath = Path.Combine(skillsRoot, "ensemble-coding", "SKILL.md");
+        string repositoryPath = Path.Combine(repository, ".agents", "skills", "ensemble-coding", "SKILL.md");
+        var native = Skills.Parse(File.ReadAllText(nativePath), nativePath);
+        string repositoryText = File.ReadAllText(repositoryPath).Replace("\r\n", "\n");
+        int headerEnd = repositoryText.IndexOf("\n---\n", StringComparison.Ordinal);
+        Check(headerEnd >= 0, "Repository coding manual has no frontmatter boundary");
+        string repositoryBody = repositoryText[(headerEnd + "\n---\n".Length)..].Trim();
+        Check(native.Body.Trim() == repositoryBody, "Native and repository coding guidance drifted");
+        Check(native.Tools.IsEmpty && native.Depends.IsEmpty, "Coding guidance must not add tool authority");
+
+        var app = new Application(TextWriter.Null);
+        try
+        {
+            var variables = new Dictionary<string, string>
+            {
+                ["HUMAN_NAME"] = "Fixture",
+                ["HUMAN_DESCRIPTION"] = "Isolated coding-skill test"
+            };
+            var agent = new Agent(app,
+                new Configuration(Vendor.OpenAI, "gpt-6-astra", "http://127.0.0.1:1", surface: Surface.Responses),
+                skillSpec: new SkillSpec(skillsRoot, "ensemble", variables));
+            var manager = agent.SkillManager()!;
+            Check(manager.LoadableSkills().Contains("ensemble-coding"), "Native coding skill is not offered");
+            string[] toolsBefore = manager.CatalogTools().Order(StringComparer.Ordinal).ToArray();
+            var result = await agent.DispatchAsync(Call("load_skill", new { name = "ensemble-coding" }));
+            Check(!result.IsError, "Native coding skill failed to activate");
+            var loaded = manager.Active().Single(skill => skill.Name == "ensemble-coding");
+            Check(loaded.Body.Trim() == repositoryBody, "Activation changed the coding guidance");
+            Check(manager.CatalogTools().Order(StringComparer.Ordinal).SequenceEqual(toolsBefore),
+                "Loading instruction-only guidance changed the tool grants");
+            var request = agent.Engine().Render(agent.History().View());
+            string instructions = request["instructions"]!.GetValue<string>();
+            Check(instructions.Contains(repositoryBody, StringComparison.Ordinal),
+                "Responses instructions lack the complete coding guidance");
+            string heading = repositoryBody.Split('\n').First(line => line.StartsWith('#'));
+            string encodedHeading = JsonSerializer.Serialize(heading)[1..^1];
+            Check(!request["input"]!.ToJsonString().Contains(encodedHeading, StringComparison.Ordinal),
+                "Coding guidance appeared as ordinary dialogue");
+        }
+        finally
+        {
+            app.Destroy();
+        }
+    }
+
     public static async Task Projection()
     {
         string root = Fixture();
