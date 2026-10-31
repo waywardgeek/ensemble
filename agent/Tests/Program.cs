@@ -641,6 +641,7 @@ try
     {
         CheckCase("Bounded image preparation and resizing", () => ImageTests.Preparation(temp));
         await AsyncCase("Image inspection authority, Jobs and payload delivery", () => ImageTests.Inspection(temp));
+        await AsyncCase("Interactive image messages and busy hints", ActorTests.ImageInputs);
         if (args.Length != 0)
         {
             Console.WriteLine($"{passed} passed; {failures} failed");

@@ -1,3 +1,24 @@
+## Current multimedia checkpoint — interactive image input and busy hints
+
+Immutable prepared image parts now accompany AgentInput text into canonical
+History, both for idle messages and busy hints. Admission refuses control-kind
+attachments, paths, malformed payloads, unsupported models, over four images,
+over 8 MiB per image or 16 MiB combined per input. Refusals do not record a human
+message or terminate the actor. This is a per-input policy, not yet a cumulative
+History/request limit, and hosts must prepare raster data before admission.
+
+Real gated HTTP/Agent tests prove frozen requests stay unchanged and the next
+request carries both exact derivative payloads with the busy hint text. Focused
+image tests 3/3; final shared Debug suite **318 passed, zero failed, exit zero**.
+Evidence: `/private/tmp/cadence-image-library/input-*-final.log` and the
+[implementation notebook](edition-3-notes/voice-and-images.md).
+
+Bill is away and authorized progress using synthetic images/isolated browser
+fixtures without his clipboard. Next: paste preview/removal, bounded attachment
+wire with payload-free tracing, fixed routing and server preparation. GUI is
+still text-only; native phone/live-provider acceptance remains unfinished.
+No install/restart/push; keep live8088 untouched and reminders at three minutes.
+
 ## Current multimedia checkpoint — image-file inspection tool
 
 `inspect_image` is now a code-tools-granted structured operation. It validates

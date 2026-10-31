@@ -141,6 +141,7 @@ public sealed partial class Agent
                 throw new ArgumentException("Unknown input kind.");
             }
             ArgumentNullException.ThrowIfNull(message.Input.Text);
+            ValidateInputImages(message.Input);
         }
         else if (message.Kind == MailKind.Submit)
         {
@@ -693,7 +694,7 @@ public sealed partial class Agent
                         if (active is null)
                         {
                             Record(new Event(EventKind.HintReceived, actor: Actor.Human,
-                                parts: [new TextPart(input.Text)]));
+                                parts: input.Parts()));
                             // The fact is already recorded. This empty request
                             // merely triggers work once scheduling is allowed.
                             replyWithTurn = input.Kind == InputKind.Chat;
@@ -704,7 +705,7 @@ public sealed partial class Agent
                         else
                         {
                             Record(new Event(EventKind.HintReceived, actor: Actor.Human,
-                                parts: [new TextPart(input.Text)]));
+                                parts: input.Parts()));
                             // A queued task already invalidated the previous
                             // completion. Do not advance beyond its generation:
                             // this hint will be in its History too. Without a

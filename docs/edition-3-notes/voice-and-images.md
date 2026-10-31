@@ -377,3 +377,36 @@ No install/restart/push or live provider requests. End-to-end model-turn accepta
 GUI attachment admission, aggregate limits and Gemini image tool results remain
 unfinished. Native decoder cancellation is checked before and after, not a
 preemptible CPU quota. Full source/low-level BlobPart validation is not automatic.
+
+
+## Interactive image admission — preparing the GUI paste path
+
+Bill authorized continued implementation with synthetic fixtures while away;
+no native clipboard/phone participation is required for these local checks.
+AgentInput now carries an immutable image array alongside its existing text.
+Both idle human input and busy hints record the same text-plus-image parts in
+canonical History; frozen in-flight requests remain unchanged. Controls such as
+Pause, Resume and Ephemeral refuse attachments rather than silently discard them.
+
+Admission permits at most four prepared inline PNGs, 8 MiB each and 16 MiB combined.
+It checks payload shape/base64 and model support before History publication;
+unsupported or malformed inputs use the actor's existing admission-error contract
+instead of escaping its loop. It does not raster-decode again: host admission
+must call PrepareImage first. This does not make arbitrary low-level BlobPart
+construction a validated raster or establish a cumulative History/request quota.
+
+A gated local HTTP fixture uses real Agent/Engine/History objects: it observes
+one derivative in the first frozen request, admits a second as a busy hint, then
+observes both exact payloads in the next request, with two canonical images and
+retained accompanying text. Negative controls cover control-kind misuse, count,
+per-image and combined byte limits, path references, malformed base64, unsupported
+models, no History publication on refusal and continued actor usability.
+Focused final image tests pass 3/3; final shared Debug suite passes **318/0**, exit zero.
+Logs: /private/tmp/cadence-image-library/input-{build,focused,shared}-final.log.
+
+GUI inspection: controls currently have a 1 MiB WebSocket ceiling and inbound
+raw-JSON tracing. Do not simply raise the ordinary-control limit or log pasted
+media. The attachment wire needs explicit count/source/combined bounds, payload-
+free tracing, fixed selected-Agent routing, server preparation, and browser
+preview/removal ownership. GUI and native clipboard acceptance are not established
+by this actor fixture. Work stays on isolated fixtures, not the live server.

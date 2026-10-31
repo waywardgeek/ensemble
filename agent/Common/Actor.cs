@@ -15,7 +15,11 @@ public enum InputKind
     // a hint to the active turn and returns an empty acknowledgment immediately.
     Chat
 }
-public sealed record AgentInput(InputKind Kind, string Text = "");
+public sealed partial record AgentInput(InputKind Kind, string Text = "",
+    ImmutableArray<BlobPart> Images = default)
+{
+    internal partial ImmutableArray<Part> Parts();
+}
 
 // Observations are disposable progress, not acknowledgments. Part carries the
 // full neutral value; Seq identifies its durable event, not a second transcript.

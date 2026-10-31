@@ -10,6 +10,10 @@ public readonly record struct PreparedImage(BlobPart Image, int OriginalWidth,
 
 public sealed partial class Agent
 {
+    public const int MaximumInputImages = 4;
+    public const int MaximumInputImageBytes = 16 * 1024 * 1024;
+    private partial void ValidateInputImages(AgentInput input);
+
     public const int MaximumImageOutputBytes = 8 * 1024 * 1024;
     public const int MaximumImageSourceBytes = 32 * 1024 * 1024;
     public const long MaximumImagePixels = 24_000_000;
