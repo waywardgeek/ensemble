@@ -9,7 +9,11 @@ focus styling and its 44px hit target. Normal header height measured 49px versus
 Static real-Chrome checks passed 12 dark/light, viewport and font combinations;
 GUI build passed with zero warnings/errors. Evidence: `/private/tmp/cadence-gui-sizing/`.
 These are geometry/style checks, not visual approval. No model requests, runtime
-behavior changes, installation or restart; built binaries are not yet staged.
+behavior changes or restart during implementation. On Bill’s subsequent staging
+request, eight changed build files were replaced by rename with installed modes
+preserved; all 20 installed files matched the tested build by SHA-256. Evidence:
+`/private/tmp/cadence-gui-sizing/staging.json`. No host restart or browser reload
+was performed; live visual acceptance remains with Bill.
 
 ---
 
