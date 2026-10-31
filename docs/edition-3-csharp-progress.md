@@ -1,3 +1,47 @@
+# 2026-10-31 — Recover speech-owned pauses and suppress late switch narration
+
+Bill reported a stuck automatic pause while opening Create Agent, not only when
+switching agents/tabs. The live DOM/queue observation showed paused state and one
+current speech item, but did not establish audibility or capture the exact native
+failure. I initially misread the state-frame ownership rule; it already clears
+local intent only on a transition out of paused. That rule was not changed.
+
+The browser previously depended solely on native speech end/error callbacks. A
+controlled lost callback reproduced native speaking=false/pending=false with the
+real Agent remaining paused. The fix checks native state every 500 ms only while
+an utterance is active, with a two-second startup grace, and on focus/pageshow/
+visibility changes. Recovery follows the ordinary completion/queue path; it does
+not estimate duration, cancel speaking/pending speech, or claim another tab's or
+manual pause. Cancellation and completion clear the watcher; obsolete callbacks
+cannot settle a successor. Narration now also refuses outgoing content during
+pending selection, preventing a new pause after the old pause was released.
+
+`agent/GuiTests/speech-pause.cjs` uses the real isolated C# GUI/Agents/WebSocket
+and a controlled native speech boundary. It covers normal/lost completion,
+Create Agent dialog, tab switching, speaking/pending/startup, queue advancement,
+stale callbacks, typing, manual Pause, external Resume, independent-tab ownership,
+and release-before-selection with an already-paused incoming Agent. Original JS
+fails with native speech stopped and server still paused; removing only the new
+selection guard fails late-narration suppression. Existing speech test and all
+three GUI regression groups pass; GUI/fixture builds have zero warnings/errors.
+A repeated fixture run exposed my invalid reset to an unselected worker: the
+server correctly refused it. Setup now selects before reset and asserts no server
+error frames. The final repeated browser run passed all 16 assertions with no
+browser exceptions or server error frames. The GUI assembly/symbols were staged
+by rename and verified against the build; all other installation files and the
+launcher were left untouched. The live host was not restarted.
+
+Chapter 26 now teaches these acceptance cases and their limits. Native-engine
+flags and browser scheduling are evidence limits: a fully frozen/disconnected
+page cannot guarantee prompt delivery. Socket-loss cleanup remains a separate
+ownership problem; this patch does not blindly resume after reconnection. No
+server pause model change or universal native-browser/audibility claim is made.
+Evidence: `/private/tmp/cadence-speech-pause/`. Reproduce using an isolated
+`GuiTests.dll --crossover-host` and `node agent/GuiTests/speech-pause.cjs`, with
+`PLAYWRIGHT_MODULE` pointing to an existing Playwright installation if needed.
+
+---
+
 # 2026-10-31 — Keep the message input’s unfocused appearance
 
 Bill clarified that the bright focus border meant the bottom message-entry box,

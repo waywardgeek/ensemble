@@ -13,6 +13,7 @@ let agentRows = []; // Bounded server tree projection, not a client Agent regist
 let reconnectTimer;
 let replaying = false;
 let activeSpeech = null;
+let speechWatchTimer;
 const speechQueue = [];
 // The transcript records channel admission, not acoustic hearing. Quiet mode
 // shares this exact path and merely skips the native synthesis boundary.
@@ -178,6 +179,16 @@ function updatePauseCause() {
     }
     renderControls();
 }
+// Native speech may stop without an end/error callback (notably around browser
+// focus/visibility changes). Observe its state, never estimate reading duration.
+// Allow startup time because speak() can return before native state is published.
+function checkSpeechCompletion() {
+    const active = activeSpeech;
+    if (!active || performance.now() - active.admittedAt < 2000) return;
+    if (speech.speaking || speech.pending) return;
+    recordSpeech("completion_recovered", { part_id: active.id });
+    active.settled();
+}
 function startSpeech() {
     if (activeSpeech) return;
     while (speechQueue.length > 0) {
@@ -190,12 +201,14 @@ function startSpeech() {
         const selected = document.querySelector("#voice").value;
         utterance.rate = settings?.tts_speed ?? 1;
         utterance.voice = speech.getVoices().find(voice => voice.voiceURI === selected) || null;
-        activeSpeech = { id: item.id, utterance };
         const settled = () => {
             if (activeSpeech?.utterance !== utterance) return;
+            clearInterval(speechWatchTimer);
             activeSpeech = null;
             startSpeech(); // Both completion and interruption advance the queue.
         };
+        activeSpeech = { id: item.id, utterance, admittedAt: performance.now(), settled };
+        speechWatchTimer = setInterval(checkSpeechCompletion, 500);
         utterance.onend = settled;
         utterance.onerror = settled;
         updatePauseCause();
@@ -221,6 +234,7 @@ function speakText(id, text, source = "explicit") {
     }
 }
 function cancelSpeech(update = true) {
+    clearInterval(speechWatchTimer);
     activeSpeech = null;
     speechQueue.length = 0;
     speech?.cancel();
@@ -244,7 +258,7 @@ function flushNarration() {
     }
 }
 function narrate(card, flush = false) {
-    if (replaying || !settings?.tts_enabled) {
+    if (selectionPending || replaying || !settings?.tts_enabled) {
         // A partial replay or muted fragment may end inside Markdown. Do not
         // resume midway through that part and accidentally speak a code body.
         // The next new part can narrate normally; this restored part stays quiet.
@@ -975,7 +989,10 @@ function voices() {
 if (speech) {
     speech.addEventListener("voiceschanged", voices);
     voices();
+    window.addEventListener("focus", checkSpeechCompletion);
+    window.addEventListener("pageshow", checkSpeechCompletion);
     document.addEventListener("visibilitychange", () => {
+        checkSpeechCompletion();
         if (!document.hidden && !transcriptSpeech) {
             // Recorded Chrome compatibility workaround, not a universal claim.
             const wakeup = new SpeechSynthesisUtterance("");

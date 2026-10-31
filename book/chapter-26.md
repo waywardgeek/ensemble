@@ -563,7 +563,19 @@ A useful session proceeds through these paths:
    Keep model changes disabled during admitted work even when later usage/meter
    frames arrive; a status refresh must not accidentally re-enable the control.
    Queued speech counts as busy according to the existing policy; selection cancels
-   stale callbacks and replay is silent. A fake speech boundary verifies wiring,
+   stale callbacks and replay is silent. Release an outgoing automatic pause before
+   sending the selection command; late outgoing narration must not restart speech
+   while selection is pending. Test an already-paused incoming Agent and obsolete
+   callbacks from the outgoing utterance.
+   Native speech can stop without delivering its end/error callback. Exercise
+   this with the Create Agent dialog open and around browser-tab changes. Reconcile
+   stale active-utterance bookkeeping against native speaking/pending state, with
+   a startup grace period, and reuse ordinary completion cleanup. Do not infer
+   completion from estimated reading time or time out genuinely speaking/queued
+   speech. Check queue advancement, typing overlap, manual Pause and external
+   Resume against the real server state. A hidden or frozen page may defer browser
+   callbacks; socket loss additionally prevents delivery. Those cases do not
+   authorize blindly resuming an Agent whose pause may belong to someone else. A fake speech boundary verifies wiring,
    not hearing. Native voice quality, useful speed, and accessibility need the
    human's own browser and ears before acceptance.
 6. Stop and restart the owned host with the same saved trial state. Continue the
