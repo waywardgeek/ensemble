@@ -661,3 +661,52 @@ No audio request or microphone access occurred. Its deprecated-model shutdown
 comment should be reconciled with the previously collected guide before teaching
 an exact date. Voice ownership, explicit separate funding, capture cancellation,
 and a server-verifiable duration/byte bound remain implementation work.
+
+
+## Live Ensemble Gemini image-tool turn — bounded, non-streaming
+
+Bill reaffirmed permission for useful paid checks. A fresh isolated executable
+referencing the real Ensemble project passed a fake-provider dry run and then one
+announced live batch against exact `gemini-3-flash-preview`. No production source
+changed. The real Agent, Engine, Sandbox, skill grants, tool, native preparation,
+History and HTTP authentication ran. The injected test transport added only the
+1,024-output-token generation cap, bounded request/response bodies, enforced the
+exact endpoint and at most two requests, checked tool calls before dispatch, and
+collected sanitized usage. This is instrumented non-streaming acceptance, not an
+unmodified-production or streaming campaign. Recall/judging and all memory bands
+were explicitly disabled; the tool-round limit was one. Universal skill controls
+remained advertised, but the transport refused their invocation; only one
+`inspect_image` on the owned synthetic file could execute.
+
+The live process exited zero: exactly two HTTP-200 requests; one canonical
+inspection; actual red/blue pixels correctly identified; original 4096×64 resized
+to 2048×32; original function ID and thought signature preserved. The original
+file was deleted at the second-request boundary, and retained History re-rendered
+successfully after completion without reopening it. Both application teardown and
+transport disposal were verified. The authorized Gemini key remained in memory;
+it was neither printed nor copied into fixtures. A bounded scan of the owned
+fixture files found no credential value. No user media, microphone, phone,
+installation, restart, funding/menu change, or push was involved.
+
+Measured input: 752 + 2069 = 2821 tokens. Output/thinking:
+27 + 132 + 24 + 50 = 233 tokens. At the previously verified standard prices,
+$0.50/M input and $3/M output/thinking, the estimate is $0.0021095, not a bill.
+The second request reported 1068 image tokens. Resizing is not a guarantee of
+proportional token savings. This batch is separate from the earlier two-request
+raw API contract probe ($0.00155 estimate).
+
+Harness corrections: restore took about a minute, not a stall; an invented
+`Context.Transcript()` call was corrected to the actual `Dialogue` collection.
+The first dry run refused before network because its declaration allowlist omitted
+universal `load_skill`, `unload_skill`, and `micro_handoff` controls. Reading the
+real skill rule corrected the allowlist while retaining strict response-side
+execution gating. One mismatched edit anchor stopped unchanged. Fake-only error
+detail made these setup failures diagnosable without logging live response bodies.
+Dry-run failures all joined cleanup and made zero upstream requests. These were
+harness defects, not runtime image defects.
+
+Evidence: `/private/tmp/cadence-gemini-live/`, especially `dry-3.log`, `live-1.log`,
+the corresponding owned run receipts, and the local harness source/build logs.
+The earlier shared 321/0 result remains applicable: only evidence notes changed.
+Remaining acceptance includes streaming, other exact newer IDs, other live
+providers, native phone clipboard and usability, voice and capture, then graders.

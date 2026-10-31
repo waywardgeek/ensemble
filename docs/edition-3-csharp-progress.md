@@ -1,4 +1,23 @@
-## Current multimedia checkpoint — Gemini 3 Flash tool images
+## Current multimedia checkpoint — live Gemini Agent image turn
+
+The real Ensemble Agent/Engine/Sandbox/History/tool path passed an isolated,
+non-streaming `gemini-3-flash-preview` live test: exactly two HTTP-200 requests,
+one image inspection, correct red/blue identification, 4096×64 → 2048×32 resizing,
+original call ID/thought signature preservation, and retained-image replay after
+source deletion. The test transport imposed a 1,024-token output cap and two-call
+limit; it did not replace media handling or authentication. Fake dry run and live
+run exited zero with joined cleanup. Key absent from scanned fixture files.
+
+Usage: 2821 input and 233 output/thinking tokens, approximately **$0.00211** at
+published standard rates, not a bill. Evidence:
+`/private/tmp/cadence-gemini-live/` and the
+[implementation notebook](edition-3-notes/voice-and-images.md). Production source
+unchanged; the shared **321/0** result is retained. No installation/restart/push,
+private media, microphone, or model-menu/funding change. Streaming, other IDs and
+native phone use remain unverified. Next: hold-to-talk/transcription ownership,
+bounded fixtures and page capture; then remaining live checks, graders and prose.
+
+## Earlier multimedia checkpoint — Gemini 3 Flash tool images
 
 Exact `gemini-3-flash-preview` support is implemented for GenerateContent image
 function responses, without extending support by name prefix. Text/reference order,
