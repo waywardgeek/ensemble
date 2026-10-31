@@ -29,7 +29,7 @@ const check = (condition, message) => { assert.ok(condition, message); console.l
    const luminance=c=>c.map(v=>{v/=255;return v<=.04045?v/12.92:((v+.055)/1.055)**2.4}).reduce((sum,v,i)=>sum+v*[.2126,.7152,.0722][i],0);
    const ratio=(a,b)=>{const x=[luminance(rgb(a)),luminance(rgb(b))].sort((a,b)=>a-b);return(x[1]+.05)/(x[0]+.05)};
    const background=e=>{while(e){const c=getComputedStyle(e).backgroundColor;if(c!=='rgba(0, 0, 0, 0)'&&c!=='transparent')return c;e=e.parentElement;}throw Error('No opaque background');};
-   const text=['#connection','#state','#agents-tab','#settings-tab','#agent-tree .tree-state','#prompt','#send','.card-heading strong','.card-heading .btn'].map(selector=>{
+   const text=['#connection','#state','#agents-tab','#settings-open','#agent-tree .tree-state','#prompt','#send','.card-heading strong','.card-heading .btn'].map(selector=>{
     const e=document.querySelector(selector);return{selector,ratio:ratio(getComputedStyle(e).color,background(e))};
    });
    const prompt=document.querySelector('#prompt'),style=getComputedStyle(prompt);
@@ -64,7 +64,7 @@ const check = (condition, message) => { assert.ok(condition, message); console.l
   await page.goto(base);
   await page.waitForFunction(()=>document.querySelector('#connection').textContent==='Connected' && !document.querySelector('#send').disabled);
   check(await page.locator('html').getAttribute('data-bs-theme')==='dark','fresh settings default to dark');
-  await page.locator('#settings-tab').click();
+  await page.locator('#settings-open').click(); await page.locator('#settings-display-tab').click();
   await page.locator('#human-name').fill('Taylor <friend>');
   await page.locator('#human-description').fill('Writes $TOOLS <examples>');
   await page.locator('#user-settings button').click();
@@ -81,7 +81,7 @@ const check = (condition, message) => { assert.ok(condition, message); console.l
   })));
   check(names.length>0&&names.every(x=>x.above&&!/\b(Assistant|You)\b/.test(x.name+x.title+x.speak)),'names appear above messages, including accessible labels');
   check(await page.locator('.card-heading friend').count()===0,'user name is plain text, not HTML');
-  await page.locator('#agents-tab').click();
+  if (await page.locator('#settings-dialog').isVisible()) await page.locator('#settings-close').click();
 
   check(!(await page.locator('#narrate').isChecked()),'speech starts opt-in');
   await page.locator('.brand-mark').evaluate(image=>image.decode());
@@ -212,12 +212,15 @@ const check = (condition, message) => { assert.ok(condition, message); console.l
   check(await page.locator('#tool-transcript img').evaluate(e=>e.complete && e.naturalWidth>0),'embedded image renders');
   const originalIDs=await page.locator('[data-part-id]').evaluateAll(nodes=>nodes.map(n=>n.dataset.partId));
   check(new Set(originalIDs).size===originalIDs.length,'replay IDs are unique across both panes');
-  // Bootstrap owns keyboard tab selection; hidden panels must leave focus order.
-  await page.locator('#agents-tab').focus(); await page.keyboard.press('ArrowRight');
-  check(await page.locator('#settings-tab').getAttribute('aria-selected')==='true','tab ArrowRight selects Settings');
-  check(await page.locator('#agents-panel').isHidden(),'inactive Agents panel is hidden');
+  // Bootstrap owns settings tabs; native dialog owns modal focus/Escape.
+  await page.locator('#settings-open').click();
+  await page.locator('#settings-ai-tab').focus(); await page.keyboard.press('ArrowRight');
+  check(await page.locator('#settings-accounts-tab').getAttribute('aria-selected')==='true','tab ArrowRight selects Accounts');
+  check(await page.locator('#settings-ai-panel').isHidden(),'inactive settings panel is hidden');
   await page.keyboard.press('ArrowLeft');
-  check(await page.locator('#agents-tab').getAttribute('aria-selected')==='true','tab ArrowLeft returns to Agents');
+  check(await page.locator('#settings-ai-tab').getAttribute('aria-selected')==='true','tab ArrowLeft returns to AI');
+  await page.keyboard.press('Escape');
+  check(await page.evaluate(()=>document.activeElement.id)==='settings-open','closing settings restores gear focus');
   await page.locator('[data-agent="captain"]').focus(); await page.keyboard.press('ArrowRight');
   check(await page.evaluate(()=>document.activeElement.dataset.agent)==='captain/worker','tree ArrowRight moves to child');
   await page.keyboard.press('ArrowRight');
@@ -415,9 +418,10 @@ const check = (condition, message) => { assert.ok(condition, message); console.l
   check(await page.locator('#theme-toggle use').getAttribute('href')==='#icon-sun','light theme uses sun');
   await checkContrast('light');
   await page.screenshot({path:path.join(evidence,'desktop-light.png')});
-  await page.locator('#settings-tab').click(); await page.locator('#font-size').fill('32'); await page.locator('#font-size').dispatchEvent('change');
+  await page.locator('#settings-open').click(); await page.locator('#settings-display-tab').click(); await page.locator('#font-size').fill('32'); await page.locator('#font-size').dispatchEvent('change');
   await page.waitForFunction(()=>getComputedStyle(document.documentElement).fontSize==='32px');
   check(JSON.parse(fs.readFileSync('.crossover/runtime/appearance.json')).font_size===32,'font size acknowledged after durable save');
+  await page.locator('#settings-close').click();
   await page.setViewportSize({width:390,height:844});
   await page.waitForFunction(()=>document.body.classList.contains('compact'));
   check(await page.locator('#pane-navigation').isVisible(),'pane navigation remains reachable at narrow largest text');
@@ -436,17 +440,19 @@ const check = (condition, message) => { assert.ok(condition, message); console.l
   await page.reload(); await page.waitForFunction(()=>!document.querySelector('#theme-toggle').disabled);
   check(await page.locator('html').getAttribute('data-bs-theme')==='light','light preference survives reload');
   check(await page.evaluate(()=>getComputedStyle(document.documentElement).fontSize)==='32px','largest font survives reload');
-  await page.locator('button[data-pane="agents"]').click(); await page.locator('#settings-tab').click();
+  await page.locator('button[data-pane="agents"]').click(); await page.locator('#settings-open').click(); await page.locator('#settings-display-tab').click();
   await page.locator('#font-size').fill('18'); await page.locator('#font-size').dispatchEvent('change');
   await page.waitForFunction(()=>getComputedStyle(document.documentElement).fontSize==='18px');
+  await page.locator('#settings-close').click();
   await page.locator('#theme-toggle').click(); await page.waitForFunction(()=>document.documentElement.dataset.bsTheme==='dark');
   // Cross enlarged text with narrow/intermediate windows. Manual textarea
   // sizing must not push Send outside the viewport. Scrollable header groups
   // must permit reaching each control without page-wide horizontal overflow.
   for(const size of [18,32]) {
-   await page.locator('button[data-pane="agents"]').click();await page.locator('#settings-tab').click();
+   await page.locator('button[data-pane="agents"]').click();await page.locator('#settings-open').click(); await page.locator('#settings-display-tab').click();
    await page.locator('#font-size').fill(String(size));await page.locator('#font-size').dispatchEvent('change');
    await page.waitForFunction(value=>getComputedStyle(document.documentElement).fontSize===`${value}px`,size);
+  await page.locator('#settings-close').click();
    for(const [width,height] of [[390,844],[390,1000],[768,1000],[1536,1000]]) {
     await page.setViewportSize({width,height});
     await page.waitForFunction(()=>document.body.classList.contains('compact')===(innerWidth<62*parseFloat(getComputedStyle(document.documentElement).fontSize)));

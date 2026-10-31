@@ -126,7 +126,7 @@ are its durable design requirements:
   headings, consistent spacing, and breathing room around messages. Give the
   conversation the main reading space. Avoid enclosing every label or sentence
   in another bordered box. Reserve tool cards for distinct activities/artifacts.
-- **Tabs that select a shared panel.** Agents/Settings are a connected tab strip,
+- **Tabs that select a shared panel.** Settings categories form a connected tab strip,
   not pill-shaped action buttons. The active tab joins or clearly identifies its
   panel; inactive tabs recede. Keyboard focus is distinct from selected state.
   Use the library's tab behavior without adding competing click/key handlers.
@@ -236,8 +236,8 @@ name placement with real browser geometry.
 
 On a desktop, all three panes are visible at once.
 
-**Left: Agents and Settings.** Use two genuine tabs. The Agents tab contains an
-expandable hierarchy and agent creation/deletion controls. Represent the real
+**Left: Agents.** Keep the sidebar dedicated to the expandable hierarchy and
+agent creation/deletion controls. Represent the real
 parent relationships: named top-level peers are siblings, not children of the
 first displayed Agent. Show the selected row and meaningful status. Support
 keyboard traversal, expansion, selection, and visible focus without requiring a
@@ -268,15 +268,33 @@ MCP authority. Remove redundant selection/relay explanations from the normal
 sidebar, but keep a compact separate-relay action discoverable for Agents that
 require it. A pending creation must leave the tree usable for that startup step.
 
-The Settings tab has clearly grouped **AI**, **Memory**, and **Accessibility**
-sections. AI includes the existing model/context/tool-policy and account/funding
-information where applicable. Memory includes the existing band and recall
-settings. Accessibility includes theme, font size, voice, speech speed and pause
-behavior. Keep Goals and existing account controls reachable too; reorganizing
-controls is not permission to drop them. Memory is a settings group, not another
-persistent memory authority or a new recall corpus viewer. A supplemental dialog
-must not replace or bury this agreed Settings tab, duplicate its state, or make
-its grouped controls harder to reach.
+**Settings: one header gear and a modal dialog.** Use a labeled gear at the right
+of the header, not a second sidebar tab competing with the Agent tree. The dialog
+has genuine tabs for **AI**, **Accounts & Sign-in**, **Speech & Display**, **Goals**,
+**Memory**, and **Recall**. AI contains model/context/tool policy; account/funding
+operations retain their safety explanations and existing authority. Speech &
+Display includes theme, font, voice, speed, typing/speech pause options, and the
+user profile. Memory and Recall edit the selected Agent's existing policies; they
+are not new persistent authorities or a new recall-corpus viewer.
+
+Move the existing controls; do not clone forms or invent parallel settings state.
+Preserve control IDs, values, labels, handlers, acknowledgments, refusal behavior,
+and drafts. Remove redundant Accounts/Goals/Memory/Recall expanders now that each
+has a dedicated category. Closing and reopening the dialog retains its selected
+category and unsaved entries; neither closing nor changing categories silently
+saves them. Escape and the close button return focus to the gear. Use native modal
+focus containment and the library's arrow/Home/End tab behavior, not a competing
+keyboard implementation. Hidden panels leave the focus order.
+
+Keep the heading, close action and tab row visible while content scrolls
+independently. On phones, make the tab row horizontally scrollable rather than
+wrapping six categories into most of the viewport height. Test all categories in
+both themes at ordinary and enlarged text sizes, including a 320-by-568 viewport.
+The extra gear must not create another header-controls row. Verify real saving and
+fresh-page reload against the server for profile, appearance, AI, Memory and Recall,
+and truthful disabled Goals/account controls when the corresponding authority is
+unavailable. Test draft retention, modal focus, and speech completion while this
+dialog is open. Source/geometry checks are not human usability acceptance.
 
 Appearance settings belong to their existing store. Memory/recall settings
 belong to the selected Agent. Preserve durable-save-before-acknowledgment,

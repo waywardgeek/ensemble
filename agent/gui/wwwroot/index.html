@@ -9,6 +9,7 @@
 <script src="./speech.js" defer></script><script src="./mcp.js" defer></script>
 <script src="./app.js" defer></script><script src="./layout.js" defer></script>
 <script src="./auth.js" defer></script><script src="./peers.js" defer></script>
+<script src="./settings.js" defer></script>
 </head><body>
 <!-- Local decorative symbols. Interactive controls own their accessible names. -->
 <svg class="icon-symbols" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false"><defs>
@@ -34,24 +35,20 @@
  <button class="btn btn-quiet icon-button" id="pause" aria-label="Pause" title="Pause Agent" disabled><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14M16 5v14"/></svg></button>
  <button class="btn btn-quiet icon-button" id="resume" aria-label="Resume" title="Resume Agent" disabled><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m8 5 11 7-11 7Z"/></svg></button>
  <button class="btn btn-quiet icon-button" id="interrupt" aria-label="Interrupt" title="Interrupt current work" disabled><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="6" width="12" height="12" rx="1"/></svg></button>
- <button class="btn btn-quiet icon-button" id="theme-toggle" aria-label="Switch to light theme" title="Dark theme; switch to light theme" disabled><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#icon-moon"/></svg></button></div>
+ <button class="btn btn-quiet icon-button" id="theme-toggle" aria-label="Switch to light theme" title="Dark theme; switch to light theme" disabled><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#icon-moon"/></svg></button>
+ <button class="btn btn-quiet icon-button" id="settings-open" type="button" aria-label="Settings" aria-haspopup="dialog" aria-controls="settings-dialog" title="Settings"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9.5 3-.6 2.2-2 .9-2-.7-2 3.4 1.5 1.5v2.4L3 14.2l2 3.4 2-.7 2 .9.5 2.2h4.9l.6-2.2 2-.9 2 .7 2-3.4-1.5-1.5v-2.4L21 8.8l-2-3.4-2 .7-2-.9L14.5 3Z"/><circle cx="12" cy="11.5" r="3"/></svg></button></div>
 
  </div></div></div>
 </header>
 <nav id="pane-navigation" aria-label="Workspace panes">
- <button class="pane-tab" type="button" data-pane="agents" aria-pressed="false" aria-label="Agents and Settings">Agents</button>
+ <button class="pane-tab" type="button" data-pane="agents" aria-pressed="false" aria-label="Agents">Agents</button>
  <button class="pane-tab" type="button" data-pane="chat" aria-pressed="true">Chat</button>
  <button class="pane-tab" type="button" data-pane="tools" aria-pressed="false">Tools</button>
 </nav>
 <main id="workspace" data-pane="chat">
- <aside id="left-pane" aria-label="Agents and settings">
- <div class="nav nav-tabs" role="tablist" aria-label="Agents and settings">
- <button class="nav-link active" id="agents-tab" data-bs-toggle="tab" data-bs-target="#agents-panel" type="button" role="tab" aria-controls="agents-panel" aria-selected="true">Agents</button>
- <button class="nav-link" id="settings-tab" data-bs-toggle="tab" data-bs-target="#settings-panel" type="button" role="tab" aria-controls="settings-panel" aria-selected="false">Settings</button>
- </div>
- <div class="tab-content">
- <section class="tab-pane active show" id="agents-panel" role="tabpanel" aria-labelledby="agents-tab" tabindex="0">
- <h2 class="sidebar-caption">Workspace</h2>
+ <aside id="left-pane" aria-label="Agents">
+ <h2 class="agents-heading" id="agents-tab">Agents</h2>
+ <div class="agents-content"><section id="agents-panel" aria-labelledby="agents-tab" tabindex="0">
  <ul id="agent-tree" role="tree" aria-label="Agent hierarchy"></ul>
  <select id="agent-choice" hidden aria-hidden="true" tabindex="-1"></select>
  <div class="agent-toolbar"><button class="btn btn-secondary" id="peer-open" type="button">Create Agent</button>
@@ -65,24 +62,46 @@
  <label class="form-label" for="peer-skill">Primary skill (optional)</label><input class="form-control" id="peer-skill" autocomplete="off">
  <div class="dialog-actions"><button class="btn btn-quiet" id="peer-close" type="button">Cancel</button><button class="btn btn-primary" id="peer-create" type="submit">Create</button></div>
  </form></dialog>
-</section>
- <section class="tab-pane" id="settings-panel" role="tabpanel" aria-labelledby="settings-tab" tabindex="0">
- <section class="settings-section" aria-labelledby="user-heading"><h2 id="user-heading">User</h2>
- <form id="user-settings">
- <label for="human-name">Name</label><input class="form-control" id="human-name" maxlength="120" autocomplete="name">
- <label for="human-description">Description</label><textarea class="form-control" id="human-description" maxlength="2000" rows="3"></textarea>
- <button class="btn btn-secondary" type="submit">Save user</button>
- </form>
- <p>Shared by this GUI. Names update after saving. Skill variables use these values at startup; existing conversation instructions are not rewritten.</p>
- </section>
- <section class="settings-section" aria-labelledby="ai-heading"><h2 id="ai-heading">AI settings</h2><p id="model-help">The header selects a same-provider session model between turns. Capabilities do not prove entitlement. Funding is fixed; launch configuration wins on restart.</p>
+</section></div>
+</aside>
+ <div id="left-splitter" class="splitter" role="separator" tabindex="0" aria-orientation="vertical" aria-label="Agents pane width" aria-controls="left-pane" aria-valuemin="0" aria-valuemax="100" aria-valuenow="18"></div>
+ <section id="chat-pane" aria-label="Chat">
+ <div id="transcript" aria-label="Conversation messages" tabindex="0"></div>
+ <p id="notice" role="status"></p>
+ <form id="compose">
+ <textarea class="form-control" id="prompt" rows="1" placeholder="Select an Agent…" aria-label="Message to selected Agent"></textarea>
+ <button class="btn btn-primary" id="send" type="submit" disabled aria-label="Send" title="Send message (Enter)"><img class="send-icon" src="./artwork/paper-airplane-send.svg" alt=""></button>
+ </form></section>
+ <div id="right-splitter" class="splitter" role="separator" tabindex="0" aria-orientation="vertical" aria-label="Tools pane width" aria-controls="tools-pane" aria-valuemin="0" aria-valuemax="100" aria-valuenow="25"></div>
+ <section id="tools-pane" aria-label="Tools and artifacts"><header class="pane-heading"><div><span class="eyebrow">Activity</span><h2>Tools &amp; artifacts</h2></div><button class="btn btn-quiet" id="clear-tools" title="Clear this view; keep saved history">Clear view</button></header>
+ <div id="tool-transcript" tabindex="0" aria-label="Tool activity"></div></section>
+</main>
+<dialog id="settings-dialog" class="settings-dialog" aria-labelledby="settings-title">
+ <header class="settings-dialog-heading"><h2 id="settings-title">Settings</h2>
+ <button class="btn btn-quiet icon-button" id="settings-close" type="button" aria-label="Close settings" title="Close settings"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg></button></header>
+ <nav class="nav nav-tabs settings-tabs" role="tablist" aria-label="Settings categories">
+<button class="nav-link active" id="settings-ai-tab" data-bs-toggle="tab" data-bs-target="#settings-ai-panel" type="button" role="tab" aria-controls="settings-ai-panel" aria-selected="true">AI</button>
+<button class="nav-link" id="settings-accounts-tab" data-bs-toggle="tab" data-bs-target="#settings-accounts-panel" type="button" role="tab" aria-controls="settings-accounts-panel" aria-selected="false">Accounts &amp; Sign-in</button>
+<button class="nav-link" id="settings-display-tab" data-bs-toggle="tab" data-bs-target="#settings-display-panel" type="button" role="tab" aria-controls="settings-display-panel" aria-selected="false">Speech &amp; Display</button>
+<button class="nav-link" id="settings-goals-tab" data-bs-toggle="tab" data-bs-target="#settings-goals-panel" type="button" role="tab" aria-controls="settings-goals-panel" aria-selected="false">Goals</button>
+<button class="nav-link" id="settings-memory-tab" data-bs-toggle="tab" data-bs-target="#settings-memory-panel" type="button" role="tab" aria-controls="settings-memory-panel" aria-selected="false">Memory</button>
+<button class="nav-link" id="settings-recall-tab" data-bs-toggle="tab" data-bs-target="#settings-recall-panel" type="button" role="tab" aria-controls="settings-recall-panel" aria-selected="false">Recall</button>
+ </nav>
+ <div class="tab-content settings-body" id="settings-panel">
+<section class="tab-pane active show" id="settings-ai-panel" role="tabpanel" aria-labelledby="settings-ai-tab" tabindex="0">
+<section class="settings-section" aria-labelledby="ai-heading"><h2 id="ai-heading">AI settings</h2><p id="model-help">The header selects a same-provider session model between turns. Capabilities do not prove entitlement. Funding is fixed; launch configuration wins on restart.</p>
  <label>Tool batches per turn <input class="form-control" id="max-tool-rounds" type="number" min="0" step="1" value="0"> (0 = auto, 200)</label>
  <label>Context target <input class="form-control" id="context-target-bytes" type="number" min="0" step="1000" value="400000"> UTF-8 bytes (0 = default, 400,000)</label>
 <details id="usage-details"><summary>Usage totals and estimate limits</summary>
   <p id="usage-totals">Waiting for the current process meter.</p>
   <p>Cost is an estimate for verified model and service-tier prices, not an invoice. ? means unknown, not zero. Failed or cancelled requests may incur charges not observed here. Restored conversation does not restore these process totals.</p>
 </details>
-<details id="accounts-panel"><summary>Accounts and sign-in</summary>
+
+
+</section>
+</section>
+<section class="tab-pane" id="settings-accounts-panel" role="tabpanel" aria-labelledby="settings-accounts-tab" tabindex="0">
+<section class="settings-section" id="accounts-panel"><h2>Accounts and sign-in</h2>
   <p id="account-status" role="status">Loading account status.</p>
   <p>These controls do not change this process's billing or selected account. Choose those explicitly at launch. Sign-in opens a separate private window; refresh status after it completes.</p>
   <ul id="account-list" aria-label="Registered accounts"></ul>
@@ -101,10 +120,30 @@
   <p id="account-model-status" role="status">No catalog fetched.</p>
   <ul id="account-model-list" aria-label="Available plan models"></ul>
   <p>Catalog results are a snapshot for the entered account label. Availability does not imply renderer support or a price. Listing does not select a model or change billing.</p>
-</details>
-<section aria-label="Selected Agent goal">
+</section>
+</section>
+<section class="tab-pane" id="settings-display-panel" role="tabpanel" aria-labelledby="settings-display-tab" tabindex="0">
+<section class="settings-section" aria-labelledby="accessibility-heading"><h2 id="accessibility-heading">Speech &amp; Display</h2>
+ <label>Theme <select class="form-select" id="theme"><option value="system">System</option><option value="light">Light</option><option value="dark" selected>Dark</option></select></label>
+ <label>Font size <input class="form-control" id="font-size" type="number" min="12" max="32" step="1" value="18"> px</label>
+ <label>Speech speed <input class="form-control" id="tts-speed" type="range" min="0.25" max="4" step="0.25" value="1"> <output id="speed-label">1×</output></label>
+ <label><input class="form-check-input" id="pause-speaking" type="checkbox" checked> Pause Agent while speaking</label>
+ <label>Voice <select class="form-select" id="voice"><option value="">Browser default</option></select></label>
+ <button class="btn btn-quiet icon-button" id="stop-speech" aria-label="Stop speech" title="Stop speech"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#icon-speaker-off"/></svg></button>
+ <p>Speech is opt-in using the header checkbox. Voice choices are provided by this browser.</p>
+ </section><section class="settings-section" aria-labelledby="user-heading"><h2 id="user-heading">Your profile</h2>
+ <form id="user-settings">
+ <label for="human-name">Name</label><input class="form-control" id="human-name" maxlength="120" autocomplete="name">
+ <label for="human-description">Description</label><textarea class="form-control" id="human-description" maxlength="2000" rows="3"></textarea>
+ <button class="btn btn-secondary" type="submit">Save user</button>
+ </form>
+ <p>Shared by this GUI. Names update after saving. Skill variables use these values at startup; existing conversation instructions are not rewritten.</p>
+ </section>
+</section>
+<section class="tab-pane" id="settings-goals-panel" role="tabpanel" aria-labelledby="settings-goals-tab" tabindex="0">
+<section class="settings-section" aria-label="Selected Agent goal"><h2>Goals</h2>
 <p id="goal-status" role="status">Goal: waiting for Agent status</p>
-<details id="goal-controls"><summary>Selected Agent’s goal controls</summary>
+<div id="goal-controls">
 <p>Session only. Load the goals skill first. Off retains the goal instructions; Clear removes them. Neither means completed.</p>
 <form id="goal-form">
 <label>Goal file <input class="form-control" id="goal-file" type="text" autocomplete="off"></label>
@@ -114,8 +153,10 @@
 <button class="btn btn-outline-primary" id="goal-off" type="button">Reminders off</button>
 <button class="btn btn-outline-primary" id="goal-clear" type="button">Clear goal</button>
 <button class="btn btn-outline-primary" id="goal-reload" type="button">Reload acknowledged goal</button>
-</form></details></section>
-</section><section class="settings-section" aria-labelledby="memory-heading"><h2 id="memory-heading">Memory</h2><details id="memory-settings"><summary>Selected Agent’s memory</summary>
+</form></div></section>
+</section>
+<section class="tab-pane" id="settings-memory-panel" role="tabpanel" aria-labelledby="settings-memory-tab" tabindex="0">
+<section class="settings-section" id="memory-settings"><h2 id="memory-heading">Selected Agent’s memory</h2>
 <form id="memory-settings-form">
 <p>Sizes are UTF-8 bytes, not tokens. Zero selects the band default. Disabling hides memory from requests but preserves files. Re-enabling reads current disk contents. Settings save in this Agent’s home, separately from appearance preferences.</p>
 <fieldset><legend>Conversation</legend>
@@ -157,7 +198,10 @@
 <p>Low watermark must be positive and no greater than high watermark after defaults resolve. A relevant policy change cancels and joins pending compression before acknowledgment.</p>
 <button class="btn btn-outline-primary" type="submit">Save memory settings</button>
 <button class="btn btn-outline-primary" id="memory-settings-reload" type="button">Reload acknowledged settings</button>
-</form></details><details id="recall-settings"><summary>Selected Agent’s recall</summary>
+</form></section>
+</section>
+<section class="tab-pane" id="settings-recall-panel" role="tabpanel" aria-labelledby="settings-recall-tab" tabindex="0">
+<section class="settings-section" id="recall-settings"><h2>Selected Agent’s recall</h2>
 <form id="recall-settings-form">
 <p>Saved in this Agent’s settings, applied to future turns. An in-flight recall keeps its captured policy. Disabling recall does not delete files or remove earlier attachments.</p>
 <label><input class="form-check-input" id="recall-enabled" type="checkbox"> Recall enabled</label>
@@ -172,25 +216,8 @@
 <label>Attachment limit (UTF-8 bytes) <input class="form-control" id="recall-max_recall_bytes" type="number" min="0" max="2147483647" step="1" required></label>
 <button class="btn btn-outline-primary" type="submit">Save recall settings</button>
 <button class="btn btn-outline-primary" id="recall-settings-reload" type="button">Reload acknowledged settings</button>
-</form></details>
- </section><section class="settings-section" aria-labelledby="accessibility-heading"><h2 id="accessibility-heading">Accessibility</h2>
- <label>Theme <select class="form-select" id="theme"><option value="system">System</option><option value="light">Light</option><option value="dark" selected>Dark</option></select></label>
- <label>Font size <input class="form-control" id="font-size" type="number" min="12" max="32" step="1" value="18"> px</label>
- <label>Speech speed <input class="form-control" id="tts-speed" type="range" min="0.25" max="4" step="0.25" value="1"> <output id="speed-label">1×</output></label>
- <label><input class="form-check-input" id="pause-speaking" type="checkbox" checked> Pause Agent while speaking</label>
- <label>Voice <select class="form-select" id="voice"><option value="">Browser default</option></select></label>
- <button class="btn btn-quiet icon-button" id="stop-speech" aria-label="Stop speech" title="Stop speech"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#icon-speaker-off"/></svg></button>
- <p>Speech is opt-in using the header checkbox. Voice choices are provided by this browser.</p>
- </section></section></div></aside>
- <div id="left-splitter" class="splitter" role="separator" tabindex="0" aria-orientation="vertical" aria-label="Agents pane width" aria-controls="left-pane" aria-valuemin="0" aria-valuemax="100" aria-valuenow="18"></div>
- <section id="chat-pane" aria-label="Chat">
- <div id="transcript" aria-label="Conversation messages" tabindex="0"></div>
- <p id="notice" role="status"></p>
- <form id="compose">
- <textarea class="form-control" id="prompt" rows="1" placeholder="Select an Agent…" aria-label="Message to selected Agent"></textarea>
- <button class="btn btn-primary" id="send" type="submit" disabled aria-label="Send" title="Send message (Enter)"><img class="send-icon" src="./artwork/paper-airplane-send.svg" alt=""></button>
- </form></section>
- <div id="right-splitter" class="splitter" role="separator" tabindex="0" aria-orientation="vertical" aria-label="Tools pane width" aria-controls="tools-pane" aria-valuemin="0" aria-valuemax="100" aria-valuenow="25"></div>
- <section id="tools-pane" aria-label="Tools and artifacts"><header class="pane-heading"><div><span class="eyebrow">Activity</span><h2>Tools &amp; artifacts</h2></div><button class="btn btn-quiet" id="clear-tools" title="Clear this view; keep saved history">Clear view</button></header>
- <div id="tool-transcript" tabindex="0" aria-label="Tool activity"></div></section>
-</main></body></html>
+</form></section>
+</section>
+ </div>
+</dialog>
+</body></html>

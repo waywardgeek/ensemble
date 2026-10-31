@@ -1,3 +1,38 @@
+## Settings dialog — complete and staged, not restarted
+
+Moved the existing Settings controls into a native gear-opened modal, with AI,
+Accounts & Sign-in, Speech & Display, Goals, Memory and Recall tabs. The sidebar
+now stays focused on Agents. Existing controls, IDs, save/acknowledgment handlers,
+manual/automatic pause semantics and security policies remain intact. The six
+header controls stay on one row; tabs scroll horizontally on phones and content
+scrolls independently. Escape/close restore gear focus; drafts and category remain
+when reopening. No duplicate settings state was introduced.
+
+Evidence: `/private/tmp/cadence-settings-dialog/`. `browser.log` verifies actual
+profile/appearance/AI/Memory/Recall saves and fresh-page reload, keyboard tabs,
+focus/drafts, read-only account refresh, and every category in both themes at
+1600/1024/390/320 widths and 18/28/32-pixel text. Goals were unavailable in this
+fixture: disabled controls were verified, not live Goals configuration saves.
+`controls.log` verifies all 66 original form controls unchanged and unique DOM IDs.
+`speech.log` has 24 passing assertions, including lost completion with Settings
+open, manual/typing protection and switch ordering. `gui-tests.log` passes all
+four GUI groups, including public-origin protection. The older broad crossover
+script's navigation was updated and syntax checked, not rerun in full. This is not
+pixel review or human usability acceptance. Fixture mistakes corrected: disabled
+Goals editing, treating font as a selector, and guessed account-control IDs.
+
+GUI build: zero warnings/errors. Owned fixture stopped/joined with exit zero.
+`staging.json` verifies all 13 installed files match; launcher unchanged. The live
+8088 application and Cloudflare setup were not restarted or altered. No push.
+Chapter 26 replaces its old sidebar-Settings requirement with the dialog contract.
+
+Next authorized task: read book README and voice guidance; make multimedia Chapter
+26 and shift Crossing Over to Chapter 27. Write TL;DR and In Plain Words first;
+then implement/test, write exercises/graders and pass them, then write full prose.
+Voice input, pasted images, screenshots and image-file inspection are next, with
+permissions/tests agreed before paid calls or arbitrary image access. The AFK
+pause/disconnect issue and safe cross-vendor switching remain open.
+
 # 2026-10-31 — Compact header, curated models, Thinking prose, and port 8088
 
 ## Current boundary — explicit authenticated-proxy origin; goal/motto header

@@ -142,6 +142,14 @@ async function nativeSpeech() {
         await recovered(); await state(observer, 'idle');
         await primary.evaluate(() => document.querySelector('dialog[open]')?.close());
         check(true, 'lost native callback with Create Agent dialog open releases pause');
+        await speak('Settings dialog case.');
+        await primary.locator('#settings-open').click();
+        await primary.evaluate(() => testSpeech.stopWithoutCallback());
+        await recovered(); await state(observer, 'idle');
+        await primary.keyboard.press('Escape');
+        check(await primary.evaluate(() => document.activeElement.id === 'settings-open'),
+            'lost native callback with Settings dialog open releases pause and restores focus');
+
 
         await speak();
         await observer.bringToFront();

@@ -86,7 +86,7 @@ input:not([type="checkbox"]), select { max-width: 100%; }
 #model-controls { position: relative; grid-column: 2; grid-row: 1; display: grid; justify-items: center; gap: 0; min-width: 0; }
 #model-choice { field-sizing: content; width: auto; min-width: 10ch; max-width: min(26rem, calc(100vw - 48px - .75rem)); min-height: 44px; font-size: 1rem; }
 @supports not (field-sizing: content) { #model-choice { width: 24ch; } }
-.status-actions { grid-column: 2; grid-row: 1; justify-self: end; display: grid; grid-template-columns: repeat(5,44px); align-items: center; gap: 1px; }
+.status-actions { grid-column: 2; grid-row: 1; justify-self: end; display: grid; grid-template-columns: repeat(6,44px); align-items: center; gap: 1px; }
 /* The native checkbox covers its icon: keyboard/checked semantics and a full
    hit target remain intact, without another copy of the speech preference. */
 .speech-toggle { position: relative; margin: 0; color: var(--muted); border-radius: .4rem; cursor: pointer; }
@@ -246,7 +246,7 @@ body.compact #transcript, body.compact #tool-transcript { padding: 0.2rem; }
 /* Header-only compact targets. Keep text and the 36px artwork unchanged;
    other controls retain their larger targets. Text zoom can grow the selector. */
 #status-bar #model-choice { min-height: 36px; padding-block: 0; }
-#status-bar .status-actions { grid-template-columns: repeat(5,36px); }
+#status-bar .status-actions { grid-template-columns: repeat(6,36px); }
 #status-bar .icon-button, #status-bar .speech-toggle {
     width: 36px; height: 36px; min-height: 36px; padding: 6px;
 }
@@ -283,3 +283,26 @@ body.compact #transcript { padding: .3rem; }
 #transcript article[data-kind="text"] > .card-heading { display: flex; }
 #transcript article[data-kind="text"] > .icon-button { float: right; margin-left: .15rem; width: 44px; height: 44px; }
 #transcript article[data-kind="text"] > .message > :not(p):first-child { clear: both; }
+
+/* Settings keep their controls/handlers, but no longer compete with the tree. */
+.agents-heading { margin: 0; padding: .3rem .4rem; font-size: 1rem; border-bottom: 1px solid var(--edge); }
+.agents-content { flex: 1; min-height: 0; overflow: auto; }
+.settings-dialog { width: min(48rem, calc(100vw - 1rem)); max-width: none; height: min(42rem, calc(100dvh - 1rem)); max-height: none; padding: 0; overflow: hidden; background: var(--surface); color: var(--bs-body-color); border: 1px solid var(--control-edge); border-radius: .5rem; }
+.settings-dialog[open] { display: flex; flex-direction: column; }
+.settings-dialog::backdrop { background: rgb(0 0 0 / .6); }
+.settings-dialog-heading { flex: none; display: flex; align-items: center; justify-content: space-between; gap: .5rem; padding: .25rem .5rem; }
+.settings-dialog-heading h2 { font-size: 1.15rem; margin: 0; }
+.settings-tabs { flex: none; flex-wrap: nowrap; overflow-x: auto; overflow-y: hidden; gap: .15rem; padding: 0 .4rem; }
+.settings-tabs .nav-link { flex: none; white-space: nowrap; min-height: 2.4rem; padding: .25rem .45rem; font-size: .88rem; }
+.settings-body { min-height: 0; overflow: auto; overscroll-behavior: contain; padding: .5rem; }
+.settings-body .tab-pane { padding: 0; }
+.settings-body .settings-section { min-width: 0; }
+.settings-body label { max-width: 100%; }
+.settings-body input:not([type="checkbox"]), .settings-body select, .settings-body textarea { max-width: 100%; }
+.settings-body .controls { flex-wrap: wrap; }
+.settings-body p, .settings-body li { overflow-wrap: anywhere; }
+@media (max-width: 700px) {
+ .settings-dialog { width: calc(100vw - .5rem); height: calc(100dvh - .5rem); border-radius: .35rem; }
+ .settings-tabs { gap: .1rem; padding: 0 .2rem; }
+ .settings-tabs .nav-link { padding: .2rem .3rem; }
+}
