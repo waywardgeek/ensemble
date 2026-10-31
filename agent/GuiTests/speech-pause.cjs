@@ -67,6 +67,10 @@ async function nativeSpeech() {
             socket.send = value => { window.testSent.push(JSON.parse(value)); original(value); };
         });
         const speak = async () => {
+            // Independent scenarios start only after both connections have
+            // observed the preceding release; their delivery order can differ.
+            await state(primary, 'idle');
+            await state(observer, 'idle');
             await primary.evaluate(() => speakText('pause-test', 'Speech used for the pause regression.'));
             await state(observer, 'paused');
         };
@@ -83,6 +87,51 @@ async function nativeSpeech() {
         await primary.evaluate(() => testSpeech.finish());
         await state(observer, 'idle');
         check(true, 'normal native completion releases the actual Agent pause');
+
+        // Render and narrate actual provider-supplied thinking without an expander.
+        for (const kind of ['reasoning_summary', 'thinking']) {
+            const visible = await primary.evaluate(kind => {
+                const card = { id: 'thinking-test', agent: 'captain', role: 'assistant', kind,
+                    text: 'I will check the actual inputs.', final: true, node: document.createElement('article') };
+                window.testThinkingCard = card;
+                render(card);
+                narrate(card);
+                const firstSpeech = testSpeech.current;
+                narrate(card); // Re-rendering must not repeat previously narrated text.
+                return { heading: card.node.querySelector('strong').textContent,
+                    body: card.node.querySelector('.message')?.textContent,
+                    details: card.node.querySelectorAll('details').length,
+                    spoken: firstSpeech.text, queued: speechQueue.length };
+            }, kind);
+            check(visible.heading === 'Thinking' && visible.body.includes('actual inputs') && !visible.details,
+                kind + ': Thinking prose is immediately visible without an expander');
+            check(visible.spoken === 'Thinking: I will check the actual inputs.' && visible.queued === 0,
+                kind + ': automatic read-aloud occurs once without a click');
+            await state(observer, 'paused');
+            await primary.evaluate(() => testSpeech.finish());
+            await state(observer, 'idle');
+            const complete = await primary.evaluate(() => {
+                testThinkingCard.text = 'Full thinking text. '.repeat(140) + 'VISIBLE_END';
+                render(testThinkingCard);
+                const body = testThinkingCard.node.querySelector('.message').textContent;
+                testThinkingCard.node.remove();
+                return body.endsWith('VISIBLE_END') && body.length > 2000;
+            });
+            check(complete, kind + ': complete text is rendered rather than a bounded preview');
+        }
+        const quietThinking = await primary.evaluate(() => {
+            const card = () => ({ id: 'quiet-thinking', role: 'assistant', kind: 'reasoning_summary',
+                text: 'This must remain silent.', final: true });
+            settings.tts_enabled = false;
+            narrate(card());
+            settings.tts_enabled = true;
+            replaying = true;
+            narrate(card());
+            replaying = false;
+            return activeSpeech === null && speechQueue.length === 0;
+        });
+        check(quietThinking, 'thinking respects speech opt-out and silent history replay');
+
 
         await speak();
         await primary.evaluate(() => {

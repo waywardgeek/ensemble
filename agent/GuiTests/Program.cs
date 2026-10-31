@@ -96,6 +96,22 @@ try
     // connection-local default address. Construction order must not choose it.
     _ = new Agent(root, new Configuration(Vendor.Anthropic, "offline", apiKey: "", baseUrl: "http://127.0.0.1:1"));
     var agent = new Agent(root, new Configuration(Vendor.Anthropic, "offline", apiKey: "", baseUrl: "http://127.0.0.1:1"), outputDirectory: "jobs");
+    var modelFrame = Gui.MeterFrame(agent);
+    var recommendations = modelFrame["recommended_models"]!.AsArray();
+    Check(recommendations.Count == 7, "GUI meter publishes the curated seven-model catalog");
+    Check(modelFrame["model_vendor"]!.GetValue<string>() == "Anthropic",
+        "GUI meter labels the actual fixed provider");
+    Check(modelFrame["selected_model"]!.GetValue<string>() == "offline",
+        "curation never rewrites an existing selection");
+    foreach (var row in recommendations)
+    {
+        bool sameVendor = row!["vendor"]!.GetValue<string>() == "Anthropic";
+        Check(row["enabled"]!.GetValue<bool>() == sameVendor,
+            "GUI recommendations disable other vendors without claiming a provider switch");
+        Check(!string.IsNullOrWhiteSpace(row["label"]!.GetValue<string>()),
+            "GUI recommendations include readable names");
+    }
+
     for (int attempt = 0; attempt < 2; attempt++)
     {
         int port = Port();
@@ -109,6 +125,9 @@ try
             Check(page.Contains("/app.js", StringComparison.Ordinal), "Embedded index missing");
             foreach (string asset in new[] { "app.js", "auth.js", "mcp.js", "speech.js", "style.css" })
                 Check((await http.GetStringAsync(origin + "/" + asset, cancellation)).Length > 100, "Asset missing: " + asset);
+            using var favicon = await http.GetAsync(origin + "/artwork/music-note.svg", cancellation);
+            Check(favicon.IsSuccessStatusCode && favicon.Content.Headers.ContentType?.MediaType == "image/svg+xml",
+                "music-note favicon is embedded and served with its SVG content type");
             using var foreign = new HttpRequestMessage(HttpMethod.Get, origin + "/");
             foreign.Headers.Host = "foreign.example";
             using var refused = await http.SendAsync(foreign, cancellation);

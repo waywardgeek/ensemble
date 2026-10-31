@@ -221,8 +221,8 @@ function startSpeech() {
 function enqueueSpeech(id, text, source = "explicit") {
     if (!text.trim()) return;
     if (!transcriptSpeech && (!speech || !window.SpeechSynthesisUtterance)) return;
-    const label = source === "reasoning_summary" ? "Reasoning summary: "
-        : source === "thinking" ? "Thinking: " : source === "error" ? "Error: " : "";
+    const label = source === "reasoning_summary" || source === "thinking" ? "Thinking: "
+        : source === "error" ? "Error: " : "";
     speechQueue.push({ id, text: label + text, source });
     updatePauseCause();
     startSpeech();
@@ -413,7 +413,7 @@ function render(card) {
     const title = document.createElement("strong");
     const argument = card.kind === "tool_call" ? Object.values(card.input || {}).find(value => typeof value === "string") : null;
     const summary = argument ? ` · ${argument.slice(0, 100)}` : "";
-    const kind = card.kind === "reasoning_summary" ? "Reasoning summary" : card.kind === "thinking" ? "Thinking" : card.kind;
+    const kind = card.kind === "reasoning_summary" || card.kind === "thinking" ? "Thinking" : card.kind;
     // Labels are projections of this card, not invented people or timestamps.
     // Keep wire-level details in a tooltip while prose reads as conversation.
     const author = card.role === "human" ? (settings?.human_name || "Human")
@@ -437,7 +437,9 @@ function render(card) {
     card.node.append(heading);
     // Name above the message; the full-size speech target floats beside its text.
     (card.kind === "text" ? card.node : heading).append(speaker);
-    if (card.kind === "text") {
+    // Supplied thinking is readable prose, not a hidden tool payload. Keep its
+    // original kind/provenance; the friendly label does not invent hidden reasoning.
+    if (["text", "thinking", "reasoning_summary"].includes(card.kind)) {
         const body = document.createElement("div");
         body.className = "message";
         markdown(body, card.text);
@@ -446,8 +448,7 @@ function render(card) {
         const details = document.createElement("details");
         details.open = wasOpen;
         const summary = document.createElement("summary");
-        summary.textContent = card.kind === "reasoning_summary" ? "Reasoning summary"
-            : card.kind === "thinking" ? "Thinking" : "Expand complete received payload";
+        summary.textContent = "Expand complete received payload";
         const pre = document.createElement("pre");
         pre.textContent = card.text;
         details.append(summary);
@@ -500,12 +501,29 @@ function renderControls() {
 function showUsage(frame) {
     const picker = document.querySelector("#model-choice");
     picker.replaceChildren();
-    for (const model of frame.model_choices) {
+    // Display the curated list without implying a live actor can change vendor
+    // or funding. The server independently validates every actual selection.
+    const groups = new Map();
+    const add = (vendor, id, label, enabled) => {
+        if (!groups.has(vendor)) {
+            const group = document.createElement("optgroup");
+            group.label = vendor === "Gemini" ? "Google" : vendor;
+            groups.set(vendor, group);
+            picker.append(group);
+        }
         const option = document.createElement("option");
-        option.value = model;
-        option.textContent = model;
-        picker.append(option);
+        option.value = id;
+        option.textContent = label;
+        option.disabled = !enabled;
+        if (!enabled) option.title = "Unavailable for this Agent's fixed provider or API surface.";
+        groups.get(vendor).append(option);
+    };
+    const recommendations = frame.recommended_models || [];
+    for (const model of recommendations) add(model.vendor, model.id, model.label, model.enabled);
+    if (!recommendations.some(model => model.id === frame.selected_model && model.vendor === frame.model_vendor)) {
+        add(frame.model_vendor || "Current", frame.selected_model, frame.selected_model + " (current)", true);
     }
+    picker.title = "Curated models by vendor. Running Agents keep their provider and funding; unavailable choices are disabled.";
     picker.value = frame.selected_model;
     renderControls();
     const count = value => value == null ? "?" : value.toLocaleString("en-US");

@@ -132,10 +132,10 @@ internal static partial class MeterTests
             held.Response.Abort();
             await agent.SetModelAsync("gpt-4o");
             Check(agent.Configuration().Model == "gpt-4o", "failed/cancelled direct sends release selection guard");
-            Check(Engine.ModelChoices(agent.Configuration()).SequenceEqual(new[] { "gpt-4o", "gpt-4o-mini" }),
-                "chat choices share provider and exclude Responses-only row without duplicates");
+            Check(Engine.ModelChoices(agent.Configuration()).SequenceEqual(new[] { "gpt-4o", "gpt-5.6-sol" }),
+                "chat recommendations preserve current and exclude Responses-only Astra");
             var arbitrary = agent.Configuration().WithModel("unknown-current");
-            Check(Engine.ModelChoices(arbitrary).SequenceEqual(new[] { "unknown-current", "gpt-4o", "gpt-4o-mini" }),
+            Check(Engine.ModelChoices(arbitrary).SequenceEqual(new[] { "unknown-current", "gpt-5.6-sol" }),
                 "unknown current selection stays visible without inventing capabilities");
             Check(!Engine.LookupModel(Vendor.Anthropic, "gpt-4o", out var absent) && absent.Media == Media.None,
                 "capability keys include vendor");
@@ -152,8 +152,20 @@ internal static partial class MeterTests
                 && gemini.Stream, "Gemini row retained");
             var reasoning = new Configuration(Vendor.OpenAI, "gpt-6-astra", listener.Prefixes.Single(),
                 reasoningEffort: "high", reasoningSummary: "off");
-            Check(Engine.ModelChoices(reasoning).SequenceEqual(new[] { "gpt-6-astra", "gpt-4o", "gpt-4o-mini" }),
+            Check(Engine.ModelChoices(reasoning).SequenceEqual(new[] { "gpt-6-astra", "gpt-5.6-sol" }),
                 "Responses choices derive from the same selection validator");
+            Check(Engine.RecommendedModels.Select(row => row.Name).SequenceEqual(new[]
+            {
+                "gpt-6-astra", "gpt-5.6-sol", "claude-opus-5", "claude-sonnet-5",
+                "claude-opus-4-6", "gemini-3.8-flash", "gemini-4-argon"
+            }), "exact curated order excludes Opus 5.5, unverified Carbon and incidental capability rows");
+            foreach (Vendor vendor in new[] { Vendor.Anthropic, Vendor.Gemini })
+            {
+                var rows = Engine.RecommendedModels.Where(row => row.Vendor == vendor).ToArray();
+                var candidate = new Configuration(vendor, rows[0].Name, listener.Prefixes.Single());
+                Check(Engine.ModelChoices(candidate).SequenceEqual(rows.Select(row => row.Name)),
+                    "recommendations stay in the selected vendor without duplicates");
+            }
             var unknown = reasoning.WithModel("unpriced-responses-model");
             Check(unknown.Surface == Surface.Responses && unknown.ReasoningEffort == ""
                 && unknown.ReasoningSummary == "" && unknown.RequireToolExplanation,

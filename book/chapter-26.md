@@ -572,7 +572,14 @@ A useful session proceeds through these paths:
    stale active-utterance bookkeeping against native speaking/pending state, with
    a startup grace period, and reuse ordinary completion cleanup. Do not infer
    completion from estimated reading time or time out genuinely speaking/queued
-   speech. Check queue advancement, typing overlap, manual Pause and external
+   speech. In the integrated browser, one watcher exists only while an utterance
+   is active: every 500 milliseconds, after a two-second startup grace, it checks
+   native `speaking` and `pending`. If both are false, it invokes the same
+   identity-checked settlement used by end/error callbacks. Focus, pageshow and
+   visibility events also check liveness. Settlement and cancellation clear the
+   watcher; an old callback cannot settle the next utterance. Completion advances
+   queued speech before releasing the local speech pause, so typing or an explicit
+   manual Pause can still keep the Agent paused. Check queue advancement, typing overlap, manual Pause and external
    Resume against the real server state. A hidden or frozen page may defer browser
    callbacks; socket loss additionally prevents delivery. Those cases do not
    authorize blindly resuming an Agent whose pause may belong to someone else. A fake speech boundary verifies wiring,
@@ -984,3 +991,36 @@ slow or unresponsive model without inspecting actual events. The projection
 repair and better user-visible failure reporting are separate pieces of work.
 These field notes do not declare the entire crossover, memory-directory change,
 or retirement of V2 complete.
+
+
+### Subsequent integrated refinements: compact controls and curated models
+
+The header's height is determined by its tallest control, not just its artwork.
+After reducing the artwork, inspect the selector and the pause/speech controls:
+in this layout their old 44-pixel minimum kept the header at 49 pixels. Header-only
+36-pixel targets and reduced selector padding bring the normal 18-pixel layout to
+41 pixels. Do not globally shrink controls or fonts to achieve that result;
+verify enlarged text separately. Create Agent must use the same theme-aware
+foreground, hover and focus treatment as its neighbors. The tab favicon is a
+separate, bold multicolored music note; keep the full Ensemble artwork in the app.
+
+A capability table is not a recommendation list. Keep a deliberate curated model
+catalog with readable names and vendor groups; do not populate it indiscriminately
+from vendor discovery, media support or pricing rows. The integrated choices are
+GPT-6 Astra (the primary/default choice), GPT-5.6 Sol, Claude Opus 5, Claude Sonnet 5,
+Claude Opus 4.6, Gemini 3.8 Flash and Gemini 4 Argon. Opus 5.5 is deliberately
+excluded. Carbon awaits a verified API listing. Preserve an existing non-catalog
+selection visibly as current rather than silently replacing it. Running Agents
+retain their provider, wire protocol and funding: other-vendor or incompatible
+choices are disabled, and the server still validates every selection. A model
+recommendation establishes neither entitlement nor new media capabilities or prices.
+
+
+Provider-supplied reasoning summaries and thinking parts have one visible heading,
+**Thinking**, followed immediately by the complete received prose. Do not hide
+this text behind a second summary/expander or substitute a clipped preview. Their
+original part kinds and provenance remain unchanged: this presentation reveals no
+private or unreceived reasoning. Normal incremental narration reads this prose
+without a click when speech is enabled, avoids repeating previously narrated
+text, and remains silent for history replay or an opted-out listener. Tool payload
+expanders remain separate controls.

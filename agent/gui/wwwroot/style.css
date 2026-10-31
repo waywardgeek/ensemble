@@ -241,6 +241,17 @@ body.compact #transcript, body.compact #tool-transcript { padding: 0.2rem; }
 .icon-button, .speech-toggle, .tree-expand { width: 44px; height: 44px; min-height: 44px; }
 .icon-button, #theme-toggle, .card-heading .icon-button { padding: 10px; }
 .form-control, .form-select { padding-block: .09375rem; }
+/* Header-only compact targets. Keep text and the 36px artwork unchanged;
+   other controls retain their larger targets. Text zoom can grow the selector. */
+#status-bar #model-choice { min-height: 36px; padding-block: 0; }
+#status-bar .status-actions { grid-template-columns: repeat(5,36px); }
+#status-bar .icon-button, #status-bar .speech-toggle {
+    width: 36px; height: 36px; min-height: 36px; padding: 6px;
+}
+#peer-open {
+    color: var(--bs-body-color); background: transparent; border-color: var(--control-edge);
+}
+#peer-open:hover, #peer-open:active { background: var(--selected); }
 body.compact #compose { padding: .25rem .4rem; }
 /* Conversation density: actions share the message rows; fonts are unchanged. */
 #chat-pane > .pane-heading { padding: .2rem .45rem; }

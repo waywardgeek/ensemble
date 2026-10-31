@@ -13,8 +13,20 @@ public static partial class Gui
         Usage latest = meter.Latest?.Counts ?? new Usage(null, null, null, null);
         Usage totals = meter.Totals;
         Configuration configuration = agent.Configuration();
+        var compatible = Engine.ModelChoices(configuration);
+        var recommendations = new JsonArray();
+        foreach (var model in Engine.RecommendedModels)
+        {
+            recommendations.Add(new JsonObject
+            {
+                ["vendor"] = model.Vendor.ToString(),
+                ["id"] = model.Name,
+                ["label"] = model.Label,
+                ["enabled"] = model.Vendor == configuration.Vendor && compatible.Contains(model.Name)
+            });
+        }
         var choices = new JsonArray();
-        foreach (string model in Engine.ModelChoices(configuration))
+        foreach (string model in compatible)
         {
             choices.Add(model);
         }
@@ -24,6 +36,8 @@ public static partial class Gui
             ["funding"] = configuration.FundingDescription(),
             ["selected_model"] = configuration.Model,
             ["model_choices"] = choices,
+            ["model_vendor"] = configuration.Vendor.ToString(),
+            ["recommended_models"] = recommendations,
             ["agent_id"] = agent.Address() ?? "",
             ["usage"] = new JsonObject
             {

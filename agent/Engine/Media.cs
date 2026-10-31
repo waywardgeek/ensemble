@@ -22,7 +22,7 @@ public sealed partial class Engine
     {
         var choices = System.Collections.Immutable.ImmutableArray.CreateBuilder<string>();
         choices.Add(configuration.Model);
-        foreach (var row in modelCatalog)
+        foreach (var row in RecommendedModels)
         {
             if (row.Vendor != configuration.Vendor || row.Name == configuration.Model)
             {

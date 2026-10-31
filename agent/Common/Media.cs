@@ -49,8 +49,21 @@ public sealed partial class Engine
                 Stream: true, ContextWindow: 1_048_576))
     ];
 
-    // Current selection first (including unknown IDs), then same-vendor local
-    // rows admitted by the actual selection validator. Does not fetch a catalog.
+    // Human-curated recommendations, not media capability, pricing, entitlement,
+    // or automatic vendor discovery. Order is deliberate; Astra remains primary.
+    public static ImmutableArray<(Vendor Vendor, string Name, string Label)> RecommendedModels { get; } =
+    [
+        (Vendor.OpenAI, "gpt-6-astra", "GPT-6 Astra"),
+        (Vendor.OpenAI, "gpt-5.6-sol", "GPT-5.6 Sol"),
+        (Vendor.Anthropic, "claude-opus-5", "Claude Opus 5"),
+        (Vendor.Anthropic, "claude-sonnet-5", "Claude Sonnet 5"),
+        (Vendor.Anthropic, "claude-opus-4-6", "Claude Opus 4.6"),
+        (Vendor.Gemini, "gemini-3.8-flash", "Gemini 3.8 Flash"),
+        (Vendor.Gemini, "gemini-4-argon", "Gemini 4 Argon")
+    ];
+
+    // Preserve current selection (including unknown IDs), then offer compatible,
+    // same-vendor recommendations. Never silently change a running configuration.
     public static partial ImmutableArray<string> ModelChoices(Configuration configuration);
 
     // Request-time bytes use the actual Agent boundary. BlobRef stays a

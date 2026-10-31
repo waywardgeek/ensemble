@@ -1,3 +1,36 @@
+# 2026-10-31 — Compact header, curated models, Thinking prose, and port 8088
+
+Completed the queued refinements: 36-pixel header controls reduce the normal
+18-pixel layout from 49 to 41 pixels without changing the logo or usage text;
+Create Agent is theme-aware; a new multicolor music-note SVG is the tab favicon.
+Bill reported liking the upgrades, especially the favicon. Chapter 26 now explains
+the prior speech-pause repair and these subsequent integrated refinements.
+
+Engine recommendations are a separate seven-model curated catalog: GPT-6 Astra,
+GPT-5.6 Sol, Claude Opus 5, Sonnet 5, Opus 4.6, Gemini 3.8 Flash and Gemini 4 Argon.
+The GUI groups vendors, preserves an existing non-catalog current model, and
+retains the same-provider/wire/funding restrictions. Opus 5.5 is excluded by
+Bill's compatibility requirement. Google's public model catalog did not establish
+Carbon API availability, so Carbon was not added. Public documentation checks
+and local configuration acceptance are not paid-provider or entitlement tests;
+capabilities and pricing were not expanded. Source: https://ai.google.dev/gemini-api/docs/models
+and https://developers.openai.com/api/docs/models/gpt-5.6-sol plus Claude's model documentation.
+
+Supplied reasoning-summary/thinking parts now say Thinking and display complete
+received prose with no expander. Existing incremental narration reads them when
+enabled, without repeating text or speaking replay; hidden reasoning is not exposed.
+The expanded browser test caught a fixture ordering problem between independent
+connections; each scenario now waits for both connections' prior idle acknowledgment.
+Final real-host Thinking/speech tests pass, alongside 313 shared groups, three GUI
+groups, 12 static browser layouts, favicon rendering and curated-menu assertions.
+Builds have zero warnings/errors. Evidence: /private/tmp/cadence-header-models/.
+Six assembly/symbol files were staged by rename; all 20 installed build files matched.
+
+Bill explicitly released the old V2 port and requested 8088. The installed launcher
+was changed only from --port 8089 to --port 8088, with syntax and exact-change checks;
+no process was restarted by me. Credentials, network binding and funding were unchanged.
+New requests (motto, cross-vendor selection and settings dialog) are separate pending work.
+
 # 2026-10-31 — Recover speech-owned pauses and suppress late switch narration
 
 Bill reported a stuck automatic pause while opening Create Agent, not only when
