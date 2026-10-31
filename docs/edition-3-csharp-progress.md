@@ -1,3 +1,45 @@
+## Current boundary — multimedia opening draft; crossover moved to Chapter 27
+
+Bill requested only TL;DR and In Plain Words before implementation. Read
+`book/README.md`, the complete `book/voice.md`, and the current local Teach Your AI
+chapter-writing guide/author manual. His explicit sequence supersedes the guide's
+usual earlier exercise drafting: opening -> working code -> exercises/graders ->
+passes -> full body. Work was personal, with no workers or provider campaign.
+
+- New `book/chapter-26.md`, **Voice and Images**, contains exactly those two
+  sections and is explicitly **unimplemented and ungraded**. Voice follows Bill's
+  correction: hold the phone button or configurable Right Alt shortcut, release
+  to transcribe/send once; no extra Send confirmation. Cancel/lost focus/selection
+  changes cannot send late or reroute input. The other paths are pasted images,
+  permissioned connected-page screenshots, and Sandbox-governed image-file reads.
+  Transcription route/funding, capture mechanism, limits, and live-test permission
+  still require decisions before implementation; no microphone/screens were
+  recorded, arbitrary images accessed, or paid inference/transcription launched.
+- `book/chapter-27.md` preserves the crossover byte-for-byte except its H1 number.
+  Updated active navigation, contents, current chapter map and procedure boundary.
+  Corrected the old active crossover-acceptance note and preface Gateway pointer.
+  Preserved old procedure/history text, archives, snapshots and grader flags.
+- Refreshed the tracked assembled Markdown. The existing assembler's glob already
+  orders all 28 chapters (00–27); no build-script change was needed. All changed
+  documents' local links resolve. All 12 publication tests passed. A temporary
+  EPUB built and has all 28 chapters in order; its 34 total navigation entries
+  also include front/back matter. Published EPUB/PDF files were not overwritten.
+- The first assembly checker assumed colon-only headings and missed dash-style
+  titles. Correcting that checker established the complete order; no chapter was
+  missing. This was a verification-script error, not a publication defect.
+- Evidence: `/private/tmp/cadence-multimedia-opening/` (source checks, temporary
+  assembly/EPUB, navigation receipt, publication test log). These are publishing
+  checks, **not multimedia graders or implementation acceptance**. No source,
+  installed binary, launcher, credential or live-host change occurred in this
+  drafting stage. The separate settings dialog is committed/staged at 89c644e3;
+  all 13 installed files were verified there, without restarting port 8088.
+
+Next: inspect the actual media/browser capabilities, settle the consequential
+transcription/capture/test choices with Bill, then implement the four interaction
+paths. Write exercises and external graders after the code works, pass them, and
+only then expand the full chapter. AFK pause ownership and cross-vendor engine
+switching remain separate open work; this draft did not fix either.
+
 ## Settings dialog — complete and staged, not restarted
 
 Moved the existing Settings controls into a native gear-opened modal, with AI,

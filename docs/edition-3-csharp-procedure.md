@@ -15,7 +15,21 @@ restart is authorized by the relocation. Use the current C# architecture in
 Common and functional partial implementations, not the archived Go layout.
 
 
-## Current exception: the final GUI crossover
+## Current authoring increment — multimedia
+
+Bill requested only TL;DR and In Plain Words for new `book/chapter-26.md`.
+`book/chapter-27.md` is now Crossing Over to Ensemble. Manuscript order is 00–27;
+immutable endpoints, historical grader flags, and archived records keep their
+original meanings. Cadence owns this new draft and the current crossover updates;
+other chapter changes here are limited to authorized numbering/navigation repairs.
+
+Follow Bill's current sequence: opening sections, working implementation, exercises
+and external graders, passing results, then the full chapter body. This is personal
+interactive work, not authority to start a worker campaign. Existing media tests
+are not a grade for the new chapter. Keep the live 8088 application running and
+settle capture permissions, transcription funding and live-test scope explicitly.
+
+## Historical exception: the final GUI crossover
 
 The direct implementation below completed the C# foundation. Bill then rejected
 the first GUI's usability and authorized a new fresh-student crossover loop.

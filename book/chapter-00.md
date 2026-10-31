@@ -5,8 +5,9 @@
 *Third-edition note: the opening account, opinions and comparison figures below
 are preserved from the first edition's October 2026 account. They describe that
 work, not fresh measurements of today's products or of the C# implementation.
-The third-edition implementation run is complete; the current Chapter 26
-crossover is still in progress, not an accepted replacement for daily use.*
+The third-edition foundation and working V3 crossover have been accepted for
+daily use. Chapter 26 is a new multimedia opening draft, not an implemented or
+graded increment; Chapter 27 retains the crossover acceptance requirements.*
 
 ---
 
@@ -187,7 +188,7 @@ not evidence of this edition's replacement readiness.
 The earlier second edition was built with Codex under Bill's direction. The C#
 third edition was built inside Ensemble. That closes the development loop, but
 does not by itself establish that the replacement is ready for daily use. The
-current crossover exercise in Chapter 26 requires an actual usable application,
+current crossover exercise in Chapter 27 requires an actual usable application,
 a safe trial, and the human's acceptance before promotion. That exercise is
 ongoing; implementation completion is not crossover acceptance.
 

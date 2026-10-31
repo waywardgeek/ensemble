@@ -1,8 +1,8 @@
 # Chapters
 
-The C# foundation includes Goals, Gateway, and the optional Codex path. The
-final crossover chapter is the active replacement-readiness exercise, not yet
-accepted. See the [edition guide](README.md) for historical source endpoint
+The C# foundation includes Goals, Gateway, and the optional Codex path.
+Chapter 26 is an opening draft for multimedia interaction, not an implemented
+or graded increment. Chapter 27 retains the final replacement-readiness exercise. See the [edition guide](README.md) for historical source endpoint
 numbers, verification limits, and builds.
 
 - [Preface](preface.md)
@@ -32,7 +32,8 @@ numbers, verification limits, and builds.
 - [Chapter 23: While the Cache Is Broken](chapter-23.md)
 - [Chapter 24: Gateway](chapter-24.md)
 - [Chapter 25: Goals](chapter-25.md)
-- [Chapter 26: Crossing Over to Ensemble](chapter-26.md)
+- [Chapter 26: Voice and Images](chapter-26.md)
+- [Chapter 27: Crossing Over to Ensemble](chapter-27.md)
 - [Epilogue: What we can rebuild](epilogue.md)
 - [A note from Bill](note-from-bill.md)
 
@@ -51,6 +52,4 @@ Ideas for future editions, not unfinished requirements of this one:
 - Message board for agents to collaborate.
 - Auto-healing: a bug detection triggers a coding agent with exact logs and instructions to create reporo and if done, then repair.
 - Android and/or iPhone apps to interact with agents.  In particular, I want to remotely code via my phone, listing at high speed, talking to control the agent, so I can code while I mountain bike through the hills on fire roads.
-- Multimedia: paste/attach/read_file images, maybe voice, and what else?
-- Screen snapshots, saved as files in io, and read.
 - full computer auotmation.

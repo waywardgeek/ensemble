@@ -339,7 +339,10 @@
   - [§25.8 Taking It for a Spin](#258-taking-it-for-a-spin)
   - [§25.9 Exercises](#259-exercises)
   - [§25.10 What Goals Does—and Does Not—Buy Us](#2510-what-goals-doesand-does-notbuy-us)
-- [Chapter 26: Crossing Over to Ensemble](#chapter-26-crossing-over-to-ensemble)
+- [Chapter 26: Voice and Images](#chapter-26-voice-and-images)
+  - [TL;DR — Specification Brief](#tldr--specification-brief-1)
+  - [In Plain Words](#in-plain-words-7)
+- [Chapter 27: Crossing Over to Ensemble](#chapter-27-crossing-over-to-ensemble)
   - [TL;DR — finish the replacement, not another demonstration](#tldr--finish-the-replacement-not-another-demonstration)
   - [In plain words — one system, a better place to use it](#in-plain-words--one-system-a-better-place-to-use-it)
   - [Required GUI reading](#required-gui-reading)
@@ -568,7 +571,7 @@ and an AI coding agent to work with. The executable grader adapters still use
 the repository's Go harness; that does not make Go the implementation language.
 Use each chapter's actual C# command and declared grading scope. Later browser
 exercises also use Node and an isolated Chrome instance. The optional Gateway
-has its own pinned Noise/native-library dependency, explained in Chapter 26.
+has its own pinned Noise/native-library dependency, explained in Chapter 24.
 Do not install the earlier edition's Go debugger as a C# prerequisite.
 
 The AI coding agent is a real prerequisite. The course's solutions run to
@@ -630,8 +633,9 @@ not replace Bill's architectural judgment or the assembled source review. My
 *Third-edition note: the opening account, opinions and comparison figures below
 are preserved from the first edition's October 2026 account. They describe that
 work, not fresh measurements of today's products or of the C# implementation.
-The third-edition implementation run is complete; the current Chapter 26
-crossover is still in progress, not an accepted replacement for daily use.*
+The third-edition foundation and working V3 crossover have been accepted for
+daily use. Chapter 26 is a new multimedia opening draft, not an implemented or
+graded increment; Chapter 27 retains the crossover acceptance requirements.*
 
 ---
 
@@ -812,7 +816,7 @@ not evidence of this edition's replacement readiness.
 The earlier second edition was built with Codex under Bill's direction. The C#
 third edition was built inside Ensemble. That closes the development loop, but
 does not by itself establish that the replacement is ready for daily use. The
-current crossover exercise in Chapter 26 requires an actual usable application,
+current crossover exercise in Chapter 27 requires an actual usable application,
 a safe trial, and the human's acceptance before promotion. That exercise is
 ongoing; implementation completion is not crossover acceptance.
 
@@ -16394,7 +16398,7 @@ Goals addresses these two problems separately:
 
 The first mechanism preserves an objective across compression. The second supplies an opportunity to continue. Neither guarantees progress, correct judgment, or permission to act.
 
-> **C# edition boundary.** This implementation was originally built on the preserved `solutions/ch23` endpoint. The optional Codex path and Gateway have since been completed locally; their historical endpoints retain their original names. Goals does not depend on either integration. The final crossover exercise in Chapter 26 still requires the human's replacement acceptance.
+> **C# edition boundary.** This implementation was originally built on the preserved `solutions/ch23` endpoint. The optional Codex path and Gateway have since been completed locally; their historical endpoints retain their original names. Goals does not depend on either integration. The final crossover exercise in Chapter 27 still requires the human's replacement acceptance.
 
 ## §25.0 TL;DR — What to Build
 
@@ -16757,7 +16761,114 @@ Goals should reduce the number of times I have to poke the agent. It should not 
 
 ---
 
-# Chapter 26: Crossing Over to Ensemble
+# Chapter 26: Voice and Images
+
+> **Opening draft.** This chapter currently contains only the TL;DR and the idea
+> in plain words. The new interaction paths have not been implemented or graded.
+> Working code comes next, then exercises and graders, passing results, and the
+> full chapter body. Earlier media support is a foundation, not evidence that
+> these GUI features already work.
+
+## TL;DR — Specification Brief
+
+Extend the working GUI with push-to-talk input, pasted images, screenshots of the
+connected Ensemble page, and Agent inspection of image files. Build on the media
+parts and capability checks from Chapter 5 and the file authority from Chapter 18;
+do not create a second conversation or media pipeline.
+
+- **Hold to talk; release to send.** Provide a press-and-hold microphone button
+  usable on a phone and a configurable keyboard shortcut. Right Alt is the
+  initial choice where the browser permits it without interfering with AltGr,
+  input methods, or reserved shortcuts. Press starts an explicitly authorized
+  recording; release stops capture, transcribes it, and sends the resulting text
+  once through the normal message path. While the Agent is working, that message
+  follows the existing hint contract. Display recording, transcription, and
+  failure states, and provide cancellation. Empty or failed transcription sends
+  nothing. Lost focus, pointer cancellation, connection loss, or an agent switch
+  cancels the pending operation rather than sending partial speech later. Late
+  callbacks must not submit it or redirect it to a newly selected Agent.
+- **Paste images into chat.** Accept image content from the clipboard, show a
+  preview with removal controls, and send it with the accompanying text when the
+  user presses Send. Preserve their order and the intended recipient. A preview
+  is not delivery to the Agent. Validate format, size, and image dimensions before
+  accepting the attachment; refusals leave the user's remaining draft intact.
+- **Capture the connected page.** Provide an Agent-callable screenshot operation
+  for the connected Ensemble page, with explicit capture authority and a truthful
+  result. The result must make actual image pixels available to the Agent, not
+  merely return a filename or a description of page elements. Other windows,
+  tabs, and the desktop are outside this initial scope and require a separate
+  permission decision. There is no background screen monitoring.
+- **Inspect an image file.** Provide an image-reading operation for an explicit
+  path, using the Agent's existing Sandbox and supported media representation.
+  Enforce file authority, format, and resource limits; report missing, forbidden,
+  or unsupported input honestly. The operation must deliver the image to the
+  selected model, rather than treat a path, browser-only preview, or textual
+  metadata as proof that the image was seen.
+- **Preserve the existing owners.** The browser owns capture and composition;
+  the Agent owns admission and History; the Engine renders supported media for
+  its provider. Keep media references and provenance in the established parts,
+  not base64 copies in ordinary transcript text. A model recommendation is not a
+  media capability declaration. Unsupported models or placements refuse clearly;
+  they must not silently discard an image, switch vendors, or change funding.
+- **Make permission and cleanup observable.** Stop microphone capture on release
+  or cancellation and show when it is active. Captured speech, pasted images,
+  screenshots, and image-file contents are private input, not material to collect
+  speculatively. Preserve secure-context requirements and the existing
+  authenticated-origin policy; do not weaken them to obtain capture access.
+  Transcription needs an explicitly selected service and funding policy; it must
+  not silently charge an API key when subscription funding cannot
+  perform the operation. Playback/capture cleanup must not leave an automatic
+  pause behind or undo a manual pause. Replays must not restart capture or send
+  another message.
+
+Before implementation, settle the transcription route, supported capture
+mechanism, resource limits, and authorized live tests with the human. Use local
+fixtures for deterministic input, cancellation, routing, and refusal checks.
+Those checks do not establish real microphone behavior, actual image delivery to
+a vendor, or phone usability; each needs evidence of its own.
+
+## In Plain Words
+
+A person can already type to Ensemble and listen to its replies. That is useful
+at a desk, but a phone makes the missing inputs obvious. Describing a picture in
+text takes work that the picture could do directly. Typing a message occupies
+hands that could instead hold a microphone button for a moment.
+
+The voice interaction is deliberately simple: hold, speak, release. Releasing
+means send, not open another confirmation step. That convenience makes the
+failure behavior important. A recording belongs to the Agent selected when it
+began. If the person switches agents or loses the connection before it can be
+sent, the old recording must not suddenly appear in another conversation. A late
+transcription result is not fresh permission to send it.
+
+Once transcribed, the speech is an ordinary message. It does not need a special
+scheduler or a second chat history. If the Agent is busy, the existing hint
+behavior lets it hear the person without throwing away prepared work. A visible
+cancel action gives the person a way to abandon the recording instead of sending
+an accidental fragment.
+
+Pasting an image is similarly familiar: paste, check the preview, add words if
+needed, and send. But the preview and the model's input are different things.
+Displaying the picture in the browser proves only that the browser can display
+it. The Agent needs the actual image through the media path supported by its
+model. Otherwise, an apparently successful attachment would invite an answer
+based on a filename or a guess.
+
+Screenshots and image files meet at that same path. One obtains pixels from an
+authorized page capture; the other reads a named file under the existing file
+policy. Neither needs its own history or permission system. A structured page
+snapshot can help find controls, but it is not a screenshot and cannot establish
+what those controls look like. Conversely, permission to capture the Ensemble
+page does not grant access to everything else on the screen.
+
+The important boundary is not whether the interface has a microphone or camera
+symbol. It is whether the person's intended input reaches the intended Agent,
+with permission, once, and with a clear failure when it cannot. That boundary is
+what lets the same interaction remain trustworthy on a desktop or a phone.
+
+---
+
+# Chapter 27: Crossing Over to Ensemble
 
 “I gave Astra a book. Astra gave me an AI coding agent.”
 
@@ -16885,7 +16996,7 @@ are its durable design requirements:
   headings, consistent spacing, and breathing room around messages. Give the
   conversation the main reading space. Avoid enclosing every label or sentence
   in another bordered box. Reserve tool cards for distinct activities/artifacts.
-- **Tabs that select a shared panel.** Agents/Settings are a connected tab strip,
+- **Tabs that select a shared panel.** Settings categories form a connected tab strip,
   not pill-shaped action buttons. The active tab joins or clearly identifies its
   panel; inactive tabs recede. Keyboard focus is distinct from selected state.
   Use the library's tab behavior without adding competing click/key handlers.
@@ -16995,8 +17106,8 @@ name placement with real browser geometry.
 
 On a desktop, all three panes are visible at once.
 
-**Left: Agents and Settings.** Use two genuine tabs. The Agents tab contains an
-expandable hierarchy and agent creation/deletion controls. Represent the real
+**Left: Agents.** Keep the sidebar dedicated to the expandable hierarchy and
+agent creation/deletion controls. Represent the real
 parent relationships: named top-level peers are siblings, not children of the
 first displayed Agent. Show the selected row and meaningful status. Support
 keyboard traversal, expansion, selection, and visible focus without requiring a
@@ -17027,15 +17138,33 @@ MCP authority. Remove redundant selection/relay explanations from the normal
 sidebar, but keep a compact separate-relay action discoverable for Agents that
 require it. A pending creation must leave the tree usable for that startup step.
 
-The Settings tab has clearly grouped **AI**, **Memory**, and **Accessibility**
-sections. AI includes the existing model/context/tool-policy and account/funding
-information where applicable. Memory includes the existing band and recall
-settings. Accessibility includes theme, font size, voice, speech speed and pause
-behavior. Keep Goals and existing account controls reachable too; reorganizing
-controls is not permission to drop them. Memory is a settings group, not another
-persistent memory authority or a new recall corpus viewer. A supplemental dialog
-must not replace or bury this agreed Settings tab, duplicate its state, or make
-its grouped controls harder to reach.
+**Settings: one header gear and a modal dialog.** Use a labeled gear at the right
+of the header, not a second sidebar tab competing with the Agent tree. The dialog
+has genuine tabs for **AI**, **Accounts & Sign-in**, **Speech & Display**, **Goals**,
+**Memory**, and **Recall**. AI contains model/context/tool policy; account/funding
+operations retain their safety explanations and existing authority. Speech &
+Display includes theme, font, voice, speed, typing/speech pause options, and the
+user profile. Memory and Recall edit the selected Agent's existing policies; they
+are not new persistent authorities or a new recall-corpus viewer.
+
+Move the existing controls; do not clone forms or invent parallel settings state.
+Preserve control IDs, values, labels, handlers, acknowledgments, refusal behavior,
+and drafts. Remove redundant Accounts/Goals/Memory/Recall expanders now that each
+has a dedicated category. Closing and reopening the dialog retains its selected
+category and unsaved entries; neither closing nor changing categories silently
+saves them. Escape and the close button return focus to the gear. Use native modal
+focus containment and the library's arrow/Home/End tab behavior, not a competing
+keyboard implementation. Hidden panels leave the focus order.
+
+Keep the heading, close action and tab row visible while content scrolls
+independently. On phones, make the tab row horizontally scrollable rather than
+wrapping six categories into most of the viewport height. Test all categories in
+both themes at ordinary and enlarged text sizes, including a 320-by-568 viewport.
+The extra gear must not create another header-controls row. Verify real saving and
+fresh-page reload against the server for profile, appearance, AI, Memory and Recall,
+and truthful disabled Goals/account controls when the corresponding authority is
+unavailable. Test draft retention, modal focus, and speech completion while this
+dialog is open. Source/geometry checks are not human usability acceptance.
 
 Appearance settings belong to their existing store. Memory/recall settings
 belong to the selected Agent. Preserve durable-save-before-acknowledgment,
@@ -17322,7 +17451,26 @@ A useful session proceeds through these paths:
    Keep model changes disabled during admitted work even when later usage/meter
    frames arrive; a status refresh must not accidentally re-enable the control.
    Queued speech counts as busy according to the existing policy; selection cancels
-   stale callbacks and replay is silent. A fake speech boundary verifies wiring,
+   stale callbacks and replay is silent. Release an outgoing automatic pause before
+   sending the selection command; late outgoing narration must not restart speech
+   while selection is pending. Test an already-paused incoming Agent and obsolete
+   callbacks from the outgoing utterance.
+   Native speech can stop without delivering its end/error callback. Exercise
+   this with the Create Agent dialog open and around browser-tab changes. Reconcile
+   stale active-utterance bookkeeping against native speaking/pending state, with
+   a startup grace period, and reuse ordinary completion cleanup. Do not infer
+   completion from estimated reading time or time out genuinely speaking/queued
+   speech. In the integrated browser, one watcher exists only while an utterance
+   is active: every 500 milliseconds, after a two-second startup grace, it checks
+   native `speaking` and `pending`. If both are false, it invokes the same
+   identity-checked settlement used by end/error callbacks. Focus, pageshow and
+   visibility events also check liveness. Settlement and cancellation clear the
+   watcher; an old callback cannot settle the next utterance. Completion advances
+   queued speech before releasing the local speech pause, so typing or an explicit
+   manual Pause can still keep the Agent paused. Check queue advancement, typing overlap, manual Pause and external
+   Resume against the real server state. A hidden or frozen page may defer browser
+   callbacks; socket loss additionally prevents delivery. Those cases do not
+   authorize blindly resuming an Agent whose pause may belong to someone else. A fake speech boundary verifies wiring,
    not hearing. Native voice quality, useful speed, and accessibility need the
    human's own browser and ears before acceptance.
 6. Stop and restart the owned host with the same saved trial state. Continue the
@@ -17731,6 +17879,63 @@ slow or unresponsive model without inspecting actual events. The projection
 repair and better user-visible failure reporting are separate pieces of work.
 These field notes do not declare the entire crossover, memory-directory change,
 or retirement of V2 complete.
+
+
+### Subsequent integrated refinements: compact controls and curated models
+
+The header's height is determined by its tallest control, not just its artwork.
+After reducing the artwork, inspect the selector and the pause/speech controls:
+in this layout their old 44-pixel minimum kept the header at 49 pixels. Header-only
+36-pixel targets and reduced selector padding bring the normal 18-pixel layout to
+41 pixels. Do not globally shrink controls or fonts to achieve that result;
+verify enlarged text separately. Create Agent must use the same theme-aware
+foreground, hover and focus treatment as its neighbors. The tab favicon is a
+separate, bold multicolored music note; keep the full Ensemble artwork in the app.
+
+A capability table is not a recommendation list. Keep a deliberate curated model
+catalog with readable names and vendor groups; do not populate it indiscriminately
+from vendor discovery, media support or pricing rows. The integrated choices are
+GPT-6 Astra (the primary/default choice), GPT-5.6 Sol, Claude Opus 5, Claude Sonnet 5,
+Claude Opus 4.6, Gemini 3.8 Flash and Gemini 4 Argon. Opus 5.5 is deliberately
+excluded. Carbon awaits a verified API listing. Preserve an existing non-catalog
+selection visibly as current rather than silently replacing it. Running Agents
+retain their provider, wire protocol and funding: other-vendor or incompatible
+choices are disabled, and the server still validates every selection. A model
+recommendation establishes neither entitlement nor new media capabilities or prices.
+
+
+Provider-supplied reasoning summaries and thinking parts have one visible heading,
+**Thinking**, followed immediately by the complete received prose. Do not hide
+this text behind a second summary/expander or substitute a clipped preview. Their
+original part kinds and provenance remain unchanged: this presentation reveals no
+private or unreceived reasoning. Normal incremental narration reads this prose
+without a click when speech is enabled, avoids repeating previously narrated
+text, and remains silent for history replay or an opted-out listener. Tool payload
+expanders remain separate controls.
+
+### An authenticated tunnel needs an explicit origin
+
+The GUI normally accepts only loopback hosts and origins. Putting Cloudflare
+Access in front of it does not automatically change those checks: the public
+Host differs, and the browser uses an HTTPS Origin even when the local proxy
+connection is HTTP. Rejecting that mismatch produced an HTTP 400 during our
+crossover; deleting the guard would have been the wrong fix.
+
+An optional `--public-origin https://ensemble.example.test` admits exactly that
+HTTPS origin through a loopback connection. The authenticated proxy must gate
+**all** routes, including WebSockets. This setting is not authentication, does
+not bind the server to external interfaces, and does not trust forwarded headers
+to expand authority. Keep the same policy for page routing, WebSockets, peer
+controls, account requests and job-output reads, while retaining each endpoint's
+additional request guards. Ordinary same-origin GET fetches may omit Origin;
+public WebSockets and mutations must supply the configured origin. Provider
+OAuth callbacks keep their local redirect URI; remote chat access is not a
+change to the login protocol.
+
+Exercise the real HTTP/WebSocket routes with local and configured public hosts,
+wrong hosts and origins, spoofed forwarding headers, missing custom headers,
+and the local-only callback exception. A simulated proxy test does not establish
+that the user's Cloudflare deployment or phone session works after installation.
 
 ---
 
