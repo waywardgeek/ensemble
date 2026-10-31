@@ -8,7 +8,7 @@ namespace Ensemble;
 // All projection here is disposable. Opaque items retain exact-model provenance.
 public sealed partial class Engine
 {
-    private JsonObject RenderResponses(List<Entry> entries, Configuration config)
+    private JsonObject RenderResponses(List<Entry> entries, Configuration config, ImageRequestBudget budget)
     {
         var input = new JsonArray();
         foreach (var entry in entries)
@@ -69,7 +69,7 @@ public sealed partial class Engine
                         input.Add(new JsonObject
                         {
                             ["type"] = "function_call_output", ["call_id"] = result.CallID,
-                            ["output"] = ResponsesResult(result)
+                            ["output"] = ResponsesResult(result, budget)
                         });
                         break;
                     case OpaquePart opaque:
@@ -81,7 +81,7 @@ public sealed partial class Engine
                     case BlobPart blob:
                         // Project has validated modality and placement. Reuse the
                         // Agent-owned Sandbox read; never expose its file locator.
-                        AppendContent(ResponsesImage(blob));
+                        AppendContent(ResponsesImage(blob, budget));
                         break;
                     default:
                         throw new InvalidOperationException("Unexpected Responses projection part");
@@ -113,9 +113,9 @@ public sealed partial class Engine
         return request;
     }
 
-    private JsonObject ResponsesImage(BlobPart blob)
+    private JsonObject ResponsesImage(BlobPart blob, ImageRequestBudget budget)
     {
-        string encoded = Convert.ToBase64String(ReadMedia(blob));
+        string encoded = Convert.ToBase64String(ReadMedia(blob, budget));
         return new JsonObject
         {
             ["type"] = "input_image",
@@ -124,7 +124,7 @@ public sealed partial class Engine
         };
     }
 
-    private JsonNode ResponsesResult(ToolResultPart result)
+    private JsonNode ResponsesResult(ToolResultPart result, ImageRequestBudget budget)
     {
         if (result.Parts.Any(part => part is not TextPart and not RedactedPart and not BlobPart))
         {
@@ -141,7 +141,7 @@ public sealed partial class Engine
         {
             if (part is BlobPart blob)
             {
-                content.Add(ResponsesImage(blob));
+                content.Add(ResponsesImage(blob, budget));
             }
             else
             {

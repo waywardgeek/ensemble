@@ -13,11 +13,12 @@ public sealed partial class Engine
     {
         var config = Parent().Configuration();
         var entries = Project(context, config, out var cacheBoundary, out var ephemeral);
+        var imageBudget = new ImageRequestBudget();
         var request = config.Vendor switch
         {
-            Vendor.Anthropic => RenderAnthropic(entries, config, cacheBoundary, ephemeral),
-            Vendor.OpenAI => config.Surface == Surface.Responses ? RenderResponses(entries, config) : RenderOpenAI(entries, config),
-            Vendor.Gemini => RenderGemini(entries, config),
+            Vendor.Anthropic => RenderAnthropic(entries, config, cacheBoundary, ephemeral, imageBudget),
+            Vendor.OpenAI => config.Surface == Surface.Responses ? RenderResponses(entries, config, imageBudget) : RenderOpenAI(entries, config, imageBudget),
+            Vendor.Gemini => RenderGemini(entries, config, imageBudget),
             _ => throw new ArgumentException("Unknown vendor")
         };
         // Memory writing is bounded by requests and tool batches, not by a
@@ -323,7 +324,7 @@ public sealed partial class Engine
         return block;
     }
 
-    private JsonArray AnthropicParts(IEnumerable<Part> parts, Provenance target, bool deferred = false)
+    private JsonArray AnthropicParts(IEnumerable<Part> parts, Provenance target, ImageRequestBudget budget, bool deferred = false)
     {
         var blocks = new JsonArray();
         foreach (var p in parts)
@@ -334,7 +335,7 @@ public sealed partial class Engine
                     blocks.Add(TextBlock(t.Text, true));
                     break;
                 case BlobPart blob:
-                    blocks.Add(AnthropicBlob(blob));
+                    blocks.Add(AnthropicBlob(blob, budget));
                     break;
                 case RedactedPart r:
                     blocks.Add(TextBlock(JsonCodec.Text([r]), true));
@@ -367,7 +368,7 @@ public sealed partial class Engine
                                 ["type"] = "tool_reference",
                                 ["tool_name"] = name
                             }).ToArray())
-                            : AnthropicParts(t.Parts, target),
+                            : AnthropicParts(t.Parts, target, budget),
                         ["is_error"] = t.IsError
                     });
                     break;
@@ -404,7 +405,7 @@ public sealed partial class Engine
 
     // Anthropic places tool results in user messages. Merge adjacent same-role
     // entries while preserving the required result-before-text order.
-    private JsonObject RenderAnthropic(List<Entry> entries, Configuration config, Entry? cacheBoundary, Entry? ephemeral)
+    private JsonObject RenderAnthropic(List<Entry> entries, Configuration config, Entry? cacheBoundary, Entry? ephemeral, ImageRequestBudget budget)
     {
         var messages = new JsonArray();
         var target = config.Target();
@@ -414,7 +415,7 @@ public sealed partial class Engine
         var boundaryBlocks = new HashSet<JsonObject>();
         foreach (var entry in entries)
         {
-            var blocks = AnthropicParts(entry.Parts, target, config.DeferredTools);
+            var blocks = AnthropicParts(entry.Parts, target, budget, config.DeferredTools);
             if (blocks.Count == 0)
             {
                 continue;
@@ -500,7 +501,7 @@ public sealed partial class Engine
 
     // Chat Completions uses a separate tool role and JSON arguments encoded as
     // a string. Canonical preserves number tokens before that string is produced.
-    private JsonObject RenderOpenAI(List<Entry> entries, Configuration config)
+    private JsonObject RenderOpenAI(List<Entry> entries, Configuration config, ImageRequestBudget budget)
     {
         var messages = new JsonArray { new JsonObject { ["role"] = "system",
 ["content"] = config.PrimaryInstructions } };
@@ -574,7 +575,7 @@ public sealed partial class Engine
                     }
                     else if (p is BlobPart blob)
                     {
-                        content.Add(OpenAIBlob(blob));
+                        content.Add(OpenAIBlob(blob, budget));
                     }
                     else if (p is OpaquePart o && o.From.Matches(target))
                     {
@@ -618,7 +619,7 @@ public sealed partial class Engine
 
     // Gemini requires the function name on a response. Recover it from the
     // correlated call; the call ID itself is not a substitute for that name.
-    private JsonObject RenderGemini(List<Entry> entries, Configuration config)
+    private JsonObject RenderGemini(List<Entry> entries, Configuration config, ImageRequestBudget budget)
     {
         var contents = new JsonArray();
         var target = config.Target();
@@ -639,7 +640,7 @@ public sealed partial class Engine
                         parts.Add(textPart);
                         break;
                     case BlobPart blob:
-                        parts.Add(GeminiBlob(blob));
+                        parts.Add(GeminiBlob(blob, budget));
                         break;
                     case RedactedPart r:
                         parts.Add(TextBlock(JsonCodec.Text([r]), false));

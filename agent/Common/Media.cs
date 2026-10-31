@@ -70,7 +70,18 @@ public sealed partial class Engine
     // Request-time bytes use the actual Agent boundary. BlobRef stays a
     // value-like locator; it neither owns nor carries a filesystem service.
     public const int MaximumImageBytes = Agent.MaximumImageOutputBytes;
-    private partial byte[] ReadMedia(BlobPart blob);
+    // Per-render payload ceilings, independent of per-input admission limits.
+    // They are application safeguards, not provider limits or a wire-size cap.
+    public const int MaximumRequestImages = 32;
+    public const long MaximumRequestImageBytes = 32L * 1024 * 1024;
+
+    private sealed class ImageRequestBudget
+    {
+        internal int Images;
+        internal long Bytes;
+    }
+
+    private partial byte[] ReadMedia(BlobPart blob, ImageRequestBudget budget);
 
     // Validate capability and placement without reading media or making requests.
     public partial void ValidateMedia(IEnumerable<Part> parts, Actor actor = Actor.Human);

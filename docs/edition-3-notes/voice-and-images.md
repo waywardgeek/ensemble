@@ -508,3 +508,38 @@ wrong acknowledgment identity checks); `gui-final.log` passes five groups;
 The fresh owned host at fixture-fresh.G71VIf was stopped using its documented
 stop file; host process exited zero and joined its provider/child work. Source
 syntax and whitespace checks passed. No live host or provider was used.
+
+## Cumulative image request budget — locally verified
+
+Added a request-local Engine budget: at most 32 transmitted images and 32 MiB
+of image payload reservations across human History, tool results and ephemera.
+Repeated images count each time they are transmitted. All four image adapters
+share the same bounded reader; reservation precedes the next decoded allocation.
+Inline base64 uses its decoded-size upper bound (noncanonical whitespace can
+therefore be conservatively overcounted). The budget is not stored on Engine,
+not shared with the recall judge, and not reused across failed or concurrent
+renders. Canonical History is never rewritten and images are not silently dropped.
+These are application safeguards, not provider limits, total wire/token/cost
+limits, or a global allocator/concurrency quota. Long conversations can hit them;
+a dedicated GUI context-reduction/recovery action is not implemented.
+
+Four focused image groups pass, including exact count/byte boundaries on all
+four adapters, inline/path bytes, tool results, ephemera, unchanged History and
+parallel/fresh render allowances. Large payload fixtures test byte accounting
+only, not raster validity. Final shared regression: 319 passed, zero failed,
+process exit zero. No installation/restart/push or live-provider test occurred.
+Failures corrected: initial build used a nonexistent isolated TMPDIR; compiler
+identified recall-judge direct renderer call sites omitted in my first edit; new
+fixture incorrectly used IDisposable rather than Ensemble's explicit Destroy.
+Final focused evidence: /private/tmp/cadence-image-library/budget-*-final.log.
+
+Gemini investigation: public python-genai types.py now defines FunctionResponse
+parts containing FunctionResponsePart.inline_data, with MIME/raw bytes and an
+optional matching call ID. Saved public SDK and official guide under
+/private/tmp/cadence-gemini-media/. SDK syntax alone does not establish model
+support or live acceptance; Gemini tool-image refusal remains unchanged.
+
+Official function-calling guide restriction: its multimodal example says Gemini 3
+series, but currently demonstrates the Interactions API (`function_result` content
+blocks), not Ensemble's GenerateContent wire. Do not transpose those fields into
+GenerateContent. Verify its own REST/SDK conversion and model support next.

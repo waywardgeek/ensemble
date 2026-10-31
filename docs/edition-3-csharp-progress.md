@@ -1,4 +1,26 @@
-## Current multimedia checkpoint — browser image paste
+## Current multimedia checkpoint — cumulative image request limits
+
+Each renderer now has a fresh request-local allowance: 32 transmitted images and
+32 MiB of image payload reservations across human History, tool results and ephemera.
+Repeated transmissions count; inline data uses its decoded-size upper bound. Images
+are charged before the next allocation using the existing Sandbox read, not a
+second file pass. Refusal preserves History and drops no images. The recall judge
+has its own request-local allowance. These are not provider or whole-wire limits,
+and no dedicated GUI context-reduction/recovery action is implemented yet.
+
+Four focused image groups and the final shared suite passed: **319/0, exit zero**.
+Tests cover exact boundaries on all four adapters, mixed inline/path sources,
+tool/ephemeral overflow, canonical History preservation, and fresh/concurrent
+render allowances. Evidence: `/private/tmp/cadence-image-library/budget-*-final.log`
+and the [implementation notebook](edition-3-notes/voice-and-images.md), including
+build-environment, missed-call-site and fixture corrections. No install/restart/push.
+
+Next: real model-turn image-tool History acceptance, verify Gemini GenerateContent
+media-result support (current guide uses a different Interactions API), then voice
+and page capture. Native phone/user/live-provider checks and external graders remain
+unfinished; the full chapter body still waits for verified implementation/grades.
+
+## Earlier multimedia checkpoint — browser image paste
 
 Browser paste now retains accompanying text, shows removable previews, and submits
 prepared images through the addressed transport. Matching admission acknowledgments

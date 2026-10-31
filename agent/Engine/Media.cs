@@ -106,7 +106,7 @@ public sealed partial class Engine
         }
     }
 
-    private partial byte[] ReadMedia(BlobPart blob)
+    private partial byte[] ReadMedia(BlobPart blob, ImageRequestBudget budget)
     {
         // Project refuses unsupported capabilities/references before any reads.
         // Non-image modalities retain their existing contract.
@@ -125,6 +125,7 @@ public sealed partial class Engine
             {
                 throw new InvalidDataException("Image must contain 1 to 8388608 bytes.");
             }
+            ReserveImage(budget, length);
             bytes = new byte[(int)length];
             input.ReadExactly(bytes);
             // A growing file cannot bypass the allocation bound. A truncated
@@ -154,6 +155,7 @@ public sealed partial class Engine
             {
                 throw new InvalidDataException("Decoded image exceeds the image byte limit.");
             }
+            ReserveImage(budget, decodedCeiling);
             bytes = Convert.FromBase64String(reference.Locator[prefix.Length..]);
             if (bytes.Length == 0 || bytes.Length > MaximumImageBytes)
             {
@@ -163,9 +165,23 @@ public sealed partial class Engine
         return bytes;
     }
 
-    private JsonObject AnthropicBlob(BlobPart blob)
+    private static void ReserveImage(ImageRequestBudget budget, long bytes)
     {
-        string encoded = Convert.ToBase64String(ReadMedia(blob));
+        // Count actual transmissions, including repeated images in retained
+        // History. Refusal changes neither History nor another render's budget.
+        if (budget.Images >= MaximumRequestImages || bytes > MaximumRequestImageBytes - budget.Bytes)
+        {
+            throw new InvalidDataException(
+                "Image request exceeds 32 images or 32 MiB of image payloads. " +
+                "No images were dropped; reduce the active image context before retrying.");
+        }
+        budget.Images++;
+        budget.Bytes += bytes;
+    }
+
+    private JsonObject AnthropicBlob(BlobPart blob, ImageRequestBudget budget)
+    {
+        string encoded = Convert.ToBase64String(ReadMedia(blob, budget));
         return new JsonObject
         {
             ["type"] = "image",
@@ -178,9 +194,9 @@ public sealed partial class Engine
         };
     }
 
-    private JsonObject OpenAIBlob(BlobPart blob)
+    private JsonObject OpenAIBlob(BlobPart blob, ImageRequestBudget budget)
     {
-        string encoded = Convert.ToBase64String(ReadMedia(blob));
+        string encoded = Convert.ToBase64String(ReadMedia(blob, budget));
         string uri = "data:" + blob.Mime + ";base64," + encoded;
         return new JsonObject
         {
@@ -189,9 +205,9 @@ public sealed partial class Engine
         };
     }
 
-    private JsonObject GeminiBlob(BlobPart blob)
+    private JsonObject GeminiBlob(BlobPart blob, ImageRequestBudget budget)
     {
-        string encoded = Convert.ToBase64String(ReadMedia(blob));
+        string encoded = Convert.ToBase64String(ReadMedia(blob, budget));
         return new JsonObject
         {
             ["inlineData"] = new JsonObject

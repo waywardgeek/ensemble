@@ -640,6 +640,7 @@ try
     if (args is ["--image-tests"] || args.Length == 0)
     {
         CheckCase("Bounded image preparation and resizing", () => ImageTests.Preparation(temp));
+        CheckCase("Cumulative image request limits", () => ImageBudgetTests.RequestLimits(temp));
         await AsyncCase("Image inspection authority, Jobs and payload delivery", () => ImageTests.Inspection(temp));
         await AsyncCase("Interactive image messages and busy hints", ActorTests.ImageInputs);
         if (args.Length != 0)

@@ -16,12 +16,13 @@ public sealed partial class Engine
             // Deliberately bypass Render(Context): it projects the main Agent's
             // skills, memory, tool grants, and checkpoints. Reuse only the native
             // provider message renderers with this tool-free frozen input.
+            var imageBudget = new ImageRequestBudget();
             JsonObject wire = config.Surface switch
             {
-                Surface.ChatCompletions => RenderOpenAI(entries, config),
-                Surface.Messages => RenderAnthropic(entries, config, null, null),
-                Surface.GenerateContent => RenderGemini(entries, config),
-                Surface.Responses => RenderResponses(entries, config),
+                Surface.ChatCompletions => RenderOpenAI(entries, config, imageBudget),
+                Surface.Messages => RenderAnthropic(entries, config, null, null, imageBudget),
+                Surface.GenerateContent => RenderGemini(entries, config, imageBudget),
+                Surface.Responses => RenderResponses(entries, config, imageBudget),
                 _ => throw new NotSupportedException("Unsupported recall judge surface")
             };
             AddStreamingOptions(wire, config);
