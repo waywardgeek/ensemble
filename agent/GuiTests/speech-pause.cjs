@@ -189,9 +189,9 @@ async function nativeSpeech() {
         await primary.evaluate(() => testSpeech.finish()); await state(observer, 'idle');
 
         await speak();
-        await observer.locator('#resume').click(); await state(primary, 'idle');
+        await observer.evaluate(() => send('unpause'));
         await primary.waitForTimeout(2700);
-        check(await observer.locator('#state').textContent() === 'idle', 'external Resume is not vetoed by continuing speech');
+        check(await observer.locator('#state').textContent() === 'paused', 'runtime Resume preserves continuing speech hold');
         await primary.evaluate(() => testSpeech.finish()); await recovered();
 
         await speak();
@@ -201,23 +201,23 @@ async function nativeSpeech() {
         check(await observer.locator('#state').textContent() === 'paused', 'speech recovery preserves the typing pause');
         await primary.locator('#prompt').fill(''); await state(observer, 'idle');
 
-        await speak(); await primary.locator('#pause').click();
+        await speak(); await primary.evaluate(() => send('pause'));
         await primary.evaluate(() => testSpeech.stopWithoutCallback()); await recovered();
         check(await observer.locator('#state').textContent() === 'paused', 'manual Pause pins an automatic pause through completion');
-        await primary.locator('#resume').click(); await state(observer, 'idle');
+        await primary.evaluate(() => send('unpause')); await state(observer, 'idle');
 
-        await observer.locator('#pause').click(); await state(primary, 'paused');
+        await observer.evaluate(() => send('pause')); await state(primary, 'paused');
         await primary.evaluate(() => { speakText('foreign', 'Keep the other tab pause.'); testSpeech.stopWithoutCallback(); });
         await recovered();
         check(await observer.locator('#state').textContent() === 'paused', 'speech never releases a pause owned by another tab');
-        await observer.locator('#resume').click(); await state(primary, 'idle');
+        await observer.evaluate(() => send('unpause')); await state(primary, 'idle');
 
         await observer.evaluate(() => selectAgent('captain/worker'));
         await observer.waitForFunction(() => agentID === 'captain/worker' && !selectionPending);
         // A negative control may have stopped while this disposable worker was paused.
         await observer.evaluate(() => send('unpause'));
         await state(observer, 'idle');
-        await observer.locator('#pause').click(); await state(observer, 'paused');
+        await observer.evaluate(() => send('pause')); await state(observer, 'paused');
         await primary.evaluate(() => speakText('switch-test', 'Outgoing agent speech.'));
         await state(primary, 'paused');
         await primary.evaluate(() => {
@@ -232,12 +232,12 @@ async function nativeSpeech() {
         await state(primary, 'paused');
         const controls = await primary.evaluate(() => testSent);
         assert.deepEqual(controls.slice(0, 2).map(x => [x.type, x.agent_id]),
-            [['unpause', 'captain'], ['select_agent', 'captain/worker']]);
+            [['automatic_pause', 'captain'], ['select_agent', 'captain/worker']]);
         check(await primary.evaluate(() => testSuppressed && activeSpeech === null),
             'release precedes selection and outgoing late narration stays silent');
         await primary.evaluate(() => testOldUtterance.onend());
         check(await observer.locator('#state').textContent() === 'paused', 'obsolete callback cannot resume the incoming agent');
-        await observer.locator('#resume').click(); await state(primary, 'idle');
+        await observer.evaluate(() => send('unpause')); await state(primary, 'idle');
         await primary.evaluate(() => selectAgent('captain'));
         await primary.waitForFunction(() => agentID === 'captain' && !selectionPending);
         await state(primary, 'idle');

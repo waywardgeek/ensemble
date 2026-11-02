@@ -56,7 +56,7 @@ const current=fs.readFileSync(path.join(root,'style.css'),'utf8');
  assert.equal(await page.locator('#model-choice').inputValue(),'offline');
  assert.equal(await page.locator('#model-choice option').count(),8);
  assert.equal(await page.locator('#model-choice option[value="offline"]').textContent(),'offline (current)');
- const geometry=await page.evaluate(()=>{const rect=s=>{const r=document.querySelector(s).getBoundingClientRect();return {width:r.width,height:r.height}};const p=document.querySelector('#peer-open');return {header:rect('#status-bar'),logo:rect('.brand-mark'),model:rect('#model-choice'),pause:rect('#pause'),usage:parseFloat(getComputedStyle(document.querySelector('#usage-meter')).fontSize),createBackground:getComputedStyle(p).backgroundColor,createText:getComputedStyle(p).color};});
+ const geometry=await page.evaluate(()=>{const rect=s=>{const r=document.querySelector(s).getBoundingClientRect();return {width:r.width,height:r.height}};const p=document.querySelector('#peer-open');return {header:rect('#status-bar'),logo:rect('.brand-mark'),model:rect('#model-choice'),pause:rect('#stop-speech'),usage:parseFloat(getComputedStyle(document.querySelector('#usage-meter')).fontSize),createBackground:getComputedStyle(p).backgroundColor,createText:getComputedStyle(p).color};});
  assert.equal(geometry.logo.width,36);assert.equal(geometry.pause.height,36);assert.equal(geometry.createBackground,'rgba(0, 0, 0, 0)');assert(Math.abs(geometry.usage-font*.85)<.1);
  if(font===18){assert(geometry.header.height<=42);assert(geometry.model.height<=36.1);}
  assert(geometry.model.height>=font*1.15);

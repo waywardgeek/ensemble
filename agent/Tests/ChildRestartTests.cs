@@ -35,6 +35,9 @@ internal static partial class ActorTests
             await paused.GoalControlAsync(new GoalUpdate(goalFile, true, 180), deadline.Token);
             paused.History().Append(new Event(EventKind.MessageReceived, actor: Actor.Human,
                 parts: [new TextPart("Retain this conversation, but do not replay its tools.")]));
+            Agent automatic = await parent.CreateChildAsync("automatic", cancellation: deadline.Token);
+            await automatic.SetAutomaticPauseAsync(new object(), true);
+            await automatic.SetModelAsync("restart-fixture"); // Save while transiently held.
             Agent complete = await parent.CreateChildAsync("complete", cancellation: deadline.Token);
             complete.PublishSubmission("Finished before restart.");
             Agent renewed = await parent.CreateChildAsync("renewed", cancellation: deadline.Token);
@@ -68,9 +71,11 @@ internal static partial class ActorTests
             var parent = new Agent(restarted, configuration, skillSpec: new SkillSpec(skillDirectory, "base"), dataDirectory: home);
             parent.StartPersistence(new PersistenceOptions(Path.Combine(home, "save.json")));
             await parent.RestoreChildrenAsync(deadline.Token);
-            Check(parent.Children().Length == 3 && parent.FindChild("compress-fixture") is null
+            Check(parent.Children().Length == 4 && parent.FindChild("compress-fixture") is null
                 && parent.FindChild("removed") is null,
                 "Restart restored temporary workers or lost ordinary children.");
+            Check(!(await parent.FindChild("automatic")!.WorkStatusAsync(deadline.Token)).Paused,
+                "Restart persisted a vanished browser hold.");
             Agent paused = parent.FindChild("paused")!;
             Check((await paused.WorkStatusAsync(deadline.Token)).Paused,
                 "Restart discarded an explicit pause.");
@@ -110,7 +115,7 @@ internal static partial class ActorTests
             Check(parent.RetrieveSubmission("renewed").Payload.GetProperty("result").GetString()!
                 .Contains("old answer"), "Historical retrieval lost the old artifact.");
             await parent.RestoreChildrenAsync(deadline.Token);
-            Check(parent.Children().Length == 3, "Repeated restoration duplicated children.");
+            Check(parent.Children().Length == 4, "Repeated restoration duplicated children.");
         }
         finally { restarted.Destroy(); }
 

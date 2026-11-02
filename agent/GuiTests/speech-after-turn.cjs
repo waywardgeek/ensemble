@@ -60,7 +60,7 @@ async function nativeSpeech() {
             send('prompt', 'Stream the isolated speech completion test.');
         });
         await page.waitForFunction(() => document.querySelector('#transcript').textContent.includes('STREAM-IDENTITY first'))
-            .catch(async error => { console.error('fixture setup', await page.evaluate(() => ({ state: acknowledgedState, selected: document.querySelector('#model-choice').value, automatic: pauseIntent, queue: speechQueue.length, speech: !!activeSpeech }))); throw error; });
+            .catch(async error => { console.error('fixture setup', await page.evaluate(() => ({ state: acknowledgedState, selected: document.querySelector('#model-choice').value, automatic: localPauseCause, queue: speechQueue.length, speech: !!activeSpeech }))); throw error; });
         await page.evaluate(() => speakText('held-across-turn', 'Hold this speech across model completion.'));
         await page.waitForFunction(() => acknowledgedState === 'paused');
         await page.waitForFunction(() => [...cards.values()].some(card => card.final && card.text.includes('STREAM-IDENTITY first and final.')));

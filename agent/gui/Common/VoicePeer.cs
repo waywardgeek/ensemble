@@ -11,6 +11,10 @@ internal sealed partial class VoicePeer
     internal Agent Selected { get; set; }
     // Borrowed from the socket scope, which owns and disposes the transport.
     internal McpTunnel? BrowserTunnel { get; set; }
+    // Borrowed target of this connection's transient automatic hold.
+    private Agent? pauseTarget;
+    internal partial Task SetPauseAsync(Agent target, bool held);
+    internal partial Task ReleasePauseAsync();
     internal long Cursor { get; set; }
     internal long VoiceSequence { get; set; }
     internal VoiceLease? Voice { get; set; }

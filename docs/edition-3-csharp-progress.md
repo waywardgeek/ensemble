@@ -1,3 +1,18 @@
+# Current boundary: connection-owned automatic pause verified, source only
+
+Bill approved replacing GUI Pause/Resume with one Stop speech button identical
+to Escape. Typed draft and current/queued speech hold independently; clearing
+one cannot bypass the other. Agent mailbox combines transient connection holds
+with explicit runtime pause. Disconnect/selection releases only the actual held
+Agent; restart persists explicit pause only. Chapters7/8/27 now teach this design.
+
+Shared341/0, focused ownership/model3groups and restart2groups pass; real speech
+and two-tab/Stop/Escape/disconnect tests pass, including all three streamed-turn
+completion modes. Header12/layout32/publicGUI5 pass. Broad historical crossover
+runner remains blocked before pause checks by old composer DOM expectations;
+not claimed full crossover acceptance. See multimedia notebook for corrections.
+No installation/restart. Model picker commit e5921807 is also source-only.
+
 # Current boundary: logging/theme live; paused model-picker fix verified
 
 Bill rebuilt and restarted logging/theme, confirmed colors and cross-device theme

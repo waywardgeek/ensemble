@@ -208,9 +208,11 @@ smaller page, then judge whether it is comfortable enough for your work.
 Open `Examples/Gui/wwwroot/index.html`, `style.css` and `app.js` in the preserved
 `solutions/ch08` endpoint. They divide the work without a UI framework:
 
-- The header holds connection and Agent state, Pause/Resume/Interrupt buttons,
-  and a native `details` element for Settings. Its `summary` opens the controls
-  without a custom panel widget.
+- The historical header holds connection and Agent state, a Pause/Resume pair,
+  Interrupt, and native `details` for Settings. For a new implementation, replace
+  the pair with Chapter 7's Stop speech control, identical to Escape. Preserve
+  typed drafts and connection-owned holds; do not copy the old override behavior.
+  The `summary` opens settings without a custom panel widget.
 - The `main` element, `#transcript`, holds conversation cards. The notice below
   it reports connection and settings errors; it has `role="status"` so the
   message is not merely a color change.
@@ -287,11 +289,12 @@ Both queued and active speech count as busy. The local pause cause is:
 typing OR (pause_while_speaking AND speech_busy)
 ```
 
-Send pause/unpause only when that cause changes. Turning speech pausing off
+Send connection-owned automatic hold/release only when that cause changes. Turning speech pausing off
 immediately removes that cause, even with queued audio, but must not override a
 remaining typing cause. Turning it on while audio is queued or speaking pauses
 immediately. Preserve symmetric onend/onerror cleanup, cancellation identity
-checks, cross-tab explicit unpause, and the separate silent visibility wakeup.
+checks, independent cross-tab holds, disconnect release, and the separate silent
+visibility wakeup. Stop speech/Escape clears speech but cannot bypass typing.
 Speech settings must not introduce another owner of Agent lifecycle.
 
 ## 8.6 Test the behavior, not a screenshot of a slider

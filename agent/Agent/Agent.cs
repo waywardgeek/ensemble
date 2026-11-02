@@ -204,6 +204,7 @@ public sealed partial class Agent
             // handle is closed. Only then remove both strong-parent memberships.
             Attempt(() => recaller?.Destroy());
             Attempt(() => memory?.Destroy());
+            automaticPauseOwners.Clear();
             Attempt(CloseDiagnostics);
             Attempt(() => sandbox?.Destroy());
             observations.Writer.TryComplete();

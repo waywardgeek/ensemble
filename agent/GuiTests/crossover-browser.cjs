@@ -1,6 +1,6 @@
-// Run from solutions/edition-3/main after starting --crossover-host. This is a
+// Run from an isolated fixture workspace after starting --crossover-host. This is a
 // real-browser consumer of the mounted, embedded GUI, not a fake WebSocket UI.
-const { chromium } = require('/Users/bill/projects/ensemble/agent/gui/node_modules/playwright');
+const { chromium } = require(process.env.PLAYWRIGHT_MODULE || 'playwright');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const crypto = require('node:crypto');
@@ -342,70 +342,34 @@ const check = (condition, message) => { assert.ok(condition, message); console.l
   check((await page.locator('#usage-all').textContent())==='31','meter uses acknowledged Engine input');
   const paused=()=>page.waitForFunction(()=>document.querySelector('#state').textContent==='paused');
   const resumed=()=>page.waitForFunction(()=>['idle','inputpending'].includes(document.querySelector('#state').textContent) && !document.querySelector('#model-choice').disabled);
-  const expectNoUnpause=async (action,label)=>{
-   const start=controls.length; await action();
-   // A settings acknowledgment is ordered after controls on the same socket.
-   // It gives the real actor a processing boundary without a quiet-time guess.
-   const theme=await page.locator('html').getAttribute('data-bs-theme');
-   await page.locator('#theme-toggle').click();
-   await page.waitForFunction(old=>document.documentElement.dataset.bsTheme!==old,theme);
-   check(!controls.slice(start).includes('unpause'),label+' sends no automatic unpause');
-   check(await page.locator('#state').textContent()==='paused',label+' leaves real actor paused');
-   await page.locator('#theme-toggle').click();
-   await page.waitForFunction(old=>document.documentElement.dataset.bsTheme===old,theme);
+  const barrier=async()=>{
+   await page.evaluate(()=>{window.priorSettings=settings;send('get_settings');});
+   await page.waitForFunction(()=>settings!==window.priorSettings);
   };
-  await page.locator('#pause').click(); await paused();
-  check(await page.locator('#model-choice').isDisabled(),'paused model mutation stays disabled');
-  await expectNoUnpause(async()=>{
-   await page.locator('#prompt').fill('manual pause then typing');await page.locator('#prompt').fill('');
-  },'manual Pause then type/clear');
-  await expectNoUnpause(async()=>{
-   await page.locator('#prompt').fill('admitted while manually paused');await page.locator('#send').click();
-  },'manual Pause then type/Send');
-  await page.locator('#resume').click();
-  await resumed();
-  await page.locator('#prompt').fill('automatic typing pause');await paused();
-  await page.locator('#pause').click();
-  await expectNoUnpause(async()=>{await page.locator('#prompt').fill('');},'typing then manual Pause then clear');
-  await expectNoUnpause(async()=>{
-   await page.locator('#prompt').fill('second manually paused turn');await page.locator('#send').click();
-  },'typing then manual Pause then Send');
-  await page.locator('#resume').click();await resumed();
-  // A purely automatic pause still releases; explicit Resume with an unchanged
-  // draft must also work, without immediately re-pausing the actor.
-  await page.locator('#prompt').fill('automatic-only');await paused();
+  // Explicit runtime pauses remain supported, but the GUI has no manual pair.
+  check(await page.locator('#pause,#resume').count()===0,'manual pause/play pair removed');
+  check(await page.locator('#status-bar #stop-speech').count()===1,'Stop speech is reachable in header');
+  await page.evaluate(()=>send('pause'));await paused();
+  await page.locator('#prompt').fill('runtime pause plus typing');
+  await page.locator('#prompt').fill('');await barrier();
+  check(await page.locator('#state').textContent()==='paused','typing release preserves explicit runtime pause');
+  await page.evaluate(()=>send('unpause'));await resumed();
+  await page.locator('#prompt').fill('automatic typing');await paused();
+  await page.locator('#stop-speech').click();await barrier();
+  check(await page.locator('#state').textContent()==='paused','Stop speech preserves typed draft hold');
+  await page.keyboard.press('Escape');await barrier();
+  check(await page.locator('#state').textContent()==='paused','Escape preserves typed draft hold');
   await page.locator('#prompt').fill('');await resumed();
-  await page.locator('#prompt').fill('resume despite draft');await paused();
-  await page.locator('#resume').click();await resumed();
-  const afterExplicitResume=controls.length;
-  await page.locator('#prompt').fill('');
-  check(!controls.slice(afterExplicitResume).includes('unpause'),'clearing explicitly resumed draft does not release another pause');
-  // Another tab's existing pause is not owned by this tab's later draft.
   const other=await context.newPage();await other.goto(base);
-  await other.waitForFunction(()=>!document.querySelector('#pause').disabled);
-  await other.locator('#pause').click();await paused();
-  await expectNoUnpause(async()=>{
-   await page.locator('#prompt').fill('already paused elsewhere');await page.locator('#prompt').fill('');
-  },'other tab Pause then local typing');
-  await other.close();
-  // Selection must not release a manual pause on the old Agent or carry local
-  // pause ownership into the newly selected conversation.
-  await page.locator('[data-agent="peer"]').click();
-  await page.waitForFunction(()=>document.querySelector('#agent-choice').value==='peer' && !document.querySelector('#send').disabled);
-  check(await page.locator('#prompt').getAttribute('placeholder')==='Ask peer anything…','placeholder follows Agent selection');
-  await page.locator('[data-agent="captain"]').click();await paused();
-  await expectNoUnpause(async()=>{
-   await page.locator('#prompt').fill('after selection');await page.locator('#prompt').fill('');
-  },'selection preserves old manual pause');
-  await page.reload();await page.waitForFunction(()=>!document.querySelector('#resume').disabled);
-  await expectNoUnpause(async()=>{
-   await page.locator('#prompt').fill('after reconnect');await page.locator('#prompt').fill('');
-  },'reconnect does not claim existing pause');
-  await page.locator('#resume').click();await resumed();
-  await page.locator('#prompt').fill('automatic pause before interrupt');await paused();
-  await page.locator('#interrupt').click();
-  await expectNoUnpause(async()=>{await page.locator('#prompt').fill('');},'interrupt clears automatic release intent');
-  await page.locator('#resume').click();await resumed();
+  await other.waitForFunction(()=>!selectionPending&&acknowledgedState!==null);
+  await other.locator('#prompt').fill('other connection holds');await paused();
+  await page.locator('#prompt').fill('local hold');await page.locator('#prompt').fill('');await barrier();
+  check(await page.locator('#state').textContent()==='paused','one connection cannot release another hold');
+  await other.close();await resumed();
+  await page.locator('#prompt').fill('interrupt retains draft hold');await paused();
+  await page.locator('#interrupt').click();await barrier();
+  check(await page.locator('#state').textContent()==='paused','Interrupt does not erase typed draft hold');
+  await page.locator('#prompt').fill('');await resumed();
   const beforeReconnect=await page.locator('#transcript .part').evaluateAll(nodes=>nodes.map(n=>n.dataset.partId));
   // Disconnect/reconnect must rebuild the same canonical cards, not append them.
   await context.setOffline(true); await page.waitForTimeout(300); await context.setOffline(false);
@@ -495,7 +459,7 @@ const check = (condition, message) => { assert.ok(condition, message); console.l
   fs.writeFileSync(path.join(evidence,'browser-failure.json'),JSON.stringify({error:String(error),errors,external,controls,
    ui:await page.evaluate(()=>({state:document.querySelector('#state').textContent,
     connection:document.querySelector('#connection').textContent,
-    pause:document.querySelector('#pause').disabled,resume:document.querySelector('#resume').disabled})).catch(()=>null),
+    stopSpeech:!!document.querySelector('#stop-speech'),draft:document.querySelector('#prompt').value.length})).catch(()=>null),
    frames:frames.slice(-30)},null,2));
   throw error;
  } finally { await context.close(); }

@@ -26,9 +26,9 @@ presentation and connection lifetime, not a second transcript or actor loop.
   a slow browser is disconnected, not allowed to block the actor.
 - `ToolCalled` is an audit of a request. `ToolStarted` means admission succeeded
   and execution was permitted. A refused call must never look dispatched.
-- Typing and queued speech cause **edge-triggered** pause/unpause requests.
-  Pause is Agent-wide. An unchanged local condition is not a tab's permanent
-  veto over an explicit unpause from elsewhere.
+- Typing and current/queued speech create a connection-owned automatic hold.
+  Effective pause combines all live holds with any explicit runtime pause.
+  Disconnect releases only that connection's hold; browser holds are not durable.
 - Full-content speaker buttons are separate from automatic narration.
   Collapsed or scrollable presentation must not discard the rest of the text.
 
@@ -216,16 +216,18 @@ Inbound commands are small mappings to existing public operations:
 {"type":"subscribe"}
 {"type":"prompt","text":"Explain the selected function."}
 {"type":"hint","text":"Keep the public signature unchanged."}
-{"type":"pause"}
-{"type":"unpause"}
+{"type":"automatic_pause","text":"held"}
+{"type":"automatic_pause","text":"released"}
 {"type":"interrupt","mode":"now"}
 {"type":"interrupt","mode":"after_tool"}
 {"type":"shutdown"}
 ```
 
 Connection registration queues replay automatically. `subscribe` is idempotent;
-it does not start a new Agent or replay work. The wire spelling is **unpause**,
-although the core operation is `InputKind.Resume` and the button says “Resume.”
+it does not start a new Agent or replay work. The server binds automatic holds to
+its actual connection object and validated selected Agent, never a client-supplied
+owner ID. Runtime `pause`/`unpause` controls remain available to explicit host
+callers; the GUI has neither a Pause nor an Unpause button.
 
 The host validates message shape and bounds input size. It rejects foreign
 WebSocket origins and non-loopback hostnames. The configured listener is
@@ -317,29 +319,39 @@ Immediate interrupt still cancels the active turn without killing independent
 jobs, and remains usable while paused. The two interrupt modes retain Chapter
 5's different boundary semantics.
 
-The browser has a local cause:
+The browser tracks two independent causes: genuine human typing and current or
+queued speech. Whitespace typed by the human counts; programmatic tool drafts do
+not pretend that the human is typing. When speech pausing is enabled:
 
 ```text
-input is nonempty OR speech is active OR speech is queued
+connection hold = human typing OR current speech OR queued speech
+Agent paused = explicit runtime pause OR any connection hold
 ```
 
-Only its transitions send controls:
+Only changes in the connection hold send `automatic_pause` with `held` or
+`released`. The server serializes each change through the Agent mailbox using
+the actual connection as owner. Releasing one hold cannot erase another. An
+already-paused Agent still accepts additional holds, rather than guessing which
+browser caused the existing pause. Runtime Resume clears only explicit runtime
+pause; it cannot erase live automatic holds.
 
-- false → true: send `pause`;
-- true → false: send `unpause`.
+Use one **Stop speech** button in the header, accessible on phones. It and Escape
+call exactly the same cancellation function: clear the current utterance and FIFO,
+ignore stale callbacks, then recompute the hold as if speech had finished normally.
+Neither action changes the draft. If human text remains, the Agent stays paused;
+if neither cause remains, it resumes. Clearing text while speech continues must
+likewise preserve the speech hold. Do not build a Pause/Play button pair.
 
-The server's effective state is authoritative. Another tab or application caller
-can explicitly unpause even while this tab is still typing. Unchanged typing
-must not immediately reassert pause on every key or state frame. Only a later
-local cause transition sends another request.
-
-This is why the model is not a distributed set of tab-owned veto tokens. The
-human needs a dependable explicit escape, not a hidden AND of every browser's
-local conditions.
+The connection owns release on Agent selection changes and socket teardown, and
+awaits it even when the browser cannot send another message. Release targets the
+Agent that owns the hold, never a later selection. Reconnect establishes new
+holds from current local causes; it is not unconditional Resume. Holds are
+transient and must not be written as child restart pause metadata. Explicit
+runtime pauses remain durable and are not cleared by browser teardown.
 
 Enter submits a prompt; Shift+Enter inserts a newline. Ctrl+Enter or Alt+H sends
-a hint. Input clearing updates the local pause cause. Buttons provide the same
-operations without requiring keyboard shortcuts.
+a hint. Submission or clearing updates the typing cause. Stop speech does not
+interrupt Agent work, cancel Jobs, or disable future opt-in narration.
 
 ## 7.9 Build and inspect locally
 
@@ -403,7 +415,8 @@ Test real components with small external fakes. Important cases include:
 7. Inspect actual narrow-layout controls and safe rendering of hostile-looking
    code. Exercise full-content speaker buttons through a fake speech boundary.
 8. Exercise queued speech, interrupted-utterance cleanup, automatic typing pause,
-   cross-tab explicit unpause, and silent visibility wakeup.
+   two-tab hold isolation, Stop speech/Escape with a draft, disconnect release,
+   selection cleanup, transient restart state, and silent visibility wakeup.
 
 The existing executable grader can test the optional server without compiling
 Go consumers:

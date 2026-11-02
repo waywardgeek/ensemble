@@ -34,7 +34,7 @@ public sealed partial class Agent
                 child.childRestoring = restart is not null;
                 if (restart is not null)
                 {
-                    child.paused = restart.Paused;
+                    child.paused = child.explicitPause = restart.Paused;
                     child.admittedWorkGeneration = restart.Generation;
                     child.runningWorkGeneration = restart.Generation;
                     if (restart.Submitted)

@@ -19,6 +19,37 @@ internal static partial class MeterTests
         throw new Exception("Expected a busy model-selection refusal");
     }
 
+    public static async Task AutomaticPauseOwnership()
+    {
+        var app = new Application(TextWriter.Null);
+        try
+        {
+            var agent = new Agent(app, new Configuration(Vendor.OpenAI, "gpt-4o-mini", "http://127.0.0.1:1"));
+            object first = new(), second = new();
+            async Task Paused(bool expected, string reason) =>
+                Check((await agent.WorkStatusAsync()).Paused == expected, reason);
+            await agent.SetAutomaticPauseAsync(first, true);
+            await agent.SetAutomaticPauseAsync(first, true);
+            await agent.SetAutomaticPauseAsync(second, true);
+            await Paused(true, "automatic holds pause scheduling");
+            await agent.SetAutomaticPauseAsync(first, false);
+            await Paused(true, "releasing one owner preserves another");
+            await agent.PostAsync(new AgentInput(InputKind.Resume));
+            await Paused(true, "runtime resume cannot erase a browser hold");
+            await agent.PostAsync(new AgentInput(InputKind.Pause));
+            await agent.SetAutomaticPauseAsync(second, false);
+            await Paused(true, "automatic release preserves explicit runtime pause");
+            await agent.PostAsync(new AgentInput(InputKind.Resume));
+            await Paused(false, "last cause release resumes");
+            await agent.SetAutomaticPauseAsync(first, false);
+            await Paused(false, "repeated release is harmless");
+            await agent.SetAutomaticPauseAsync(first, true);
+            await agent.SetAutomaticPauseAsync(first, false);
+            await Paused(false, "automatic-only completion resumes");
+        }
+        finally { app.Destroy(); }
+    }
+
     public static async Task ModelSelection(string directory)
     {
         using var listener = Listen();

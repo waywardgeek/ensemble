@@ -27,7 +27,7 @@ for (const [name, state, connected, selecting, closed, disabled] of cases) {
         socket: {readyState: connected ? 1 : 3}, WebSocket: {OPEN: 1},
         selectionPending: selecting, acknowledgedState: state, agentClosed: closed,
         voiceControl: null, imageComposer: {}, pageCapture: null, captureDraft: null,
-        captureConsent: null, pauseIntent: null,
+        captureConsent: null,
     };
     vm.runInNewContext(source.slice(start, end) + '\nrenderControls();', context);
     assert.equal(elements.get('#model-choice').disabled, disabled, name);

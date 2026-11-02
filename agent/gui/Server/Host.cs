@@ -669,6 +669,7 @@ public static partial class Gui
                                     ? agent : agent.Parent().FindAgentAddress(address);
                                 if (choice is null) throw new InvalidDataException("Unknown Agent address.");
                                 await choice.WorkStatusAsync(lifetime.Token);
+                                await connection!.ReleasePauseAsync();
                                 Select(socket, queue, choice);
                                 break;
                             case "subscribe":
@@ -893,6 +894,11 @@ public static partial class Gui
                             case "hint":
                                 await selected.PostAsync(new AgentInput(InputKind.Hint, text));
                                 break;
+                            case "automatic_pause":
+                                if (text is not ("held" or "released"))
+                                    throw new InvalidDataException("Invalid automatic pause state.");
+                                await connection!.SetPauseAsync(selected, text == "held");
+                                break;
                             case "pause":
                                 await selected.PostAsync(new AgentInput(InputKind.Pause));
                                 break;
@@ -987,7 +993,11 @@ public static partial class Gui
                     }
                     finally
                     {
-                        if (connection is not null) await connection.DestroyVoiceAsync();
+                        if (connection is not null)
+                        {
+                            try { await connection.ReleasePauseAsync(); }
+                            finally { await connection.DestroyVoiceAsync(); }
+                        }
                     }
                 }
             }

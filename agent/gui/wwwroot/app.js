@@ -24,10 +24,6 @@ function recordSpeech(kind, fields) {
     speechLog.push(Object.freeze({ seq: speechLog.length + 1, ms: performance.now(), kind, ...fields }));
 }
 let localPauseCause = false;
-// This tab's control intent, not another copy of the actor's pause state.
-// Only a pause requested automatically by this tab may be released on clearing
-// typing/speech. Explicit Pause takes over that intent until explicit Resume.
-let pauseIntent = null; // "automatic", "manual", or no locally owned pause.
 // Origin is a fact, not something speech callbacks can infer from field contents.
 let humanTyping = false;
 let agentClosed = false;
@@ -241,30 +237,17 @@ function markdown(parent, text) {
         }
     });
 }
-// Queued speech counts as busy before playback starts. Act only on cause
-// transitions: explicit Resume (including from another tab) must not be vetoed
-// continuously by an unchanged draft or speech queue.
+// A connection owns one transient hold while either local cause remains.
+// Other connections' holds and explicit runtime pauses are independent.
 function updatePauseCause() {
     if (agentClosed || selectionPending || replaying || !acknowledgedState ||
         socket?.readyState !== WebSocket.OPEN) return;
     const speaking = activeSpeech !== null || speechQueue.length > 0;
     const cause = humanTyping || (settings?.pause_while_speaking !== false && speaking);
     if (cause === localPauseCause) return;
+    if (!send("automatic_pause", cause ? "held" : "released")) return;
     localPauseCause = cause;
-    if (cause) {
-        // An already paused Agent may have been paused elsewhere. Do not claim
-        // ownership of that pause merely because a local draft now exists.
-        if (pauseIntent === "manual" || acknowledgedState === "paused") return;
-        if (!send("pause")) return;
-        pauseIntent = "automatic";
-        const sources = [];
-        if (humanTyping) sources.push("typing");
-        if (speaking && settings?.pause_while_speaking !== false) sources.push("speech");
-        recordSpeech("pause", { cause: sources.join("+") });
-    } else if (pauseIntent === "automatic" && send("unpause")) {
-        pauseIntent = null;
-        recordSpeech("resume", { cause: "clear" });
-    }
+    recordSpeech(cause ? "pause" : "resume", { cause: humanTyping ? "typing" : speaking ? "speech" : "clear" });
     renderControls();
 }
 // Native speech may stop without an end/error callback (notably around browser
@@ -576,10 +559,6 @@ function renderControls() {
     const paused = acknowledgedState === "paused";
     document.querySelector("#state").textContent = !connected ? "disconnected"
         : selectionPending ? "selecting" : acknowledgedState || "unknown";
-    // Fixed slots avoid moving adjacent controls as activity changes. Pause
-    // stays available during this tab's automatic pause so a person can pin it.
-    document.querySelector("#pause").disabled = !ready || (paused && pauseIntent !== "automatic");
-    document.querySelector("#resume").disabled = !ready || !paused;
     document.querySelector("#interrupt").disabled = !ready || !(busy || paused);
     // The actor classifies ordinary input when dequeued, even during a turn.
     document.querySelector("#send").disabled = !ready || !!voiceControl?.blocked || imageComposer.blocked || !!pageCapture?.busy || !!captureDraft || !!captureConsent?.busy;
@@ -691,7 +670,6 @@ function handle(frame) {
             cancelPageCapture("Page capture cancelled on Agent change.");
             cancelSpeech(false);
             localPauseCause = false;
-            pauseIntent = null;
         }
         imageComposer.selectionChanged(frame.agent_id);
         agentID = frame.agent_id;
@@ -730,11 +708,9 @@ function handle(frame) {
         return;
     }
     if (frame.type === "agent_state" || frame.type === "state_changed") {
-        const wasPaused = acknowledgedState === "paused";
         acknowledgedState = frame.state || frame.to;
         agentClosed = acknowledgedState === "shutdown";
         if (agentClosed) cancelPageCapture("Page capture cancelled because the Agent closed.");
-        if (wasPaused && acknowledgedState !== "paused") pauseIntent = null;
         renderControls();
         updatePauseCause();
         return;
@@ -846,7 +822,6 @@ function connect() {
         voiceControl?.cancel();
         cancelPageCapture("Page capture cancelled on disconnect; no screenshot was added.");
         imageComposer.disconnect();
-        pauseIntent = null;
         localPauseCause = false;
         cancelSpeech(false);
         renderControls();
@@ -878,8 +853,7 @@ function selectAgent(key) {
     // Release this tab's old pause cause before asking the server to switch.
     // The next replay can apply a still-present typing cause to the new view.
     cancelSpeech(false);
-    if (pauseIntent === "automatic") send("unpause");
-    pauseIntent = null;
+    if (localPauseCause) send("automatic_pause", "released");
     localPauseCause = false;
     selectionPending = true;
     renderControls();
@@ -955,21 +929,12 @@ window.addEventListener("pagehide", () => {
     cancelPageCapture();
     imageComposer.clear();
 });
-document.querySelector("#pause").onclick = () => {
-    if (send("pause")) pauseIntent = "manual";
-    renderControls();
-};
-document.querySelector("#interrupt").onclick = () => {
-    if (send("interrupt")) pauseIntent = null;
-};
+document.querySelector("#interrupt").onclick = () => send("interrupt");
 document.querySelector("#clear-tools").onclick = () => send("clear_tools");
 document.querySelector("#model-choice").onchange = event => {
     // A choice is the action. The server's usage frame confirms it or restores
     // the unchanged model after refusal; never infer acceptance from the click.
     if (send("set_model", event.target.value)) event.target.disabled = true;
-};
-document.querySelector("#resume").onclick = () => {
-    if (send("unpause")) pauseIntent = null;
 };
 document.querySelector("#prompt").oninput = event => {
     resizeComposer();
@@ -985,6 +950,13 @@ document.querySelector("#prompt").onkeydown = event => {
     }
 };
 document.querySelector("#stop-speech").onclick = () => cancelSpeech();
+// Composer Escape is handled above; honour dialog/widget handlers first.
+document.addEventListener("keydown", event => {
+    if (event.key === "Escape" && !event.defaultPrevented) {
+        // Do not prevent the native dialog-cancel action or its focus return.
+        cancelSpeech();
+    }
+});
 function applySettings() {
     if (!settings) return;
     document.querySelector("#human-name").value = settings.human_name || "";

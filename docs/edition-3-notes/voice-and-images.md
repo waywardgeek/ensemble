@@ -1957,3 +1957,41 @@ Bill also confirmed cross-device theme independence after the prior rebuild.
 Measure X site outage was repaired using its unchanged existing application and
 tunnel launchers: local8090 and public HTTPS returned200, no model prompt sent.
 Bill suspects unplugging/sleep; cause unproved, no power settings changed.
+
+## Automatic pause ownership and one Stop speech control
+
+Bill replaced the earlier Pause/Resume GUI design: Escape and one header Stop
+speech button cancel current/queued TTS, preserve the draft, and release only
+speech. Genuine typing (including whitespace) and speech OR together per browser;
+clearing one cannot erase the other. Programmatic tool drafts remain nonhuman.
+Agent mailbox now combines explicit runtime pause with transient actual connection
+owners. GUI validates addressing, retains the actual held Agent, awaits release
+on selection/disconnect, and never accepts a client-provided owner identity.
+Child restart saves only explicit pause; automatic holds never survive restart.
+Runtime pause/unpause API remains separate for CLI/library callers.
+
+Verified: core ownership/model3groups and child restart2groups, shared341/0;
+updated real speech regression including native-callback recovery/dialog focus/
+queue/stale selection/manual runtime compatibility; dedicated actual-page Stop
+speech/Escape/draft/two-tab/disconnect cases; three real streamed-turn modes
+normal/missing-callback/disconnect all report actual Idle+unpaused. Twelve header
+layouts,32 composer layouts and5public GUI groups pass. Chapters7/27 hard lint
+pass; Chapter8 follow-up prose lint and final GUI build collected separately.
+No paid calls, microphone/capture, installation or live restart.
+
+Failures corrected: test subscribe was a no-op, so use get_settings ack; global
+Escape preventDefault blocked native dialog closing/focus return, removed that
+prevention; reused disposable fixture hit nonwritable prior Job output, retained
+evidence and used fresh workspace. Two initially launched browser checks had
+possible overlap; reran sequentially, passing. Broad crossover-browser runner
+updated for current pause controls but stops before them on an unrelated old
+composer DOM expectation (prompt/send versus current action/voice wrapper).
+This runner is NOT claimed fully passing; dedicated real-page regression is the
+current pause acceptance. Existing endpoints/archives remain unchanged.
+
+Lesson: automatic pause is a transient owned relationship, not a persistent
+boolean to clear blindly at reconnect. A global shortcut must also preserve
+native dialog cancellation/focus behavior.
+
+Final follow-up: Chapter8 hard lint passes with style advisories; final GUI build
+clean, whitespace clean, disposable fixture/provider/Agents joined with exit0.

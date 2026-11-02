@@ -184,7 +184,7 @@ Reserve the geometry, not just the labels. Wrapping flex rows and tabular digits
 alone do not stop a longer state or usage value from changing neighboring widths
 or row heights. Bound identity and numeric slots; give model and action controls
 stable tracks. At enlarged text or narrow widths, use an explicit responsive
-arrangement with reachable overflow rather than shrinking text. Pause/Resume
+arrangement with reachable overflow rather than shrinking text. Speech and Agent
 state changes must not make adjacent controls jump either.
 
 The status bar contains:
@@ -201,9 +201,10 @@ The status bar contains:
   semantics. Speech remains opt-in. Its state is the acknowledged appearance/
   speech setting, not an independent second toggle. Per-message Speak and Stop
   speech also use named speaker icons. Retain keyboard access and visible focus.
-- Compact Pause/Resume and Interrupt controls with useful labels, keyboard focus,
-  and adequate click targets. Do not confuse pausing admission with interrupting a
-  turn, or interrupting a turn with killing independent Jobs.
+- One Stop speech control, identical to Escape, plus a separate Interrupt control,
+  with useful labels, keyboard focus and adequate click targets. Stop speech clears
+  current/queued TTS but preserves a typed draft and its pause hold. Do not build
+  Pause/Resume buttons or confuse stopping speech with interrupting Agent work.
 - A theme button showing a moon for dark and a sun for light. Its accessible
   name must state the switch action, not leave the meaning of the icon ambiguous.
   Its setting persists in this browser's origin-local storage and agrees with the
@@ -410,7 +411,7 @@ Check both themes, enlarged text, keyboard use, and long content in an actual
 browser. Combine the conditions: test the largest supported text size in narrow
 windows as well as on a desktop, not large text only on a wide screen and narrow
 screens only at the default size. Include long status values and an expanded or
-resized composer. Verify that the prompt, Send, model, theme, and pause/interrupt
+resized composer. Verify that the prompt, Send, model, theme, and speech/interrupt
 controls remain reachable, with a useful conversation reading area and no
 page-wide horizontal overflow. Hiding overflowing controls or silently shrinking
 the chosen text size is not a correction. Bounded status summaries, shorter
@@ -594,24 +595,19 @@ A useful session proceeds through these paths:
    and no backend theme writes. Simulate a write failure and show
    that the old accepted state remains. Selection changes must not apply a
    delayed result or a draft to the wrong Agent.
-5. Exercise Pause/Resume, Interrupt, opt-in speech and theme controls. In
-   particular, type while pause-on-input is active, press Pause explicitly, and
-   send: releasing the automatic typing pause must not undo the manual pause.
-   Also test the reverse order: press Pause, wait for its acknowledged state,
-   type a draft, then clear it or submit it. Observe outgoing controls as well as
-   the real actor's state: the browser must not send an automatic unpause that
-   releases the deliberate pause. A simple Pause/Resume click pair misses this
-   interaction. Keep automatic-pause ownership distinct from a manual request,
-   without creating a browser-owned copy of authoritative actor state.
-   A tab may remember that it requested an automatic pause; that is local control
-   intent, not authority over an already paused Agent. Typing after another tab's
-   Pause must not claim that pause. Explicit Resume must work with an unchanged
-   draft, and explicit Pause must be reachable while typing has automatically
-   paused the Agent. Exercise selection, reconnect, and interruption: stale local
-   intent must neither release someone else's pause nor travel to another Agent.
+5. Exercise Stop speech, Escape, Interrupt, opt-in speech and theme controls.
+   Build Chapter 7's connection-owned automatic holds from the start. Stop speech
+   and Escape cancel current/queued TTS without erasing the draft. Typing survives
+   speech completion; speech survives clearing the draft. With neither cause
+   remaining, the Agent resumes. Both GUI Pause/Resume buttons are absent.
+   Test two connections holding the same Agent: releasing or disconnecting one
+   must preserve the other. Await server-side release on disconnect and selection,
+   targeting the actual old Agent, not the newly selected conversation. Reconnect
+   must not blindly resume. Preserve explicit runtime pauses separately, but never
+   save transient browser holds as durable child restart pauses. Use real actor
+   status as well as outgoing frames; a changed label alone proves nothing.
    Wait for actual ready phases: a seeded conversation can be `inputpending`,
-   while a completed turn can be `idle`. A guessed state predicate is a fixture
-   failure, not evidence that Resume failed.
+   while a completed turn can be `idle`. A guessed predicate is a fixture error.
    Keep model changes disabled during admitted work even when later usage/meter
    frames arrive; a status refresh must not accidentally re-enable the control.
    Queued speech counts as busy according to the existing policy; selection cancels
@@ -631,8 +627,9 @@ A useful session proceeds through these paths:
    visibility events also check liveness. Settlement and cancellation clear the
    watcher; an old callback cannot settle the next utterance. Completion advances
    queued speech before releasing the local speech pause, so typing or an explicit
-   manual Pause can still keep the Agent paused. Check queue advancement, typing overlap, manual Pause and external
-   Resume against the real server state. A hidden or frozen page may defer browser
+   runtime pause can still keep the Agent paused. Check queue advancement, typing
+   overlap, independent connections and runtime pause compatibility against the
+   real server state. A hidden or frozen page may defer browser
    callbacks; socket loss additionally prevents delivery. Those cases do not
    authorize blindly resuming an Agent whose pause may belong to someone else. A fake speech boundary verifies wiring,
    not hearing. Native voice quality, useful speed, and accessibility need the
