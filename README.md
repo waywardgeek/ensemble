@@ -17,17 +17,52 @@ application is C# 14 / .NET 10, developed inside Ensemble with Cadence.
 
 ## Build and run
 
-Use an existing .NET 10 SDK. Nothing here installs an SDK, reads credentials for
-a build, starts a server automatically, or replaces an installed application.
+Use an existing **.NET 10 SDK** (the runtime alone cannot build the application).
+Nothing here installs an SDK, reads credentials for a build, starts a server
+automatically, or replaces an installed application.
+
+First check that your shell can find the SDK:
+
+```sh
+dotnet --list-sdks           # should include a 10.x SDK
+```
+
+If `dotnet` is not found, or `make` reports `dotnet: No such file or directory`,
+the build has not reached compilation: the SDK executable is missing from your
+shell's `PATH`. If you already have the SDK, either add its directory to `PATH`
+for the current shell (replace the example path with your actual SDK directory):
+
+```sh
+export PATH="/absolute/path/to/dotnet-sdk:$PATH"
+dotnet --list-sdks
+```
+
+Or leave `PATH` unchanged and give Make the executable's full path:
+
+```sh
+make DOTNET=/absolute/path/to/dotnet
+make cli DOTNET=/absolute/path/to/dotnet
+# Use the same override for other targets, such as make test.
+```
+
+For example, if you installed the SDK in `$HOME/.local/share/ensemble-dotnet10`,
+use `make DOTNET="$HOME/.local/share/ensemble-dotnet10/dotnet"`. This is an example
+location, not a required layout. If no .NET 10 SDK is installed, install one from
+[Microsoft's .NET 10 downloads](https://dotnet.microsoft.com/download/dotnet/10.0),
+then open a new terminal and check again.
+
+With `dotnet` on `PATH`:
 
 ```sh
 make                         # builds the C# GUI and writes ./ensemble launcher
 make cli                     # builds the C# terminal client
-# Override SDK location if needed: make DOTNET=/absolute/path/to/dotnet
 ./ensemble --help            # explicit launch; inspect options before use
 # Terminal client after make cli:
 dotnet agent/Cli/bin/Debug/net10.0/ch04.dll --help
 ```
+
+If you used the explicit SDK override instead, use that full executable path
+in place of `dotnet` when launching the terminal client too.
 
 Choose your own data directory, workspace, funding configuration and unused port
 for a real launch. Do not replace a running host just to refresh source. The GUI
