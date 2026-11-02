@@ -1871,3 +1871,27 @@ Removed the visible idle funding-off footer using Bootstrap visually-hidden on t
 Disk reserve: free space approached1.18GiB. Removed only Cadence's disposable /private/tmp/cadence-child-restart/go-cache (289336KiB); retained source, package cache, test logs/receipts and all MeasureX work. No running owned Go job used that completed-test cache.
 
 Chapter26 now records actual live display-only screenshot acceptance and separates it from earlier synthetic rectangle-path evidence. Remaining80 external points are still ungraded; this is not whole-chapter completion. Actions-pane work remains discussion-only, with substantive narration explicitly preserved.
+
+## Remaining grader design boundary after the short autonomous UI slice
+
+Source inspection confirms the image-attachment scope currently contains only attachmentPNG payload validation, not a browser/candidate lifecycle driver. Exercise26.2 additionally requires real preview/draft, addressed WebSocket admission and negative controls. The voice scope requires real WAV/transcription/lease/admission; Common/VoiceTranscription.cs exposes public(parent,apiKey), while injectable HTTP handler is internal and GUI startup uses the public fixed-route constructor. A complete external fake-provider voice grade therefore needs a deliberate candidate/test-host contract, not a silently added production endpoint override or a paid test mislabeled synthetic. Host25-point external scope likewise needs controlled native-display setup/permission; schema-only checks and the prior one-shot live screenshot do not award it. Discuss these testability/driver choices before a larger autonomous grader implementation. They are open design work, not proof the feature or grading is infeasible.
+
+Short authorized straightforward slice completed in local commit294247d2: gear/idle footer fixes, tests and accurate live acceptance prose. No runtime installation or restart. Remaining queued model/funding, per-Agent logging, concurrent-client pause, browser-theme migration/default semantics and Actions-pane redesign need pairing or explicit choices. Parent reminders are being disabled at this decision boundary; worker reminders remain independent. Original request for more substantive narration is preserved. Do not repeat completed UI checks merely for freshness or call Chapter26 closed with80 points ungraded.
+
+## Queued appearance change — swap human and Agent message backgrounds
+
+Bill confirms the rebuilt gear-wrap and idle voice-footer fixes work in his live GUI. He requests one additional queued change: swap the existing human-message and Agent-message background colors, rather than choose a new palette. Agent output occupies more of the conversation, and he prefers the dominant screen area to use the background currently behind his own messages. Bill identifies himself as a protanope; refer to message roles/current appearances rather than requiring color names. Preserve explicit speaker labels and other non-color distinctions; check text/link/code contrast and both themes when implementing. This is queued only, not yet implemented or installed.
+
+## Approved queue continuation — message-background swap
+
+Bill approved background swap → browser-local theme → model-dropdown diagnosis →
+per-Agent logging → speech/unpause repair. Substantive narration remains essential.
+Swapped the exact existing human/Agent fills in both themes, not panel surfaces or
+speaker names. Browser regression failed before the change, then caught inherited
+Bootstrap link contrast on the newly colored human bubble. Applied the existing
+accessible message-link colors to both roles. Four role/theme checks now pass
+(exact fills, body/link contrast >=4.5, visible identity); all32 layout cases pass.
+Tests use real CSS in isolated headless Chrome, no live capture/provider. Source
+only; no installation/restart. Lesson: a background swap also requires auditing
+role-specific foreground styles. Bill already confirmed previous gear/footer fixes
+working after his own rebuild/restart. Remaining media80 points still ungraded.
