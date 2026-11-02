@@ -121,8 +121,12 @@ public sealed partial class Agent
                 throw new ArgumentException("Submission artifact byte limit exceeded.");
             }
             Sandbox().ReplaceFile(path, bytes);
-            // Publication is last. Validation, open, flush or rename refusal
-            // leaves the earlier visible completion and saved file intact.
+            // The artifact and restart record are separate durable writes. Bind
+            // completion to these payload bytes: if registration fails, historical
+            // retrieval may see this artifact, but restart cannot invent acceptance.
+            // Live completion is published only after both writes succeed.
+            SaveChildRestart(submitted: true, completion: validated,
+                goal: goalConfiguration with { Enabled = false });
             submittedPayload = validated;
             submissionReminders = 0;
             childFailure = null;
@@ -140,7 +144,9 @@ public sealed partial class Agent
             {
                 return 0;
             }
-            admittedWorkGeneration = checked(admittedWorkGeneration + 1);
+            long nextGeneration = checked(admittedWorkGeneration + 1);
+            SaveChildRestart(generation: nextGeneration, submitted: false);
+            admittedWorkGeneration = nextGeneration;
             submittedPayload = null;
             childFailure = null;
             SignalSubmissionChange();

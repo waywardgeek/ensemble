@@ -191,6 +191,7 @@ public sealed partial class Tool
                     // observes that same task again, collects any failure and
                     // attempts every detach. Do not let a failed shutdown skip
                     // destruction or pretend the selected child was removed.
+                    child.RetireChildRestart();
                     await child.ShutdownAsync().ConfigureAwait(ConfigureAwaitOptions.SuppressThrowing);
                     child.Destroy();
                     return JsonSerializer.Serialize(new { agent_id = id, stopped = true });

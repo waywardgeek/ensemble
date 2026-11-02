@@ -83,6 +83,7 @@ ensemble-data/
       jobs/
       children/
         researcher/
+          child.json
           save.json
           submit.md
           children/
@@ -140,7 +141,23 @@ Null or empty model/skill overrides inherit from that source. Snapshot its curre
 
 Serialize registry operations with one gate. Validate the complete registry before restoring any peer: missing files mean no peers, but malformed, inaccessible, duplicate, or damaged entries must not silently become an empty registry. Build peers through their ordinary owners, restore their own History, initialize their selected skills, and save initial History. Only atomic replacement of `ensemble.json` commits a new peer's successful creation. Failure joins and destroys newly constructed live peers without deleting prior conversations.
 
-Restoration creates registry peers, not their saved delegated descendants. Old child directories remain data until an explicit operation uses them. They are not instructions to respawn a tree.
+Restoration also reconstructs registered ordinary descendants under each restored peer and the host-configured initial Agent. A directory containing old History alone is not a registration. Disposable memory compressors must not become ordinary workers simply because they saved a conversation.
+
+### Restarting delegated work without replaying effects
+
+A host restart used to remove every live child from the tree even though its files survived. In our Measure X reconstruction, the child had made useful progress, but restarting the screenshot build made it disappear from the GUI and stopped its reminders. Manually spawning the same ID recovered the conversation; that was recovery work the application should handle.
+
+I require ordinary children to carry their restart registration in their own home. There is no second global child registry. `child.json` records a version, local identity, model, submission schema and accepted-work generation, current submission and pause flags, an acknowledged submission checksum, and goal configuration. It contains no credentials, provider endpoint, transcript copy, process handle, or copied service bag. Common owns this vocabulary and the real Agent fields; the functional Agent partial implements persistence and reconstruction through its Sandbox.
+
+Save changed restart settings before acknowledging them. New accepted work invalidates prior completion in the restart record even while the historical `submit.md` remains available. A restored submitted flag is usable only with the matching generation, payload checksum and a valid existing submission artifact. These are separate file replacements, not a multi-file transaction; a mismatch refuses restoration rather than inventing acceptance. In particular, reading an arbitrary old answer still cannot complete newer work. Model choices remain subject to the current parent's provider and sandbox policy.
+
+The host composition root calls `RestoreChildrenAsync`. Enumerate and validate ordinary child registrations, construct through the actual parent, restore each child's own History, initialize current skills, and reconstruct descendants. Refuse malformed or identity-mismatched records rather than treating corruption as an empty fleet. A failed restoration joins and removes the children it just constructed. An already-live child is not duplicated. Borrowed GUI mounts do not become startup owners.
+
+Restoring ownership is not replaying execution. Old HTTP requests, shell Jobs, queued tool calls, and observer handles are not restarted. Submitted children remain idle. Deliberately paused children remain paused. Explicit `shutdown_agent` and `kill_agent` retire restart registration while preserving saved work; ordinary host shutdown retains it.
+
+For registered children, goal file selection, enabled state and reminder interval now survive restart. A fresh timer begins only after restoration; there is no burst of missed reminders or immediate replay of an interrupted tool. The reminder tells the child to inspect saved results before continuing. Current skill authority and a fresh bounded goal-file read remain necessary. Missing authority or an unreadable goal leaves reminders off with an actionable diagnostic. A completed submission disables them durably. Standalone Agents retain their existing session-local goal contract.
+
+This is a restart contract, not a promise that an interrupted external effect did or did not happen. Recovery must reconcile evidence. Existing children created before registration was implemented need an explicit migration from their known live state; do not guess registrations from arbitrary saved directories.
 
 Ordinary application shutdown preserves registry and files. Explicit `DeletePeerAsync` refuses retained unfinished children before closing the target's admission, joins teardown, removes the registry entry, and detaches the live Agent. Saved files remain. If registry replacement fails, retain the stopped registered peer for a retry. Cancellation can stop a request before irreversible teardown; after shutdown begins, join to a definite outcome rather than abandon half a deletion.
 
@@ -257,7 +274,7 @@ Publication validates the payload, checks current generation and lifetime, atomi
 
 Validate the exact envelope, local child ID, schema, payload, and available parent provenance. A named parent's version-2 artifact must match that parent address; a copied artifact from another tree is not accepted merely because its leaf ID matches. Version-1 data remains explicitly unprovenanced. Address provenance is relative to this Ensemble, not a cryptographic signature or globally unique identity across unrelated installations.
 
-The tool reports `historical: true`. Reading old bytes does not set `Submission()`, clear a failure, advance a generation, or satisfy a join. Accepting new work invalidates old live completion even if the previous file remains on disk. Restoring History likewise does not revive old submission as new success.
+The tool reports `historical: true`. Reading old bytes does not set `Submission()`, clear a failure, advance a generation, or satisfy a join. Accepting new work invalidates old live completion even if the previous file remains on disk. Restoring History alone likewise does not revive old submission as new success. Ordinary child restart additionally requires its current registered generation and submitted state to agree with the validated artifact.
 
 This deliberately differs from a memory-first fallback. Fresh reads make external file replacement visible and avoid a second authoritative cache. Filesystem failures return bounded diagnostics rather than exposing an absolute private path.
 
@@ -356,7 +373,7 @@ Pass the executable host, not the DLL alone. If this shell's installed runtime c
   "$PWD/agent/Cli/bin/Debug/net10.0/ch04"
 ```
 
-The adapter supplies a loopback provider, owned working directory, shipped skill activation, correlated JSON control messages, and joined EOF shutdown. It holds model work to inspect activity, tests positive owned-child access and negative cross-tree access, observes a running change wait before releasing progress, checks fresh cursors and queued replies, and exercises recursive questions and bottom-up submission. Retained wire records distinguish finalized output from submission and current completion from historical files.
+The adapter supplies a loopback provider, owned working directory, shipped skill activation, correlated JSON control messages, and joined EOF shutdown. Its composition row now also launches the actual CLI twice against one isolated data home: the second process must expose an ordinary submitted child without another spawn, make no unsolicited inference, and retain the old conversation when explicitly given fresh work. This adds obligations to the existing row, not new points or a claim that all timer and GUI restoration races are graded. It holds model work to inspect activity, tests positive owned-child access and negative cross-tree access, observes a running change wait before releasing progress, checks fresh cursors and queued replies, and exercises recursive questions and bottom-up submission. Retained wire records distinguish finalized output from submission and current completion from historical files.
 
 These local checks do not verify live-provider entitlement, OAuth, billing, native-platform behavior, audible speech, or human accessibility. The earlier failures and the scope of each passing result remain in the progress record.
 
@@ -366,7 +383,7 @@ Implement and inspect the management layer through the existing owners:
 
 1. Declare lifecycle/work-phase values, ownership-tree snapshots, homes, peer operations, and child-output contracts in Common. Keep persistent state there and functional bodies in their responsible directories.
 2. Derive current activity from the actor, and accounting from Engine. Verify thinking, tool, waiting, paused, submitted-but-draining, idle failure, and shutdown boundaries without a duplicate scheduler flag.
-3. Give all top-level actors sibling homes. Separate those homes from History save paths. Persist strict immutable peer launch choices and restore peers without respawning descendants.
+3. Give all top-level actors sibling homes. Separate those homes from History save paths. Persist strict immutable peer launch choices and ordinary child restart records. Restore registered descendants through real parents; exclude disposable helpers and unregistered historical directories. Test fresh reminder intervals, retained pause, current submission generations, malformed registration and explicit removal without replaying tools.
 4. Derive canonical addresses through actual parents. Keep global trusted GUI lookup separate from direct-child tool authority, including repeated local IDs and unnamed transient roots.
 5. Add the management tools and the real shipped grants. Test an owned success as well as cross-tree refusal. Demonstrate that cancelled observation leaves underlying work alive.
 6. Verify graceful shutdown versus kill with held real work. Do not assume a prompt acknowledgment proves completed teardown, and do not resume paused work as a side effect of waiting.
@@ -380,7 +397,7 @@ Implement and inspect the management layer through the existing owners:
 
 Use a fresh owned data directory and browser profile. Keep an existing working Ensemble and its browser untouched. Watch a child move through thinking, tool execution, and waiting; then switch between two conversations and confirm that messages and controls go to the selected one. Check that late old-view fragments do not contaminate the new transcript and that replay does not narrate old content.
 
-Create a named peer, choose its model and skill, close the application cleanly, and restore from the same directory. Confirm its own conversation survives, the initial actor remains separately host-configured, and delegated children were not silently recreated. Delete the peer and verify that it no longer restores while its saved data remains available for deliberate inspection.
+Create a named peer, choose its model and skill, close the application cleanly, and restore from the same directory. Confirm its own conversation survives and the initial actor remains separately host-configured. Include an ordinary child with an enabled goal, a paused child, a submitted child, and a nested child. Verify that the tree returns, only eligible enabled reminders resume after a fresh interval, and the others remain stopped. Explicitly remove a child, restart again, and verify that retained files do not revive it. Delete the peer and verify that it no longer restores while its saved data remains available for deliberate inspection.
 
 If a selected skill needs browser tools, open the explicit independent relay. Also try cancellation before the relay arrives and a headless launch against the same requirement. The first must join rollback; the second must refuse promptly by default.
 
@@ -388,4 +405,4 @@ Then assess legibility, speech, and practical supervision with real work. Protoc
 
 ### Engineering takeaway
 
-A useful fleet is not a larger collection of callbacks. It is a set of understandable owners with precise operations: admit work, observe progress, preserve results, and destroy relationships completely. Keep facts where they belong—activity on the Agent, accounting on Engine, transcript on History, process lifetime on Job, launch configuration on Ensemble—and make every management operation travel through those actual relationships.
+A useful fleet is not a larger collection of callbacks. It is a set of understandable owners with precise operations: admit work, observe progress, preserve results, and destroy relationships completely. Keep facts where they belong: activity on the Agent, accounting on Engine, transcript on History, process lifetime on Job, and launch configuration on Ensemble. Make every management operation travel through those actual relationships.

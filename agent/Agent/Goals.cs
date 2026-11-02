@@ -103,11 +103,13 @@ public sealed partial class Agent
                 {
                     throw new ArgumentException("Configure a readable goal file before enabling reminders.");
                 }
-                StopGoalTimer();
+                var candidate = new GoalConfiguration(file, enabled, seconds);
                 lock (ingress)
                 {
-                    goalConfiguration = new GoalConfiguration(file, enabled, seconds);
+                    SaveChildRestart(goal: candidate);
+                    goalConfiguration = candidate;
                 }
+                StopGoalTimer();
             }
             RefreshGoalTimer();
             message.GoalReply!.TrySetResult(CaptureGoalStatus());
@@ -208,7 +210,9 @@ public sealed partial class Agent
             {
                 return;
             }
-            goalConfiguration = goalConfiguration with { Enabled = false, LastError = failure.Error };
+            var disabled = goalConfiguration with { Enabled = false, LastError = failure.Error };
+            SaveChildRestart(goal: disabled);
+            goalConfiguration = disabled;
         }
         StopGoalTimer();
     }
@@ -237,13 +241,15 @@ public sealed partial class Agent
         }
     }
 
-    private partial void DisableGoal()
+    private partial void DisableGoal(bool persist)
     {
-        StopGoalTimer();
         lock (ingress)
         {
-            goalConfiguration = goalConfiguration with { Enabled = false };
+            var disabled = goalConfiguration with { Enabled = false };
+            if (persist) { SaveChildRestart(goal: disabled); }
+            goalConfiguration = disabled;
         }
+        StopGoalTimer();
     }
 
     private partial void ClearGoal()
@@ -251,7 +257,9 @@ public sealed partial class Agent
         StopGoalTimer();
         lock (ingress)
         {
-            goalConfiguration = new GoalConfiguration();
+            var cleared = new GoalConfiguration();
+            SaveChildRestart(goal: cleared);
+            goalConfiguration = cleared;
         }
     }
 

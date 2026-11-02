@@ -194,6 +194,7 @@ public sealed partial class Ensemble
             cancellation.ThrowIfCancellationRequested();
             peer.History().Save(persistence);
             peer.History().StartLog(Path.Combine(peer.DataDirectory(), "events.jsonl"));
+            await peer.RestoreChildrenAsync(cancellation, waitForBrowser).ConfigureAwait(false);
             return peer;
         }
         catch (Exception startupError)

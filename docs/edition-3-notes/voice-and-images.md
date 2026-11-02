@@ -1714,3 +1714,138 @@ addressed admission/stale/duplicate-send checks, then voice grading.
 No native window, screen capture, microphone, paid provider, installation, restart,
 or reminder change occurred. The permission-only native preflight and the compiled
 opt-in window/capture fixtures remain ready for a later agreed human test.
+
+## Bill's queued GUI follow-up — after Measure X delegation
+
+Bill requests these issues be retained in the queue while Chapter 26 work resumes:
+
+1. Settings gear has wrapped onto the next header line. Inspect actual responsive geometry; consider giving that header region more width, but preserve phone layout and accessible controls rather than assuming width alone is the fix.
+2. Model selector no longer opens, although it previously did. First reproduce and trace DOM/event/disabled-state behavior. Check availability of the three vendor API credentials only through scoped, non-disclosing configuration checks; never print or copy values. Bill expects all model choices to remain visible, with only available vendors enabled (even if only OpenAI is configured). Credential presence is distinct from model entitlement and from safe cross-provider switching: running Engine provider/funding ownership must be respected, with no silent API-key fallback from Codex funding. Determine the actual failure before choosing a repair.
+
+These are reported symptoms and desired behavior, not independently verified findings. No credential inspection or live GUI action has yet been performed for this queue entry. No install/restart or paid provider request is implied.
+
+Measure X reconstruction is now delegated to child MeasureX, which confirmed its own 180-second reminders enabled and the 54-reviewed-draft boundary. Main collaboration returns to Chapter 26 host screenshot acceptance and remaining graders, then scheduler/Gateway/multi-user design. Native screenshot testing still needs Bill's current agreement to a synthetic window/rectangle; old preflight permission is not a new capture result.
+
+## Native host capture — HiDPI correction and first successful pixels
+
+Bill explicitly authorized the synthetic-window capture. The original native
+probe failed its fixed 640x360 expectation; its window was joined and no PNG saved.
+A single documented-syntax diagnostic also returned 1280x720 and was deleted
+without pixel inspection. Argument spacing was not established as a defect.
+Metadata-only comparison established the cause: CGDisplayPixelsWide/High reported
+1920x1080, but CGDisplayModeGetPixelWidth/Height reported 3840x2160 for the same
+1920x1080 logical mode. Source now copies the current display mode, reads backing
+pixel dimensions, and releases it in finally. This corrects pre-capture source
+pixel accounting as well as fixture expectations. Native probe samples relative
+to backing dimensions instead of assuming 1:1 scaling. Its scale-ceiling-based
+exact-size assertion is a synthetic fixture expectation, not universal fractional
+scale acceptance.
+
+Clean test build, four focused host-screen groups passed (exit0), whitespace clean.
+One corrected real HostScreens capture of the synthetic640x360 logical rectangle
+returned1280x720 PNG,25108 bytes. Probe verified red/blue sample pixels; Cadence
+inspected actual saved pixels and saw red left, blue right. Window joined exit0.
+Evidence /private/tmp/cadence-host-native/scaling-acceptance-7zmyjuja/;
+build-scaling.log and scaling-focused.log in the parent directory. No private
+screen sweep, live service change, paid request, installation or restart.
+
+This proves native backend capture and actual-file pixel delivery, NOT native
+model-requested screenshot tool/delayed-Job acceptance. Those paths, remaining
+external grades, broader final regression and prose reconciliation remain next.
+
+## Native screenshot model-turn, delayed Job, and replay acceptance
+
+An opt-in fixture in ActorTests.HostScreenNative.cs now drives a real Agent against
+a loopback fake Responses provider with an explicit host-screen skill. It is NOT
+registered in the ordinary suite. It accepts only the approved640x360 synthetic
+window bounds file. Under Bill's existing controlled-test authorization, one native
+screenshot call with zero-delay observation returned a running Job; wait_for_job
+collected its structured image. Four local requests verified one1280x720 prepared
+PNG (6824 bytes), red/blue pixels, actual inline image bytes in the paired tool-output
+wire, and identical canonical bytes replayed on the next human turn with no second
+capture. Cadence inspected the delivered PNG. Agent/provider and window cleanup
+joined; native fixture exited0. No paid request, private screen sweep, live install
+or restart. The fixture's exact1280x720 assertion describes this agreed HiDPI test,
+not a generic fractional-scale acceptance claim.
+
+Evidence /private/tmp/cadence-host-native/model-turn-nhpqw5f8/ (turn.log,
+fixture/result.json and delivered.png). Build-model-turn.log clean. Shared suite
+reported337 passed/0 failed and exited successfully; its combined shell job112
+then exited2 solely because git diff --check found a trailing blank notebook line.
+That whitespace was corrected. Chapter26 acceptance statements now reflect this
+native scope and explain the HiDPI lesson; external scope remains20/100 with80
+ungraded. Next: remaining attachment/voice/host external graders, review/prose
+reconciliation, and separately queued GUI issues. No more native capture needed
+merely to repeat this successful evidence.
+
+## Queued debugging improvement — per-Agent logging
+
+Bill reports that all Agents appear to write into Cadence's log rather than logs in their own Agent directories, complicating diagnosis. Investigate actual logger ownership and routing, then provide separate logger instances/destinations per Agent, including appropriate child paths. This is a queued request only, not an independently verified all-Agent finding or an implemented fix. Preserve diagnostic masking and distinguish shared host events from Agent-owned events. No logging changes are part of the screenshot staging.
+
+## Queued lifecycle improvement — unfinished children across host restart
+
+Bill requests investigation and design of restoring unfinished delegated Agents after a host restart. Current observed incident: after Bill restarted the staged host, agents_status returned no live children; Cadence/children/MeasureX and its transcription files/goal survived. Saved worker checkpoint reached page84 (83 full-page reviewed drafts plus incomplete page59; page85 next), but no live membership or timer remained. The GUI absence reflected missing live ownership, not loss of saved page work.
+
+Design explicit restoration of parent/child membership, GUI visibility, unfinished-work status, and goal/reminder lifecycle. Distinguish documentary saved state from current authority; do not silently reactivate stale grants, submitted work, or arbitrary scheduled effects. Test restart recovery and failed restoration without duplicate live children or duplicate work. Bill explicitly authorizes restoring MeasureX now and re-enabling its180-second reminders; this is not authorization to implement or deploy a general restart mechanism in this slice.
+
+## Screenshot simplification — display-only public contract
+
+Bill removed rectangle selection to avoid window-measurement distractions during
+debugging. Public screenshot now accepts only optional nonnegative integer display;
+omission selects0. Strict callers may explicitly send0. Null is invalid. No public
+x/y/width/height selectors remain. Stale rectangle requests refuse before capture,
+never silently expand into whole-display capture. list_displays remains available
+when another display needs identifying. Internal rectangle geometry remains for
+whole-display bounds and backend tests, not a second public selection API.
+
+Updated schema/parser, loaded-skill model declaration regression, default/explicit/
+secondary/refusal tests, host-screen skill, Chapter26/README and grader-side
+screenshotSelectionSchema oracle with positive/negative tests. Existing validator
+expects scalar type strings: an initial nullable-array draft exposed that mismatch;
+removed the unnecessary nullable alternative instead of expanding shared validation.
+An initial schema test rendered an empty context without skill grants; corrected
+to the actual loaded History. Final focused4/0, shared337/0, clean build; both Go
+grader packages passed offline using existing /Users/bill/go/pkg/mod. First offline
+run used redirected home's missing cache and failed setup; no dependency downloads.
+Chapter26 hard prose lint passed with style advisories. Evidence:
+/private/tmp/cadence-display-only/ (build-third.log, focused-third.log, shared.log,
+graders-cached.log, prose.log). No native capture, installation or restart here.
+
+Native model fixture now explicitly opts into --host-screen-native-display-turn
+with a whole synthetic display; the retired rectangle command is no longer wired.
+It has compiled, not run. Earlier native rectangle-path evidence remains historical,
+not acceptance of changed whole-display selection. Full host external driver is
+still pending: the tested schema oracle alone awards no points. External total
+remains20 image-file points with80 ungraded. Future display-only native acceptance
+must use a currently agreed whole display. Next deployment requires both runtime
+and host-screen skill wording, preserving other installed skills and configuration.
+
+## Queued UI cleanup — remove persistent voice-disabled footer
+
+Bill requests removal of the chat-pane footer line, “Voice is off: separate transcription funding is not enabled.” The disabled microphone icon already communicates unavailability; do not replace this line with another persistent funding notice. Keep useful actionable error feedback and accessible microphone labeling. This is queued only, not implemented.
+
+Bill also authorizes scoped local Git commits when reviewed changes are ready. Preserve unrelated changes and MeasureX-owned reconstruction work; commit readiness is separate from staging, restart, and publication. No push is authorized.
+
+## Queued settings ownership — browser-local appearance
+
+Bill requests browser-local settings rather than sharing all preferences through the server across devices. Light/dark theme specifically belongs to browser state, not backend settings. Sharing between tabs in the same browser is acceptable. Use origin-scoped localStorage as the proposed persistence mechanism, with storage-event synchronization across tabs; handle unavailable storage gracefully. Review other preferences individually rather than moving all settings indiscriminately. Define migration/default behavior for the existing server theme without continuing to publish browser theme changes to the backend. Verify independent browser contexts/devices, same-origin tab synchronization, and reload persistence. This is queued only, not implemented.
+
+## Queued speech-pause follow-up — intermittent unpause with multiple clients
+
+Bill reports that automatic unpause with speech enabled still appears intermittently broken and suspects simultaneous connections from multiple devices. In this reported exchange, he initially expected Enter would leave Cadence paused, then immediately corrected the observation: “Nope you unpaused directly.” Thus this attempt succeeded; it is not a new failing reproduction or proof of multi-device causation. Investigate with isolated concurrent-browser/client tests, including Enter submission, speech-owned pause release, disconnect/reconnect and manual pause preservation. Keep this hypothesis distinct from the earlier reproduced speech-owned pause leak on browser disconnect. Release only the appropriate automatic pause ownership; do not introduce blind unpause that overrides manual holds. No live state manipulation or repair performed for this queue entry.
+
+## Ordinary-child restart restoration — source verification
+
+Bill approved automatic reconstruction of ordinary delegated children, their own enabled goals and reminder intervals, preserved deliberate pause/submission, and fresh reminder-based continuation rather than replay of interrupted effects. He authorized autonomous implementation, Chapter20 Managing the Swarm prose/grader updates and scoped commits while away. No runtime restart was authorized.
+
+Implemented Common ChildRestartState/Agent declarations and Agent-owned child.json registration via existing Sandbox helpers. Ordinary CreateChildAsync registers; direct transient/compressor construction does not. RestoreChildrenAsync validates bounded records, reconstructs real ownership/current policy and own History recursively, and rolls back newly constructed children on failure. CLI, GUI composition root and restored peers invoke it; reusable GUI mount remains borrowed. GUI can wait for each child's own browser relay; headless defaults still refuse missing browser startup. Existing live children are not duplicated. Explicit shutdown/kill retires registration but retains artifacts; ordinary host shutdown retains registration.
+
+Goal, pause, model, generation and submission state save before publication where applicable. Shutdown stops runtime timers without persisting goal-off. Interrupted calls/processes/Jobs are not replayed. Current goals authority and fresh file validation gate restored reminders. Missing authority/file disables with diagnostic. A new interval, not missed-timer catch-up, starts after restoration. Submitted children stay off; paused children stay paused. Submission artifact and registration are separate writes, not a multi-file transaction: generation and normalized payload SHA256 bind acknowledged completion; mismatch refuses rather than inventing acceptance. Historical get_submission stays independent. Standalone goals remain session-local and parent goals are not inherited.
+
+Verification: two focused real-component groups cover nested ownership, History, explicit pause plus enabled180s goal, submitted state, old-result/new-work refusal, explicit removal, no helper restoration, repeated restore, malformed/mismatched/duplicate metadata, failed registration write preserving live goal settings, unavailable skill authority, and submission checksum mismatch. A real-Agent fake-Anthropic test observes a fresh reminder interval, retained goal/conversation, two HTTP requests and one durable submit disabling reminders. Final shared run339/0 (job287, exit0); final narrow exception-filter amendment rebuilt and both focused groups passed (job299). Tests, CLI and GUI builds clean. No paid requests or native screenshots.
+
+The active historical-number Chapter21 C# executable adapter now tests actual CLI restart with the same isolated home: no second spawn, restored idle/submitted state, retained History on fresh work, exactly two requested exchanges. Existing70-point scope retained,70/70 passed; no extra GUI/persistent-peer points invented. Negative wrapper removed only its own fixture registrations and correctly failed the composition row with “No owned child has that ID.” Relevant TestChapter21 Go tests pass; Edition3 packages pass. An overly broad full gradeedition2 package run failed known archived-layout/old-contract tests; frozen archives remain unchanged. Chapters20/25/26 hard prose lint passes with style advisories; existing em-dash punctuation in touched20/25 was reconciled. Evidence /private/tmp/cadence-child-restart/.
+
+Corrections: initial fixture installed tools twice after SkillSpec construction; fixed setup. Shared338/1 found the old peer test explicitly forbidding descendants; updated to require real restored ownership while preserving launch-choice checks. Missing-skills refusal on a paused child initially waited for a non-control load_skill; added current owner/authority precheck and demonstrated prompt refusal. Initial broad search included binary artifacts; subsequent reads used actual source paths. None of these observations is live restart acceptance.
+
+Live transition pending: MeasureX predates registration. It needs explicit migration from current known live state immediately before restart, not indiscriminate discovery of historical child directories. At latest child report it reached126 (114 full-page drafts,12 incomplete,140 pending); its reminders were re-enabled180s after another explicitly partial framework-prompted submission. Latest tool status also reported an HTTP transport failure, not lost files. Current source/runtime bundle is not staged; host-screen and goals installed manuals need matching updates when staging. Preserve launcher/settings/credentials/data; Bill owns restart. All transcription and unrelated untracked notes remain outside the source commit.

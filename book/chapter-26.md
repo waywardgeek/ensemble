@@ -2,8 +2,10 @@
 
 > **Full narrative draft; acceptance and grading remain open.** Voice and image
 > paths have implementation evidence and live acceptance as described below.
-> Host-screen tools are implemented in source, but native acquisition and
-> model-turn/delayed-Job acceptance remain pending. Only the 20-point image-files
+> Host-screen capture, model-turn delivery, delayed Jobs, and replay passed an
+> agreed macOS synthetic-window test with a local fake provider before selection
+> was simplified to whole displays. Updated whole-display native acceptance remains
+> open. Only the 20-point image-files
 > external scope is graded; 80 points remain ungraded. The known speech-pause
 > cleanup defect is deferred. The full narrative is drafted now at the human's
 > request; it is not a claim of complete implementation acceptance or grading.
@@ -43,7 +45,7 @@ do not create a second conversation or media pipeline.
   screenshots, and image-file inspection; provider-specific limits remain explicit.
 - **Capture the server computer.** Implement the C# equivalent of CodeRhapsody's
   host-side `list_displays` and `screenshot` tools. Enumerate displays and their
-  bounds; capture a selected display or an explicit screen rectangle on the
+  bounds; capture one whole selected display (display zero when omitted) on the
   machine running Ensemble. Return actual bounded PNG pixels through the existing
   image-tool path, with capture and output dimensions, not just a filename or DOM
   description. A request from a phone captures the server computer, not the phone.
@@ -111,7 +113,7 @@ model. Otherwise, an apparently successful attachment would invite an answer
 based on a filename or a guess.
 
 Screenshots and image files meet at that same image-delivery path. The screenshot
-tool captures a display or rectangle on the computer running the C# server, just
+tool captures a whole display on the computer running the C# server, just
 as CodeRhapsody does. The image-file tool reads a named file under the existing
 file policy. Neither needs a second conversation history. File-read permission
 alone is not permission to capture the host screen.
@@ -142,7 +144,7 @@ Their acquisition paths differ:
 clipboard or file picker → browser draft → server preparation → AgentInput
 microphone → bounded WAV → transcription → original Agent's mailbox
 Sandbox image file → preparation → typed tool result
-host display or rectangle → native capture → preparation → typed tool result
+whole host display → native capture → preparation → typed tool result
 ```
 
 After admission, the existing owners take over. The Agent records History and
@@ -394,7 +396,7 @@ It produced actual pixels and passed isolated native-tab tests, but it captured
 the wrong surface for the requested feature.
 
 Bill clarified that he meant CodeRhapsody's host-side capture: ask the server to
-list its displays, then capture a display or rectangle on that computer. Cadence
+capture its primary display, or select another from its display list. Cadence
 had implemented a different feature. The clarification changed the remaining
 work even though the browser tests passed. A person
 using a phone can request a screenshot of the server's screen. There is no need
@@ -411,13 +413,22 @@ The host interface follows the reference tool shape:
 ```json
 {"name":"list_displays","arguments":{}}
 {"name":"screenshot","arguments":{"display":0}}
-{"name":"screenshot","arguments":{"x":100,"y":100,"width":640,"height":360}}
+{"name":"screenshot","arguments":{}}
 ```
 
 These are example tool requests, not a script to run against an arbitrary private
-screen. The rectangle must be agreed for a native test. Supplying no selector
-chooses display zero; mixing a display with rectangle fields, or supplying only
-some rectangle fields, refuses.
+screen. Agree on the whole display before a native test. The only selection
+argument is optional `display`, a nonnegative zero-based integer. Omitting it
+selects display zero. There is no window measurement or rectangle selection.
+Old rectangle arguments refuse rather than silently expanding a region request
+to a whole-display capture. Strict interfaces that require a value can send zero.
+
+This simpler contract followed a live debugging failure: the model-facing surface
+supplied display and rectangle fields together, while the backend required one or
+the other. Repeated retries did not resolve that mismatch. Bill removed rectangle
+selection because window measurement was distracting from the debugging task.
+Test the advertised schema as well as the parser: an omitted selector and explicit
+zero must choose the same display, and no rectangle fields should be advertised.
 
 The source `host-screen` skill grants these tools separately from `code-tools`
 and browser access. Safe mode and unskilled legacy registries refuse them, and
@@ -435,15 +446,30 @@ not hide the original failure.
 
 The backend checks source-pixel bounds using conservative display scaling, then
 passes returned bytes through shared image preparation. Output dimensions must
-agree with the requested region and supported scale. Rectangles spanning displays
-currently refuse. Other operating systems refuse explicitly. These are current
+agree with the selected display and supported scale. Each request captures one
+whole display, not a composite of several. Other operating systems refuse explicitly. These are current
 implementation limits, not claims of full cross-platform parity with CodeRhapsody.
 
 Permission preflight currently refuses denied access; it does **not** open an OS
-permission prompt automatically. Native display enumeration, coordinates,
-permission behavior, successful capture, and delayed-Job image acceptance still
-need the agreed live test. Synthetic backend and renderer tests cannot close that
-gap. In particular, the earlier browser replay test is not host-screen acceptance.
+permission prompt automatically. Before the display-only simplification, an agreed
+macOS synthetic-window test verified the native backend and tool-delivery path. It
+exercised native capture through the real Agent tool, a running Job followed by
+collection, actual pixels in the local fake-provider request, and identical replay
+on the next human turn. It made one capture and four local provider requests.
+This is not a paid-provider interpretation test, other-platform acceptance, or
+proof of every permission-change race. Display-only native model-turn acceptance
+requires a newly agreed whole-display fixture; old rectangle-based evidence does
+not certify that changed selection contract. The earlier browser replay test remains
+separate from host-screen acceptance.
+
+That native test caught a HiDPI assumption the synthetic metadata tests could not.
+A 640×360 logical rectangle produced 1280×720 pixels. `CGDisplayPixelsWide/High`
+reported 1920×1080, while the current display mode's pixel dimensions were
+3840×2160. Read backing dimensions from the copied display mode and release that
+native object in `finally`; do not assume logical coordinates equal raster pixels.
+This matters before capture, because the source-pixel safety bound must include
+scaling. Verify the selected display's actual pixels as well as its dimensions;
+simply relaxing a failed dimension assertion is not acceptance.
 
 ## 26.8 Make the recording format small enough to reason about
 
@@ -651,10 +677,12 @@ do not establish every supported platform, every provider model, or every failur
 race.
 
 Host-screen tools are implemented in source with grant, safe-mode, argument,
-preparation, renderer, and fake-process cleanup tests. Native host acquisition and
-its model-turn/delayed-Job acceptance remain pending. The shared implementation
-suite passed 335 groups at this checkpoint; those groups span the application and
-are not 335 independent multimedia acceptance tests.
+preparation, renderer, and fake-process cleanup tests. Native macOS acquisition,
+model-turn/delayed-Job delivery, and subsequent replay passed with an agreed
+synthetic window and a local fake provider. The shared implementation suite passed
+337 groups after the HiDPI correction; those groups span the application and are
+not 337 independent multimedia acceptance tests. This source result does not
+establish installation or a restart of the live application.
 
 Only the **20-point image-files external scope** currently has a passing grade.
 The remaining **80 points are ungraded**. Attachment, voice, and native-screen
@@ -676,7 +704,7 @@ human interaction each establish something different.
 
 ## 26.14 Review and operate the feature deliberately
 
-Before native capture, agree on a synthetic region and arrange OS permission with
+Before native capture, agree on a synthetic display and arrange OS permission with
 the person at the host. Do not sweep a private desktop to discover whether access
 works. Confirm actual returned pixels and dimensions, then exercise a model turn
 and delayed Job. Record platform refusals and the cross-display limitation rather
@@ -788,10 +816,10 @@ fallback. Fake audio does not certify a native microphone or a paid API. Keep
 human phone acceptance and provider evidence separate. This 30-point scope is
 not yet implemented or awarded.
 
-### Exercise 26.4: Host screenshots (25 points; native acceptance and grader pending)
+### Exercise 26.4: Host screenshots (25 points; grader pending)
 
 Implement `list_displays` and `screenshot` on the computer running the C# server.
-Support display selection or an explicit rectangle and return prepared PNG pixels
+Support one optional display index, defaulting to display zero, and return prepared PNG pixels
 through the existing typed tool-result path. A browser tab, DOM reconstruction,
 file path, or text claiming success does not satisfy this exercise.
 
@@ -802,17 +830,20 @@ owned capture process; temporary output must not leak. Preserve structured image
 results through delayed Jobs as well as immediate results.
 
 Test refusal and cleanup with synthetic helpers first. Native success must use
-an announced, agreed synthetic region on an authorized display, verify the actual
-pixels, and exercise both a model turn and delayed-Job delivery. Record platform
-and coordinate limits honestly. The current macOS implementation refuses
-rectangles spanning displays; that limitation is not silently graded as full
-cross-display support. Do not trigger a permission prompt while the human is away,
+an announced, agreed synthetic whole display, verify the actual pixels, and
+exercise both a model turn and delayed-Job delivery. Test omitted selection and
+explicit zero, another available display, invalid indices, and refusal of removed
+rectangle arguments before capture. Inspect the advertised schema: only optional
+`display` selects capture; observation controls do not select a region. Record
+platform limits honestly; one display is not cross-display compositing. Do not trigger a permission prompt while the human is away,
 elevate privilege, or introduce background monitoring.
 
 The external grader must reject metadata-only capture, a missing grant,
-capability checks performed after capture, a wrong rectangle, missing delayed
+capability checks performed after capture, a wrong display, mandatory selection,
+advertised rectangle arguments, missing delayed
 image payloads, and abandoned native work. This 25-point scope is not yet
-implemented or awarded, and native host capture acceptance is still pending.
+implemented or awarded. The reference implementation's macOS synthetic-window
+acceptance does not award these external points or certify a student's candidate.
 
 ## Grading boundary
 
@@ -821,8 +852,8 @@ Keep its result separate from the three pending scopes, architecture review,
 native-platform acceptance, and the known deferred speech-pause repair. Passing
 component tests, building an application, staging binaries, restarting a host,
 and obtaining human acceptance are different facts. Chapter completion still
-requires native host-capture acceptance and passing results for the remaining
-external scopes. Keep this status visible until those results exist.
+requires passing results for the remaining external scopes and reconciliation of
+all outstanding acceptance and review obligations. Keep this status visible until those results exist.
 
 
 ## Takeaways

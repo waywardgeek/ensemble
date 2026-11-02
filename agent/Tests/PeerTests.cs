@@ -92,14 +92,17 @@ internal static class PeerTests
             var root = new Agent(app, config.WithModel("new-host-default"), name: "root", skillSpec: specification);
             var restored = await app.RestorePeersAsync(root, deadline.Token);
             var writer = restored.Single(peer => peer.Name == "writer");
-            Check(restored.Length == 2 && app.Agents().Length == 3 && writer.Children().IsEmpty
+            Agent restoredChild = writer.FindChild("old-child")!;
+            Check(restored.Length == 2 && app.Agents().Length == 4 && writer.Children().Length == 1
+                && restoredChild is not null && restoredChild.AgentParent() == writer
+                && restoredChild.Submission() is not null
                 && writer.Configuration().Model == "launch-writer" && writer.Submission() is null,
-                "Restore lost launch choices or reconstructed delegated work.");
+                "Restore lost peer launch choices or delegated child ownership/completion.");
             Check(Text(writer).Contains("writer-owned dialogue") && !Text(writer).Contains("root-only dialogue")
                 && writer.SkillManager()!.Active().Any(skill => skill.Body.Contains("Current writer")),
                 "Restore lost own conversation or retained old runtime instructions.");
             await Refuses(() => app.RestorePeersAsync(root));
-            Check(app.Agents().Length == 3 && File.ReadAllText(registry) == savedRegistry,
+            Check(app.Agents().Length == 4 && File.ReadAllText(registry) == savedRegistry,
                 "Repeated restore changed live membership or registry.");
         }
         finally

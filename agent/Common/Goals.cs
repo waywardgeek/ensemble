@@ -1,7 +1,7 @@
 namespace Ensemble;
 
 /// <summary>Immutable value-like patch. Null leaves a setting unchanged; an
-/// empty file clears configuration. Configuration belongs to this session only.</summary>
+/// empty file clears configuration. Ordinary registered children persist these settings for restart; standalone Agents remain session-local.</summary>
 public sealed record GoalUpdate(string? File = null, bool? Enabled = null, double? IdleSeconds = null);
 
 /// <summary>Observation, not a completion verdict. DueUtc exists only while an
@@ -26,7 +26,7 @@ public sealed partial class Agent
         + "Do not replay commands blindly or interrupt healthy work. If finished or genuinely blocked on the human, "
         + "disable reminders with goal_control and explain why. This reminder grants no new authority.";
 
-    /// <summary>Query or atomically apply session-only settings on the actor.
+    /// <summary>Query or atomically apply settings on the actor; registered children save before applying.
     /// Cancellation detaches observation; it does not undo admitted configuration.</summary>
     public partial Task<GoalStatus> GoalControlAsync(GoalUpdate? update = null,
         CancellationToken cancellation = default);
@@ -40,7 +40,7 @@ public sealed partial class Agent
     private partial GoalStatus CaptureGoalStatus();
     private partial void ConfigureGoal(Mail message);
     private partial void ClearGoal();
-    private partial void DisableGoal();
+    private partial void DisableGoal(bool persist = true);
     // Disable at successful submission publication; actor mail owns timer cleanup.
     private partial void GoalSubmitted();
     private partial void StopGoalTimer();

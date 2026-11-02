@@ -1,4 +1,4 @@
-# Chapter 25 — Goals
+# Chapter 25: Goals
 
 I would give Ensemble a job that ought to keep it occupied for most of a day. An hour later, it could be sitting there doing nothing. Codex had done the same thing. Neither program was necessarily broken. The model had finished a response, but the job was not finished. Work resumed when I noticed and poked it.
 
@@ -15,9 +15,9 @@ The first mechanism preserves an objective across compression. The second suppli
 
 > **C# edition boundary.** This implementation was originally built on the preserved `solutions/ch23` endpoint. The optional Codex path and Gateway have since been completed locally; their historical endpoints retain their original names. Goals does not depend on either integration. The final crossover exercise in Chapter 27 still requires the human's replacement acceptance.
 
-## §25.0 TL;DR — What to Build
+## §25.0 TL;DR: What to Build
 
-Build an opt-in, session-local Goals feature on the existing Agent actor. Do not add a scheduler service, a goal database, a second model conversation, or a browser-owned timer.
+Build an opt-in Goals feature on the existing Agent actor. Standalone settings are session-local; Chapter 20’s registered ordinary children persist their own goal settings for restart. Do not add a scheduler service, a goal database, a second model conversation, or a browser-owned timer.
 
 ### The control
 
@@ -72,14 +72,14 @@ Pause suspends the timer. Resume starts a fresh interval. Interrupt disables rem
 
 Show the selected Agent's status, not the host actor's status by accident. Distinguish unloaded, unconfigured, working, waiting for a reminder, paused, reminders off, and file error. Show disconnected or switching state honestly rather than presenting an old observation as current.
 
-Provide labelled Apply, Reminders off, Clear, and Reload controls. Acknowledgment means the actor applied the update. The browser must not optimistically claim success when a checkbox changes. These controls are session-local; they do not write the durable memory/recall policy or appearance preferences.
+Provide labelled Apply, Reminders off, Clear, and Reload controls. Acknowledgment means the actor applied the update. The browser must not optimistically claim success when a checkbox changes. These controls do not write the durable memory/recall policy or appearance preferences. Standalone settings are session-local; registered children save goal configuration in their own restart record before acknowledging changes.
 
 ## §25.1 Write an Objective, Not a Repeated Command
 
 A useful goal file tells the agent what remains, how to recognize completion, and where its authority ends:
 
 ```markdown
-# Goal — finish the parser correction
+# Goal: finish the parser correction
 
 The parser accepts a malformed trailing record. Reproduce that defect with
 an owned local fixture, correct it, and review the complete changed call path.
@@ -199,7 +199,7 @@ The interface must not collapse these states:
 
 **Submitted is not idle.** A delegated Agent's accepted submission is an authoritative result. A later automatic turn would admit new work and invalidate that result. Disable the goal at successful submission publication, then let the actor dispose its timer. A refused submission must leave the goal alone.
 
-**Restart is not resume.** The file remains on disk, but configuration is session-local. A new Agent needs an explicit setup. Children have their own sessions; the parent's file and enabled flag are not copied into them.
+**Restart is not replay.** Standalone configuration remains session-local and needs explicit setup in a new process. Chapter 20’s registered ordinary children restore their own goal configuration and enabled interval under current authority. Eligible reminders start a fresh delay after restoration; saved calls and Jobs are not replayed. Submitted children stay off and deliberately paused children stay paused. The parent's file and enabled flag are never copied into a child. Missing current authority or an unreadable goal prevents automatic continuation and requires explicit repair and re-enabling.
 
 In earlier runtime work, a missing visible explanation made a real failure look like an unexplained pause. That is a useful lesson here, but it is not a claim that the historical provider failure was reproduced in C#. If a file becomes unreadable, status should say so. If the socket disconnects, the GUI should say its current knowledge ended there.
 
@@ -221,7 +221,7 @@ Await actor application before acknowledging. Broadcast updates only to tabs vie
 
 The form has a draft, not a second configuration. Periodic status frames must not erase what the user is typing. Apply sends the draft; the acknowledgment repopulates the controls with accepted values. Reload discards the draft in favor of an observation. Off and Clear remain distinct actions.
 
-Working and reminders enabled are separate facts. An Agent can continue its current request after reminders are turned off. Show “Working — reminders off,” not “Off” as if the request had disappeared. Likewise, the displayed deadline is the core's observed deadline, not a browser countdown that promises a future callback.
+Working and reminders enabled are separate facts. An Agent can continue its current request after reminders are turned off. Show that the Agent is working with reminders off, not simply “Off” as if the request had disappeared. Likewise, the displayed deadline is the core's observed deadline, not a browser countdown that promises a future callback.
 
 Use text labels and ordinary keyboard-accessible controls. The local browser exercise checks their DOM behavior; it does not establish that a particular person can see or hear them comfortably. Human accessibility and audible behavior still require human use.
 
@@ -328,48 +328,48 @@ The omitted provider configuration is intentional: a chapter example must not si
 Open the owned GUI URL and the Goals controls:
 
 1. Confirm **No goal configured**. Startup loading the skill has not enabled anything.
-2. Enter the printed goal-file path, leave reminders unchecked, and Apply. Observe the acknowledgment and **Reminders off — goal retained**.
+2. Enter the printed goal-file path, leave reminders unchecked, and Apply. Observe the acknowledgment: reminders are off and the goal is retained.
 3. Send a short human request. Inspect an authorized request trace if you need evidence of instruction placement; the model's answer alone does not prove what was sent.
 4. Edit the goal file. Send another request or enable a short supervised reminder and observe the fresh objective.
 5. Pause before a deadline and verify that inference does not start. Resume and observe a fresh interval rather than an immediate accumulated alarm.
 6. Turn reminders off while work is active. The current work remains work; only future idle wakes stop.
-7. Reload the page. The same running Agent still owns its configuration. This is not process-restart persistence.
+7. Reload the page. The same running Agent still owns its configuration. Then separately test a registered child across process restart using Chapter 20’s exercise: its own enabled goal returns with a fresh interval, while a paused or submitted child does not run. Do not infer process persistence from a browser reload.
 8. Clear the goal. Confirm the file still exists. Close the owned host through its normal shutdown path.
 
 If a test or provider request is already running, inspect it instead of starting another copy just to obtain a newer timestamp. When finished or genuinely blocked, turn reminders off and say which state applies.
 
 ## §25.9 Exercises
 
-### Exercise 1 — Freshness in the Same Turn
+### Exercise 1: Freshness in the Same Turn
 
 Use a boundary provider that returns a tool batch editing the goal and calling `micro_handoff`. Capture the next request. Show that it contains the new objective without requiring a new human message. Also show that Goals did not append the file body to canonical History.
 
-### Exercise 2 — The Stale Callback
+### Exercise 2: The Stale Callback
 
 Arrange for a timer callback to become eligible, then reconfigure or unload before the actor accepts it. Show why disposing the timer alone is insufficient. Assert that the old generation produces no request.
 
-### Exercise 3 — Submission Is a Boundary
+### Exercise 3: Submission Is a Boundary
 
 Give a delegated Agent an independent goal. Refuse one malformed submission, then accept a valid one. Verify the goal stays enabled after refusal and stops after successful publication, while the parent's configuration is unchanged. Do not equate ordinary final prose with submission.
 
-### Exercise 4 — Status Without Authority
+### Exercise 4: Status Without Authority
 
 Query an Agent with Goals unloaded. The GUI should show that state, not grant the control to obtain status. Then load the skill and verify that no configuration appeared as a side effect.
 
-### Exercise 5 — Two Tabs, Two Agents
+### Exercise 5: Two Tabs, Two Agents
 
 View different Agents in two tabs. Apply a goal in one, switch the other, and introduce a delayed old status frame. Demonstrate both identity filtering and that an unsaved form draft is not periodically replaced by a status refresh.
 
-### Exercise 6 — Missing File, Honest Outcome
+### Exercise 6: Missing File, Honest Outcome
 
 Remove a configured file before a wake. Verify zero inference from that wake, an explicit file-error status, and usable Off/Clear controls. Restore the file and explicitly re-enable. Do not report the interrupted task as completed.
 
-## §25.10 What Goals Does—and Does Not—Buy Us
+## §25.10 What Goals Provides and Where It Stops
 
 The goal file carries a durable objective. The runtime brings its current contents into ordinary requests. An opt-in timer gives an idle Agent another chance to examine the work.
 
 That is useful, but it is not self-certifying autonomy. A reminder can encounter a real blocker. The model can misunderstand the objective. A healthy independent job may still need time. The process can be stopped, the file can disappear, or an active request can remain stuck without becoming idle.
 
-I require the agent to inspect, distinguish those states, and explain its decision. Continue when there is useful authorized work. Wait when waiting is correct. Ask when a human decision is genuinely needed. Stop reminders when the goal is complete or human-dependent—and preserve which of those happened.
+I require the agent to inspect, distinguish those states, and explain its decision. Continue when there is useful authorized work. Wait when waiting is correct. Ask when a human decision is genuinely needed. Stop reminders when the goal is complete or human-dependent, and preserve which of those happened.
 
 Goals should reduce the number of times I have to poke the agent. It should not reduce the amount of judgment in the work.

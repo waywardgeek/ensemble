@@ -1,4 +1,46 @@
-# Active work — image-context recovery; reconstruction paused
+# Current update — child restoration and display-only screenshot source ready
+
+Ordinary-child restart registration/restoration is implemented and verified with
+nested ownership, retained pause/submission, fresh enabled-goal reminders, current
+skill authority, explicit removal, failed writes and stale/mismatched artifacts.
+Final shared339/0; focused2/0 after final refusal-path amendment; actual two-process
+swarm CLI grade70/70 and a missing-registration negative rejected. Chapter20,
+Chapter25/Goals manual and executable grader updated; touched chapters20/25/26
+pass hard prose lint. Broad historical Go package retains unrelated archived
+layout/contract failures; relevant swarm and Edition3 checks pass. See notebook
+and /private/tmp/cadence-child-restart/ for scope and corrections.
+
+Not staged or restarted. Existing live MeasureX needs a one-time registration
+migration from current known state immediately before the coordinated restart;
+do not revive arbitrary historical helper directories. The same restart should
+test the already verified-in-source display-only screenshot interface. Preserve
+MeasureX's independent reconstruction, launcher, settings, credentials and data.
+
+# Current update — display-only screenshots
+
+Screenshot selection is now optional display only (omitted=0); rectangle arguments
+refuse. Source, skill, Chapter26 and grader schema oracle updated; focused4/0,
+shared337/0, both Go grader packages and chapter hard lint passed. Not staged or
+live-tested. See latest voice-and-images notebook entry. MeasureX reconstruction
+continues independently; preserve worker files.
+
+# Active work — Measure X reconstruction resumed
+
+## Latest reconstruction checkpoint — 54 reviewed drafts
+
+Bill reported reloading after image-pressure repair and authorized resuming local
+reconstruction with three-minute reminders; the requested restart handoff is complete.
+Page 54 was reviewed from actual full-page and enlarged pixels. It completes
+Cottage industries items 10–15 and preserves added “finished” / deleted “finshed,”
+the literal demolition thresholds, and density definitions. The detached accessory
+dwelling unit definition ends after “existing detached” and continues on page 55.
+All 54 draft tag checks and 266 manifest ordinals passed; original PDF SHA256 matches.
+README navigation now points to page 55. Full cross-page/amendment/footnote audit
+remains open; the live OCR reference is unchanged. No service restart or deployment.
+The restart-boundary check found no listener on 8090; public availability remains
+unverified, and historical job handles must not be reused.
+
+# Historical boundary — image-context recovery; reconstruction was paused
 
 Bill directed fixing cumulative image overflow before further transcription.
 Source implements recoverable new-image refusal, visible local overflow, and a

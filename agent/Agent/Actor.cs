@@ -358,7 +358,7 @@ public sealed partial class Agent
         }
         finally
         {
-            DisableGoal();
+            DisableGoal(persist: false);
             // The fault path may have bypassed Shutdown mail. Join before any
             // owner can destroy History, Memory or Sandbox; do not try to append
             // to a journal that may be the original source of the actor failure.
@@ -646,7 +646,7 @@ public sealed partial class Agent
         }
         if (message.Kind == MailKind.Shutdown)
         {
-            DisableGoal();
+            DisableGoal(persist: false);
             stopping = true;
             interruptPending = true;
             observationCancellation?.Cancel();
@@ -662,11 +662,13 @@ public sealed partial class Agent
                 switch (input.Kind)
                 {
                     case InputKind.Pause:
+                        SaveChildRestart(pause: true);
                         StopGoalTimer();
                         paused = true;
                         Record(new Event(EventKind.AgentPaused, reason: "pause"));
                         break;
                     case InputKind.Resume:
+                        SaveChildRestart(pause: false);
                         paused = false;
                         Record(new Event(EventKind.AgentResumed, reason: "resume"));
                         break;

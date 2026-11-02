@@ -3,7 +3,7 @@ using System.Text.Json;
 using Ensemble;
 
 // Explicit opt-in only: never part of the automated suite, and never captures
-// or requests permission. The capture mode is for an explicitly approved synthetic window.
+// or requests permission unless capture mode is explicitly selected for an approved synthetic window.
 internal static class HostScreenNativeProbe
 {
     [DllImport("/System/Library/Frameworks/CoreGraphics.framework/CoreGraphics")]
@@ -22,10 +22,12 @@ internal static class HostScreenNativeProbe
         using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(20));
         byte[] png = await HostScreens.CaptureAsync(selection, deadline.Token);
         using var bitmap = SkiaSharp.SKBitmap.Decode(png);
-        if (bitmap is null || bitmap.Width != 640 || bitmap.Height != 360)
-            throw new InvalidDataException("Native capture returned unexpected dimensions.");
-        var left = bitmap.GetPixel(160, 180);
-        var right = bitmap.GetPixel(480, 180);
+        int expectedWidth = checked(bounds.Width * selection.ScaleCeiling);
+        int expectedHeight = checked(bounds.Height * selection.ScaleCeiling);
+        if (bitmap is null || bitmap.Width != expectedWidth || bitmap.Height != expectedHeight)
+            throw new InvalidDataException($"Native capture dimensions did not match the synthetic fixture's {expectedWidth} by {expectedHeight} backing raster.");
+        var left = bitmap.GetPixel(bitmap.Width / 4, bitmap.Height / 2);
+        var right = bitmap.GetPixel(3 * bitmap.Width / 4, bitmap.Height / 2);
         if (left.Red < 230 || left.Blue > 25 || left.Green > 25 || right.Blue < 230 || right.Red > 25 || right.Green > 25)
             throw new InvalidDataException("Native pixels do not match the agreed synthetic window.");
         await File.WriteAllBytesAsync(screenshotFile, png);

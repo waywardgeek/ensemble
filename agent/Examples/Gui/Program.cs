@@ -240,7 +240,12 @@ try
     // initial Agent's browser. The tree exposes pending peers for a dedicated tab.
     using var fleetStop = new CancellationTokenSource();
     Task serving = Gui.RunAsync(agent, guiOptions, fleetStop.Token);
-    Task restoring = app.RestorePeersAsync(agent, fleetStop.Token, waitForBrowser: true);
+    Task restoring = RestoreFleet();
+    async Task RestoreFleet()
+    {
+        await agent.RestoreChildrenAsync(fleetStop.Token, waitForBrowser: true);
+        await app.RestorePeersAsync(agent, fleetStop.Token, waitForBrowser: true);
+    }
     Task first = await Task.WhenAny(serving, restoring);
     if (ReferenceEquals(first, restoring) && restoring.IsCompletedSuccessfully)
     {

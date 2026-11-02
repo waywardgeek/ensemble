@@ -11,6 +11,8 @@ if (args is ["--host-screen-permission-probe"])
     return HostScreenNativeProbe.Permission();
 if (args is ["--host-screen-native-capture", var boundsFile, var screenshotFile])
     return await HostScreenNativeProbe.Capture(boundsFile, screenshotFile);
+if (args is ["--host-screen-native-display-turn", var turnDisplay, var turnEvidence])
+    return await ActorTests.HostScreenNativeTurn(turnDisplay, turnEvidence);
 
 // A separate process exercises the same protected credential transaction.
 if (args is ["--auth-store-child", var authDirectory, var authLabel])
@@ -500,6 +502,16 @@ try
         await AsyncCase("Chapter 20 human control observation wake", () => ActorTests.MessageControlWake(temp));
         await AsyncCase("Chapter 20 question wake and inbox isolation", () => ActorTests.MessageQuestionIsolation(temp));
         await AsyncCase("Chapter 20 model-led question wake", () => ActorTests.MessageQuestionModel(temp));
+        if (args.Length != 0)
+        {
+            Console.WriteLine($"{passed} passed; {failures} failed");
+            return failures == 0 ? 0 : 1;
+        }
+    }
+    if (args is ["--child-restart-tests"] || args.Length == 0)
+    {
+        await AsyncCase("ordinary child restart ownership and completion", () => ActorTests.ChildRestart(temp));
+        await AsyncCase("restored child goal resumes through real actor", () => ActorTests.ChildRestartReminder(temp));
         if (args.Length != 0)
         {
             Console.WriteLine($"{passed} passed; {failures} failed");

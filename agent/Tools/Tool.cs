@@ -107,12 +107,10 @@ public sealed partial class Tool
                 break;
             case ToolKind.Screenshot:
                 name = "screenshot";
-                description = "Capture the server computer's display or explicit rectangle as actual bounded PNG pixels. Requires host-screen authority, OS permission and image tool-result support. No browser picker. macOS only; cross-display rectangles currently refuse.";
-                Field("display", "integer", "Zero-based display index; omitted selects primary display 0. Cannot combine with rectangle fields.");
-                Field("x", "integer", "Rectangle left in host logical coordinates; requires y, width and height.");
-                Field("y", "integer", "Rectangle top in host logical coordinates; negative secondary-display origins are allowed.");
-                Field("width", "integer", "Positive rectangle width in logical units.");
-                Field("height", "integer", "Positive rectangle height in logical units. Rectangle must fit one display.");
+                description = "Capture one whole display of the server computer as actual bounded PNG pixels. Omitted display selects primary display 0. Requires host-screen authority, OS permission and image tool-result support. No window measurement or browser picker. macOS only.";
+                Field("display", "integer", "Optional zero-based display index; omitted selects primary display 0. Captures the whole selected display.");
+                properties["display"]!["minimum"] = 0;
+                properties["display"]!["default"] = 0;
                 break;
             case ToolKind.InspectImage:
                 name = "inspect_image";

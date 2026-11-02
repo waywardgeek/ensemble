@@ -26,10 +26,22 @@ internal static partial class HostScreens
         {
             uint id = ordered[index];
             var bounds = CGDisplayBounds(id);
-            result[index] = new HostDisplay(index, id,
-                new ScreenRectangle(Coordinate(bounds.X), Coordinate(bounds.Y),
-                    Coordinate(bounds.Width), Coordinate(bounds.Height)),
-                checked((int)CGDisplayPixelsWide(id)), checked((int)CGDisplayPixelsHigh(id)));
+            // CGDisplayPixelsWide/High can report logical dimensions on HiDPI
+            // modes. The copied mode supplies the backing raster used by capture.
+            nint mode = CGDisplayCopyDisplayMode(id);
+            if (mode == 0) throw new IOException("Cannot obtain the active display mode.");
+            try
+            {
+                result[index] = new HostDisplay(index, id,
+                    new ScreenRectangle(Coordinate(bounds.X), Coordinate(bounds.Y),
+                        Coordinate(bounds.Width), Coordinate(bounds.Height)),
+                    checked((int)CGDisplayModeGetPixelWidth(mode)),
+                    checked((int)CGDisplayModeGetPixelHeight(mode)));
+            }
+            finally
+            {
+                CGDisplayModeRelease(mode);
+            }
         }
         return Array.AsReadOnly(result);
     }

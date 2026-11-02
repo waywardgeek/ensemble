@@ -442,7 +442,8 @@ static async Task<int> Run(string[] args)
         agent.History().StartLog(log);
         await agent.SkillManager()!.InitializeAsync();
         // The initial actor remains host-configured. Persistent peers restore
-        // their own conversations with current authority, never their children.
+        // their own conversations and registered descendants under current authority.
+        await agent.RestoreChildrenAsync();
         await app.RestorePeersAsync(agent);
         if (command == "--mcp-pipe")
         {

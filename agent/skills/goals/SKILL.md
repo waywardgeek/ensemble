@@ -18,6 +18,8 @@ Off does not mean completed. Off retains goal instructions; file:"" clears them.
 
 The file is read freshly for every normal request, including after tools and
 handoff. A file error stops automatic reminders: repair and explicitly re-enable.
-Configuration is session-local, not restored or inherited by children. Pause
-suspends reminders; resume starts a fresh delay. Interrupt disables them. Unloading
+Standalone configuration is session-local. Registered ordinary children restore
+their own saved goal settings on host restart under current skill authority, with
+a fresh idle delay; submitted or paused children do not resume work. Children do
+not inherit a parent's goal. Pause suspends reminders; resume starts a fresh delay. Interrupt disables them. Unloading
 clears configuration without deleting the file. No reminder expands authority.

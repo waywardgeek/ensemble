@@ -4,29 +4,23 @@ namespace Ensemble;
 
 public sealed partial class Tool
 {
-    internal static partial (int? Display, ScreenRectangle? Rectangle) ParseScreenRequest(JsonElement args)
+    internal static partial int ParseScreenRequest(JsonElement args)
     {
         if (args.ValueKind != JsonValueKind.Object
             || args.EnumerateObject().Select(property => property.Name).Distinct(StringComparer.Ordinal).Count() != args.EnumerateObject().Count())
             throw new ArgumentException("Screen request must be an object without duplicate fields.");
-        int? Read(string name)
+        // Refuse stale region requests rather than silently expanding them to
+        // a full display. Observation controls remain separate from selection.
+        foreach (var property in args.EnumerateObject())
         {
-            if (!args.TryGetProperty(name, out var value)) return null;
-            if (value.ValueKind != JsonValueKind.Number || !value.TryGetInt32(out int number))
-                throw new ArgumentException(name + " must be a 32-bit integer.");
-            return number;
+            if (property.Name is not ("display" or "ai_callback_delay" or "ai_callback_pattern" or "max_output_bytes"))
+                throw new ArgumentException("Screenshot accepts only an optional display index and observation controls; rectangle selection is not supported.");
         }
-        int? display = Read("display");
-        int? x = Read("x"), y = Read("y"), width = Read("width"), height = Read("height");
-        bool rectangle = x.HasValue || y.HasValue || width.HasValue || height.HasValue;
-        if (display < 0) throw new ArgumentException("Display index must not be negative.");
-        if (!rectangle) return (display, null);
-        if (display.HasValue || !x.HasValue || !y.HasValue || !width.HasValue || !height.HasValue)
-            throw new ArgumentException("Supply either display or all four rectangle fields, never both.");
-        if (width <= 0 || height <= 0 || (long)width * height > Agent.MaximumImagePixels
-            || (long)x + width > int.MaxValue || (long)y + height > int.MaxValue)
-            throw new ArgumentException("Screen rectangle has invalid or excessive bounds.");
-        return (null, new ScreenRectangle(x.Value, y.Value, width.Value, height.Value));
+        if (!args.TryGetProperty("display", out var value))
+            return 0;
+        if (value.ValueKind != JsonValueKind.Number || !value.TryGetInt32(out int display) || display < 0)
+            throw new ArgumentException("Display must be a nonnegative 32-bit integer, or omitted for display 0.");
+        return display;
     }
 
     private partial async Task<ToolResultPart> HostScreenAsync(ToolCallPart call, CancellationToken cancellation)
@@ -53,13 +47,13 @@ public sealed partial class Tool
                 });
                 return new ToolResultPart(call.CallID, [new TextPart(report)]);
             }
-            var request = ParseScreenRequest(call.Args);
+            int display = ParseScreenRequest(call.Args);
             // This validates placement/capability only; it never opens a file.
             // No enumeration, permission check or capture precedes this guard.
             var probe = new BlobPart("image/png", new BlobRef(RefKind.Path, "host-screen-capability-probe"));
             agent.Engine().ValidateMedia([new ToolResultPart(call.CallID, [probe])]);
             cancellation.ThrowIfCancellationRequested();
-            var selection = HostScreens.Select(HostScreens.ListDisplays(), request.Display, request.Rectangle);
+            var selection = HostScreens.Select(HostScreens.ListDisplays(), display, null);
             byte[] pixels = await HostScreens.CaptureAsync(selection, cancellation).ConfigureAwait(false);
             return PrepareScreenshotResult(call, selection, pixels, cancellation);
         }
@@ -93,7 +87,7 @@ public sealed partial class Tool
             throw new InvalidDataException("Native capture scale does not match the selected display.");
         cancellation.ThrowIfCancellationRequested();
         if (!agent.ToolEnabled("screenshot")) throw new UnauthorizedAccessException("Host-screen authority was revoked.");
-        string report = $"Captured host rectangle ({bounds.X}, {bounds.Y}, {bounds.Width}, {bounds.Height}). "
+        string report = $"Captured host display bounds ({bounds.X}, {bounds.Y}, {bounds.Width}, {bounds.Height}). "
             + $"Prepared {prepared.OriginalWidth} × {prepared.OriginalHeight} to {prepared.Width} × {prepared.Height}; "
             + $"{prepared.OutputBytes} PNG bytes. Actual image pixels are attached; temporary capture removed.";
         return new ToolResultPart(call.CallID, [new TextPart(report), prepared.Image]);

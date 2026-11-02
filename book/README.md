@@ -42,7 +42,7 @@ endpoints, archived evidence, or executable grader flags to match the book.
 | 23 | Codex/cache | 24 / `ch24` |
 | 24 | Gateway | 26 / `ch26` |
 | 25 | Goals | 27 / `ch27` |
-| 26 | [Voice and Images](chapter-26.md) | Full narrative and exercise draft; image-files scope passes 20/20, 80 points ungraded; native host capture acceptance pending. |
+| 26 | [Voice and Images](chapter-26.md) | Full narrative and exercise draft; image-files scope passes 20/20, 80 points ungraded; native rectangle-path evidence retained; updated display-only native acceptance pending. |
 | 27 | Crossover | Active source in `agent/`; no numbered snapshot |
 
 The two former historical crossover chapters were removed, not merged into

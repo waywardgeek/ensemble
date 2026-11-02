@@ -31,7 +31,7 @@ func Chapter21Executable(bin, skills string) (grade.Report, error) {
 	}
 	checks[0].Title = "Actor status distinguishes held inference from idle completion without invented usage"
 	checks[2].Title = "Owned-child status succeeds; cross-tree and missing targets refuse without effects"
-	checks[4].Title = "Queued questions, fresh output cursors, typed retrieval and nested questions compose"
+	checks[4].Title = "Queued questions, typed retrieval, nested ownership and child restart compose"
 	checks[3].Title = "Change observation waits on selected children, yields on progress, and times out without killing work"
 	driver := c20Executable{bin: bin, skills: skills}
 	c21Management(driver, checks)
@@ -39,6 +39,7 @@ func Chapter21Executable(bin, skills string) (grade.Report, error) {
 	c20Messaging(driver, &checks[4])
 	c21Idle(driver, &checks[6])
 	c20RootChat(driver, &checks[6])
+	c21Restart(driver, &checks[4])
 	selected := []grade.Check{checks[0], checks[2], checks[3], checks[4], checks[6]}
 	return grade.NewTitledReport("Edition 3, Chapter 21 — C# executable scope (70 points; GUI/persistent-peer rows excluded)", selected, ""), nil
 }

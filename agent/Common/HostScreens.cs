@@ -35,9 +35,13 @@ internal static partial class HostScreens
     [DllImport(CoreGraphics)]
     private static extern NativeRectangle CGDisplayBounds(uint display);
     [DllImport(CoreGraphics)]
-    private static extern nuint CGDisplayPixelsWide(uint display);
+    private static extern nint CGDisplayCopyDisplayMode(uint display);
     [DllImport(CoreGraphics)]
-    private static extern nuint CGDisplayPixelsHigh(uint display);
+    private static extern nuint CGDisplayModeGetPixelWidth(nint mode);
+    [DllImport(CoreGraphics)]
+    private static extern nuint CGDisplayModeGetPixelHeight(nint mode);
+    [DllImport(CoreGraphics)]
+    private static extern void CGDisplayModeRelease(nint mode);
     [DllImport(CoreGraphics)]
     [return: MarshalAs(UnmanagedType.I1)]
     private static extern bool CGPreflightScreenCaptureAccess();
@@ -46,7 +50,7 @@ internal static partial class HostScreens
 public sealed partial class Tool
 {
     private partial Task<ToolResultPart> HostScreenAsync(ToolCallPart call, CancellationToken cancellation);
-    internal static partial (int? Display, ScreenRectangle? Rectangle) ParseScreenRequest(System.Text.Json.JsonElement args);
+    internal static partial int ParseScreenRequest(System.Text.Json.JsonElement args);
     internal partial ToolResultPart PrepareScreenshotResult(ToolCallPart call, ScreenSelection selection,
         ReadOnlyMemory<byte> bytes, CancellationToken cancellation);
 }

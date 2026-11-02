@@ -7,17 +7,18 @@ internal static partial class HostScreenTests
 {
     public static void Arguments()
     {
-        var defaults = Tool.ParseScreenRequest(JsonSerializer.SerializeToElement(new { }));
-        Check(defaults.Display is null && defaults.Rectangle is null, "Default display selection changed.");
-        var rectangle = Tool.ParseScreenRequest(JsonSerializer.SerializeToElement(new { x = -20, y = -10, width = 8, height = 6 }));
-        Check(rectangle.Rectangle == new ScreenRectangle(-20, -10, 8, 6), "Negative origin was changed.");
+        Check(Tool.ParseScreenRequest(JsonSerializer.SerializeToElement(new { })) == 0, "Omitted display did not select primary.");
+        Check(Tool.ParseScreenRequest(JsonSerializer.SerializeToElement(new { display = 0 })) == 0, "Explicit primary changed.");
+        Check(Tool.ParseScreenRequest(JsonSerializer.SerializeToElement(new { display = 1 })) == 1, "Secondary display changed.");
+        Check(Tool.ParseScreenRequest(JsonSerializer.SerializeToElement(new { ai_callback_delay = 0, max_output_bytes = 1000 })) == 0,
+            "Observation controls changed default display.");
         foreach (string invalid in new[] {
-            "null", "[]", "{\"display\":-1}", "{\"display\":0.5}", "{\"display\":2147483648}",
+            "null", "[]", "{\"display\":null}", "{\"display\":-1}", "{\"display\":0.5}", "{\"display\":2147483648}",
             "{\"x\":0}", "{\"x\":0,\"y\":0,\"width\":0,\"height\":1}",
             "{\"x\":0,\"y\":0,\"width\":100000,\"height\":100000}",
             "{\"x\":2147483647,\"y\":0,\"width\":2,\"height\":1}",
             "{\"display\":0,\"x\":0,\"y\":0,\"width\":1,\"height\":1}",
-            "{\"display\":0,\"display\":1}" })
+            "{\"display\":0,\"display\":1}", "{\"width\":null}", "{\"window\":1}", "{\"display\":\"0\"}" })
         {
             using var doc = JsonDocument.Parse(invalid);
             Refuses(() => Tool.ParseScreenRequest(doc.RootElement));
@@ -64,6 +65,20 @@ internal static partial class HostScreenTests
             Check((await Call(agent, "screenshot", new { })).IsError, "Unloaded skill executed capture.");
             Check(!(await Call(agent, "load_skill", new { name = "host-screen" })).IsError, "Screen skill failed to load.");
             Check(agent.ToolEnabled("list_displays") && agent.ToolEnabled("screenshot"), "Explicit grant absent.");
+            using (var rendered = JsonDocument.Parse(agent.Engine().Render(agent.History().View()).ToJsonString()))
+            {
+                var declaration = rendered.RootElement.GetProperty("tools").EnumerateArray()
+                    .Single(tool => tool.TryGetProperty("name", out var name) && name.GetString() == "screenshot");
+                var schema = declaration.GetProperty("parameters");
+                var properties = schema.GetProperty("properties");
+                Check(properties.TryGetProperty("display", out var display), "Display selector missing from model schema.");
+                Check(display.GetProperty("type").GetString() == "integer"
+                    && display.GetProperty("default").GetInt32() == 0, "Integer display default is not advertised.");
+                foreach (string removed in new[] { "x", "y", "width", "height" })
+                    Check(!properties.TryGetProperty(removed, out _), "Removed rectangle field remains in model schema.");
+                if (schema.TryGetProperty("required", out var required))
+                    Check(!required.EnumerateArray().Any(field => field.GetString() == "display"), "Display is not optional.");
+            }
             foreach (object invalid in new object[] { new { x = 0 }, new { display = -1 }, new { x = 0, y = 0, width = 0, height = 1 } })
                 Check((await Call(agent, "screenshot", invalid)).IsError, "Malformed selection reached native work.");
 
