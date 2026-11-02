@@ -348,7 +348,7 @@ const check = (condition, message) => { assert.ok(condition, message); console.l
   };
   // Explicit runtime pauses remain supported, but the GUI has no manual pair.
   check(await page.locator('#pause,#resume').count()===0,'manual pause/play pair removed');
-  check(await page.locator('#status-bar #stop-speech').count()===1,'Stop speech is reachable in header');
+  check(await page.locator('#speech-controls #stop-speech').count()===1,'Stop speech is reachable beside mic');
   await page.evaluate(()=>send('pause'));await paused();
   await page.locator('#prompt').fill('runtime pause plus typing');
   await page.locator('#prompt').fill('');await barrier();

@@ -322,6 +322,7 @@ body.compact #transcript { padding: .3rem; }
 
 #compose-actions { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; min-width: 0; }
 #compose-actions #send { margin-inline-start: auto; }
+#speech-controls { display: inline-flex; flex: 0 0 auto; align-items: center; gap: .5rem; }
 #image-attachment-controls { display: flex; align-items: center; }
 #attach-images { width: 44px; height: 44px; min-height: 44px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border: 1px solid var(--edge); }
 #attach-images svg { flex: none; }

@@ -201,10 +201,12 @@ The status bar contains:
   semantics. Speech remains opt-in. Its state is the acknowledged appearance/
   speech setting, not an independent second toggle. Per-message Speak and Stop
   speech also use named speaker icons. Retain keyboard access and visible focus.
-- One Stop speech control, identical to Escape, plus a separate Interrupt control,
-  with useful labels, keyboard focus and adequate click targets. Stop speech clears
-  current/queued TTS but preserves a typed draft and its pause hold. Do not build
-  Pause/Resume buttons or confuse stopping speech with interrupting Agent work.
+- A separate Interrupt control with a useful label, keyboard focus and adequate
+  click target. Place Stop speech beside the microphone in the composer, not in
+  this header. Group those voice controls so wrapping cannot separate them.
+  Stop speech is identical to Escape: clear current/queued TTS but preserve the
+  draft and its pause hold. Use a non-submit button. Do not build Pause/Resume
+  buttons or confuse stopping speech with interrupting Agent work.
 - A theme button showing a moon for dark and a sun for light. Its accessible
   name must state the switch action, not leave the meaning of the icon ambiguous.
   Its setting persists in this browser's origin-local storage and agrees with the

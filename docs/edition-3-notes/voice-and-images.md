@@ -1995,3 +1995,22 @@ native dialog cancellation/focus behavior.
 
 Final follow-up: Chapter8 hard lint passes with style advisories; final GUI build
 clean, whitespace clean, disposable fixture/provider/Agents joined with exit0.
+
+## Stop speech placement and deployment mismatch
+
+Bill restarted/reloaded but still saw Pause/Unpause. Fresh localhost8088 HTML
+contains those old controls; served app.js lacks automatic_pause. All six installed
+application assemblies/symbols differ from the latest promotion build (comparison
+reported different-or-missing). Therefore browser reload alone cannot install the
+new implementation. No installation or restart performed by Cadence.
+
+Bill requested the cancellation control beside the microphone for accessibility.
+Moved the existing Stop speech button into a nonwrapping composer voice-controls
+group immediately after mic, with type=button to prevent accidental submission.
+Cancel voice recording remains separate. Updated Chapters7/27 construction guidance,
+layout regression and actual-page selectors. Pause ownership code is unchanged.
+
+Placement verification:32 composer cases include actual mic/stop adjacency,
+44px targets and zero form submissions on Stop speech click;12 header cases
+pass. Chapters7/27 hard lint pass with advisories; final GUI build clean. This
+placement slice does not rerun the unchanged pause-ownership suite. Not installed.

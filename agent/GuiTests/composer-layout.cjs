@@ -44,6 +44,7 @@ const server = http.createServer((req, res) => {
                     return { left: r.left, right: r.right, top: r.top, bottom: r.bottom, width: r.width, height: r.height };
                 };
                 return { input: rect('#prompt'), actions: rect('#compose-actions'), attach: rect('#attach-images'),
+                    voice: rect('#voice-hold'), stop: rect('#stop-speech'), stopType: document.querySelector('#stop-speech').type,
                     send: rect('#send'), mic: extra ? rect('#fixture-microphone') : null,
                     header: [...document.querySelector('.status-actions').children].map(element => {
                         const r = element.getBoundingClientRect();
@@ -51,6 +52,17 @@ const server = http.createServer((req, res) => {
                     }) };
             }, { font, extra, theme });
             const label = `${theme} / ${width}px / ${font}px text / extra controls ${extra}`;
+            assert.equal(metrics.stopType, 'button', 'Stop speech must not submit the draft');
+            const submits = await page.evaluate(() => {
+                let count = 0;
+                const form = document.querySelector('#compose');
+                form.addEventListener('submit', event => { event.preventDefault(); count++; }, { once: true });
+                document.querySelector('#stop-speech').click();
+                return count;
+            });
+            assert.equal(submits, 0, 'Stop speech click must not submit');
+            assert.ok(Math.abs(metrics.voice.top - metrics.stop.top) < 1, 'Voice controls stay on the same row');
+            assert.ok(metrics.stop.left >= metrics.voice.right && metrics.stop.left - metrics.voice.right <= 16, 'Stop speech remains beside mic');
             for (let i = 0; i < metrics.header.length; i++) {
                 assert.ok(Math.abs(metrics.header[i].top - metrics.header[0].top) < 1,
                     `${label}: header control wrapped to another row`);
@@ -59,7 +71,7 @@ const server = http.createServer((req, res) => {
             }
             assert.ok(metrics.actions.top >= metrics.input.bottom, `${label}: controls must be below input`);
             assert.ok(Math.abs(metrics.input.width - metrics.actions.width) < 2, `${label}: full-width input`);
-            for (const button of [metrics.attach, metrics.send, metrics.mic].filter(Boolean)) {
+            for (const button of [metrics.attach, metrics.send, metrics.voice, metrics.stop, metrics.mic].filter(Boolean)) {
                 assert.ok(button.width >= 44 && button.height >= 44, `${label}: touch target`);
                 assert.ok(button.left >= metrics.actions.left - 1 && button.right <= metrics.actions.right + 1,
                     `${label}: button overflow`);

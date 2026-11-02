@@ -335,7 +335,9 @@ already-paused Agent still accepts additional holds, rather than guessing which
 browser caused the existing pause. Runtime Resume clears only explicit runtime
 pause; it cannot erase live automatic holds.
 
-Use one **Stop speech** button in the header, accessible on phones. It and Escape
+Use one **Stop speech** button beside the microphone in the composer, accessible
+on phones. Keep both controls grouped when narrow layouts wrap. Stop speech uses
+`type="button"`, never the form-submit default. It and Escape
 call exactly the same cancellation function: clear the current utterance and FIFO,
 ignore stale callbacks, then recompute the hold as if speech had finished normally.
 Neither action changes the draft. If human text remains, the Agent stays paused;

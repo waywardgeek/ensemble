@@ -40,7 +40,7 @@ async function nativeSpeech() {
         await first.evaluate(() => send('unpause')); // Only reset explicit fixture startup state.
         await state(first, 'idle');
         assert.equal(await first.locator('#pause, #resume').count(), 0);
-        assert.equal(await first.locator('#status-bar #stop-speech').count(), 1);
+        assert.equal(await first.locator('#speech-controls #stop-speech').count(), 1);
         await speak(first); await state(second, 'paused');
         await first.locator('#prompt').fill('draft');
         await first.locator('#stop-speech').click();
