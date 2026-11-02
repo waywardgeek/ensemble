@@ -138,6 +138,10 @@ export class VoiceControl extends EventTarget {
       cancelled: 'Voice cancelled; no partial speech sent.', failed: 'Voice failed; no recording will be retried.',
       uncertain: 'Voice may have been sent. Check the original Agent conversation; it will not be retried.'
     };
+    // Keep the disabled reason available through aria-describedby, without a
+    // persistent funding footer. Active states and errors remain visible.
+    this.#status.classList.toggle('visually-hidden', !descriptions[state] && supported
+      && !binding?.socket?.voiceFunding);
     this.#status.textContent = descriptions[state] || (!supported ? 'Microphone unavailable in this browser or insecure context.'
       : !binding?.socket?.voiceFunding ? 'Voice is off: separate transcription funding is not enabled.'
       : binding.draftBlocked ? 'Send or clear the existing draft before using voice.'

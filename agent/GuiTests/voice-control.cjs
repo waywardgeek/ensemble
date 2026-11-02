@@ -15,7 +15,7 @@ const server = http.createServer((req, res) => {
   try {
     await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
     browser = await chromium.launch({ headless: true, channel: 'chrome' });
-    for (const mode of ['funding', 'untrusted', 'pointer', 'keyboard', 'draft', 'selection', 'blur', 'uncertain']) {
+    for (const mode of ['funding', 'untrusted', 'pointer', 'keyboard', 'draft', 'selection', 'blur', 'uncertain', 'failed']) {
       const page = await browser.newPage(); const errors = [];
       page.on('pageerror', error => errors.push(error.message));
       await page.goto(`http://127.0.0.1:${server.address().port}/`);
@@ -31,7 +31,7 @@ const server = http.createServer((req, res) => {
         }};
         window.control = new VoiceControl(document.querySelector('#mic'), document.querySelector('#cancel'), document.querySelector('#status'), options => {
           const hold = new class extends EventTarget {
-            async start() { starts++; return true; }
+            async start() { starts++; if (mode === 'failed') throw new Error('Synthetic microphone refusal'); return true; }
             async release() { return new Uint8Array(46); }
             async cancel() { cleanups++; }
           }();
@@ -42,6 +42,8 @@ const server = http.createServer((req, res) => {
       const mic = page.locator('#mic');
       if (mode === 'funding') {
         assert.equal(await mic.isDisabled(), true);
+        assert.equal(await page.locator('#status').evaluate(node => node.classList.contains('visually-hidden')), true);
+        assert.match(await page.locator('#status').textContent(), /funding is not enabled/);
       } else if (mode === 'untrusted') {
         await mic.dispatchEvent('pointerdown', { button: 0, pointerId: 1 });
         await mic.dispatchEvent('keydown', { code: 'Space' });
@@ -71,6 +73,10 @@ const server = http.createServer((req, res) => {
       else {
         assert.equal(result.starts, 1); assert.equal(result.cleanups, 1);
         assert.equal(result.types.filter(t => t === 'voice_commit').length, ['pointer', 'keyboard', 'uncertain'].includes(mode) ? 1 : 0);
+      }
+      if (!['funding', 'untrusted'].includes(mode)) {
+        assert.equal(await page.locator('#status').evaluate(node => node.classList.contains('visually-hidden')), false,
+          'Active or terminal voice feedback must remain visible');
       }
       assert.deepEqual(errors, []);
       console.log(`PASS voice control ${mode}`); await page.close();

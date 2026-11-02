@@ -60,6 +60,8 @@ assert.ok(!['8088', '8089'].includes(new URL(base).port));
     const first = await page.evaluate(() => ({frames:voiceFrames, ended:testAudio.every(a => a.stream.getTracks().every(t=>t.readyState==='ended'))}));
     assert.deepEqual(first.frames.map(f=>f.type), ['voice_begin','voice_audio','voice_commit']);
     assert.ok(first.ended);
+    assert.ok(await page.locator('#voice-status').evaluate(node => node.getBoundingClientRect().height > 1),
+      'Successful voice feedback must remain visibly available');
     const wav = Buffer.from(first.frames[1].audio.data,'base64');
     assert.equal(wav.toString('ascii',0,4),'RIFF'); assert.equal(wav.readUInt32LE(24),16000);
     assert.ok(wav.length > 44); assert.equal(wav.readUInt32LE(40),wav.length-44);
@@ -97,6 +99,13 @@ assert.ok(!['8088', '8089'].includes(new URL(base).port));
       await unfunded.goto(base);
       await unfunded.waitForFunction(() => document.querySelector('#voice-status').textContent.startsWith('Voice is off:'));
       assert.ok(await unfunded.locator('#voice-hold').isDisabled());
+      const offStatus = await unfunded.locator('#voice-status').evaluate(node => ({
+        position: getComputedStyle(node).position, height: node.getBoundingClientRect().height,
+        described: document.querySelector('#voice-hold').getAttribute('aria-describedby') === node.id
+      }));
+      assert.equal(offStatus.position, 'absolute');
+      assert.ok(offStatus.height <= 1 && offStatus.described,
+        'Funding-off explanation must be accessible without occupying a footer row');
       console.log('PASS full page: unmodified server funding-off advertisement disables microphone');
     } finally { await unfunded.close(); }
   } finally {

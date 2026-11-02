@@ -1,4 +1,25 @@
-# Current update — child restoration and display-only screenshot source ready
+# Current update — live restart/screenshot accepted; two UI fixes source-verified
+
+Bill restarted staged73c42d77. MeasureX restored automatically without spawn,
+unpaused/unsubmitted, then reported a fresh automatic180s reminder; its staging
+hold was released to resume page133–266/full audit. A newly authorized live
+screenshot(display:0) delivered actual3840x2160 pixels prepared2048x1152;
+Cadence inspected the GUI. No command-line workaround or window measurement.
+Chapter26 now records this boundary while retaining80 ungraded external points.
+
+Bill emphasizes that substantive narration is essential to learning and pairing;
+reduce visual clutter, not explanations. Actions-pane proposals are queued for
+discussion. During his short absence, source-only gear-wrap and redundant
+voice-disabled-footer fixes are verified in source. Toolbar uses one implicit
+column per control; funding-off explanation remains accessible but visually
+hidden at idle, while active/error feedback remains visible. Both new tests
+failed before changes;32 responsive/theme/text-size layout cases,9 voice control
+cases,5 full-page synthetic voice checks and5 public GUI groups pass. GUI build
+clean; browser and fixture host joined with exit0. Chapter26 hard lint passes.
+Evidence /private/tmp/cadence-ui-polish/.
+No new runtime installation, restart, paid call or capture for these UI changes.
+
+# Previous update — child restoration and display-only screenshot source ready
 
 Ordinary-child restart registration/restoration is implemented and verified with
 nested ownership, retained pause/submission, fresh enabled-goal reminders, current

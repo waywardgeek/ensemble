@@ -24,25 +24,39 @@ const server = http.createServer((req, res) => {
         browser = await chromium.launch({ executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome', headless: true });
         const page = await browser.newPage();
         let groups = 0;
-        for (const width of [1440, 390, 320]) for (const font of [16, 28]) for (const extra of [false, true]) {
+        for (const theme of ['dark', 'light']) for (const width of [1920, 1440, 390, 320]) for (const font of [18, 28]) for (const extra of [false, true]) {
             await page.setViewportSize({ width, height: 900 });
             await page.goto(`http://127.0.0.1:${server.address().port}/`);
-            const metrics = await page.evaluate(({ font, extra }) => {
+            const metrics = await page.evaluate(({ font, extra, theme }) => {
+                document.documentElement.dataset.bsTheme = theme;
                 document.documentElement.style.fontSize = `${font}px`;
                 if (extra) {
                     const mic = document.createElement('button');
                     mic.type = 'button'; mic.id = 'fixture-microphone'; mic.textContent = 'Mic';
                     mic.style.cssText = 'width:44px;min-width:44px;height:44px;padding:0';
                     document.querySelector('#send').before(mic);
+                    const action = document.createElement('button');
+                    action.className = 'btn btn-quiet icon-button'; action.textContent = '+';
+                    document.querySelector('.status-actions').append(action);
                 }
                 const rect = selector => {
                     const r = document.querySelector(selector).getBoundingClientRect();
                     return { left: r.left, right: r.right, top: r.top, bottom: r.bottom, width: r.width, height: r.height };
                 };
                 return { input: rect('#prompt'), actions: rect('#compose-actions'), attach: rect('#attach-images'),
-                    send: rect('#send'), mic: extra ? rect('#fixture-microphone') : null };
-            }, { font, extra });
-            const label = `${width}px / ${font}px text / third control ${extra}`;
+                    send: rect('#send'), mic: extra ? rect('#fixture-microphone') : null,
+                    header: [...document.querySelector('.status-actions').children].map(element => {
+                        const r = element.getBoundingClientRect();
+                        return { top: r.top, left: r.left, right: r.right, height: r.height };
+                    }) };
+            }, { font, extra, theme });
+            const label = `${theme} / ${width}px / ${font}px text / extra controls ${extra}`;
+            for (let i = 0; i < metrics.header.length; i++) {
+                assert.ok(Math.abs(metrics.header[i].top - metrics.header[0].top) < 1,
+                    `${label}: header control wrapped to another row`);
+                if (i) assert.ok(metrics.header[i].left >= metrics.header[i - 1].right,
+                    `${label}: header controls overlap`);
+            }
             assert.ok(metrics.actions.top >= metrics.input.bottom, `${label}: controls must be below input`);
             assert.ok(Math.abs(metrics.input.width - metrics.actions.width) < 2, `${label}: full-width input`);
             for (const button of [metrics.attach, metrics.send, metrics.mic].filter(Boolean)) {

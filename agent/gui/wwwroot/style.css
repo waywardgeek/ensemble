@@ -86,7 +86,8 @@ input:not([type="checkbox"]), select { max-width: 100%; }
 #model-controls { position: relative; grid-column: 2; grid-row: 1; display: grid; justify-items: center; gap: 0; min-width: 0; }
 #model-choice { field-sizing: content; width: auto; min-width: 10ch; max-width: min(26rem, calc(100vw - 48px - .75rem)); min-height: 44px; font-size: 1rem; }
 @supports not (field-sizing: content) { #model-choice { width: 24ch; } }
-.status-actions { grid-column: 2; grid-row: 1; justify-self: end; display: grid; grid-template-columns: repeat(6,44px); align-items: center; gap: 1px; }
+/* One implicit column per control: adding an icon must not create a second row. */
+.status-actions { grid-column: 2; grid-row: 1; justify-self: end; display: grid; grid-auto-flow: column; grid-auto-columns: 44px; align-items: center; gap: 1px; }
 /* The native checkbox covers its icon: keyboard/checked semantics and a full
    hit target remain intact, without another copy of the speech preference. */
 .speech-toggle { position: relative; margin: 0; color: var(--muted); border-radius: .4rem; cursor: pointer; }
@@ -246,7 +247,7 @@ body.compact #transcript, body.compact #tool-transcript { padding: 0.2rem; }
 /* Header-only compact targets. Keep text and the 36px artwork unchanged;
    other controls retain their larger targets. Text zoom can grow the selector. */
 #status-bar #model-choice { min-height: 36px; padding-block: 0; }
-#status-bar .status-actions { grid-template-columns: repeat(6,36px); }
+#status-bar .status-actions { grid-auto-columns: 36px; }
 #status-bar .icon-button, #status-bar .speech-toggle {
     width: 36px; height: 36px; min-height: 36px; padding: 6px;
 }

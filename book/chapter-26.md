@@ -679,10 +679,18 @@ race.
 Host-screen tools are implemented in source with grant, safe-mode, argument,
 preparation, renderer, and fake-process cleanup tests. Native macOS acquisition,
 model-turn/delayed-Job delivery, and subsequent replay passed with an agreed
-synthetic window and a local fake provider. The shared implementation suite passed
-337 groups after the HiDPI correction; those groups span the application and are
-not 337 independent multimedia acceptance tests. This source result does not
-establish installation or a restart of the live application.
+synthetic window and a local fake provider. After simplifying the public tool to
+one display selector, Bill restarted the staged runtime and authorized a whole
+primary-display capture. The live `screenshot(display: 0)` call delivered actual
+3840-by-2160 pixels prepared to 2048-by-1152, with no window measurement, picker,
+or command-line workaround. Cadence inspected the returned GUI pixels. Omitted
+selection is source-tested; it was not a separate live invocation.
+
+The shared implementation suite passed 339 groups with the child-restoration
+changes; those groups span the application and are not 339 independent multimedia
+acceptance tests. Installation, Bill's reported restart, and the successful live
+capture are separate observations. Neither the earlier synthetic-window test nor
+this authorized display capture awards the unfinished external host-screen grade.
 
 Only the **20-point image-files external scope** currently has a passing grade.
 The remaining **80 points are ungraded**. Attachment, voice, and native-screen
@@ -843,7 +851,8 @@ capability checks performed after capture, a wrong display, mandatory selection,
 advertised rectangle arguments, missing delayed
 image payloads, and abandoned native work. This 25-point scope is not yet
 implemented or awarded. The reference implementation's macOS synthetic-window
-acceptance does not award these external points or certify a student's candidate.
+and authorized live-display acceptance do not award these external points or certify
+a student's candidate.
 
 ## Grading boundary
 
