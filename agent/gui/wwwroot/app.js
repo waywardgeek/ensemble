@@ -504,10 +504,9 @@ function render(card) {
     setButtonIcon(speaker, "icon-speaker");
     speaker.dataset.action = "speak";
     speaker.disabled = !card.text.trim() || (!speech && !transcriptSpeech);
-    heading.append(title);
+    // Playback belongs with the speaker label, not in the prose flow.
+    heading.append(title, speaker);
     card.node.append(heading);
-    // Name above the message; the full-size speech target floats beside its text.
-    (card.kind === "text" ? card.node : heading).append(speaker);
     // Supplied thinking is readable prose, not a hidden tool payload. Keep its
     // original kind/provenance; the friendly label does not invent hidden reasoning.
     if (["text", "thinking", "reasoning_summary"].includes(card.kind)) {

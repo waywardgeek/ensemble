@@ -2014,3 +2014,9 @@ Placement verification:32 composer cases include actual mic/stop adjacency,
 44px targets and zero form submissions on Stop speech click;12 header cases
 pass. Chapters7/27 hard lint pass with advisories; final GUI build clean. This
 placement slice does not rerun the unchanged pause-ownership suite. Not installed.
+
+### Playback beside the speaker label
+
+Bill identified the floated playback control as a contributor to excess space around short messages and approved trying it beside the speaker label before Markdown work. Text cards now append playback to the existing heading like other cards; obsolete text-body float/clear rules are removed. The 44px target and original card callback remain. This frees the prose body from the control's minimum height, but does not establish that total card height is smaller: the heading now owns that height. Human visual acceptance remains pending.
+
+Verified eight isolated real-render-function/real-CSS cases (320/1200px,18/28px,both roles): heading placement,44px target,independent short prose,no horizontal overflow,correct playback callback. Markdown is stubbed in this focused geometry fixture, not claimed tested. Four existing color/contrast cases pass. GUI build clean,zero warnings/errors. No installation or restart. Markdown implementation unchanged.

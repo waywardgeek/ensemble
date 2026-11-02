@@ -280,14 +280,6 @@ body.compact #transcript { padding: .3rem; }
 #transcript details { margin: .3rem 0; }
 #transcript .media { gap: .2rem; }
 #notice { padding-inline: .4rem; }
-/* Keep the original font metrics. Controls occupy only their own height;
-   subsequent prose can use the whole message width, including on narrow panes.
-   flow-root contains the floats so controls cannot intrude into the next card. */
-#transcript article[data-kind="text"] { display: flow-root; }
-#transcript article[data-kind="text"] > .card-heading { display: flex; }
-#transcript article[data-kind="text"] > .icon-button { float: right; margin-left: .15rem; width: 44px; height: 44px; }
-#transcript article[data-kind="text"] > .message > :not(p):first-child { clear: both; }
-
 /* Settings keep their controls/handlers, but no longer compete with the tree. */
 .agents-heading { margin: 0; padding: .3rem .4rem; font-size: 1rem; border-bottom: 1px solid var(--edge); }
 .agents-content { flex: 1; min-height: 0; overflow: auto; }
