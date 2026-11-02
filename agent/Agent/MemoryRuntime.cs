@@ -30,7 +30,7 @@ public sealed partial class Agent
                 selected = Memory().CaptureConversation(context, policy.Conversation.Budget, DateTimeOffset.UtcNow);
                 if (selected is not null && policy.Session.Disabled)
                 {
-                    Parent().Log("Memory compression deferred: session band is disabled");
+                    Log("Memory compression deferred: session band is disabled");
                     selected = null;
                 }
             }
@@ -54,7 +54,7 @@ public sealed partial class Agent
                 selected = Memory().CaptureGraduation(context, source, checked(2 * band.Budget), band.Budget, DateTimeOffset.UtcNow);
                 if (selected is not null && policy.For(destination).Disabled)
                 {
-                    Parent().Log($"Memory compression deferred: {destination} band is disabled");
+                    Log($"Memory compression deferred: {destination} band is disabled");
                     selected = null;
                 }
             }
@@ -63,7 +63,7 @@ public sealed partial class Agent
         {
             // Disk edits and malformed corpus names are recoverable selection
             // failures. Do not loop on them, or hide them as model success.
-            Parent().Log($"Memory selection refused: {error.GetType().Name}");
+            Log($"Memory selection refused: {error.GetType().Name}");
             return;
         }
         if (selected is null)

@@ -320,6 +320,7 @@ internal static class AuthRenewalTests
             var agent = new Agent(app, new Configuration(Vendor.OpenAI, "local-plan-model",
                 server.Issuer.AbsoluteUri, surface: Surface.Responses,
                 billing: BillingMode.ChatGptPlan, account: "main", sandboxRoot: inside));
+            agent.AttachDiagnostics(TextWriter.Null, trace);
             var response = await agent.Engine().SendAsync("{ \"input\": [ ], \"stream\": true }", deadline.Token);
             Check(response.Events.Any(fact => fact.Kind == EventKind.ResponseEnded)
                 && server.Posts == 1 && server.InferenceBearers.Count == 2, "trace exercise recovered once");

@@ -159,7 +159,7 @@ public sealed partial class Job
                     {
                         if (!destroyed)
                         {
-                            Parent().Parent().Parent().Log($"job {Handle} {StatusName(status)} ({bytes} bytes)");
+                            Parent().Parent().Log($"job {Handle} {StatusName(status)} ({bytes} bytes)");
                         }
                     }
                 }

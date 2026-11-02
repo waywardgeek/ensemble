@@ -60,6 +60,7 @@ public sealed partial class Agent
                 }
                 string save = Path.Combine(childDirectory, "save.json");
                 child.StartPersistence(new PersistenceOptions(save));
+                if (Parent().agentDiagnostics) child.StartDiagnostics();
             }
             // No parent gate spans asynchronous startup. Shutdown can close child
             // admission and join its real actor/MCP work while this caller waits.

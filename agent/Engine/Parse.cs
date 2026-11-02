@@ -45,7 +45,7 @@ public sealed partial class Engine
             var usage = config.Surface == Surface.Responses ? ResponsesUsage(root) : ParseUsage(root, config.Vendor);
             if (usage.Input is null || usage.CacheRead is null || usage.CacheWrite is null || usage.Output is null)
             {
-                Parent().Parent().Log("Provider usage is incomplete or invalid; affected counts remain unknown.");
+                Parent().Log("Provider usage is incomplete or invalid; affected counts remain unknown.");
             }
 
             // Billing must not silently substitute the requested routing alias

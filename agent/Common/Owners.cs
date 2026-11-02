@@ -3,11 +3,13 @@ using System.Text.Json.Nodes;
 
 namespace Ensemble;
 
-/// <summary>Application root. Strongly owns Agents and supplies diagnostics.
-/// The caller owns the diagnostic writer (for example Console.Error).</summary>
+/// <summary>Application root. Strongly owns Agents and host diagnostics.
+/// Supplied writers are borrowed; StartDiagnostics opens an owned host file.</summary>
 public sealed partial class Ensemble
 {
+    internal readonly bool agentDiagnostics;
     private TextWriter diagnostics;
+    private bool ownsDiagnostics;
     private TextWriter? apiTrace;
     private readonly object traceGate = new();
     private readonly object handleGate = new();
@@ -16,16 +18,18 @@ public sealed partial class Ensemble
     private bool destroyed;
 
     // Begin with no Agents; the supplied writer remains owned by the caller.
-    public partial Ensemble(TextWriter diagnostics, TextWriter? apiTrace = null, string? dataDirectory = null);
-    // Startup attachment after an Agent can open rooted diagnostic files.
-    // Writers remain caller-owned; attach before admitting model work.
+    public partial Ensemble(TextWriter diagnostics, TextWriter? apiTrace = null, string? dataDirectory = null, bool agentDiagnostics = false);
+    // Explicit embedding/test attachment. Writers remain caller-owned;
+    // attach before admitting work, or use StartDiagnostics for an owned file.
     public partial void AttachDiagnostics(TextWriter diagnostics, TextWriter? apiTrace = null);
-    // Optional sanitized wire-payload trace. The caller owns the writer; Engine
-    // reaches this facility through Agent, rather than copying a logging service.
+    // Host composition calls this once; Ensemble closes the file after its Agents.
+    public partial void StartDiagnostics();
+    // Explicit host diagnostic trace seam. Engine API exchanges use Agent.Trace,
+    // not this host destination. A supplied host writer remains caller-owned.
     internal partial void Trace(Agent origin, string direction, string payload, IReadOnlyList<string>? exchangeSecrets = null);
     // Diagnostic copies only: consult live children rather than retain another
     // credential store. Canonical History and successful tool data are untouched.
-    private partial string RedactDiagnostic(string message, IReadOnlyList<string>? exchangeSecrets = null);
+    internal partial string RedactDiagnostic(string message, IReadOnlyList<string>? exchangeSecrets = null);
 
     // A membership snapshot cannot be used to edit the relationship list.
     public partial ImmutableArray<Agent> Agents();
@@ -38,9 +42,9 @@ public sealed partial class Ensemble
     internal partial void AddAgent(Agent child);
     internal partial void RemoveAgent(Agent child);
 
-    // Children reach diagnostics through their parents, never a copied writer.
-    // All diagnostic destinations share write-time masking and serialization.
-    // An optional destination remains caller-owned (for example the GUI trace).
+    // Host-wide messages and startup recovery use this destination. Agent work
+    // uses its own writer and gate; both consult the same write-time masking.
+    // An explicit embedding destination remains caller-owned.
     public partial void Log(string message, TextWriter? destination = null);
     // Handles identify work across all Agents owned by this Ensemble.
     internal partial int AllocateJobHandle();

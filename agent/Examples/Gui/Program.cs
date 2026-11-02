@@ -5,8 +5,6 @@ using Application = Ensemble.Ensemble;
 // Composition owns the core graph and optional server operation. No hosted
 // Agent, provider credential, browser profile, or public interface is borrowed.
 Application? app = null;
-StreamWriter? trace = null;
-StreamWriter? diagnostics = null;
 int exitCode = 0;
 try
 {
@@ -74,7 +72,8 @@ try
     string agentName = Selected("--agent-name", "EN_AGENT_NAME");
     string storageBase = sandboxRoot.Length == 0 ? Directory.GetCurrentDirectory() : Path.GetFullPath(sandboxRoot);
     string container = dataDirectory.Length == 0 ? storageBase : Path.GetFullPath(dataDirectory, storageBase);
-    app = new Application(Console.Error, dataDirectory: container);
+    app = new Application(Console.Error, dataDirectory: container, agentDiagnostics: true);
+    app.StartDiagnostics();
     if (transcription == "openai-api-key")
     {
         string keyFile = Selected("--transcription-key-file", "EN_TRANSCRIPTION_KEY_FILE");
@@ -167,16 +166,6 @@ try
     // immutable Configuration. No implicit credential location is searched.
     var agent = new Agent(app, config, name: agentName.Length == 0 ? "root" : agentName);
     string actorHome = agent.DataDirectory();
-    trace = new StreamWriter(agent.Sandbox().OpenFile(
-        Env("CH06_API_LOG") is { Length: > 0 } path ? path : Path.Combine(actorHome, "api.log"), FileMode.Append, FileAccess.Write))
-    {
-        AutoFlush = true
-    };
-    diagnostics = new StreamWriter(agent.Sandbox().OpenFile(Path.Combine(actorHome, "debug.log"), FileMode.Append, FileAccess.Write))
-    {
-        AutoFlush = true
-    };
-    app.AttachDiagnostics(diagnostics, trace);
     string cacheLensDirectory = Selected("--cache-lens", "EN_CACHE_LENS_DIR");
     if (cacheLensDirectory.Length != 0)
     {
@@ -223,6 +212,11 @@ try
             retention.Length == 0 ? -1 : int.Parse(retention, System.Globalization.CultureInfo.InvariantCulture),
             archive.Length == 0 ? null : archive));
     }
+    // Load durable state before replacing this Agent's previous diagnostics.
+    // These legacy overrides affect only the root, not its children or peers.
+    agent.StartDiagnostics(
+        Env("CH06_API_LOG") is { Length: > 0 } apiPath ? apiPath : null,
+        Env("CH07_GUI_LOG") is { Length: > 0 } guiPath ? guiPath : null);
     agent.History().StartLog(log);
     // Shared GUI preferences belong to the application container. The reusable
     // GUI still borrows an Agent and accepts explicit caller-owned options.
@@ -231,8 +225,7 @@ try
             ? int.Parse(portText, System.Globalization.CultureInfo.InvariantCulture) : 8090,
         AssetsDirectory: hostFlags.GetValueOrDefault("--gui-dir"),
         SettingsPath: settingsPath,
-        PublicOrigin: hostFlags.GetValueOrDefault("--public-origin"),
-        TracePath: Env("CH07_GUI_LOG") is { Length: > 0 } guiLog ? guiLog : Path.Combine(actorHome, "gui.log"));
+        PublicOrigin: hostFlags.GetValueOrDefault("--public-origin"));
     // Fleet restoration belongs to this application composition root, not the
     // reusable GUI mount, which only borrows the Agent supplied by its caller.
     // A browser-dependent peer cannot finish startup before its own relay can
@@ -290,24 +283,6 @@ finally
     catch (Exception error)
     {
         ReportFailure("GUI cleanup failed", error);
-        exitCode = 1;
-    }
-    try
-    {
-        trace?.Dispose();
-    }
-    catch (Exception error)
-    {
-        ReportFailure("Trace cleanup failed", error);
-        exitCode = 1;
-    }
-    try
-    {
-        diagnostics?.Dispose();
-    }
-    catch (Exception error)
-    {
-        ReportFailure("Diagnostic cleanup failed", error);
         exitCode = 1;
     }
 }

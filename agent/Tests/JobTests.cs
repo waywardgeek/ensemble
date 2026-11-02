@@ -20,6 +20,7 @@ internal static class JobTests
         var diagnostics = new CompletionWriter();
         var app = new Application(diagnostics);
         var agent = new Agent(app, new Configuration(Vendor.Anthropic, "local", "http://127.0.0.1"));
+        agent.AttachDiagnostics(diagnostics);
         agent.InstallTools();
         int callNumber = 0;
         Task<ToolResultPart> Call(string name, object args, CancellationToken token = default)

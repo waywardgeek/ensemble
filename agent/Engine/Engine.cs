@@ -149,7 +149,7 @@ public sealed partial class Engine
         Usage? completedUsage = null;
         try
         {
-            Parent().Parent().Trace(Parent(), "request", requestBody, traceSecrets);
+            Parent().Trace("request", requestBody, traceSecrets);
             var response = await http.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellation);
             ParsedResponse parsed;
             try

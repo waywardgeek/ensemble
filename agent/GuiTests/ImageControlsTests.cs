@@ -20,12 +20,13 @@ static class ImageControlsTests
         File.WriteAllText(Path.Combine(work, "skills", "plain", "SKILL.md"),
             "---\nname: plain\ndescription: Plain\ntype: primary\n---\nPlain\n");
         Console.WriteLine("Image controls workspace: " + work);
-        var app = new Ensemble.Ensemble(TextWriter.Null, dataDirectory: Path.Combine(work, "fleet"));
+        var app = new Ensemble.Ensemble(TextWriter.Null, dataDirectory: Path.Combine(work, "fleet"), agentDiagnostics: true);
         var agent = new Agent(app, new Configuration(Vendor.OpenAI, "gpt-6-astra", "http://127.0.0.1:1", surface: Surface.Responses),
             name: "images", skillSpec: new SkillSpec(Path.Combine(work, "skills"), "plain"));
         using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(90));
         var token = deadline.Token;
         await agent.SkillManager()!.InitializeAsync(token);
+        agent.StartDiagnostics();
         await agent.PostAsync(new AgentInput(InputKind.Pause));
         using var portProbe = new TcpListener(IPAddress.Loopback, 0);
         portProbe.Start();
@@ -37,9 +38,9 @@ static class ImageControlsTests
         builder.WebHost.UseUrls(url);
         await using var host = builder.Build();
         using var stop = new CancellationTokenSource();
-        string tracePath = Path.Combine(work, "gui.log");
+        string tracePath = Path.Combine(agent.DataDirectory(), "gui.log");
         Task serving = Gui.ServeAsync(host, agent, new GuiOptions(port,
-            SettingsPath: Path.Combine(work, "settings.json"), TracePath: tracePath), stop.Token);
+            SettingsPath: Path.Combine(work, "settings.json")), stop.Token);
         using var socket = new ClientWebSocket();
         socket.Options.SetRequestHeader("Origin", url);
         async Task<JsonElement> Frame(string type)

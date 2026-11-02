@@ -142,7 +142,7 @@ public sealed partial class Bridge
         {
             // Do not send provider exceptions or secrets to a remote peer.
             // Existing parent diagnostics apply their normal redaction policy.
-            actor.Parent().Log($"gateway turn/reply failed: {error.Message}");
+            actor.Log($"gateway turn/reply failed: {error.Message}");
         }
     }
 
@@ -159,7 +159,7 @@ public sealed partial class Bridge
     {
         lock (gate)
         {
-            agent?.Parent().Log($"gateway connection error: {error.Message}");
+            agent?.Log($"gateway connection error: {error.Message}");
         }
     }
 }

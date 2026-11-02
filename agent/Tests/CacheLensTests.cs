@@ -27,6 +27,7 @@ internal static class CacheLensTests
         var log = new StringWriter();
         var app = new Application(log);
         var agent = new Agent(app, new Configuration(Vendor.Anthropic, "unknown", "http://127.0.0.1:1", "dummy", sandboxRoot: root));
+        agent.AttachDiagnostics(log);
         try
         {
             try
@@ -124,6 +125,7 @@ internal static class CacheLensTests
         var app = new Application(log);
         using var listener = Listen();
         var agent = new Agent(app, new Configuration(Vendor.Anthropic, "unknown", listener.Prefixes.Single(), "local-dummy"), Path.Combine(root, "lens-jobs"));
+        agent.AttachDiagnostics(log);
         var engine = agent.Engine();
         var lens = new CacheLens(engine, directory);
         try
@@ -196,6 +198,7 @@ internal static class CacheLensTests
         var app = new Application(log);
         using var listener = Listen();
         var agent = new Agent(app, new Configuration(Vendor.Anthropic, "unknown", listener.Prefixes.Single(), "dummy"), Path.Combine(root, "lens-failure-jobs"));
+        agent.AttachDiagnostics(log);
         var engine = agent.Engine();
         var lens = new CacheLens(engine, blocked);
         try

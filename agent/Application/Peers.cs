@@ -180,6 +180,7 @@ public sealed partial class Ensemble
             }
             var persistence = new PersistenceOptions(Path.Combine(peer.DataDirectory(), "save.json"));
             peer.StartPersistence(persistence);
+            if (agentDiagnostics) peer.StartDiagnostics();
             if (peer.SkillManager() is { } skills)
             {
                 if (waitForBrowser && skills.RequiresBrowserStartup())

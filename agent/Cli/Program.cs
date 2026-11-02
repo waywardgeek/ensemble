@@ -80,7 +80,6 @@ static void Print(JsonObject value)
 static async Task<int> Run(string[] args)
 {
     Application? app = null;
-    StreamWriter? apiTrace = null;
     try
     {
         string skillsDirectory = Env("EN_SKILLS_DIR");
@@ -273,7 +272,9 @@ static async Task<int> Run(string[] args)
         // explicit storage follows the same sandbox root as other host paths.
         string storageBase = sandboxRoot.Length == 0 ? Directory.GetCurrentDirectory() : Path.GetFullPath(sandboxRoot);
         string container = dataDirectory.Length == 0 ? storageBase : Path.GetFullPath(dataDirectory, storageBase);
-        app = new Application(Console.Error, dataDirectory: container);
+        bool ownedDiagnostics = args.Length == 0 || args[0] == "chat";
+        app = new Application(Console.Error, dataDirectory: container, agentDiagnostics: ownedDiagnostics);
+        if (ownedDiagnostics) app.StartDiagnostics();
         if (args.Length > 2)
         {
             throw new ArgumentException("Usage: ch04 [--data-dir DIR] [--agent-name NAME] [--sandbox ROOT] [--safe | --safe-mode BOOL] [--enable-web-search BOOL] [--surface chat-completions|responses] [--billing api|chatgpt|codex] [--account LABEL] [--credentials-dir DIR] [--codex-auth-file FILE] [--no-stream] [--cache-lens DIR] [--cache-breakpoints] [--prompt-cache-key KEY] [--stub-tool-results] [--context-budget-bytes N] [chat | dump [logfile] | render logfile | auth status|models|login|logout|signout]");
@@ -360,13 +361,6 @@ static async Task<int> Run(string[] args)
         Console.Error.WriteLine(config.FundingDescription());
         var agent = new Agent(app, config, name: agentName.Length == 0 ? "root" : agentName);
         string actorHome = agent.DataDirectory();
-        if (args.Length == 0 || args[0] == "chat")
-        {
-            string tracePath = Env("CH06_API_LOG");
-            apiTrace = new StreamWriter(agent.Sandbox().OpenFile(
-                tracePath.Length == 0 ? Path.Combine(actorHome, "api.log") : tracePath, FileMode.Append, FileAccess.Write));
-            app.AttachDiagnostics(Console.Error, apiTrace);
-        }
         if (cacheLensDirectory.Length != 0)
         {
             // Captures contain private prompts. This directory is explicitly caller-owned.
@@ -438,6 +432,11 @@ static async Task<int> Run(string[] args)
             int retained = saveLog.Length == 0 ? -1 : int.Parse(saveLog, System.Globalization.CultureInfo.InvariantCulture);
             agent.StartPersistence(new PersistenceOptions(selectedPath, retained,
                 archivePath.Length == 0 ? null : archivePath));
+        }
+        if (ownedDiagnostics)
+        {
+            string tracePath = Env("CH06_API_LOG");
+            agent.StartDiagnostics(apiPath: tracePath.Length == 0 ? null : tracePath);
         }
         agent.History().StartLog(log);
         await agent.SkillManager()!.InitializeAsync();
@@ -596,14 +595,7 @@ static async Task<int> Run(string[] args)
     finally
     {
         // Cascade to History's writer and Engine's HTTP client on success or failure.
-        try
-        {
-            app?.Destroy();
-        }
-        finally
-        {
-            apiTrace?.Dispose();
-        }
+        app?.Destroy();
     }
 }
 // Auth output is private host output, not the JSON conversation protocol. The

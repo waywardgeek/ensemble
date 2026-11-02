@@ -38,7 +38,7 @@ public sealed partial class Engine
         if (!streaming)
         {
             string body = await response.Content.ReadAsStringAsync(cancellation);
-            Parent().Parent().Trace(Parent(), "response", body, exchangeSecrets);
+            Parent().Trace("response", body, exchangeSecrets);
             var events = ParseResponse(config, status, body, out var billing);
             var ended = events.FirstOrDefault(fact => fact.Kind == EventKind.ResponseEnded);
             if (ended is null)
@@ -91,7 +91,7 @@ public sealed partial class Engine
                     if (hasData)
                     {
                         string payload = data.ToString();
-                        Parent().Parent().Trace(Parent(), "frame", payload, exchangeSecrets);
+                        Parent().Trace("frame", payload, exchangeSecrets);
                         data.Clear();
                         hasData = false;
                         if (payload == "[DONE]")

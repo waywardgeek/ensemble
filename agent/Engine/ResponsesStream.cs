@@ -112,7 +112,7 @@ public sealed partial class Engine
         }
         string payload = data.ToString();
         data.Clear();
-        Parent().Parent().Trace(Parent(), "frame", payload, exchangeSecrets);
+        Parent().Trace("frame", payload, exchangeSecrets);
         if (payload == "[DONE]")
         {
             if (state.Terminal is null)

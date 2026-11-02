@@ -1,3 +1,20 @@
+# Current update: owned diagnostics verified in source
+
+Each Agent owns debug/API/GUI logs; Ensemble owns ensemble.log. GUI, ordinary CLI
+and Gateway Agent hosting open fresh diagnostics on startup. Durable Agent state
+loads before that Agent's previous logs are replaced. Child/peer files follow the
+same policy; saves, journals, memories and credentials are untouched. GUI routing
+keeps selected conversations distinct from fixed MCP relays, including refused
+client addressing and explicitly labelled queued output.
+
+Shared C#340/0; focused diagnostics4/0, cache-lens4/0, HTTP-MCP3/0; real WebSocket
+owner/relay/refusal checks, owned image privacy, five public GUI groups and seven
+capture groups pass. GUI/CLI/Gateway builds clean; Chapter27 hard lint passes.
+See [diagnostic notebook](edition-3-notes/agent-diagnostics.md) for failure history,
+startup/lifetime reasoning and exact limits. No installation or restart performed.
+Browser-theme edits remain separate and unfinished; rebuilding the working tree
+would include them. Preserve MeasureX and its independent reconstruction.
+
 # Current update — live restart/screenshot accepted; two UI fixes source-verified
 
 Bill restarted staged73c42d77. MeasureX restored automatically without spawn,

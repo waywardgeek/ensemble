@@ -208,6 +208,7 @@ internal static class CodexTests
         {
             _ = new CodexCredentials(app, path);
             var agent = new Agent(app, Config(cacheKey: "fixed-cache-key"));
+            agent.AttachDiagnostics(TextWriter.Null, trace);
             agent.Engine().Destroy();
             var engine = new Engine(agent, provider);
             var context = new Context([new Entry(1, Actor.Human, [new TextPart("reply OK")])]);

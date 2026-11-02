@@ -626,6 +626,7 @@ try
     if (args is ["--diagnostic-tests"] || args.Length == 0)
     {
         await AsyncCase("Chapter 19 readable diagnostic redaction", DiagnosticTests.KnownKeys);
+        await AsyncCase("Agent-owned diagnostic files and fresh restart", DiagnosticTests.AgentFiles);
         await AsyncCase("Chapter 19 plan bearer trace redaction", AuthRenewalTests.BearerTrace);
         if (args.Length != 0)
         {

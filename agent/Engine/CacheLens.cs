@@ -82,7 +82,7 @@ public sealed partial class CacheLens
                 // Rendered requests are valid JSON, but the public transport also
                 // accepts caller-supplied bytes. Diagnostics must not become a
                 // second admission policy or echo malformed private content.
-                Parent().Parent().Parent().Log("Cache lens capture skipped (invalid JSON).");
+                Parent().Parent().Log("Cache lens capture skipped (invalid JSON).");
                 previous = null;
                 return null;
             }
@@ -108,7 +108,7 @@ public sealed partial class CacheLens
             }
             catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
             {
-                Parent().Parent().Parent().Log("Cache lens capture failed (" + ex.GetType().Name + ").");
+                Parent().Parent().Log("Cache lens capture failed (" + ex.GetType().Name + ").");
             }
             previous = current;
             return prediction;
@@ -141,7 +141,7 @@ public sealed partial class CacheLens
                 actual_hit_rate = actual,
                 fresh_input = input, cache_write = write, cache_read = read
             });
-            Parent().Parent().Parent().Log(report);
+            Parent().Parent().Log(report);
         }
     }
 

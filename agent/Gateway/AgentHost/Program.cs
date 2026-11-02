@@ -87,7 +87,7 @@ static async Task<int> Run(string[] arguments)
     var identity = Keys.LoadOrCreateKeypair(keyPath);
     var connection = new ClientConfig(address, id, identity, pin);
     var selectedSkills = skills is null ? null : new SkillSpec(skills, primary);
-    var application = new Application(Console.Error, dataDirectory: Path.GetFullPath(directory));
+    var application = new Application(Console.Error, dataDirectory: Path.GetFullPath(directory), agentDiagnostics: true);
     Agent? actor = null;
     bool saveOnExit = false;
     PersistenceOptions? persistence = null;
@@ -105,11 +105,13 @@ static async Task<int> Run(string[] arguments)
     });
     try
     {
+        application.StartDiagnostics();
         Console.Error.WriteLine(configuration.FundingDescription());
         actor = new Agent(application, configuration, name: id, skillSpec: selectedSkills);
         string home = actor.DataDirectory();
         persistence = new PersistenceOptions(Path.Combine(home, "session.save.json"));
         actor.StartPersistence(persistence);
+        actor.StartDiagnostics();
         // Restore and journal recovery must precede opening the event writer.
         actor.History().StartLog(Path.Combine(home, "events.jsonl"));
         if (actor.SkillManager() is { } manager)

@@ -248,6 +248,7 @@ static partial class McpTests
         {
             var agent = new Agent(root, new Configuration(Vendor.Anthropic, "fake", "http://127.0.0.1:1"),
                 skillSpec: new SkillSpec(directory, "primary", McpEnvironment: new Dictionary<string, string> { ["WEB_TOKEN"] = peer.Token }));
+            agent.AttachDiagnostics(log);
             Check(peer.Count == 0, "Discovery made an HTTP request");
             var loaded = await agent.DispatchAsync(SkillCall(agent, "load_skill", "web")).WaitAsync(TimeSpan.FromSeconds(10));
             Check(!loaded.IsError && agent.ToolEnabled("remote_echo"), "HTTP activation failed");
@@ -272,6 +273,7 @@ static partial class McpTests
         {
             int before = peer.Count;
             var agent = new Agent(root, new Configuration(Vendor.Anthropic, "fake", "http://127.0.0.1:1"), skillSpec: new SkillSpec(directory, "primary"));
+            agent.AttachDiagnostics(missingLog);
             var result = await agent.DispatchAsync(SkillCall(agent, "load_skill", "web"));
             Check(!result.IsError && missingLog.ToString().Contains("WEB_TOKEN"), "Missing auth diagnostic absent");
             Check(peer.Requests.Skip(before).All(item => item.Auth is null), "Missing auth must omit Authorization");

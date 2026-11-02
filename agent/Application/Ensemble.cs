@@ -3,7 +3,7 @@ namespace Ensemble;
 
 public sealed partial class Ensemble
 {
-    public partial Ensemble(TextWriter diagnostics, TextWriter? apiTrace, string? dataDirectory)
+    public partial Ensemble(TextWriter diagnostics, TextWriter? apiTrace, string? dataDirectory, bool agentDiagnostics)
     {
         ArgumentNullException.ThrowIfNull(diagnostics);
         if (dataDirectory is not null)
@@ -11,6 +11,7 @@ public sealed partial class Ensemble
             ArgumentException.ThrowIfNullOrWhiteSpace(dataDirectory);
             this.dataDirectory = Path.GetFullPath(dataDirectory);
         }
+        this.agentDiagnostics = agentDiagnostics;
         this.diagnostics = diagnostics;
         this.apiTrace = apiTrace;
         agents = [];
@@ -22,8 +23,30 @@ public sealed partial class Ensemble
         lock (traceGate)
         {
             ObjectDisposedException.ThrowIf(destroyed, this);
+            if (ownsDiagnostics)
+            {
+                throw new InvalidOperationException("Cannot replace owned host diagnostics.");
+            }
             this.diagnostics = diagnostics;
             this.apiTrace = apiTrace;
+        }
+    }
+
+    public partial void StartDiagnostics()
+    {
+        lock (traceGate)
+        {
+            ObjectDisposedException.ThrowIf(destroyed, this);
+            if (ownsDiagnostics) return;
+            // The application container is host configuration, not an Agent's
+            // workspace. No Agent identity supplies this host-wide destination.
+            string directory = DataDirectory();
+            Directory.CreateDirectory(directory);
+            diagnostics = new StreamWriter(Path.Combine(directory, "ensemble.log"), append: false)
+            {
+                AutoFlush = true
+            };
+            ownsDiagnostics = true;
         }
     }
 
@@ -46,7 +69,7 @@ public sealed partial class Ensemble
         }
     }
 
-    private partial string RedactDiagnostic(string message, IReadOnlyList<string>? exchangeSecrets)
+    internal partial string RedactDiagnostic(string message, IReadOnlyList<string>? exchangeSecrets)
     {
         // A diagnostic may mention more than its originating Agent. Resolve the
         // current configured keys through ownership, not a copied secret cache.
@@ -231,6 +254,19 @@ public sealed partial class Ensemble
         try
         {
             CodexCredentials()?.Destroy();
+        }
+        catch (Exception ex)
+        {
+            failures ??= [];
+            failures.Add(ex);
+        }
+        // Keep the host writer available throughout every owned cleanup above.
+        try
+        {
+            lock (traceGate)
+            {
+                if (ownsDiagnostics) diagnostics.Dispose();
+            }
         }
         catch (Exception ex)
         {

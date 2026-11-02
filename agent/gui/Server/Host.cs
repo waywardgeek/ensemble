@@ -111,14 +111,16 @@ public static partial class Gui
         using var agentSettingsGate = new SemaphoreSlim(1, 1);
         // Notification deduplication only; Engine remains the accounting authority.
         var lastMeterWire = new Dictionary<Agent, string>();
-        string tracePath = options.TracePath;
-        using var trace = new StreamWriter(agent.Sandbox().OpenFile(
-            tracePath, FileMode.Append, FileAccess.Write)) { AutoFlush = true };
-        void Trace(string direction, string json)
+        // An explicit path is an embedded-host trace override. Ordinary hosting
+        // uses the actual Agent's writer, never a shared root conversation log.
+        using var trace = options.TracePath is null ? null : new StreamWriter(agent.Sandbox().OpenFile(
+            options.TracePath, FileMode.Create, FileAccess.Write)) { AutoFlush = true };
+        void Trace(Agent? owner, string direction, string json)
         {
-            // Keep the protocol trace separate, but use the root's one
-            // diagnostic policy before bytes reach this caller-owned writer.
-            agent.Parent().Log($"{direction} {TraceProjection(json)}", trace);
+            string projection = TraceProjection(json);
+            if (trace is not null) agent.Parent().Log($"{direction} {projection}", trace);
+            else if (owner is not null) owner.TraceGui(direction, projection);
+            else agent.Parent().Log($"GUI {direction} {projection}");
         }
         var peers = new Dictionary<WebSocket, VoicePeer>();
         // One reader and preview buffer per viewed conversation. A tab switch
@@ -191,11 +193,20 @@ public static partial class Gui
         // Must be called under gate. TryWrite never waits on a browser.
         bool Queue(WebSocket socket, Channel<string> queue, JsonObject frame)
         {
-            if (!queue.Writer.TryWrite(frame.ToJsonString()))
+            string json = frame.ToJsonString();
+            if (!queue.Writer.TryWrite(json))
             {
                 queue.Writer.TryComplete();
                 socket.Abort();
                 return false;
+            }
+            if (trace is null)
+            {
+                // These are server-created addresses, captured while enqueueing.
+                // Later display selection cannot reattribute an older frame.
+                string? address = frame["agent_id"]?.GetValue<string>();
+                Agent? owner = address is null ? null : agent.Parent().FindAgentAddress(address);
+                Trace(owner, "<queued", json);
             }
             return true;
         }
@@ -507,7 +518,13 @@ public static partial class Gui
                 await foreach (string frame in queue.Reader.ReadAllAsync(lifetime.Token))
                 {
                     await socket.SendAsync(Encoding.UTF8.GetBytes(frame), WebSocketMessageType.Text, true, lifetime.Token);
-                    Trace("<", frame);
+                    if (trace is not null) Trace(null, "<", frame);
+                    else
+                    {
+                        using var sent = JsonDocument.Parse(frame);
+                        if (sent.RootElement.GetProperty("type").GetString() == "mcp")
+                            Trace(relayAgent, "<sent", frame);
+                    }
                 }
             }
             var sender = Send();
@@ -591,9 +608,11 @@ public static partial class Gui
                     try
                     {
                         using var json = JsonDocument.Parse(content.ToArray());
-                        Trace(">", json.RootElement.GetRawText());
                         var command = json.RootElement;
                         string type = command.GetProperty("type").GetString() ?? "";
+                        Agent selected;
+                        lock (gate) selected = peers[socket].Selected;
+                        Trace(type == "mcp" ? relayAgent : selected, trace is null ? ">received" : ">", command.GetRawText());
                         if (type != "image_prompt" && command.TryGetProperty("images", out _))
                             throw new InvalidDataException("Images require an image_prompt envelope.");
                         bool voiceControl = type is "voice_begin" or "voice_audio" or "voice_cancel" or "voice_commit";
@@ -628,8 +647,6 @@ public static partial class Gui
                         }
                         // Capture the acknowledged display target for this command.
                         // Tree recovery may change future admissions, never this one.
-                        Agent selected;
-                        lock (gate) selected = peers[socket].Selected;
                         string expectedID = type == "mcp" ? relayID : AddressOf(selected);
                         if (type != "select_agent" && command.TryGetProperty("agent_id", out var target)
                             && (target.ValueKind != JsonValueKind.String || target.GetString() != expectedID))

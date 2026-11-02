@@ -42,6 +42,7 @@ internal static partial class ActorTests
             int port = ((IPEndPoint)listener.LocalEndpoint).Port;
             var agent = new Agent(app, new Configuration(Vendor.Anthropic, "claude-3-haiku-20240307",
                 "http://127.0.0.1:" + port, key));
+            agent.AttachDiagnostics(TextWriter.Null, trace);
             var reply = agent.SendAsync("show " + key);
             var delta = await agent.WaitAsync(o => o.Delta?.Text == "hello ", deadline.Token);
             Check(delta.Kind == ObservationKind.PartDelta && delta.PartID == 0 && delta.ResponseID > 0,

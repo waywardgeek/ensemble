@@ -98,7 +98,7 @@ public sealed partial class Skills
                                 }
                                 if (token is null)
                                 {
-                                    Parent().Parent().Log("MCP authentication environment variable is missing: " + key);
+                                    Parent().Log("MCP authentication environment variable is missing: " + key);
                                 }
                             }
                             transport = new McpHttpTransport(server.Url!, token);

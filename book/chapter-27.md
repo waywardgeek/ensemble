@@ -20,10 +20,10 @@ replace the one I use now.
 
 This is the final implementation chapter. Its result is a replacement candidate
 and a safe way for the human to evaluate it. The crossover is complete when the
-human accepts that candidate for ordinary work—not when the student declares it
+human accepts that candidate for ordinary work, not when the student declares it
 finished, and not when an author adds up earlier test counts.
 
-## TL;DR — finish the replacement, not another demonstration
+## TL;DR: finish the replacement, not another demonstration
 
 Start from the completed C# application in `agent`. Do not
 rebuild it from nothing or transplant the old Go GUI. Implement the missing
@@ -49,7 +49,7 @@ Preserved source endpoints and grader commands retain their original names;
 see the numbering map in [the edition guide](README.md). Earlier editions remain
 historical records, not files to edit here.
 
-## In plain words — one system, a better place to use it
+## In plain words: one system, a better place to use it
 
 The GUI is a projection and control surface over the existing application.
 Ensemble owns Agents; Agents own their work, History, Engine, and related
@@ -476,6 +476,34 @@ why the remote trial failed. Inspect stale-browser and invalid-selection behavio
 without turning this clue into a claimed diagnosis. Give the human clear reload
 instructions and show a selection error without leaving controls falsely ready.
 
+### Diagnostics follow the owner
+
+Each Agent owns its diagnostic writers and its own `debug.log`, `api.log`, and
+`gui.log` in its data directory. Ensemble owns `ensemble.log` in the application
+container for host-wide activity. A child does not borrow its parent's writer,
+and selecting another conversation in a browser does not transfer the browser's
+fixed MCP relay identity. Route each event through the actual owner, not through
+a shared root logger or an untrusted address supplied by a client.
+
+Start fresh diagnostic files on each host restart. Load an Agent's durable state
+before replacing that Agent's previous diagnostic files; startup recovery messages
+need the host logger while restoration is in progress. Do not truncate `save.json`,
+its backup, event journals, memories, or credentials. Opening several diagnostic
+files is not a filesystem transaction: a later open can fail after an earlier file
+was replaced. Preserve that failure and attempt every opened writer's cleanup.
+
+Serialize writes within each owner and retain credential masking at write time.
+Close an Agent's owned writers only after its work has joined; close Ensemble's
+writer after its owned cleanup. Borrowed test or embedding writers stay with their
+caller. An outgoing GUI record labelled queued proves enqueueing, not delivery or
+Agent admission. A later tab selection must not reattribute an older frame.
+
+Verify independent Agents, a child and grandchild, browser selection and falsely
+addressed controls, API credential masking, and fresh files after restart with
+durable records preserved. Keep source tests distinct from installation and the
+human's actual restart. The implementation and its current verification boundary
+are recorded in [the diagnostic notes](../docs/edition-3-notes/agent-diagnostics.md).
+
 ## A safe trial and an independent way back
 
 Preserve the existing executable, launcher, configuration, history, and actor
@@ -722,7 +750,7 @@ move private state into Git, delete the old installation, or interpret acceptanc
 as permission to publish or push. Execute the actual switch with the human.
 
 The code is rebuildable, not disposable. The durable artifact includes the
-judgment needed to rebuild it—and the judgment to know when it is ready to use.
+judgment needed to rebuild it, and the judgment to know when it is ready to use.
 
 ## Field notes from the first working Cadence crossover
 

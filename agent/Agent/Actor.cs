@@ -954,7 +954,7 @@ public sealed partial class Agent
                     : null;
                 if (!string.IsNullOrWhiteSpace(responseText))
                 {
-                    Parent().Log("Agent before tools: " + responseText);
+                    Log("Agent before tools: " + responseText);
                 }
                 // Dispatch's synchronous prefix records ToolCalled before Start.
                 // Only its observation wait continues outside the actor.
