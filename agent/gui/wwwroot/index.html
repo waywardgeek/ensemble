@@ -7,7 +7,7 @@
 <link rel="stylesheet" href="./style.css">
 <script src="./vendor/bootstrap-5.3.8.bundle.min.js" defer></script>
 <script src="./speech.js" defer></script><script src="./mcp.js" defer></script>
-<script src="./images.js" defer></script><script src="./app.js" defer></script><script src="./layout.js" defer></script>
+<script src="./images.js" defer></script><script src="./theme.js" defer></script><script src="./app.js" defer></script><script src="./layout.js" defer></script>
 <script src="./auth.js" defer></script><script src="./peers.js" defer></script>
 <script src="./settings.js" defer></script>
 </head><body>
@@ -141,7 +141,7 @@
 </section>
 <section class="tab-pane" id="settings-display-panel" role="tabpanel" aria-labelledby="settings-display-tab" tabindex="0">
 <section class="settings-section" aria-labelledby="accessibility-heading"><h2 id="accessibility-heading">Speech &amp; Display</h2>
- <label>Theme <select class="form-select" id="theme"><option value="system">System</option><option value="light">Light</option><option value="dark" selected>Dark</option></select></label>
+ <label>Theme (this browser) <select class="form-select" id="theme"><option value="system">System</option><option value="light">Light</option><option value="dark" selected>Dark</option></select></label>
  <label>Font size <input class="form-control" id="font-size" type="number" min="12" max="32" step="1" value="18"> px</label>
  <label>Speech speed <input class="form-control" id="tts-speed" type="range" min="0.25" max="4" step="0.25" value="1"> <output id="speed-label">1×</output></label>
  <label><input class="form-check-input" id="pause-speaking" type="checkbox" checked> Pause Agent while speaking</label>

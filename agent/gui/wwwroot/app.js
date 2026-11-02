@@ -32,7 +32,7 @@ let pauseIntent = null; // "automatic", "manual", or no locally owned pause.
 let humanTyping = false;
 let agentClosed = false;
 // Last acknowledged server snapshot. Controls request changes; they never
-// become a second preference store. The server is also authoritative on reload.
+// become a second preference store. Browser-local theme is owned separately.
 let settings = null;
 let goalSelectionPending = false;
 let goalDirty = false; // Unsaved form edits only, never a second live configuration.
@@ -591,7 +591,7 @@ function renderControls() {
     camera.title = captureDraft ? "Cancel page capture" : "Capture this page";
     document.querySelector("#clear-tools").disabled = !ready;
     document.querySelector("#model-choice").disabled = !ready || busy || paused;
-    document.querySelector("#theme-toggle").disabled = !connected || !settings;
+    // Theme is browser-local and remains available while disconnected.
 }
 // Format acknowledged Engine values only. No browser counters or price table.
 function showUsage(frame) {
@@ -987,17 +987,10 @@ function applySettings() {
     if (!settings) return;
     document.querySelector("#human-name").value = settings.human_name || "";
     document.querySelector("#human-description").value = settings.human_description || "";
-    document.documentElement.dataset.theme = settings.theme;
-    const dark = settings.theme === "dark" || (settings.theme === "system" && matchMedia("(prefers-color-scheme: dark)").matches);
-    document.documentElement.dataset.bsTheme = dark ? "dark" : "light";
-    const themeButton = document.querySelector("#theme-toggle");
-    setButtonIcon(themeButton, dark ? "icon-moon" : "icon-sun");
-    themeButton.setAttribute("aria-label", dark ? "Switch to light theme" : "Switch to dark theme");
-    themeButton.title = dark ? "Dark theme; switch to light theme" : "Light theme; switch to dark theme";
+    browserTheme.seed(settings.theme);
     document.documentElement.style.fontSize = `${settings.font_size}px`;
     resizeComposer();
     renderControls();
-    document.querySelector("#theme").value = settings.theme;
     document.querySelector("#font-size").value = settings.font_size;
     document.querySelector("#max-tool-rounds").value = settings.max_tool_rounds;
     document.querySelector("#context-target-bytes").value = settings.context_target_bytes;
@@ -1150,8 +1143,6 @@ document.querySelector("#recall-settings-form").addEventListener("submit", event
     patchSettings({recall});
 });
 document.querySelector("#recall-settings-reload").onclick = () => send("get_settings");
-document.querySelector("#theme-toggle").onclick = () => patchSettings({theme: document.documentElement.dataset.bsTheme === "dark" ? "light" : "dark"});
-document.querySelector("#theme").onchange = event => patchSettings({ theme: event.target.value });
 document.querySelector("#font-size").onchange = event => patchSettings({ font_size: Number(event.target.value) });
 document.querySelector("#max-tool-rounds").onchange = event => patchSettings({ max_tool_rounds: Number(event.target.value) });
 document.querySelector("#context-target-bytes").onchange = event => patchSettings({ context_target_bytes: Number(event.target.value) });

@@ -1,3 +1,19 @@
+# Current boundary: browser-local theme and logging ready for rebuild
+
+Browser-local theme integration is complete in source. Header and settings controls
+share origin-local storage, seed once from the legacy server preference, follow OS
+changes in System mode, work offline and never patch backend theme. Same-origin tabs
+synchronize; profiles/devices remain independent. Blocked storage keeps a session
+choice. Chapters8 and27 now teach the ownership change at the original requirement.
+
+Component and real embedded-page theme checks pass; existing settings-dialog saves,
+reload, keyboard/layout checks pass; four message-color/contrast and32 layout cases
+pass. Final GUI build clean, five public GUI groups pass, both touched chapters pass
+hard lint. Fixture cleanup joined. This completes the previously unfinished theme
+slice. Logging commit3e2eb927 and message-background commit1421cdc1 remain separate.
+No installation/restart/push. Bill can now rebuild the working tree and restart;
+source verification is not live restart acceptance. Preserve MeasureX and its files.
+
 # Current update: owned diagnostics verified in source
 
 Each Agent owns debug/API/GUI logs; Ensemble owns ensemble.log. GUI, ordinary CLI

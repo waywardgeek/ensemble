@@ -144,10 +144,11 @@ ownership and operations, implementing missing presentation behavior without
 rebuilding the core. Do not add another tree or layout framework without a
 concrete need and architectural discussion.
 
-Integrate the existing acknowledged appearance preferences with Bootstrap's
-light/dark presentation. Do not create a second localStorage authority, lose
-saved explicit choices, or apply a rejected setting optimistically. New users
-start dark. Library event handling must not duplicate sends, resets or peer
+Integrate Bootstrap's light/dark presentation with the browser-owned theme
+preference described in Chapter 8. Local storage is the sole theme authority,
+not a second copy of shared settings. Seed it once from the legacy server theme
+when there is no saved local choice; later server frames cannot override it.
+Other shared settings still require acknowledgement. Preserve explicit choices. Library event handling must not duplicate sends, resets or peer
 operations; attaching it again after replay/reconnection must not accumulate
 handlers. Preserve target identity while updating the presentation.
 
@@ -205,9 +206,12 @@ The status bar contains:
   turn, or interrupting a turn with killing independent Jobs.
 - A theme button showing a moon for dark and a sun for light. Its accessible
   name must state the switch action, not leave the meaning of the icon ambiguous.
-  Its setting must persist through the existing appearance store and agree with any equivalent
-  settings control. Use dark for a new user unless a saved explicit choice says
-  otherwise. Both themes need high contrast.
+  Its setting persists in this browser's origin-local storage and agrees with the
+  settings selector. Same-origin tabs share it; different devices and browser
+  profiles remain independent. Offer System as well as explicit Light and Dark.
+  If storage is blocked, retain a usable page-session choice without promising
+  persistence. Keep theme controls available offline and do not send theme changes
+  to the backend. Both themes need high contrast.
 
 Use the human's approved artwork proportionally for branding and the browser
 icon. Do not silently crop or redesign it, or leave a sample's placeholder in the
@@ -584,8 +588,10 @@ A useful session proceeds through these paths:
    Demonstrate a refusal without pretending deletion succeeded. A displayed
    child must not grant its parent-tab browser authority.
 4. Change a model between turns and exercise the existing busy/refusal path.
-   Change appearance and selected-Agent memory/recall settings; observe the
-   acknowledgment and restart persistence. Simulate a write failure and show
+   Change shared appearance and selected-Agent memory/recall settings; observe
+   acknowledgement and restart persistence. Verify browser-local theme separately:
+   reload, cross-tab synchronization, profile isolation, OS changes, blocked storage,
+   and no backend theme writes. Simulate a write failure and show
    that the old accepted state remains. Selection changes must not apply a
    delayed result or a draft to the wrong Agent.
 5. Exercise Pause/Resume, Interrupt, opt-in speech and theme controls. In

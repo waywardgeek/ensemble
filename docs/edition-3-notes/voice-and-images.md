@@ -1895,3 +1895,30 @@ Tests use real CSS in isolated headless Chrome, no live capture/provider. Source
 only; no installation/restart. Lesson: a background swap also requires auditing
 role-specific foreground styles. Bill already confirmed previous gear/footer fixes
 working after his own rebuild/restart. Remaining media80 points still ungraded.
+
+
+## Browser-local theme ready for coordinated rebuild
+
+Theme now uses origin-local storage (ensemble.theme.v1), shared by same-origin
+tabs but independent across browser profiles/devices. A browser with no valid
+local choice seeds once from the legacy server theme. Later settings frames do
+not override it; header/dialog controls send no theme patches. System follows
+OS changes. Blocked storage retains a page-session choice; offline theme controls
+remain usable. Storage events from sessionStorage are ignored. Other settings
+retain server save/acknowledgement semantics. UI labels theme as this-browser.
+
+Verified isolated component tests plus the real embedded crossover page: migration,
+header/dialog controls, acknowledged settings refresh, reload, OS changes, tab sync,
+profile isolation, storage-area filtering, disconnect/reconnect and no backend
+theme writes. Existing settings-dialog shared-save/reload, keyboard, six-tab layout
+and enlarged-text checks pass. Four role-color/contrast cases and32 composer layout
+cases pass. Isolated fixture/provider/Agents joined, exit0; no live user browser,
+provider prompt, microphone, capture, installation or restart. Evidence tool jobs
+301/313/315/316 and /private/tmp/cadence-theme-integration/. Initial Chapter8 lint
+found two existing em dashes; corrected without changing historical endpoints.
+Chapters8 and27 now explicitly teach local theme and legacy field compatibility.
+Final build/lint/public-GUI result is collected separately before commit.
+
+Final theme verification job321: GUI build clean, five public GUI groups pass,
+Chapters8/27 hard lint pass with style advisories, whitespace clean. No installation
+or restart. Normal working-tree rebuild no longer includes an unfinished theme.

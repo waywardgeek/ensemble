@@ -9,9 +9,11 @@ snapshot, and only then does it publish that snapshot to every connected client.
 An active turn keeps the budget it captured when it began.
 
 The deliverable is a working settings panel: theme, narration, speech rate,
-font size, speech-related pausing, and tool batches per turn. Preferences survive
-browser reload and server restart. A failed save changes neither live behavior
-nor the visible acknowledged settings. This is a C#/.NET 10 extension of the
+font size, speech-related pausing, and tool batches per turn. Theme belongs to
+this browser; the other preferences retain their shared server ownership. Saved
+choices survive reload and restart. A failed shared-settings save changes neither
+live behavior nor the visible acknowledged settings. Blocked browser storage leaves
+theme usable for the current page session without promising reload persistence. This is a C#/.NET 10 extension of the
 Chapter 7 endpoint, not another runtime or a Go-package translation exercise.
 
 ## In plain language
@@ -22,10 +24,11 @@ fails, the page must not pretend the preference was saved.
 
 There are three different lifetimes:
 
-1. **The browser** displays the last server-acknowledged snapshot. Its controls
-   propose changes; local storage is not a second source of truth.
-2. **The GUI server** loads and saves presentation preferences and shares them
-   with all clients. It reaches the actual Agent to read or change its budget.
+1. **The browser** owns its theme preference in origin-local storage. For shared
+   settings it displays the last server-acknowledged snapshot and proposes changes;
+   local storage is not a second authority for those settings.
+2. **The GUI server** loads and saves the other presentation preferences and shares
+   them with all clients. It reaches the actual Agent to read or change its budget.
 3. **The Agent turn** captures its effective budget once. A later settings change
    applies to the next turn, not halfway through this one.
 
@@ -103,7 +106,9 @@ registry, browser-owned Agent state, or a second scheduler.
 
 ### One validation policy for disk and wire
 
-Use these concrete rules in this endpoint:
+Use these concrete rules in this endpoint. The `theme` entry is retained for
+legacy clients and one-time browser migration; current browser controls own their
+local theme and do not patch this shared field.
 
 | Field | Default | Accepted value |
 |---|---|---|
@@ -166,7 +171,7 @@ Keep the existing `/ws` protocol and add:
 
 ```json
 {"type":"get_settings"}
-{"type":"update_settings","settings":{"theme":"dark","tts_speed":1.5}}
+{"type":"update_settings","settings":{"font_size":24,"tts_speed":1.5}}
 ```
 
 A newly connected client receives a full snapshot automatically. Explicit
@@ -229,14 +234,26 @@ explicit light nor dark is selected. Font size is another root variable,
 `--font-size`, used by the page font and inherited by inputs. Existing content
 therefore changes along with the controls.
 
-Follow one edit through the page. Selecting Dark sends the sparse patch
-`{"theme":"dark"}` through `patchSettings`. The control can show the proposed
-choice while “Saving settings…” is displayed, but the acknowledged settings
-remain authoritative. When `settings_updated` arrives, `applySettings` updates
-the root theme attribute, font variable and every settings control. Another tab
-uses the same path. An error restores the acknowledged values and displays the
-failure; it does not pretend the proposed change was saved. This is why the
-page needs both a control value and the last accepted settings snapshot.
+Theme is the browser-owned exception. Selecting Light, Dark, or System updates
+this origin's local preference immediately; it sends no `update_settings` message.
+The header toggle and settings selector use that same preference. Same-origin tabs
+share changes through local-storage events; another browser profile or device keeps
+its own choice. System follows that browser's operating-system color scheme.
+If storage is unavailable, keep the chosen theme usable for the current page
+session without claiming reload persistence. Theme controls also work offline.
+
+The server's legacy `theme` field remains compatible with older clients and saved
+settings. Use it once to seed a browser that has no valid local choice. Subsequent
+settings frames must not overwrite a browser choice, and current theme controls
+must not write the legacy field. Do not migrate font or speech preferences merely
+because theme moved. A local theme is the sole authority for theme, not a competing
+copy of the shared settings store.
+
+Follow a shared edit separately. Changing font size sends the sparse patch
+`{"font_size":24}` through `patchSettings`. The acknowledged settings remain
+authoritative while saving. A `settings_updated` frame updates the font and shared
+controls without resetting theme. An error restores the acknowledged shared values
+and displays the failure; it does not pretend the proposed change was saved.
 
 Put the panel in the existing optional GUI. Provide clearly labeled controls
 for every table entry. Numeric input steps are integral for font and batch count;
@@ -303,12 +320,15 @@ Never damage a real user's configuration to create this fixture.
 ### Browser exercise
 
 Use an isolated browser profile, not another user's connected browser. Operate
-the real visible controls and verify both tabs update. Check system theme changes,
-existing transcript font, narrow-screen geometry, and reload from server state.
+the real visible controls and verify same-origin tabs share theme changes while
+separate profiles remain independent. Check System changes, local reload persistence,
+blocked storage, offline selection, and reconnect without a theme write to the
+server. Separately check shared font changes, narrow-screen geometry, and shared
+settings reload from server state.
 At a fake speech boundary, inspect each constructed utterance's rate, queue two
 items, change rate between them, and toggle pause while the queue is busy. Test
 error cleanup as well as normal completion. Such a fake establishes wiring and
-selection—not audible quality, correct pronunciation, or human accessibility.
+selection, not audible quality, correct pronunciation, or human accessibility.
 
 ### Executable grading
 
@@ -336,5 +356,5 @@ Do not restart or deploy a shared application merely to demonstrate this chapter
 
 Preserve a source-only endpoint, explain the ownership and captured-budget
 choices, record corrections and evidence limitations in the progress record, and
-continue to Chapter 9. The goal is a GUI whose small promises are dependable—not
+continue to Chapter 9. The goal is a GUI whose small promises are dependable, not
 an elaborate settings framework.
