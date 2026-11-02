@@ -54,6 +54,7 @@ public sealed partial class Ensemble
         // This is exact known-value masking, not an arbitrary encoding detector.
         var tokens = Agents()
             .Select(agent => agent.DiagnosticKey())
+            .Concat(Transcriber()?.DiagnosticKeys() ?? Array.Empty<string>())
             .Concat(exchangeSecrets ?? Array.Empty<string>())
             .Where(key => key.Length > 0)
             .SelectMany(key => new[]
@@ -189,6 +190,14 @@ public sealed partial class Ensemble
         catch (Exception error)
         {
             failures = [error];
+        }
+        // Separately funded input preparation has its own lifetime. Stop it
+        // before waiting on other application work; it never sends chat itself.
+        try { Transcriber()?.Destroy(); }
+        catch (Exception error)
+        {
+            failures ??= [];
+            failures.Add(error);
         }
         peerOperations.Wait();
         // Every admitted operation has completed or rolled back. New operations

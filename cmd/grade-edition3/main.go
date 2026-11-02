@@ -21,9 +21,10 @@ func main() {
 // Returning the status lets temporary build cleanup finish before os.Exit.
 func run(args []string) int {
 	flags := flag.NewFlagSet("grade-edition3", flag.ContinueOnError)
-	chapter := flags.Int("ch", 1, "Edition 3 chapter to grade (1, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 18, 19, 20 or 21)")
+	chapter := flags.Int("ch", 1, "Edition 3 chapter to grade (1, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 18, 19, 20, 21 or scoped 26)")
 	asJSON := flags.Bool("json", false, "emit the report as JSON")
-	executableOnly := flags.Bool("executable-only", false, "Chapter 5 public CLI replay/media and non-disruptive hint checks")
+	executableOnly := flags.Bool("executable-only", false, "public CLI checks (Chapter 5 or a declared Chapter 26 media scope)")
+	mediaScope := flags.String("media-scope", "", "Chapter 26 executable scope: image-files (20 points only)")
 	core := flags.String("core", "", "Chapter 4/5/6/7/8/9/10/11/12/13 core source module directory")
 	consumer := flags.String("consumer", "", "Chapter 4/5/6/7/8/9/10/11/12/13 external consumer module directory")
 	consumerCase := flags.String("consumer-case", "", "Chapter 4/5/6/7/8/9/10/11/12/13 JSON case file (default: shout example)")
@@ -42,6 +43,48 @@ func run(args []string) int {
 		if err == flag.ErrHelp {
 			return 0
 		}
+		return 2
+	}
+	mediaScopeSet := false
+	flags.Visit(func(f *flag.Flag) {
+		if f.Name == "media-scope" {
+			mediaScopeSet = true
+		}
+	})
+	if *chapter == 26 {
+		badFlag := false
+		flags.Visit(func(f *flag.Flag) {
+			if f.Name != "ch" && f.Name != "json" && f.Name != "executable-only" && f.Name != "media-scope" {
+				badFlag = true
+			}
+		})
+		if badFlag || !*executableOnly || !gradeedition3.ValidMediaScope(*mediaScope) || flags.NArg() != 1 {
+			fmt.Fprintln(os.Stderr, "Chapter 26 requires -executable-only -media-scope image-files and exactly one executable; this grades 20 points only, not the entire chapter")
+			return 2
+		}
+		candidate, err := filepath.Abs(flags.Arg(0))
+		if err != nil {
+			fmt.Fprintln(os.Stderr, err)
+			return 2
+		}
+		info, err := os.Stat(candidate)
+		if err != nil || !info.Mode().IsRegular() || info.Mode().Perm()&0111 == 0 {
+			fmt.Fprintln(os.Stderr, "Chapter 26 candidate must be an executable file, not a source directory")
+			return 2
+		}
+		report := gradeedition3.Chapter26Images(candidate)
+		if *asJSON {
+			_ = report.WriteJSON(os.Stdout)
+		} else {
+			report.WriteText(os.Stdout)
+		}
+		if !report.Passed {
+			return 1
+		}
+		return 0
+	}
+	if mediaScopeSet {
+		fmt.Fprintln(os.Stderr, "-media-scope belongs only to Chapter 26")
 		return 2
 	}
 	chapter4Flags := false

@@ -17,7 +17,7 @@ internal static class VoiceAudioTests
 
     // Build the published wire layout independently of the product's constants.
     // Changing the product's policy must not silently change the test fixtures.
-    private static byte[] Wave(int samples)
+    internal static byte[] Wave(int samples)
     {
         var wave = new byte[44 + samples * 2];
         "RIFF"u8.CopyTo(wave);

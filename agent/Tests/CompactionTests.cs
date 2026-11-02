@@ -63,18 +63,10 @@ internal static class CompactionTests
             .Where(part => part is ToolCallPart or ToolResultPart)
             .Sum(part => (long)Encoding.UTF8.GetByteCount(JsonCodec.WritePart(part).ToJsonString()));
         Check(total == independentlyCounted, "Cached retained bytes differ from canonical tool serialization");
-        Check(Agent.SelectToolCut(context, 6, (int)total, Redaction.Result) is null, "Cut below high water");
-        Check(Agent.SelectToolCut(context, 6, 0, Redaction.Result) is null, "Disabled band cut");
-        Check(Agent.SelectToolCut(context, 0, 1, Redaction.Result) is null, "Unseen history cut");
-        Check(Agent.SelectToolCut(context, 2, 1, Redaction.Result) is null, "Partial parallel batch cut");
-        int oneBatchBytes = (int)entries.Take(3).Sum(entry => entry.ToolBytes);
-        Check(Agent.SelectToolCut(context, 6, oneBatchBytes, Redaction.Result) is null, "Cut at exact high-water boundary");
-        var third = entries.Take(3).Select(entry => new Entry(entry.Seq + 6, entry.Actor, entry.Parts));
-        var threeBatches = new Context(entries.Concat(third));
-        var hysteresis = Agent.SelectToolCut(threeBatches, 9, oneBatchBytes, Redaction.Result)!;
-        Check(hysteresis.RedactTo == 6, "Hysteresis did not leave newest batch at target budget");
-        var cut = Agent.SelectToolCut(context, 3, 1, Redaction.Result)!;
-        Check(cut.RedactFrom == 1 && cut.RedactTo == 3, "Cut split batch or crossed presentation watermark");
+        // Historical redactions still replay exactly; removing the automatic
+        // selector must not resurrect material already deliberately cut.
+        var cut = new Event(EventKind.Redacted, redactFrom: 1, redactTo: 3,
+            level: Redaction.Result, reason: "historical cut");
         var reduced = History.Reduce(context, cut);
         Check(reduced.Dialogue[1].Parts.OfType<ToolResultPart>().Single().Parts.All(part => part is RedactedPart), "Old results not stubbed");
         Check(reduced.Dialogue[4].Parts.OfType<ToolResultPart>().Single().Parts[0] is TextPart, "Unseen result stubbed");
@@ -82,8 +74,8 @@ internal static class CompactionTests
         var restubbed = History.Reduce(reduced, cut);
         Check(JsonCodec.WritePart(restubbed.Dialogue[1].Parts[0]).ToJsonString()
             == JsonCodec.WritePart(reduced.Dialogue[1].Parts[0]).ToJsonString(), "Repeated result cut changed stub metadata");
-        var toolCut = Agent.SelectToolCut(reduced, 6, 1, Redaction.Tool)!;
-        Check(toolCut.RedactTo == 3, "Tool cut crossed into whole band");
+        var toolCut = new Event(EventKind.Redacted, redactFrom: 1, redactTo: 3,
+            level: Redaction.Tool, reason: "historical cut");
         var removed = History.Reduce(reduced, toolCut);
         Check(removed.Dialogue[0].Parts.Single() is TextPart, "Tool removal lost accompanying explanation");
         Check(removed.Dialogue.Skip(3).SelectMany(entry => entry.Parts).OfType<ToolCallPart>().Count() == 2, "New calls removed");
@@ -91,16 +83,13 @@ internal static class CompactionTests
         Check(replayed.Dialogue.Sum(entry => entry.ToolBytes) == removed.Dialogue.Sum(entry => entry.ToolBytes), "Recorded replay differs");
         Check(context.Dialogue[1].Parts.OfType<ToolResultPart>().Single().Parts[0] is TextPart, "Selection mutated old Context");
 
-        // An orphan cannot justify cutting a later apparently complete exchange.
-        var orphan = new Entry(1, Actor.Tool, [new ToolResultPart("missing", [new TextPart("orphan")])]);
-        Check(Agent.SelectToolCut(new Context(new[] { orphan }.Concat(entries.Skip(3))), 99, 1, Redaction.Result) is null,
-            "Selection guessed through orphan traffic");
+
     }
 }
 
 internal static partial class ActorTests
 {
-    public static async Task ToolCompaction()
+    public static async Task ToolRetention()
     {
         var listener = new TcpListener(IPAddress.Loopback, 0);
         listener.Start();
@@ -112,8 +101,8 @@ internal static partial class ActorTests
         {
             var agent = new Agent(app, new Configuration(Vendor.Anthropic, "model-a",
                 $"http://127.0.0.1:{((IPEndPoint)listener.LocalEndpoint).Port}"));
-            Check(agent.ContextByteBudget() == 400_000 && agent.ToolCompactionBudgets() == (50_000, 25_000),
-                "Wrong target-derived tool budgets");
+            Check(agent.ContextByteBudget() == 400_000,
+                "Wrong default context target");
             agent.SetContextByteBudget(8000);
             try
             {
@@ -121,7 +110,7 @@ internal static partial class ActorTests
                 throw new Exception("Negative budget accepted");
             }
             catch (ArgumentOutOfRangeException) { }
-            Check(agent.ContextByteBudget() == 8000 && agent.ToolCompactionBudgets() == (1000, 500), "Invalid update partially changed policy");
+            Check(agent.ContextByteBudget() == 8000, "Invalid update partially changed policy");
             string payload = "unique-result-" + new string('z', 2000);
             _ = new Tool(agent, "large_result", "Produce real retained output",
                 JsonSerializer.SerializeToElement(new { type = "object", properties = new { } }),
@@ -143,7 +132,7 @@ internal static partial class ActorTests
                     }
                     else
                     {
-                        Check(request.Contains(payload) == (round == 1), "Result not presented whole once before compaction");
+                        Check(request.Contains(payload), "Ordinary retained result was cut by a later request");
                         Check(request.Contains("tool_result") && request.Contains("tool_use"), "Compaction broke call/result adjacency");
                         await Reply(stream, "complete", deadline.Token);
                     }
@@ -153,16 +142,16 @@ internal static partial class ActorTests
             Check(!agent.History().Events().Any(fact => fact.Kind == EventKind.Redacted), "Result cut before successful consumption");
             Check(await agent.SendAsync("second").WaitAsync(deadline.Token) == "complete", "Second turn failed");
             await server.WaitAsync(deadline.Token);
-            Check(agent.History().Events().Count(fact => fact.Kind == EventKind.Redacted) == 1, "Wrong number of durable cuts");
+            Check(!agent.History().Events().Any(fact => fact.Kind == EventKind.Redacted), "Size alone created a durable cut");
             Check(agent.History().Events().Any(fact => fact.Kind == EventKind.ToolReturned && JsonCodec.Text(fact.Parts).Contains(payload)),
                 "Canonical result lost");
             string save = Path.Combine(directory, "save.json");
             agent.History().Save(new PersistenceOptions(save, RetainLog: 0));
             var restored = new Agent(app, agent.Configuration());
-            Check(restored.History().LoadSave(save), "Compacted snapshot not restored");
+            Check(restored.History().LoadSave(save), "Retained snapshot not restored");
             Check(restored.History().View().Dialogue.Sum(entry => entry.ToolBytes) == agent.History().View().Dialogue.Sum(entry => entry.ToolBytes),
                 "Snapshot did not rebuild derived byte caches");
-            Check(!restored.Engine().Render(restored.History().View()).ToJsonString().Contains(payload), "Snapshot resurrected reduced payload");
+            Check(restored.Engine().Render(restored.History().View()).ToJsonString().Contains(payload), "Snapshot lost retained payload");
         }
         finally
         {

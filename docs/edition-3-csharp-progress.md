@@ -1,4 +1,421 @@
-## Current multimedia checkpoint — browser PCM recorder core
+# Active work — image-context recovery; reconstruction paused
+
+Bill directed fixing cumulative image overflow before further transcription.
+Source implements recoverable new-image refusal, visible local overflow, and a
+64-MiB original-image allowance with prepared/request limits unchanged.
+Final shared suite 337/0, five GUI groups, eight focused image groups and browser
+source/draft checks passed. Verification details:
+`docs/edition-3-notes/voice-and-images.md`, image-context repair entry. Bill subsequently authorized staging: six runtime files updated, all 15 hashes verified; launcher and installed skills preserved. No restart performed. Receipt: `/private/tmp/cadence-image-pressure-install/staging.json`. Measure X remains
+at the saved 53-draft/page-54 boundary below; do not resume from reminders alone.
+
+# Active work — full Measure X reconstruction after accepted launch
+
+Bill accepted the live early-release site, then authorized thorough full-document
+reconstruction. Fifty-three of 266 page drafts are now pixel-reviewed, with explicit
+unresolved readings/layout relationships and the final cross-page audit pending.
+Next: PDF page 54. Preserve the live OCR reference until a separately reviewed release.
+See `docs/edition-3-notes/measure-x-transcription/` and the DocumentChat notebook.
+
+# Measure X early release is live
+
+Public site: https://measurex.coderhapsody.ai, separate Codex-funded host on loopback 8090.
+Full existing OCR reference with explicit known-error warnings; original PDF download.
+One bounded local live-provider question succeeded; public HTTPS/PDF/WebSocket/phone-layout
+smoke passed. Browser and 28-request lifecycle/context regressions pass. Bill's public
+interaction acceptance remains next. Sixteen manual page drafts stay separate; reconstruction
+is not a release gate. No automatic boot/restart service installed. See document-chat notebook.
+
+# Latest DocumentChat reconstruction checkpoint
+
+Bill authorized local faithful transcription. PDF is 266 scanned-image pages.
+Sixteen opening page drafts and a 266-page review manifest now live in
+`docs/edition-3-notes/measure-x-transcription/`; unresolved glyphs/table-footnote
+placement remain explicit. This is incomplete, not a replacement website reference.
+Next: page 17 onward and cross-page/amendment/table review.
+Page 15 supplies notes 1–9, preserving deleted definitions; earlier tables link to it. No paid model checks,
+deployment, original-document changes or live-application changes.
+
+# Current correction — host screenshots, not browser-tab sharing
+
+Latest DocumentChat review: existing 266-page reading copy loses amendment markup
+and table values, including unflagged page 4. Public-release fidelity blocker;
+Bill authorized local reconstruction; it is underway, not complete. No source document edits or paid calls. See
+[DocumentChat review](edition-3-notes/document-chat.md#document-fidelity-review--public-release-blocker).
+
+## Current side task: ephemeral Measure X example
+
+`agent/Examples/DocumentChat/` builds cleanly. Real-Agent/fake-provider browser
+isolation plus sanitized-failure visibility pass (five successes, one failure).
+The 28-request protocol fixture covers lifecycle limits, cancellation and accumulated
+context: full reference/prior answers retained, refusal before overflow inference,
+and fresh-session recovery. Source only; real-document OCR/model token/cost checks
+and public access/spending controls remain pending. These are not a security audit.
+See [document-chat notes](edition-3-notes/document-chat.md). Media graders and native
+capture remain separate unfinished work; no native capture while Bill is away.
+
+## Current continuation: attachment grader preparation; native capture deferred
+
+Bill approved a synthetic host capture, and the .NET permission-only probe reported
+access granted. The synthetic window and opt-in capture harness built, but neither
+ran before Bill left. No screenshot was taken. Continue non-native grader work
+while he is away; no background capture or permission prompts.
+
+Attachment payload validation now passes its positive and fourteen negative
+checks. Grader/routing package tests pass, and the external image-file scope still
+passes 20/20 after the shared pixel-validator refactor. Eighty chapter points
+remain ungraded; there is no attachment-scope grade yet. Next is the public GUI
+candidate driver. Details and evidence: [media notebook](edition-3-notes/voice-and-images.md).
+Live instances and reminder configuration unchanged.
+
+## Scheduling, Puffin, and self-improvement: investigation recorded
+
+Bill selected one calendar-capable scheduler for people, Puffin, framework work,
+and authorized Agent launches, with Gateway routing agentic messages as well as
+connections. Preserve Puffin's useful behavior; upgrade plans require Bill's
+approval before implementation. Initial source findings, reported incidents,
+supervision boundaries, proposed policies, migration risks, and open decisions:
+[Scheduling and Puffin investigation](edition-3-notes/scheduling-and-puffin.md).
+The follow-up records the proposed separate scheduler executable and Gateway-owned
+identity component, plus Bill's approved-family/Google-first sign-in direction.
+Implementation and security/migration details still require plan approval.
+No live schedule, credential, service, or runtime was changed. No upgrade
+implementation has begun; the multimedia chapter's remaining gates still apply.
+
+## Current checkpoint: full multimedia narrative draft
+
+At Bill's explicit request, Chapter 26 now has its full narrative draft while
+native host-screenshot acceptance and the remaining external grades stay open.
+Fourteen narrative sections and four exercise contracts describe the implemented
+paths and limits. The index and current authoring instruction are reconciled;
+this is a change in drafting order, not chapter completion.
+
+Seven non-PDF publication tests, assembly, local links, 28-chapter ordering and
+whitespace checks pass. Prose lint exits zero with advisory negative-framing and
+person-gap warnings retained. Bill authorized an isolated PyMuPDF installation;
+the previously blocked eight print/PDF regression tests now pass too. This is
+fixture verification, not a fresh full-book PDF build. Evidence:
+`/private/tmp/cadence-media-prose/`; detailed
+review/corrections: `docs/edition-3-notes/voice-and-images.md`.
+
+No runtime/install/restart or timer change. Retain the actual 20/20 image-files
+external scope and 80 ungraded points. Next: attachment/voice external scopes;
+host native permission, agreed synthetic pixels and delayed-Job/model-turn
+acceptance wait for Bill. Pause repair remains deferred.
+
+## Chapter 26 — exercise draft and first external image-file grade
+
+Four exercise contracts are drafted; full narrative remains unfinished. Edition 3
+`-ch 26 -executable-only -media-scope image-files` passes **20/20**, not 100: the
+other 80 chapter points remain ungraded. The public-CLI/fake-provider check verifies
+randomized prepared PNG pixels, call pairing, original preservation, and replay
+after source deletion. External metadata-only and replay-loss candidates fail.
+Current Go command/grader/fake-provider regressions pass; CLI offline rebuild clean.
+Assembly, three companion and four non-PDF book tests pass; PDF test discovery is
+limited by missing PyMuPDF in the default Python. No dependency download, published
+artifact replacement, live instance change, or native capture. Evidence and fixture
+corrections: notebook and /private/tmp/cadence-media-grader/.
+Next: attachment and voice external grades. Native screenshot acceptance waits for
+Bill; pause repair remains deferred. Existing core 335/0 evidence is unchanged.
+
+## Latest — host-screen tools wired, native acceptance pending
+
+`list_displays` and `screenshot` now have explicit optional `host-screen` skill
+authority, safe-mode and legacy-unskilled refusal, capability-before-effect
+checks, strict selection schemas and existing structured Job/image delivery.
+Four focused groups and full rebuilt shared **335/0**, exit zero, pass.
+Evidence: `/private/tmp/cadence-host-screen-tools/`; reasons and corrections
+in `docs/edition-3-notes/voice-and-images.md`. No native enumeration/capture,
+permission request, live skill install, binary install or restart. Native success
+and delayed-Job image acceptance await Bill at home and an agreed synthetic
+region. macOS only; cross-display rectangles refuse. Goal reminders are being
+disabled at this human-test boundary; the chapter is not complete.
+
+
+## Latest: host-screen backend, not yet model-callable
+
+The clarified Chapter 26 requirement now has an internal macOS backend with
+bounded selection, OS permission preflight, a fixed native helper, and joined
+cancellation/scratch cleanup. Two synthetic/fake-process groups pass; rebuilt
+shared suite 333/0, exit zero. Native enumeration/capture has NOT run. No tool
+advertising or installation yet. Current rectangle selection refuses cross-display
+regions. Next: explicit host-screen authority and tool dispatch, then agreed
+synthetic-region native acceptance. See the host screenshot backend section in
+[the implementation notebook](edition-3-notes/voice-and-images.md) for reasons,
+evidence, and limits. Main/Dev unchanged; pause repair deferred.
+
+
+Bill clarified Chapter 26 requires CodeRhapsody-style host `list_displays` and
+`screenshot`: capture the server computer's display or explicit rectangle and
+deliver actual PNG pixels, without a Chrome picker. Opening contract and notebook
+corrected; host implementation/tests remain pending. Existing browser capture
+evidence certifies only that separate feature. Live Dev voice was accepted by
+Bill after actual test messages and completed replies. Pause repair remains
+deferred; main unchanged. See `docs/edition-3-notes/voice-and-images.md`.
+
+## Dev voice test session — staged, restarted, human acceptance pending
+
+Current runtime is running on Dev8089 with separately selected OpenAI transcription funding; Codex chat funding, saved launcher, skills, settings, credentials and main8088 preserved. Old process fully exited before replacement. All 15 runtime hashes, HTTP/assets and metadata-only WebSocket funding verified; clean GUI build. No microphone or paid audio request yet. Evidence `/private/tmp/cadence-voice-dev-install/`; details and temporary-launch semantics in the voice-and-images notebook. Waiting for Bill’s remote hold/release check; reminders remain off.
+
+## Native screenshot model-turn replay — passed under normal defaults
+
+## Configurable voice hold shortcut — source verified
+
+Added a GUI `voice_shortcut` preference with a strict three-value choice: `AltRight`
+(default), `F8`, or `off`. It uses the existing save-before-publication path; legacy
+settings without the field retain the default. Invalid values refuse the whole patch,
+and failed saves preserve the old shortcut. Speech & Display exposes the choice.
+This is a shortcut in the focused Ensemble page, not an OS-wide background listener.
+
+VoiceControl uses trusted key events, ignores repeats, refuses AltGr/composition and
+modifier chords, and declines Right Alt on Apple platforms rather than hijacking
+Option. A different key, focus loss, composition, setting change, stale binding,
+or hidden tab cancels without sending. Open dialogs block capture. Button-local
+Space/Enter and pointer/touch gestures remain separate. No pause ownership changes.
+
+Evidence `/private/tmp/cadence-voice-shortcut/`: 18 Chrome shortcut groups, eight
+existing control groups, twelve session groups, five rebuilt public GUI groups,
+and five real fake-funded end-to-end page groups pass. Builds have zero warnings or
+errors, both final jobs exit zero, and browser/host/provider/Agent cleanup is joined.
+The end-to-end test saves F8 through the actual form, verifies dialog refusal and
+reload, then records real synthetic PCM with repeated F8 keydown and releases to
+exactly one transcript/model request/History entry. Duplicate commit, blur and held
+cancelled transcription still refuse; exactly two fake audio requests complete.
+Public GUI checks include persistence across host restart and failed-save rollback.
+
+AltGr/platform flags in component tests are controlled simulations, not native
+Windows/Linux keyboard acceptance. An initial asset-check edit accidentally made a
+three-item tuple; compiler refusal was corrected before test success. No live mic,
+paid provider, installation, restart, settings modification in either live instance,
+or pause repair. Next: verify live transcription model/API/pricing and explicit payer,
+then announced Dev-only staging/restart and Bill's remote microphone check.
+
+## Current continuation — real voice admission fixture passed
+
+Source-only voice UI now has real browser-to-server verification, not just simulated voice replies: four browser groups, canonical PCM/multipart, one model request and one History transcript; duplicate/stale cancellation paths refuse. Two fake transcription requests, joined browser/host exits zero. Ten lease/wire regressions pass, build clean. Evidence `/private/tmp/cadence-voice-end-to-end/`; reasons and corrected fixture mistakes in the voice-and-images notebook. No live mic/provider, staging/restart or pause repair. Next is configurable hold shortcut and Dev readiness for Bill's remote check.
+
+
+
+### Current continuation — voice microphone UI and page lifecycle wired in source
+
+VoiceControl and app hooks now connect the trusted held microphone/button-key
+control to VoiceSession, with explicit server funding, original socket/Agent,
+automatic once-only commit, draft exclusion, lifecycle cancellation and visible
+uncertainty. No pause changes. Eight control groups, 12 layout combinations,
+five rebuilt public GUI groups, image page regression and five synthetic voice
+page groups pass; clean build, all fixtures joined. Positive voice page tests use
+real browser PCM but simulated voice protocol replies, NOT real transcription or
+actor admission. Evidence /private/tmp/cadence-voice-control/ and notebook.
+Not installed. Next: fake-funded full server end-to-end and configurable hold
+shortcut, then authorized native checks. No microphone/provider call or restart.
+
+## Composer layout ready for voice controls
+
+Bill requested controls below the full-width input. Source layout and accessible group updated; 12 geometry combinations, full-page attachment regression and five public GUI groups pass, build clean, fixtures joined. Evidence `/private/tmp/cadence-voice-ui/`; details and limits in the voice-and-images notebook. No installation/restart. Next remains VoiceSession/app integration and microphone controls; pause repair deferred.
+
+## Voice browser-session coordinator — source-only component slice
+
+Added `agent/gui/wwwroot/voice-session.js`: one gesture owns one hold and borrows the original socket/Agent/sequence. Begin, release/audio, ready and automatic commit are correlated; duplicate/stale results cannot redirect or repeat a send. Cancellation invalidates synchronously before joining hold cleanup. Disconnect or cancellation after commit is uncertain, never a retry or a claim of retraction. No transcript draft, additional Send, alternate funding, or pause manipulation is introduced.
+
+`agent/GuiTests/voice-session.cjs` passes 12 Chrome groups covering exact audio/envelope, empty-root address, delayed begin, wrong connection/Agent/sequence/error, stale selection, late finish, disconnect, uncertain admission, failure/limits, real VoiceHold early permission release and late-track cleanup, joined teardown and cleanup failure. The first run exposed a real reentrant state-notification cancellation race: the following commit could still send. The corrected implementation rechecks current binding and terminal state immediately before effects and publishes cleanup before notifying observers; that negative run is retained. Existing VoiceHold nine groups and rebuilt five public GUI groups (including root/mounted asset delivery) pass. Build zero warnings/errors; all commands exited zero after correction and fixtures joined. Evidence: `/private/tmp/cadence-voice-session/{browser-first.log,browser-final.log,hold.log,build.log,gui.log}`. Existing shared core 331/0 evidence is carried, not newly rerun for this JS-only slice.
+
+Still UNWIRED: composer microphone/shortcut, app message dispatch/lifecycle, full-page real lease protocol, native microphone and paid transcription acceptance. Controlled sockets/holds are not server or human acceptance. Next integrate through app lifecycle with visible hold/cancel/error/uncertain status and original binding. Neither live instance, installed skill, funding configuration nor pause state changed; no installation, restart, paid call or microphone access.
+
+
+The pending native isolated capture fixture now passes without an enlarged
+context budget. Real source browser skill/catalogue, Agent, MCP and History
+paths deliver one 960x640 PNG (74,146 bytes) to the first model follow-up and
+retain identical bytes for a subsequent human-turn replay. Exactly four local
+fake Responses requests and one trusted-click native synthetic-tab capture;
+ended tracks, no human attachment mutation and no browser errors asserted.
+Browser and host exited zero, with provider/Agents joined. Current GuiTests
+build: zero warnings/errors. Evidence: `/private/tmp/cadence-capture-replay/`
+(build.log, browser.log, host.log, result.json, fixture.txt).
+
+This closes the prior replay failure after removal of automatic tool-budget
+cuts; it does not erase that earlier failure or prove live-provider, tunnel,
+manual-picker or phone acceptance. No live page/desktop/microphone capture,
+paid request, deployment, restart or skill installation. Next: complete voice
+browser-session coordinator and microphone/hold UI, preserving original-Agent/
+socket, once-only release-to-send, stale cancellation and uncertain commit rules.
+Speech disconnect pause repair remains deferred. Reminders enabled at Bill's
+request for 180 seconds; Chapter 26 remains unfinished through native checks,
+exercises/external graders and full prose.
+
+## One size per memory band — source only
+
+At Bill's request, removed configurable high/low watermarks from the current
+C# policy API, new settings JSON, and GUI. Each band retains its byte budget
+and independent disabled flag; graduation derives high = twice budget and
+low = budget. Zero selects the existing default; overflow-sized budgets refuse.
+Legacy complete four-field JSON is validated and read without rewriting; its
+watermarks no longer configure the policy, and an explicit later save uses the
+two-field shape. Partial/malformed legacy policies still refuse.
+
+Failing-before serialization assertion reproduced the old shape. Final settings
+checks 3/0; rebuilt shared suite 331/0, exit zero; clean Tests and GuiTests builds.
+Real Chrome checked six size fields/no watermark fields, acknowledged save,
+explicit reload and refresh in an isolated fake-provider host; browser and host
+exited zero. Evidence: `/private/tmp/cadence-memory-one-size/` (before.log,
+final-settings.log, shared-final.log, browser-browser.log, results.json).
+Chapters 21/22 updated. No live settings edits, deployment, restart, commits or
+reminder enablement. Speech disconnect pause repair remains deferred at Bill's
+request; retain its failing regression. Chapter 26 native screenshot replay and
+voice UI work remain pending. Details in `docs/edition-3-notes/voice-and-images.md`.
+
+## Large tool-result retention correction — source only
+
+### 2026-11-01 — speech pause regression (no deployment)
+
+Added an isolated real-Agent/streamed-turn browser test for speech holding pause
+through normal turn completion. Normal speech completion and missing-callback
+watchdog cases pass; disconnect/reconnect reproduces a stranded automatic pause
+(actual actor Idle + Paused after speech clears). This is not proof of Bill's
+live incident cause. All fixture hosts joined; production pause code unchanged.
+Failing regression, setup corrections, and evidence are recorded in
+`docs/edition-3-notes/voice-and-images.md` (speech pause after completion).
+
+
+Removed the automatic T/8 result and T/16 call/stub budget ladder and its
+presentation watermark. Explicit keep decisions are no longer overridden by a
+later size cut. Opt-in once-only stubbing, tool output limits, handoff, and replay
+of already-recorded redactions remain distinct and unchanged. Chapter 14's
+TL;DR, contract, code example and regression requirements now teach this rule;
+Chapter 21's historical additive-ladder claim is labelled historical.
+
+The strengthened real-Agent fake-provider tests failed against the old code
+(including explicit keep of a 120 KB result) and pass after removal. Coverage
+includes later requests, small companion results, opt-in stubbing without keep,
+and zero-log save/restore. Focused 2/0; full shared suite 331/0, exit zero;
+GUI-test build zero warnings/errors. Evidence: `/private/tmp/cadence-tool-retention/`
+(`before.log`, `after.log`, `build-after.log`, `shared.log`, `gui-build.log`).
+An initial post-edit compile failed on four leftover budget API test references;
+those were corrected before the passing build/tests. Historical Chapter 14
+grader receipts are not new acceptance of this changed contract; frozen graders
+and endpoints were not rewritten.
+
+Removed the screenshot fixture's 8 MiB budget workaround; native replay under
+the normal default remains unrun. No installation, restart, paid requests or
+reminder changes. The separate request to expose only one size per memory band
+and remove configurable high/low watermarks is still pending.
+
+## Latest handoff continuation regression — source only
+
+Bill reported Android image paste now works after reinstalling Chrome's web app;
+this is acceptance after reinstall, not a proven diagnosis. Reminders remain off.
+
+A bounded real-Agent fake-provider test exposed an unlabelled-checkpoint ambiguity:
+the cut retained future-tense narration but removed the successful handoff receipt.
+The renderer now labels typed checkpoints as already completed and directs useful
+continuation. The new test failed before the change and passed afterward; related
+selection/replay/interruption groups passed 5/0. Chapter 14 now teaches the failure,
+bounded adversarial test and negative control, without extending historical grades.
+The first shared run was 329/2: two cache tests assumed bare-note text. Their exact
+marker-count/boundary checks remain, with labelled-note lookups corrected. Final
+rebuilt shared regression passed 331/0; see `/private/tmp/cadence-handoff-loop/shared-final.log`.
+No installation, restart or paid provider call. This is a reproduced wire ambiguity,
+not a proven complete explanation for the live repetition. Details and evidence:
+[implementation notebook](edition-3-notes/voice-and-images.md).
+
+## Latest voice lease boundary — source-only foundation
+
+### Latest media continuation — trusted browser consent (source only)
+
+Screenshot consent and asynchronous MCP dispatch now have seven passing Chrome component/dispatcher groups, seven capture/real-WebSocket groups, and five rebuilt public GUI groups. Dedicated trusted approval prevents `gui_click` from approving capture; pending work handles cancellation, session closure and replacement sockets without late image publication. App wiring/dialog and assets are written; full-page Agent-request integration, catalogue/skill publication, model-turn/native verification and staging remain. Production browserTools still does not advertise `gui_capture`; neither live instance changed. Details, corrections and evidence: [implementation notebook](edition-3-notes/voice-and-images.md), `/private/tmp/cadence-capture-consent/`. All verification jobs joined through 234.
+
+### Latest media checkpoint — capture host admission verified
+
+The GUI host now binds capture transport to the actual relay Agent, invalidates capture on selection changes, permits a larger MCP envelope only for a matching pending capture, and redacts MCP image data even when malformed. Seven transport/HTTP/WebSocket groups and five public GUI groups passed; clean build, job 204 joined. Evidence: `/private/tmp/cadence-capture-tool/host-*.log`; fixture setup/handshake corrections and scope are in [the notebook](edition-3-notes/voice-and-images.md).
+
+Still source-only. Next is asynchronous browser dispatch and trusted human consent, cancellation/selection/authority handling, then production `gui_capture` advertisement and model-turn/native verification. Neither live instance changed. Voice UI and the chapter's exercises/graders/prose remain unfinished.
+
+### Latest media checkpoint — Agent-requested capture transport
+
+Bill confirmed the missing distinction: the dev camera is human-operated, not yet an Agent-callable screenshot tool. Capture-aware MCP transport is now implemented source-only, with bound Agent/RPC identity, capability-before-dispatch, bounded PNG preparation, stale/duplicate/cancel refusal, and typed image results. Five focused transport groups and five public GUI groups passed; build clean, job 179 joined. Evidence: `/private/tmp/cadence-capture-tool/`; reasons, failures and limits are in [the multimedia notebook](edition-3-notes/voice-and-images.md).
+
+Next: host frame limits/trace redaction/selection invalidation, asynchronous browser dispatch and trusted human consent, then tool advertisement and real model-turn/native acceptance. Do not advertise `gui_capture` or imply Dev already has it. No live deployment/provider request in this slice. Voice UI, remaining live checks, exercises/graders and full chapter prose remain unfinished.
+
+## Latest multimedia checkpoint — screenshot UI verified and staged in dev
+
+The header camera feeds the existing addressed image draft/send flow without adding composer width. Seven full-page browser groups, four existing image/paste groups, five rebuilt public GUI groups, a targeted selection mutant and a native full-GUI capture-to-admission test passed. Native evidence used an isolated synthetic 960x640 tab, not a live conversation or desktop. Fixtures joined; see [implementation notebook](edition-3-notes/voice-and-images.md) and `/private/tmp/cadence-page-capture/ui/` for reasons, corrected fixture failures and limits.
+
+Dev only was rebuilt/staged/restarted after full old-process exit; 15 files verified (six changed), launcher/auth/settings unchanged, HTTP 200 and served capture assets verified. Receipt `/private/tmp/cadence-page-capture/dev-install/staging.json`. Main 8088 untouched. Human picker/tunnel assessment is pending. Next: voice hold/permission UI and original-Agent/socket commit integration, then remaining live checks, executable exercises/graders and the complete Chapter 26 body. Three-minute reminders remain active.
+
+Latest multimedia slice: source-only connected-page capture core verifies a fresh tab handle/origin, returns actual bounded PNG pixels, and joins cancellation/track/video/canvas cleanup. Ten synthetic Chrome groups, two intended mutant failures, one native isolated this-tab capture (640×360 red/blue PNG), and five public GUI groups with root/mounted asset checks passed. Screenshot UI/delivery remains unwired; no live deployment or paid request. See [notebook](edition-3-notes/voice-and-images.md) and /private/tmp/cadence-page-capture/.
+
+Latest multimedia slice: source-only voice WebSocket begin/audio/cancel/commit protocol passes ten combined lease/wire groups and five freshly rebuilt public GUI groups. Original Agent/socket binding, responsive cancellation, one admission, bounded WAV and joined disconnect are verified with synthetic audio/fake transport. Microphone UI and live voice remain unfinished; neither live instance updated. Evidence and limits: [implementation notebook](edition-3-notes/voice-and-images.md).
+
+An internal connection-scoped VoiceLease now binds a transcription and single actor
+admission to the actual target Agent and capture sequence, with cancellation and
+joined disposal. Six grouped internal real-component tests pass (fake HTTP, paused
+real Agents); see `agent/VoiceLeaseTests` and the
+[notebook](edition-3-notes/voice-and-images.md). It is not wired to WebSocket messages
+or browser gestures yet. No live provider/microphone/install/restart in this slice.
+Next: receive-loop protocol and selection/disconnect cleanup, then browser wiring.
+
+## Latest voice integration boundary — explicit existing-key selection
+
+GUI host transcription remains off by default. An explicit `openai-api-key` route
+now accepts either its dedicated environment key or an explicitly selected settings
+file (`--transcription-key-file` / `EN_TRANSCRIPTION_KEY_FILE`, bounded 1 MiB,
+required `openai_api_key`, no writes/fallback). Thirteen isolated real-host cases
+pass with synthetic credentials, zero provider calls and joined processes; GUI
+build clean. See the [notebook](edition-3-notes/voice-and-images.md) and
+`/private/tmp/cadence-voice-hold/key-file-*.log`. Existing live launchers, settings
+and credentials unchanged; the route is not enabled in either live host.
+
+Remaining next slice: original-Agent/socket voice lease and cancellation-aware
+ready/commit protocol, then visible hold gestures and separately funded live checks.
+The tested hold controller and transcription owner are not yet an end-to-end voice UI.
+
+## Current checkpoint — voice hold ownership and installed image layout
+
+Voice hold controller now has nine real-Chrome groups passing, including a real
+PCM recorder with generated audio. Early release/cancellation stops late permission
+streams, repeated release shares one finish, cancelled finishes return no audio,
+and cleanup is joined. A self-wait found by the first test was corrected and its
+failure retained. Evidence: `/private/tmp/cadence-voice-hold/` and the
+[implementation notebook](edition-3-notes/voice-and-images.md).
+
+This new controller is not wired to UI gestures, Agent/socket leases, transcription
+or automatic send, and has not been installed. No microphone or paid call occurred.
+Separately, transcription response bounds and cleanup privacy now pass nine focused
+groups; shared suite **330/0**, exit zero. The fixed cleanup path rejects synthetic
+credential-bearing disposal errors without retaining their private inner exceptions.
+
+Bill confirmed Android paste on updated dev, desktop attachment delivery here,
+and improved installed composer layout. Phone controls still stack vertically;
+Bill accepts that for now. Android paste in this main instance remains unresolved.
+The main installation receipt is `/private/tmp/cadence-main-layout-install/staging.json`;
+Bill restarted and accepted the improvement. Dev journal recovery succeeded with
+explicit permission; the missing event's cause remains unproven. Future restarts
+must join actual process exit, not merely wait for listener closure.
+
+Earlier checkpoints below are historical evidence, not current pending-test lists.
+
+## Current media handoff checkpoint
+
+Handoff now removes media parts from active model context while preserving text.
+GUI history and existing log retention are unchanged. Focused replay/render tests
+5/0 and shared suite 327/0 passed; GUI build clean. Dev runtime staged and launched
+with its existing launcher; receipt `/private/tmp/cadence-handoff-dev/staging.json`.
+Human dev acceptance and Android attachment fallback remain pending. Working
+port 8088 was not changed. See the voice-and-images notebook for evidence and
+fixture corrections. Transcription work remains separate and unfinished.
+
+## Current multimedia checkpoint — initial transcription fixture tests
+
+The separately funded root-owned transcription client builds with zero warnings
+or errors. Three new HTTP-handler groups plus three PCM groups pass (6/0): exact
+multipart/audio delivery, response refusals/recovery, and joined destruction with
+late-result refusal. Evidence: `/private/tmp/cadence-voice-transcription/` and the
+[implementation notebook](edition-3-notes/voice-and-images.md).
+
+This remains an uncommitted, incompletely verified slice: additional cancellation,
+deadline, streamed-limit and cleanup-failure tests are pending. No paid audio,
+microphone, GUI funding/hold/send integration, installation or restart occurred.
+Shared regression results will be recorded after the running check completes.
+
+## Earlier multimedia checkpoint — browser PCM recorder core
 
 A browser recorder now owns one audio track, AudioContext, worklet, bounded PCM
 storage, and joined cleanup. It outputs the canonical mono 16 kHz / PCM16 WAV,

@@ -198,6 +198,7 @@ public sealed partial class Engine
         return Parent().Tools().Where(tool => Parent().AllowsMemoryTool(tool.Name())
             && (tool.Name() != "goal_control" || Parent().GoalAvailable(context))
             && config.AllowsTool(tool.Name())
+            && (tool.Name() is not ("list_displays" or "screenshot") || enabled.Contains(tool.Name()))
             && !Parent().IsAutomaticTool(tool.Name())
             && ((skills.Length == 0 && Parent().SkillManager() is null) || declared.Contains(tool.Name()))).ToArray();
     }
@@ -271,7 +272,14 @@ public sealed partial class Engine
             var retained = entry.Parts.Where(p => p is not ToolResultPart)
                 .Select(p => p switch
                 {
-                    HandoffPart note => new TextPart(note.Text),
+                    // The cut removes the successful tool receipt but keeps
+                    // earlier narration. Preserve completion semantics so an
+                    // "I will checkpoint" promise cannot masquerade as pending work.
+                    HandoffPart note => new TextPart(
+                        "[Completed micro_handoff checkpoint]\n"
+                        + "This checkpoint has already been recorded and its context cut applied. "
+                        + "Continue from the note below; do not repeat the handoff merely to carry it out.\n\n"
+                        + note.Text),
                     RecallPart recall => new TextPart(recall.Attachment.Text),
                     _ => p
                 }).ToArray();

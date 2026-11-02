@@ -110,7 +110,7 @@ public sealed partial class Engine
         }
     }
 
-    private partial byte[] ReadMedia(BlobPart blob, ImageRequestBudget budget)
+    private partial byte[] ReadMedia(BlobPart blob, ImageRequestBudget budget, bool measureOnly)
     {
         // Project refuses unsupported capabilities/references before any reads.
         // Non-image modalities retain their existing contract.
@@ -130,6 +130,7 @@ public sealed partial class Engine
                 throw new InvalidDataException("Image must contain 1 to 8388608 bytes.");
             }
             ReserveImage(budget, length);
+            if (measureOnly) return [];
             bytes = new byte[(int)length];
             input.ReadExactly(bytes);
             // A growing file cannot bypass the allocation bound. A truncated
@@ -160,6 +161,7 @@ public sealed partial class Engine
                 throw new InvalidDataException("Decoded image exceeds the image byte limit.");
             }
             ReserveImage(budget, decodedCeiling);
+            if (measureOnly) return [];
             bytes = Convert.FromBase64String(reference.Locator[prefix.Length..]);
             if (bytes.Length == 0 || bytes.Length > MaximumImageBytes)
             {
@@ -169,15 +171,35 @@ public sealed partial class Engine
         return bytes;
     }
 
+    internal partial void ValidateImageBudget(Context context, IEnumerable<Part> additional)
+    {
+        var budget = new ImageRequestBudget();
+        // Admission is serialized by the Agent. Reuse the actual request
+        // projection and byte accounting, without allocating/decoding payloads.
+        void Count(IEnumerable<Part> parts)
+        {
+            foreach (var part in parts)
+            {
+                if (part is BlobPart blob && MediaKind(blob.Mime) == Media.Image)
+                    ReadMedia(blob, budget, measureOnly: true);
+                else if (part is ToolResultPart result)
+                    Count(result.Parts);
+            }
+        }
+        var config = Parent().Configuration();
+        CheckMedia(additional, config);
+        foreach (var entry in Project(context, config, out _, out _))
+            Count(entry.Parts);
+        Count(additional);
+    }
+
     private static void ReserveImage(ImageRequestBudget budget, long bytes)
     {
         // Count actual transmissions, including repeated images in retained
         // History. Refusal changes neither History nor another render's budget.
         if (budget.Images >= MaximumRequestImages || bytes > MaximumRequestImageBytes - budget.Bytes)
         {
-            throw new InvalidDataException(
-                "Image request exceeds 32 images or 32 MiB of image payloads. " +
-                "No images were dropped; reduce the active image context before retrying.");
+            throw new ImageBudgetExceededException();
         }
         budget.Images++;
         budget.Bytes += bytes;

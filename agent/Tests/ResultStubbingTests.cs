@@ -20,9 +20,9 @@ internal static class ResultStubbingTests
             var agent = new Agent(app, new Configuration(Vendor.Anthropic, "model-a", "http://127.0.0.1:1", stubsToolResults: true));
             _ = new Tool(agent, ToolKind.KeepToolResults);
             agent.SetContextByteBudget(1);
-            Check(agent.ToolCompactionBudgets() == (1, 1), "Positive target disabled an integer-rounded band");
+            Check(agent.ContextByteBudget() == 1, "Positive target was not retained");
             agent.SetContextByteBudget(0);
-            Check(agent.ToolCompactionBudgets() == (0, 0), "Zero target retained an automatic band");
+            Check(agent.ContextByteBudget() == 0, "Zero target was not retained");
             agent.SetContextByteBudget(400_000);
             JsonElement args = JsonSerializer.SerializeToElement(new { });
             var big = new ToolResultPart("a", [new TextPart(new string('x', 2000))]);
@@ -111,7 +111,7 @@ internal static partial class ActorTests
             string firstPayload = "FIRST-WHOLE-" + new string('a', scenario == "keep-large" ? 120000 : 8000);
             string nextPayload = "NEXT-WHOLE-" + new string('b', 8000);
             bool optIn = scenario != "ordinary";
-            bool keepFirst = scenario is "ordinary" or "keep" or "disabled";
+            bool keepFirst = scenario is "ordinary" or "keep" or "disabled" or "keep-large";
             bool stubPolicy = optIn && scenario != "disabled";
             try
             {
@@ -175,7 +175,7 @@ internal static partial class ActorTests
                         else
                         {
                             Check(request.Contains(firstPayload) == keepFirst, scenario + ": old batch keep/stub decision changed");
-                            Check(request.Contains("SMALL-RETAINED") == (scenario != "keep-large"), scenario + ": small result did not follow its whole-batch ladder boundary");
+                            Check(request.Contains("SMALL-RETAINED"), scenario + ": small companion result was removed");
                             Check(request.Contains(nextPayload) == (round == 2 || !stubPolicy), scenario + ": next batch not independently decided");
                             // An empty successful response is still the once-only
                             // boundary and must survive zero-log persistence.
@@ -199,8 +199,8 @@ internal static partial class ActorTests
                     if (scenario == "keep-large")
                     {
                         long oldResult = events.Single(fact => fact.Kind == EventKind.ToolReturned && fact.CallID == "a").Seq;
-                        Check(events.Any(fact => fact.Kind == EventKind.Redacted && fact.Reason == "tool result budget"
-                            && fact.RedactFrom <= oldResult && fact.RedactTo >= oldResult), "Keep bypassed the ordinary byte ladder");
+                        Check(!events.Any(fact => fact.Kind == EventKind.Redacted && fact.Reason == "tool result budget"
+                            && fact.RedactFrom <= oldResult && fact.RedactTo >= oldResult), "Size overrode explicit keep");
                         Check(!events.Any(fact => fact.Kind == EventKind.Redacted && fact.Reason == "once-only tool result stubbing"
                             && fact.RedactFrom <= oldResult && fact.RedactTo >= oldResult), "Keep did not veto immediate policy");
                     }

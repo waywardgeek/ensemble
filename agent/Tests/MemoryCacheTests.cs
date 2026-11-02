@@ -32,7 +32,10 @@ internal static partial class MeterTests
                  new(2, Actor.System, [new HandoffPart("NEWEST_CHECKPOINT")]),
                  new(3, Actor.Human, [new TextPart("DIALOGUE_TAIL")])], memories: memories);
             markers = Marked(withHandoffs);
-            Check(markers.SequenceEqual(["NEWEST_CHECKPOINT", "DIALOGUE_TAIL"]), "Handoff did not supersede memory boundary");
+            Check(markers.Length == 2
+                && markers[0].StartsWith("[Completed micro_handoff checkpoint]", StringComparison.Ordinal)
+                && markers[0].EndsWith("\n\nNEWEST_CHECKPOINT", StringComparison.Ordinal)
+                && markers[1] == "DIALOGUE_TAIL", "Handoff did not supersede memory boundary");
             var retired = new Context(dialogue: dialogue, memories: memories.Take(1));
             markers = Marked(retired);
             Check(markers.Any(text => text.Contains("STABLE_SOUL")) && !markers.Any(text => text.Contains("RECENT_MEMORY")),

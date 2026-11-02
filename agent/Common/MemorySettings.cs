@@ -3,23 +3,20 @@ using System.Collections.Immutable;
 namespace Ensemble;
 
 /// <summary>Value-like byte policy. Zero sizes select defaults, not token limits.
-/// Disabling hides this band without deleting files. The containing settings
-/// validate effective low/high watermarks using the appropriate band default.</summary>
+/// Disabling hides this band without deleting files. Graduation thresholds are
+/// derived from this single size: trigger above twice budget, reduce toward budget.</summary>
 public sealed partial class MemoryBandSettings
 {
     public readonly long Budget;
-    public readonly long HighWatermark;
-    public readonly long LowWatermark;
     public readonly bool Disabled;
-    public partial MemoryBandSettings(long budget = 0, long highWatermark = 0,
-        long lowWatermark = 0, bool disabled = false);
+    public partial MemoryBandSettings(long budget = 0, bool disabled = false);
     internal partial MemoryBandSettings Effective(long defaultBudget);
     internal partial bool Same(MemoryBandSettings other);
 }
 
 /// <summary>Immutable per-Agent memory policy, independent of the existing
-/// 400,000-byte tool-history target. Conversation defaults to 3,000 bytes;
-/// corpus bands default to 1,500. Effective watermarks default to twice budget
+/// context-capacity setting. Conversation defaults to 3,000 bytes;
+/// corpus bands default to 1,500. Graduation thresholds are always twice budget
 /// and budget. SOUL never graduates and MEMORY is terminal.</summary>
 public sealed partial class MemorySettings
 {
@@ -70,5 +67,5 @@ public static partial class JsonCodec
     public static partial System.Text.Json.Nodes.JsonObject WriteMemorySettings(MemorySettings settings);
     public static partial MemorySettings ReadMemorySettings(System.Text.Json.JsonElement value);
     private static partial System.Text.Json.Nodes.JsonObject WriteMemoryBandSettings(MemoryBandSettings settings);
-    private static partial MemoryBandSettings ReadMemoryBandSettings(System.Text.Json.JsonElement value);
+    private static partial MemoryBandSettings ReadMemoryBandSettings(System.Text.Json.JsonElement value, long defaultBudget);
 }

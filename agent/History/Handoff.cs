@@ -9,10 +9,12 @@ public sealed partial class History
         {
             // Notes close completed segments. Retain older notes until a memory
             // replacement commits; tool clearing alone must not erase their
-            // reasons. Ordinary system text and skills also remain unchanged.
+            // reasons. Media payloads leave active context at this boundary too;
+            // canonical events still retain them. Preserve accompanying prose.
+            // Ordinary system text and skills also remain unchanged.
             var indices = Enumerable.Range(0, entry.Parts.Length)
                 .Where(index => entry.Parts[index] is not ToolCallPart and not ToolResultPart
-                    and not OpaquePart)
+                    and not OpaquePart and not BlobPart)
                 .ToArray();
             if (indices.Length == 0)
             {

@@ -15,7 +15,9 @@ public sealed partial class Agent
     private partial void ValidateInputImages(AgentInput input);
 
     public const int MaximumImageOutputBytes = 8 * 1024 * 1024;
-    public const int MaximumImageSourceBytes = 32 * 1024 * 1024;
+    public const int MaximumImageSourceBytes = 64 * 1024 * 1024;
+    private partial void ValidateAdditionalImages(IEnumerable<Part> parts);
+    private partial ToolResultPart AdmitToolImages(ToolResultPart result);
     public const long MaximumImagePixels = 24_000_000;
     public const int MaximumImageEdge = 2048;
 

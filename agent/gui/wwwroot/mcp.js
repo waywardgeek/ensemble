@@ -4,6 +4,8 @@
 const browserTools = [
     { name: "gui_snapshot", description: "Inspect visible page text and CSS selectors; not pixels.",
         inputSchema: { type: "object", properties: {}, additionalProperties: false } },
+    { name: "gui_capture", description: "Request PNG pixels of the visible connected Ensemble tab. Requires a trusted human confirmation and browser picker; other tabs/windows and unsupported browsers or models refuse. A pending request is not a completed capture.",
+        inputSchema: { type: "object", properties: {}, additionalProperties: false } },
     { name: "gui_click", description: "Click one visible element identified by a snapshot selector.",
         inputSchema: { type: "object", properties: { selector: { type: "string" } }, required: ["selector"], additionalProperties: false } },
     { name: "gui_input", description: "Replace a visible text field's value and dispatch its input event.",
@@ -102,7 +104,13 @@ function handleMcp(connection, frame) {
     }
     if (!("id" in request)) {
         if (request.method === "notifications/initialized") connection.mcpInitialized = true;
-        return; // Cancellation notifications cannot undo already-completed DOM effects.
+        else if (request.method === "$/cancelRequest")
+            void cancelBrowserCapture(connection, frame.agent_id, request.params?.id);
+        else if (request.method === "notifications/ensemble/browser_closed") {
+            connection.mcpInitialized = false;
+            void closeBrowserCapture(connection);
+        }
+        return; // Cancellation cannot undo already-completed DOM effects.
     }
     const reply = { jsonrpc: "2.0", id: request.id };
     if (request.method === "initialize") {
@@ -117,6 +125,11 @@ function handleMcp(connection, frame) {
     } else if (request.method === "tools/list") {
         reply.result = { tools: browserTools };
     } else if (request.method === "tools/call") {
+        if (request.params?.name === "gui_capture") {
+            // Human consent must not block cancellation or unrelated RPCs.
+            void completeBrowserCapture(connection, frame.agent_id, request);
+            return;
+        }
         try {
             const value = browserCall(request.params?.name, request.params?.arguments ?? {});
             reply.result = { content: [{ type: "text", text: typeof value === "string" ? value : JSON.stringify(value) }] };
@@ -126,7 +139,20 @@ function handleMcp(connection, frame) {
     } else {
         reply.error = { code: -32601, message: "Unknown browser MCP method." };
     }
-    if (connection.readyState === WebSocket.OPEN) {
-        connection.send(JSON.stringify({ type: "mcp", agent_id: frame.agent_id, data: reply }));
+    sendBrowserReply(connection, frame.agent_id, reply);
+}
+function sendBrowserReply(connection, target, reply) {
+    if (connection.readyState === WebSocket.OPEN)
+        connection.send(JSON.stringify({ type: "mcp", agent_id: target, data: reply }));
+}
+async function completeBrowserCapture(connection, target, request) {
+    let result;
+    try {
+        result = await requestBrowserCapture(connection, target, request.id, request.params?.arguments ?? {});
+    } catch (error) {
+        result = { isError: true, content: [{ type: "text", text: error.message || "Capture failed." }] };
     }
+    // Never retransmit a result on a replacement connection.
+    try { sendBrowserReply(connection, target, { jsonrpc: "2.0", id: request.id, result }); }
+    catch { /* The original transport can no longer receive this result. */ }
 }

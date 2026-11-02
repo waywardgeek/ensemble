@@ -51,7 +51,7 @@ public sealed partial class Agent
                 {
                     continue;
                 }
-                selected = Memory().CaptureGraduation(context, source, band.HighWatermark, band.LowWatermark, DateTimeOffset.UtcNow);
+                selected = Memory().CaptureGraduation(context, source, checked(2 * band.Budget), band.Budget, DateTimeOffset.UtcNow);
                 if (selected is not null && policy.For(destination).Disabled)
                 {
                     Parent().Log($"Memory compression deferred: {destination} band is disabled");

@@ -112,6 +112,23 @@ static class ImageControlsTests
             await Send(Envelope(7, target, source));
             await Frame("image_accepted");
             Check(Images() == 2, "Refusals disrupted subsequent valid admission.");
+            // Fill the remaining count allowance with tiny prepared images;
+            // the next WebSocket image must be refused with its sequence intact.
+            using var smallBitmap = new SKBitmap(4, 4);
+            smallBitmap.Erase(SKColors.Blue);
+            using var smallImage = SKImage.FromBitmap(smallBitmap);
+            using var smallPng = smallImage.Encode(SKEncodedImageFormat.Png, 100);
+            var small = agent.PrepareImage(smallPng.ToArray()).Image;
+            for (int i = 0; i < 30; i++)
+                await agent.PostAsync(new AgentInput(InputKind.Message, "fill", [small])).WaitAsync(token);
+            int beforeRefusal = agent.History().Events().Length;
+            await Send(Envelope(8, target, source));
+            var overflow = await Frame("error");
+            Check(overflow.GetProperty("image_sequence").GetInt64() == 8
+                && overflow.GetProperty("message").GetString()!.Contains("micro_handoff"),
+                "Overflow refusal was not correlated or actionable.");
+            Check(Images() == 32 && agent.History().Events().Length == beforeRefusal,
+                "Overflow admitted an image or caption.");
             // Inbound envelopes and outbound History frames both pass through
             // the same trace projection. No pixel payload belongs in this log.
             string trace = File.ReadAllText(tracePath);

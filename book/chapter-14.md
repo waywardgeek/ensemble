@@ -13,7 +13,7 @@ The breakfast story, byte measurements, and compaction experiments described her
 ## TL;DR: what you build
 
 1. **One owner for each decision.** Agent selects reductions at safe actor boundaries; History applies recorded facts; Engine renders the resulting Context. A worker never trims History or decides when another model request may start.
-2. **One target, two bands.** The default target is 400,000 bytes. Results use T/8, calls and stubs T/16. Each band crosses twice its budget before cutting an old prefix back toward one budget. Complete call/result batches are the unit of selection.
+2. **Retention is a decision, not a hidden size cap.** The default target is 400,000 bytes; opt-in immediate stubbing uses T/100. There is no later T/8 result band or T/16 call/stub band that overrides a retained batch. A large result deliberately kept for discussion remains available until an explicit reduction such as handoff.
 3. **An explicit keep-or-stub option.** For opted-in configurations, a large result is considered once after a successful request presents it. The model may call `keep_tool_results` in the consuming response. Ordinary models do not acquire this policy from a guessed name.
 4. **A real checkpoint kind.** `micro_handoff` records an ordinary result and then `HandoffRecorded`. The reducer removes tool traffic and private replay material, replaces older active handoff notes, and preserves visible dialogue and manuals.
 5. **Immediate revocation, retained instructions.** Pending skill unload removes authority, including deferred references and automatic snapshots. Its manual remains in SYSTEM. Retiring that manual is not this chapter's job.
@@ -25,8 +25,9 @@ The endpoint is still C# 14/.NET 10. Shared vocabulary and persistent state are 
 
 ## In plain words
 
-Keep the user's words and useful explanations. Once a tool result has done its
-job, replace its bulk with a stub, and later remove the paired call and stub.
+Keep the user's words and useful explanations. In an opted-in session, replace
+a consumed large result with a stub unless the model keeps it for later use.
+Do not silently override that decision because the retained result is large.
 At a deliberate checkpoint, keep one new note and clear tool traffic without
 summarizing away the conversation. Record every cut so replay knows exactly what
 happened. Preserve original facts separately, and make crash recovery depend on
@@ -46,7 +47,7 @@ A removed file result can often be obtained again by reading the file. That is n
 
 One earlier bug was particularly instructive: a stub referred to an output path whose numeric handle was reused after restart. The next reader received plausible output from the wrong command. Wrong data was worse than no data. This endpoint does not turn a result stub into an unverified promise that some path still names its original bytes.
 
-Tool clearing is not dialogue summarization. The automatic policy in this chapter never asks a model to replace the user's goal or a discussion with a compressed paraphrase. Existing reduction primitives can express other operations, but the policy here selects result and tool reductions only.
+Tool clearing is not dialogue summarization. The automatic policy in this chapter never asks a model to replace the user's goal or a discussion with a compressed paraphrase. Existing reduction primitives can express other operations, but this chapter does not select automatic size-based cuts of retained tool batches. Historical recorded reductions still replay as recorded.
 
 ## 14.2 Keep the relationships simple
 
@@ -67,7 +68,6 @@ Common declares the new operations and values, including:
 public const int DefaultContextByteBudget = 400_000;
 public partial int ContextByteBudget();
 public partial void SetContextByteBudget(int bytes);
-public partial (int ResultsBytes, int CallsBytes) ToolCompactionBudgets();
 ```
 
 These declarations belong to the existing partial Agent. Their implementation belongs in `Agent/Compaction.cs`. There is no settings service copied into every object and no separate reduction scheduler.
@@ -92,27 +92,34 @@ Both tool clearing and handoff retain pending manuals in SYSTEM. **Removing perm
 
 The historical chapter discussed frozen inline declarations. This C# edition uses the Chapter 9 provider declaration mechanism instead. Stable primary instructions and infrequent cuts remain useful, but this endpoint makes no claim to implement that old inline protocol or to have measured a provider's cache benefit.
 
-## 14.4 The two-band ladder
+## 14.4 Retention must respect the decision
 
-Let T be the Agent's context-byte target. The default is 400,000:
+A tool's output limit controls how much its observation delivers. It is not a
+promise that the provider has room for that output, but a later hidden size
+check must not silently undo the choice to retain it. Reading an entire book
+and keeping it for discussion is a legitimate use of a large tool result.
 
-| Use | Derived amount at the default |
-| --- | ---: |
-| Whole-result band, T/8 | 50,000 bytes |
-| Call-and-stub band, T/16 | 25,000 bytes |
-| Optional immediate-stub threshold, T/100 | 4,000 bytes |
+Earlier versions taught a two-band ladder: results used T/8, calls and stubs
+T/16, and crossing twice a band budget caused automatic prefix cuts. Remove
+that selector and its presentation watermark. It overrode explicit keep
+requests, even after the requested material had reached the model successfully.
+Increasing the fixture's target merely concealed this conflict.
 
-A positive target has a one-byte minimum for each ladder band. The public setter refuses negative values without mutation; zero disables automatic byte-budget reduction. These are byte measures of serialized tool material, not token counts, model context capacities or a hard cap on the entire conversation. Dialogue and manuals may grow beyond T.
+Ordinary results remain intact. With immediate stubbing enabled, decide once
+for the just-consumed batch as described below; a valid `keep_tool_results`
+prevents that cut. Later requests and snapshot restoration must not reconsider
+that decision merely because the retained tool traffic is large. Handoff is
+still an explicit context cut; keeping a batch does not exempt it from handoff.
 
-Each immutable entry caches its tool-byte measure. This is a derived value of immutable content, not another mutable accounting authority. Selection examines complete batches, using response-local call/result pairing. Repeated IDs in later completed batches remain legal. An incomplete, orphaned or ambiguous exchange stops safe prefix selection; the algorithm does not invent a result to make progress.
+Keep the reducer and replay support for historical `Redacted` events. Removing
+an automatic policy must not resurrect content that an earlier recorded cut
+already removed. Calls and results remain paired, and canonical events are not
+rewritten.
 
-The result band measures eligible batches with whole results. Above twice its budget, select the oldest prefix sufficient to bring the measured band down toward one budget. Record a `Redacted` event with `Redaction.Result` and fixed sequence bounds. Applying it replaces result bodies with stubs while preserving their calls and identities. Re-stubbing an existing stub preserves its metadata.
-
-Then consider the call/stub band. It may remove only a stub-only prefix, never jump over a still-whole batch. Above twice that band's budget, record `Redaction.Tool` over complete old batches. Calls and results disappear together; surrounding visible text remains.
-
-Why twice the budget? A cut invalidates a region of the request. Cutting larger chunks less often avoids constantly shaving its front. This is hysteresis, not a guarantee about cache hits on an untested provider.
-
-The actor advances its presentation watermark only after a successful response. A new result therefore reaches a successful request before automatic clearing can select it. After restoration, the first request conservatively presents retained results again. Recorded cuts, however, are never reconsidered: raising T later cannot resurrect them.
+Actual provider context capacity remains a separate constraint. Retention is
+not a promise of unlimited context. If the material does not fit, report that
+limit and choose a deliberate reduction rather than silently discarding a
+previously kept result under another threshold.
 
 ## 14.5 Keep or stub, once
 
@@ -124,7 +131,7 @@ Selection occurs against the Context that was presented, before recording the co
 
 Every completed assistant response has a canonical entry, even an empty response. That entry closes the prior batch's once-only decision boundary. A later text-only turn or snapshot-only restart must not reconsider a batch that was kept. This uses the existing conversation structure rather than a persistent batch registry.
 
-Keeping is not unlimited retention. The ordinary ladder may still stub or remove an oversized kept batch when its band requires it. Small results, ordinary-model sessions and a zero target retain their defined behavior.
+Keeping protects the batch from immediate stubbing and later size-based reconsideration. It does not make context capacity unlimited or survive an explicit handoff. Small results, ordinary-model sessions and a zero target retain their defined behavior.
 
 ## 14.6 Explain the work so useful reasons survive
 
@@ -152,6 +159,14 @@ Narration is evidence of what the Agent said, not proof the statement remains tr
 
 ## 14.7 A handoff is a fact, not a destructive summary
 
+A handoff also releases media from active model context. Image, audio, video and
+document parts no longer travel in subsequent requests, whether supplied by a
+human or returned by a tool. Keep accompanying text; omit an entry if no parts
+remain. The person can supply media again when it is needed. This is a context
+reduction, not an instruction to erase the original event or delete its source
+file. The GUI may continue showing earlier messages and images. Existing log
+retention remains independent of what the model receives.
+
 The earlier positional `compress_context` experiment let a model choose messages to replace with a summary. The September 2026 account described repeated loss of most of the conversation, including the goal near its beginning. Later whole-task handoffs started a fresh instance from a document, introducing a second path for durable state. Neither approach is the mechanism to reproduce here.
 
 `micro_handoff` is smaller and more constrained. The model supplies a nonempty `text` note through the normal tool protocol. Admission validates it; the ordinary successful result is recorded before the note can take effect. If the response also contains another tool, its outcome must be recorded before the cut. Interruption pairs undispatched tails with their exact-ID refusals first. Independent Jobs are not cancelled merely because their observations no longer belong in context.
@@ -164,6 +179,40 @@ The actor then records `HandoffRecorded` carrying a value-like `HandoffPart`. Hi
 4. Removing older active handoff parts and appending the newest note.
 
 Do not recognize a handoff by a magic prose prefix. The marked part makes replacement precise. Engine converts it to ordinary system text only in the disposable provider projection. Canonical Context and snapshots retain its identity. Original notes and private parts remain in the event archive; clearing a working view does not rewrite history.
+
+### A checkpoint must not become its own next task
+
+A cut can preserve the wrong ambiguity. Suppose the assistant says, "I will save
+the checkpoint now," and then successfully calls `micro_handoff`. The cut removes
+the call and its successful result, but retains the promise. If the next request
+contains only that promise and an unlabelled note, the model may try to finish a
+handoff that has already finished. Repeating the same reassuring sentence is not
+progress, even when each individual cut is valid.
+
+Carry completion across the cut. In the current renderer, a typed `HandoffPart`
+projects with `[Completed micro_handoff checkpoint]`, followed by an explanation
+that the checkpoint and cut have already happened and that the model should
+continue from the note rather than repeat the handoff merely to perform it.
+This label is derived from the recorded fact, not inferred from assistant prose.
+It does not invent a missing tool result, change the canonical note, or prohibit
+a later handoff after more work. A refused handoff must not acquire this label.
+
+Test the continuation, not only the reduction. Use a real Agent with a bounded
+loopback provider that first returns a future-tense promise and a handoff call.
+On the following request, inspect the actual wire body. Require the completion
+label and the note, then return useful continuation. An adversarial peer should
+repeat the handoff when the label is absent, stopping after a small fixed number
+of requests so the test itself cannot loop forever. Require exactly one recorded
+handoff and the expected continuation, not merely a final response of any kind.
+Remove the label as a negative control: that version must fail the continuation
+assertion. Check snapshot restoration and provider projections too, and retain
+the separate tests for refused calls, companion ordering and interruption.
+
+The current focused check is `--handoff-continuation-tests` on the `agent/Tests`
+executable. It demonstrates a deterministic missing-receipt failure and its
+repair, not a guarantee that every live model will stop repeating itself. The
+historical endpoint grade below did not test this condition. Do not award an
+anti-loop claim merely because two successive handoffs retained their notes.
 
 The note should say what succeeded, what failed, where the source of truth lives, and what comes next. Failed approaches are often the highest-value bytes because they prevent repetition. Record uncertainty too. A note is a continuation aid, not proof of subjective continuity or a substitute for checking current state.
 
@@ -233,7 +282,7 @@ The library Agent owns the live byte target. The GUI's settings snapshot reads i
 
 The GUI field is `context_target_bytes`. Its convention is intentionally different from the library setter: zero or a negative value selects the 400,000-byte default, positive values round to thousands, and a rounded zero also selects the default. Large values are bounded safely. A wrong-typed optional field is ignored like the existing preference fields. The control shows acknowledged values, retains a proposed edit while saving, and restores acknowledgement on failure.
 
-The CLI takes `--context-budget-bytes N` or `EN_CONTEXT_BUDGET_BYTES`; an explicit flag wins. Here zero disables automatic reduction, and negative values refuse. Document this difference instead of hiding it behind a shared parser with contradictory semantics.
+The CLI takes `--context-budget-bytes N` or `EN_CONTEXT_BUDGET_BYTES`; an explicit flag wins. Here zero disables opt-in immediate result stubbing, and negative values refuse. Document this difference instead of hiding it behind a shared parser with contradictory semantics.
 
 Live reductions also change already-rendered cards. Incremental frames newer than a cursor cannot remove an older tool card. The GUI therefore uses its existing silent replay envelope when a recorded cut crosses the peer's view. Snapshot Context supplies the transcript; diagnostics cannot resurrect a cleared model dispatch card. The completed-response frontier retires both stored and late streamed partials at `ResponseEnded`, not only at the end of the entire turn.
 
@@ -270,18 +319,32 @@ dotnet Cli/bin/Debug/net10.0/ch04.dll render /owned/session/archive.jsonl
 
 These commands inspect recorded facts and render a request; they do not establish provider success. CLI JSON-line user input queues work. If an exercise needs a clear after a particular turn, wait for that turn's durable completion rather than sending several lines and assuming each blocks.
 
-The executable-scoped grader is invoked from the book repository with `-ch 14 -executable-only -gui EXECUTABLE -json`. Its executable argument is a launcher for the built C# GUI, not a static-assets directory. The launcher forwards flags; the grader supplies owned paths, dummy credentials and loopback peers. The default Go grading route remains separate.
+The historical executable-scoped grader was invoked from the book repository with `-ch 14 -executable-only -gui EXECUTABLE -json`. Its executable argument is a launcher for the built C# GUI, not a static-assets directory. The launcher forwards flags; the grader supplies owned paths, dummy credentials and loopback peers. The default Go grading route remains separate.
 
-Its eight checks cover instruction survival, handoff pairing and sibling order, keep/stub behavior, recorded cuts across a changed target, current declarations and actual MCP unload refusal, snapshot versus full-log replay, anchored SIGKILL/backup recovery, and total reduction. Current startup skills are explicit in restart fixtures; saved configuration is not secretly reactivated. Historical inline-tool placement is not credited to this C# path.
+Its eight checks covered instruction survival, handoff pairing and sibling order, keep/stub behavior, recorded cuts across a changed target, current declarations and actual MCP unload refusal, snapshot versus full-log replay, anchored SIGKILL/backup recovery, and total reduction. Current startup skills are explicit in restart fixtures; saved configuration is not secretly reactivated. Historical inline-tool placement is not credited to this C# path.
+
+That preserved grader includes old size-cut expectations; it does not certify the corrected retention contract below. Do not change frozen endpoints or claim its historical score as a new grade.
 
 Then use the application, not just the report. Observe a full result before a later stub, keep a result, clear while paused, issue two handoffs, refresh, and restart with zero diagnostic retention. Change settings from a second client and deliberately fail an owned settings write. Repeat the cut projection with SSE so a disappearing final cannot leave an old partial tool card. Speech wiring and visual/browser assertions are still not proof of native hearing or accessibility.
 
 ## 14.14 What this endpoint establishes
 
-The final component suite has 89 passing groups. A separate assembly consumer uses public APIs for policy updates, real host-control handoffs, paused clear, full archive replay, zero-log restoration and complete owner detachment. Its seeded historical tool exchanges are replay fixtures, not claims of executed effects. CLI and plain/SSE browser exercises separately use real actor, Job, persistence and host paths with working loopback boundary fakes.
+At the historical chapter boundary, the component suite had 89 passing groups. A separate assembly consumer uses public APIs for policy updates, real host-control handoffs, paused clear, full archive replay, zero-log restoration and complete owner detachment. Its seeded historical tool exchanges are replay fixtures, not claims of executed effects. CLI and plain/SSE browser exercises separately use real actor, Job, persistence and host paths with working loopback boundary fakes.
 
-The scoped executable grade passes all eight checks for 100/100. The first attempt scored 70/100 because its adapter assumed restored manuals and a Go event label; correcting the fixture made current startup selection explicit and checked the actual C# encoding. Those earlier failures remain failures, not retroactive successes. The progress record retains the detailed receipts and process exits.
+At that boundary, the scoped executable grade passed all eight checks for 100/100. The first attempt scored 70/100 because its adapter assumed restored manuals and a Go event label; correcting the fixture made current startup selection explicit and checked the actual C# encoding. Those earlier failures remain failures, not retroactive successes. The progress record retains the detailed receipts and process exits.
 
 The live-provider check remained blocked by the lack of an approved credential source in the test session. The local results establish the state transitions above, not model quality or the unverified speech and accessibility behavior.
 
 The lesson is not that smaller context proves better memory. It is that every retained byte has a reason, every cut is an inspectable fact, and recovery can reproduce the working state without guessing what the Agent must have meant.
+
+### Regression: large results stay kept
+
+Use a real Agent with a bounded fake provider. Return a result larger than the
+former two-times-T/8 cutoff; consume it and explicitly keep it, then make later
+requests without repeating the keep control. Assert the exact payload remains
+in each rendered request, no budget redaction is recorded, and save/restore
+retains the same decision. Also cover ordinary sessions without immediate
+stubbing, small companion results, and deliberate stubbing when keep is absent.
+A negative control restoring the old ladder must fail the large-kept case.
+Historical Chapter 14 grade receipts do not certify this revised retention
+contract; the old ladder expectations are superseded, not retroactively passed.

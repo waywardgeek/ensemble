@@ -7,6 +7,11 @@ using System.Text.Json.Nodes;
 using Ensemble;
 using Application = Ensemble.Ensemble;
 
+if (args is ["--host-screen-permission-probe"])
+    return HostScreenNativeProbe.Permission();
+if (args is ["--host-screen-native-capture", var boundsFile, var screenshotFile])
+    return await HostScreenNativeProbe.Capture(boundsFile, screenshotFile);
+
 // A separate process exercises the same protected credential transaction.
 if (args is ["--auth-store-child", var authDirectory, var authLabel])
 {
@@ -74,6 +79,13 @@ static string Wire(Vendor vendor, Context context, string model = "model-a")
 }
 try
 {
+    if (args is ["--tool-retention-tests"])
+    {
+        await AsyncCase("Ordinary results survive later requests and snapshot replay", ActorTests.ToolRetention);
+        await AsyncCase("Explicit keep survives old budget thresholds and restart", ActorTests.OnceOnlyResultStubbing);
+        Console.WriteLine($"{passed} passed, {failures} failed");
+        return failures == 0 ? 0 : 1;
+    }
     if (args is ["--tool-tests"])
     {
         await AsyncCase("Chapter 3 tools and loop", () => ToolTests.Run(temp));
@@ -285,6 +297,15 @@ try
         CheckCase("compression graduation replay", CompressionTests.GraduationReplay);
         CheckCase("compression task correlation", CompressionTests.Correlation);
         CheckCase("compression snapshot and journal", CompressionTests.Persistence);
+        if (args.Length != 0)
+        {
+            Console.WriteLine($"{passed} passed; {failures} failed");
+            return failures == 0 ? 0 : 1;
+        }
+    }
+    if (args is ["--handoff-continuation-tests"] || args.Length == 0)
+    {
+        await AsyncCase("handoff resumes rather than repeating its checkpoint", ActorTests.HandoffContinuation);
         if (args.Length != 0)
         {
             Console.WriteLine($"{passed} passed; {failures} failed");
@@ -642,6 +663,24 @@ try
         CheckCase("Voice WAV format and duration boundaries", VoiceAudioTests.Boundaries);
         CheckCase("Voice WAV malformed header and length refusals", VoiceAudioTests.HeaderRefusals);
         CheckCase("Voice WAV immutable admission", VoiceAudioTests.SnapshotOwnership);
+        await AsyncCase("Voice transcription multipart contract", VoiceTranscriptionTests.Contract);
+        await AsyncCase("Voice transcription response refusals and recovery", VoiceTranscriptionTests.Responses);
+        await AsyncCase("Voice transcription cancellation and joined ownership", VoiceTranscriptionTests.Lifetime);
+        await AsyncCase("Voice transcription caller cancellation and deadline recovery", VoiceTranscriptionTests.CancellationRecovery);
+        await AsyncCase("Voice transcription streamed response bounds", VoiceTranscriptionTests.ResponseBounds);
+        await AsyncCase("Voice transcription cleanup failure detaches ownership", VoiceTranscriptionTests.CleanupFailure);
+        if (args.Length != 0)
+        {
+            Console.WriteLine($"{passed} passed; {failures} failed");
+            return failures == 0 ? 0 : 1;
+        }
+    }
+    if (args is ["--host-screen-tests"] || args.Length == 0)
+    {
+        CheckCase("Host screen selection and source bounds", HostScreenTests.Selection);
+        CheckCase("Host screen tool argument validation", HostScreenTests.Arguments);
+        await AsyncCase("Host screen explicit authority and synthetic pixels", () => HostScreenTests.AuthorityAndPixels(temp));
+        await AsyncCase("Host capture process cancellation and cleanup", () => HostScreenTests.ProcessLifecycle(temp));
         if (args.Length != 0)
         {
             Console.WriteLine($"{passed} passed; {failures} failed");
@@ -652,6 +691,8 @@ try
     {
         CheckCase("Bounded image preparation and resizing", () => ImageTests.Preparation(temp));
         CheckCase("Cumulative image request limits", () => ImageBudgetTests.RequestLimits(temp));
+        await AsyncCase("Image admission and visible legacy overflow", ImageBudgetTests.Admission);
+        await AsyncCase("Model image refusal, checkpoint and retry", () => ActorTests.ImageAdmissionRecovery(temp));
         await AsyncCase("Image inspection authority, Jobs and payload delivery", () => ImageTests.Inspection(temp));
         await AsyncCase("Interactive image messages and busy hints", ActorTests.ImageInputs);
         await AsyncCase("Model-issued image inspection and retained History", () => ActorTests.ImageToolTurns(temp));
@@ -825,8 +866,8 @@ try
     CheckCase("Chapter 14 full event archive and request-prefix replay", ArchiveTests.Replay);
     CheckCase("Chapter 14 archive refusal preserves recovery and diagnostic files", ArchiveTests.Refusal);
     CheckCase("Chapter 14 handoff clears private replay data but preserves visible identities", CompactionTests.HandoffPrivacy);
-    CheckCase("Chapter 14 safe tool ladder selection and cached bytes", CompactionTests.Selection);
-    await AsyncCase("Chapter 14 actor compaction after successful presentation", ActorTests.ToolCompaction);
+    CheckCase("Chapter 14 historical redaction replay and cached bytes", CompactionTests.Selection);
+    await AsyncCase("Chapter 14 retained results survive later requests and restart", ActorTests.ToolRetention);
     await AsyncCase("Chapter 11 MCP handshake and concurrent RPC correlation", McpTests.Correlation);
     await AsyncCase("Chapter 11 MCP reverse calls and peer closure", () => McpTests.ReverseAndClosure(temp));
     await AsyncCase("Chapter 11 MCP failed discovery and joined destruction", McpTests.RefusalAndShutdown);

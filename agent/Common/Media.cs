@@ -23,6 +23,15 @@ public readonly record struct ModelFeatures(Media Media, bool Stream = false,
     bool RequireToolExplanation = false, bool ResponsesOnly = false,
     long? ContextWindow = null, bool FunctionResponseImages = false);
 
+// A request/admission refusal, distinct from malformed media or provider failure.
+public sealed class ImageBudgetExceededException : InvalidOperationException
+{
+    public ImageBudgetExceededException() : base(
+        "Image request exceeds 32 images or 32 MiB of image payloads. " +
+        "No existing images were removed. Checkpoint with micro_handoff before adding more images. " +
+        "If the saved context already exceeds the limit, use Clear tools for tool images before retrying.") { }
+}
+
 public sealed partial class Engine
 {
     // One immutable, value-like capability table. This is application knowledge,
@@ -87,7 +96,8 @@ public sealed partial class Engine
         internal long Bytes;
     }
 
-    private partial byte[] ReadMedia(BlobPart blob, ImageRequestBudget budget);
+    private partial byte[] ReadMedia(BlobPart blob, ImageRequestBudget budget, bool measureOnly = false);
+    internal partial void ValidateImageBudget(Context context, IEnumerable<Part> additional);
 
     // Validate capability and placement without reading media or making requests.
     public partial void ValidateMedia(IEnumerable<Part> parts, Actor actor = Actor.Human);

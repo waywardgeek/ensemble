@@ -59,7 +59,9 @@ internal static class CacheMarkerTests
             var request = marked.Engine().Render(context);
             var blocks = Blocks(request);
             Check(blocks.Count(Marked) == 2, "handoff and final stable result boundaries");
-            Check(Marked(blocks.Single(block => block["text"]?.GetValue<string>() == "CONTINUE")), "handoff boundary retained");
+            Check(Marked(blocks.Single(block => block["text"]?.GetValue<string>() is string text
+                && text.StartsWith("[Completed micro_handoff checkpoint]", StringComparison.Ordinal)
+                && text.EndsWith("\n\nCONTINUE", StringComparison.Ordinal))), "handoff boundary retained");
             Check(Marked(blocks.Last(block => block["type"]!.GetValue<string>() == "tool_result")), "last result before ephemera marked");
             Check(!Marked(blocks.Last()) && blocks.Last()["text"]!.GetValue<string>() == "TRANSIENT", "ephemera excluded after merge");
             var tools = request["tools"]!.AsArray();

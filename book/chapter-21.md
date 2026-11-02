@@ -55,7 +55,7 @@ and fail to use it.
 >
 > **Accounting and headroom.** Import the joined child's measured model/tier/billing rows exactly once, including failed and canceled attempts with completed usage. Do not alter the parent's latest direct response or cache lens, invent unknown counts, or charge again during replay. Determine pressure from the latest actor-accepted main response and a known selected-model window, not cumulative session totals. At 90%, add a request-only handoff warning. At 95%, declaration and dispatch admit only already-authorized `micro_handoff`. Never grant it implicitly. If a compressor is pending, wait for that exact attempt before the next main request while keeping the mailbox responsive; failed or invalidated work produces an explicit headroom error.
 >
-> **Settings and checks.** Keep the earlier conversation/tool byte budget behavior. Add six immutable memory policies: conversation, soul, memory, archive64, archive8, session. Default conversation budget is 3,000 UTF-8 bytes; each corpus band defaults to 1,500. High watermark defaults to twice budget, low watermark to budget. Zero selects defaults; invalid values refuse. SOUL has no automatic inbound waterfall. Save Agent-local policy atomically before publishing it. Startup reads it before scanning; disable retires active projection without deleting files, and re-enable freshly reads disk. GUI acknowledgment follows actual actor application and is scoped to the selected Agent. Test failure windows with real History, Sandbox, actors and owned local provider fakes; passing those tests does not prove real compression quality or provider caching.
+> **Settings and checks.** Keep the earlier conversation/tool byte budget behavior. Add six immutable memory policies: conversation, soul, memory, archive64, archive8, session. Default conversation budget is 3,000 UTF-8 bytes; each corpus band defaults to 1,500. Each band has one size setting: budget. Graduation triggers above twice budget and reduces toward budget; those thresholds are derived, not configurable. Zero selects the band default; negative sizes and sizes whose doubled threshold overflows refuse. SOUL has no automatic inbound waterfall. Save Agent-local policy atomically before publishing it. Startup reads it before scanning; disable retires active projection without deleting files, and re-enable freshly reads disk. GUI acknowledgment follows actual actor application and is scoped to the selected Agent. Test failure windows with real History, Sandbox, actors and owned local provider fakes; passing those tests does not prove real compression quality or provider caching.
 
 ### What This Means in Plain Language
 
@@ -90,7 +90,7 @@ The names `bucket-0` and `bucket-1` are storage conventions, not new owners. The
 
 ### A budget is a trigger and a writing target
 
-The default conversation budget is 3,000 UTF-8 bytes; SOUL, MEMORY, archive64, archive8 and session each default to 1,500. A zero budget selects the applicable default, rather than disabling a band. Default high and low watermarks are twice and once the resolved budget. Disabling is a separate boolean, so “off” cannot be confused with “use the default.”
+The default conversation budget is 3,000 UTF-8 bytes; SOUL, MEMORY, archive64, archive8 and session each default to 1,500. A zero budget selects the applicable default, rather than disabling a band. High and low watermarks are always twice and once the resolved budget; they are internal derived thresholds, not additional settings. Disabling is a separate boolean, so “off” cannot be confused with “use the default.”
 
 These are byte budgets, not token windows. The earlier Chapter 14 target and tool-result policies remain distinct. A main request can have substantial overhead from instructions, tool declarations and provider formatting; counting memory bytes alone cannot predict its token occupancy.
 
@@ -325,7 +325,7 @@ Stable files may be absent; invalid UTF-8, unreadable files and confinement fail
 
 `SetMemorySettingsAsync` is an in-memory library operation. `SaveMemorySettingsAsync` is the durable host operation. Both use the actor; the latter requires an Agent home and writes the versioned strict policy file through Sandbox's atomic replacement.
 
-The document contains `version: 1` and a `memory` object with six named band policies. Each policy has `budget`, `high_watermark`, `low_watermark` and `disabled`. It is not the host's appearance preference document. Unknown fields, duplicate keys, malformed values and unsupported versions refuse rather than silently select defaults.
+The document contains `version: 1` and a `memory` object with six named band policies. Each policy has only `budget` and `disabled`. The version-1 reader also accepts the complete legacy four-field shape (`budget`, `high_watermark`, `low_watermark`, `disabled`): legacy thresholds are validated but no longer configure the policy. Reading never rewrites the file; a later explicit save writes the size-only shape. Partial legacy shapes refuse. It is not the host's appearance preference document. Unknown fields, duplicate keys, malformed values and unsupported versions refuse rather than silently select defaults.
 
 The durable path preflights before saving. A failed save leaves the old policy and live worker alone. A successful save precedes policy publication and relevant worker invalidation. If application subsequently fails, the caller must be told that the new file was saved but the policy was not applied; that is a different state from “nothing changed.”
 
@@ -439,10 +439,11 @@ nine of ten checkpoints find the band under budget and do nothing.
 
 These are the reference test's reported structural numbers. The conversation stays at 1,600
 bytes against 16,000 unbounded. Four memories were written. One fold
-fired. The ladder from chapter 14 and the memory bands from this
-chapter are additive: the ladder removes tool bytes, the bands
-compress dialogue, and the combination holds the total context to a
-fraction of its unmanaged size.
+fired. The historical reference combined the old Chapter 14 size-cut ladder
+with memory-band compression. The current retention contract removes that
+ladder: a deliberately kept tool result is not silently cut by size. Memory
+compression and explicit handoff remain separate mechanisms; these historical
+numbers are not a measurement of the revised policy.
 
 The band sizes are not a compression measurement, and printing them
 as one would be wrong. The compressor in this test is a fake that

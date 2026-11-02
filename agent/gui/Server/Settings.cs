@@ -39,6 +39,11 @@ public static partial class Gui
                         next = next with { Theme = theme };
                     }
                     break;
+                case "voice_shortcut":
+                    if (value.ValueKind != JsonValueKind.String || value.GetString() is not ("AltRight" or "F8" or "off"))
+                        throw new ArgumentException("Voice shortcut must be AltRight, F8, or off");
+                    next = next with { VoiceShortcut = value.GetString()! };
+                    break;
                 case "tts_enabled" when value.ValueKind is JsonValueKind.True or JsonValueKind.False:
                     next = next with { TtsEnabled = value.GetBoolean() };
                     break;
@@ -80,6 +85,7 @@ public static partial class Gui
         ["human_description"] = preferences.HumanDescription,
         ["theme"] = preferences.Theme,
         ["tts_enabled"] = preferences.TtsEnabled,
+        ["voice_shortcut"] = preferences.VoiceShortcut,
         ["tts_speed"] = preferences.TtsSpeed,
         ["font_size"] = preferences.FontSize,
         ["pause_while_speaking"] = preferences.PauseWhileSpeaking,

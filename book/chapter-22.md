@@ -673,7 +673,7 @@ for name in ('memory', 'docs', 'handoffs', 'learnings'):
     'QuartzZephyr migration lunch recipes use apples and cinnamon, '
     'not database transactions.\n')
 # Disable live memory injection so this test must retrieve the retired source.
-band = dict(disabled=True, budget=5000, high_watermark=10000, low_watermark=5000)
+band = dict(disabled=True, budget=5000)
 settings = dict(version=1,
     memory={name: band for name in
             ('conversation', 'soul', 'memory', 'archive64', 'archive8', 'session')},

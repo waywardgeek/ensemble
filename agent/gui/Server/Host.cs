@@ -120,7 +120,7 @@ public static partial class Gui
             // diagnostic policy before bytes reach this caller-owned writer.
             agent.Parent().Log($"{direction} {TraceProjection(json)}", trace);
         }
-        var peers = new Dictionary<WebSocket, (Channel<string> Queue, Agent Selected, long Cursor)>();
+        var peers = new Dictionary<WebSocket, VoicePeer>();
         // One reader and preview buffer per viewed conversation. A tab switch
         // never makes two readers compete for the Agent's lossy observation queue.
         var previews = new Dictionary<Agent, Dictionary<string, JsonObject>>();
@@ -298,7 +298,7 @@ public static partial class Gui
                     if (latest > peer.Cursor)
                     {
                         Queue(socket, peer.Queue, State(selected, projection));
-                        peers[socket] = (peer.Queue, selected, latest);
+                        peer.Cursor = latest;
                     }
                 }
                 if (observation?.Kind != ObservationKind.PartDelta || observation.PartID is not int partID)
@@ -383,7 +383,14 @@ public static partial class Gui
                 // A single bounded queue item contains the entire replay.
                 // Publish selection only after nonblocking admission succeeds.
                 if (!Queue(socket, queue, Replay(target, projection))) return false;
-                peers[socket] = (queue, target, snapshot.Sequence);
+                if (peers.TryGetValue(socket, out var current))
+                {
+                    current.Voice?.Cancel();
+                    current.BrowserTunnel?.SetCaptureSelection(target);
+                    current.Selected = target;
+                    current.Cursor = snapshot.Sequence;
+                }
+                else peers[socket] = new VoicePeer(queue, target, snapshot.Sequence);
                 Queue(socket, queue, MeterFrame(target));
                 Queue(socket, queue, State(target, projection));
                 Queue(socket, queue, new JsonObject
@@ -493,7 +500,7 @@ public static partial class Gui
             {
                 FullMode = BoundedChannelFullMode.Wait, SingleReader = true, SingleWriter = false
             });
-            await using var tunnel = new McpTunnel(queue.Writer, relayID);
+            await using var tunnel = new McpTunnel(queue.Writer, relayID, relayAgent);
             McpBrowser? browser = null;
             async Task Send()
             {
@@ -504,13 +511,37 @@ public static partial class Gui
                 }
             }
             var sender = Send();
+            VoicePeer? connection = null;
+            async Task NotifyVoice(VoiceLease lease, Task<VoiceTranscript> transcription)
+            {
+                bool ready;
+                try { await transcription.ConfigureAwait(false); ready = true; }
+                catch { ready = false; }
+                lock (gate)
+                {
+                    if (!peers.TryGetValue(socket, out var peer)
+                        || !ReferenceEquals(peer.Voice, lease)
+                        || !ReferenceEquals(peer.Selected, lease.Target) || !lease.IsActive()) return;
+                    Queue(socket, queue, new JsonObject
+                    {
+                        ["type"] = ready ? "voice_ready" : "voice_failed",
+                        ["agent_id"] = AddressOf(lease.Target), ["sequence"] = lease.Sequence
+                    });
+                }
+            }
             try
             {
                 lock (gate)
                 {
                     Queue(socket, queue, new JsonObject
                     {
-                        ["type"] = "connection", ["relay_agent_id"] = relayID
+                        ["type"] = "connection", ["relay_agent_id"] = relayID,
+                        ["transcription"] = new JsonObject
+                        {
+                            ["enabled"] = relayAgent.Parent().Transcriber() is not null,
+                            ["payer"] = relayAgent.Parent().Transcriber() is null ? "off" : "openai-api-key",
+                            ["model"] = relayAgent.Parent().Transcriber() is null ? null : VoiceTranscriber.Model
+                        }
                     });
                     // First tab for this relay Agent is its active browser. Viewing
                     // another conversation never destroys that attachment or its clients.
@@ -529,6 +560,12 @@ public static partial class Gui
                 }
                 await relayAgent.WorkStatusAsync(lifetime.Token);
                 if (!Select(socket, queue, relayAgent)) return;
+                lock (gate)
+                {
+                    connection = peers[socket];
+                    connection.BrowserTunnel = tunnel;
+                    tunnel.SetCaptureSelection(connection.Selected);
+                }
                 var buffer = new byte[8192];
                 long lastImageSequence = 0;
                 while (!lifetime.IsCancellationRequested)
@@ -550,6 +587,7 @@ public static partial class Gui
                     }
                     while (!received.EndOfMessage);
                     long? imageSequence = null;
+                    long? voiceSequence = null;
                     try
                     {
                         using var json = JsonDocument.Parse(content.ToArray());
@@ -558,7 +596,24 @@ public static partial class Gui
                         string type = command.GetProperty("type").GetString() ?? "";
                         if (type != "image_prompt" && command.TryGetProperty("images", out _))
                             throw new InvalidDataException("Images require an image_prompt envelope.");
-                        if (type != "image_prompt" && content.Length > MaximumOrdinaryControlBytes)
+                        bool voiceControl = type is "voice_begin" or "voice_audio" or "voice_cancel" or "voice_commit";
+                        if (type != "voice_audio" && command.TryGetProperty("audio", out _))
+                            throw new InvalidDataException("Audio requires a voice_audio envelope.");
+                        if (type == "voice_audio" && content.Length > MaximumVoiceControlBytes)
+                            throw new InvalidDataException("Voice envelope exceeds its bound.");
+                        if (voiceControl)
+                        {
+                            voiceSequence = command.GetProperty("sequence").GetInt64();
+                            if (voiceSequence <= 0 || voiceSequence > 9007199254740991L
+                                || !command.TryGetProperty("agent_id", out _))
+                                throw new InvalidDataException("Voice requires an explicit Agent and sequence.");
+                        }
+                        // Only the original pending capture RPC may use the
+                        // existing bounded image envelope instead of 1 MiB.
+                        bool captureReply = type == "mcp" && command.TryGetProperty("data", out var rpc)
+                            && tunnel.IsCaptureReply(rpc);
+                        if (type is not ("image_prompt" or "voice_audio") && !captureReply
+                            && content.Length > MaximumOrdinaryControlBytes)
                             throw new InvalidDataException("Ordinary controls must be under 1 MiB.");
                         if (type == "image_prompt")
                         {
@@ -758,6 +813,63 @@ public static partial class Gui
                                     });
                                 }
                                 break;
+                            case "voice_begin":
+                                if (voiceSequence <= connection.VoiceSequence)
+                                    throw new InvalidDataException("Repeated voice sequence.");
+                                connection.VoiceSequence = voiceSequence!.Value;
+                                if (!connection.VoiceNotification.IsCompleted)
+                                    throw new InvalidOperationException("Previous voice work is still closing.");
+                                await connection.DestroyVoiceAsync();
+                                if (selected.Parent().Transcriber() is null)
+                                    throw new InvalidOperationException("Separate transcription funding is disabled.");
+                                lock (gate)
+                                {
+                                    // Recheck after the awaited cleanup: tree recovery may
+                                    // have changed selection while this command was waiting.
+                                    if (!ReferenceEquals(connection.Selected, selected))
+                                        throw new InvalidOperationException("Voice selection changed.");
+                                    connection.Voice = new VoiceLease(selected, voiceSequence.Value, lifetime.Token);
+                                    Queue(socket, queue, new JsonObject { ["type"] = "voice_begun",
+                                        ["agent_id"] = AddressOf(selected), ["sequence"] = voiceSequence });
+                                }
+                                break;
+                            case "voice_audio":
+                            case "voice_cancel":
+                            case "voice_commit":
+                                VoiceLease lease;
+                                lock (gate)
+                                {
+                                    lease = connection.Voice ?? throw new InvalidOperationException("No voice capture.");
+                                    if (!ReferenceEquals(lease.Target, selected) || lease.Sequence != voiceSequence
+                                        || !ReferenceEquals(connection.Selected, selected))
+                                        throw new InvalidOperationException("Stale voice capture.");
+                                }
+                                if (type == "voice_audio")
+                                {
+                                    var audio = PrepareVoiceAudio(command);
+                                    // Keep receive available for cancel/select/disconnect.
+                                    connection.VoiceNotification = NotifyVoice(lease, lease.Start(audio));
+                                }
+                                else if (type == "voice_cancel")
+                                {
+                                    lease.Cancel();
+                                    lock (gate) Queue(socket, queue, new JsonObject { ["type"] = "voice_cancelled",
+                                        ["agent_id"] = AddressOf(selected), ["sequence"] = voiceSequence });
+                                }
+                                else
+                                {
+                                    Task<string> admission;
+                                    lock (gate)
+                                    {
+                                        if (!ReferenceEquals(connection.Selected, selected))
+                                            throw new InvalidOperationException("Voice selection changed.");
+                                        admission = lease.CommitAsync(selected, voiceSequence!.Value);
+                                    }
+                                    await admission;
+                                    lock (gate) Queue(socket, queue, new JsonObject { ["type"] = "voice_accepted",
+                                        ["agent_id"] = AddressOf(selected), ["sequence"] = voiceSequence });
+                                }
+                                break;
                             case "prompt":
                                 await selected.PostAsync(new AgentInput(InputKind.Message, text));
                                 break;
@@ -817,7 +929,11 @@ public static partial class Gui
                     {
                         lock (gate)
                         {
-                            Queue(socket, queue, new JsonObject { ["type"] = "error", ["message"] = "Invalid or unavailable control", ["image_sequence"] = imageSequence });
+                            // This sealed exception carries fixed application guidance,
+                            // never provider text, file paths or credentials.
+                            string refusal = error is ImageBudgetExceededException
+                                ? error.Message : "Invalid or unavailable control";
+                            Queue(socket, queue, new JsonObject { ["type"] = "error", ["message"] = refusal, ["image_sequence"] = imageSequence, ["voice_sequence"] = voiceSequence });
                         }
                     }
                 }
@@ -832,22 +948,30 @@ public static partial class Gui
             {
                 lock (gate)
                 {
+                    if (connection is not null) connection.BrowserTunnel = null;
                     peers.Remove(socket);
                     queue.Writer.TryComplete();
                 }
                 lifetime.Cancel();
                 socket.Abort();
-                if (browser is not null)
-                {
-                    await browser.DestroyAsync();
-                }
                 try
                 {
-                    await sender;
+                    if (browser is not null) await browser.DestroyAsync();
                 }
-                catch (Exception error) when (error is OperationCanceledException or WebSocketException or IOException)
+                finally
                 {
-                    // The single sender is joined before disposing its socket.
+                    try
+                    {
+                        try { await sender; }
+                        catch (Exception error) when (error is OperationCanceledException or WebSocketException or IOException)
+                        {
+                            // The single sender is joined before disposing its socket.
+                        }
+                    }
+                    finally
+                    {
+                        if (connection is not null) await connection.DestroyVoiceAsync();
+                    }
                 }
             }
         });

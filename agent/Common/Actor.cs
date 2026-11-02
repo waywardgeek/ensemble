@@ -97,24 +97,18 @@ public sealed partial class Agent
     // in-flight turn's boundary. Negative constructor seeds retain Chapter 5's
     // library-only unlimited behavior; the runtime setter accepts >= 0 only.
     private int nextTurnToolLimit;
-    // Policy is ingress-protected; the watermark is actor-owned. After restart
-    // zero conservatively requires a successful presentation before any cut.
+    // Ingress-protected target for the opt-in immediate result threshold T/100.
+    // Retained batches are never cut later merely because of their size.
     public const int DefaultContextByteBudget = 400_000;
     private int contextByteBudget = DefaultContextByteBudget;
-    private long presentedThrough;
-    // One target owns all derived thresholds: result band T/8, stub/call band
-    // T/16, and opt-in immediate result threshold T/100. Zero disables policy.
     public partial int ContextByteBudget();
     public partial void SetContextByteBudget(int bytes);
-    public partial (int ResultsBytes, int CallsBytes) ToolCompactionBudgets();
     // Immutable proposed cuts for the batch in the just-consumed request.
     // They are not History until all companion calls have recorded outcomes.
     private ImmutableArray<Event> pendingResultStubs = [];
     internal partial ImmutableArray<Event> SelectImmediateCuts(Context context, long requestSequence, int threshold);
     private partial void StageKeepResults(ToolCallPart call, ToolResultPart result);
     private partial void ApplyResultStubs();
-    private partial void CompactTools();
-    internal static partial Event? SelectToolCut(Context context, long presentedThrough, int budget, Redaction level);
     private int capturedToolLimit;
     public partial int MaxToolRounds();
     public partial void SetMaxToolRounds(int value);

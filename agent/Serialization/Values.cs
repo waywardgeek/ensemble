@@ -189,12 +189,13 @@ public sealed partial class Configuration
         // Safe mode removes the whole shell/job-control capability, including
         // controls carried by older saved grants or tool-discovery references.
         return !SafeMode || name is not
-            ("run_command" or "send_input" or "wait_for_job" or "kill_job");
+            ("run_command" or "send_input" or "wait_for_job" or "kill_job" or "list_displays" or "screenshot");
     }
 
     internal partial bool AllowsSkill(string name)
     {
-        return EnableWebSearch || name != "web-search";
+        return (EnableWebSearch || name != "web-search")
+            && (!SafeMode || name != "host-screen");
     }
 
     public partial Provenance Target() => new(Vendor, ResolvedModel, Surface);

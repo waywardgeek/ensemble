@@ -199,9 +199,9 @@ code { font-size: .9em; color: inherit; }
 .artifact-links { display: flex; flex-wrap: wrap; gap: 0.1rem; font-size: .8rem; }
 .artifact-links .btn { font-size: .75rem; }
 
-/* Text grows from one to five lines. Attachment previews occupy their own
-   full-width row while the text input and Send retain the two-column layout. */
-#compose { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: .25rem; flex: none; min-height: 0; border-top: 1px solid var(--edge); background: var(--surface); padding: .25rem .4rem; }
+/* Text grows from one to five lines without losing width to media controls.
+   Previews, input and the wrapping action row each occupy the full width. */
+#compose { display: grid; grid-template-columns: minmax(0, 1fr); align-items: center; gap: .25rem; flex: none; min-height: 0; border-top: 1px solid var(--edge); background: var(--surface); padding: .25rem .4rem; }
 #compose textarea { --input-height: calc(1.5em + .5rem + 2px); width: 100%; line-height: 1.5; height: var(--input-height); min-height: var(--input-height); max-height: calc(7.5em + .5rem + 2px); padding: .25rem .35rem; resize: none; overflow-y: auto; }
 /* Keep the composer calm while typing; focus indicators elsewhere stay intact. */
 #compose textarea:focus { border-color: var(--control-edge); box-shadow: none; outline: none !important; }
@@ -315,3 +315,17 @@ body.compact #transcript { padding: .3rem; }
 #image-previews figcaption { font-size: .8em; overflow-wrap: anywhere; }
 #image-previews button { min-height: 44px; width: 100%; }
 #image-status, #discard-image-draft { grid-column: 1 / -1; margin: 0; }
+
+#compose-actions { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; min-width: 0; }
+#compose-actions #send { margin-inline-start: auto; }
+#image-attachment-controls { display: flex; align-items: center; }
+#attach-images { width: 44px; height: 44px; min-height: 44px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border: 1px solid var(--edge); }
+#attach-images svg { flex: none; }
+
+#capture-consent .dialog-actions { flex-wrap: wrap; }
+#capture-consent .dialog-actions button { min-height: 44px; }
+
+/* Hold gestures must not turn into scroll, text selection or a long-press menu. */
+#voice-hold { min-width: 44px; min-height: 44px; touch-action: none; user-select: none; -webkit-user-select: none; }
+#voice-hold[aria-pressed="true"] { outline: 2px solid currentColor; outline-offset: 2px; }
+#voice-status { grid-column: 1 / -1; overflow-wrap: anywhere; font-size: .875em; }

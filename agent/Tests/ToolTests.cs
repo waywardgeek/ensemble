@@ -28,7 +28,7 @@ internal static class ToolTests
             Check(agent.Tools().Length == 0, "new library Agent must have an empty registry");
             Check(!agent.Engine().Render(new Context()).ContainsKey("tools"), "omit empty tools field");
             agent.InstallTools();
-            string[] expectedTools = ["inspect_image", "read_file", "write_file", "edit_file", "run_command", "list_directory", "search_files",
+            string[] expectedTools = ["list_displays", "screenshot", "inspect_image", "read_file", "write_file", "edit_file", "run_command", "list_directory", "search_files",
                 "wait_for_job", "send_input", "kill_job", "tool_limits", "micro_handoff", "agent_status", "join_agents", "submit", "send_message_to_parent",
                 "respond_to_parent_message", "shutdown_agent", "spawn_sub_agent", "agents_status", "get_sub_agent_status", "interrupt_agent", "get_submission", "kill_agent", "send_message", "ask_agent", "wait_for_agent", "wait_for_agent_change", "goal_control"];
             Check(agent.Tools().Select(value => value.Name()).Order().SequenceEqual(expectedTools.Order()),
@@ -374,10 +374,10 @@ internal static class ToolTests
             // The catalog contains the optional Goals control, but a legacy
             // actor without its skill must neither declare nor dispatch it.
             var declaredNames = agent.Tools().Select(tool => tool.Name())
-                .Where(name => name != "goal_control").Order().ToArray();
+                .Where(name => name is not ("goal_control" or "list_displays" or "screenshot")).Order().ToArray();
             Check(requests.All(request => request["tools"]!.AsArray()
                 .Select(tool => tool!["name"]!.GetValue<string>()).Order().SequenceEqual(declaredNames)),
-                "ordinary legacy tools declared every round, without Goals");
+                "ordinary legacy tools declared every round, without Goals or host-screen authority");
             Check(requests[^1].ToJsonString().Contains("actual bytes") && requests[^1].ToJsonString().Contains("is_error"), "real result reaches provider");
             var events = agent.History().Events();
             Check(events.Count(e => e.Kind == EventKind.ToolCalled) == rounds + 1 && events.Count(e => e.Kind == EventKind.ToolReturned) == rounds + 1, "paired dispatch facts");

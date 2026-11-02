@@ -8,7 +8,7 @@ namespace EnsembleGui;
 // tool budget deliberately does not live here: the Agent owns that live fact.
 public sealed record Preferences(string Theme = "dark", bool TtsEnabled = false,
     double TtsSpeed = 1, int FontSize = 18, bool PauseWhileSpeaking = true,
-    string HumanName = "", string HumanDescription = "");
+    string HumanName = "", string HumanDescription = "", string VoiceShortcut = "AltRight");
 
 public static partial class Gui
 {

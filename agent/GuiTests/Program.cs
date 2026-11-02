@@ -79,6 +79,19 @@ if (args is ["--memory-settings-tests"])
     return;
 }
 
+if (args is ["--capture-tunnel-tests"])
+{
+    await BrowserCaptureTests.RunAsync();
+    await BrowserCaptureHostTests.RunAsync();
+    return;
+}
+
+if (args is ["--capture-model-host"])
+{
+    await CaptureModelFixture.RunAsync();
+    return;
+}
+
 if (args is ["--crossover-host"])
 {
     await CrossoverFixture.RunAsync();
@@ -131,7 +144,12 @@ try
             foreach (string asset in new[] { "app.js", "auth.js", "mcp.js", "speech.js", "style.css" })
                 Check((await http.GetStringAsync(origin + "/" + asset, cancellation)).Length > 100, "Asset missing: " + asset);
             foreach (var asset in new[] { ("voice-recorder.js", "export class PcmVoiceRecorder"),
-                ("voice-worklet.js", "registerProcessor('pcm-voice'"), ("voice-pcm.js", "export const VOICE_PCM") })
+                ("voice-worklet.js", "registerProcessor('pcm-voice'"), ("voice-pcm.js", "export const VOICE_PCM"),
+                ("voice-hold.js", "export class VoiceHold"),
+                ("voice-session.js", "export class VoiceSession"),
+                ("voice-control.js", "export class VoiceControl"),
+                ("page-capture.js", "export class PageCapture"),
+                ("capture-consent.js", "export class CaptureConsent") })
             {
                 using var response = await http.GetAsync(origin + "/" + asset.Item1, cancellation);
                 Check(response.IsSuccessStatusCode && response.Content.Headers.ContentType?.MediaType is
@@ -152,6 +170,8 @@ try
             var currentUser = (await Frame(socket, "current_settings", cancellation)).GetProperty("settings");
             Check(currentUser.GetProperty("human_name").GetString() == (attempt == 0 ? "" : "Taylor"),
                 "User settings did not survive host restart");
+            Check(currentUser.GetProperty("voice_shortcut").GetString() == (attempt == 0 ? "AltRight" : "F8"),
+                "Voice shortcut default/restart persistence changed");
             var unnamedRows = (await Frame(socket, "agent_tree", cancellation)).GetProperty("agents").EnumerateArray().ToArray();
             Check(unnamedRows.Count(row => row.GetProperty("key").ValueKind == JsonValueKind.Null) == 1
                 && unnamedRows.Count(row => row.GetProperty("key").GetString() == "") == 1,
@@ -164,15 +184,25 @@ try
                 var fromDisk = Gui.ReadPreferences(agent, "settings.json");
                 Check(fromDisk.HumanName == "Taylor" && fromDisk.HumanDescription == "Writes $TOOLS <examples>", "User fields not saved together");
                 Check(saved.GetProperty("theme").GetString() == "dark", "User save changed appearance");
+                await socket.SendAsync(Encoding.UTF8.GetBytes("""{"type":"update_settings","settings":{"voice_shortcut":"F8"}}"""), WebSocketMessageType.Text, true, cancellation);
+                Check((await Frame(socket, "settings_updated", cancellation)).GetProperty("settings").GetProperty("voice_shortcut").GetString() == "F8"
+                    && Gui.ReadPreferences(agent, "settings.json").VoiceShortcut == "F8", "Voice shortcut did not save before acknowledgement");
+                foreach (string invalidShortcut in new[] { "\"Control+A\"", "null", "123", "true" })
+                {
+                    await socket.SendAsync(Encoding.UTF8.GetBytes("{\"type\":\"update_settings\",\"settings\":{\"voice_shortcut\":" + invalidShortcut + "}}"), WebSocketMessageType.Text, true, cancellation);
+                    await Frame(socket, "error", cancellation);
+                    Check(Gui.ReadPreferences(agent, "settings.json").VoiceShortcut == "F8", "Invalid shortcut changed saved settings");
+                }
                 // A blocked destination must refuse without publishing or losing the socket.
                 string before = File.ReadAllText("settings.json");
                 File.Delete("settings.json"); Directory.CreateDirectory("settings.json");
                 try
                 {
-                    await socket.SendAsync(Encoding.UTF8.GetBytes("""{"type":"update_settings","settings":{"human_name":"Not saved"}}"""), WebSocketMessageType.Text, true, cancellation);
+                    await socket.SendAsync(Encoding.UTF8.GetBytes("""{"type":"update_settings","settings":{"human_name":"Not saved","voice_shortcut":"off"}}"""), WebSocketMessageType.Text, true, cancellation);
                     await Frame(socket, "error", cancellation);
                     await socket.SendAsync(Encoding.UTF8.GetBytes("""{"type":"get_settings"}"""), WebSocketMessageType.Text, true, cancellation);
-                    Check((await Frame(socket, "current_settings", cancellation)).GetProperty("settings").GetProperty("human_name").GetString() == "Taylor", "Failed save published user name");
+                    var unchanged = (await Frame(socket, "current_settings", cancellation)).GetProperty("settings");
+                    Check(unchanged.GetProperty("human_name").GetString() == "Taylor" && unchanged.GetProperty("voice_shortcut").GetString() == "F8", "Failed save published user name or shortcut");
                 }
                 finally { Directory.Delete("settings.json"); File.WriteAllText("settings.json", before); }
                 var identity = new Ensemble.Ensemble(TextWriter.Null);
@@ -260,7 +290,7 @@ try
         Check(mountedPage.RequestMessage!.RequestUri!.AbsolutePath == "/assistant/", "Mount omitted directory redirect");
         Check((await mountedPage.Content.ReadAsStringAsync(cancellation)).Contains("./app.js"), "Page URLs escaped mount");
         Check((await http.GetStringAsync(url + "/assistant/app.js", cancellation)).Contains("""new URL("./ws", document.baseURI)"""), "Socket URL escaped mount");
-        foreach (string asset in new[] { "voice-pcm.js", "voice-recorder.js", "voice-worklet.js" })
+        foreach (string asset in new[] { "voice-pcm.js", "voice-recorder.js", "voice-worklet.js", "voice-hold.js", "voice-session.js", "voice-control.js", "page-capture.js", "capture-consent.js" })
         {
             using var module = await http.GetAsync(url + "/assistant/" + asset, cancellation);
             Check(module.IsSuccessStatusCode && module.Content.Headers.ContentType?.MediaType is

@@ -39,7 +39,7 @@ internal static class SafetyTests
                 "Shell dispatch must refuse before effects");
             // Refuse every shell/job-control entry point before looking up a
             // handle. Hiding run_command alone leaves saved grants too broad.
-            string[] forbidden = ["run_command", "send_input", "wait_for_job", "kill_job"];
+            string[] forbidden = ["run_command", "send_input", "wait_for_job", "kill_job", "list_displays", "screenshot"];
             foreach (string name in forbidden)
             {
                 Check(!agent.ToolEnabled(name), $"Safe mode still enables {name}");

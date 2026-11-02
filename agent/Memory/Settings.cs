@@ -2,33 +2,22 @@ namespace Ensemble;
 
 public sealed partial class MemoryBandSettings
 {
-    public partial MemoryBandSettings(long budget, long highWatermark, long lowWatermark, bool disabled)
+    public partial MemoryBandSettings(long budget, bool disabled)
     {
         ArgumentOutOfRangeException.ThrowIfNegative(budget);
-        ArgumentOutOfRangeException.ThrowIfNegative(highWatermark);
-        ArgumentOutOfRangeException.ThrowIfNegative(lowWatermark);
+        ArgumentOutOfRangeException.ThrowIfGreaterThan(budget, long.MaxValue / 2);
         Budget = budget;
-        HighWatermark = highWatermark;
-        LowWatermark = lowWatermark;
         Disabled = disabled;
     }
 
     internal partial MemoryBandSettings Effective(long defaultBudget)
     {
-        long budget = Budget == 0 ? defaultBudget : Budget;
-        long high = HighWatermark == 0 ? checked(2 * budget) : HighWatermark;
-        long low = LowWatermark == 0 ? budget : LowWatermark;
-        if (low > high)
-        {
-            throw new ArgumentException("Memory low watermark exceeds high watermark");
-        }
-        return new MemoryBandSettings(budget, high, low, Disabled);
+        return new MemoryBandSettings(Budget == 0 ? defaultBudget : Budget, Disabled);
     }
 
     internal partial bool Same(MemoryBandSettings other)
     {
-        return Budget == other.Budget && HighWatermark == other.HighWatermark
-            && LowWatermark == other.LowWatermark && Disabled == other.Disabled;
+        return Budget == other.Budget && Disabled == other.Disabled;
     }
 }
 

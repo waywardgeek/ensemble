@@ -209,3 +209,33 @@ input plus change events. It cannot create the human-typing pause cause, includi
 on later speech completion. Real human whitespace does create that cause, and
 successful submission clears it. DOM observation is not pixel vision; fake speech
 checks establish queue wiring, not audible quality or human accessibility.
+
+
+### Separately funded transcription (integration in progress)
+
+Transcription is off by default, independently of the model's `--billing` route.
+`--transcription openai-api-key` (or `EN_TRANSCRIPTION=openai-api-key`) explicitly
+selects separately metered OpenAI transcription using `gpt-transcribe`. Supply its
+key through `EN_TRANSCRIPTION_API_KEY`, never a command-line argument. Alternatively,
+explicitly select an existing private settings file with
+`--transcription-key-file /absolute/path/to/settings.json` (or
+`EN_TRANSCRIPTION_KEY_FILE`). The selected file must contain a nonempty top-level
+`openai_api_key` string. Reads are bounded to 1 MiB, reject duplicate root fields,
+and never change the file. The selected file takes precedence over the dedicated
+environment key; a missing/invalid file refuses startup without fallback. With
+transcription off, the file is not read. This is a startup snapshot, not a credential
+watcher or refresh mechanism.
+
+The host refuses an enabled route with no dedicated key; it does not fall back to
+`LLM_API_KEY`, ChatGPT-plan or Codex credentials. `--transcription off` overrides
+the environment selection. A key's presence alone does not enable the route.
+
+The root owns and joins the transcription client. Connection frames advertise
+only enabled state, payer and model, never the key. The dedicated key is excluded
+from skill/MCP startup variables. This is not a security boundary against arbitrary
+host processes: protect the launch environment as you would other API credentials.
+
+This option currently prepares the client and reports availability only. The
+microphone UI, original-Agent/socket lease, and release-to-send path are still
+being integrated. Do not interpret enabled availability as microphone capture or
+a working speech-send workflow. Main model funding/configuration is unchanged.

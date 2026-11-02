@@ -24,8 +24,6 @@ public static partial class JsonCodec
         return new JsonObject
         {
             ["budget"] = settings.Budget,
-            ["high_watermark"] = settings.HighWatermark,
-            ["low_watermark"] = settings.LowWatermark,
             ["disabled"] = settings.Disabled
         };
     }
@@ -33,20 +31,48 @@ public static partial class JsonCodec
     public static partial MemorySettings ReadMemorySettings(JsonElement value)
     {
         MemoryFields(value, "conversation", "soul", "memory", "archive64", "archive8", "session");
+        var defaults = new MemorySettings();
         return new MemorySettings(
-            ReadMemoryBandSettings(value.GetProperty("conversation")),
-            ReadMemoryBandSettings(value.GetProperty("soul")),
-            ReadMemoryBandSettings(value.GetProperty("memory")),
-            ReadMemoryBandSettings(value.GetProperty("archive64")),
-            ReadMemoryBandSettings(value.GetProperty("archive8")),
-            ReadMemoryBandSettings(value.GetProperty("session")));
+            ReadMemoryBandSettings(value.GetProperty("conversation"), defaults.Conversation.Budget),
+            ReadMemoryBandSettings(value.GetProperty("soul"), defaults.Soul.Budget),
+            ReadMemoryBandSettings(value.GetProperty("memory"), defaults.Memory.Budget),
+            ReadMemoryBandSettings(value.GetProperty("archive64"), defaults.Archive64.Budget),
+            ReadMemoryBandSettings(value.GetProperty("archive8"), defaults.Archive8.Budget),
+            ReadMemoryBandSettings(value.GetProperty("session"), defaults.Session.Budget));
     }
 
-    private static partial MemoryBandSettings ReadMemoryBandSettings(JsonElement value)
+    private static partial MemoryBandSettings ReadMemoryBandSettings(JsonElement value, long defaultBudget)
     {
-        MemoryFields(value, "budget", "high_watermark", "low_watermark", "disabled");
+        if (value.ValueKind != JsonValueKind.Object)
+        {
+            throw new FormatException("Invalid memory band settings");
+        }
+        bool legacy = value.TryGetProperty("high_watermark", out _)
+            || value.TryGetProperty("low_watermark", out _);
+        if (legacy)
+        {
+            // Read old settings without rewriting disk or restoring removed knobs.
+            // Still validate the complete old shape; malformed input must not turn
+            // into a successful migration merely because the fields are obsolete.
+            MemoryFields(value, "budget", "high_watermark", "low_watermark", "disabled");
+            long high = value.GetProperty("high_watermark").GetInt64();
+            long low = value.GetProperty("low_watermark").GetInt64();
+            ArgumentOutOfRangeException.ThrowIfNegative(high);
+            ArgumentOutOfRangeException.ThrowIfNegative(low);
+            long budget = new MemoryBandSettings(value.GetProperty("budget").GetInt64())
+                .Effective(defaultBudget).Budget;
+            long effectiveHigh = high == 0 ? checked(2 * budget) : high;
+            long effectiveLow = low == 0 ? budget : low;
+            if (effectiveLow > effectiveHigh)
+            {
+                throw new FormatException("Invalid legacy memory thresholds");
+            }
+        }
+        else
+        {
+            MemoryFields(value, "budget", "disabled");
+        }
         return new MemoryBandSettings(value.GetProperty("budget").GetInt64(),
-            value.GetProperty("high_watermark").GetInt64(),
-            value.GetProperty("low_watermark").GetInt64(), value.GetProperty("disabled").GetBoolean());
+            value.GetProperty("disabled").GetBoolean());
     }
 }

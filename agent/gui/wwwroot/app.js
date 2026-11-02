@@ -38,6 +38,10 @@ let goalSelectionPending = false;
 let goalDirty = false; // Unsaved form edits only, never a second live configuration.
 const speech = window.speechSynthesis;
 const notice = text => { document.querySelector("#notice").textContent = text; };
+let pageCapture = null;
+let captureConsent = null;
+let voiceControl = null;
+let captureDraft = null; // One gesture, original socket and selected Agent.
 const imageComposer = new ImageComposer(document.querySelector("#prompt"),
     document.querySelector("#image-previews"), document.querySelector("#image-status"),
     document.querySelector("#discard-image-draft"), () => {
@@ -46,6 +50,82 @@ const imageComposer = new ImageComposer(document.querySelector("#prompt"),
         renderControls();
         updatePauseCause();
     }, notice);
+
+// Preload before enabling the camera. Awaiting an import in its click handler
+// would lose the transient browser activation required by getDisplayMedia.
+const pageCaptureReady = import("./page-capture.js").then(({ PageCapture }) => {
+    pageCapture = new PageCapture();
+    renderControls();
+    return pageCapture;
+}).catch(() => { notice("Page capture could not load. You can still attach an image."); return null; });
+const captureConsentReady = Promise.all([pageCaptureReady, import("./capture-consent.js")])
+    .then(([capture, { CaptureConsent }]) => {
+        if (!capture) return null;
+        captureConsent = new CaptureConsent(capture, document.querySelector("#capture-consent"));
+        captureConsent.addEventListener("change", renderControls);
+        return captureConsent;
+    }).catch(() => null);
+async function requestBrowserCapture(connection, target, id, args) {
+    if (!args || typeof args !== "object" || Array.isArray(args) || Object.keys(args).length)
+        throw new Error("Page capture takes no arguments.");
+    const current = () => socket === connection && connection.readyState === WebSocket.OPEN
+        && connection.mcpInitialized && connection.relayAgentID === target
+        && agentID === target && !selectionPending && !agentClosed;
+    if (!current()) throw new Error("Select the requesting Agent before asking for capture.");
+    const consent = await captureConsentReady;
+    if (!current()) throw new Error("Capture request is no longer current.");
+    if (!consent) throw new Error("Capture confirmation is unavailable; attach a manual screenshot.");
+    if (imageComposer.pending || captureDraft) throw new Error("Finish the current image send or capture first.");
+    const label = document.querySelector("#agent-choice").selectedOptions[0]?.textContent || target;
+    return consent.request(connection, target, id, label);
+}
+function cancelBrowserCapture(connection, target, id) {
+    return captureConsent?.cancelMatching(connection, target, id) ?? Promise.resolve();
+}
+function closeBrowserCapture(connection) {
+    return captureConsent?.cancelConnection(connection) ?? Promise.resolve();
+}
+function cancelPageCapture(message) {
+    captureConsent?.cancel(message);
+    if (!captureDraft) return;
+    captureDraft = null; // Invalidate draft admission before stopping native work.
+    pageCapture.cancel().then(renderControls);
+    if (message) notice(message);
+    renderControls();
+}
+async function capturePage(event) {
+    if (captureDraft) {
+        cancelPageCapture("Page capture cancelled. Any late image will be discarded.");
+        return;
+    }
+    if (document.querySelector("#capture-page").disabled) return;
+    if (!event?.isTrusted) {
+        notice("Please press the camera yourself to authorize capture.");
+        return;
+    }
+    const admission = { socket, agent: agentID };
+    captureDraft = admission;
+    try {
+        // Call before awaiting anything: the native picker requires this click.
+        const result = pageCapture.capture();
+        notice("Choose this Ensemble tab. Press the camera again to cancel.");
+        renderControls();
+        const captured = await result;
+        if (captureDraft !== admission || socket !== admission.socket
+            || socket.readyState !== WebSocket.OPEN || selectionPending
+            || agentID !== admission.agent || agentClosed || imageComposer.pending) return;
+        imageComposer.addFiles([captured.file], admission.agent);
+        if (imageComposer.entries.some(entry => entry.file === captured.file))
+            notice("Screenshot added to the draft. Send when ready.");
+    } catch (error) {
+        if (captureDraft === admission)
+            notice(error?.name === "AbortError" ? "Page capture cancelled." : String(error?.message || "Page capture failed."));
+    } finally {
+        if (captureDraft === admission) captureDraft = null;
+        renderControls();
+    }
+}
+document.querySelector("#capture-page").onclick = capturePage;
 
 // Only fixed local symbol names are passed by this module. Model text never
 // becomes markup; accessible names belong to the surrounding native buttons.
@@ -490,6 +570,8 @@ function render(card) {
 function renderControls() {
     const connected = socket?.readyState === WebSocket.OPEN;
     const ready = connected && !selectionPending && acknowledgedState && !agentClosed;
+    voiceControl?.bind(socket, agentID, !!ready, !!document.querySelector("#prompt").value.trim()
+        || imageComposer.hasImages || imageComposer.blocked || !!pageCapture?.busy || !!captureDraft || !!captureConsent?.busy);
     const busy = ["inflight", "toolspending"].includes(acknowledgedState);
     const paused = acknowledgedState === "paused";
     document.querySelector("#state").textContent = !connected ? "disconnected"
@@ -500,7 +582,13 @@ function renderControls() {
     document.querySelector("#resume").disabled = !ready || !paused;
     document.querySelector("#interrupt").disabled = !ready || !(busy || paused);
     // The actor classifies ordinary input when dequeued, even during a turn.
-    document.querySelector("#send").disabled = !ready || imageComposer.blocked;
+    document.querySelector("#send").disabled = !ready || !!voiceControl?.blocked || imageComposer.blocked || !!pageCapture?.busy || !!captureDraft || !!captureConsent?.busy;
+    document.querySelector("#attach-images").disabled = !ready || !!voiceControl?.blocked || !!imageComposer.pending || !!pageCapture?.busy || !!captureDraft || !!captureConsent?.busy;
+    const camera = document.querySelector("#capture-page");
+    camera.disabled = !ready || !!voiceControl?.blocked || !pageCapture || !!captureConsent?.busy || !!imageComposer.pending || (pageCapture.busy && !captureDraft);
+    camera.setAttribute("aria-pressed", String(!!captureDraft));
+    camera.setAttribute("aria-label", captureDraft ? "Cancel page capture" : "Capture this page");
+    camera.title = captureDraft ? "Cancel page capture" : "Capture this page";
     document.querySelector("#clear-tools").disabled = !ready;
     document.querySelector("#model-choice").disabled = !ready || busy || paused;
     document.querySelector("#theme-toggle").disabled = !connected || !settings;
@@ -597,6 +685,8 @@ function handle(frame) {
     }
     if (frame.type === "replay") {
         if (agentID !== frame.agent_id) {
+            voiceControl?.cancel();
+            cancelPageCapture("Page capture cancelled on Agent change.");
             cancelSpeech(false);
             localPauseCause = false;
             pauseIntent = null;
@@ -641,6 +731,7 @@ function handle(frame) {
         const wasPaused = acknowledgedState === "paused";
         acknowledgedState = frame.state || frame.to;
         agentClosed = acknowledgedState === "shutdown";
+        if (agentClosed) cancelPageCapture("Page capture cancelled because the Agent closed.");
         if (wasPaused && acknowledgedState !== "paused") pauseIntent = null;
         renderControls();
         updatePauseCause();
@@ -734,9 +825,13 @@ function connect() {
         if (connection !== socket) return;
         try {
             const frame = JSON.parse(event.data);
+            if (voiceControl?.receive(connection, frame)) return;
             if (imageComposer.acknowledge(frame, connection)) return;
             if (frame.type === "connection") {
                 connection.relayAgentID = frame.relay_agent_id;
+                connection.voiceFunding = frame.transcription?.enabled === true
+                    && frame.transcription.payer === "openai-api-key";
+                renderControls();
             } else if (frame.type === "mcp") handleMcp(connection, frame);
             else handle(frame);
         }
@@ -746,6 +841,8 @@ function connect() {
         if (connection !== socket) return;
         document.querySelector("#connection").textContent = "Disconnected — reconnecting";
         selectionPending = true;
+        voiceControl?.cancel();
+        cancelPageCapture("Page capture cancelled on disconnect; no screenshot was added.");
         imageComposer.disconnect();
         pauseIntent = null;
         localPauseCause = false;
@@ -773,6 +870,8 @@ function selectAgent(key) {
         notice("Not connected; selection was not sent.");
         return;
     }
+    voiceControl?.cancel();
+    cancelPageCapture("Page capture cancelled on Agent change.");
     imageComposer.selectionChanged(key);
     // Release this tab's old pause cause before asking the server to switch.
     // The next replay can apply a still-present typing cause to the new view.
@@ -807,8 +906,10 @@ resizeComposer();
 
 // One input path. Browser state must not classify a message as a hint.
 function submit() {
+    if (voiceControl?.blocked) { notice("Finish or cancel voice before sending a draft."); return; }
     if (document.querySelector("#send").disabled) {
-        notice("Wait for the selected Agent to connect; input was not sent.");
+        notice(pageCapture?.busy || captureDraft || captureConsent?.busy ? "Finish or cancel page capture before sending."
+            : "Wait for the selected Agent to connect; input was not sent.");
         return;
     }
     const input = document.querySelector("#prompt");
@@ -834,7 +935,24 @@ document.querySelector("#prompt").addEventListener("paste", event => {
     }
     imageComposer.paste(event, agentID);
 });
-window.addEventListener("pagehide", () => imageComposer.clear());
+const imageFiles = document.querySelector("#image-files");
+document.querySelector("#attach-images").onclick = () => {
+    if (document.querySelector("#attach-images").disabled) return;
+    imageComposer.openPicker(imageFiles, socket, agentID);
+};
+imageFiles.onchange = () => {
+    if (!socket || socket.readyState !== WebSocket.OPEN || selectionPending || agentClosed) {
+        imageComposer.picker = null;
+        imageFiles.value = "";
+        return;
+    }
+    imageComposer.acceptPicker(imageFiles, socket, agentID);
+};
+imageFiles.addEventListener("cancel", () => { imageComposer.picker = null; });
+window.addEventListener("pagehide", () => {
+    cancelPageCapture();
+    imageComposer.clear();
+});
 document.querySelector("#pause").onclick = () => {
     if (send("pause")) pauseIntent = "manual";
     renderControls();
@@ -894,9 +1012,7 @@ function applySettings() {
     }
     for (const [band, policy] of Object.entries(settings.memory || {})) {
         document.querySelector(`#memory-${band}-enabled`).checked = !policy.disabled;
-        for (const field of ["budget", "high_watermark", "low_watermark"]) {
-            document.querySelector(`#memory-${band}-${field}`).value = policy[field];
-        }
+        document.querySelector(`#memory-${band}-budget`).value = policy.budget;
     }
     document.querySelector("#tts-speed").value = settings.tts_speed;
     document.querySelector("#speed-label").value = `${settings.tts_speed}×`;
@@ -904,6 +1020,8 @@ function applySettings() {
     document.querySelector(".speech-toggle").title = settings.tts_enabled
         ? "Speech on; stop automatically reading new messages" : "Speech off; enable reading new messages aloud";
     document.querySelector("#pause-speaking").checked = settings.pause_while_speaking;
+    document.querySelector("#voice-shortcut").value = settings.voice_shortcut || "off";
+    voiceControl?.setShortcut(settings.voice_shortcut || "off");
     updatePauseCause(); // Disabling speech pausing does not cancel the queue.
 }
 document.querySelector("#user-settings").addEventListener("submit", event => {
@@ -1002,14 +1120,12 @@ document.querySelector("#memory-settings-form").addEventListener("submit", event
     const memory = {};
     for (const band of ["conversation", "soul", "memory", "archive64", "archive8", "session"]) {
         const policy = {disabled: !document.querySelector(`#memory-${band}-enabled`).checked};
-        for (const field of ["budget", "high_watermark", "low_watermark"]) {
-            const value = Number(document.querySelector(`#memory-${band}-${field}`).value);
-            if (!Number.isSafeInteger(value) || value < 0) {
-                notice("Memory sizes must be nonnegative whole bytes within the browser’s exact integer range.");
-                return;
-            }
-            policy[field] = value;
+        const value = Number(document.querySelector(`#memory-${band}-budget`).value);
+        if (!Number.isSafeInteger(value) || value < 0) {
+            notice("Memory sizes must be nonnegative whole bytes within the browser’s exact integer range.");
+            return;
         }
+        policy.budget = value;
         memory[band] = policy;
     }
     patchSettings({memory});
@@ -1041,6 +1157,7 @@ document.querySelector("#max-tool-rounds").onchange = event => patchSettings({ m
 document.querySelector("#context-target-bytes").onchange = event => patchSettings({ context_target_bytes: Number(event.target.value) });
 document.querySelector("#tts-speed").onchange = event => patchSettings({ tts_speed: Number(event.target.value) });
 document.querySelector("#narrate").onchange = event => patchSettings({ tts_enabled: event.target.checked });
+document.querySelector("#voice-shortcut").onchange = event => patchSettings({ voice_shortcut: event.target.value });
 document.querySelector("#pause-speaking").onchange = event => patchSettings({ pause_while_speaking: event.target.checked });
 function voices() {
     const select = document.querySelector("#voice");
@@ -1168,3 +1285,19 @@ function renderAgentTree() {
 }
 
 connect();
+
+// This module does not own or release speech/manual pauses. Voice is explicitly
+// funded by the host and starts only from a trusted held control gesture.
+import("./voice-control.js").then(({ VoiceControl }) => {
+    voiceControl = new VoiceControl(document.querySelector("#voice-hold"),
+        document.querySelector("#voice-cancel"), document.querySelector("#voice-status"));
+    voiceControl.setShortcut(settings.voice_shortcut || "off");
+    voiceControl.addEventListener("change", renderControls);
+    renderControls();
+}).catch(() => {
+    document.querySelector("#voice-status").textContent = "Voice controls could not load.";
+});
+document.querySelector("#prompt").addEventListener("input", () => {
+    voiceControl?.cancel();
+    renderControls();
+});

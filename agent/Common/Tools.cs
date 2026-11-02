@@ -41,7 +41,9 @@ public enum ToolKind
     WaitForAgent,
     WaitForAgentChange,
     GoalControl,
-    InspectImage
+    InspectImage,
+    ListDisplays,
+    Screenshot
 }
 
 public sealed partial class Tool

@@ -107,11 +107,11 @@ internal static partial class MeterTests
             catch (OperationCanceledException) { }
             Check(!agent.MemorySettings().Soul.Disabled, "Pre-cancelled update changed policy");
             Check(new MemorySettings().Conversation.Budget == 3000
-                && new MemorySettings().Session.HighWatermark == 3000, "Wrong byte defaults");
+                && new MemorySettings().Session.Budget == 1500, "Wrong byte defaults");
             bool invalid = false;
-            try { _ = new MemorySettings(session: new MemoryBandSettings(10, 5, 6)); }
+            try { _ = new MemorySettings(session: new MemoryBandSettings(long.MaxValue / 2 + 1)); }
             catch (ArgumentException) { invalid = true; }
-            Check(invalid, "Invalid effective watermarks accepted");
+            Check(invalid, "Size whose derived threshold overflows accepted");
         }
         finally { app.Destroy(); }
     }

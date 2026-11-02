@@ -37,7 +37,7 @@ public static partial class Gui
             }
             total += bytes;
             if (total > Agent.MaximumImageSourceBytes)
-                throw new InvalidDataException("Combined image sources exceed 32 MiB.");
+                throw new InvalidDataException("Combined image sources exceed 64 MiB.");
             sources.Add(data);
             parts.Add(new BlobPart(mime, new BlobRef(RefKind.Uri, $"data:{mime};base64,{data}")));
         }
@@ -72,9 +72,12 @@ public static partial class Gui
             {
                 foreach (var field in value.EnumerateObject())
                 {
-                    bool imageMime = field.Name == "mime" && field.Value.ValueKind == JsonValueKind.String
+                    bool imageMime = field.Name is "mime" or "mimeType" && field.Value.ValueKind == JsonValueKind.String
                         && (field.Value.GetString() ?? "").StartsWith("image/", StringComparison.OrdinalIgnoreCase);
-                    if (field.Name == "images" || imageMime)
+                    // MCP payload privacy must not depend on valid MIME/type
+                    // metadata: malformed image replies are traced before refusal.
+                    bool opaqueData = field.Name == "data" && field.Value.ValueKind == JsonValueKind.String;
+                    if (field.Name is "images" or "audio" || imageMime || opaqueData)
                     {
                         return true;
                     }

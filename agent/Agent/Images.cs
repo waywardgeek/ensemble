@@ -10,7 +10,7 @@ public sealed partial class Agent
         long length = stream.Length;
         if (length <= 0 || length > MaximumImageSourceBytes)
         {
-            throw new InvalidDataException("Image source must contain between 1 byte and 32 MiB.");
+            throw new InvalidDataException("Image source must contain between 1 byte and 64 MiB.");
         }
         byte[] bytes = new byte[(int)length];
         stream.ReadExactly(bytes);
@@ -25,7 +25,7 @@ public sealed partial class Agent
     {
         if (source.Length == 0 || source.Length > MaximumImageSourceBytes)
         {
-            throw new InvalidDataException("Image source must contain between 1 byte and 32 MiB.");
+            throw new InvalidDataException("Image source must contain between 1 byte and 64 MiB.");
         }
 
         // SKData copies the bounded input. Native objects are scoped to this call;

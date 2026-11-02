@@ -7,7 +7,7 @@ internal static partial class MeterTests
     private static MemorySettings RuntimePolicy(bool sessionOff = false, bool soulOff = true) => new(
         conversation: new MemoryBandSettings(disabled: true),
         soul: new MemoryBandSettings(disabled: soulOff),
-        session: new MemoryBandSettings(1, 2, 1, sessionOff));
+        session: new MemoryBandSettings(1, sessionOff));
 
     private static async Task<Agent> RuntimeAgent(Application app, string home, string endpoint)
     {
@@ -270,7 +270,7 @@ internal static partial class MeterTests
             var agent = await RuntimeAgent(app, home, listener.Prefixes.Single());
             await agent.SetMemorySettingsAsync(new MemorySettings(
                 conversation: new MemoryBandSettings(disabled: true),
-                session: new MemoryBandSettings(1, 2, 1), archive8: new MemoryBandSettings(1, 2, 1)));
+                session: new MemoryBandSettings(1), archive8: new MemoryBandSettings(1)));
             await RuntimeCheckpoint(agent);
             var first = await listener.GetContextAsync().WaitAsync(TimeSpan.FromSeconds(10));
             await Reply(first, WorkerChat("{\"memory\":\"SESSION_SUMMARY\"}"));

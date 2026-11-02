@@ -26,11 +26,67 @@ internal static class ImageBudgetTests
     private static void Refuse(Action action)
     {
         try { action(); }
-        catch (InvalidDataException error) when (error.Message.StartsWith("Image request exceeds", StringComparison.Ordinal))
+        catch (ImageBudgetExceededException)
         {
             return;
         }
         throw new Exception("Expected cumulative image-budget refusal.");
+    }
+
+    public static async Task Admission()
+    {
+        using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(20));
+        var app = new Application(TextWriter.Null);
+        var tiny = Inline(Convert.FromBase64String(
+            "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jRZkAAAAASUVORK5CYII="));
+        var config = new Configuration(Vendor.Anthropic, "claude-3-haiku-20240307",
+            "http://127.0.0.1:1", "fake-only");
+        try
+        {
+            var agent = new Agent(app, config);
+            await agent.PostAsync(new AgentInput(InputKind.Pause)).WaitAsync(deadline.Token);
+            for (int i = 0; i < Engine.MaximumRequestImages; i++)
+                await agent.PostAsync(new AgentInput(InputKind.Message, "accepted", [tiny])).WaitAsync(deadline.Token);
+            int before = agent.History().Events().Length;
+            try
+            {
+                await agent.PostAsync(new AgentInput(InputKind.Message, "REFUSED", [tiny])).WaitAsync(deadline.Token);
+                throw new Exception("Overflow input was admitted.");
+            }
+            catch (ImageBudgetExceededException) { }
+            Check(agent.History().Events().Length == before, "Refused input changed History.");
+            Check(Images(agent.Engine().Render(agent.History().View())) == 32, "Prior images were lost.");
+            await agent.PostAsync(new AgentInput(InputKind.Message, "Text remains admissible")).WaitAsync(deadline.Token);
+
+            var queued = new Agent(app, config);
+            await queued.PostAsync(new AgentInput(InputKind.Pause)).WaitAsync(deadline.Token);
+            var pending = queued.SubmitAsync(Enumerable.Repeat<Part>(tiny, 32));
+            try
+            {
+                await queued.PostAsync(new AgentInput(InputKind.Hint, "queued overflow", [tiny])).WaitAsync(deadline.Token);
+                throw new Exception("Queued image reservation was ignored.");
+            }
+            catch (ImageBudgetExceededException) { }
+            await queued.ShutdownAsync().WaitAsync(deadline.Token);
+            try { await pending; } catch (ObjectDisposedException) { }
+
+            var legacy = new Agent(app, config);
+            legacy.History().Append(new Event(EventKind.MessageReceived, actor: Actor.Human,
+                parts: Enumerable.Repeat<Part>(tiny, 33)));
+            string original = JsonCodec.WriteEvent(legacy.History().Events()[0]);
+            try
+            {
+                await legacy.SendAsync("hello", deadline.Token).WaitAsync(deadline.Token);
+                throw new Exception("Over-limit restored context was sent.");
+            }
+            catch (ImageBudgetExceededException) { }
+            var facts = legacy.History().Events();
+            Check(!facts.Any(fact => fact.Kind == EventKind.RequestSent), "Refusal reached transport.");
+            Check(facts.Count(fact => fact.Kind == EventKind.ErrorOccurred) == 1,
+                "Local refusal did not publish exactly one narratable error.");
+            Check(JsonCodec.WriteEvent(facts[0]) == original, "Recovery rewrote canonical images.");
+        }
+        finally { app.Destroy(); }
     }
 
     public static void RequestLimits(string temp)

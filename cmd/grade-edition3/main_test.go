@@ -445,3 +445,26 @@ func TestChapter16GuardsAndRoute(t *testing.T) {
 		t.Fatalf("explicit GUI never launched: %v", err)
 	}
 }
+
+func TestChapter26ScopeFlagsDoNotLaunch(t *testing.T) {
+	marker := filepath.Join(t.TempDir(), "launched")
+	candidate := filepath.Join(t.TempDir(), "candidate")
+	if err := os.WriteFile(candidate, []byte("#!/bin/sh\ntouch '"+marker+"'\n"), 0700); err != nil {
+		t.Fatal(err)
+	}
+	for _, args := range [][]string{
+		{"-ch", "26", candidate},
+		{"-ch", "26", "-executable-only", candidate},
+		{"-ch", "26", "-executable-only", "-media-scope", "voice", candidate},
+		{"-ch", "26", "-executable-only", "-media-scope", "image-files", "-core", "x", candidate},
+		{"-ch", "5", "-executable-only", "-media-scope", "image-files", candidate},
+		{"-ch", "26", "-executable-only", "-media-scope", "image-files", t.TempDir()},
+	} {
+		if code := run(args); code != 2 {
+			t.Fatalf("%v: got %d", args, code)
+		}
+	}
+	if _, err := os.Stat(marker); !os.IsNotExist(err) {
+		t.Fatal("invalid flags launched candidate")
+	}
+}

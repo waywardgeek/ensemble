@@ -36,6 +36,7 @@
  <button class="btn btn-quiet icon-button" id="resume" aria-label="Resume" title="Resume Agent" disabled><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m8 5 11 7-11 7Z"/></svg></button>
  <button class="btn btn-quiet icon-button" id="interrupt" aria-label="Interrupt" title="Interrupt current work" disabled><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="6" width="12" height="12" rx="1"/></svg></button>
  <button class="btn btn-quiet icon-button" id="theme-toggle" aria-label="Switch to light theme" title="Dark theme; switch to light theme" disabled><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#icon-moon"/></svg></button>
+ <button class="btn btn-quiet icon-button" id="capture-page" type="button" aria-label="Capture this page" title="Capture this page" aria-pressed="false" disabled><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 6h4l2-3h4l2 3h4v15H4Z"/><circle cx="12" cy="13" r="4"/></svg></button>
  <button class="btn btn-quiet icon-button" id="settings-open" type="button" aria-label="Settings" aria-haspopup="dialog" aria-controls="settings-dialog" title="Settings"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9.5 3-.6 2.2-2 .9-2-.7-2 3.4 1.5 1.5v2.4L3 14.2l2 3.4 2-.7 2 .9.5 2.2h4.9l.6-2.2 2-.9 2 .7 2-3.4-1.5-1.5v-2.4L21 8.8l-2-3.4-2 .7-2-.9L14.5 3Z"/><circle cx="12" cy="11.5" r="3"/></svg></button></div>
 
  </div></div></div>
@@ -69,16 +70,29 @@
  <div id="transcript" aria-label="Conversation messages" tabindex="0"></div>
  <p id="notice" role="status"></p>
  <form id="compose">
+
  <div id="image-previews" aria-label="Attached images" hidden></div>
  <p id="image-status" role="status" hidden></p>
  <button id="discard-image-draft" class="btn btn-quiet" type="button" hidden>Discard uncertain draft</button>
  <textarea class="form-control" id="prompt" rows="1" placeholder="Select an Agent…" aria-label="Message to selected Agent"></textarea>
+ <div id="compose-actions" role="group" aria-label="Message controls">
+ <div id="image-attachment-controls"><button id="attach-images" class="btn btn-quiet" type="button" aria-label="Attach images" title="Attach images" disabled><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true" focusable="false"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8" cy="8" r="1.5"/><path d="m3 17 6-6 4 4 3-3 5 5"/></svg></button>
+ <input id="image-files" type="file" accept="image/png,image/jpeg,image/webp,image/gif" multiple hidden></div>
+ <button id="voice-hold" class="btn btn-quiet" type="button" disabled aria-label="Hold to talk; release to send" aria-describedby="voice-status" aria-pressed="false" title="Hold to talk; release to send"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true" focusable="false"><rect x="9" y="2" width="6" height="13" rx="3"/><path d="M5 10v2a7 7 0 0 0 14 0v-2M12 19v3M8 22h8"/></svg></button>
+ <button id="voice-cancel" class="btn btn-quiet" type="button" hidden>Cancel voice</button>
  <button class="btn btn-primary" id="send" type="submit" disabled aria-label="Send" title="Send message (Enter)"><img class="send-icon" src="./artwork/paper-airplane-send.svg" alt=""></button>
+ </div>
+ <div id="voice-status" role="status" aria-live="polite">Voice controls loading…</div>
  </form></section>
  <div id="right-splitter" class="splitter" role="separator" tabindex="0" aria-orientation="vertical" aria-label="Tools pane width" aria-controls="tools-pane" aria-valuemin="0" aria-valuemax="100" aria-valuenow="25"></div>
  <section id="tools-pane" aria-label="Tools and artifacts"><header class="pane-heading"><div><span class="eyebrow">Activity</span><h2>Tools &amp; artifacts</h2></div><button class="btn btn-quiet" id="clear-tools" title="Clear this view; keep saved history">Clear view</button></header>
  <div id="tool-transcript" tabindex="0" aria-label="Tool activity"></div></section>
 </main>
+<dialog id="capture-consent" class="peer-dialog" aria-labelledby="capture-consent-title" aria-describedby="capture-consent-status">
+ <h2 id="capture-consent-title">Share this page with <span data-capture-requester></span>?</h2>
+ <p id="capture-consent-status" data-capture-status role="status"></p>
+ <div class="dialog-actions"><button class="btn btn-quiet" id="capture-decline" type="button" data-capture-cancel>Cancel</button><button class="btn btn-primary" id="capture-share" type="button" data-capture-share>Share this page</button></div>
+</dialog>
 <dialog id="settings-dialog" class="settings-dialog" aria-labelledby="settings-title">
  <header class="settings-dialog-heading"><h2 id="settings-title">Settings</h2>
  <button class="btn btn-quiet icon-button" id="settings-close" type="button" aria-label="Close settings" title="Close settings"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg></button></header>
@@ -131,6 +145,8 @@
  <label>Font size <input class="form-control" id="font-size" type="number" min="12" max="32" step="1" value="18"> px</label>
  <label>Speech speed <input class="form-control" id="tts-speed" type="range" min="0.25" max="4" step="0.25" value="1"> <output id="speed-label">1×</output></label>
  <label><input class="form-check-input" id="pause-speaking" type="checkbox" checked> Pause Agent while speaking</label>
+ <label>Hold-to-talk shortcut <select class="form-select" id="voice-shortcut" aria-describedby="voice-shortcut-help"><option value="AltRight">Right Alt</option><option value="F8">F8</option><option value="off">Off</option></select></label>
+ <p id="voice-shortcut-help">While this page has focus, hold the selected key to talk; release to send. Right Alt is not used for AltGr or Apple Option. Modifier chords and open dialogs refuse capture. The microphone button works independently.</p>
  <label>Voice <select class="form-select" id="voice"><option value="">Browser default</option></select></label>
  <button class="btn btn-quiet icon-button" id="stop-speech" aria-label="Stop speech" title="Stop speech"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#icon-speaker-off"/></svg></button>
  <p>Speech is opt-in using the header checkbox. Voice choices are provided by this browser.</p>
@@ -164,41 +180,29 @@
 <p>Sizes are UTF-8 bytes, not tokens. Zero selects the band default. Disabling hides memory from requests but preserves files. Re-enabling reads current disk contents. Settings save in this Agent’s home, separately from appearance preferences.</p>
 <fieldset><legend>Conversation</legend>
 <label><input class="form-check-input" id="memory-conversation-enabled" type="checkbox"> Enabled</label>
-<label>Budget (bytes) <input class="form-control" id="memory-conversation-budget" type="number" min="0" max="9007199254740991" step="1" required></label>
-<label>High watermark (bytes) <input class="form-control" id="memory-conversation-high_watermark" type="number" min="0" max="9007199254740991" step="1" required></label>
-<label>Low watermark (bytes) <input class="form-control" id="memory-conversation-low_watermark" type="number" min="0" max="9007199254740991" step="1" required></label>
+<label>Size (bytes) <input class="form-control" id="memory-conversation-budget" type="number" min="0" max="9007199254740991" step="1" required></label>
 </fieldset>
 <fieldset><legend>SOUL.md</legend>
 <label><input class="form-check-input" id="memory-soul-enabled" type="checkbox"> Enabled</label>
-<label>Budget (bytes) <input class="form-control" id="memory-soul-budget" type="number" min="0" max="9007199254740991" step="1" required></label>
-<label>High watermark (bytes) <input class="form-control" id="memory-soul-high_watermark" type="number" min="0" max="9007199254740991" step="1" required></label>
-<label>Low watermark (bytes) <input class="form-control" id="memory-soul-low_watermark" type="number" min="0" max="9007199254740991" step="1" required></label>
+<label>Size (bytes) <input class="form-control" id="memory-soul-budget" type="number" min="0" max="9007199254740991" step="1" required></label>
 </fieldset>
 <fieldset><legend>MEMORY.md</legend>
 <label><input class="form-check-input" id="memory-memory-enabled" type="checkbox"> Enabled</label>
-<label>Budget (bytes) <input class="form-control" id="memory-memory-budget" type="number" min="0" max="9007199254740991" step="1" required></label>
-<label>High watermark (bytes) <input class="form-control" id="memory-memory-high_watermark" type="number" min="0" max="9007199254740991" step="1" required></label>
-<label>Low watermark (bytes) <input class="form-control" id="memory-memory-low_watermark" type="number" min="0" max="9007199254740991" step="1" required></label>
+<label>Size (bytes) <input class="form-control" id="memory-memory-budget" type="number" min="0" max="9007199254740991" step="1" required></label>
 </fieldset>
 <fieldset><legend>64× archive</legend>
 <label><input class="form-check-input" id="memory-archive64-enabled" type="checkbox"> Enabled</label>
-<label>Budget (bytes) <input class="form-control" id="memory-archive64-budget" type="number" min="0" max="9007199254740991" step="1" required></label>
-<label>High watermark (bytes) <input class="form-control" id="memory-archive64-high_watermark" type="number" min="0" max="9007199254740991" step="1" required></label>
-<label>Low watermark (bytes) <input class="form-control" id="memory-archive64-low_watermark" type="number" min="0" max="9007199254740991" step="1" required></label>
+<label>Size (bytes) <input class="form-control" id="memory-archive64-budget" type="number" min="0" max="9007199254740991" step="1" required></label>
 </fieldset>
 <fieldset><legend>8× archive</legend>
 <label><input class="form-check-input" id="memory-archive8-enabled" type="checkbox"> Enabled</label>
-<label>Budget (bytes) <input class="form-control" id="memory-archive8-budget" type="number" min="0" max="9007199254740991" step="1" required></label>
-<label>High watermark (bytes) <input class="form-control" id="memory-archive8-high_watermark" type="number" min="0" max="9007199254740991" step="1" required></label>
-<label>Low watermark (bytes) <input class="form-control" id="memory-archive8-low_watermark" type="number" min="0" max="9007199254740991" step="1" required></label>
+<label>Size (bytes) <input class="form-control" id="memory-archive8-budget" type="number" min="0" max="9007199254740991" step="1" required></label>
 </fieldset>
 <fieldset><legend>Session</legend>
 <label><input class="form-check-input" id="memory-session-enabled" type="checkbox"> Enabled</label>
-<label>Budget (bytes) <input class="form-control" id="memory-session-budget" type="number" min="0" max="9007199254740991" step="1" required></label>
-<label>High watermark (bytes) <input class="form-control" id="memory-session-high_watermark" type="number" min="0" max="9007199254740991" step="1" required></label>
-<label>Low watermark (bytes) <input class="form-control" id="memory-session-low_watermark" type="number" min="0" max="9007199254740991" step="1" required></label>
+<label>Size (bytes) <input class="form-control" id="memory-session-budget" type="number" min="0" max="9007199254740991" step="1" required></label>
 </fieldset>
-<p>Low watermark must be positive and no greater than high watermark after defaults resolve. A relevant policy change cancels and joins pending compression before acknowledgment.</p>
+<p>Each band has one size. Graduation starts above twice that size and reduces toward that size. A relevant policy change cancels and joins pending compression before acknowledgment.</p>
 <button class="btn btn-outline-primary" type="submit">Save memory settings</button>
 <button class="btn btn-outline-primary" id="memory-settings-reload" type="button">Reload acknowledged settings</button>
 </form></section>

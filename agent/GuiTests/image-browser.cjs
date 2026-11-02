@@ -26,7 +26,7 @@ assert.ok(!['8088', '8089'].includes(target.port), 'Never target working hosts')
       });
     }
     await page.addInitScript(() => {
-      window.imageSends = []; window.imageAcks = []; window.revoked = []; window.created = [];
+      window.imageSends = []; window.imageAcks = []; window.imageRefusals = []; window.revoked = []; window.created = [];
       const native = WebSocket;
       window.WebSocket = class extends native {
         constructor(...args) {
@@ -34,6 +34,7 @@ assert.ok(!['8088', '8089'].includes(target.port), 'Never target working hosts')
           this.addEventListener('message', e => {
             const frame = JSON.parse(e.data);
             if (frame.type === 'image_accepted') imageAcks.push(frame);
+            if (frame.type === 'image_refused' || frame.type === 'error') imageRefusals.push(frame);
           });
         }
         send(data) {
@@ -62,6 +63,28 @@ assert.ok(!['8088', '8089'].includes(target.port), 'Never target working hosts')
     await page.waitForFunction(() => !document.querySelector('#send').disabled);
     await page.evaluate(() => send('set_model', 'claude-3-haiku-20240307'));
     await page.waitForFunction(() => document.querySelector('#model-choice').value === 'claude-3-haiku-20240307' && !document.querySelector('#model-choice').disabled);
+    await page.setViewportSize({ width: 393, height: 851 });
+    await page.locator('#prompt').fill('picker caption');
+    const pickerPng = await page.evaluate(() => {
+      const canvas = document.createElement('canvas'); canvas.width = 12; canvas.height = 8;
+      canvas.getContext('2d').fillRect(0, 0, 12, 8);
+      return canvas.toDataURL('image/png').split(',')[1];
+    });
+    const fileChooser = page.waitForEvent('filechooser');
+    await page.locator('#attach-images').click();
+    await (await fileChooser).setFiles({ name: 'picker.png', mimeType: 'image/png',
+      buffer: Buffer.from(pickerPng, 'base64') });
+    await page.waitForFunction(() => imageComposer.hasImages && !imageComposer.blocked);
+    assert.equal(await page.locator('#prompt').inputValue(), 'picker caption');
+    await page.locator('#send').click();
+    await page.waitForFunction(() => imageAcks.length === 1 || imageRefusals.length > 0);
+    assert.deepEqual(await page.evaluate(() => imageRefusals), []);
+    await page.waitForFunction(() => !imageComposer.hasImages);
+    assert.equal(await page.evaluate(() => imageSends[0].text), 'picker caption');
+    assert.equal(await page.evaluate(() => imageSends.length), 1);
+    assert.equal(await page.locator('#prompt').inputValue(), '');
+    await page.evaluate(() => { imageSends.length = 0; imageAcks.length = 0; });
+    console.log('PASS phone-size full-page picker, caption, real server media admission');
     await page.locator('#prompt').fill('kept ');
     await page.evaluate(() => pasteImages(2, 'caption'));
     await page.waitForFunction(() => imageComposer.entries.length === 2 && !imageComposer.blocked);

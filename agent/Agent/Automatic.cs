@@ -71,14 +71,34 @@ public sealed partial class Agent
         foreach (var snapshot in message.AutomaticResults)
         {
             var result = snapshot.Result;
+            string? imageRefusal = null;
+            if (!result.IsError)
+            {
+                try
+                {
+                    ValidateAdditionalImages(turnSnapshots.Concat(turn).Concat(round).Concat(result.Parts));
+                }
+                catch (ImageBudgetExceededException error)
+                {
+                    imageRefusal = "Automatic image delivery refused. " + error.Message;
+                    result = new ToolResultPart(result.CallID,
+                        [new TextPart(imageRefusal)],
+                        isError: true, job: result.Job);
+                }
+            }
             Record(new Event(EventKind.ToolObserved, callID: result.CallID, parts: result.Parts,
                 isError: result.IsError, job: result.Job));
             var destination = snapshot.Definition.Ephemeral == "turn" ? turn : round;
             if (result.IsError)
             {
                 // Failed bytes are diagnostics, not a usable snapshot. The
-                // Job and observation above retain them in full for inspection.
+                // Job retains original output; the observation records whether
+                // delivery was refused before the snapshot entered context.
                 destination.Add(new TextPart($"Automatic snapshot {snapshot.Definition.Name} unavailable (error, job {result.Job!.Handle})."));
+                if (imageRefusal is not null)
+                {
+                    destination.Add(new TextPart(imageRefusal));
+                }
             }
             else
             {

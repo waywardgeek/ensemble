@@ -37,12 +37,12 @@ try
             flags[flag] = "1";
             continue;
         }
-        if (flag is not ("--data-dir" or "--agent-name" or "--sandbox" or "--port" or "--public-origin" or "--gui-dir" or "--vendor" or "--model" or "--base-url" or "--workspace" or "--event-log" or "--settings" or "--skills-dir" or "--primary-skill" or "--startup-skills" or "--save" or "--save-log" or "--archive-log" or "--cache-lens" or "--prompt-cache-key" or "--surface" or "--billing" or "--account" or "--credentials-dir" or "--codex-auth-file" or "--reasoning-effort" or "--reasoning-summary" or "--safe-mode" or "--enable-web-search") || i + 1 >= args.Length)
+        if (flag is not ("--data-dir" or "--agent-name" or "--sandbox" or "--port" or "--public-origin" or "--gui-dir" or "--vendor" or "--model" or "--base-url" or "--workspace" or "--event-log" or "--settings" or "--skills-dir" or "--primary-skill" or "--startup-skills" or "--save" or "--save-log" or "--archive-log" or "--cache-lens" or "--prompt-cache-key" or "--surface" or "--billing" or "--transcription" or "--transcription-key-file" or "--account" or "--credentials-dir" or "--codex-auth-file" or "--reasoning-effort" or "--reasoning-summary" or "--safe-mode" or "--enable-web-search") || i + 1 >= args.Length)
         {
             throw new ArgumentException("Unknown or incomplete GUI flag");
         }
         string value = args[++i];
-        if (flag is "--data-dir" or "--agent-name" or "--sandbox" or "--surface" or "--billing" or "--account" or "--credentials-dir" or "--codex-auth-file" or "--reasoning-effort" or "--reasoning-summary" or "--safe-mode" or "--enable-web-search")
+        if (flag is "--data-dir" or "--agent-name" or "--sandbox" or "--surface" or "--billing" or "--transcription" or "--transcription-key-file" or "--account" or "--credentials-dir" or "--codex-auth-file" or "--reasoning-effort" or "--reasoning-summary" or "--safe-mode" or "--enable-web-search")
         {
             if ((flag != "--sandbox" && string.IsNullOrWhiteSpace(value)) || value.StartsWith("--"))
             {
@@ -63,6 +63,11 @@ try
     {
         Directory.SetCurrentDirectory(Path.GetFullPath(workspace));
     }
+    // Speech has its own explicit payer. A model API key or subscription never
+    // enables transcription, and this dedicated key is not a command-line flag.
+    string transcription = Selected("--transcription", "EN_TRANSCRIPTION");
+    if (transcription is not ("" or "off" or "openai-api-key"))
+        throw new ArgumentException("Transcription must be off or openai-api-key");
     string endpoint = Selected("--base-url", "LLM_BASE_URL");
     string sandboxRoot = Selected("--sandbox", "EN_SANDBOX_ROOT");
     string dataDirectory = Selected("--data-dir", "EN_DATA_DIR");
@@ -70,6 +75,17 @@ try
     string storageBase = sandboxRoot.Length == 0 ? Directory.GetCurrentDirectory() : Path.GetFullPath(sandboxRoot);
     string container = dataDirectory.Length == 0 ? storageBase : Path.GetFullPath(dataDirectory, storageBase);
     app = new Application(Console.Error, dataDirectory: container);
+    if (transcription == "openai-api-key")
+    {
+        string keyFile = Selected("--transcription-key-file", "EN_TRANSCRIPTION_KEY_FILE");
+        string transcriptionKey = string.IsNullOrEmpty(keyFile)
+            ? Env("EN_TRANSCRIPTION_API_KEY")
+            : ReadTranscriptionKey(keyFile);
+        if (string.IsNullOrWhiteSpace(transcriptionKey))
+            throw new ArgumentException("Explicit transcription requires its dedicated key or key file");
+        _ = new VoiceTranscriber(app, transcriptionKey);
+    }
+
     Surface? surface = Selected("--surface", "EN_SURFACE") switch
     {
         "" => null,
@@ -195,6 +211,8 @@ try
             ["HUMAN_DESCRIPTION"] = user.HumanDescription
         }, startupSkills,
         Environment.GetEnvironmentVariables().Cast<System.Collections.DictionaryEntry>()
+            // The dedicated speech key is not a skill/MCP startup variable.
+            .Where(entry => (string)entry.Key != "EN_TRANSCRIPTION_API_KEY")
             .ToDictionary(entry => (string)entry.Key, entry => (string)entry.Value!)));
     if (!flags.ContainsKey("--no-save") && Env("EN_DISABLE_SAVE") != "1")
     {
@@ -320,4 +338,43 @@ static void ReportFailure(string prefix, Exception error)
             ? "Invalid launch configuration. Check supported flags and value formats."
             : "Check private diagnostics and workspace/data permissions; no private error text is printed here.";
     Console.Error.WriteLine($"{prefix}: {error.GetType().Name}. {advice}");
+}
+
+
+// Composition-root credential input, not an Agent filesystem operation. The caller
+// explicitly selects this private file; no discovery, writes, or payer fallback.
+static string ReadTranscriptionKey(string path)
+{
+    const int maximumBytes = 1024 * 1024;
+    using var input = new FileStream(Path.GetFullPath(path), FileMode.Open, FileAccess.Read,
+        FileShare.ReadWrite | FileShare.Delete);
+    if (input.Length > maximumBytes)
+        throw new InvalidDataException("Transcription key file exceeds its size limit");
+    // Read one opened generation and bound growth as well as the initial length.
+    byte[] bytes = new byte[maximumBytes + 1];
+    int used = 0;
+    while (used < bytes.Length)
+    {
+        int count = input.Read(bytes.AsSpan(used));
+        if (count == 0) break;
+        used += count;
+    }
+    if (used > maximumBytes)
+        throw new InvalidDataException("Transcription key file exceeds its size limit");
+    using var document = System.Text.Json.JsonDocument.Parse(bytes.AsMemory(0, used),
+        new System.Text.Json.JsonDocumentOptions { MaxDepth = 16 });
+    var root = document.RootElement;
+    if (root.ValueKind != System.Text.Json.JsonValueKind.Object)
+        throw new InvalidDataException("Transcription key file must contain an object");
+    var names = new HashSet<string>(StringComparer.Ordinal);
+    foreach (var property in root.EnumerateObject())
+    {
+        if (!names.Add(property.Name))
+            throw new InvalidDataException("Transcription key file contains a duplicate field");
+    }
+    if (!root.TryGetProperty("openai_api_key", out var value)
+        || value.ValueKind != System.Text.Json.JsonValueKind.String
+        || string.IsNullOrWhiteSpace(value.GetString()))
+        throw new InvalidDataException("Transcription key file has no OpenAI API key");
+    return value.GetString()!;
 }

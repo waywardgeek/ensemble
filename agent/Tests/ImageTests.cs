@@ -267,6 +267,23 @@ internal static class ImageTests
                 Check(pixels.GetPixel(0, 0) == SKColors.Red, "Image pixel content was lost.");
                 Check(pixels.GetPixel(6, 4).Alpha == 0, "Transparency was lost.");
             }
+            // Real incompressible pixels exercise the enlarged source ceiling,
+            // not a synthetic array that only proves the size check moved.
+            using (var noisy = new SKBitmap(new SKImageInfo(3500, 3500, SKColorType.Rgba8888, SKAlphaType.Unpremul)))
+            {
+                byte[] randomPixels = new byte[noisy.ByteCount];
+                new Random(8271).NextBytes(randomPixels);
+                System.Runtime.InteropServices.Marshal.Copy(randomPixels, 0, noisy.GetPixels(), randomPixels.Length);
+                using var noisyImage = SKImage.FromBitmap(noisy);
+                using var noisyPng = noisyImage.Encode(SKEncodedImageFormat.Png, 100);
+                byte[] source = noisyPng.ToArray();
+                Check(source.Length > 32 * 1024 * 1024 && source.Length <= Agent.MaximumImageSourceBytes,
+                    "Large-source fixture does not exercise the new source allowance.");
+                var prepared = agent.PrepareImage(source.AsMemory());
+                Check(prepared.Width <= Agent.MaximumImageEdge && prepared.Height <= Agent.MaximumImageEdge
+                    && prepared.OutputBytes <= Agent.MaximumImageOutputBytes,
+                    "Larger source bypassed prepared-image bounds.");
+            }
             byte[] large = Png(4096, 2048);
             string path = Path.Combine(inside, "large.png");
             File.WriteAllBytes(path, large);

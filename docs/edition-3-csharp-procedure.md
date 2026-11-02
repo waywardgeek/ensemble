@@ -17,17 +17,20 @@ Common and functional partial implementations, not the archived Go layout.
 
 ## Current authoring increment — multimedia
 
-Bill requested only TL;DR and In Plain Words for new `book/chapter-26.md`.
-`book/chapter-27.md` is now Crossing Over to Ensemble. Manuscript order is 00–27;
-immutable endpoints, historical grader flags, and archived records keep their
-original meanings. Cadence owns this new draft and the current crossover updates;
-other chapter changes here are limited to authorized numbering/navigation repairs.
+Bill initially requested only TL;DR and In Plain Words for `book/chapter-26.md`,
+then implementation, exercises/external graders and passing results before full
+prose. He has now explicitly authorized the full narrative draft while native
+host-capture acceptance and the remaining external grades are pending. This is a
+chapter-specific change in sequence, not permission to claim those gates passed.
+Keep implementation, human acceptance and scoped grading evidence distinct.
 
-Follow Bill's current sequence: opening sections, working implementation, exercises
-and external graders, passing results, then the full chapter body. This is personal
-interactive work, not authority to start a worker campaign. Existing media tests
-are not a grade for the new chapter. Keep the live 8088 application running and
-settle capture permissions, transcription funding and live-test scope explicitly.
+`book/chapter-27.md` is Crossing Over to Ensemble. Manuscript order is 00–27;
+immutable endpoints, historical grader flags and archived records keep their
+original meanings. Cadence owns this draft and its current navigation updates.
+Work personally, without a worker campaign; preserve unrelated edits and running
+hosts. Host capture means CodeRhapsody-style server display/rectangle capture,
+not Chrome tab sharing. Native permission and an agreed synthetic test region
+still require Bill's participation. The pause repair remains explicitly deferred.
 
 ## Historical exception: the final GUI crossover
 

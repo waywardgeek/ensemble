@@ -6,6 +6,73 @@ using Application = Ensemble.Ensemble;
 
 internal static partial class ActorTests
 {
+    public static async Task HandoffContinuation()
+    {
+        var listener = new TcpListener(IPAddress.Loopback, 0);
+        listener.Start();
+        using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(20));
+        var app = new Application(TextWriter.Null);
+        Task? server = null;
+        int requests = 0;
+        try
+        {
+            var agent = new Agent(app, new Configuration(Vendor.Anthropic, "model-a",
+                $"http://127.0.0.1:{((IPEndPoint)listener.LocalEndpoint).Port}"));
+            agent.InstallTools();
+            server = Task.Run(async () =>
+            {
+                // A bounded adversarial peer models the ambiguity: a future-tense
+                // promise plus an unlabelled note looks like unfinished work.
+                for (int round = 0; round < 3; round++)
+                {
+                    using var client = await listener.AcceptTcpClientAsync(deadline.Token);
+                    using var stream = client.GetStream();
+                    string request = await ReadRequest(stream, deadline.Token);
+                    requests++;
+                    bool completed = request.Contains("[Completed micro_handoff checkpoint]");
+                    if (round > 0 && completed)
+                    {
+                        Check(request.Contains("Next: inspect the replay test."), "Checkpoint content lost");
+                        await Reply(stream, "Resuming the replay test.", deadline.Token);
+                        return;
+                    }
+                    if (round == 2)
+                    {
+                        await Reply(stream, "Repeated handoff without progress.", deadline.Token);
+                        return;
+                    }
+                    await ReplyJson(stream, new
+                    {
+                        content = new object[]
+                        {
+                            new { type = "text", text = "I will save the checkpoint now." },
+                            new { type = "tool_use", id = "checkpoint-" + round, name = "micro_handoff",
+                                input = new { text = "Next: inspect the replay test." } }
+                        },
+                        usage = new { input_tokens = 1, output_tokens = 1 }
+                    }, deadline.Token);
+                }
+            });
+            string answer = await agent.SendAsync("Checkpoint once, then continue.").WaitAsync(deadline.Token);
+            await server.WaitAsync(deadline.Token);
+            Check(answer == "Resuming the replay test." && requests == 2,
+                "Handoff continuation repeated the checkpoint instead of resuming work");
+            Check(agent.History().Events().Count(fact => fact.Kind == EventKind.HandoffRecorded) == 1,
+                "Continuation recorded duplicate handoffs");
+        }
+        finally
+        {
+            deadline.Cancel();
+            listener.Stop();
+            app.Destroy();
+            if (server is not null)
+            {
+                try { await server; }
+                catch (OperationCanceledException) when (deadline.IsCancellationRequested) { }
+            }
+        }
+    }
+
     public static async Task HandoffBatch()
     {
         var listener = new TcpListener(IPAddress.Loopback, 0);
@@ -134,8 +201,23 @@ internal static class HandoffTests
             var history = agent.History();
             history.Append(new Event(EventKind.SkillLoaded, parts: [new SkillPart("manual", "retained manual", ["write_file"], pending: true)]));
             history.Append(new Event(EventKind.MessageReceived, actor: Actor.Human, parts: [new TextPart("dialogue")]));
+            string[] mediaTypes = ["image/png", "audio/wav", "video/mp4", "application/pdf"];
+            foreach (string mime in mediaTypes)
+            {
+                var media = new BlobPart(mime, new BlobRef(RefKind.Path, "/absent-handoff-media/" + mime));
+                history.Append(new Event(EventKind.MessageReceived, actor: Actor.Human,
+                    parts: [new TextPart("caption " + mime), media]));
+                history.Append(new Event(EventKind.MessageReceived, actor: Actor.Human, parts: [media]));
+            }
             history.Append(new Event(EventKind.HandoffRecorded, parts: [new HandoffPart("old")]));
             history.Append(new Event(EventKind.HandoffRecorded, parts: [new HandoffPart("new")]));
+            // Handoff reduces context, not canonical events. Save below explicitly
+            // requests zero retained diagnostics, so check events before that save.
+            if (history.Events().SelectMany(fact => fact.Parts).OfType<BlobPart>().Count() != 8)
+                throw new Exception("Handoff erased canonical media");
+            var replayed = new Agent(app, agent.Configuration());
+            foreach (var fact in history.Events())
+                replayed.History().Append(fact);
             string save = Path.Combine(directory, "save.json");
             history.Save(new PersistenceOptions(save, RetainLog: 0));
             var restored = new Agent(app, agent.Configuration());
@@ -143,12 +225,30 @@ internal static class HandoffTests
             var context = restored.History().View();
             var parts = context.Dialogue.SelectMany(entry => entry.Parts).ToArray();
             if (!parts.OfType<HandoffPart>().Select(note => note.Text).SequenceEqual(["old", "new"])
-                || parts.OfType<TextPart>().Single().Text != "dialogue"
+                || !parts.OfType<TextPart>().Select(part => part.Text).SequenceEqual(
+                    new[] { "dialogue" }.Concat(mediaTypes.Select(mime => "caption " + mime)))
                 || !parts.OfType<SkillPart>().Single().Pending
                 || restored.ToolEnabled("write_file"))
             {
                 throw new Exception("Snapshot changed handoff/dialogue/manual authority");
             }
+            foreach (var owner in new[] { agent, restored, replayed })
+            {
+                var reduced = owner.History().View();
+                if (reduced.Dialogue.Any(entry => entry.Parts.IsEmpty)
+                    || reduced.Dialogue.SelectMany(entry => entry.Parts).OfType<BlobPart>().Any())
+                    throw new Exception("Handoff retained active media or empty messages");
+                foreach (Vendor vendor in Enum.GetValues<Vendor>())
+                {
+                    var renderer = new Agent(app, new Configuration(vendor, "model-a", "http://127.0.0.1:1"));
+                    string wire = renderer.Engine().Render(reduced).ToJsonString();
+                    if (!wire.Contains("[Completed micro_handoff checkpoint]"))
+                        throw new Exception("Provider projection lost checkpoint completion after replay");
+                    if (wire.Contains("absent-handoff-media") || !wire.Contains("caption image/png"))
+                        throw new Exception("Provider projection lost caption or retained media locator");
+                }
+            }
+
         }
         finally
         {

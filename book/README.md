@@ -42,7 +42,7 @@ endpoints, archived evidence, or executable grader flags to match the book.
 | 23 | Codex/cache | 24 / `ch24` |
 | 24 | Gateway | 26 / `ch26` |
 | 25 | Goals | 27 / `ch27` |
-| 26 | Multimedia: voice and images | Opening draft only; no implementation, grade, or snapshot |
+| 26 | [Voice and Images](chapter-26.md) | Full narrative and exercise draft; image-files scope passes 20/20, 80 points ungraded; native host capture acceptance pending. |
 | 27 | Crossover | Active source in `agent/`; no numbered snapshot |
 
 The two former historical crossover chapters were removed, not merged into
@@ -50,8 +50,9 @@ unrelated chapters. Earlier editions and their chapter numbering are unchanged.
 
 ## What completion means
 
-The new Chapter 26 currently contains only TL;DR and In Plain Words. Its sequence
-is working implementation, exercises and external graders, passing results, then
+The new Chapter 26 contains its TL;DR, In Plain Words, and draft exercises.
+Its Edition 3 `image-files` grader is scoped to 20 points; other multimedia
+scopes, native host-capture acceptance, and the full narrative remain unfinished. Its sequence is working implementation, exercises and external graders, passing results, then
 full chapter prose. It does not inherit a pass from the older media foundation,
 GUI tests, or the historical `-ch 26` Gateway grader.
 

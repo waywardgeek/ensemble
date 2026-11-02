@@ -185,6 +185,12 @@ internal static class CrossoverFixture
                 JsonSerializer.SerializeToElement(new { command = "printf removed-output" })), token);
             int removedHandle = removed.Jobs().Children().Single().Handle;
             removed.Destroy();
+            // Content-free observation for the speech-after-turn regression.
+            host.MapGet("/fixture/activity", async () =>
+            {
+                var status = await selected.WorkStatusAsync(token);
+                return new { activity = status.Activity.ToString(), paused = status.Paused };
+            });
             host.MapGet("/fixture/observe", async () =>
             {
                 var observed = await selected.Jobs().Find(cursorHandle).ObserveAsync(

@@ -59,7 +59,7 @@ public sealed partial class Tool
     }
 
     public partial McpClient? Remote() => remote;
-    internal partial bool HasStructuredResult() => kind is ToolKind.Remote or ToolKind.InspectImage || waitForCompletion;
+    internal partial bool HasStructuredResult() => kind is ToolKind.Remote or ToolKind.InspectImage or ToolKind.Screenshot || waitForCompletion;
     internal partial bool WaitsForCompletion() => waitForCompletion;
 
     public partial Agent Parent() => parent ?? throw new InvalidOperationException("Tool is detached");
@@ -101,10 +101,23 @@ public sealed partial class Tool
         string description;
         switch (kind)
         {
+            case ToolKind.ListDisplays:
+                name = "list_displays";
+                description = "List the server computer's displays and logical bounds. Requires an explicit host-screen grant; unavailable in safe mode. Does not capture pixels.";
+                break;
+            case ToolKind.Screenshot:
+                name = "screenshot";
+                description = "Capture the server computer's display or explicit rectangle as actual bounded PNG pixels. Requires host-screen authority, OS permission and image tool-result support. No browser picker. macOS only; cross-display rectangles currently refuse.";
+                Field("display", "integer", "Zero-based display index; omitted selects primary display 0. Cannot combine with rectangle fields.");
+                Field("x", "integer", "Rectangle left in host logical coordinates; requires y, width and height.");
+                Field("y", "integer", "Rectangle top in host logical coordinates; negative secondary-display origins are allowed.");
+                Field("width", "integer", "Positive rectangle width in logical units.");
+                Field("height", "integer", "Positive rectangle height in logical units. Rectangle must fit one display.");
+                break;
             case ToolKind.InspectImage:
                 name = "inspect_image";
                 description = "Read and prepare an image through the Agent Sandbox. Returns actual PNG pixels plus dimensions; may resize, never overwrites the original. Requires image tool-result support.";
-                Field("path", "string", "Image file path. Source limit 32 MiB / 24 million pixels; static PNG, JPEG, WebP or GIF.", true);
+                Field("path", "string", "Image file path. Source limit 64 MiB / 24 million pixels; static PNG, JPEG, WebP or GIF.", true);
                 break;
             case ToolKind.ReadFile:
                 name = "read_file";
@@ -470,6 +483,10 @@ public sealed partial class Tool
             {
                 var client = remote ?? throw new IOException("MCP tool is disconnected.");
                 return await client.CallAsync(call, cancellation);
+            }
+            if (kind is ToolKind.ListDisplays or ToolKind.Screenshot)
+            {
+                return await HostScreenAsync(call, cancellation).ConfigureAwait(false);
             }
             if (kind == ToolKind.InspectImage)
             {

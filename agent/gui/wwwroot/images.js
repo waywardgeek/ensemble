@@ -13,6 +13,7 @@ class ImageComposer {
         this.entries = [];
         this.agent = null;
         this.pending = null;
+        this.picker = null;
         discard.onclick = () => this.clear(true);
     }
     get blocked() {
@@ -45,7 +46,7 @@ class ImageComposer {
         this.status.textContent = this.pending?.uncertain
             ? "Connection lost: image send outcome unknown. Check History. This draft will not be resent."
             : this.pending ? "Sending images — waiting for admission…"
-            : this.entries.some(entry => entry.state === "reading") ? "Reading pasted images…" : "";
+            : this.entries.some(entry => entry.state === "reading") ? "Reading images…" : "";
         this.status.hidden = !this.status.textContent;
         this.changed();
     }
@@ -58,12 +59,14 @@ class ImageComposer {
         if (!this.hasImages) this.agent = null;
     }
     clear(clearText = false) {
+        this.picker = null;
         for (const entry of [...this.entries]) this.remove(entry);
         this.pending = null;
         if (clearText) this.input.value = "";
         this.render();
     }
     selectionChanged(agent) {
+        this.picker = null;
         if (!this.hasImages || this.agent === agent) return;
         const wasPending = !!this.pending;
         this.clear(wasPending);
@@ -71,6 +74,7 @@ class ImageComposer {
             : "Unsent image attachments discarded on Agent change.");
     }
     disconnect() {
+        this.picker = null;
         if (this.pending) {
             this.pending.uncertain = true;
             this.render();
@@ -92,14 +96,32 @@ class ImageComposer {
             this.input.setRangeText(text, this.input.selectionStart, this.input.selectionEnd, "end");
             this.input.dispatchEvent(new Event("input", { bubbles: true }));
         }
+        this.addFiles(files, agent);
+    }
+    openPicker(input, connection, agent) {
+        if (this.pending) return;
+        this.picker = { connection, agent };
+        input.value = ""; // Selecting the same file again must produce a change.
+        input.click();
+    }
+    acceptPicker(input, connection, agent) {
+        const picker = this.picker;
+        this.picker = null;
+        const files = Array.from(input.files || []);
+        input.value = "";
+        if (!picker || picker.connection !== connection || picker.agent !== agent || this.pending) return;
+        this.addFiles(files, agent);
+    }
+    addFiles(files, agent) {
+        if (!files.length || this.pending) return;
         const sourceBytes = [...this.entries.map(entry => entry.file), ...files]
             .reduce((total, file) => total + file.size, 0);
-        if (this.entries.length + files.length > 4 || sourceBytes > 32 * 1024 * 1024) {
-            this.notify("Paste refused: at most four images and 32 MiB total source data.");
+        if (this.entries.length + files.length > 4 || sourceBytes > 64 * 1024 * 1024) {
+            this.notify("Attachment refused: at most four images and 64 MiB total source data.");
             return;
         }
         if (files.some(file => !["image/png", "image/jpeg", "image/webp", "image/gif"].includes(file.type) || !file.size)) {
-            this.notify("Paste refused: use nonempty PNG, JPEG, WebP or GIF files. The server validates pixels and refuses animation.");
+            this.notify("Attachment refused: use nonempty PNG, JPEG, WebP or GIF files. The server validates pixels and refuses animation.");
             return;
         }
         this.agent = agent;

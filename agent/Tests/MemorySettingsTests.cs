@@ -14,20 +14,21 @@ internal static partial class MeterTests
             var agent = MemoryAgent(app, home, "http://127.0.0.1:1");
             File.WriteAllText(Path.Combine(home, "SOUL.md"), "first soul");
             await agent.WorkStatusAsync().WaitAsync(TimeSpan.FromSeconds(10));
-            var disabled = new MemoryBandSettings(1700, 3500, 1800, disabled: true);
+            var disabled = new MemoryBandSettings(1700, disabled: true);
             var desired = new MemorySettings(conversation: new MemoryBandSettings(4000), soul: disabled,
                 memory: disabled, archive64: disabled, archive8: disabled, session: disabled);
             await agent.SaveMemorySettingsAsync(desired).WaitAsync(TimeSpan.FromSeconds(10));
             Check(ReferenceEquals(agent.MemorySettings(), desired), "Save acknowledged before publication");
             Check(agent.History().View().Memories.IsEmpty, "Disabled corpus remained active");
             string saved = File.ReadAllText(Path.Combine(home, "settings.json"));
-            Check(saved.Contains("3500", StringComparison.Ordinal), "Custom thresholds not persisted");
+            Check(saved.Contains("1700", StringComparison.Ordinal)
+                && !saved.Contains("watermark", StringComparison.Ordinal), "Saved policy is not size-only");
             app.Destroy();
             File.WriteAllText(Path.Combine(home, "SOUL.md"), "edited while stopped");
             app = new Application(TextWriter.Null);
             agent = MemoryAgent(app, home, "http://127.0.0.1:1");
             await agent.WorkStatusAsync().WaitAsync(TimeSpan.FromSeconds(10));
-            Check(agent.MemorySettings().Soul.Disabled && agent.MemorySettings().Session.HighWatermark == 3500
+            Check(agent.MemorySettings().Soul.Disabled && agent.MemorySettings().Session.Budget == 1700
                 && agent.MemorySettings().Conversation.Budget == 4000, "Restart lost saved policy");
             Check(agent.History().View().Memories.IsEmpty, "Startup enabled saved-disabled corpus");
             await agent.SaveMemorySettingsAsync(new MemorySettings()).WaitAsync(TimeSpan.FromSeconds(10));
@@ -77,13 +78,55 @@ internal static partial class MeterTests
             var agent = MemoryAgent(app, home, "http://127.0.0.1:1");
             string path = Path.Combine(home, "settings.json");
             string policy = JsonCodec.WriteMemorySettings(new MemorySettings()).ToJsonString();
+            Check(!policy.Contains("watermark", StringComparison.Ordinal),
+                "Writer still exposes independently configurable watermarks");
             string valid = new JsonObject { ["version"] = 1, ["memory"] = JsonNode.Parse(policy) }.ToJsonString();
+            var oldPolicy = JsonNode.Parse(policy)!.AsObject();
+            foreach (var entry in oldPolicy)
+            {
+                entry.Value!["high_watermark"] = 9000;
+                entry.Value!["low_watermark"] = 2000;
+            }
+            string oldText = oldPolicy.ToJsonString();
+            string legacy = new JsonObject { ["version"] = 1, ["memory"] = oldPolicy }.ToJsonString();
+            File.WriteAllText(path, legacy);
+            var migrated = agent.Memory().ReadSettings()!.Memory;
+            Check(migrated.Conversation.Budget == 3000 && migrated.Session.Budget == 1500
+                && File.ReadAllText(path) == legacy, "Legacy read changed sizes or rewrote disk");
+            Check(JsonCodec.WriteMemorySettings(migrated).ToJsonString() == policy,
+                "Legacy thresholds survived canonical write");
+            foreach (string bad in new[]
+            {
+                oldText.Replace("\"high_watermark\":9000", "\"high_watermark\":-1"),
+                oldText.Replace("\"low_watermark\":2000", "\"low_watermark\":9001"),
+                oldText.Replace("\"high_watermark\":9000", "\"high_watermark\":1")
+                    .Replace("\"low_watermark\":2000", "\"low_watermark\":0"),
+                oldText.Replace("\"high_watermark\":9000", "\"high_watermark\":0")
+                    .Replace("\"low_watermark\":2000", "\"low_watermark\":9001"),
+                oldText.Replace(",\"low_watermark\":2000", ""),
+                oldText.Replace("\"high_watermark\":9000", "\"high_watermark\":null"),
+                oldText.Replace("\"high_watermark\":9000", "\"high_watermark\":9000,\"high_watermark\":9000")
+            })
+            {
+                bool refused = false;
+                try
+                {
+                    using var document = JsonDocument.Parse(bad);
+                    _ = JsonCodec.ReadMemorySettings(document.RootElement);
+                }
+                catch (Exception e) when (e is FormatException or ArgumentException or InvalidOperationException)
+                {
+                    refused = true;
+                }
+                Check(refused, "Malformed legacy settings accepted");
+            }
             foreach (string text in new[]
             {
                 "{", valid.Replace("\"version\":1", "\"version\":2"),
                 valid.Replace("\"version\":1", "\"version\":1,\"version\":1"),
                 valid.Replace("\"budget\":3000", "\"budget\":3000,\"budget\":3000"),
                 valid.Replace("\"budget\":3000", "\"budget\":-1"),
+                valid.Replace("\"budget\":3000", "\"budget\":9223372036854775807"),
                 valid.Replace("\"disabled\":false", "\"disabled\":null"), new string(' ', 16385)
             })
             {

@@ -142,9 +142,12 @@ public sealed partial class Agent
             }
             ArgumentNullException.ThrowIfNull(message.Input.Text);
             ValidateInputImages(message.Input);
+            if (!message.Input.Images.IsDefaultOrEmpty)
+                ValidateAdditionalImages(message.Input.Parts());
         }
         else if (message.Kind == MailKind.Submit)
         {
+            ValidateAdditionalImages(message.Parts);
             foreach (var part in message.Parts)
             {
                 if (part is not (TextPart or BlobPart))
@@ -610,7 +613,7 @@ public sealed partial class Agent
             }
             else
             {
-                var result = message.Result!;
+                var result = AdmitToolImages(message.Result!);
                 try
                 {
                     Record(new Event(EventKind.ToolObserved, callID: result.CallID, parts: result.Parts,
@@ -789,9 +792,6 @@ public sealed partial class Agent
                 return;
             }
             var response = parsed.Events.Last(e => e.Kind == EventKind.ResponseEnded);
-            // A completed response proves this request's older results were
-            // presented. New calls/results from this response are not yet seen.
-            presentedThrough = responseID;
             ObserveMemoryPressure(response);
             calls = response.Parts.OfType<ToolCallPart>().ToImmutableArray();
             nextCall = 0;
@@ -847,7 +847,7 @@ public sealed partial class Agent
                 Finish(message.Error);
                 return;
             }
-            var result = message.Result!;
+            var result = AdmitToolImages(message.Result!);
             var completedCall = active?.Call ?? calls[nextCall - 1];
             var isControl = Tools().Any(tool => tool.Name() == completedCall.Name && tool.IsControl());
             // A host-invoked tool has no preceding assistant call. Preserve its
@@ -973,7 +973,6 @@ public sealed partial class Agent
                 {
                     compressorSends++;
                 }
-                CompactTools();
                 if (BeginAutomaticCollection())
                 {
                     return;
@@ -1025,6 +1024,8 @@ public sealed partial class Agent
         }
         catch (Exception error)
         {
+            if (error is ImageBudgetExceededException)
+                Record(new Event(EventKind.ErrorOccurred, error: error.Message));
             Finish(error);
         }
     }
