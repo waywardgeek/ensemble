@@ -590,7 +590,9 @@ function renderControls() {
     camera.setAttribute("aria-label", captureDraft ? "Cancel page capture" : "Capture this page");
     camera.title = captureDraft ? "Cancel page capture" : "Capture this page";
     document.querySelector("#clear-tools").disabled = !ready;
-    document.querySelector("#model-choice").disabled = !ready || busy || paused;
+    // Pause may be an idle speech/manual hold, not active work. The actor
+    // still refuses model changes when a paused turn or queued work exists.
+    document.querySelector("#model-choice").disabled = !ready || busy;
     // Theme is browser-local and remains available while disconnected.
 }
 // Format acknowledged Engine values only. No browser counters or price table.

@@ -1,3 +1,16 @@
+# Current boundary: logging/theme live; paused model-picker fix verified
+
+Bill rebuilt and restarted logging/theme, confirmed colors and cross-device theme
+independence. Installed assemblies and served assets matched; host/Agent logs
+were separately open and fresh, reclaiming accumulated disk use. MeasureX
+restored automatically. Prior source-only boundaries below are historical.
+
+Model-picker source fix removes the overly strict paused-state disablement;
+Agent still rejects active/queued work and incompatible provider/API selections.
+Eight browser control-state cases,12 catalogue/layout cases and2 actor model
+groups pass. Live acceptance pending; no installation or restart for this fix.
+Next: intermittent speech/unpause ownership; Actions improvements remain discussion.
+
 # Current boundary: browser-local theme and logging ready for rebuild
 
 Browser-local theme integration is complete in source. Header and settings controls

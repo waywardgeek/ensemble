@@ -84,6 +84,9 @@ internal static partial class MeterTests
                     "invalid model never changes configuration or conversation");
             }
             await agent.PostAsync(new AgentInput(InputKind.Pause));
+            await agent.SetModelAsync("gpt-4o-mini");
+            Check(agent.Configuration().Model == "gpt-4o-mini",
+                "idle paused Agent permits model selection without resuming work");
             var queued = agent.SubmitAsync([new TextPart("queued")]);
             await BusyModel(agent, "gpt-4o");
             await agent.PostAsync(new AgentInput(InputKind.Resume));

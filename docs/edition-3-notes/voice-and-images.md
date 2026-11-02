@@ -1922,3 +1922,38 @@ Final build/lint/public-GUI result is collected separately before commit.
 Final theme verification job321: GUI build clean, five public GUI groups pass,
 Chapters8/27 hard lint pass with style advisories, whitespace clean. No installation
 or restart. Normal working-tree rebuild no longer includes an unfinished theme.
+
+## Live rebuild/restart acceptance, 2026-11-02
+
+Bill rebuilt/restarted and confirmed “The colors look right.” Six installed
+application assemblies/symbols match the promotion build. Live loopback8088
+PID97113 serves byte-equal theme.js/app.js/index.html (HTTP200). Separate host,
+Cadence and MeasureX diagnostic files are open in that process. Cadence API/gui
+logs measured2,574,159/1,816,574bytes, replacing the earlier multi-GB accumulation;
+free space15,802,468KiB (~15.1GiB). Metadata only, no private log content inspected.
+MeasureX automatically restored idle/unpaused/unsubmitted/no failure; no spawn,
+interrupt or timer mutation. Fresh post-restart worker reminder not yet observed.
+Human color acceptance is established; manual cross-device theme independence is
+not claimed (isolated browser tests cover it). No restart/install performed by me.
+
+## Model picker: idle pause is not active work
+
+Live DOM inspection found the model picker disabled while Cadence was paused;
+all seven curated choices were present. Browser renderControls disabled it for
+both busy and paused states, whereas Agent.SelectModel permits an idle pause
+and independently rejects active/queued work and overlapping Engine sends.
+Removed only the blanket paused browser gate. Disconnected, selecting, closed,
+unacknowledged and busy states remain disabled; provider/API/funding restrictions
+and server acknowledgement remain unchanged. This establishes the observed
+paused-state cause, not every possible historical dropdown incident.
+
+New model-controls.cjs failed before the fix specifically on paused, then passed
+eight state cases. Existing header-models.cjs passed12 layout/catalogue/restriction
+cases. C# model tests passed2 groups after adding idle-paused selection before
+the existing paused-with-queued-work refusal. No paid requests, live model changes,
+credential reads or restart. Source-only; live picker acceptance remains pending.
+
+Bill also confirmed cross-device theme independence after the prior rebuild.
+Measure X site outage was repaired using its unchanged existing application and
+tunnel launchers: local8090 and public HTTPS returned200, no model prompt sent.
+Bill suspects unplugging/sleep; cause unproved, no power settings changed.
