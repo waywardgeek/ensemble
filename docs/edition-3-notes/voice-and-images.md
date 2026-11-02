@@ -2024,3 +2024,7 @@ Verified eight isolated real-render-function/real-CSS cases (320/1200px,18/28px,
 ### Compact name row with overflowing playback target
 
 Bill's screenshot showed the prior placement merely transferred excess height to the name row. At his suggestion, playback is now absolutely positioned centered on the name, retaining its44px target without sizing the row. A48px prose gutter avoids invisible hit-target overlap with links; minimum44px card height separates adjacent empty-card targets. Empty thinking suppression is not part of this change. Eight focused real-render/CSS cases verify compact name and whole short-card height, prose/target separation, adjacent empty-card target separation and playback callback at320/1200px and18/28px. Four contrast cases pass; GUI build zero warnings/errors. Visual acceptance pending; no install/restart. Lesson: measure whole-card geometry and clickable rectangles, not only prose height or visible glyphs.
+
+### Full-width bubbles beneath transparent playback
+
+Bill accepted the compact name layout visually, then rejected the prose gutter. Removed the48px message margin; the name still reserves icon space. Playback background/border are explicitly transparent at rest, with hover/focus behavior retained. Its44px target can intentionally overlap prose: transparent paint does not make clicks pass through, a tradeoff explained in chat. Eight updated geometry/playback cases and four contrast cases pass; GUI build clean. No install/restart; visual acceptance of this adjustment pending.

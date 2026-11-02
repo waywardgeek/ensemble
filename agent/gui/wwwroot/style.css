@@ -268,11 +268,11 @@ body.compact #transcript { padding: .3rem; }
 #transcript article[data-role="human"] { padding: .15rem .35rem; }
 #transcript article[data-kind="thinking"], #transcript article[data-kind="reasoning_summary"] { padding: .2rem .35rem; }
 /* Playback extends into the spacing around the name without sizing its row.
-   Reserve a horizontal gutter so its full touch target cannot cover prose links. */
+   The transparent target may overlap prose; only the name reserves icon space. */
 #transcript article.part { min-height: 44px; }
 #transcript .card-heading { position: relative; padding-right: 48px; margin-bottom: .2rem; }
 #transcript .card-heading [data-action="speak"] { position: absolute; right: 0; top: 50%; transform: translateY(-50%); }
-#transcript .message { margin-right: 48px; }
+#transcript .card-heading [data-action="speak"]:not(:hover):not(:focus-visible):not(:active) { background: transparent; border-color: transparent; }
 #transcript .card-heading .btn { min-height: 44px; }
 .btn:not(.tree-select) { display: inline-flex; align-items: center; justify-content: center; }
 #transcript .card-heading .icon-button { width: 44px; height: 44px; padding: 10px; }
