@@ -148,7 +148,10 @@ Integrate Bootstrap's light/dark presentation with the browser-owned theme
 preference described in Chapter 8. Local storage is the sole theme authority,
 not a second copy of shared settings. Seed it once from the legacy server theme
 when there is no saved local choice; later server frames cannot override it.
-Other shared settings still require acknowledgement. Preserve explicit choices. Library event handling must not duplicate sends, resets or peer
+Font size and hold-to-talk shortcut also belong to origin-local browser-profile
+storage, with cross-tab synchronization and page-session fallback. Seed font
+size once from its legacy value; start the shortcut Off. Separate profiles on
+one machine remain independent. Agent policies and host accounts still require acknowledgement. Preserve explicit choices. Library event handling must not duplicate sends, resets or peer
 operations; attaching it again after replay/reconnection must not accumulate
 handlers. Preserve target identity while updating the presentation.
 
@@ -280,8 +283,9 @@ of the header, not a second sidebar tab competing with the Agent tree. The dialo
 has genuine tabs for **AI**, **Accounts & Sign-in**, **Speech & Display**, **Goals**,
 **Memory**, and **Recall**. AI contains model/context/tool policy; account/funding
 operations retain their safety explanations and existing authority. Speech &
-Display includes theme, font, voice, speed, typing/speech pause options, and the
-user profile. Memory and Recall edit the selected Agent's existing policies; they
+Display includes browser-profile-local theme, font, voice, speed, speech pausing,
+and hold-to-talk shortcut, plus a separately labeled shared user profile. Do not
+invent a configurable typing-pause preference. Memory and Recall edit the selected Agent's existing policies; they
 are not new persistent authorities or a new recall-corpus viewer.
 
 Move the existing controls; do not clone forms or invent parallel settings state.
@@ -632,8 +636,8 @@ A useful session proceeds through these paths:
    Demonstrate a refusal without pretending deletion succeeded. A displayed
    child must not grant its parent-tab browser authority.
 4. Change a model between turns and exercise the existing busy/refusal path.
-   Change shared appearance and selected-Agent memory/recall settings; observe
-   acknowledgement and restart persistence. Verify browser-local theme separately:
+   Change shared user-profile and selected-Agent memory/recall settings; observe
+   acknowledgement and restart persistence. Verify browser-local theme, font size, speech, and shortcut separately:
    reload, cross-tab synchronization, profile isolation, OS changes, blocked storage,
    and no backend theme writes. Simulate a write failure and show
    that the old accepted state remains. Selection changes must not apply a

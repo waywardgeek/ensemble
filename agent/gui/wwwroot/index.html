@@ -9,7 +9,7 @@
 <script src="./speech.js" defer></script><script src="./mcp.js" defer></script>
 <script src="./vendor/markdown-it-14.1.0.min.js" defer></script>
 <script src="./markdown.js" defer></script>
-<script src="./images.js" defer></script><script src="./theme.js" defer></script><script src="./speech-preferences.js" defer></script><script src="./app.js" defer></script><script src="./layout.js" defer></script>
+<script src="./images.js" defer></script><script src="./theme.js" defer></script><script src="./speech-preferences.js" defer></script><script src="./device-preferences.js" defer></script><script src="./app.js" defer></script><script src="./layout.js" defer></script>
 <script src="./auth.js" defer></script><script src="./peers.js" defer></script>
 <script src="./settings.js" defer></script>
 </head><body>
@@ -109,7 +109,7 @@
  </nav>
  <div class="tab-content settings-body" id="settings-panel">
 <section class="tab-pane active show" id="settings-ai-panel" role="tabpanel" aria-labelledby="settings-ai-tab" tabindex="0">
-<section class="settings-section" aria-labelledby="ai-heading"><h2 id="ai-heading">AI settings</h2><p id="model-help">The header selects a same-provider session model between turns. Capabilities do not prove entitlement. Funding is fixed; launch configuration wins on restart.</p>
+<section class="settings-section" aria-labelledby="ai-heading"><h2 id="ai-heading">Selected Agent’s AI settings</h2><p id="model-help">The header selects a same-provider session model between turns. Capabilities do not prove entitlement. Funding is fixed; launch configuration wins on restart.</p>
  <label>Tool batches per turn <input class="form-control" id="max-tool-rounds" type="number" min="0" step="1" value="0"> (0 = auto, 200)</label>
  <label>Context target <input class="form-control" id="context-target-bytes" type="number" min="0" step="1000" value="400000"> UTF-8 bytes (0 = default, 400,000)</label>
 <details id="usage-details"><summary>Usage totals and estimate limits</summary>
@@ -121,7 +121,7 @@
 </section>
 </section>
 <section class="tab-pane" id="settings-accounts-panel" role="tabpanel" aria-labelledby="settings-accounts-tab" tabindex="0">
-<section class="settings-section" id="accounts-panel"><h2>Accounts and sign-in</h2>
+<section class="settings-section" id="accounts-panel"><h2>Host accounts and sign-in</h2>
   <p id="account-status" role="status">Loading account status.</p>
   <p>These controls do not change this process's billing or selected account. Choose those explicitly at launch. Sign-in opens a separate private window; refresh status after it completes.</p>
   <ul id="account-list" aria-label="Registered accounts"></ul>
@@ -143,16 +143,16 @@
 </section>
 </section>
 <section class="tab-pane" id="settings-display-panel" role="tabpanel" aria-labelledby="settings-display-tab" tabindex="0">
-<section class="settings-section" aria-labelledby="accessibility-heading"><h2 id="accessibility-heading">Speech &amp; Display</h2>
+<section class="settings-section" aria-labelledby="accessibility-heading"><h2 id="accessibility-heading">This browser: Speech &amp; Display</h2><p>Saved in this browser profile for this site. Tabs share preferences; other profiles and devices do not. If storage is blocked, changes last for this page only.</p>
  <label>Theme (this browser) <select class="form-select" id="theme"><option value="system">System</option><option value="light">Light</option><option value="dark" selected>Dark</option></select></label>
- <label>Font size <input class="form-control" id="font-size" type="number" min="12" max="32" step="1" value="18"> px</label>
+ <label>Font size (this browser) <input class="form-control" id="font-size" type="number" min="12" max="32" step="1" value="18"> px</label>
  <label>Speech speed (this browser) <input class="form-control" id="tts-speed" type="range" min="0.25" max="4" step="0.25" value="1"> <output id="speed-label">1×</output></label>
  <label><input class="form-check-input" id="pause-speaking" type="checkbox" checked> Pause Agent while this browser speaks</label>
- <label>Hold-to-talk shortcut <select class="form-select" id="voice-shortcut" aria-describedby="voice-shortcut-help"><option value="AltRight">Right Alt</option><option value="F8">F8</option><option value="off">Off</option></select></label>
+ <label>Hold-to-talk shortcut (this browser) <select class="form-select" id="voice-shortcut" aria-describedby="voice-shortcut-help"><option value="AltRight">Right Alt</option><option value="F8">F8</option><option value="off">Off</option></select></label>
  <p id="voice-shortcut-help">While this page has focus, hold the selected key to talk; release to send. Right Alt is not used for AltGr or Apple Option. Modifier chords and open dialogs refuse capture. The microphone button works independently.</p>
  <label>Voice (this browser) <select class="form-select" id="voice"><option value="">Browser default</option></select></label>
  <p>Speech is opt-in using the header checkbox. Voice choices are provided by this browser.</p>
- </section><section class="settings-section" aria-labelledby="user-heading"><h2 id="user-heading">Your profile</h2>
+ </section><section class="settings-section" aria-labelledby="user-heading"><h2 id="user-heading">Shared user profile</h2>
  <form id="user-settings">
  <label for="human-name">Name</label><input class="form-control" id="human-name" maxlength="120" autocomplete="name">
  <label for="human-description">Description</label><textarea class="form-control" id="human-description" maxlength="2000" rows="3"></textarea>
@@ -162,7 +162,7 @@
  </section>
 </section>
 <section class="tab-pane" id="settings-goals-panel" role="tabpanel" aria-labelledby="settings-goals-tab" tabindex="0">
-<section class="settings-section" aria-label="Selected Agent goal"><h2>Goals</h2>
+<section class="settings-section" aria-label="Selected Agent goal"><h2>Selected Agent’s goals</h2>
 <p id="goal-status" role="status">Goal: waiting for Agent status</p>
 <div id="goal-controls">
 <p>Session only. Load the goals skill first. Off retains the goal instructions; Clear removes them. Neither means completed.</p>

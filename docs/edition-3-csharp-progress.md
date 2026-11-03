@@ -1,3 +1,19 @@
+# Current boundary: browser-profile font and shortcut complete, source only
+
+Font size and hold-to-talk shortcut now use origin-local profile storage, matching
+Bill's explicit localStorage semantics. Same-origin tabs synchronize; different
+profiles/devices/origins remain independent. Font seeds once from legacy settings;
+shortcut starts Off. Server frames cannot override local choices. No backend
+writes; offline/blocked storage supported. Agent policies and host authority stay
+server-side. Settings scope labels and original Chapters7/8/26/27 are reconciled.
+
+Real-page profile/storage/dialog tests, old-app negative control, existing speech
+suite, 18 keyboard guards, five public GUI groups and clean builds pass. Hard
+prose lint passes. Book artifacts rebuilt and validated: 520/521 PDF pages.
+See [audit and evidence](edition-3-notes/browser-local-settings.md).
+No install, restart, external publication or live phone acceptance. Budget-store
+ownership remains a separate recorded issue; pane persistence is not added.
+
 # Current boundary: Chapter26 external media scopes pass100/100
 
 Native primary-display host scope passes25/25: default/explicit0 capture through

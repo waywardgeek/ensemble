@@ -6711,7 +6711,9 @@ Controls work offline. If storage is blocked, keep the choice for this page only
 removing the saved preference returns other tabs to silent defaults. Turning
 narration off cancels that browser's current and queued speech. A rate or voice
 change affects the next constructed utterance, not audio already speaking.
-Microphone recording, transcription funding and its shortcut are separate.
+Microphone recording and transcription funding are separate from speech output.
+The hold-to-talk shortcut is a browser-profile preference, not Agent policy;
+Chapter8 specifies its local storage and Chapter26 implements its input guards.
 Automatic narration reads only new content for the Agent selected in that tab.
 A selected tab may be in the background; selection is not foreground visibility.
 
@@ -6896,7 +6898,8 @@ or for an inspection of the ownership and call paths.
 ## TL;DR
 
 Make the optional GUI comfortable to use without giving it a second Agent loop.
-The browser owns theme and speech; the server owns shared preferences. The Agent
+The browser profile owns theme, font size, speech, and the hold-to-talk shortcut;
+the server owns shared preferences. The Agent
 owns its next-turn tool budget. For shared settings, a browser sends a patch;
 the server validates and saves a complete
 snapshot, and only then does it publish that snapshot to every connected client.
@@ -6904,11 +6907,11 @@ An active turn keeps the budget it captured when it began.
 
 The deliverable is a working settings panel: theme, narration, speech rate,
 font size, speech-related pausing, and tool batches per turn. Theme belongs to
-this browser, as do narration, rate, voice and speech pausing. Other preferences
-retain shared server ownership. Saved
+this browser profile, as do font size, narration, rate, voice, speech pausing,
+and the hold-to-talk shortcut. Agent policies retain server ownership. Saved
 choices survive reload and restart. A failed shared-settings save changes neither
 live behavior nor the visible acknowledged settings. Blocked browser storage leaves
-theme and speech usable for the current page session without promising reload
+local controls usable for the current page session without promising reload
 persistence. This is a C#/.NET10 extension of the
 Chapter 7 endpoint, not another runtime or a Go-package translation exercise.
 
@@ -6920,7 +6923,7 @@ fails, the page must not pretend the preference was saved.
 
 There are three different lifetimes:
 
-1. **The browser** owns theme and speech preferences in origin-local storage. For shared
+1. **The browser profile** owns theme, font size, speech preferences, and the hold-to-talk shortcut in origin-local storage. For shared
    settings it displays the last server-acknowledged snapshot and proposes changes;
    local storage is not a second authority for those settings.
 2. **The GUI server** loads and saves the other presentation preferences and shares
@@ -7009,6 +7012,8 @@ legacy clients and one-time browser migration; current browser controls own thei
 local theme and do not patch this shared field. The TTS entries are also legacy:
 current narration, speed, voice and speech-pausing controls use Chapter7's local
 record, never seed from these server values, and send no shared-settings patch.
+The legacy font field supplies only a one-time local seed. Current font and
+shortcut controls never patch shared fields.
 
 | Field | Default | Accepted value |
 |---|---|---|
@@ -7071,7 +7076,7 @@ Keep the existing `/ws` protocol and add:
 
 ```json
 {"type":"get_settings"}
-{"type":"update_settings","settings":{"font_size":24,"tts_speed":1.5}}
+{"type":"update_settings","settings":{"max_tool_rounds":3}}
 ```
 
 A newly connected client receives a full snapshot automatically. Explicit
@@ -7151,13 +7156,25 @@ must not write the legacy field. Speech also belongs to this browser, following
 Chapter7: enabled, rate, voice and speech pausing share one local preference.
 Unlike theme, speech starts disabled rather than inheriting a legacy server flag.
 Retain server TTS fields only for old clients and files; current controls neither
-write them nor apply them. Font size remains shared. Local preferences are sole
-authorities, not competing copies of the shared settings store.
+write them nor apply them. Font size and the hold-to-talk shortcut are also
+browser-profile preferences. Persist them in origin-local storage, not the Agent
+settings file. Seed font size once from the legacy server value when no valid
+local choice exists; subsequent server frames cannot override it. Clamp font size
+to integer 12–32 pixels. A new shortcut defaults to Off; accept Right Alt, F8, or
+Off, without inheriting the legacy server shortcut. Changing it must update the
+live voice controller and cancel any recording under the old binding.
 
-Follow a shared edit separately. Changing font size sends the sparse patch
-`{"font_size":24}` through `patchSettings`. The acknowledged settings remain
-authoritative while saving. A `settings_updated` frame updates the font and shared
-controls without resetting theme. An error restores the acknowledged shared values
+Same-origin tabs in one browser profile share these preferences through storage
+events. Separate profiles, devices, and origins remain independent. Clearing
+storage resets font size to 18 and shortcut to Off in receiving tabs, without
+reviving server values. Blocked storage retains page-session choices and offline
+controls remain usable. Local preferences are sole authorities, not competing
+copies of the shared settings store.
+
+Follow an Agent-policy edit separately. Changing the tool-batch limit sends the
+sparse patch `{"max_tool_rounds":3}` through `patchSettings`. The acknowledged
+settings remain authoritative while saving. A `settings_updated` frame updates
+shared controls without resetting browser-local preferences. An error restores the acknowledged shared values
 and displays the failure; it does not pretend the proposed change was saved.
 
 Put the panel in the existing optional GUI. Provide clearly labeled controls
@@ -7176,7 +7193,7 @@ For shared fields, the browser retains the last acknowledged settings snapshot.
 A shared control sends a patch and may retain its proposed edit while saving.
 Apply shared policy only after acknowledgement; report disconnected or failed
 saves and restore accepted values. Do not duplicate shared fields in local storage.
-Theme and speech are different: their local controls apply immediately, even
+Theme, font size, speech, and shortcut are different: their local controls apply immediately, even
 offline, with page-session fallback when storage is unavailable.
 
 ### Speech and pause are related, not identical
@@ -7231,8 +7248,9 @@ Use an isolated browser profile, not another user's connected browser. Operate
 the real visible controls and verify same-origin tabs share theme changes while
 separate profiles remain independent. Check System changes, local reload persistence,
 blocked storage, offline selection, and reconnect without a theme write to the
-server. Separately check shared font changes, narrow-screen geometry, and shared
-settings reload from server state.
+server. Check local font and shortcut changes, narrow-screen geometry, and independent
+profiles on the same machine. Separately verify shared settings reload from
+server state.
 At a fake speech boundary, inspect each constructed utterance's rate, queue two
 items, change rate between them, and toggle pause while the queue is busy. Test
 error cleanup as well as normal completion. Such a fake establishes wiring and
@@ -7266,6 +7284,18 @@ Preserve a source-only endpoint, explain the ownership and captured-budget
 choices, record corrections and evidence limitations in the progress record, and
 continue to Chapter 9. The goal is a GUI whose small promises are dependable, not
 an elaborate settings framework.
+
+### Settings scope acceptance
+
+Label controls by ownership: this browser profile, selected Agent, shared user
+profile, or host accounts. Font size and shortcut edits must produce no backend
+settings writes. Test two independent browser profiles and two same-origin tabs,
+reload, conflicting server frames, storage removal, unavailable storage, and
+editing while disconnected. Verify the actual document font and live voice
+shortcut, not only the input values. Keep selection, drafts, scroll, expanded
+cards, and mobile-pane navigation independent per tab. Pane widths remain
+transient tab state; persistence is not required by this change. Model, budgets,
+memory, recall, goals, credentials and funding are not local display preferences.
 
 ---
 
@@ -16993,9 +17023,9 @@ parts and capability checks from Chapter 5 and the file authority from Chapter 1
 do not create a second conversation or media pipeline.
 
 - **Hold to talk; release to send.** Provide a press-and-hold microphone button
-  usable on a phone and a configurable keyboard shortcut. Right Alt is the
-  initial choice where the browser permits it without interfering with AltGr,
-  input methods, or reserved shortcuts. Press starts an explicitly authorized
+  usable on a phone and a browser-profile-local keyboard shortcut, initially Off.
+  Offer F8 and Right Alt, with Right Alt available only where it does not interfere
+  with AltGr, input methods, or reserved shortcuts. Press starts an explicitly authorized
   recording; release stops capture, transcribes it, and sends the resulting text
   once through the normal message path. While the Agent is working, that message
   follows the existing hint contract. Display recording, transcription, and
@@ -17592,8 +17622,11 @@ not turn it into success. A consumed admission remains consumed, even when its
 outcome is uncertain to the browser.
 
 The microphone control supports pointer/touch holding and Space or Enter while
-the button is focused. The persisted page-level shortcut offers Right Alt, F8,
-or Off. Right Alt is refused for Apple Option-key use and AltGr/composition or
+the button is focused. The browser-profile-local shortcut offers Right Alt, F8,
+or Off, defaulting to Off in a new profile. Save it in origin-local storage, not
+the Agent settings file. Same-origin tabs share it; separate profiles and devices
+do not. Server settings frames cannot overwrite it, and blocked storage falls
+back to the current page. The microphone button remains independently usable. Right Alt is refused for Apple Option-key use and AltGr/composition or
 modifier combinations; it is not a portable system-wide hotkey. Repeats cannot
 start another recording. Changing the preference, losing focus, or forming another
 key chord cancels instead of submitting a fragment. Native Windows and Linux
@@ -18126,7 +18159,10 @@ Integrate Bootstrap's light/dark presentation with the browser-owned theme
 preference described in Chapter 8. Local storage is the sole theme authority,
 not a second copy of shared settings. Seed it once from the legacy server theme
 when there is no saved local choice; later server frames cannot override it.
-Other shared settings still require acknowledgement. Preserve explicit choices. Library event handling must not duplicate sends, resets or peer
+Font size and hold-to-talk shortcut also belong to origin-local browser-profile
+storage, with cross-tab synchronization and page-session fallback. Seed font
+size once from its legacy value; start the shortcut Off. Separate profiles on
+one machine remain independent. Agent policies and host accounts still require acknowledgement. Preserve explicit choices. Library event handling must not duplicate sends, resets or peer
 operations; attaching it again after replay/reconnection must not accumulate
 handlers. Preserve target identity while updating the presentation.
 
@@ -18258,8 +18294,9 @@ of the header, not a second sidebar tab competing with the Agent tree. The dialo
 has genuine tabs for **AI**, **Accounts & Sign-in**, **Speech & Display**, **Goals**,
 **Memory**, and **Recall**. AI contains model/context/tool policy; account/funding
 operations retain their safety explanations and existing authority. Speech &
-Display includes theme, font, voice, speed, typing/speech pause options, and the
-user profile. Memory and Recall edit the selected Agent's existing policies; they
+Display includes browser-profile-local theme, font, voice, speed, speech pausing,
+and hold-to-talk shortcut, plus a separately labeled shared user profile. Do not
+invent a configurable typing-pause preference. Memory and Recall edit the selected Agent's existing policies; they
 are not new persistent authorities or a new recall-corpus viewer.
 
 Move the existing controls; do not clone forms or invent parallel settings state.
@@ -18610,8 +18647,8 @@ A useful session proceeds through these paths:
    Demonstrate a refusal without pretending deletion succeeded. A displayed
    child must not grant its parent-tab browser authority.
 4. Change a model between turns and exercise the existing busy/refusal path.
-   Change shared appearance and selected-Agent memory/recall settings; observe
-   acknowledgement and restart persistence. Verify browser-local theme separately:
+   Change shared user-profile and selected-Agent memory/recall settings; observe
+   acknowledgement and restart persistence. Verify browser-local theme, font size, speech, and shortcut separately:
    reload, cross-tab synchronization, profile isolation, OS changes, blocked storage,
    and no backend theme writes. Simulate a write failure and show
    that the old accepted state remains. Selection changes must not apply a

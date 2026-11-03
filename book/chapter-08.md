@@ -3,7 +3,8 @@
 ## TL;DR
 
 Make the optional GUI comfortable to use without giving it a second Agent loop.
-The browser owns theme and speech; the server owns shared preferences. The Agent
+The browser profile owns theme, font size, speech, and the hold-to-talk shortcut;
+the server owns shared preferences. The Agent
 owns its next-turn tool budget. For shared settings, a browser sends a patch;
 the server validates and saves a complete
 snapshot, and only then does it publish that snapshot to every connected client.
@@ -11,11 +12,11 @@ An active turn keeps the budget it captured when it began.
 
 The deliverable is a working settings panel: theme, narration, speech rate,
 font size, speech-related pausing, and tool batches per turn. Theme belongs to
-this browser, as do narration, rate, voice and speech pausing. Other preferences
-retain shared server ownership. Saved
+this browser profile, as do font size, narration, rate, voice, speech pausing,
+and the hold-to-talk shortcut. Agent policies retain server ownership. Saved
 choices survive reload and restart. A failed shared-settings save changes neither
 live behavior nor the visible acknowledged settings. Blocked browser storage leaves
-theme and speech usable for the current page session without promising reload
+local controls usable for the current page session without promising reload
 persistence. This is a C#/.NET10 extension of the
 Chapter 7 endpoint, not another runtime or a Go-package translation exercise.
 
@@ -27,7 +28,7 @@ fails, the page must not pretend the preference was saved.
 
 There are three different lifetimes:
 
-1. **The browser** owns theme and speech preferences in origin-local storage. For shared
+1. **The browser profile** owns theme, font size, speech preferences, and the hold-to-talk shortcut in origin-local storage. For shared
    settings it displays the last server-acknowledged snapshot and proposes changes;
    local storage is not a second authority for those settings.
 2. **The GUI server** loads and saves the other presentation preferences and shares
@@ -116,6 +117,8 @@ legacy clients and one-time browser migration; current browser controls own thei
 local theme and do not patch this shared field. The TTS entries are also legacy:
 current narration, speed, voice and speech-pausing controls use Chapter7's local
 record, never seed from these server values, and send no shared-settings patch.
+The legacy font field supplies only a one-time local seed. Current font and
+shortcut controls never patch shared fields.
 
 | Field | Default | Accepted value |
 |---|---|---|
@@ -178,7 +181,7 @@ Keep the existing `/ws` protocol and add:
 
 ```json
 {"type":"get_settings"}
-{"type":"update_settings","settings":{"font_size":24,"tts_speed":1.5}}
+{"type":"update_settings","settings":{"max_tool_rounds":3}}
 ```
 
 A newly connected client receives a full snapshot automatically. Explicit
@@ -258,13 +261,25 @@ must not write the legacy field. Speech also belongs to this browser, following
 Chapter7: enabled, rate, voice and speech pausing share one local preference.
 Unlike theme, speech starts disabled rather than inheriting a legacy server flag.
 Retain server TTS fields only for old clients and files; current controls neither
-write them nor apply them. Font size remains shared. Local preferences are sole
-authorities, not competing copies of the shared settings store.
+write them nor apply them. Font size and the hold-to-talk shortcut are also
+browser-profile preferences. Persist them in origin-local storage, not the Agent
+settings file. Seed font size once from the legacy server value when no valid
+local choice exists; subsequent server frames cannot override it. Clamp font size
+to integer 12–32 pixels. A new shortcut defaults to Off; accept Right Alt, F8, or
+Off, without inheriting the legacy server shortcut. Changing it must update the
+live voice controller and cancel any recording under the old binding.
 
-Follow a shared edit separately. Changing font size sends the sparse patch
-`{"font_size":24}` through `patchSettings`. The acknowledged settings remain
-authoritative while saving. A `settings_updated` frame updates the font and shared
-controls without resetting theme. An error restores the acknowledged shared values
+Same-origin tabs in one browser profile share these preferences through storage
+events. Separate profiles, devices, and origins remain independent. Clearing
+storage resets font size to 18 and shortcut to Off in receiving tabs, without
+reviving server values. Blocked storage retains page-session choices and offline
+controls remain usable. Local preferences are sole authorities, not competing
+copies of the shared settings store.
+
+Follow an Agent-policy edit separately. Changing the tool-batch limit sends the
+sparse patch `{"max_tool_rounds":3}` through `patchSettings`. The acknowledged
+settings remain authoritative while saving. A `settings_updated` frame updates
+shared controls without resetting browser-local preferences. An error restores the acknowledged shared values
 and displays the failure; it does not pretend the proposed change was saved.
 
 Put the panel in the existing optional GUI. Provide clearly labeled controls
@@ -283,7 +298,7 @@ For shared fields, the browser retains the last acknowledged settings snapshot.
 A shared control sends a patch and may retain its proposed edit while saving.
 Apply shared policy only after acknowledgement; report disconnected or failed
 saves and restore accepted values. Do not duplicate shared fields in local storage.
-Theme and speech are different: their local controls apply immediately, even
+Theme, font size, speech, and shortcut are different: their local controls apply immediately, even
 offline, with page-session fallback when storage is unavailable.
 
 ### Speech and pause are related, not identical
@@ -338,8 +353,9 @@ Use an isolated browser profile, not another user's connected browser. Operate
 the real visible controls and verify same-origin tabs share theme changes while
 separate profiles remain independent. Check System changes, local reload persistence,
 blocked storage, offline selection, and reconnect without a theme write to the
-server. Separately check shared font changes, narrow-screen geometry, and shared
-settings reload from server state.
+server. Check local font and shortcut changes, narrow-screen geometry, and independent
+profiles on the same machine. Separately verify shared settings reload from
+server state.
 At a fake speech boundary, inspect each constructed utterance's rate, queue two
 items, change rate between them, and toggle pause while the queue is busy. Test
 error cleanup as well as normal completion. Such a fake establishes wiring and
@@ -373,3 +389,15 @@ Preserve a source-only endpoint, explain the ownership and captured-budget
 choices, record corrections and evidence limitations in the progress record, and
 continue to Chapter 9. The goal is a GUI whose small promises are dependable, not
 an elaborate settings framework.
+
+### Settings scope acceptance
+
+Label controls by ownership: this browser profile, selected Agent, shared user
+profile, or host accounts. Font size and shortcut edits must produce no backend
+settings writes. Test two independent browser profiles and two same-origin tabs,
+reload, conflicting server frames, storage removal, unavailable storage, and
+editing while disconnected. Verify the actual document font and live voice
+shortcut, not only the input values. Keep selection, drafts, scroll, expanded
+cards, and mobile-pane navigation independent per tab. Pane widths remain
+transient tab state; persistence is not required by this change. Model, budgets,
+memory, recall, goals, credentials and funding are not local display preferences.

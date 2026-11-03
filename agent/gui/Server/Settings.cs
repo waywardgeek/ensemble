@@ -39,6 +39,7 @@ public static partial class Gui
                         next = next with { Theme = theme };
                     }
                     break;
+                // Legacy saved fields/clients only; current controls use browser storage.
                 case "voice_shortcut":
                     if (value.ValueKind != JsonValueKind.String || value.GetString() is not ("AltRight" or "F8" or "off"))
                         throw new ArgumentException("Voice shortcut must be AltRight, F8, or off");
@@ -58,6 +59,7 @@ public static partial class Gui
                         next = next with { TtsSpeed = Math.Clamp(speed, 0.25, 4) };
                     }
                     break;
+                // Legacy font value is only a one-time browser migration seed.
                 case "font_size" when value.ValueKind == JsonValueKind.Number:
                     if (value.TryGetInt32(out int font))
                     {

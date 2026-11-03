@@ -334,7 +334,9 @@ Controls work offline. If storage is blocked, keep the choice for this page only
 removing the saved preference returns other tabs to silent defaults. Turning
 narration off cancels that browser's current and queued speech. A rate or voice
 change affects the next constructed utterance, not audio already speaking.
-Microphone recording, transcription funding and its shortcut are separate.
+Microphone recording and transcription funding are separate from speech output.
+The hold-to-talk shortcut is a browser-profile preference, not Agent policy;
+Chapter8 specifies its local storage and Chapter26 implements its input guards.
 Automatic narration reads only new content for the Agent selected in that tab.
 A selected tab may be in the background; selection is not foreground visibility.
 

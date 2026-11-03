@@ -71,7 +71,7 @@ fs.mkdirSync(output, { recursive: true });
             max_tool_rounds: settings.max_tool_rounds,
             soul: settings.memory.soul.disabled,
             recall: settings.recall.context_messages,
-            font_size: settings.font_size
+            font_size: browserDevice.value.font
         }));
         assert.equal(await page.locator('#settings-tab').count(), 0);
         assert.equal(await page.locator('#settings-dialog').isVisible(), false);
@@ -109,10 +109,11 @@ fs.mkdirSync(output, { recursive: true });
         await page.locator('#human-name').fill('Fixture settings tester');
         await save(() => page.locator('#user-settings button[type="submit"]').click());
         const font = 22;
-        await save(async () => {
-            await page.locator('#font-size').fill(String(font));
-            await page.locator('#font-size').dispatchEvent('change');
-        });
+        const beforeFont = sent.length;
+        await page.locator('#font-size').fill(String(font));
+        await page.locator('#font-size').dispatchEvent('change');
+        assert.equal(await page.evaluate(() => browserDevice.value.font), font);
+        assert(!sent.slice(beforeFont).some(frame => frame.type === 'update_settings'));
         await tab('ai');
         await save(() => page.locator('#max-tool-rounds').fill(String(original.max_tool_rounds + 1)).then(() => page.locator('#max-tool-rounds').blur()));
         await tab('memory');
@@ -126,13 +127,13 @@ fs.mkdirSync(output, { recursive: true });
         const saved = await page.evaluate(() => ({
             human_name: settings.human_name, max_tool_rounds: settings.max_tool_rounds,
             soul: settings.memory.soul.disabled, recall: settings.recall.context_messages,
-            font_size: settings.font_size
+            font_size: browserDevice.value.font
         }));
         assert.deepEqual(saved, {
             human_name: 'Fixture settings tester', max_tool_rounds: original.max_tool_rounds + 1,
             soul: !original.soul, recall: original.recall + 1, font_size: Number(font)
         });
-        check('profile, appearance, AI, Memory, and Recall saves are acknowledged and persist after reload');
+        check('local appearance persists; profile, AI, Memory, and Recall saves are acknowledged and persist after reload');
 
         await open();
         await tab('accounts');

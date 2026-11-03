@@ -16,9 +16,9 @@ parts and capability checks from Chapter 5 and the file authority from Chapter 1
 do not create a second conversation or media pipeline.
 
 - **Hold to talk; release to send.** Provide a press-and-hold microphone button
-  usable on a phone and a configurable keyboard shortcut. Right Alt is the
-  initial choice where the browser permits it without interfering with AltGr,
-  input methods, or reserved shortcuts. Press starts an explicitly authorized
+  usable on a phone and a browser-profile-local keyboard shortcut, initially Off.
+  Offer F8 and Right Alt, with Right Alt available only where it does not interfere
+  with AltGr, input methods, or reserved shortcuts. Press starts an explicitly authorized
   recording; release stops capture, transcribes it, and sends the resulting text
   once through the normal message path. While the Agent is working, that message
   follows the existing hint contract. Display recording, transcription, and
@@ -615,8 +615,11 @@ not turn it into success. A consumed admission remains consumed, even when its
 outcome is uncertain to the browser.
 
 The microphone control supports pointer/touch holding and Space or Enter while
-the button is focused. The persisted page-level shortcut offers Right Alt, F8,
-or Off. Right Alt is refused for Apple Option-key use and AltGr/composition or
+the button is focused. The browser-profile-local shortcut offers Right Alt, F8,
+or Off, defaulting to Off in a new profile. Save it in origin-local storage, not
+the Agent settings file. Same-origin tabs share it; separate profiles and devices
+do not. Server settings frames cannot overwrite it, and blocked storage falls
+back to the current page. The microphone button remains independently usable. Right Alt is refused for Apple Option-key use and AltGr/composition or
 modifier combinations; it is not a portable system-wide hotkey. Repeats cannot
 start another recording. Changing the preference, losing focus, or forming another
 key chord cancels instead of submitting a fragment. Native Windows and Linux

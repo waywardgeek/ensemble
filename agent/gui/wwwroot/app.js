@@ -940,10 +940,9 @@ function applySettings() {
     document.querySelector("#human-name").value = settings.human_name || "";
     document.querySelector("#human-description").value = settings.human_description || "";
     browserTheme.seed(settings.theme);
-    document.documentElement.style.fontSize = `${settings.font_size}px`;
+    browserDevice.seed(settings.font_size);
     resizeComposer();
     renderControls();
-    document.querySelector("#font-size").value = settings.font_size;
     document.querySelector("#max-tool-rounds").value = settings.max_tool_rounds;
     document.querySelector("#context-target-bytes").value = settings.context_target_bytes;
     if (settings.recall) {
@@ -959,8 +958,6 @@ function applySettings() {
         document.querySelector(`#memory-${band}-enabled`).checked = !policy.disabled;
         document.querySelector(`#memory-${band}-budget`).value = policy.budget;
     }
-    document.querySelector("#voice-shortcut").value = settings.voice_shortcut || "off";
-    voiceControl?.setShortcut(settings.voice_shortcut || "off");
     updatePauseCause(); // Disabling speech pausing does not cancel the queue.
 }
 document.querySelector("#user-settings").addEventListener("submit", event => {
@@ -1089,13 +1086,22 @@ document.querySelector("#recall-settings-form").addEventListener("submit", event
     patchSettings({recall});
 });
 document.querySelector("#recall-settings-reload").onclick = () => send("get_settings");
-document.querySelector("#font-size").onchange = event => patchSettings({ font_size: Number(event.target.value) });
+document.querySelector("#font-size").onchange = event => browserDevice.select({ font: Number(event.target.value) });
 document.querySelector("#max-tool-rounds").onchange = event => patchSettings({ max_tool_rounds: Number(event.target.value) });
 document.querySelector("#context-target-bytes").onchange = event => patchSettings({ context_target_bytes: Number(event.target.value) });
 document.querySelector("#tts-speed").onchange = event => browserSpeech.select({ speed: Number(event.target.value) });
 document.querySelector("#narrate").onchange = event => browserSpeech.select({ enabled: event.target.checked });
-document.querySelector("#voice-shortcut").onchange = event => patchSettings({ voice_shortcut: event.target.value });
+document.querySelector("#voice-shortcut").onchange = event => browserDevice.select({ shortcut: event.target.value });
 document.querySelector("#pause-speaking").onchange = event => browserSpeech.select({ pause: event.target.checked });
+function renderDevicePreferences() {
+    document.documentElement.style.fontSize = `${browserDevice.value.font ?? 18}px`;
+    document.querySelector("#font-size").value = browserDevice.value.font ?? 18;
+    document.querySelector("#voice-shortcut").value = browserDevice.value.shortcut;
+    voiceControl?.setShortcut(browserDevice.value.shortcut);
+    resizeComposer();
+}
+browserDevice.onchange = renderDevicePreferences;
+renderDevicePreferences();
 function renderSpeechPreferences() {
     const value = browserSpeech.value;
     document.querySelector("#tts-speed").value = value.speed;
@@ -1245,7 +1251,7 @@ connect();
 import("./voice-control.js").then(({ VoiceControl }) => {
     voiceControl = new VoiceControl(document.querySelector("#voice-hold"),
         document.querySelector("#voice-cancel"), document.querySelector("#voice-status"));
-    voiceControl.setShortcut(settings.voice_shortcut || "off");
+    voiceControl.setShortcut(browserDevice.value.shortcut);
     voiceControl.addEventListener("change", renderControls);
     renderControls();
 }).catch(() => {
