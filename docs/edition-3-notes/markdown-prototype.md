@@ -98,3 +98,34 @@ voice modules use one version path; reload connects successfully. Five public GU
 groups and all Markdown integration cases passed. Chapter27 hard lint passed with
 style advisories. Prior cached Cloudflare HTML still needs Bill's initial purge;
 no claim that this diagnoses the newly reported size-related display error.
+
+Asset-cache commit `b32ef1c7` was authorized and deployed to Dev only. Tested
+GUI/core assemblies matched the final GUI build before staging. The prior Dev
+process fully exited; all 15 runtime files verified after replacement. Launcher,
+skills and running transcription options were preserved. Receipt:
+`/private/tmp/cadence-asset-cache-dev-install/staging.json`. Live8089 verified
+no-store HTML/legacy app.js and immutable versioned app/CSS/Markdown/capture/voice
+assets with exact source bytes. The8088 and8090 processes remained unchanged.
+No model request sent. Authenticated Cloudflare delivery remains unverified;
+Bill plans the one-time purge when home.
+
+## Human acceptance and main staging
+
+Bill reported Dev loaded correctly, called the rendered HTML beautiful, and
+confirmed tables and code blocks render incrementally: "it's fantastic."
+This is live human acceptance of the Dev Markdown/streaming experience, not a
+claim that every selection/security case was manually tested on every device.
+Chapter7 now teaches the pinned parser, security policy, accumulated-Markdown
+rendering, coalescing and selection/replay rules from the original construction
+step. Chapter27's acceptance exercise matches. Both chapters pass hard lint
+with style advisories; no historical endpoints or old grades were rewritten.
+
+Bill authorized promotion and will restart main when home. Staged the exact
+accepted Dev binaries to main, without another build: six application files
+atomically replaced; all 15 runtime files match Dev and the tested build.
+Launcher and installed skills preserved; credentials/settings/data untouched.
+Main's8088 process remained running throughout; no restart performed.
+Receipt: `/private/tmp/cadence-markdown-main-install/staging.json`.
+Main runtime/browser acceptance awaits Bill's full exit/start/reload. Existing
+Cloudflare entries may still need the one-time purge; versioning only takes
+effect after the browser receives current HTML.

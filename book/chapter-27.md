@@ -595,12 +595,16 @@ A useful session proceeds through these paths:
    output to test scrolling. Preserve the existing safe Markdown behavior:
    unordered and ordered lists must remain semantic lists, and source-wrapped
    prose must remain one paragraph rather than a stack of separate paragraphs.
-   Check headings, inline code, links, and fenced code without executing supplied
-   HTML. A styling change is not permission to replace a working renderer with a
-   less capable one. Reuse the working block parser when adding inline emphasis
-   or expandable code; test semantic elements and displayed whitespace, not only
-   a screenshot or text-content match. Inspect a real artifact supported by the renderer.
-   Disconnect/reconnect and verify repair without duplicate cards or lost text.
+   Check tables, nested lists/emphasis, blockquotes, links and fenced code while
+   chunks arrive. Follow Chapter 7's pinned browser-parser policy: raw HTML stays
+   inert, unsafe links refuse, and Markdown images make no remote requests.
+   Test semantic elements and displayed whitespace, not only a screenshot or
+   text-content match. Keep original Markdown and speech independent of HTML.
+   Verify coalescing and final flush, stable playback focus, selection spanning
+   multiple cards, preserved code expansion, narrow table scrolling, and no
+   forced jump while reading older content. Inspect actual rendered pixels and
+   obtain human streaming acceptance. Disconnect/reconnect must repair the view
+   without duplicate cards, lost text or delayed renders from a previous view.
 3. Create a peer, see its actual place in the tree, select it, return to the
    original, and delete the eligible peer through the existing operation.
    Demonstrate a refusal without pretending deletion succeeded. A displayed

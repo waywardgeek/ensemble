@@ -244,10 +244,11 @@ Every message is an artifact: a stable card that may stream and then finalize.
 Use one card map and vary rendering through type and role, not through separate
 conversation models for chat, tools, and thinking.
 
-- Human and assistant text use safe Markdown: headings, paragraphs, lists,
-  links, inline code, and fenced code.
-- Thinking and tool details are collapsible. Their complete text remains in
-  the backing card and a scrollable details view.
+- Human and assistant text use safe Markdown: headings, paragraphs, nested lists,
+  tables, blockquotes, nested emphasis, links, inline code, and fenced code.
+- Supplied thinking and reasoning summaries use the same readable prose renderer.
+  Tool details remain expandable. Complete text stays in each backing card;
+  provider signatures and opaque metadata are not readable thinking.
 - Tool plans show arguments and lifecycle status. Results retain full readable
   output; terminal escape sequences do not become browser control syntax.
 - Successful `edit_file` results can show the applied exact replacement from
@@ -255,9 +256,54 @@ conversation models for chat, tools, and thinking.
 - Search results keep their path/line output readable. Do not delete content
   merely to make a card short.
 
-Build DOM nodes and assign `textContent`; never interpolate provider or tool
-text into `innerHTML`. A filename, fetched document, or source fragment may
-contain hostile markup. Fenced HTML must appear as code, not execute.
+Use a pinned, locally bundled Markdown parser rather than growing a collection
+of regular expressions. The current browser uses markdown-it 14.1.0 with its MIT
+license and source integrity recorded alongside the vendor files. Do not add a
+runtime CDN, fetch a parser on page load from another site, or silently enable
+plugins. Tables and nested formatting are required; arbitrary HTML and every
+possible Markdown extension are not.
+
+Keep raw HTML disabled. Only HTTP(S) links are clickable; reject unsafe schemes
+after parsing and normalization. Render Markdown images as escaped descriptions,
+not automatically fetched remote resources. Explicit image attachments have their
+own admission path. A filename, fetched document, or source fragment may contain
+hostile markup. Fenced HTML must appear as code, not execute.
+
+The parser's generated HTML may enter the message body only through this reviewed
+policy. Never concatenate provider or tool text directly into `innerHTML`.
+Continue using DOM nodes and `textContent` for controls, labels, tool output and
+code highlighting. Test malicious markup, encoded unsafe links and remote image
+syntax, including the absence of network requests. Library configuration is a
+security boundary, not a substitute for these tests.
+
+### Stream Markdown, render the accumulated text
+
+Keep the complete original Markdown in the backing card. Send text deltas over
+the existing connection; do not send a growing HTML document from the server.
+Reparse only the changed card's accumulated Markdown in the browser. Coalesce
+bursts of deltas with a bounded delay, currently 50 milliseconds, instead of
+replacing the DOM for every token. The first visible card keeps arrival order;
+a final event flushes the latest text promptly. This cadence is not a hard
+real-time guarantee when the browser is busy or backgrounded.
+
+Incomplete syntax can change interpretation: a table becomes a table after its
+separator arrives, and a link becomes clickable when complete. Test prefixes of
+real examples rather than inventing a second incremental Markdown grammar.
+Retain speaker labels and playback controls while updating the body. Speech
+consumes the original readable text through its existing path, never text scraped
+back out of generated HTML.
+
+Do not replace a card while a nonempty text selection intersects it, including
+cards between the selection's endpoints. Retain the latest update and paint it
+when the selection clears. Discard queued renders on replay or conversation
+replacement so stale cards cannot reappear. Preserve the reader's scroll position
+when away from the bottom; follow new output only when already near the bottom.
+
+Tables use semantic header cells and a labelled, keyboard-scrollable wrapper so
+wide content cannot widen the chat pane. Long code retains the complete source
+behind its preview; preserve expansion and table scroll across updates. Measure
+whole-message parsing and DOM replacement on realistic content before adding
+incremental machinery. Desktop timing is not evidence of phone performance.
 
 Display limits are acceptable only if the rest remains reachable. Collapsing
 or scrolling is different from truncating the stored value. A speaker button

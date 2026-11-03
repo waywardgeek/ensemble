@@ -1,3 +1,17 @@
+# Current boundary: Markdown accepted on Dev, staged for main restart
+
+Bill visually accepted the Dev Markdown output and incremental tables/code.
+The content-versioned asset upgrade is live on Dev; server/browser cache tests
+and Markdown regressions pass. Chapters 7 and 27 now teach the parser, streaming,
+safety and cache requirements at their original construction/acceptance points.
+Both chapters pass hard lint. See [evidence](edition-3-notes/markdown-prototype.md).
+
+With Bill's authorization, exact accepted Dev binaries were staged to main:
+six application files replaced, all 15 runtime files verified, launcher/skills
+preserved. Main remains running the prior loaded application; Bill will restart
+when home. No restart or live main acceptance claimed. No model requests or
+credential changes during staging. Receipt is recorded in the evidence note.
+
 # Current boundary: browser Markdown candidate ready for Dev review
 
 Pinned local markdown-it replaces the handwritten subset in source. Safe parser
