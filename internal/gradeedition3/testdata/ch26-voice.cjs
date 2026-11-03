@@ -9,6 +9,7 @@ assert.equal(target.hostname, '127.0.0.1', 'Only disposable loopback hosts');
 assert.ok(target.port && !['8088', '8089', '8090'].includes(target.port), 'Never target live services');
 (async () => {
   const browser = await chromium.launch({headless:true, channel:'chrome'});
+  process.once('SIGINT', () => { void browser.close().finally(() => process.exit(130)); });
   const page = await browser.newPage(); page.setDefaultTimeout(15000);
   const errors = []; page.on('pageerror', e => errors.push(e.message));
   try {
@@ -69,6 +70,31 @@ assert.ok(target.port && !['8088', '8089', '8090'].includes(target.port), 'Never
       return;
     }
     await page.waitForFunction(() => !document.querySelector('#voice-hold').disabled);
+    if (process.env.VOICE_GRADE_MODE === 'transcription-error') {
+      const record = async () => {
+        const box = await page.locator('#voice-hold').boundingBox();
+        await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+        await page.mouse.down();
+        await page.waitForFunction(() => document.querySelector('#voice-status').textContent.startsWith('Recording.'));
+        await page.waitForTimeout(250); await page.mouse.up();
+      };
+      await record();
+      await page.waitForFunction(() => voiceReplies.some(frame => frame.type === 'voice_failed'));
+      let result = await page.evaluate(async () => (await fetch('/fixture/status')).json());
+      assert.equal(result.audioCalls, 1, 'Transcription failure retried automatically');
+      assert.equal(result.modelRequests, 0); assert.equal(result.admitted, 0);
+      assert.equal(await page.evaluate(() => voiceFrames.filter(frame => frame.type === 'voice_commit').length), 0);
+      await page.waitForFunction(() => !document.querySelector('#voice-hold').disabled);
+      await record();
+      await page.waitForFunction(() => document.querySelector('#voice-status').textContent === 'Voice message sent.');
+      await page.waitForFunction(async () => (await (await fetch('/fixture/status')).json()).modelRequests === 1);
+      result = await page.evaluate(async () => (await fetch('/fixture/status')).json());
+      assert.equal(result.audioCalls, 2); assert.equal(result.admitted, 1); assert.equal(result.failure, null);
+      assert.ok(await page.evaluate(() => testAudio.every(audio => audio.stream.getTracks().every(track => track.readyState === 'ended'))));
+      assert.deepEqual(errors, []);
+      console.log('PASS transcription failure: no retry/admission, new deliberate recording recovers');
+      return;
+    }
     if (['permission-delay', 'disconnect-recording', 'recipient-recording', 'recipient-transcription', 'disconnect-transcription'].includes(process.env.VOICE_GRADE_MODE)) {
       const box = await page.locator('#voice-hold').boundingBox();
       await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);

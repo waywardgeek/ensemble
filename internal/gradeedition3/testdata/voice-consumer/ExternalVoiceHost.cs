@@ -16,13 +16,13 @@ internal static class ExternalVoiceHost
         ?? throw new InvalidOperationException("Grader loopback port is required"));
     private static readonly string Mode = Environment.GetEnvironmentVariable("VOICE_GRADE_MODE") ?? "lifecycle";
     private static readonly bool FundingOff = Mode == "funding-off";
-    private static readonly bool NoAdmission = Mode != "lifecycle";
+    private static readonly bool NoAdmission = Mode is not ("lifecycle" or "transcription-error");
     private static readonly bool HeldTranscription = Mode is "recipient-transcription" or "disconnect-transcription";
-    private static readonly int ExpectedAudio = Mode == "lifecycle" ? 2 : HeldTranscription ? 1 : 0;
+    private static readonly int ExpectedAudio = Mode is "lifecycle" or "transcription-error" ? 2 : HeldTranscription ? 1 : 0;
     internal static async Task RunAsync()
     {
         Check(Mode is "lifecycle" or "funding-off" or "permission-delay" or "disconnect-recording"
-            or "recipient-recording" or "recipient-transcription" or "disconnect-transcription", "Unknown voice grading mode");
+            or "recipient-recording" or "recipient-transcription" or "disconnect-transcription" or "transcription-error", "Unknown voice grading mode");
         Check(Port is > 1024 and < 65536 && Port is not (8088 or 8089 or 8090), "Refuse live-service ports");
         string home = Directory.GetCurrentDirectory();
         using var stop = new CancellationTokenSource(TimeSpan.FromMinutes(3));
@@ -165,7 +165,9 @@ internal static class ExternalVoiceHost
                     && (wave.Length - 44) % 2 == 0, "Noncanonical WAV format/length");
                 Volatile.Write(ref WaveBytes, wave.Length);
                 // Deliberately ignore cancellation here: late success must not admit.
-                if (call == 2 || HeldTranscription) await Release.Task;
+                if ((call == 2 && Mode == "lifecycle") || HeldTranscription) await Release.Task;
+                if (Mode == "transcription-error" && call == 1)
+                    return new HttpResponseMessage(HttpStatusCode.ServiceUnavailable) { Content = new StringContent("Synthetic transcription unavailable") };
                 return new HttpResponseMessage(HttpStatusCode.OK) { Content = new StringContent(
                     JsonSerializer.Serialize(new { text = Transcript })) };
             }

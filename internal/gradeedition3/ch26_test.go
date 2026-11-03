@@ -99,7 +99,7 @@ func TestMediaOutputBarrierAndBound(t *testing.T) {
 	if !output.overflow {
 		t.Fatal("output bound missing")
 	}
-	if ValidMediaScope("") || ValidMediaScope("voice") || ValidMediaScope(" image-files") || !ValidMediaScope("image-files") {
+	if ValidMediaScope("") || !ValidMediaScope("voice") || ValidMediaScope(" image-files") || !ValidMediaScope("image-files") {
 		t.Fatal("scope is not exact")
 	}
 }

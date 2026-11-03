@@ -372,4 +372,6 @@ func runImageFileCLI(bin string) (result error) {
 }
 
 // A scope name is deliberately not a permissive substring match.
-func ValidMediaScope(value string) bool { return value == "image-files" || value == "attachments" }
+func ValidMediaScope(value string) bool {
+	return value == "image-files" || value == "attachments" || value == "voice"
+}

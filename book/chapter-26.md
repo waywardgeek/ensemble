@@ -5,8 +5,8 @@
 > Host-screen capture, model-turn delivery, delayed Jobs, and replay passed an
 > agreed macOS synthetic-window test with a local fake provider before selection
 > was simplified to whole displays. Updated whole-display native acceptance remains
-> open. The image-files and attachment external scopes pass, totaling 45 points;
-> 55 points remain ungraded for voice and host screenshots. Speech-pause cleanup
+> open. The image-files, attachment and voice external scopes pass, totaling 75 points;
+> 25 points remain ungraded for host screenshots. Speech-pause cleanup
 > now uses connection-owned holds as taught in Chapter 7. The narrative was drafted at the human's
 > request; it is not a claim of complete implementation acceptance or grading.
 
@@ -692,9 +692,9 @@ acceptance tests. Installation, Bill's reported restart, and the successful live
 capture are separate observations. Neither the earlier synthetic-window test nor
 this authorized display capture awards the unfinished external host-screen grade.
 
-The **20-point image-files** and **25-point attachment** external scopes pass.
-The remaining **55 points are ungraded**: voice and host-screen external drivers
-still need implementation and passing evidence. The exercises below retain those
+The **20-point image-files**, **25-point attachment**, and **30-point voice**
+external scopes pass. The remaining **25 points are ungraded**: the host-screen
+external driver still needs implementation and passing evidence. The exercises below retain those
 obligations rather than presenting scoped results as 100/100.
 
 The earlier reproduced speech-playback disconnect leak is repaired with
@@ -702,7 +702,7 @@ connection-owned automatic holds, as taught in Chapter 7. Typing and speech are
 independent causes; disconnect releases only that connection's hold, while a
 manual runtime hold remains intact. Stop speech and Escape cancel current and
 queued speech without clearing a typed draft. This repair is separate evidence,
-not a substitute for the unfinished voice-input external grade.
+not a substitute for the separate voice-input external grade.
 
 This draft describes the implementation before the remaining acceptance and
 grading gates close. Update this status from evidence as the work finishes.
@@ -740,9 +740,9 @@ be made to light up.
 
 These exercises extend the same Agent, History, Sandbox, and GUI. They do not
 ask for a parallel media service or a second conversation store. The proposed
-chapter allocation is 100 points. The image-files and attachments commands below
-award their separate 20-point and 25-point scopes; neither awards the remaining
-55 points or certifies the entire chapter.
+chapter allocation is 100 points. The image-files, attachments and voice commands
+below award separate 20-point, 25-point and 30-point scopes. None awards the
+remaining 25 host-screen points or certifies the entire chapter.
 The implementation's focused tests remain evidence, not external grades.
 
 ### Exercise 26.1: Image-file delivery and replay (20 points)
@@ -825,7 +825,7 @@ misdirected and duplicate-send mutants fail named gates. A phone-sized viewport
 checks layout, not native clipboard support. The command reports **25/25**, not
 100/100; image-file replay remains its separate scope.
 
-### Exercise 26.3: Hold, release, and send once (30 points; grader pending)
+### Exercise 26.3: Hold, release, and send once (30 points)
 
 Connect the microphone button and configurable page-level shortcut to bounded
 recording and explicitly funded transcription. Release sends once through the
@@ -844,8 +844,38 @@ unknown, report uncertainty rather than retrying.
 The external grader must reject extra confirmation requirements, duplicate or
 misdirected sends, continued capture after cancellation, and implicit API-key
 fallback. Fake audio does not certify a native microphone or a paid API. Keep
-human phone acceptance and provider evidence separate. This 30-point scope is
-not yet implemented or awarded.
+human phone acceptance and provider evidence separate. This 30-point scope now
+has a passing executable driver:
+
+```sh
+go run ./cmd/grade-edition3 -ch 26 -executable-only -media-scope voice \
+  -dotnet /absolute/path/to/dotnet -browser-node /absolute/path/to/node \
+  -playwright-module /absolute/path/to/playwright \
+  -json /absolute/path/to/candidate-runtime-directory
+```
+
+Unlike the executable wrappers above, the voice candidate is a directory containing
+`Ensemble.dll` and `Ensemble.Gui.dll`. The grader compiles its own public-API
+consumer against those assemblies with an installed .NET 10 SDK and empty package
+sources. Missing browser/SDK setup refuses before scoring; failure to satisfy the
+public consumer API is a candidate failure. No package installation or paid call
+is part of this command.
+
+The public `VoiceTranscriber(parent, key, HttpMessageHandler)` overload allows a
+trusted host to supply synthetic HTTP responses without changing the production
+URL or 45-second deadline. Handler ownership transfers only after successful
+construction; refused construction leaves it with the caller. Destruction joins
+active requests before disposing an owned handler. Use synthetic credentials in
+a grader transport, never a real payer key.
+
+Eight modes cover normal hold/release and duplicate commit, explicit funding off,
+permission after release, disconnect and Agent switching during capture or held
+transcription, and provider failure followed by a fresh deliberate recording.
+The oracle independently checks WAV bytes, exactly one human transcript in model
+input, canonical admission across both Agents, ended tracks and joined cleanup.
+Four mutants expose extra confirmation, duplicate commit, wrong recipient and
+actual track leakage. The command reports **30/30** for this synthetic scope,
+not native microphone reliability, real-provider behavior or the host-screen grade.
 
 ### Exercise 26.4: Host screenshots (25 points; grader pending)
 
@@ -879,9 +909,9 @@ a student's candidate.
 
 ## Grading boundary
 
-Image-file and attachment scopes have executable external graders at this
-checkpoint, totaling45 points. Keep their results separate from the two pending
-scopes, architecture review and native-platform acceptance. Passing
+Image-file, attachment and voice scopes have executable external graders at this
+checkpoint, totaling 75 points. Keep their results separate from the pending
+host-screen scope, architecture review and native-platform acceptance. Passing
 component tests, building an application, staging binaries, restarting a host,
 and obtaining human acceptance are different facts. Chapter completion still
 requires passing results for the remaining external scopes and reconciliation of

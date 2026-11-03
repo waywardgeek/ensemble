@@ -40,24 +40,8 @@ func Chapter26Attachments(config AttachmentProbe) (report grade.Report, result e
 	if err := os.WriteFile(config.BrowserDriver, attachmentBrowserDriver, 0600); err != nil {
 		return report, err
 	}
-	ctx, cancel := context.WithTimeout(context.Background(), 45*time.Second)
-	defer cancel()
-	setup := exec.CommandContext(ctx, config.Node, "-e", `
-(async () => {
- const {chromium} = require(process.env.PLAYWRIGHT_MODULE);
- const browser = await chromium.launch({headless:true, channel:'chrome', timeout:15000});
- try { const page = await browser.newPage(); await page.setContent('<p>setup</p>'); }
- finally { await browser.close(); }
-})().catch(error => { console.error(error.message); process.exitCode=1; });`)
-	setup.Dir = root
-	setup.Env = []string{"PATH=" + os.Getenv("PATH"), "HOME=" + root, "TMPDIR=" + root, "PLAYWRIGHT_MODULE=" + config.PlaywrightModule}
-	output := &probeOutput{}
-	setup.Stdout, setup.Stderr = output, output
-	if err := setup.Run(); err != nil {
-		return report, fmt.Errorf("browser setup unavailable (not a candidate grade): %w; %s", err, output.text.String())
-	}
-	if output.overflow {
-		return report, fmt.Errorf("browser setup diagnostic bound exceeded")
+	if err := checkMediaBrowserSetup(config.Node, config.PlaywrightModule, root); err != nil {
+		return report, err
 	}
 	check := grade.Check{ID: "attachment-delivery", Title: "Browser attachment pixels, addressed admission and lifecycle", Points: 25}
 	scenarios := []struct {
@@ -85,4 +69,27 @@ func Chapter26Attachments(config AttachmentProbe) (report grade.Report, result e
 	check.Passed, check.Earned = true, check.Points
 	check.Details = append(check.Details, "Synthetic clipboard only; native phone acceptance is separate. Voice and host-screen scopes are not graded here.")
 	return grade.NewTitledReport("Chapter 26 — attachments scope only (25 points)", []grade.Check{check}, ""), nil
+}
+
+func checkMediaBrowserSetup(node, module, root string) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 45*time.Second)
+	defer cancel()
+	setup := exec.CommandContext(ctx, node, "-e", `
+(async () => {
+ const {chromium} = require(process.env.PLAYWRIGHT_MODULE);
+ const browser = await chromium.launch({headless:true, channel:'chrome', timeout:15000});
+ try { const page = await browser.newPage(); await page.setContent('<p>setup</p>'); }
+ finally { await browser.close(); }
+})().catch(error => { console.error(error.message); process.exitCode=1; });`)
+	setup.Dir = root
+	setup.Env = []string{"PATH=" + os.Getenv("PATH"), "HOME=" + root, "TMPDIR=" + root, "PLAYWRIGHT_MODULE=" + module}
+	output := &probeOutput{}
+	setup.Stdout, setup.Stderr = output, output
+	if err := setup.Run(); err != nil {
+		return fmt.Errorf("browser setup unavailable (not a candidate grade): %w; %s", err, output.text.String())
+	}
+	if output.overflow {
+		return fmt.Errorf("browser setup diagnostic bound exceeded")
+	}
+	return nil
 }

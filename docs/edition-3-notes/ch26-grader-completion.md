@@ -1,3 +1,23 @@
+# Current result: voice scope passes30/30; total75 points
+
+The exact public grade-edition3 command with -ch26 -executable-only -media-scope
+voice passed all eight modes. The candidate input is a runtime directory with
+Ensemble.dll and Ensemble.Gui.dll, plus explicit dotnet/browser-node/playwright
+paths. The grader embeds and builds its own public consumer against those DLLs,
+uses empty package sources, fresh synthetic challenges and key-free per-mode
+homes, and joins the consumer before checking final counts. SDK/browser setup
+refuses without a candidate score; missing required public APIs fail compilation
+as a candidate-contract failure. Browser preflight is shared with attachments.
+
+The eighth mode adds actual fake HTTP503 transcription failure, no automatic retry
+or admission, and successful recovery only after a new recording. Report:
+/private/tmp/cadence-voice-driver/grade.json. Candidate hashes are saved beside it.
+Both Go packages and Chapter26 hard prose lint pass; style advisories remain.
+No installation/restart/native microphone/paid request occurred. Voice's30points
+plus attachments25 and image-files20 establish75 external points, not chapter
+completion. Host-screen25 remains ungraded and native success still requires a
+fresh agreed synthetic display. The earlier partial notes below are historical.
+
 # Current result: attachment scope passes25/25
 
 The exact public grade-edition3 command with -ch26 -executable-only
