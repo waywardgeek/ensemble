@@ -26,6 +26,28 @@ availability/setup refusal must not be reported as a candidate behavior failure.
 Join browser, candidate and fake provider before deleting owned scratch files.
 Do not inflate the25-point scope from payload validity alone.
 
+### First external positive gate
+
+The unscored RunAttachmentPickerProbe now launches an ordinary GUI executable in
+a key-free temporary home against the existing loopback fake provider. Its Node
+browser driver uses visible controls, public DOM submission and observed WebSocket
+frames, not application-private globals. Two same-task submissions must produce
+one addressed request/acknowledgement; caption and prepared2048x32 dimensions are
+checked, the draft clears, and the provider answer must become visible. The Go
+side validates randomized actual pixels with attachmentPNG and requires exactly
+one provider request through joined candidate shutdown.
+
+The opt-in TestAttachmentPickerCandidate passed against the local GUI build in
+5.77seconds. Browser/candidate/provider cleanup completed; no live service or paid
+provider was used. JavaScript syntax and existing Go grader tests also pass.
+A subsequent positive/lost-caption negative run passed in2.88seconds. The negative
+modifies only the disposable browser response and must fail the exact caption
+transport assertion; bounded diagnostics preserve its reason. This gate has not
+yet tested other negative candidate mutations, paste/removal,
+recipient switching, late readers, refusal preservation or uncertain reconnect.
+It awards no points. Explicit CH26_GUI_CANDIDATE, CH26_NODE and CH26_PLAYWRIGHT
+paths enable the opt-in test; ordinary test runs skip it.
+
 ## Voice: approved public transport seam, external driver still pending
 
 Bill approved the public overload(parent,key,handler). It is implemented using the
