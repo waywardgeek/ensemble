@@ -12,6 +12,22 @@ assert.ok(target.port && !['8088', '8089', '8090'].includes(target.port), 'Never
   const page = await browser.newPage(); page.setDefaultTimeout(15000);
   const errors = []; page.on('pageerror', e => errors.push(e.message));
   try {
+    if (process.env.VOICE_GRADE_MUTATION) {
+      const mutations = {
+        'extra-send': ["this.#send('voice_commit');", "/* Incorrect: waits for a second human Send. */"],
+        'duplicate-commit': ["this.#send('voice_commit');", "this.#send('voice_commit'); this.#send('voice_commit');"],
+        'wrong-agent': ['agent_id: this.#agent,', 'agent_id: "VoiceRecipient",'],
+        'leaked-tracks': ['attempt(() => track.stop());', '/* Incorrect: owned track left live. */']
+      };
+      const mutation = mutations[process.env.VOICE_GRADE_MUTATION];
+      assert.ok(mutation, 'Unknown voice mutation');
+      await page.route(process.env.VOICE_GRADE_MUTATION === 'leaked-tracks' ? '**/voice-recorder.js' : '**/voice-session.js', async route => {
+        const response = await route.fetch();
+        const source = await response.text();
+        assert.ok(source.includes(mutation[0]), 'Voice mutation anchor missing');
+        await route.fulfill({ response, body: source.replace(mutation[0], mutation[1]) });
+      });
+    }
     await page.addInitScript(mode => {
       window.voiceFrames = []; window.voiceReplies = []; window.testAudio = [];
       navigator.mediaDevices.getUserMedia = async () => {
@@ -53,7 +69,7 @@ assert.ok(target.port && !['8088', '8089', '8090'].includes(target.port), 'Never
       return;
     }
     await page.waitForFunction(() => !document.querySelector('#voice-hold').disabled);
-    if (['permission-delay', 'disconnect-recording'].includes(process.env.VOICE_GRADE_MODE)) {
+    if (['permission-delay', 'disconnect-recording', 'recipient-recording', 'recipient-transcription', 'disconnect-transcription'].includes(process.env.VOICE_GRADE_MODE)) {
       const box = await page.locator('#voice-hold').boundingBox();
       await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
       await page.mouse.down();
@@ -63,16 +79,36 @@ assert.ok(target.port && !['8088', '8089', '8090'].includes(target.port), 'Never
         await page.evaluate(() => voicePermissionResolve());
       } else {
         await page.waitForFunction(() => document.querySelector('#voice-status').textContent.startsWith('Recording.'));
-        await page.evaluate(() => voiceSocket.close());
-        await page.mouse.up();
+        const heldTranscription = process.env.VOICE_GRADE_MODE.endsWith('-transcription');
+        if (heldTranscription) {
+          await page.waitForTimeout(250);
+          await page.mouse.up();
+          await page.waitForFunction(async () => (await (await fetch('/fixture/status')).json()).audioCalls === 1);
+        }
+        if (process.env.VOICE_GRADE_MODE.startsWith('recipient-')) {
+          // DOM click uses the real selection control without releasing the held pointer first.
+          await page.locator('#agent-tree [data-agent]').filter({ hasText: 'VoiceRecipient' }).evaluate(button => button.click());
+          await page.waitForFunction(() => document.querySelector('#agent-tree [aria-selected="true"] .tree-name')?.textContent === 'VoiceRecipient');
+        } else {
+          await page.evaluate(() => voiceSocket.close());
+        }
+        if (!heldTranscription) await page.mouse.up();
+        if (heldTranscription) {
+          await page.evaluate(() => fetch('/fixture/release', { method:'POST' }));
+          await page.waitForFunction(async () => (await (await fetch('/fixture/status')).json()).audioCompleted === 1);
+        }
       }
-      await page.waitForFunction(() => testAudio.length > 0 && testAudio.every(audio => audio.stream.getTracks().every(track => track.readyState === 'ended')));
-      assert.equal(await page.evaluate(() => voiceFrames.filter(frame => frame.type === 'voice_audio' || frame.type === 'voice_commit').length), 0,
-        'Cancelled capture uploaded or committed audio');
+      await page.waitForFunction(() => testAudio.length > 0 && testAudio.every(audio => audio.stream.getTracks().every(track => track.readyState === 'ended')))
+        .catch(error => { throw new Error('Cancelled voice tracks did not end', { cause: error }); });
+      const expectedAudio = process.env.VOICE_GRADE_MODE.endsWith('-transcription') ? 1 : 0;
+      assert.equal(await page.evaluate(() => voiceFrames.filter(frame => frame.type === 'voice_audio').length), expectedAudio);
+      assert.equal(await page.evaluate(() => voiceFrames.filter(frame => frame.type === 'voice_commit').length), 0,
+        'Cancelled capture committed a transcript');
       const result = await page.evaluate(async () => (await fetch('/fixture/status')).json());
-      assert.equal(result.audioCalls, 0); assert.equal(result.modelRequests, 0); assert.equal(result.admitted, 0);
+      assert.equal(result.audioCalls, expectedAudio); assert.equal(result.modelRequests, 0); assert.equal(result.admitted, 0);
+      assert.equal(result.otherAdmitted, 0, 'Transcript reached a different Agent');
       assert.equal(result.failure, null); assert.deepEqual(errors, []);
-      console.log('PASS ' + process.env.VOICE_GRADE_MODE + ': late/active tracks ended, no upload or admission');
+      console.log('PASS ' + process.env.VOICE_GRADE_MODE + ': tracks ended, no commit or admission');
       return;
     }
     await page.evaluate(() => {
@@ -103,17 +139,22 @@ assert.ok(target.port && !['8088', '8089', '8090'].includes(target.port), 'Never
     assert.equal(await page.locator('#voice-shortcut').inputValue(), 'F8');
     await page.locator('#settings-close').click();
     console.log('PASS real shortcut settings save/reload and open-dialog refusal');
+    const expectedRecipient = await page.locator('#agent-tree [aria-selected="true"] > .tree-row > [data-agent]').getAttribute('data-agent');
     await page.keyboard.down('F8'); await page.keyboard.down('F8');
+    await page.waitForFunction(() => voiceFrames.some(frame => frame.type === 'voice_begin'));
+    assert.equal(await page.evaluate(() => voiceFrames.find(frame => frame.type === 'voice_begin').agent_id),
+      expectedRecipient, 'Voice session targeted wrong Agent');
     await page.waitForFunction(() => document.querySelector('#voice-status').textContent.startsWith('Recording.'));
     await page.waitForTimeout(250); await page.keyboard.up('F8');
-    await page.waitForFunction(() => document.querySelector('#voice-status').textContent === 'Voice message sent.');
+    await page.waitForFunction(() => document.querySelector('#voice-status').textContent === 'Voice message sent.')
+      .catch(error => { throw new Error('Release did not automatically send', { cause: error }); });
     await page.waitForFunction(async () => {
       const s = await (await fetch('/fixture/status')).json(); return s.modelRequests === 1 && s.admitted === 1;
     });
     assert.equal((await status()).failure,null);
     await page.waitForFunction(() => document.querySelector('#transcript').textContent.includes('VOICE-FIXTURE model received transcript'));
     let s = await status(); assert.equal(s.failure,null); assert.equal(s.audioCalls,1); assert.ok(s.waveBytes > 44);
-    assert.deepEqual(await page.evaluate(() => voiceFrames.map(f=>f.type)), ['voice_begin','voice_audio','voice_commit']);
+    assert.deepEqual(await page.evaluate(() => voiceFrames.map(f=>f.type)), ['voice_begin','voice_audio','voice_commit'], 'Voice commit must be automatic and once-only');
     assert.equal(await page.evaluate(() => voiceReplies.filter(f=>f.type==='voice_accepted').length),1);
     console.log('PASS real browser PCM -> separately funded fake transcription -> once-only actor admission, model request and History');
 

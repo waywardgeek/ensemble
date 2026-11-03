@@ -17,9 +17,12 @@ internal static class ExternalVoiceHost
     private static readonly string Mode = Environment.GetEnvironmentVariable("VOICE_GRADE_MODE") ?? "lifecycle";
     private static readonly bool FundingOff = Mode == "funding-off";
     private static readonly bool NoAdmission = Mode != "lifecycle";
+    private static readonly bool HeldTranscription = Mode is "recipient-transcription" or "disconnect-transcription";
+    private static readonly int ExpectedAudio = Mode == "lifecycle" ? 2 : HeldTranscription ? 1 : 0;
     internal static async Task RunAsync()
     {
-        Check(Mode is "lifecycle" or "funding-off" or "permission-delay" or "disconnect-recording", "Unknown voice grading mode");
+        Check(Mode is "lifecycle" or "funding-off" or "permission-delay" or "disconnect-recording"
+            or "recipient-recording" or "recipient-transcription" or "disconnect-transcription", "Unknown voice grading mode");
         Check(Port is > 1024 and < 65536 && Port is not (8088 or 8089 or 8090), "Refuse live-service ports");
         string home = Directory.GetCurrentDirectory();
         using var stop = new CancellationTokenSource(TimeSpan.FromMinutes(3));
@@ -31,14 +34,18 @@ internal static class ExternalVoiceHost
         var config = new Configuration(Vendor.Anthropic, "claude-3-haiku-20240307",
             $"http://127.0.0.1:{Port}", "synthetic-browser-model", disableStreaming: true, sandboxRoot: home);
         var agent = new Agent(root, config, Path.Combine(home, "jobs"));
+        Agent? other = Mode.StartsWith("recipient-", StringComparison.Ordinal)
+            ? new Agent(root, config, Path.Combine(home, "other-jobs"), name: "VoiceRecipient") : null;
         var history = agent.History();
         int modelRequests = 0;
         string? failure = null;
+        int OtherAdmitted() => other?.History().View().Dialogue.SelectMany(m => m.Parts)
+            .OfType<TextPart>().Count(p => p.Text == Transcript) ?? 0;
         int Admitted() => history.View().Dialogue.SelectMany(m => m.Parts)
-            .OfType<TextPart>().Count(p => p.Text == Transcript);
+            .OfType<TextPart>().Count(p => p.Text == Transcript) + OtherAdmitted();
         object Status() => new { audioCalls = Volatile.Read(ref audio.Calls), audioCompleted = Volatile.Read(ref audio.Completed),
             waveBytes = Volatile.Read(ref audio.WaveBytes), modelRequests = Volatile.Read(ref modelRequests),
-            admitted = Admitted(), failure = Volatile.Read(ref failure) ?? Volatile.Read(ref audio.Failure) };
+            admitted = Admitted(), otherAdmitted = OtherAdmitted(), failure = Volatile.Read(ref failure) ?? Volatile.Read(ref audio.Failure) };
         host.MapGet("/fixture/status", () => Results.Json(Status()));
         host.MapPost("/fixture/release", () => { audio.Release.TrySetResult(); return Results.Ok(); });
         host.MapPost("/v1/messages", async (HttpContext context) =>
@@ -84,7 +91,7 @@ internal static class ExternalVoiceHost
             Console.WriteLine($"READY http://127.0.0.1:{Port}/assistant/");
             while (!File.Exists(Path.Combine(home, "stop"))) await Task.Delay(50, stop.Token);
             Check(failure is null && audio.Failure is null, failure ?? audio.Failure ?? "Provider failure");
-            Check(audio.Calls == (NoAdmission ? 0 : 2) && audio.Completed == (NoAdmission ? 0 : 2)
+            Check(audio.Calls == ExpectedAudio && audio.Completed == ExpectedAudio
                 && modelRequests == (NoAdmission ? 0 : 1) && Admitted() == (NoAdmission ? 0 : 1),
                 "Browser sequence did not establish exactly one admission and late-cancel refusal");
         }
@@ -107,10 +114,10 @@ internal static class ExternalVoiceHost
             Console.WriteLine("STOPPED host and Agents; transcription work joined");
         }
         Check(audio.Disposed, "Owned transcription handler was not disposed");
-        Check(audio.Calls == (NoAdmission ? 0 : 2) && audio.Completed == (NoAdmission ? 0 : 2)
+        Check(audio.Calls == ExpectedAudio && audio.Completed == ExpectedAudio
             && modelRequests == (NoAdmission ? 0 : 1) && joinedAdmissions == (NoAdmission ? 0 : 1),
             "Final joined counts changed after cancellation");
-        Console.WriteLine(NoAdmission ? $"PASS {Mode}: no audio/model request or admission"
+        Console.WriteLine(NoAdmission ? $"PASS {Mode}: {ExpectedAudio} audio requests, no model request or admission"
             : "PASS two fake audio requests, one model request, one canonical transcript after joined teardown");
     }
     private static void Check(bool valid, string reason) { if (!valid) throw new InvalidOperationException(reason); }
@@ -158,7 +165,7 @@ internal static class ExternalVoiceHost
                     && (wave.Length - 44) % 2 == 0, "Noncanonical WAV format/length");
                 Volatile.Write(ref WaveBytes, wave.Length);
                 // Deliberately ignore cancellation here: late success must not admit.
-                if (call == 2) await Release.Task;
+                if (call == 2 || HeldTranscription) await Release.Task;
                 return new HttpResponseMessage(HttpStatusCode.OK) { Content = new StringContent(
                     JsonSerializer.Serialize(new { text = Transcript })) };
             }

@@ -204,3 +204,32 @@ A reusable development launcher is saved at /private/tmp/cadence-voice-driver/ru
 it uses fresh workspaces/ports and owns both process groups. This is not yet the
 portable scored CLI. Recipient switching, additional independent mutants and
 final external orchestration remain next. Voice still awards no30-point credit.
+
+### Voice recipient boundaries and negative controls
+
+Three added public-consumer modes pass: recipient-recording cancels before upload;
+recipient-transcription switches Agents while one uncooperative audio response is
+held; disconnect-transcription closes the original socket at the same held stage.
+The latter two complete one synthetic audio request but produce zero model calls
+and zero admissions across both original and second Agent histories. All owned
+tracks end and host/Agent/transcriber teardown joins. Evidence directories:
+recipient-recording-9k8tnsqw, recipient-transcription-ih7kwja1 and
+disconnect-transcription-k7zk29f6 under /private/tmp/cadence-voice-driver/.
+The base lifecycle still passes with exact randomized input and joined counts
+(lifecycle-nd0ywxm2).
+
+Independent fetched-module mutants reject extra confirmation, duplicate commit,
+wrong-Agent addressing and actual recorder track leakage at named assertions.
+Logs are extra-send-negative.log, duplicate-commit-negative.log,
+wrong-agent-negative.log and leaked-tracks-corrected-negative.log in that evidence
+root. Every negative test also requires joined host teardown. The first leak
+mutant removed one session cleanup call but redundant ownership still stopped the
+track; it correctly passed and was NOT counted as an effective negative control.
+The replacement disables the actual recorder track.stop operation and fails the
+track-ended assertion; the browser fixture's own finally then stops the synthetic
+track. This distinction is a grader-design lesson, not a product defect.
+
+The portable runner still must build this trusted consumer against supplied
+candidate runtime assemblies using explicit .NET/browser tools, validate setup,
+run the scenario set and expose a scored voice command. No production fake-provider
+flag is needed. Voice remains ungraded; external coverage stays45 points.
