@@ -12,7 +12,7 @@ assert.ok(caption && process.env.ATTACHMENT_PNG && process.env.ATTACHMENT_RESULT
 (async () => {
   const browser = await chromium.launch({ headless: true, channel: 'chrome' });
   try {
-    const page = await browser.newPage();
+    const page = await browser.newPage({ viewport: { width: 393, height: 851 } });
     page.setDefaultTimeout(15000);
     const frames = [];
     const errors = [];
@@ -102,12 +102,14 @@ assert.ok(caption && process.env.ATTACHMENT_PNG && process.env.ATTACHMENT_RESULT
       await page.locator('#prompt').fill(caption + '-original-history');
       await page.locator('#send').click();
       await page.getByText('ATTACHMENT_PROBE_COMPLETE', { exact: true }).waitFor({ state: 'visible' });
+      await page.locator('#pane-navigation [data-pane=agents]').click();
       await page.locator('#peer-open').click();
       await page.locator('#peer-name').fill('AttachmentRecipient');
       await page.locator('#peer-model').fill('claude-3-haiku-20240307');
       await page.locator('#peer-create').click();
       const recipient = page.locator('#agent-tree [data-agent]').filter({ hasText: 'AttachmentRecipient' });
       await recipient.click();
+      await page.locator('#pane-navigation [data-pane=chat]').click();
       await page.waitForFunction(() => !document.querySelector('#send').disabled);
       await page.locator('#prompt').fill(caption + '-recipient-history');
       await page.locator('#send').click();
@@ -133,9 +135,12 @@ assert.ok(caption && process.env.ATTACHMENT_PNG && process.env.ATTACHMENT_RESULT
       await page.locator('#attach-images').click();
       await (await chooser).setFiles(process.env.ATTACHMENT_PNG);
       await page.waitForFunction(() => window.attachmentReaderEvidence.reader?.readyState === 1);
+      await page.locator('#pane-navigation [data-pane=agents]').click();
       await page.locator('#agent-tree [data-agent]').filter({ hasText: 'AttachmentProbe' }).click();
       await page.waitForFunction(() => window.attachmentReaderEvidence.aborts === 1);
+      await page.locator('#pane-navigation [data-pane=agents]').click();
       await page.locator('#agent-tree [data-agent]').filter({ hasText: 'AttachmentRecipient' }).click();
+      await page.locator('#pane-navigation [data-pane=chat]').click();
       await page.waitForFunction(() => !document.querySelector('#send').disabled);
       await page.evaluate(encoded => {
         const reader = window.attachmentReaderEvidence.reader;
@@ -167,6 +172,7 @@ assert.ok(caption && process.env.ATTACHMENT_PNG && process.env.ATTACHMENT_RESULT
     await page.locator('#image-previews img').waitFor({ state: 'visible' });
     assert.equal(await page.locator('#image-previews img').count(), 1, 'Preview removal failed');
     assert.equal(await page.locator('#prompt').inputValue(), caption);
+    assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), 'Phone viewport overflows horizontally');
     await page.waitForFunction(() => !document.querySelector('#send').disabled);
     const expectedAgent = await page.locator('#agent-tree [aria-selected="true"] > .tree-row > [data-agent]').getAttribute('data-agent');
     // Public DOM submission twice within one task exercises the once-only gate.

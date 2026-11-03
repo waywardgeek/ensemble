@@ -1,3 +1,24 @@
+# Current result: attachment scope passes25/25
+
+The exact public grade-edition3 command with -ch26 -executable-only
+-media-scope attachments, explicit browser-node/playwright-module and the normal
+GUI candidate passed25/25 at393x851. Eight lifecycle scenarios passed; the separate
+12-run positive/mutant batch passed in20.91seconds with strengthened joined-cleanup
+checks. Report and candidate assembly hashes are preserved under
+/private/tmp/cadence-attachment-driver/{grade.json,candidate-sha256.txt}.
+Together with the prior image-files20/20, current external coverage is45/100;
+voice30 and host-screen25 remain ungraded. No deployment or paid request occurred.
+
+The first narrow run failed because the driver tried the desktop-only visible
+Create Agent assumption while Chat was selected. Correcting the test to use the
+public Agents/Chat pane tabs fixed it; no product change or force-click was used.
+Browser setup is preflighted before candidate launch; a focused failing-tool test
+proves setup refusal does not launch or grade the candidate. Both Go packages and
+Chapter26 hard prose lint pass (style advisories retained). Chapter prose now
+records the scope command and separates the already repaired speech-pause leak
+from pending voice-input grading. Earlier sections below preserve development
+history and superseded score/implementation boundaries.
+
 # Chapter 26 external grader completion
 
 Bill requested finishing Chapter26 after accepting streamed Markdown and approving

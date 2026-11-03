@@ -24,7 +24,9 @@ func run(args []string) int {
 	chapter := flags.Int("ch", 1, "Edition 3 chapter to grade (1, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 18, 19, 20, 21 or scoped 26)")
 	asJSON := flags.Bool("json", false, "emit the report as JSON")
 	executableOnly := flags.Bool("executable-only", false, "public CLI checks (Chapter 5 or a declared Chapter 26 media scope)")
-	mediaScope := flags.String("media-scope", "", "Chapter 26 executable scope: image-files (20 points only)")
+	mediaScope := flags.String("media-scope", "", "Chapter 26 executable scope: image-files (20 points) or attachments (25 points)")
+	browserNode := flags.String("browser-node", "", "Chapter 26 attachments: absolute Node executable path")
+	playwrightModule := flags.String("playwright-module", "", "Chapter 26 attachments: absolute installed Playwright module path")
 	core := flags.String("core", "", "Chapter 4/5/6/7/8/9/10/11/12/13 core source module directory")
 	consumer := flags.String("consumer", "", "Chapter 4/5/6/7/8/9/10/11/12/13 external consumer module directory")
 	consumerCase := flags.String("consumer-case", "", "Chapter 4/5/6/7/8/9/10/11/12/13 JSON case file (default: shout example)")
@@ -54,12 +56,12 @@ func run(args []string) int {
 	if *chapter == 26 {
 		badFlag := false
 		flags.Visit(func(f *flag.Flag) {
-			if f.Name != "ch" && f.Name != "json" && f.Name != "executable-only" && f.Name != "media-scope" {
+			if f.Name != "ch" && f.Name != "json" && f.Name != "executable-only" && f.Name != "media-scope" && !(*mediaScope == "attachments" && (f.Name == "browser-node" || f.Name == "playwright-module")) {
 				badFlag = true
 			}
 		})
 		if badFlag || !*executableOnly || !gradeedition3.ValidMediaScope(*mediaScope) || flags.NArg() != 1 {
-			fmt.Fprintln(os.Stderr, "Chapter 26 requires -executable-only -media-scope image-files and exactly one executable; this grades 20 points only, not the entire chapter")
+			fmt.Fprintln(os.Stderr, "Chapter 26 requires -executable-only and one executable with -media-scope image-files (20 points) or attachments (25 points); attachments also requires -browser-node and -playwright-module")
 			return 2
 		}
 		candidate, err := filepath.Abs(flags.Arg(0))
@@ -72,7 +74,18 @@ func run(args []string) int {
 			fmt.Fprintln(os.Stderr, "Chapter 26 candidate must be an executable file, not a source directory")
 			return 2
 		}
-		report := gradeedition3.Chapter26Images(candidate)
+		var report grade.Report
+		if *mediaScope == "attachments" {
+			report, err = gradeedition3.Chapter26Attachments(gradeedition3.AttachmentProbe{
+				Candidate: candidate, Node: *browserNode, PlaywrightModule: *playwrightModule,
+			})
+			if err != nil {
+				fmt.Fprintln(os.Stderr, err)
+				return 2
+			}
+		} else {
+			report = gradeedition3.Chapter26Images(candidate)
+		}
 		if *asJSON {
 			_ = report.WriteJSON(os.Stdout)
 		} else {
@@ -82,6 +95,16 @@ func run(args []string) int {
 			return 1
 		}
 		return 0
+	}
+	browserFlags := false
+	flags.Visit(func(f *flag.Flag) {
+		if f.Name == "browser-node" || f.Name == "playwright-module" {
+			browserFlags = true
+		}
+	})
+	if browserFlags {
+		fmt.Fprintln(os.Stderr, "browser flags belong only to Chapter 26 attachments")
+		return 2
 	}
 	if mediaScopeSet {
 		fmt.Fprintln(os.Stderr, "-media-scope belongs only to Chapter 26")

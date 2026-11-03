@@ -5,9 +5,9 @@
 > Host-screen capture, model-turn delivery, delayed Jobs, and replay passed an
 > agreed macOS synthetic-window test with a local fake provider before selection
 > was simplified to whole displays. Updated whole-display native acceptance remains
-> open. Only the 20-point image-files
-> external scope is graded; 80 points remain ungraded. The known speech-pause
-> cleanup defect is deferred. The full narrative is drafted now at the human's
+> open. The image-files and attachment external scopes pass, totaling 45 points;
+> 55 points remain ungraded for voice and host screenshots. Speech-pause cleanup
+> now uses connection-owned holds as taught in Chapter 7. The narrative was drafted at the human's
 > request; it is not a claim of complete implementation acceptance or grading.
 
 ## TL;DR: Specification Brief
@@ -692,18 +692,17 @@ acceptance tests. Installation, Bill's reported restart, and the successful live
 capture are separate observations. Neither the earlier synthetic-window test nor
 this authorized display capture awards the unfinished external host-screen grade.
 
-Only the **20-point image-files external scope** currently has a passing grade.
-The remaining **80 points are ungraded**. Attachment, voice, and native-screen
-external grades still need implementation and passing evidence. The exercises
-below retain those obligations rather than presenting a scoped score as 100/100.
+The **20-point image-files** and **25-point attachment** external scopes pass.
+The remaining **55 points are ungraded**: voice and host-screen external drivers
+still need implementation and passing evidence. The exercises below retain those
+obligations rather than presenting scoped results as 100/100.
 
-There is also a known speech-playback pause defect. An isolated test passes when
-speech ends after the Agent becomes idle, and when the watchdog handles a missing
-native completion callback. Disconnect/reconnect during the speech-owned pause can
-leave the Agent idle and paused. That is a reproduced cleanup leak, not proof of
-the cause of every live pause incident. Repair is explicitly deferred. It needs
-owned automatic-pause state so cleanup cannot undo a person's manual hold;
-blindly unpausing on reconnect is not an acceptable workaround.
+The earlier reproduced speech-playback disconnect leak is repaired with
+connection-owned automatic holds, as taught in Chapter 7. Typing and speech are
+independent causes; disconnect releases only that connection's hold, while a
+manual runtime hold remains intact. Stop speech and Escape cancel current and
+queued speech without clearing a typed draft. This repair is separate evidence,
+not a substitute for the unfinished voice-input external grade.
 
 This draft describes the implementation before the remaining acceptance and
 grading gates close. Update this status from evidence as the work finishes.
@@ -741,8 +740,9 @@ be made to light up.
 
 These exercises extend the same Agent, History, Sandbox, and GUI. They do not
 ask for a parallel media service or a second conversation store. The proposed
-chapter allocation is 100 points. Only the explicitly named automated scope below
-is currently executable; the other 80 points are not awarded by that command.
+chapter allocation is 100 points. The image-files and attachments commands below
+award their separate 20-point and 25-point scopes; neither awards the remaining
+55 points or certifies the entire chapter.
 The implementation's focused tests remain evidence, not external grades.
 
 ### Exercise 26.1: Image-file delivery and replay (20 points)
@@ -783,7 +783,7 @@ this delivery-and-replay scope. Sandbox escapes, resource ceilings, unsupported
 models, cancellation, and cross-provider correctness still require their focused
 implementation tests and review; this scope does not certify them by implication.
 
-### Exercise 26.2: Addressed image attachments (25 points; grader pending)
+### Exercise 26.2: Addressed image attachments (25 points)
 
 Accept pasted images and explicit file selection into a removable preview draft.
 Keep accompanying text and image order, then send the whole message to the Agent
@@ -800,7 +800,30 @@ but record native clipboard acceptance separately from viewport geometry.
 The external grader must observe the real addressed WebSocket path and the
 resulting model input. Its negative controls must reject preview-only delivery,
 lost accompanying text, a changed recipient, and duplicate admission. This
-25-point scope is not yet implemented or awarded.
+25-point scope now has a passing executable driver. Run it against an ordinary
+GUI executable wrapper that forwards its arguments:
+
+```sh
+go run ./cmd/grade-edition3 -ch 26 -executable-only \
+  -media-scope attachments -browser-node /absolute/path/to/node \
+  -playwright-module /absolute/path/to/playwright \
+  -json /absolute/path/to/candidate-gui
+```
+
+The grader requires an already installed Playwright package and Chrome. It checks
+browser availability before launching the candidate; setup failure exits without
+a candidate score. It downloads nothing. The candidate accepts the ordinary GUI
+port, workspace, data-directory, provider/model/base-URL, funding and no-save
+options. The grader supplies a fresh key-free home and synthetic credential, not
+a running GUI or internal test host.
+
+Eight scenarios cover picker, synthetic paste/removal, separate recipient
+histories, late readers, refusal recovery, uncertain reconnect, acknowledgement
+ordering, and repeated wire envelopes. Randomized prepared pixels and captions
+must reach the loopback provider exactly once. Preview-only, lost-caption,
+misdirected and duplicate-send mutants fail named gates. A phone-sized viewport
+checks layout, not native clipboard support. The command reports **25/25**, not
+100/100; image-file replay remains its separate scope.
 
 ### Exercise 26.3: Hold, release, and send once (30 points; grader pending)
 
@@ -856,9 +879,9 @@ a student's candidate.
 
 ## Grading boundary
 
-Only the image-file scope has an executable external grader at this checkpoint.
-Keep its result separate from the three pending scopes, architecture review,
-native-platform acceptance, and the known deferred speech-pause repair. Passing
+Image-file and attachment scopes have executable external graders at this
+checkpoint, totaling45 points. Keep their results separate from the two pending
+scopes, architecture review and native-platform acceptance. Passing
 component tests, building an application, staging binaries, restarting a host,
 and obtaining human acceptance are different facts. Chapter completion still
 requires passing results for the remaining external scopes and reconciliation of

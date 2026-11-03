@@ -3,6 +3,7 @@ package gradeedition3
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"net"
 	"net/http"
@@ -64,8 +65,8 @@ func RunAttachmentPickerProbe(config AttachmentProbe) (result error) {
 		return err
 	}
 	defer func() {
-		if err := os.RemoveAll(root); err != nil && result == nil {
-			result = err
+		if err := os.RemoveAll(root); err != nil {
+			result = errors.Join(result, fmt.Errorf("scratch cleanup: %w", err))
 		}
 	}()
 	home := filepath.Join(root, "home")
@@ -134,15 +135,13 @@ func RunAttachmentPickerProbe(config AttachmentProbe) (result error) {
 			_ = command.Process.Signal(os.Interrupt)
 			select {
 			case err := <-exited:
-				if result == nil && err != nil {
-					result = fmt.Errorf("candidate shutdown: %w", err)
+				if err != nil {
+					result = errors.Join(result, fmt.Errorf("candidate shutdown: %w", err))
 				}
 			case <-time.After(5 * time.Second):
 				cancel()
 				<-exited
-				if result == nil {
-					result = fmt.Errorf("candidate did not join graceful shutdown")
-				}
+				result = errors.Join(result, fmt.Errorf("candidate did not join graceful shutdown"))
 			}
 		}
 		if result == nil && calls.Load() != expectedCalls {

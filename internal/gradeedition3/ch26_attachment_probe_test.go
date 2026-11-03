@@ -65,8 +65,34 @@ func TestAttachmentPickerCandidate(t *testing.T) {
 		config.BrowserMutation = negative.mutation
 		config.Recipient = negative.mutation == "misdirected"
 		err = RunAttachmentPickerProbe(config)
+		if err != nil && (strings.Contains(err.Error(), "shutdown") || strings.Contains(err.Error(), "cleanup")) {
+			t.Fatalf("negative control cleanup failed: %v", err)
+		}
 		if err == nil || !strings.Contains(err.Error(), negative.refusal) {
 			t.Fatalf("%s must fail its intended gate, got %v", negative.mutation, err)
 		}
+	}
+}
+
+func TestAttachmentSetupRefusesBeforeCandidate(t *testing.T) {
+	root := t.TempDir()
+	candidate := filepath.Join(root, "candidate")
+	node := filepath.Join(root, "node")
+	marker := filepath.Join(root, "launched")
+	if err := os.WriteFile(candidate, []byte("#!/bin/sh\ntouch '"+marker+"'\n"), 0700); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(node, []byte("#!/bin/sh\necho synthetic-browser-unavailable >&2\nexit 3\n"), 0700); err != nil {
+		t.Fatal(err)
+	}
+	report, err := Chapter26Attachments(AttachmentProbe{Candidate: candidate, Node: node, PlaywrightModule: root})
+	if err == nil || !strings.Contains(err.Error(), "not a candidate grade") {
+		t.Fatalf("expected setup refusal, got %v", err)
+	}
+	if report.Passed {
+		t.Fatal("setup refusal produced a passing candidate grade")
+	}
+	if _, err := os.Stat(marker); !os.IsNotExist(err) {
+		t.Fatalf("candidate launched during setup refusal: %v", err)
 	}
 }
