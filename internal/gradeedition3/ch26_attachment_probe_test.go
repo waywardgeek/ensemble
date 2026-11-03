@@ -47,10 +47,26 @@ func TestAttachmentPickerCandidate(t *testing.T) {
 	if err := RunAttachmentPickerProbe(config); err != nil {
 		t.Fatalf("uncertain reconnect: %v", err)
 	}
+	config.Fault = "acknowledgements"
+	if err := RunAttachmentPickerProbe(config); err != nil {
+		t.Fatalf("acknowledgements: %v", err)
+	}
+	config.Fault = "duplicate-wire"
+	if err := RunAttachmentPickerProbe(config); err != nil {
+		t.Fatalf("duplicate wire: %v", err)
+	}
 	config.Fault = ""
-	config.BrowserMutation = "lost-caption"
-	err = RunAttachmentPickerProbe(config)
-	if err == nil || !strings.Contains(err.Error(), "Caption changed in transport") {
-		t.Fatalf("lost-caption mutation must fail the caption gate, got %v", err)
+	for _, negative := range []struct{ mutation, refusal string }{
+		{"lost-caption", "Caption changed in transport"},
+		{"preview-only", "Preview-only: no image envelope was sent"},
+		{"misdirected", "Image envelope targets the wrong Agent"},
+		{"duplicate-send", "Duplicate or missing image admission request"},
+	} {
+		config.BrowserMutation = negative.mutation
+		config.Recipient = negative.mutation == "misdirected"
+		err = RunAttachmentPickerProbe(config)
+		if err == nil || !strings.Contains(err.Error(), negative.refusal) {
+			t.Fatalf("%s must fail its intended gate, got %v", negative.mutation, err)
+		}
 	}
 }

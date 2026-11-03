@@ -31,16 +31,22 @@ assert.ok(caption && process.env.ATTACHMENT_PNG && process.env.ATTACHMENT_RESULT
       }
     });
     if (process.env.ATTACHMENT_MUTATION) {
-      assert.equal(process.env.ATTACHMENT_MUTATION, 'lost-caption');
+      const mutations = {
+        'lost-caption': ['text: this.input.value, images:', "text: '', images:"],
+        'preview-only': ['connection.send(JSON.stringify', 'void (JSON.stringify'],
+        'misdirected': ['agent_id: agent, sequence,', 'agent_id: "AttachmentProbe", sequence,'],
+        'duplicate-send': ['connection.send(JSON.stringify', 'for (let duplicate = 0; duplicate < 2; duplicate++) connection.send(JSON.stringify']
+      };
+      const mutation = mutations[process.env.ATTACHMENT_MUTATION];
+      assert.ok(mutation, 'Unknown mutation');
       await page.route('**/images.js', async route => {
         const response = await route.fetch();
         const source = await response.text();
-        const anchor = 'text: this.input.value, images:';
-        assert.ok(source.includes(anchor), 'Mutation anchor missing');
-        await route.fulfill({ response, body: source.replace(anchor, "text: '', images:") });
+        assert.ok(source.includes(mutation[0]), 'Mutation anchor missing');
+        await route.fulfill({ response, body: source.replace(mutation[0], mutation[1]) });
       });
     }
-    if (['refusal', 'uncertain'].includes(process.env.ATTACHMENT_FAULT)) {
+    if (['refusal', 'uncertain', 'duplicate-wire'].includes(process.env.ATTACHMENT_FAULT)) {
       await page.addInitScript(fault => {
         const Native = WebSocket;
         let damaged = false;
@@ -56,6 +62,7 @@ assert.ok(caption && process.env.ATTACHMENT_PNG && process.env.ATTACHMENT_RESULT
             if (!damaged && frame.type === 'image_prompt') {
               damaged = true;
               if (fault === 'uncertain') { this.close(); return; }
+              if (fault === 'duplicate-wire') { super.send(data); super.send(data); return; }
               frame.images[0].data = 'invalid-base64!';
               data = JSON.stringify(frame);
             }
@@ -63,6 +70,30 @@ assert.ok(caption && process.env.ATTACHMENT_PNG && process.env.ATTACHMENT_RESULT
           }
         };
       }, process.env.ATTACHMENT_FAULT);
+    }
+    if (process.env.ATTACHMENT_FAULT === 'acknowledgements') {
+      await page.addInitScript(() => {
+        const Native = WebSocket;
+        window.attachmentAckEvidence = { held: false, release: null };
+        window.WebSocket = class extends Native {
+          constructor(...args) {
+            super(...args);
+            this.addEventListener('message', event => {
+              if (!event.isTrusted) return; // Allow our explicitly injected events through.
+              const frame = JSON.parse(event.data);
+              if (frame.type !== 'image_accepted') return;
+              event.stopImmediatePropagation();
+              const deliver = value => this.dispatchEvent(new MessageEvent('message', {
+                data: JSON.stringify(value)
+              }));
+              window.attachmentAckEvidence.release = () => deliver(frame);
+              deliver({ ...frame, sequence: frame.sequence + 100 });
+              deliver({ ...frame, agent_id: 'not-the-recording-agent' });
+              window.attachmentAckEvidence.held = true;
+            });
+          }
+        };
+      });
     }
     await page.goto(base.href);
     await page.locator('#send').waitFor({ state: 'visible' });
@@ -137,11 +168,44 @@ assert.ok(caption && process.env.ATTACHMENT_PNG && process.env.ATTACHMENT_RESULT
     assert.equal(await page.locator('#image-previews img').count(), 1, 'Preview removal failed');
     assert.equal(await page.locator('#prompt').inputValue(), caption);
     await page.waitForFunction(() => !document.querySelector('#send').disabled);
+    const expectedAgent = await page.locator('#agent-tree [aria-selected="true"] > .tree-row > [data-agent]').getAttribute('data-agent');
     // Public DOM submission twice within one task exercises the once-only gate.
     await page.locator('#prompt').evaluate(input => {
       input.form.requestSubmit();
       input.form.requestSubmit();
     });
+    if (process.env.ATTACHMENT_FAULT !== 'uncertain') {
+      const deadline = Date.now() + 5000;
+      while (!frames.some(frame => frame.direction === 'sent' && frame.type === 'image_prompt')) {
+        assert.ok(Date.now() < deadline, 'Preview-only: no image envelope was sent');
+        await page.waitForTimeout(20);
+      }
+      const first = frames.find(frame => frame.direction === 'sent' && frame.type === 'image_prompt');
+      assert.equal(first.agent_id, expectedAgent, 'Image envelope targets the wrong Agent');
+      assert.equal(first.text, caption, 'Caption changed in transport');
+    }
+    if (process.env.ATTACHMENT_FAULT === 'acknowledgements') {
+      await page.waitForFunction(() => window.attachmentAckEvidence.held);
+      assert.equal(await page.locator('#image-previews img').count(), 1, 'Wrong acknowledgement cleared image');
+      assert.equal(await page.locator('#prompt').inputValue(), caption, 'Wrong acknowledgement cleared caption');
+      assert.equal(await page.locator('#prompt').evaluate(input => input.readOnly), true,
+        'Wrong acknowledgement released pending draft');
+      await page.evaluate(() => {
+        window.attachmentAckEvidence.release();
+        window.attachmentAckEvidence.release();
+      });
+      await page.waitForFunction(() => document.querySelectorAll('#image-previews img').length === 0);
+      await page.locator('#prompt').fill('fresh draft must survive an old acknowledgement');
+      const chooser = page.waitForEvent('filechooser');
+      await page.locator('#attach-images').click();
+      await (await chooser).setFiles(process.env.ATTACHMENT_PNG);
+      await page.locator('#image-previews img').waitFor({ state: 'visible' });
+      await page.evaluate(() => window.attachmentAckEvidence.release());
+      assert.equal(await page.locator('#image-previews img').count(), 1, 'Old acknowledgement cleared fresh image');
+      assert.equal(await page.locator('#prompt').inputValue(), 'fresh draft must survive an old acknowledgement');
+      await page.locator('#image-previews button').click();
+      await page.locator('#prompt').fill('');
+    }
     if (process.env.ATTACHMENT_FAULT === 'uncertain') {
       await page.locator('#discard-image-draft').waitFor({ state: 'visible' });
       await page.waitForFunction(() => window.attachmentFaultEvidence.opens >= 2);
@@ -176,7 +240,7 @@ assert.ok(caption && process.env.ATTACHMENT_PNG && process.env.ATTACHMENT_RESULT
     }
     await page.waitForFunction(() => document.querySelectorAll('#image-previews img').length === 0);
     const sends = frames.filter(frame => frame.direction === 'sent' && frame.type === 'image_prompt');
-    assert.equal(sends.length, process.env.ATTACHMENT_FAULT === 'refusal' ? 2 : 1, 'Duplicate or missing image admission request');
+    assert.equal(sends.length, ['refusal', 'duplicate-wire'].includes(process.env.ATTACHMENT_FAULT) ? 2 : 1, 'Duplicate or missing image admission request');
     const admitted = sends.at(-1);
     assert.equal(admitted.text, caption, 'Caption changed in transport');
     assert.equal(admitted.images.length, 1, 'Image missing in transport');
@@ -184,6 +248,13 @@ assert.ok(caption && process.env.ATTACHMENT_PNG && process.env.ATTACHMENT_RESULT
       frame.type === 'image_accepted' && frame.sequence === admitted.sequence &&
       frame.agent_id === admitted.agent_id);
     assert.equal(accepted.length, 1, 'Missing or duplicate addressed acknowledgement');
+    if (process.env.ATTACHMENT_FAULT === 'duplicate-wire') {
+      const deadline = Date.now() + 15000;
+      while (!frames.some(frame => frame.direction === 'received' && frame.type === 'error' && frame.image_sequence === admitted.sequence)) {
+        assert.ok(Date.now() < deadline, 'Replayed image envelope was not refused');
+        await page.waitForTimeout(20);
+      }
+    }
     assert.equal(accepted[0].images[0].width, 2048);
     assert.equal(accepted[0].images[0].height, 32);
     assert.equal(await page.locator('#prompt').inputValue(), '', 'Accepted draft not cleared');

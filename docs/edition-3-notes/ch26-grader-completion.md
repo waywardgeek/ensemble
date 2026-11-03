@@ -107,3 +107,25 @@ cannot restore a preview. Subsequent fresh paste/removal/admission still passes.
 These use test-owned browser API replacements, not application-private globals.
 Duplicate/stale acknowledgement controls and further independent negative
 candidates remain open; no external score has been increased.
+
+### Acknowledgements, replay and negative controls
+
+The12-run opt-in batch passed in20.56seconds: eight positive/lifecycle scenarios
+and four independent browser-source mutants. The added acknowledgement scenario
+holds a real acceptance, injects wrong sequence/recipient replies, then releases
+the correct reply twice. Wrong replies cannot unlock/clear the pending draft;
+old duplicate acceptance cannot clear a fresh draft. The wire-replay scenario
+sends an identical envelope twice, requires one acceptance plus correlated replay
+refusal, and still requires only one provider request.
+
+Negative controls now reject lost caption, preview-only/no send, wrong recipient
+and duplicate send at their respective named gates. Public selected-tree address
+is compared to the actual outgoing envelope; provider history markers remain the
+independent server-routing check. A missing-envelope bound is5seconds, while
+ordinary browser operations remain bounded at15seconds. These are synthetic local
+acceptance deadlines, not production latency promises.
+
+Remaining before recording25attachment points: expose the complete scenario set
+through the scored executable CLI, validate browser/tool setup separately from
+candidate behavior, review failure/cleanup reporting, run that exact public
+command and reconcile chapter commands/results. Current score remains20 overall.
