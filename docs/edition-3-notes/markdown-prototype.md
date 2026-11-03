@@ -129,3 +129,17 @@ Receipt: `/private/tmp/cadence-markdown-main-install/staging.json`.
 Main runtime/browser acceptance awaits Bill's full exit/start/reload. Existing
 Cloudflare entries may still need the one-time purge; versioning only takes
 effect after the browser receives current HTML.
+
+## Main acceptance and empty Thinking cleanup
+
+After restarting main, Bill requested two rendering demonstrations and said they
+looked great. This records main visual acceptance of Markdown/streaming. He then
+approved hiding empty Thinking cards. The renderer now hides only thinking and
+reasoning_summary cards with whitespace-only readable text; card identity/order
+and backing data remain intact, and populated updates reveal the same card.
+
+Negative-before test failed on the intended empty-card visibility assertions.
+Eight geometry cases and four contrast cases pass after the fix. Actual embedded
+page handler tests pass for empty opening, visible delta and empty final for both
+kinds; all existing Markdown integration checks also pass. Chapter7 now teaches
+this visibility rule. This cleanup is source-only, not installed/restarted.

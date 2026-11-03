@@ -15,6 +15,17 @@ assert(!['8088','8089'].includes(new URL(base).port));
   page.on('request', request => { if (!request.url().startsWith('http://127.0.0.1:18202/')) remote.push(request.url()); });
   await page.goto(base);
   await page.waitForFunction(() => settings !== null && !selectionPending);
+  for (const kind of ['thinking','reasoning_summary']) {
+   await page.evaluate(kind=>handle({type:'part_delta',part_id:'empty-'+kind,kind,chunk:' \n'}),kind);
+   assert.equal(await page.locator(`[data-part-id="empty-${kind}"]`).isVisible(),false);
+   await page.evaluate(kind=>handle({type:'part_delta',part_id:'empty-'+kind,kind,chunk:'**Visible thought**'}),kind);
+   await page.waitForFunction(kind=>!cards.get('empty-'+kind).node.hidden,kind);
+   assert.equal(await page.locator(`[data-part-id="empty-${kind}"] strong`).last().textContent(),'Visible thought');
+   await page.evaluate(kind=>handle({type:'part_final',part_id:'empty-'+kind,part:{type:kind,text:''}}),kind);
+   assert.equal(await page.locator(`[data-part-id="empty-${kind}"]`).isVisible(),false);
+   assert.equal(await page.evaluate(kind=>cards.get('empty-'+kind).text,kind),'');
+  }
+  console.log('PASS empty thinking/summary hidden, streamed content revealed, empty final hidden');
   const sample='## Heading\n\n**bold with *nested emphasis***\n\n| Name | Value |\n|---|---:|\n| One | 1 |\n\n1. First\n   - Nested\n\n> Quote\n\n```js\nconst value = "<script>";\n```\n\n[Safe](https://example.com)';
   await page.evaluate(sample => {
    window.speechBefore = _ttsLog.length;

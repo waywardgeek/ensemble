@@ -440,6 +440,9 @@ function render(card) {
     card.node.dataset.role = card.role;
     card.node.dataset.kind = card.kind;
     card.node.dataset.status = card.status;
+    // Retain stream identity/order and original text, but do not reserve space
+    // for thinking openings or opaque summaries with no readable content.
+    card.node.hidden = ["thinking", "reasoning_summary"].includes(card.kind) && !card.text.trim();
     const heading = card.node.querySelector(":scope > .card-heading") || document.createElement("div");
     heading.className = "card-heading";
     const title = heading.querySelector("strong") || document.createElement("strong");

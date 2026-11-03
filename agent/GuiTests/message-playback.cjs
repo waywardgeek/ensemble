@@ -26,14 +26,18 @@ const render = source.slice(source.indexOf('// Coalesce streamed chunks'), sourc
    const result=await page.locator('article').evaluate(a=>{const b=a.querySelector('[data-action="speak"]'),h=a.querySelector('.card-heading'),m=a.querySelector('.message');const br=b.getBoundingClientRect(),hr=h.getBoundingClientRect(),mr=m.getBoundingClientRect();return {parent:b.parentElement.className,w:br.width,h:br.height,headingHeight:hr.height,cardHeight:a.getBoundingClientRect().height,headingBottom:hr.bottom,messageRight:mr.right,buttonLeft:br.left,buttonRight:br.right,background:getComputedStyle(b).backgroundColor,messageTop:mr.top,bodyHeight:mr.height,label:h.querySelector('strong').textContent,overflow:a.scrollWidth>a.clientWidth};});
    assert.ok(result.headingHeight<44, 'name row is not button-height');assert.ok(result.cardHeight<85, 'whole short card stays compact');assert.ok(Math.abs(result.messageRight-result.buttonRight)<2, 'bubble uses full width without playback gutter');assert.equal(result.background,'rgba(0, 0, 0, 0)', 'playback is transparent at rest');assert.equal(result.parent,'card-heading');assert.ok(result.w>=44&&result.h>=44);assert.ok(result.messageTop>=result.headingBottom);assert.ok(result.bodyHeight<44);assert.equal(result.label,role==='human'?'Bill':'Cadence');assert.equal(result.overflow,false);
    await page.locator('[data-action="speak"]').click();assert.equal(await page.evaluate(()=>window.spoken),'Short message');
-   const separated = await page.evaluate(() => {
+   const visibility = await page.evaluate(() => {
     transcript.replaceChildren();
-    for (let i=0;i<3;i++) render({node:document.createElement('article'),role:'assistant',kind:'thinking',agent:'agent',text:'',status:''});
-    const boxes=[...transcript.querySelectorAll('[data-action="speak"]')].map(b=>b.getBoundingClientRect());
-    return boxes.every((b,i)=>i===0 || b.top>=boxes[i-1].bottom);
+    const items = ['thinking','reasoning_summary'].map(kind => ({node:document.createElement('article'),role:'assistant',kind,agent:'agent',text:' \n\t',status:''}));
+    for (const item of items) render(item);
+    const hidden = items.every(item => item.node.hidden && item.node.getBoundingClientRect().height === 0 && item.text === ' \n\t');
+    for (const item of items) { item.text += 'Visible thought'; render(item); }
+    const shown = items.every(item => !item.node.hidden && item.node.getBoundingClientRect().height > 0 && item.node.textContent.includes('Visible thought'));
+    for (const item of items) { item.text = ''; render(item); }
+    return {hidden, shown, hiddenAgain:items.every(item => item.node.hidden && item.node.getBoundingClientRect().height === 0)};
    });
-   assert.ok(separated, 'adjacent empty cards have disjoint playback targets');
-   console.log(`PASS ${width}px ${size}px ${role}: compact full-width card, transparent playback and empty neighbours`);
+   assert.deepEqual(visibility, {hidden:true,shown:true,hiddenAgain:true});
+   console.log(`PASS ${width}px ${size}px ${role}: playback layout and empty/populated thinking visibility`);
   }
  } finally {await browser.close();}
 })().catch(e=>{console.error(e);process.exitCode=1;});

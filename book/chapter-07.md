@@ -248,7 +248,9 @@ conversation models for chat, tools, and thinking.
   tables, blockquotes, nested emphasis, links, inline code, and fenced code.
 - Supplied thinking and reasoning summaries use the same readable prose renderer.
   Tool details remain expandable. Complete text stays in each backing card;
-  provider signatures and opaque metadata are not readable thinking.
+  provider signatures and opaque metadata are not readable thinking. Empty or
+  whitespace-only thinking/summary cards occupy no visible space; reveal the same
+  card when readable text arrives without deleting its backing data.
 - Tool plans show arguments and lifecycle status. Results retain full readable
   output; terminal escape sequences do not become browser control syntax.
 - Successful `edit_file` results can show the applied exact replacement from

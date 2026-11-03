@@ -339,3 +339,6 @@ body.compact #transcript { padding: .3rem; }
 .message th { font-weight: 650; }
 .message blockquote { border-left: 3px solid var(--muted); padding-left: .65rem; margin: .4rem 0; }
 .message > :last-child { margin-bottom: 0; }
+
+/* Explicitly preserve hidden-card semantics if card layout styles change. */
+#transcript .part[hidden] { display: none; }
