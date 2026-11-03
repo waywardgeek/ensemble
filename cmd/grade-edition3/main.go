@@ -24,7 +24,9 @@ func run(args []string) int {
 	chapter := flags.Int("ch", 1, "Edition 3 chapter to grade (1, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 18, 19, 20, 21 or scoped 26)")
 	asJSON := flags.Bool("json", false, "emit the report as JSON")
 	executableOnly := flags.Bool("executable-only", false, "public runtime checks (Chapter 5 or a declared Chapter 26 media scope)")
-	mediaScope := flags.String("media-scope", "", "Chapter 26 scope: image-files (20), attachments (25), or voice (30)")
+	mediaScope := flags.String("media-scope", "", "Chapter 26 scope: image-files (20), attachments (25), voice (30), or host-screen (25)")
+	allowNative := flags.Bool("allow-native-host-screen", false, "confirm fresh human authorization and fully synthetic primary display for two native captures")
+	hostPattern := flags.String("host-pattern", "", "host-screen: prepared dimensions and colors manifest")
 	dotnet := flags.String("dotnet", "", "Chapter 26 voice: absolute .NET 10 SDK executable path")
 	browserNode := flags.String("browser-node", "", "Chapter 26 attachments/voice: absolute Node executable path")
 	playwrightModule := flags.String("playwright-module", "", "Chapter 26 attachments/voice: absolute installed Playwright module path")
@@ -55,14 +57,24 @@ func run(args []string) int {
 		}
 	})
 	if *chapter == 26 {
+		allowed := map[string]bool{"ch": true, "json": true, "executable-only": true, "media-scope": true}
+		switch *mediaScope {
+		case "attachments", "voice":
+			allowed["browser-node"], allowed["playwright-module"] = true, true
+		case "host-screen":
+			allowed["allow-native-host-screen"], allowed["host-pattern"] = true, true
+		}
+		if *mediaScope == "voice" {
+			allowed["dotnet"] = true
+		}
 		badFlag := false
 		flags.Visit(func(f *flag.Flag) {
-			if f.Name != "ch" && f.Name != "json" && f.Name != "executable-only" && f.Name != "media-scope" && !((*mediaScope == "attachments" || *mediaScope == "voice") && (f.Name == "browser-node" || f.Name == "playwright-module")) && !(*mediaScope == "voice" && f.Name == "dotnet") {
+			if !allowed[f.Name] {
 				badFlag = true
 			}
 		})
 		if badFlag || !*executableOnly || !gradeedition3.ValidMediaScope(*mediaScope) || flags.NArg() != 1 {
-			fmt.Fprintln(os.Stderr, "Chapter 26 requires -executable-only and one candidate with -media-scope image-files (20), attachments (25), or voice (30); attachments/voice require browser tools, voice requires -dotnet and a runtime directory")
+			fmt.Fprintln(os.Stderr, "Chapter 26 requires -executable-only and one candidate with -media-scope image-files (20), attachments (25), voice (30), or host-screen (25); attachments/voice require browser tools, voice requires -dotnet and a runtime directory")
 			return 2
 		}
 		candidate, err := filepath.Abs(flags.Arg(0))
@@ -77,11 +89,26 @@ func run(args []string) int {
 				return 2
 			}
 		} else if err != nil || !info.Mode().IsRegular() || info.Mode().Perm()&0111 == 0 {
-			fmt.Fprintln(os.Stderr, "Chapter 26 image-files/attachments candidate must be an executable file")
+			fmt.Fprintln(os.Stderr, "Chapter 26 image-files/attachments/host-screen candidate must be an executable file")
 			return 2
 		}
 		var report grade.Report
-		if *mediaScope == "voice" {
+		if *mediaScope == "host-screen" {
+			if !*allowNative {
+				fmt.Fprintln(os.Stderr, "Host-screen grading requires fresh explicit synthetic-display authorization; no candidate launched")
+				return 2
+			}
+			pattern, patternError := gradeedition3.ReadHostPattern(*hostPattern)
+			if patternError != nil {
+				fmt.Fprintln(os.Stderr, patternError)
+				return 2
+			}
+			report, err = gradeedition3.Chapter26HostScreens(gradeedition3.HostNativeConfig{Candidate: candidate, NativeAuthorized: *allowNative, Pattern: pattern})
+			if err != nil {
+				fmt.Fprintln(os.Stderr, err)
+				return 2
+			}
+		} else if *mediaScope == "voice" {
 			report, err = gradeedition3.Chapter26Voice(gradeedition3.VoiceGradeConfig{RuntimeDirectory: candidate, Dotnet: *dotnet, Node: *browserNode, PlaywrightModule: *playwrightModule})
 			if err != nil {
 				fmt.Fprintln(os.Stderr, err)
@@ -110,12 +137,12 @@ func run(args []string) int {
 	}
 	browserFlags := false
 	flags.Visit(func(f *flag.Flag) {
-		if f.Name == "browser-node" || f.Name == "playwright-module" || f.Name == "dotnet" {
+		if f.Name == "browser-node" || f.Name == "playwright-module" || f.Name == "dotnet" || f.Name == "host-pattern" || f.Name == "allow-native-host-screen" {
 			browserFlags = true
 		}
 	})
 	if browserFlags {
-		fmt.Fprintln(os.Stderr, "browser/SDK flags belong only to the corresponding Chapter 26 scope")
+		fmt.Fprintln(os.Stderr, "scope-specific flags belong only to the corresponding Chapter 26 scope")
 		return 2
 	}
 	if mediaScopeSet {

@@ -694,7 +694,7 @@ this authorized display capture awards the unfinished external host-screen grade
 
 The **20-point image-files**, **25-point attachment**, and **30-point voice**
 external scopes pass. The remaining **25 points are ungraded**: the host-screen
-external driver still needs implementation and passing evidence. The exercises below retain those
+external driver still needs its agreed native run and passing evidence. The exercises below retain those
 obligations rather than presenting scoped results as 100/100.
 
 The earlier reproduced speech-playback disconnect leak is repaired with
@@ -877,7 +877,7 @@ Four mutants expose extra confirmation, duplicate commit, wrong recipient and
 actual track leakage. The command reports **30/30** for this synthetic scope,
 not native microphone reliability, real-provider behavior or the host-screen grade.
 
-### Exercise 26.4: Host screenshots (25 points; grader pending)
+### Exercise 26.4: Host screenshots (25 points; native acceptance pending)
 
 Implement `list_displays` and `screenshot` on the computer running the C# server.
 Support one optional display index, defaulting to display zero, and return prepared PNG pixels
@@ -902,10 +902,49 @@ elevate privilege, or introduce background monitoring.
 The external grader must reject metadata-only capture, a missing grant,
 capability checks performed after capture, a wrong display, mandatory selection,
 advertised rectangle arguments, missing delayed
-image payloads, and abandoned native work. This 25-point scope is not yet
-implemented or awarded. The reference implementation's macOS synthetic-window
-and authorized live-display acceptance do not award these external points or certify
-a student's candidate.
+image payloads, and abandoned native work. The driver now passes synthetic wire
+candidates, but its real native run remains pending and **no 25 points are awarded**.
+The reference implementation's earlier macOS synthetic-window and live-display
+acceptance do not silently complete this new external grade.
+
+Prepare a four-band fixture without opening or capturing any display. For example,
+a 3840-by-2160 backing display prepares to 2048-by-1152:
+
+```sh
+go run ./cmd/host-screen-pattern -width 2048 -height 1152 ./screen-fixture
+```
+
+The command writes `display.html` and a strict `pattern.json`, refusing to overwrite
+existing files. Open the HTML on the **server computer's primary display**, not
+on a requesting phone. Its button enters full-screen only through a human click.
+Wait until browser/OS overlays disappear and confirm that the whole display is
+synthetic. Prepared dimensions must match the current inventory; a mismatch
+refuses before capture. A manifest is an expectation, not proof that the screen
+currently contains the pattern.
+
+Only after fresh human authorization and confirmation of that setup, run:
+
+```sh
+go run ./cmd/grade-edition3 -ch 26 -executable-only -media-scope host-screen \
+  -allow-native-host-screen -host-pattern ./screen-fixture/pattern.json \
+  -json /absolute/path/to/candidate-cli
+```
+
+The flag is an explicit operator attestation, not an OS-permission bypass. The
+runner loads the grant, validates inventory, makes two primary-display screenshot
+requests (omitted selector and explicit zero), collects their distinct running
+Jobs, and checks both payloads on a new human turn without recapture. It refuses
+without the opt-in; it never substitutes an unapproved primary display for an
+approved secondary one. The current external scope uses one primary display.
+Other-display selection and platform refusals remain separately attributed.
+
+Synthetic controls reject early tool advertisement, rectangle/mandatory-selector
+schemas, metadata-only output, missing or changed Jobs, bad pixels and lost replay.
+Focused backend tests and review must still establish pre-effect capability and
+permission checks and native cancellation: a returned error alone cannot prove
+that no OS side effect occurred. Color-profile fidelity also remains subject to
+the actual agreed native test; do not widen pixel tolerances merely to obtain a
+passing grade.
 
 ## Grading boundary
 

@@ -33,24 +33,8 @@ type HostNativeConfig struct {
 // fresh human authorization and cover the entire primary display first. Unit
 // tests may exercise this runner only with synthetic, noncapturing candidates.
 func runHostNativeCLI(config HostNativeConfig) (result error) {
-	if !config.NativeAuthorized {
-		return fmt.Errorf("native host-screen grading requires fresh explicit synthetic-display authorization")
-	}
-	if config.Display != 0 {
-		return fmt.Errorf("default/explicit-zero grading requires the agreed synthetic primary display; no fallback capture is permitted")
-	}
-	if config.Pattern.Width < 32 || config.Pattern.Height < 8 || config.Pattern.Width > 2048 || config.Pattern.Height > 2048 {
-		return fmt.Errorf("invalid prepared synthetic-display dimensions")
-	}
-	for index, rgb := range config.Pattern.Colors {
-		for previous := 0; previous < index; previous++ {
-			if config.Pattern.Colors[previous] == rgb {
-				return fmt.Errorf("synthetic display bands must have distinct colors")
-			}
-		}
-	}
-	if !filepath.IsAbs(config.Candidate) {
-		return fmt.Errorf("host candidate path must be absolute")
+	if err := validateHostNativeConfig(config); err != nil {
+		return err
 	}
 	script := &hostScreenScript{width: config.Pattern.Width, height: config.Pattern.Height}
 	for index, rgb := range config.Pattern.Colors {
@@ -179,4 +163,20 @@ func runHostNativeCLI(config HostNativeConfig) (result error) {
 		return err
 	}
 	return ended()
+}
+
+func validateHostNativeConfig(config HostNativeConfig) error {
+	if !config.NativeAuthorized {
+		return fmt.Errorf("native host-screen grading requires fresh explicit synthetic-display authorization")
+	}
+	if config.Display != 0 {
+		return fmt.Errorf("default/explicit-zero grading requires the agreed synthetic primary display; no fallback capture is permitted")
+	}
+	if err := validateHostPattern(config.Pattern); err != nil {
+		return err
+	}
+	if !filepath.IsAbs(config.Candidate) {
+		return fmt.Errorf("host candidate path must be absolute")
+	}
+	return nil
 }

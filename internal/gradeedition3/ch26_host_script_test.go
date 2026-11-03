@@ -56,7 +56,7 @@ func hostScriptStart(t *testing.T, script *hostScreenScript) {
 	if err != nil || reply.Tools[0].Name != "list_displays" {
 		t.Fatalf("inventory: %v", err)
 	}
-	inventory := `{"displays":[{"display":0,"width":64,"height":32,"pixel_width":128,"pixel_height":64}]}`
+	inventory := `{"displays":[{"display":0,"width":32,"height":16,"pixel_width":64,"pixel_height":32}]}`
 	reply, err = script.step(hostWire(t, hostResult("host-displays", inventory)))
 	if err != nil || reply.Tools[0].Name != "screenshot" {
 		t.Fatalf("default: %v", err)
@@ -145,5 +145,12 @@ func TestHostScreenReplayRequiresHumanBoundary(t *testing.T) {
 	script.stage = 5
 	if _, err := script.step([]byte(`{}`)); err == nil {
 		t.Fatal("accepted replay without new human turn")
+	}
+}
+
+func TestHostScreenRejectsPregrantTools(t *testing.T) {
+	script, _ := hostScriptFixture(t)
+	if _, err := script.step([]byte(`{"tools":[{"name":"screenshot"}]}`)); err == nil {
+		t.Fatal("host tool advertised before grant")
 	}
 }

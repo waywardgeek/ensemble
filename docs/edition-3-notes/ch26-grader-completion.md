@@ -1,3 +1,27 @@
+# Native-test boundary: host command ready, no native grade yet
+
+Host-screen now has a guarded public CLI and static local pattern generator.
+Missing authorization and invalid manifests refuse before candidate launch;
+pattern parsing rejects unknown/duplicate fields, extra data, malformed RGB
+triples and oversized files. Existing fixture files are never overwritten.
+Source-only tests cover these guards, pregrant tool advertisement, floor-based
+prepared-size inventory checks, pixels, delayed Jobs and replay. Both Go packages
+and the generator compile; Chapter26 hard lint passes with retained advisories.
+No native enumeration, permission prompt or capture occurred.
+
+Prepared but unopened: /private/tmp/cadence-host-driver/pattern.W1c0az/display.html
+and pattern.json. Width2048/height1152 are provisional from earlier display evidence;
+current inventory must match before the driver captures. Native color-management
+fidelity remains uncertain: the current Skia decode does not explicitly select
+sRGB, so do not loosen pixel tolerance speculatively if a native test differs.
+
+The current score remains75 with host25 ungraded. Next needs fresh human approval
+for a fully synthetic primary display, inventory and two screenshots (default0,
+explicit0), original delayed-Job collection, and retained replay without capture.
+No secondary/private display sweep is authorized. The final native result and
+remaining chapter reconciliation must precede completion. Earlier notes below
+preserve development history and superseded implementation boundaries.
+
 # Current result: voice scope passes30/30; total75 points
 
 The exact public grade-edition3 command with -ch26 -executable-only -media-scope

@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"math"
 	"strconv"
 
 	"github.com/waywardgeek/ensemble/internal/fakevendor"
@@ -34,6 +35,19 @@ func (script *hostScreenScript) step(body []byte) (*fakevendor.Reply, error) {
 	}
 	switch script.stage {
 	case 0:
+		var initial struct {
+			Tools []struct {
+				Name string `json:"name"`
+			} `json:"tools"`
+		}
+		if err := json.Unmarshal(body, &initial); err != nil {
+			return nil, err
+		}
+		for _, tool := range initial.Tools {
+			if tool.Name == "screenshot" || tool.Name == "list_displays" {
+				return nil, fmt.Errorf("host tools advertised before explicit skill grant")
+			}
+		}
 		script.stage = 1
 		return script.tool("host-load", "load_skill", map[string]any{"name": "host-screen", "ai_callback_delay": 10}), nil
 	case 1:
@@ -85,9 +99,16 @@ func (script *hostScreenScript) step(body []byte) (*fakevendor.Reply, error) {
 				if display.Width <= 0 || display.Height <= 0 || display.PixelWidth <= 0 || display.PixelHeight <= 0 {
 					return nil, fmt.Errorf("invalid primary display dimensions")
 				}
-				// Compare aspect rather than assume logical pixels equal backing pixels.
-				if int64(display.PixelWidth)*int64(script.height) != int64(display.PixelHeight)*int64(script.width) {
-					return nil, fmt.Errorf("primary display aspect differs from agreed pattern")
+				if display.PixelWidth > 32768 || display.PixelHeight > 32768 || int64(display.PixelWidth)*int64(display.PixelHeight) > 24_000_000 {
+					return nil, fmt.Errorf("primary display exceeds bounded source pixels")
+				}
+				// Use backing pixels and the actual preparation floor rule, not
+				// logical dimensions or an assumed 1:1 display scale.
+				scale := math.Min(1, 2048/math.Max(float64(display.PixelWidth), float64(display.PixelHeight)))
+				width := int(math.Floor(float64(display.PixelWidth) * scale))
+				height := int(math.Floor(float64(display.PixelHeight) * scale))
+				if width != script.width || height != script.height {
+					return nil, fmt.Errorf("primary prepared dimensions differ from agreed pattern; no capture requested")
 				}
 			}
 		}

@@ -5,6 +5,35 @@ passing grade. Cadence maintains it while implementing, then uses the verified
 results to improve `book/chapter-26.md`. Historical Chapter 26 Gateway endpoints
 and graders retain their meanings. Do not overwrite them for this chapter.
 
+## Latest boundary:75 external points; native host-screen test awaits Bill
+
+Image-files20, attachments25 and voice30 have passing public external grades.
+Reports, negative controls and exact scope limits are recorded in
+[ch26-grader-completion.md](ch26-grader-completion.md). Chapter26 is not complete:
+host-screen25 remains ungraded. Native driver/schema/pixel/Job/replay controls
+pass with synthetic noncapturing candidates; no native enumeration, prompt or
+capture occurred during this grading work.
+
+The guarded host-screen CLI and static four-band fixture generator are now ready
+for review. Missing native opt-in, wrong scope flags, malformed/ambiguous manifests,
+degenerate colors and mismatched prepared inventory refuse before capture.
+Pattern files are prepared but unopened at
+/private/tmp/cadence-host-driver/pattern.W1c0az/. The2048x1152 expectation comes from
+the previous display setup, not a fresh inventory. Current dimensions and color
+profile remain native-test facts to verify. The HTML needs a human full-screen
+click on the server's primary display; no requesting-phone capture is substituted.
+
+Next requires Bill at the host: confirm a fully synthetic primary display, then
+explicitly authorize inventory plus two captures (default0/explicit0), delayed-Job
+collection and replay without recapture. Secondary displays, installs, restarts,
+paid calls and background capture are outside that permission. Reminders are
+being disabled at this human-dependent boundary, retaining the unfinished goal.
+
+Bill has since restarted and accepted streamed Markdown on main; older staged/
+restart-pending notes below are historical. Empty-Thinking cleanup9c557a2d and
+subsequent public voice seam/grading changes remain source-only for live hosts.
+No live service was changed by these external grading runs.
+
 ## Image-context repair staging and chapter incident note — 2026-11-02
 
 Bill requested an incident passage in Chapter 26 and authorized staging for his

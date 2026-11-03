@@ -1,3 +1,19 @@
+# Current boundary: Chapter26 has75 graded points; native host test awaits Bill
+
+Image-files20/20, attachments25/25 and voice30/30 pass their public external
+commands. The host-screen driver and source-only controls are implemented but
+host25 remains ungraded pending a freshly agreed synthetic primary-display test.
+No native enumeration/capture, installation or restart occurred in this work.
+See [grader evidence](edition-3-notes/ch26-grader-completion.md) and
+[implementation notebook](edition-3-notes/voice-and-images.md).
+The prepared pattern is unopened; current display dimensions/color fidelity still
+need verification. Human confirmation and explicit authorization precede any
+native run. Reminders are being disabled at this genuine human-dependent boundary.
+
+Bill already restarted and accepted incremental Markdown on main; the historical
+staging/restart statements below are superseded. Empty-Thinking cleanup and later
+voice-seam/grader source changes have not been installed into live hosts here.
+
 # Current boundary: Markdown accepted on Dev, staged for main restart
 
 Bill visually accepted the Dev Markdown output and incremental tables/code.
