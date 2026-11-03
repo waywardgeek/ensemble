@@ -28,7 +28,7 @@ let localPauseCause = false;
 let humanTyping = false;
 let agentClosed = false;
 // Last acknowledged server snapshot. Controls request changes; they never
-// become a second preference store. Browser-local theme is owned separately.
+// become a second preference store. Theme and speech belong to this browser.
 let settings = null;
 let goalSelectionPending = false;
 let goalDirty = false; // Unsaved form edits only, never a second live configuration.
@@ -166,15 +166,15 @@ function highlight(code, source) {
     code.append(document.createTextNode(source.slice(offset)));
 }
 
-// A connection owns one transient hold while either local cause remains.
-// Other connections' holds and explicit runtime pauses are independent.
+// Send only local activity edges. A different device can resume the Agent;
+// unchanged activity here must not reassert its previous pause.
 function updatePauseCause() {
     if (agentClosed || selectionPending || replaying || !acknowledgedState ||
         socket?.readyState !== WebSocket.OPEN) return;
     const speaking = activeSpeech !== null || speechQueue.length > 0;
-    const cause = humanTyping || (settings?.pause_while_speaking !== false && speaking);
+    const cause = humanTyping || (browserSpeech.value.pause && speaking);
     if (cause === localPauseCause) return;
-    if (!send("automatic_pause", cause ? "held" : "released")) return;
+    if (!send(cause ? "pause" : "unpause")) return;
     localPauseCause = cause;
     recordSpeech(cause ? "pause" : "resume", { cause: humanTyping ? "typing" : speaking ? "speech" : "clear" });
     renderControls();
@@ -199,7 +199,7 @@ function startSpeech() {
         if (transcriptSpeech) continue;
         const utterance = new SpeechSynthesisUtterance(item.text);
         const selected = document.querySelector("#voice").value;
-        utterance.rate = settings?.tts_speed ?? 1;
+        utterance.rate = browserSpeech.value.speed;
         utterance.voice = speech.getVoices().find(voice => voice.voiceURI === selected) || null;
         const settled = () => {
             if (activeSpeech?.utterance !== utterance) return;
@@ -240,6 +240,12 @@ function cancelSpeech(update = true) {
     speech?.cancel();
     if (update) updatePauseCause();
 }
+function stopSpeechAndResume() {
+    cancelSpeech(false);
+    // Preserve the draft and its edge baseline, but explicitly resume from any device.
+    localPauseCause = humanTyping;
+    if (!selectionPending && !agentClosed) send("unpause");
+}
 function speak(card) {
     if (!transcriptSpeech && (!speech || !window.SpeechSynthesisUtterance)) {
         notice("Speech is unavailable in this browser.");
@@ -258,7 +264,7 @@ function flushNarration() {
     }
 }
 function narrate(card, flush = false) {
-    if (selectionPending || replaying || !settings?.tts_enabled) {
+    if (selectionPending || replaying || !browserSpeech.value.enabled) {
         // A partial replay or muted fragment may end inside Markdown. Do not
         // resume midway through that part and accidentally speak a code body.
         // The next new part can narrate normally; this restored part stays quiet.
@@ -633,7 +639,7 @@ function handle(frame) {
             voiceControl?.cancel();
             cancelPageCapture("Page capture cancelled on Agent change.");
             cancelSpeech(false);
-            localPauseCause = false;
+            localPauseCause = humanTyping;
         }
         imageComposer.selectionChanged(frame.agent_id);
         agentID = frame.agent_id;
@@ -697,7 +703,7 @@ function handle(frame) {
         const isError = frame.type === "error" || frame.kind === "error_occurred";
         if (isError) {
             applySettings();
-            if (!replaying && settings?.tts_enabled) {
+            if (!replaying && browserSpeech.value.enabled) {
                 flushNarration();
                 speakText("error", frame.message || "Request failed.", "error");
             }
@@ -793,8 +799,9 @@ function connect() {
         voiceControl?.cancel();
         cancelPageCapture("Page capture cancelled on disconnect; no screenshot was added.");
         imageComposer.disconnect();
-        localPauseCause = false;
         cancelSpeech(false);
+        // Remember remaining local activity; reconnect must not reassert a stale pause.
+        localPauseCause = humanTyping;
         renderControls();
         showGoal(undefined);
         clearTimeout(reconnectTimer);
@@ -822,9 +829,9 @@ function selectAgent(key) {
     cancelPageCapture("Page capture cancelled on Agent change.");
     imageComposer.selectionChanged(key);
     // Release this tab's old pause cause before asking the server to switch.
-    // The next replay can apply a still-present typing cause to the new view.
+    // The incoming view starts with an activity baseline, not a stale pause.
     cancelSpeech(false);
-    if (localPauseCause) send("automatic_pause", "released");
+    if (localPauseCause) send("unpause");
     localPauseCause = false;
     selectionPending = true;
     renderControls();
@@ -915,17 +922,17 @@ document.querySelector("#prompt").oninput = event => {
 document.querySelector("#prompt").onkeydown = event => {
     if (event.key === "Escape") {
         event.preventDefault();
-        cancelSpeech();
+        stopSpeechAndResume();
     } else if (event.key === "Enter" && !event.shiftKey) {
         event.preventDefault(); submit();
     }
 };
-document.querySelector("#stop-speech").onclick = () => cancelSpeech();
+document.querySelector("#stop-speech").onclick = stopSpeechAndResume;
 // Composer Escape is handled above; honour dialog/widget handlers first.
 document.addEventListener("keydown", event => {
     if (event.key === "Escape" && !event.defaultPrevented) {
         // Do not prevent the native dialog-cancel action or its focus return.
-        cancelSpeech();
+        stopSpeechAndResume();
     }
 });
 function applySettings() {
@@ -952,12 +959,6 @@ function applySettings() {
         document.querySelector(`#memory-${band}-enabled`).checked = !policy.disabled;
         document.querySelector(`#memory-${band}-budget`).value = policy.budget;
     }
-    document.querySelector("#tts-speed").value = settings.tts_speed;
-    document.querySelector("#speed-label").value = `${settings.tts_speed}×`;
-    document.querySelector("#narrate").checked = settings.tts_enabled;
-    document.querySelector(".speech-toggle").title = settings.tts_enabled
-        ? "Speech on; stop automatically reading new messages" : "Speech off; enable reading new messages aloud";
-    document.querySelector("#pause-speaking").checked = settings.pause_while_speaking;
     document.querySelector("#voice-shortcut").value = settings.voice_shortcut || "off";
     voiceControl?.setShortcut(settings.voice_shortcut || "off");
     updatePauseCause(); // Disabling speech pausing does not cancel the queue.
@@ -1091,13 +1092,30 @@ document.querySelector("#recall-settings-reload").onclick = () => send("get_sett
 document.querySelector("#font-size").onchange = event => patchSettings({ font_size: Number(event.target.value) });
 document.querySelector("#max-tool-rounds").onchange = event => patchSettings({ max_tool_rounds: Number(event.target.value) });
 document.querySelector("#context-target-bytes").onchange = event => patchSettings({ context_target_bytes: Number(event.target.value) });
-document.querySelector("#tts-speed").onchange = event => patchSettings({ tts_speed: Number(event.target.value) });
-document.querySelector("#narrate").onchange = event => patchSettings({ tts_enabled: event.target.checked });
+document.querySelector("#tts-speed").onchange = event => browserSpeech.select({ speed: Number(event.target.value) });
+document.querySelector("#narrate").onchange = event => browserSpeech.select({ enabled: event.target.checked });
 document.querySelector("#voice-shortcut").onchange = event => patchSettings({ voice_shortcut: event.target.value });
-document.querySelector("#pause-speaking").onchange = event => patchSettings({ pause_while_speaking: event.target.checked });
+document.querySelector("#pause-speaking").onchange = event => browserSpeech.select({ pause: event.target.checked });
+function renderSpeechPreferences() {
+    const value = browserSpeech.value;
+    document.querySelector("#tts-speed").value = value.speed;
+    document.querySelector("#speed-label").value = `${value.speed}×`;
+    document.querySelector("#narrate").checked = value.enabled;
+    document.querySelector(".speech-toggle").title = value.enabled
+        ? "Speech on in this browser" : "Speech off in this browser";
+    document.querySelector("#pause-speaking").checked = value.pause;
+    document.querySelector("#voice").value = value.voice;
+}
+browserSpeech.onchange = previous => {
+    renderSpeechPreferences();
+    if (previous.enabled && !browserSpeech.value.enabled) cancelSpeech(false);
+    updatePauseCause();
+};
+document.querySelector("#voice").onchange = event => browserSpeech.select({ voice: event.target.value });
+renderSpeechPreferences();
 function voices() {
     const select = document.querySelector("#voice");
-    const chosen = select.value;
+    const chosen = browserSpeech.value.voice;
     select.replaceChildren(new Option("Browser default", ""));
     for (const voice of speech?.getVoices() || []) select.add(new Option(`${voice.name} (${voice.lang})`, voice.voiceURI));
     select.value = chosen;

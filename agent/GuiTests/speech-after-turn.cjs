@@ -56,7 +56,7 @@ async function nativeSpeech() {
         await page.waitForFunction(() => !document.querySelector('#model-choice').disabled
             && document.querySelector('#model-choice').value === 'claude-3-haiku-20240307');
         await page.evaluate(() => {
-            settings = { ...settings, tts_enabled: true, pause_while_speaking: true };
+            browserSpeech.select({ enabled: true, pause: true });
             send('prompt', 'Stream the isolated speech completion test.');
         });
         await page.waitForFunction(() => document.querySelector('#transcript').textContent.includes('STREAM-IDENTITY first'))
@@ -81,6 +81,8 @@ async function nativeSpeech() {
         if (mode === 'disconnect') {
             await page.evaluate(() => socket.close());
             await page.waitForFunction(() => !selectionPending && socket.readyState === WebSocket.OPEN);
+            assert.deepEqual(await status(), { activity: 'Idle', paused: true }, 'reconnect leaves last pause intact');
+            await page.locator('#stop-speech').click();
         } else {
             // A final answer may queue a second utterance; settle each one,
             // never force the application counters or pause intent.
@@ -101,7 +103,9 @@ async function nativeSpeech() {
         console.log('Final actor status: ' + JSON.stringify(actual));
         assert.deepEqual(actual, { activity: 'Idle', paused: false }, mode + ': completed speech must release its automatic pause');
         assert.deepEqual(errors, []);
-        check(true, mode + ': automatic pause released after normal turn completion');
+        check(true, mode === 'disconnect'
+            ? 'disconnect: pause retained through reconnect, then explicit Stop resumes'
+            : mode + ': speech completion resumes after the model turn');
     } finally {
         await context.close();
         await browser.close();

@@ -26,9 +26,9 @@ presentation and connection lifetime, not a second transcript or actor loop.
   a slow browser is disconnected, not allowed to block the actor.
 - `ToolCalled` is an audit of a request. `ToolStarted` means admission succeeded
   and execution was permitted. A refused call must never look dispatched.
-- Typing and current/queued speech create a connection-owned automatic hold.
-  Effective pause combines all live holds with any explicit runtime pause.
-  Disconnect releases only that connection's hold; browser holds are not durable.
+- Each Agent has one pause state. Pause and resume commands from any tab
+  control that state in mailbox order; the server keeps no device hold registry.
+  A tab addresses only its selected Agent. Speech preferences belong to the browser.
 - Full-content speaker buttons are separate from automatic narration.
   Collapsed or scrollable presentation must not discard the rest of the text.
 
@@ -216,18 +216,18 @@ Inbound commands are small mappings to existing public operations:
 {"type":"subscribe"}
 {"type":"prompt","text":"Explain the selected function."}
 {"type":"hint","text":"Keep the public signature unchanged."}
-{"type":"automatic_pause","text":"held"}
-{"type":"automatic_pause","text":"released"}
+{"type":"pause"}
+{"type":"unpause"}
 {"type":"interrupt","mode":"now"}
 {"type":"interrupt","mode":"after_tool"}
 {"type":"shutdown"}
 ```
 
 Connection registration queues replay automatically. `subscribe` is idempotent;
-it does not start a new Agent or replay work. The server binds automatic holds to
-its actual connection object and validated selected Agent, never a client-supplied
-owner ID. Runtime `pause`/`unpause` controls remain available to explicit host
-callers; the GUI has neither a Pause nor an Unpause button.
+it does not start a new Agent or replay work. The server validates each addressed
+pause/resume command against that connection's selected Agent. It does not track
+which device caused a pause. The GUI has no separate Pause/Resume button pair;
+Stop speech and Escape send explicit resume through the same public operation.
 
 The host validates message shape and bounds input size. It rejects foreign
 WebSocket origins and non-loopback hostnames. The configured listener is
@@ -321,6 +321,24 @@ experience.
 For someone who cannot comfortably read a busy transcript, speech is a control
 surface, not ornamental animation.
 
+Store narration enabled, rate, voice choice, and pause-while-speaking in one
+origin-local browser preference, independent of the selected Agent. Same-origin
+tabs share local-storage changes; separate profiles and devices keep independent
+choices. Listening on a phone must not enable a laptop's narration. A fresh or
+invalid preference defaults to speech off, rate1, default voice, and speech pausing
+on. Unlike theme migration, never seed narration from a legacy server-wide enable
+flag: an unattended browser must remain quiet. Server settings and replay cannot
+overwrite this local preference, and speech controls send no settings patch.
+
+Controls work offline. If storage is blocked, keep the choice for this page only;
+removing the saved preference returns other tabs to silent defaults. Turning
+narration off cancels that browser's current and queued speech. A rate or voice
+change affects the next constructed utterance, not audio already speaking.
+Microphone recording, transcription funding and its shortcut are separate.
+Automatic narration reads only new content for the Agent selected in that tab.
+A selected tab may be in the background; selection is not foreground visibility.
+
+
 **Speak this artifact** is always available when the browser supports speech:
 
 - human and assistant text: full readable text;
@@ -330,7 +348,7 @@ surface, not ornamental animation.
 
 Clicking the active artifact again stops it. Choosing another artifact cancels
 the old queue and starts the new request. A global Stop speech button and Escape
-from an empty input provide explicit escape paths. Speech failures are not
+even with a draft provide explicit escape paths. Speech failures are not
 allowed to strand the Agent in a permanently queued-speech state.
 
 **Automatic narration** is a separate opt-in preference. It narrates new
@@ -367,37 +385,37 @@ Immediate interrupt still cancels the active turn without killing independent
 jobs, and remains usable while paused. The two interrupt modes retain Chapter
 5's different boundary semantics.
 
-The browser tracks two independent causes: genuine human typing and current or
-queued speech. Whitespace typed by the human counts; programmatic tool drafts do
-not pretend that the human is typing. When speech pausing is enabled:
+The browser tracks genuine human typing and current or queued speech. Whitespace
+typed by the human counts; programmatic tool drafts do not pretend the human is
+typing. Its local activity is:
 
 ```text
-connection hold = human typing OR current speech OR queued speech
-Agent paused = explicit runtime pause OR any connection hold
+local cause = human typing OR (pause while speaking AND speech busy)
 ```
 
-Only changes in the connection hold send `automatic_pause` with `held` or
-`released`. The server serializes each change through the Agent mailbox using
-the actual connection as owner. Releasing one hold cannot erase another. An
-already-paused Agent still accepts additional holds, rather than guessing which
-browser caused the existing pause. Runtime Resume clears only explicit runtime
-pause; it cannot erase live automatic holds.
+Only a change in that cause sends `pause` or `unpause`. The Agent mailbox applies
+the last command to its single pause state. There are no device owners, vetoes,
+or separate manual and automatic flags. Another device's resume takes effect
+immediately; unchanged typing or speech must not repeatedly reassert pause.
+Normal speech completion sends resume when neither local cause remains. Clearing
+a draft while speech continues does not change the cause and sends no resume.
 
 Use one **Stop speech** button beside the microphone in the composer, accessible
-on phones. Keep both controls grouped when narrow layouts wrap. Stop speech uses
-`type="button"`, never the form-submit default. It and Escape
-call exactly the same cancellation function: clear the current utterance and FIFO,
-ignore stale callbacks, then recompute the hold as if speech had finished normally.
-Neither action changes the draft. If human text remains, the Agent stays paused;
-if neither cause remains, it resumes. Clearing text while speech continues must
-likewise preserve the speech hold. Do not build a Pause/Play button pair.
+on phones. Keep both controls grouped when narrow layouts wrap. It uses
+`type="button"`, never the form-submit default. Stop speech and Escape cancel
+current and queued speech, invalidate late callbacks, and explicitly resume the
+selected Agent even if this or another device still has a draft or speech.
+Preserve the draft and establish its unchanged local activity as the edge baseline.
+Escape must still allow native dialog dismissal. Neither action interrupts work
+or cancels Jobs. Do not build a Pause/Play button pair.
 
-The connection owns release on Agent selection changes and socket teardown, and
-awaits it even when the browser cannot send another message. Release targets the
-Agent that owns the hold, never a later selection. Reconnect establishes new
-holds from current local causes; it is not unconditional Resume. Holds are
-transient and must not be written as child restart pause metadata. Explicit
-runtime pauses remain durable and are not cleared by browser teardown.
+A tab may send pause/resume only to its selected Agent, never an unselected child
+or every Agent. Before a selection change, cancel outgoing speech and send any
+outgoing resume while the old Agent is still selected. Late callbacks and replay
+must not affect the incoming Agent. Disconnect sends no server-invented resume;
+reconnect neither resumes blindly nor reasserts stale local activity. Any connected
+device can use Stop speech to resume. A saved child retains the single admitted
+pause state across restart; there is no transient device-hold state to serialize.
 
 Enter submits a prompt; Shift+Enter inserts a newline. Ctrl+Enter or Alt+H sends
 a hint. Submission or clearing updates the typing cause. Stop speech does not
@@ -465,7 +483,7 @@ Test real components with small external fakes. Important cases include:
 7. Inspect actual narrow-layout controls and safe rendering of hostile-looking
    code. Exercise full-content speaker buttons through a fake speech boundary.
 8. Exercise queued speech, interrupted-utterance cleanup, automatic typing pause,
-   two-tab hold isolation, Stop speech/Escape with a draft, disconnect release,
+   cross-tab resume, Stop speech/Escape preserving a draft, disconnect/reconnect,
    selection cleanup, transient restart state, and silent visibility wakeup.
 
 The existing executable grader can test the optional server without compiling

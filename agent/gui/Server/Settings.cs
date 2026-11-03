@@ -44,6 +44,8 @@ public static partial class Gui
                         throw new ArgumentException("Voice shortcut must be AltRight, F8, or off");
                     next = next with { VoiceShortcut = value.GetString()! };
                     break;
+                // Legacy clients/files only. Current browser speech preferences
+                // are local and never seeded from or patched into these fields.
                 case "tts_enabled" when value.ValueKind is JsonValueKind.True or JsonValueKind.False:
                     next = next with { TtsEnabled = value.GetBoolean() };
                     break;

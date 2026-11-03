@@ -735,7 +735,7 @@ try
     }
     if (args is ["--model-tests"] || args.Length == 0)
     {
-        await AsyncCase("Connection-owned automatic pause holds", MeterTests.AutomaticPauseOwnership);
+        await AsyncCase("Agent-wide last-command-wins pause", MeterTests.AgentWidePause);
         await AsyncCase("Chapter 18 actor-owned model selection", () => MeterTests.ModelSelection(temp));
         await AsyncCase("Chapter 18 direct-send selection guard and capabilities", MeterTests.DirectSendSelection);
         if (args.Length != 0)

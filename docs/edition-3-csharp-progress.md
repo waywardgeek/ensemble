@@ -1,3 +1,15 @@
+# Current boundary: browser-local speech and simple pause verified, source only
+
+Speech preferences now belong to the browser profile; fresh profiles stay silent.
+Each Agent has one last-command-wins pause state. Stop speech/Escape from any tab
+resumes its selected Agent, preserving the draft. No device hold registry remains.
+Server selection validation, silent replay, callback identity and native-liveness
+handling remain. Chapters7/8/27 teach the new contract at construction/acceptance.
+Shared345/345, five public GUI groups, focused runtime and real-page/fake-speech
+cross-device/storage/selection/full-turn checks pass; hard prose lint passes.
+See [speech and pause evidence](edition-3-notes/browser-speech-and-pause.md).
+No installation/restart or human phone/laptop listening acceptance yet.
+
 # Current boundary: bounded diagnostics verified, source only
 
 Bill approved one64MiB file per owned diagnostic stream, no previous file,

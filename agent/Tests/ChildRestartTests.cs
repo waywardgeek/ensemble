@@ -36,8 +36,8 @@ internal static partial class ActorTests
             paused.History().Append(new Event(EventKind.MessageReceived, actor: Actor.Human,
                 parts: [new TextPart("Retain this conversation, but do not replay its tools.")]));
             Agent automatic = await parent.CreateChildAsync("automatic", cancellation: deadline.Token);
-            await automatic.SetAutomaticPauseAsync(new object(), true);
-            await automatic.SetModelAsync("restart-fixture"); // Save while transiently held.
+            await automatic.PostAsync(new AgentInput(InputKind.Pause));
+            await automatic.SetModelAsync("restart-fixture"); // Saving another setting preserves the one pause state.
             Agent complete = await parent.CreateChildAsync("complete", cancellation: deadline.Token);
             complete.PublishSubmission("Finished before restart.");
             Agent renewed = await parent.CreateChildAsync("renewed", cancellation: deadline.Token);
@@ -74,8 +74,8 @@ internal static partial class ActorTests
             Check(parent.Children().Length == 4 && parent.FindChild("compress-fixture") is null
                 && parent.FindChild("removed") is null,
                 "Restart restored temporary workers or lost ordinary children.");
-            Check(!(await parent.FindChild("automatic")!.WorkStatusAsync(deadline.Token)).Paused,
-                "Restart persisted a vanished browser hold.");
+            Check((await parent.FindChild("automatic")!.WorkStatusAsync(deadline.Token)).Paused,
+                "Restart lost the last admitted pause.");
             Agent paused = parent.FindChild("paused")!;
             Check((await paused.WorkStatusAsync(deadline.Token)).Paused,
                 "Restart discarded an explicit pause.");

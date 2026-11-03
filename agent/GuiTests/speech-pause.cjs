@@ -53,7 +53,7 @@ async function nativeSpeech() {
         // Reset only this disposable fixture, including a prior negative-control failure.
         await page.evaluate(() => send('unpause'));
         await page.waitForFunction(() => acknowledgedState === 'idle');
-        await page.evaluate(() => { settings = { ...settings, tts_enabled: true, pause_while_speaking: true }; });
+        await page.evaluate(() => { browserSpeech.select({ enabled: true, pause: true }); });
         return page;
     };
     const state = (page, wanted) => page.waitForFunction(wanted => document.querySelector('#state').textContent === wanted, wanted);
@@ -115,16 +115,16 @@ async function nativeSpeech() {
                 render(testThinkingCard);
                 const body = testThinkingCard.node.querySelector('.message').textContent;
                 testThinkingCard.node.remove();
-                return body.endsWith('VISIBLE_END') && body.length > 2000;
+                return body.trimEnd().endsWith('VISIBLE_END') && body.length > 2000;
             });
             check(complete, kind + ': complete text is rendered rather than a bounded preview');
         }
         const quietThinking = await primary.evaluate(() => {
             const card = () => ({ id: 'quiet-thinking', role: 'assistant', kind: 'reasoning_summary',
                 text: 'This must remain silent.', final: true });
-            settings.tts_enabled = false;
+            browserSpeech.select({ enabled: false });
             narrate(card());
-            settings.tts_enabled = true;
+            browserSpeech.select({ enabled: true });
             replaying = true;
             narrate(card());
             replaying = false;
@@ -191,7 +191,7 @@ async function nativeSpeech() {
         await speak();
         await observer.evaluate(() => send('unpause'));
         await primary.waitForTimeout(2700);
-        check(await observer.locator('#state').textContent() === 'paused', 'runtime Resume preserves continuing speech hold');
+        check(await observer.locator('#state').textContent() === 'idle', 'runtime Resume overrides continuing speech without stale reassertion');
         await primary.evaluate(() => testSpeech.finish()); await recovered();
 
         await speak();
@@ -203,13 +203,13 @@ async function nativeSpeech() {
 
         await speak(); await primary.evaluate(() => send('pause'));
         await primary.evaluate(() => testSpeech.stopWithoutCallback()); await recovered();
-        check(await observer.locator('#state').textContent() === 'paused', 'manual Pause pins an automatic pause through completion');
+        check(await observer.locator('#state').textContent() === 'idle', 'later speech-completion resume wins over earlier pause');
         await primary.evaluate(() => send('unpause')); await state(observer, 'idle');
 
         await observer.evaluate(() => send('pause')); await state(primary, 'paused');
         await primary.evaluate(() => { speakText('foreign', 'Keep the other tab pause.'); testSpeech.stopWithoutCallback(); });
         await recovered();
-        check(await observer.locator('#state').textContent() === 'paused', 'speech never releases a pause owned by another tab');
+        check(await observer.locator('#state').textContent() === 'idle', 'speech completion sends ordinary Agent-wide resume');
         await observer.evaluate(() => send('unpause')); await state(primary, 'idle');
 
         await observer.evaluate(() => selectAgent('captain/worker'));
@@ -232,7 +232,7 @@ async function nativeSpeech() {
         await state(primary, 'paused');
         const controls = await primary.evaluate(() => testSent);
         assert.deepEqual(controls.slice(0, 2).map(x => [x.type, x.agent_id]),
-            [['automatic_pause', 'captain'], ['select_agent', 'captain/worker']]);
+            [['unpause', 'captain'], ['select_agent', 'captain/worker']]);
         check(await primary.evaluate(() => testSuppressed && activeSpeech === null),
             'release precedes selection and outgoing late narration stays silent');
         await primary.evaluate(() => testOldUtterance.onend());

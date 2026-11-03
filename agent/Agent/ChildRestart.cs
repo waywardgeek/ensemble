@@ -21,7 +21,7 @@ public sealed partial class Agent
                     completion ?? submittedPayload!.Value))) : null;
             var state = new ChildRestartState(1, childID!, model ?? configuration.Model,
                 submissionContract.Schema(), generation ?? admittedWorkGeneration,
-                isSubmitted, submissionHash, pause ?? explicitPause, goal ?? goalConfiguration);
+                isSubmitted, submissionHash, pause ?? paused, goal ?? goalConfiguration);
             Sandbox().ReplaceFile(Path.Combine(DataDirectory(), "child.json"),
                 JsonSerializer.SerializeToUtf8Bytes(state));
         }

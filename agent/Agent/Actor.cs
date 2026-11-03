@@ -473,19 +473,6 @@ public sealed partial class Agent
             ReadWorkStatus(message);
             return;
         }
-        if (message.Kind == MailKind.AutomaticPause)
-        {
-            try
-            {
-                ObjectDisposedException.ThrowIf(stopping, this);
-                if (message.PauseHeld) automaticPauseOwners.Add(message.PauseOwner!);
-                else automaticPauseOwners.Remove(message.PauseOwner!);
-                RefreshPause("automatic");
-                message.Reply!.TrySetResult("");
-            }
-            catch (Exception error) { message.Reply!.TrySetException(error); }
-            return;
-        }
         if (message.Kind == MailKind.SelectModel)
         {
             SelectModel(message);
@@ -676,13 +663,20 @@ public sealed partial class Agent
                 {
                     case InputKind.Pause:
                         SaveChildRestart(pause: true);
-                        explicitPause = true;
-                        RefreshPause("pause");
+                        StopGoalTimer();
+                        if (!paused)
+                        {
+                            paused = true;
+                            Record(new Event(EventKind.AgentPaused, reason: "pause"));
+                        }
                         break;
                     case InputKind.Resume:
                         SaveChildRestart(pause: false);
-                        explicitPause = false;
-                        RefreshPause("resume");
+                        if (paused)
+                        {
+                            paused = false;
+                            Record(new Event(EventKind.AgentResumed, reason: "resume"));
+                        }
                         break;
                     case InputKind.InterruptNow:
                     case InputKind.InterruptAfterTool:

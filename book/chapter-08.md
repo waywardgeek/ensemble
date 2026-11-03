@@ -3,17 +3,20 @@
 ## TL;DR
 
 Make the optional GUI comfortable to use without giving it a second Agent loop.
-The server owns presentation preferences; the Agent owns its next-turn tool
-budget. A browser sends a patch, the server validates and saves a complete
+The browser owns theme and speech; the server owns shared preferences. The Agent
+owns its next-turn tool budget. For shared settings, a browser sends a patch;
+the server validates and saves a complete
 snapshot, and only then does it publish that snapshot to every connected client.
 An active turn keeps the budget it captured when it began.
 
 The deliverable is a working settings panel: theme, narration, speech rate,
 font size, speech-related pausing, and tool batches per turn. Theme belongs to
-this browser; the other preferences retain their shared server ownership. Saved
+this browser, as do narration, rate, voice and speech pausing. Other preferences
+retain shared server ownership. Saved
 choices survive reload and restart. A failed shared-settings save changes neither
 live behavior nor the visible acknowledged settings. Blocked browser storage leaves
-theme usable for the current page session without promising reload persistence. This is a C#/.NET 10 extension of the
+theme and speech usable for the current page session without promising reload
+persistence. This is a C#/.NET10 extension of the
 Chapter 7 endpoint, not another runtime or a Go-package translation exercise.
 
 ## In plain language
@@ -24,7 +27,7 @@ fails, the page must not pretend the preference was saved.
 
 There are three different lifetimes:
 
-1. **The browser** owns its theme preference in origin-local storage. For shared
+1. **The browser** owns theme and speech preferences in origin-local storage. For shared
    settings it displays the last server-acknowledged snapshot and proposes changes;
    local storage is not a second authority for those settings.
 2. **The GUI server** loads and saves the other presentation preferences and shares
@@ -83,7 +86,9 @@ before any effects. The limit is a scheduling boundary, not merely advice.
 ## 8.2 Preferences are values, not another owner graph
 
 `Examples/Gui/Common/Settings.cs` declares a value-like `Preferences` record and
-partial parse/load/save operations. It contains presentation facts only:
+partial parse/load/save operations. Its retained compatibility schema contains
+presentation facts only; theme and TTS entries serve old clients and saved files,
+not the current browser controls:
 
 ```csharp
 public sealed record Preferences(
@@ -108,7 +113,9 @@ registry, browser-owned Agent state, or a second scheduler.
 
 Use these concrete rules in this endpoint. The `theme` entry is retained for
 legacy clients and one-time browser migration; current browser controls own their
-local theme and do not patch this shared field.
+local theme and do not patch this shared field. The TTS entries are also legacy:
+current narration, speed, voice and speech-pausing controls use Chapter7's local
+record, never seed from these server values, and send no shared-settings patch.
 
 | Field | Default | Accepted value |
 |---|---|---|
@@ -211,7 +218,7 @@ Open `Examples/Gui/wwwroot/index.html`, `style.css` and `app.js` in the preserve
 - The historical header holds connection and Agent state, a Pause/Resume pair,
   Interrupt, and native `details` for Settings. For a new implementation, replace
   the pair with Chapter 7's Stop speech control, identical to Escape. Preserve
-  typed drafts and connection-owned holds; do not copy the old override behavior.
+  typed drafts and Chapter7's last-command-wins Agent pause state.
   The `summary` opens settings without a custom panel widget.
 - The `main` element, `#transcript`, holds conversation cards. The notice below
   it reports connection and settings errors; it has `role="status"` so the
@@ -236,7 +243,7 @@ explicit light nor dark is selected. Font size is another root variable,
 `--font-size`, used by the page font and inherited by inputs. Existing content
 therefore changes along with the controls.
 
-Theme is the browser-owned exception. Selecting Light, Dark, or System updates
+Theme is one browser-owned preference. Selecting Light, Dark, or System updates
 this origin's local preference immediately; it sends no `update_settings` message.
 The header toggle and settings selector use that same preference. Same-origin tabs
 share changes through local-storage events; another browser profile or device keeps
@@ -247,9 +254,12 @@ session without claiming reload persistence. Theme controls also work offline.
 The server's legacy `theme` field remains compatible with older clients and saved
 settings. Use it once to seed a browser that has no valid local choice. Subsequent
 settings frames must not overwrite a browser choice, and current theme controls
-must not write the legacy field. Do not migrate font or speech preferences merely
-because theme moved. A local theme is the sole authority for theme, not a competing
-copy of the shared settings store.
+must not write the legacy field. Speech also belongs to this browser, following
+Chapter7: enabled, rate, voice and speech pausing share one local preference.
+Unlike theme, speech starts disabled rather than inheriting a legacy server flag.
+Retain server TTS fields only for old clients and files; current controls neither
+write them nor apply them. Font size remains shared. Local preferences are sole
+authorities, not competing copies of the shared settings store.
 
 Follow a shared edit separately. Changing font size sends the sparse patch
 `{"font_size":24}` through `patchSettings`. The acknowledged settings remain
@@ -269,17 +279,17 @@ light/dark settings override the operating system. System mode follows
 `prefers-color-scheme`, including changes while the page is open. Syntax colors,
 links, focus indicators, and notices must remain readable in both themes.
 
-The browser retains only its last acknowledged settings snapshot. A control
-sends a patch and may retain its proposed edit while saving. Actual presentation
-and speech policy change only when the server acknowledges a snapshot.
-If the connection is unavailable, show a notice rather than pretending to save.
-A save error restores the acknowledged control values. Remove any old local-storage
-copy of these preferences.
+For shared fields, the browser retains the last acknowledged settings snapshot.
+A shared control sends a patch and may retain its proposed edit while saving.
+Apply shared policy only after acknowledgement; report disconnected or failed
+saves and restore accepted values. Do not duplicate shared fields in local storage.
+Theme and speech are different: their local controls apply immediately, even
+offline, with page-session fallback when storage is unavailable.
 
 ### Speech and pause are related, not identical
 
 Keep Chapter 7's one active utterance and FIFO pending text. When constructing
-an utterance, read the **current** acknowledged speech rate. Do not recreate or
+an utterance, read the **current** browser-local speech rate. Do not recreate or
 cancel the utterance already speaking just because its rate setting changed.
 Automatic narration is opt-in; speaker buttons still read selected content.
 
@@ -289,12 +299,14 @@ Both queued and active speech count as busy. The local pause cause is:
 typing OR (pause_while_speaking AND speech_busy)
 ```
 
-Send connection-owned automatic hold/release only when that cause changes. Turning speech pausing off
-immediately removes that cause, even with queued audio, but must not override a
-remaining typing cause. Turning it on while audio is queued or speaking pauses
-immediately. Preserve symmetric onend/onerror cleanup, cancellation identity
-checks, independent cross-tab holds, disconnect release, and the separate silent
-visibility wakeup. Stop speech/Escape clears speech but cannot bypass typing.
+Send ordinary Agent-wide pause/resume only when that local cause changes.
+Turning speech pausing off while audio is busy sends resume unless typing remains;
+it does not cancel audio. Stop speech/Escape is the explicit exception: cancel
+local audio and resume the selected Agent even with a draft or activity on another
+device. Unchanged activity does not reassert pause. Preserve Chapter7's selection
+validation, callback identity checks, silent replay and visibility wakeup.
+Disconnect does not change Agent pause; reconnect does not reassert stale activity.
+
 Speech settings must not introduce another owner of Agent lifecycle.
 
 ## 8.6 Test the behavior, not a screenshot of a slider

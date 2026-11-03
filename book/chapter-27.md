@@ -198,14 +198,14 @@ The status bar contains:
   Compatible model names are not proof of account entitlement. Preserve the
   distinction between running selection and persisted launch configuration.
 - A speaker-icon Speech control with an accessible name and native checked
-  semantics. Speech remains opt-in. Its state is the acknowledged appearance/
-  speech setting, not an independent second toggle. Per-message Speak and Stop
+  semantics. Speech remains opt-in and browser-local, defaulting off rather than
+  inheriting a server enable flag. Header and settings use the same local preference. Per-message Speak and Stop
   speech also use named speaker icons. Retain keyboard access and visible focus.
 - A separate Interrupt control with a useful label, keyboard focus and adequate
   click target. Place Stop speech beside the microphone in the composer, not in
   this header. Group those voice controls so wrapping cannot separate them.
   Stop speech is identical to Escape: clear current/queued TTS but preserve the
-  draft and its pause hold. Use a non-submit button. Do not build Pause/Resume
+  draft, then explicitly resume the selected Agent from any device. Use a non-submit button. Do not build Pause/Resume
   buttons or confuse stopping speech with interrupting Agent work.
 - A theme button showing a moon for dark and a sun for light. Its accessible
   name must state the switch action, not leave the meaning of the icon ambiguous.
@@ -639,16 +639,20 @@ A useful session proceeds through these paths:
    that the old accepted state remains. Selection changes must not apply a
    delayed result or a draft to the wrong Agent.
 5. Exercise Stop speech, Escape, Interrupt, opt-in speech and theme controls.
-   Build Chapter 7's connection-owned automatic holds from the start. Stop speech
-   and Escape cancel current/queued TTS without erasing the draft. Typing survives
-   speech completion; speech survives clearing the draft. With neither cause
-   remaining, the Agent resumes. Both GUI Pause/Resume buttons are absent.
-   Test two connections holding the same Agent: releasing or disconnecting one
-   must preserve the other. Await server-side release on disconnect and selection,
-   targeting the actual old Agent, not the newly selected conversation. Reconnect
-   must not blindly resume. Preserve explicit runtime pauses separately, but never
-   save transient browser holds as durable child restart pauses. Use real actor
-   status as well as outgoing frames; a changed label alone proves nothing.
+   Build Chapter7's single last-command-wins Agent pause state from the start.
+   Typing and speech send local activity edges, not repeated pause demands.
+   Stop speech and Escape cancel local current/queued TTS, preserve the draft,
+   and explicitly resume the selected Agent even if another device caused pause.
+   Unchanged typing or speech cannot veto that resume. Both GUI Pause/Resume
+   buttons are absent. Test two devices, retained drafts and continued speech.
+   Disconnect does not resume; reconnect does not reassert stale activity.
+   Validate commands against the tab's selected Agent, never an unselected child.
+   Test saved child restoration of the single pause flag. Use actual actor status
+   as well as outgoing frames; a changed label alone proves nothing.
+   Verify local narration, rate, voice and speech-pausing preferences through
+   reload, same-origin tabs, independent profiles, blocked storage, removal and
+   offline changes. Server settings must not overwrite them, and controls must
+   send no server speech-settings patches. Turning speech off cancels local audio.
    Wait for actual ready phases: a seeded conversation can be `inputpending`,
    while a completed turn can be `idle`. A guessed predicate is a fixture error.
    Keep model changes disabled during admitted work even when later usage/meter
@@ -669,12 +673,12 @@ A useful session proceeds through these paths:
    identity-checked settlement used by end/error callbacks. Focus, pageshow and
    visibility events also check liveness. Settlement and cancellation clear the
    watcher; an old callback cannot settle the next utterance. Completion advances
-   queued speech before releasing the local speech pause, so typing or an explicit
-   runtime pause can still keep the Agent paused. Check queue advancement, typing
-   overlap, independent connections and runtime pause compatibility against the
+   queued speech before sending resume, so continuing local typing sends no resume.
+   Explicit Stop/Escape still overrides typing. Check queue advancement, typing
+   overlap and last-command-wins controls across connections against the
    real server state. A hidden or frozen page may defer browser
    callbacks; socket loss additionally prevents delivery. Those cases do not
-   authorize blindly resuming an Agent whose pause may belong to someone else. A fake speech boundary verifies wiring,
+   authorize a server-invented resume on disconnect. A fake speech boundary verifies wiring,
    not hearing. Native voice quality, useful speed, and accessibility need the
    human's own browser and ears before acceptance.
 6. Stop and restart the owned host with the same saved trial state. Continue the

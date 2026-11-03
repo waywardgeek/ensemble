@@ -9,7 +9,7 @@
 <script src="./speech.js" defer></script><script src="./mcp.js" defer></script>
 <script src="./vendor/markdown-it-14.1.0.min.js" defer></script>
 <script src="./markdown.js" defer></script>
-<script src="./images.js" defer></script><script src="./theme.js" defer></script><script src="./app.js" defer></script><script src="./layout.js" defer></script>
+<script src="./images.js" defer></script><script src="./theme.js" defer></script><script src="./speech-preferences.js" defer></script><script src="./app.js" defer></script><script src="./layout.js" defer></script>
 <script src="./auth.js" defer></script><script src="./peers.js" defer></script>
 <script src="./settings.js" defer></script>
 </head><body>
@@ -33,7 +33,7 @@
  <div class="header-end"><section id="usage-meter" aria-label="Current process token usage and estimated cost">
  <span>Cost <output id="usage-cost">?</output></span><span>Input <output id="usage-all">?</output></span>
  <span>Cache <output id="usage-cache">?</output></span><span>Hit <output id="usage-hit">?</output></span></section>
- <div class="status-actions"><label class="speech-toggle icon-button" title="Speech off; enable reading new messages aloud"><input id="narrate" type="checkbox" aria-label="Speech: read new messages aloud"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use class="speech-on" href="#icon-speaker"/><use class="speech-off" href="#icon-speaker-off"/></svg></label>
+ <div class="status-actions"><label class="speech-toggle icon-button" title="Speech off; enable reading new messages aloud"><input id="narrate" type="checkbox" aria-label="Speech in this browser: read new messages aloud"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use class="speech-on" href="#icon-speaker"/><use class="speech-off" href="#icon-speaker-off"/></svg></label>
  <button class="btn btn-quiet icon-button" id="interrupt" aria-label="Interrupt" title="Interrupt current work" disabled><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="6" width="12" height="12" rx="1"/></svg></button>
  <button class="btn btn-quiet icon-button" id="theme-toggle" aria-label="Switch to light theme" title="Dark theme; switch to light theme" disabled><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#icon-moon"/></svg></button>
  <button class="btn btn-quiet icon-button" id="capture-page" type="button" aria-label="Capture this page" title="Capture this page" aria-pressed="false" disabled><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 6h4l2-3h4l2 3h4v15H4Z"/><circle cx="12" cy="13" r="4"/></svg></button>
@@ -146,11 +146,11 @@
 <section class="settings-section" aria-labelledby="accessibility-heading"><h2 id="accessibility-heading">Speech &amp; Display</h2>
  <label>Theme (this browser) <select class="form-select" id="theme"><option value="system">System</option><option value="light">Light</option><option value="dark" selected>Dark</option></select></label>
  <label>Font size <input class="form-control" id="font-size" type="number" min="12" max="32" step="1" value="18"> px</label>
- <label>Speech speed <input class="form-control" id="tts-speed" type="range" min="0.25" max="4" step="0.25" value="1"> <output id="speed-label">1×</output></label>
- <label><input class="form-check-input" id="pause-speaking" type="checkbox" checked> Pause Agent while speaking</label>
+ <label>Speech speed (this browser) <input class="form-control" id="tts-speed" type="range" min="0.25" max="4" step="0.25" value="1"> <output id="speed-label">1×</output></label>
+ <label><input class="form-check-input" id="pause-speaking" type="checkbox" checked> Pause Agent while this browser speaks</label>
  <label>Hold-to-talk shortcut <select class="form-select" id="voice-shortcut" aria-describedby="voice-shortcut-help"><option value="AltRight">Right Alt</option><option value="F8">F8</option><option value="off">Off</option></select></label>
  <p id="voice-shortcut-help">While this page has focus, hold the selected key to talk; release to send. Right Alt is not used for AltGr or Apple Option. Modifier chords and open dialogs refuse capture. The microphone button works independently.</p>
- <label>Voice <select class="form-select" id="voice"><option value="">Browser default</option></select></label>
+ <label>Voice (this browser) <select class="form-select" id="voice"><option value="">Browser default</option></select></label>
  <p>Speech is opt-in using the header checkbox. Voice choices are provided by this browser.</p>
  </section><section class="settings-section" aria-labelledby="user-heading"><h2 id="user-heading">Your profile</h2>
  <form id="user-settings">
