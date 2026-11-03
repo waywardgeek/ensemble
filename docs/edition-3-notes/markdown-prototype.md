@@ -58,3 +58,43 @@ Dev on port 8089 was confirmed running; installation directory exists at
 Book requirements should be reconciled after the prototype's Dev review, before
 calling this a fully accepted replacement. Markdown task-list plugins, arbitrary
 HTML and automatic external images are intentionally not enabled.
+
+## Authorized Dev staging
+
+Bill authorized Dev-only stop/stage/restart. Verified the exact 8089 process,
+then preserved its running invocation, including transcription enabled through
+an existing key-file path. The saved launcher intentionally remains unchanged
+(and still defaults transcription off). No credential contents read or copied.
+
+Two preflight refusals occurred before signalling or writing: the first compared
+bundled skill manuals as runtime dependencies; the second required build-output
+Linux binaries absent from this macOS-only installation. Corrected inventory to
+all installed runtime files plus required macOS native library, excluding skills
+while separately hash-checking their preservation. Then waited for full process
+exit, atomically replaced six assemblies/symbols and verified all 15 installed
+runtime files. Launcher/skills unchanged; no settings/data edits.
+
+Receipt: `/private/tmp/cadence-markdown-dev-install/staging.json`. Dev restarted
+with its previous invocation and isolated environment. Local8089 returned HTTP200
+and exact source bytes for index,app,markdown,parser bundle and CSS.8088 and8090
+listeners remain present; neither was signalled or staged. Public Cloudflare
+cached assets and human phone/streaming acceptance remain unverified. No model
+question sent. Candidate commit951c3ee2; the live Dev review is the next gate.
+
+## Asset-version upgrade
+
+Bill authorized eliminating repeated Cloudflare cache purges after a confirmed
+stale-CSS incident. Each GUI mount now freezes the fixed public asset set and
+computes a SHA-256 manifest fingerprint. HTML references versioned URL paths,
+not query strings; dynamic and nested module imports inherit that directory.
+HTML and legacy aliases are no-store; versioned static content is immutable.
+Explicit disk overrides are startup snapshots, not live mutable files. Unknown
+old versions never fall back to current content. Public-origin policy unchanged.
+
+Focused actual HTTP tests passed root/mount parity, cache headers, changed-content
+version changes, immutable bytes after disk edits, old-version refusal and nested
+module access. Actual browser test confirmed all CSS/JS, capture modules and nested
+voice modules use one version path; reload connects successfully. Five public GUI
+groups and all Markdown integration cases passed. Chapter27 hard lint passed with
+style advisories. Prior cached Cloudflare HTML still needs Bill's initial purge;
+no claim that this diagnoses the newly reported size-related display error.

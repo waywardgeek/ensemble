@@ -452,6 +452,21 @@ cannot change an already built assembly or an already loaded tab. Keep the
 existing borrowed-host and base-path behavior intact, with asset and socket URLs
 relative to the mounted page. Do not make the optional GUI a core dependency.
 
+Serve page HTML with `Cache-Control: no-store`. Give every local stylesheet,
+script and image a content-versioned URL path, including dynamically imported
+modules and their nested dependencies. Freeze one asset snapshot per host and
+use its content fingerprint in those paths. Versioned responses may be cached
+as immutable; never serve new bytes under an old version. Keep unversioned
+compatibility routes non-cacheable. An explicit disk override is also snapshotted
+at mapping time: restart the host to publish edits.
+
+Test root and mounted pages, content changes producing different URLs, old-version
+refusal, cache headers, and actual browser module requests. Browser cache clearing
+does not clear a reverse proxy's cache. Previously cached HTML or assets may need
+one initial proxy purge, and a proxy rule overriding the origin's cache policy
+must be corrected separately. Do not diagnose every startup failure as caching
+merely because one earlier incident had that cause.
+
 The current host accepts `--port`, `--workspace`, `--sandbox`, `--data-dir`,
 `--agent-name`, `--gui-dir`, and `--skills-dir`. Codex selection uses
 `--billing codex --codex-auth-file PATH`; its endpoint is pinned. Inspect the

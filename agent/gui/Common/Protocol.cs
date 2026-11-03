@@ -36,6 +36,8 @@ public static partial class Gui
         CancellationToken cancellation = default);
     // Map only the shipped page/assets on a caller-owned endpoint collection.
     // A disk override is explicit host authority, never a model-provided path.
+    // Assets are frozen at mapping; restart/remap to publish disk edits. HTML
+    // is no-store and refers to content-versioned immutable asset paths.
     public static partial void MapAssets(Microsoft.AspNetCore.Routing.IEndpointRouteBuilder routes,
         string? directory = null);
     // Host-scoped HTTP routes, not another credential owner. Private OAuth data

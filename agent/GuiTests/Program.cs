@@ -97,6 +97,12 @@ if (args is ["--capture-model-host"])
     return;
 }
 
+if (args is ["--asset-cache-tests"])
+{
+    await AssetCacheTests.RunAsync();
+    return;
+}
+
 if (args is ["--crossover-host"])
 {
     await CrossoverFixture.RunAsync();
@@ -293,7 +299,7 @@ try
         // the directory redirect just as a browser would before loading assets.
         using var mountedPage = await http.GetAsync(url + "/assistant", cancellation);
         Check(mountedPage.RequestMessage!.RequestUri!.AbsolutePath == "/assistant/", "Mount omitted directory redirect");
-        Check((await mountedPage.Content.ReadAsStringAsync(cancellation)).Contains("./app.js"), "Page URLs escaped mount");
+        Check((await mountedPage.Content.ReadAsStringAsync(cancellation)).Contains("./_assets/"), "Versioned page URLs escaped mount");
         Check((await http.GetStringAsync(url + "/assistant/app.js", cancellation)).Contains("""new URL("./ws", document.baseURI)"""), "Socket URL escaped mount");
         foreach (string asset in new[] { "voice-pcm.js", "voice-recorder.js", "voice-worklet.js", "voice-hold.js", "voice-session.js", "voice-control.js", "page-capture.js", "capture-consent.js" })
         {

@@ -256,3 +256,17 @@ hidden as ordinary prose. Public-origin authentication/origin rules are unchange
 
 Run the isolated server checks with `GuiTests.dll --image-tests`; the default GUI
 suite also includes them. They make no live model or native clipboard requests.
+
+## Browser asset cache policy
+
+Page HTML and unversioned compatibility asset routes use `Cache-Control: no-store`.
+The page references local assets under `./_assets/<content-sha256>/...`; static
+scripts, dynamic imports and nested modules resolve within the same version.
+Versioned assets are immutable and cacheable for one year. A previous version
+path never falls back to current bytes. All public assets are snapshotted when
+`MapAssets` runs, including explicit disk overrides; restart/remap to publish
+edits. Root and mounted paths retain the same relative URL behavior.
+
+Previously cached proxy responses may need one initial purge. Proxy rules that
+ignore origin cache headers must be corrected separately. No application change
+can retroactively alter HTML already held in a proxy or an open browser tab.
