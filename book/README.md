@@ -1,7 +1,8 @@
 # Edition 3 — C# inside Ensemble
 
-This edition is locally complete through Chapter 25, Goals, including Gateway
-and the optional Codex-backed path. Bill directed the architecture; Cadence
+This edition includes the completed Chapter 26, Voice and Images, and the
+current Chapter 27 crossover requirements, alongside Gateway, Goals, and the
+optional Codex-backed path. Bill directed the architecture; Cadence
 implemented, exercised and reviewed the C# work personally inside Ensemble.
 
 - [Read the assembled book](the-art-of-building-ai-coding-agents.md).
@@ -18,11 +19,11 @@ Historical foundation checks alone were not that human acceptance. The optional 
 completed after Gateway and Goals, and its historical `ch24` endpoint intentionally
 contains that foundation. Earlier endpoints are not renamed or overwritten.
 
-The assembled Markdown includes the new multimedia opening draft and the
-renumbered crossover. The EPUB was regenerated during root promotion, and the
-retained PDFs are earlier V3 builds; neither is a current rendering of this
-manuscript. Chrome returned nonzero during teardown in the promotion print
-attempt, before the full two-pass build completed. See [promotion verification](../docs/edition-3-promotion.md).
+The assembled Markdown, EPUB, print interior, and covered reading PDF were rebuilt
+from the current manuscript after Chapter 26 passed all 100 external media points.
+The release checks cover EPUB navigation and local resources, print typography,
+contents destinations, page labels, and reading-copy links. They are not a new
+whole-book execution grade or KDP preview approval.
 The companion publication is available under [companion/](companion/README.md).
 
 ## Sequential manuscript numbers and historical endpoints
@@ -42,7 +43,7 @@ endpoints, archived evidence, or executable grader flags to match the book.
 | 23 | Codex/cache | 24 / `ch24` |
 | 24 | Gateway | 26 / `ch26` |
 | 25 | Goals | 27 / `ch27` |
-| 26 | [Voice and Images](chapter-26.md) | Full narrative and exercise draft; image-files scope passes 20/20, 80 points ungraded; native rectangle-path evidence retained; updated display-only native acceptance pending. |
+| 26 | [Voice and Images](chapter-26.md) | Completed narrative and exercises; external scopes pass 100/100: images 20, attachments 25, voice 30, host screenshots 25. Platform and synthetic-fixture limits remain explicit. |
 | 27 | Crossover | Active source in `agent/`; no numbered snapshot |
 
 The two former historical crossover chapters were removed, not merged into
@@ -50,11 +51,12 @@ unrelated chapters. Earlier editions and their chapter numbering are unchanged.
 
 ## What completion means
 
-The new Chapter 26 contains its TL;DR, In Plain Words, and draft exercises.
-Its Edition 3 `image-files` grader is scoped to 20 points; other multimedia
-scopes, native host-capture acceptance, and the full narrative remain unfinished. Its sequence is working implementation, exercises and external graders, passing results, then
-full chapter prose. It does not inherit a pass from the older media foundation,
-GUI tests, or the historical `-ch 26` Gateway grader.
+Chapter 26 contains its TL;DR, In Plain Words, implementation contracts, and
+externally graded exercises. Its four media scopes pass 100/100. The native
+host-screen scope verifies default and explicit primary-display captures through
+delayed Jobs and byte-identical new-turn replay without recapture. This does not
+establish all-platform, native-microphone, or every-phone reliability. These
+results are distinct from the historical `-ch 26` Gateway grader.
 
 Each implemented chapter has reviewed teaching source and scoped verification.
 Some original grader rows do not transfer to C#; ungraded rows remain explicitly
@@ -90,12 +92,26 @@ directory instead. The assembler writes stdout. The EPUB and print builder use
 the selected assembled file. The shared scripts now default to the promoted Edition 3 book when
 these variables are absent. Archived Edition 2 scripts retain their old defaults.
 Chrome rendering uses a fresh temporary profile, never the running user profile.
+If Chrome's command-line PDF renderer fails during teardown, use the optional
+controlled-lifecycle backend with an existing Playwright installation:
+
+```sh
+export BOOK_NODE=/absolute/path/to/node
+export BOOK_PLAYWRIGHT_MODULE=/absolute/path/to/node_modules/playwright
+python3 "$BOOK_DIR/build-print.py"
+```
+
+This backend installs nothing, uses an isolated browser, waits for fonts, prints,
+and closes Chrome explicitly. A failed renderer still refuses the build. Both
+backends run the same final PDF checks. This release used the controlled backend
+because the command-line renderer wrote a PDF but exited nonzero on teardown.
+
 
 Outputs are the assembled Markdown, EPUB, coverless **Print Interior.pdf**, and
 **The Art of Building AI Coding Agents.pdf** with the cover for free reading.
 `interior-print.html` is the intermediate print input. Existing cover artwork is
-reused as requested. The current coverless interior is **479 pages at 7 × 10
-inches**; the covered reading PDF is **480 pages**. The reading PDF is for the
+reused as requested. The current coverless interior is **520 pages at 7 × 10
+inches**; the covered reading PDF is **521 pages**. The reading PDF is for the
 website, not the KDP interior upload. A print cover wrap is separate and must be
 sized for the final interior and selected paper.
 

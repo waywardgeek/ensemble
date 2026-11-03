@@ -181,7 +181,7 @@
   - [14.1 Why is this byte here?](#141-why-is-this-byte-here)
   - [14.2 Keep the relationships simple](#142-keep-the-relationships-simple)
   - [14.3 Instructions are not disposable tool results](#143-instructions-are-not-disposable-tool-results)
-  - [14.4 The two-band ladder](#144-the-two-band-ladder)
+  - [14.4 Retention must respect the decision](#144-retention-must-respect-the-decision)
   - [14.5 Keep or stub, once](#145-keep-or-stub-once)
   - [14.6 Explain the work so useful reasons survive](#146-explain-the-work-so-useful-reasons-survive)
   - [14.7 A handoff is a fact, not a destructive summary](#147-a-handoff-is-a-fact-not-a-destructive-summary)
@@ -327,8 +327,8 @@
   - [24.5 Delivery and recovery](#245-delivery-and-recovery)
   - [24.6 The interviewer proves the stack](#246-the-interviewer-proves-the-stack)
   - [24.7 What the grader checks](#247-what-the-grader-checks)
-- [Chapter 25 — Goals](#chapter-25--goals)
-  - [§25.0 TL;DR — What to Build](#250-tldr--what-to-build)
+- [Chapter 25: Goals](#chapter-25-goals)
+  - [§25.0 TL;DR: What to Build](#250-tldr-what-to-build)
   - [§25.1 Write an Objective, Not a Repeated Command](#251-write-an-objective-not-a-repeated-command)
   - [§25.2 Keep the State on the Agent](#252-keep-the-state-on-the-agent)
   - [§25.3 Preserve the Goal Across Requests, Not as Transcript Copies](#253-preserve-the-goal-across-requests-not-as-transcript-copies)
@@ -338,13 +338,30 @@
   - [§25.7 Verify the Boundaries](#257-verify-the-boundaries)
   - [§25.8 Taking It for a Spin](#258-taking-it-for-a-spin)
   - [§25.9 Exercises](#259-exercises)
-  - [§25.10 What Goals Does—and Does Not—Buy Us](#2510-what-goals-doesand-does-notbuy-us)
+  - [§25.10 What Goals Provides and Where It Stops](#2510-what-goals-provides-and-where-it-stops)
 - [Chapter 26: Voice and Images](#chapter-26-voice-and-images)
-  - [TL;DR — Specification Brief](#tldr--specification-brief-1)
+  - [TL;DR: Specification Brief](#tldr-specification-brief)
   - [In Plain Words](#in-plain-words-7)
+  - [26.1 Four inputs, one conversation](#261-four-inputs-one-conversation)
+  - [26.2 Put ownership where the lifetime lives](#262-put-ownership-where-the-lifetime-lives)
+  - [26.3 Prepare an image once, with bounded work](#263-prepare-an-image-once-with-bounded-work)
+  - [26.4 Inspecting a file must deliver the file's pixels](#264-inspecting-a-file-must-deliver-the-files-pixels)
+  - [26.5 Render the media the provider actually supports](#265-render-the-media-the-provider-actually-supports)
+  - [26.6 An attachment draft belongs to one recipient](#266-an-attachment-draft-belongs-to-one-recipient)
+  - [26.7 A screenshot of which computer?](#267-a-screenshot-of-which-computer)
+  - [26.8 Make the recording format small enough to reason about](#268-make-the-recording-format-small-enough-to-reason-about)
+  - [26.9 Keep the transcription payer explicit](#269-keep-the-transcription-payer-explicit)
+  - [26.10 Separate readiness from commitment](#2610-separate-readiness-from-commitment)
+  - [26.11 Cancellation must win before the next effect](#2611-cancellation-must-win-before-the-next-effect)
+  - [26.12 Test the boundary you intend to claim](#2612-test-the-boundary-you-intend-to-claim)
+  - [26.13 What is verified, and what remains open](#2613-what-is-verified-and-what-remains-open)
+  - [26.14 Review and operate the feature deliberately](#2614-review-and-operate-the-feature-deliberately)
+  - [Exercises: implementation contract](#exercises-implementation-contract)
+  - [Grading boundary](#grading-boundary)
+  - [Takeaways](#takeaways)
 - [Chapter 27: Crossing Over to Ensemble](#chapter-27-crossing-over-to-ensemble)
-  - [TL;DR — finish the replacement, not another demonstration](#tldr--finish-the-replacement-not-another-demonstration)
-  - [In plain words — one system, a better place to use it](#in-plain-words--one-system-a-better-place-to-use-it)
+  - [TL;DR: finish the replacement, not another demonstration](#tldr-finish-the-replacement-not-another-demonstration)
+  - [In plain words: one system, a better place to use it](#in-plain-words-one-system-a-better-place-to-use-it)
   - [Required GUI reading](#required-gui-reading)
   - [The selected control system and visual direction](#the-selected-control-system-and-visual-direction)
   - [The interface I require](#the-interface-i-require)
@@ -6386,9 +6403,9 @@ presentation and connection lifetime, not a second transcript or actor loop.
   a slow browser is disconnected, not allowed to block the actor.
 - `ToolCalled` is an audit of a request. `ToolStarted` means admission succeeded
   and execution was permitted. A refused call must never look dispatched.
-- Typing and queued speech cause **edge-triggered** pause/unpause requests.
-  Pause is Agent-wide. An unchanged local condition is not a tab's permanent
-  veto over an explicit unpause from elsewhere.
+- Each Agent has one pause state. Pause and resume commands from any tab
+  control that state in mailbox order; the server keeps no device hold registry.
+  A tab addresses only its selected Agent. Speech preferences belong to the browser.
 - Full-content speaker buttons are separate from automatic narration.
   Collapsed or scrollable presentation must not discard the rest of the text.
 
@@ -6584,8 +6601,10 @@ Inbound commands are small mappings to existing public operations:
 ```
 
 Connection registration queues replay automatically. `subscribe` is idempotent;
-it does not start a new Agent or replay work. The wire spelling is **unpause**,
-although the core operation is `InputKind.Resume` and the button says “Resume.”
+it does not start a new Agent or replay work. The server validates each addressed
+pause/resume command against that connection's selected Agent. It does not track
+which device caused a pause. The GUI has no separate Pause/Resume button pair;
+Stop speech and Escape send explicit resume through the same public operation.
 
 The host validates message shape and bounds input size. It rejects foreign
 WebSocket origins and non-loopback hostnames. The configured listener is
@@ -6602,10 +6621,13 @@ Every message is an artifact: a stable card that may stream and then finalize.
 Use one card map and vary rendering through type and role, not through separate
 conversation models for chat, tools, and thinking.
 
-- Human and assistant text use safe Markdown: headings, paragraphs, lists,
-  links, inline code, and fenced code.
-- Thinking and tool details are collapsible. Their complete text remains in
-  the backing card and a scrollable details view.
+- Human and assistant text use safe Markdown: headings, paragraphs, nested lists,
+  tables, blockquotes, nested emphasis, links, inline code, and fenced code.
+- Supplied thinking and reasoning summaries use the same readable prose renderer.
+  Tool details remain expandable. Complete text stays in each backing card;
+  provider signatures and opaque metadata are not readable thinking. Empty or
+  whitespace-only thinking/summary cards occupy no visible space; reveal the same
+  card when readable text arrives without deleting its backing data.
 - Tool plans show arguments and lifecycle status. Results retain full readable
   output; terminal escape sequences do not become browser control syntax.
 - Successful `edit_file` results can show the applied exact replacement from
@@ -6613,9 +6635,54 @@ conversation models for chat, tools, and thinking.
 - Search results keep their path/line output readable. Do not delete content
   merely to make a card short.
 
-Build DOM nodes and assign `textContent`; never interpolate provider or tool
-text into `innerHTML`. A filename, fetched document, or source fragment may
-contain hostile markup. Fenced HTML must appear as code, not execute.
+Use a pinned, locally bundled Markdown parser rather than growing a collection
+of regular expressions. The current browser uses markdown-it 14.1.0 with its MIT
+license and source integrity recorded alongside the vendor files. Do not add a
+runtime CDN, fetch a parser on page load from another site, or silently enable
+plugins. Tables and nested formatting are required; arbitrary HTML and every
+possible Markdown extension are not.
+
+Keep raw HTML disabled. Only HTTP(S) links are clickable; reject unsafe schemes
+after parsing and normalization. Render Markdown images as escaped descriptions,
+not automatically fetched remote resources. Explicit image attachments have their
+own admission path. A filename, fetched document, or source fragment may contain
+hostile markup. Fenced HTML must appear as code, not execute.
+
+The parser's generated HTML may enter the message body only through this reviewed
+policy. Never concatenate provider or tool text directly into `innerHTML`.
+Continue using DOM nodes and `textContent` for controls, labels, tool output and
+code highlighting. Test malicious markup, encoded unsafe links and remote image
+syntax, including the absence of network requests. Library configuration is a
+security boundary, not a substitute for these tests.
+
+### Stream Markdown, render the accumulated text
+
+Keep the complete original Markdown in the backing card. Send text deltas over
+the existing connection; do not send a growing HTML document from the server.
+Reparse only the changed card's accumulated Markdown in the browser. Coalesce
+bursts of deltas with a bounded delay, currently 50 milliseconds, instead of
+replacing the DOM for every token. The first visible card keeps arrival order;
+a final event flushes the latest text promptly. This cadence is not a hard
+real-time guarantee when the browser is busy or backgrounded.
+
+Incomplete syntax can change interpretation: a table becomes a table after its
+separator arrives, and a link becomes clickable when complete. Test prefixes of
+real examples rather than inventing a second incremental Markdown grammar.
+Retain speaker labels and playback controls while updating the body. Speech
+consumes the original readable text through its existing path, never text scraped
+back out of generated HTML.
+
+Do not replace a card while a nonempty text selection intersects it, including
+cards between the selection's endpoints. Retain the latest update and paint it
+when the selection clears. Discard queued renders on replay or conversation
+replacement so stale cards cannot reappear. Preserve the reader's scroll position
+when away from the bottom; follow new output only when already near the bottom.
+
+Tables use semantic header cells and a labelled, keyboard-scrollable wrapper so
+wide content cannot widen the chat pane. Long code retains the complete source
+behind its preview; preserve expansion and table scroll across updates. Measure
+whole-message parsing and DOM replacement on realistic content before adding
+incremental machinery. Desktop timing is not evidence of phone performance.
 
 Display limits are acceptable only if the rest remains reachable. Collapsing
 or scrolling is different from truncating the stored value. A speaker button
@@ -6631,6 +6698,24 @@ experience.
 For someone who cannot comfortably read a busy transcript, speech is a control
 surface, not ornamental animation.
 
+Store narration enabled, rate, voice choice, and pause-while-speaking in one
+origin-local browser preference, independent of the selected Agent. Same-origin
+tabs share local-storage changes; separate profiles and devices keep independent
+choices. Listening on a phone must not enable a laptop's narration. A fresh or
+invalid preference defaults to speech off, rate1, default voice, and speech pausing
+on. Unlike theme migration, never seed narration from a legacy server-wide enable
+flag: an unattended browser must remain quiet. Server settings and replay cannot
+overwrite this local preference, and speech controls send no settings patch.
+
+Controls work offline. If storage is blocked, keep the choice for this page only;
+removing the saved preference returns other tabs to silent defaults. Turning
+narration off cancels that browser's current and queued speech. A rate or voice
+change affects the next constructed utterance, not audio already speaking.
+Microphone recording, transcription funding and its shortcut are separate.
+Automatic narration reads only new content for the Agent selected in that tab.
+A selected tab may be in the background; selection is not foreground visibility.
+
+
 **Speak this artifact** is always available when the browser supports speech:
 
 - human and assistant text: full readable text;
@@ -6640,7 +6725,7 @@ surface, not ornamental animation.
 
 Clicking the active artifact again stops it. Choosing another artifact cancels
 the old queue and starts the new request. A global Stop speech button and Escape
-from an empty input provide explicit escape paths. Speech failures are not
+even with a draft provide explicit escape paths. Speech failures are not
 allowed to strand the Agent in a permanently queued-speech state.
 
 **Automatic narration** is a separate opt-in preference. It narrates new
@@ -6677,29 +6762,41 @@ Immediate interrupt still cancels the active turn without killing independent
 jobs, and remains usable while paused. The two interrupt modes retain Chapter
 5's different boundary semantics.
 
-The browser has a local cause:
+The browser tracks genuine human typing and current or queued speech. Whitespace
+typed by the human counts; programmatic tool drafts do not pretend the human is
+typing. Its local activity is:
 
 ```text
-input is nonempty OR speech is active OR speech is queued
+local cause = human typing OR (pause while speaking AND speech busy)
 ```
 
-Only its transitions send controls:
+Only a change in that cause sends `pause` or `unpause`. The Agent mailbox applies
+the last command to its single pause state. There are no device owners, vetoes,
+or separate manual and automatic flags. Another device's resume takes effect
+immediately; unchanged typing or speech must not repeatedly reassert pause.
+Normal speech completion sends resume when neither local cause remains. Clearing
+a draft while speech continues does not change the cause and sends no resume.
 
-- false → true: send `pause`;
-- true → false: send `unpause`.
+Use one **Stop speech** button beside the microphone in the composer, accessible
+on phones. Keep both controls grouped when narrow layouts wrap. It uses
+`type="button"`, never the form-submit default. Stop speech and Escape cancel
+current and queued speech, invalidate late callbacks, and explicitly resume the
+selected Agent even if this or another device still has a draft or speech.
+Preserve the draft and establish its unchanged local activity as the edge baseline.
+Escape must still allow native dialog dismissal. Neither action interrupts work
+or cancels Jobs. Do not build a Pause/Play button pair.
 
-The server's effective state is authoritative. Another tab or application caller
-can explicitly unpause even while this tab is still typing. Unchanged typing
-must not immediately reassert pause on every key or state frame. Only a later
-local cause transition sends another request.
-
-This is why the model is not a distributed set of tab-owned veto tokens. The
-human needs a dependable explicit escape, not a hidden AND of every browser's
-local conditions.
+A tab may send pause/resume only to its selected Agent, never an unselected child
+or every Agent. Before a selection change, cancel outgoing speech and send any
+outgoing resume while the old Agent is still selected. Late callbacks and replay
+must not affect the incoming Agent. Disconnect sends no server-invented resume;
+reconnect neither resumes blindly nor reasserts stale local activity. Any connected
+device can use Stop speech to resume. A saved child retains the single admitted
+pause state across restart; there is no transient device-hold state to serialize.
 
 Enter submits a prompt; Shift+Enter inserts a newline. Ctrl+Enter or Alt+H sends
-a hint. Input clearing updates the local pause cause. Buttons provide the same
-operations without requiring keyboard shortcuts.
+a hint. Submission or clearing updates the typing cause. Stop speech does not
+interrupt Agent work, cancel Jobs, or disable future opt-in narration.
 
 ## 7.9 Build and inspect locally
 
@@ -6763,7 +6860,8 @@ Test real components with small external fakes. Important cases include:
 7. Inspect actual narrow-layout controls and safe rendering of hostile-looking
    code. Exercise full-content speaker buttons through a fake speech boundary.
 8. Exercise queued speech, interrupted-utterance cleanup, automatic typing pause,
-   cross-tab explicit unpause, and silent visibility wakeup.
+   cross-tab resume, Stop speech/Escape preserving a draft, disconnect/reconnect,
+   selection cleanup, transient restart state, and silent visibility wakeup.
 
 The existing executable grader can test the optional server without compiling
 Go consumers:
@@ -6798,15 +6896,20 @@ or for an inspection of the ownership and call paths.
 ## TL;DR
 
 Make the optional GUI comfortable to use without giving it a second Agent loop.
-The server owns presentation preferences; the Agent owns its next-turn tool
-budget. A browser sends a patch, the server validates and saves a complete
+The browser owns theme and speech; the server owns shared preferences. The Agent
+owns its next-turn tool budget. For shared settings, a browser sends a patch;
+the server validates and saves a complete
 snapshot, and only then does it publish that snapshot to every connected client.
 An active turn keeps the budget it captured when it began.
 
 The deliverable is a working settings panel: theme, narration, speech rate,
-font size, speech-related pausing, and tool batches per turn. Preferences survive
-browser reload and server restart. A failed save changes neither live behavior
-nor the visible acknowledged settings. This is a C#/.NET 10 extension of the
+font size, speech-related pausing, and tool batches per turn. Theme belongs to
+this browser, as do narration, rate, voice and speech pausing. Other preferences
+retain shared server ownership. Saved
+choices survive reload and restart. A failed shared-settings save changes neither
+live behavior nor the visible acknowledged settings. Blocked browser storage leaves
+theme and speech usable for the current page session without promising reload
+persistence. This is a C#/.NET10 extension of the
 Chapter 7 endpoint, not another runtime or a Go-package translation exercise.
 
 ## In plain language
@@ -6817,10 +6920,11 @@ fails, the page must not pretend the preference was saved.
 
 There are three different lifetimes:
 
-1. **The browser** displays the last server-acknowledged snapshot. Its controls
-   propose changes; local storage is not a second source of truth.
-2. **The GUI server** loads and saves presentation preferences and shares them
-   with all clients. It reaches the actual Agent to read or change its budget.
+1. **The browser** owns theme and speech preferences in origin-local storage. For shared
+   settings it displays the last server-acknowledged snapshot and proposes changes;
+   local storage is not a second authority for those settings.
+2. **The GUI server** loads and saves the other presentation preferences and shares
+   them with all clients. It reaches the actual Agent to read or change its budget.
 3. **The Agent turn** captures its effective budget once. A later settings change
    applies to the next turn, not halfway through this one.
 
@@ -6875,7 +6979,9 @@ before any effects. The limit is a scheduling boundary, not merely advice.
 ## 8.2 Preferences are values, not another owner graph
 
 `Examples/Gui/Common/Settings.cs` declares a value-like `Preferences` record and
-partial parse/load/save operations. It contains presentation facts only:
+partial parse/load/save operations. Its retained compatibility schema contains
+presentation facts only; theme and TTS entries serve old clients and saved files,
+not the current browser controls:
 
 ```csharp
 public sealed record Preferences(
@@ -6898,7 +7004,11 @@ registry, browser-owned Agent state, or a second scheduler.
 
 ### One validation policy for disk and wire
 
-Use these concrete rules in this endpoint:
+Use these concrete rules in this endpoint. The `theme` entry is retained for
+legacy clients and one-time browser migration; current browser controls own their
+local theme and do not patch this shared field. The TTS entries are also legacy:
+current narration, speed, voice and speech-pausing controls use Chapter7's local
+record, never seed from these server values, and send no shared-settings patch.
 
 | Field | Default | Accepted value |
 |---|---|---|
@@ -6961,7 +7071,7 @@ Keep the existing `/ws` protocol and add:
 
 ```json
 {"type":"get_settings"}
-{"type":"update_settings","settings":{"theme":"dark","tts_speed":1.5}}
+{"type":"update_settings","settings":{"font_size":24,"tts_speed":1.5}}
 ```
 
 A newly connected client receives a full snapshot automatically. Explicit
@@ -6998,9 +7108,11 @@ smaller page, then judge whether it is comfortable enough for your work.
 Open `Examples/Gui/wwwroot/index.html`, `style.css` and `app.js` in the preserved
 `solutions/ch08` endpoint. They divide the work without a UI framework:
 
-- The header holds connection and Agent state, Pause/Resume/Interrupt buttons,
-  and a native `details` element for Settings. Its `summary` opens the controls
-  without a custom panel widget.
+- The historical header holds connection and Agent state, a Pause/Resume pair,
+  Interrupt, and native `details` for Settings. For a new implementation, replace
+  the pair with Chapter 7's Stop speech control, identical to Escape. Preserve
+  typed drafts and Chapter7's last-command-wins Agent pause state.
+  The `summary` opens settings without a custom panel widget.
 - The `main` element, `#transcript`, holds conversation cards. The notice below
   it reports connection and settings errors; it has `role="status"` so the
   message is not merely a color change.
@@ -7024,14 +7136,29 @@ explicit light nor dark is selected. Font size is another root variable,
 `--font-size`, used by the page font and inherited by inputs. Existing content
 therefore changes along with the controls.
 
-Follow one edit through the page. Selecting Dark sends the sparse patch
-`{"theme":"dark"}` through `patchSettings`. The control can show the proposed
-choice while “Saving settings…” is displayed, but the acknowledged settings
-remain authoritative. When `settings_updated` arrives, `applySettings` updates
-the root theme attribute, font variable and every settings control. Another tab
-uses the same path. An error restores the acknowledged values and displays the
-failure; it does not pretend the proposed change was saved. This is why the
-page needs both a control value and the last accepted settings snapshot.
+Theme is one browser-owned preference. Selecting Light, Dark, or System updates
+this origin's local preference immediately; it sends no `update_settings` message.
+The header toggle and settings selector use that same preference. Same-origin tabs
+share changes through local-storage events; another browser profile or device keeps
+its own choice. System follows that browser's operating-system color scheme.
+If storage is unavailable, keep the chosen theme usable for the current page
+session without claiming reload persistence. Theme controls also work offline.
+
+The server's legacy `theme` field remains compatible with older clients and saved
+settings. Use it once to seed a browser that has no valid local choice. Subsequent
+settings frames must not overwrite a browser choice, and current theme controls
+must not write the legacy field. Speech also belongs to this browser, following
+Chapter7: enabled, rate, voice and speech pausing share one local preference.
+Unlike theme, speech starts disabled rather than inheriting a legacy server flag.
+Retain server TTS fields only for old clients and files; current controls neither
+write them nor apply them. Font size remains shared. Local preferences are sole
+authorities, not competing copies of the shared settings store.
+
+Follow a shared edit separately. Changing font size sends the sparse patch
+`{"font_size":24}` through `patchSettings`. The acknowledged settings remain
+authoritative while saving. A `settings_updated` frame updates the font and shared
+controls without resetting theme. An error restores the acknowledged shared values
+and displays the failure; it does not pretend the proposed change was saved.
 
 Put the panel in the existing optional GUI. Provide clearly labeled controls
 for every table entry. Numeric input steps are integral for font and batch count;
@@ -7045,17 +7172,17 @@ light/dark settings override the operating system. System mode follows
 `prefers-color-scheme`, including changes while the page is open. Syntax colors,
 links, focus indicators, and notices must remain readable in both themes.
 
-The browser retains only its last acknowledged settings snapshot. A control
-sends a patch and may retain its proposed edit while saving. Actual presentation
-and speech policy change only when the server acknowledges a snapshot.
-If the connection is unavailable, show a notice rather than pretending to save.
-A save error restores the acknowledged control values. Remove any old local-storage
-copy of these preferences.
+For shared fields, the browser retains the last acknowledged settings snapshot.
+A shared control sends a patch and may retain its proposed edit while saving.
+Apply shared policy only after acknowledgement; report disconnected or failed
+saves and restore accepted values. Do not duplicate shared fields in local storage.
+Theme and speech are different: their local controls apply immediately, even
+offline, with page-session fallback when storage is unavailable.
 
 ### Speech and pause are related, not identical
 
 Keep Chapter 7's one active utterance and FIFO pending text. When constructing
-an utterance, read the **current** acknowledged speech rate. Do not recreate or
+an utterance, read the **current** browser-local speech rate. Do not recreate or
 cancel the utterance already speaking just because its rate setting changed.
 Automatic narration is opt-in; speaker buttons still read selected content.
 
@@ -7065,11 +7192,14 @@ Both queued and active speech count as busy. The local pause cause is:
 typing OR (pause_while_speaking AND speech_busy)
 ```
 
-Send pause/unpause only when that cause changes. Turning speech pausing off
-immediately removes that cause, even with queued audio, but must not override a
-remaining typing cause. Turning it on while audio is queued or speaking pauses
-immediately. Preserve symmetric onend/onerror cleanup, cancellation identity
-checks, cross-tab explicit unpause, and the separate silent visibility wakeup.
+Send ordinary Agent-wide pause/resume only when that local cause changes.
+Turning speech pausing off while audio is busy sends resume unless typing remains;
+it does not cancel audio. Stop speech/Escape is the explicit exception: cancel
+local audio and resume the selected Agent even with a draft or activity on another
+device. Unchanged activity does not reassert pause. Preserve Chapter7's selection
+validation, callback identity checks, silent replay and visibility wakeup.
+Disconnect does not change Agent pause; reconnect does not reassert stale activity.
+
 Speech settings must not introduce another owner of Agent lifecycle.
 
 ## 8.6 Test the behavior, not a screenshot of a slider
@@ -7098,12 +7228,15 @@ Never damage a real user's configuration to create this fixture.
 ### Browser exercise
 
 Use an isolated browser profile, not another user's connected browser. Operate
-the real visible controls and verify both tabs update. Check system theme changes,
-existing transcript font, narrow-screen geometry, and reload from server state.
+the real visible controls and verify same-origin tabs share theme changes while
+separate profiles remain independent. Check System changes, local reload persistence,
+blocked storage, offline selection, and reconnect without a theme write to the
+server. Separately check shared font changes, narrow-screen geometry, and shared
+settings reload from server state.
 At a fake speech boundary, inspect each constructed utterance's rate, queue two
 items, change rate between them, and toggle pause while the queue is busy. Test
 error cleanup as well as normal completion. Such a fake establishes wiring and
-selection—not audible quality, correct pronunciation, or human accessibility.
+selection, not audible quality, correct pronunciation, or human accessibility.
 
 ### Executable grading
 
@@ -7131,7 +7264,7 @@ Do not restart or deploy a shared application merely to demonstrate this chapter
 
 Preserve a source-only endpoint, explain the ownership and captured-budget
 choices, record corrections and evidence limitations in the progress record, and
-continue to Chapter 9. The goal is a GUI whose small promises are dependable—not
+continue to Chapter 9. The goal is a GUI whose small promises are dependable, not
 an elaborate settings framework.
 
 ---
@@ -8755,7 +8888,7 @@ The breakfast story, byte measurements, and compaction experiments described her
 ## TL;DR: what you build
 
 1. **One owner for each decision.** Agent selects reductions at safe actor boundaries; History applies recorded facts; Engine renders the resulting Context. A worker never trims History or decides when another model request may start.
-2. **One target, two bands.** The default target is 400,000 bytes. Results use T/8, calls and stubs T/16. Each band crosses twice its budget before cutting an old prefix back toward one budget. Complete call/result batches are the unit of selection.
+2. **Retention is a decision, not a hidden size cap.** The default target is 400,000 bytes; opt-in immediate stubbing uses T/100. There is no later T/8 result band or T/16 call/stub band that overrides a retained batch. A large result deliberately kept for discussion remains available until an explicit reduction such as handoff.
 3. **An explicit keep-or-stub option.** For opted-in configurations, a large result is considered once after a successful request presents it. The model may call `keep_tool_results` in the consuming response. Ordinary models do not acquire this policy from a guessed name.
 4. **A real checkpoint kind.** `micro_handoff` records an ordinary result and then `HandoffRecorded`. The reducer removes tool traffic and private replay material, replaces older active handoff notes, and preserves visible dialogue and manuals.
 5. **Immediate revocation, retained instructions.** Pending skill unload removes authority, including deferred references and automatic snapshots. Its manual remains in SYSTEM. Retiring that manual is not this chapter's job.
@@ -8767,8 +8900,9 @@ The endpoint is still C# 14/.NET 10. Shared vocabulary and persistent state are 
 
 ## In plain words
 
-Keep the user's words and useful explanations. Once a tool result has done its
-job, replace its bulk with a stub, and later remove the paired call and stub.
+Keep the user's words and useful explanations. In an opted-in session, replace
+a consumed large result with a stub unless the model keeps it for later use.
+Do not silently override that decision because the retained result is large.
 At a deliberate checkpoint, keep one new note and clear tool traffic without
 summarizing away the conversation. Record every cut so replay knows exactly what
 happened. Preserve original facts separately, and make crash recovery depend on
@@ -8788,7 +8922,7 @@ A removed file result can often be obtained again by reading the file. That is n
 
 One earlier bug was particularly instructive: a stub referred to an output path whose numeric handle was reused after restart. The next reader received plausible output from the wrong command. Wrong data was worse than no data. This endpoint does not turn a result stub into an unverified promise that some path still names its original bytes.
 
-Tool clearing is not dialogue summarization. The automatic policy in this chapter never asks a model to replace the user's goal or a discussion with a compressed paraphrase. Existing reduction primitives can express other operations, but the policy here selects result and tool reductions only.
+Tool clearing is not dialogue summarization. The automatic policy in this chapter never asks a model to replace the user's goal or a discussion with a compressed paraphrase. Existing reduction primitives can express other operations, but this chapter does not select automatic size-based cuts of retained tool batches. Historical recorded reductions still replay as recorded.
 
 ## 14.2 Keep the relationships simple
 
@@ -8809,7 +8943,6 @@ Common declares the new operations and values, including:
 public const int DefaultContextByteBudget = 400_000;
 public partial int ContextByteBudget();
 public partial void SetContextByteBudget(int bytes);
-public partial (int ResultsBytes, int CallsBytes) ToolCompactionBudgets();
 ```
 
 These declarations belong to the existing partial Agent. Their implementation belongs in `Agent/Compaction.cs`. There is no settings service copied into every object and no separate reduction scheduler.
@@ -8834,27 +8967,34 @@ Both tool clearing and handoff retain pending manuals in SYSTEM. **Removing perm
 
 The historical chapter discussed frozen inline declarations. This C# edition uses the Chapter 9 provider declaration mechanism instead. Stable primary instructions and infrequent cuts remain useful, but this endpoint makes no claim to implement that old inline protocol or to have measured a provider's cache benefit.
 
-## 14.4 The two-band ladder
+## 14.4 Retention must respect the decision
 
-Let T be the Agent's context-byte target. The default is 400,000:
+A tool's output limit controls how much its observation delivers. It is not a
+promise that the provider has room for that output, but a later hidden size
+check must not silently undo the choice to retain it. Reading an entire book
+and keeping it for discussion is a legitimate use of a large tool result.
 
-| Use | Derived amount at the default |
-| --- | ---: |
-| Whole-result band, T/8 | 50,000 bytes |
-| Call-and-stub band, T/16 | 25,000 bytes |
-| Optional immediate-stub threshold, T/100 | 4,000 bytes |
+Earlier versions taught a two-band ladder: results used T/8, calls and stubs
+T/16, and crossing twice a band budget caused automatic prefix cuts. Remove
+that selector and its presentation watermark. It overrode explicit keep
+requests, even after the requested material had reached the model successfully.
+Increasing the fixture's target merely concealed this conflict.
 
-A positive target has a one-byte minimum for each ladder band. The public setter refuses negative values without mutation; zero disables automatic byte-budget reduction. These are byte measures of serialized tool material, not token counts, model context capacities or a hard cap on the entire conversation. Dialogue and manuals may grow beyond T.
+Ordinary results remain intact. With immediate stubbing enabled, decide once
+for the just-consumed batch as described below; a valid `keep_tool_results`
+prevents that cut. Later requests and snapshot restoration must not reconsider
+that decision merely because the retained tool traffic is large. Handoff is
+still an explicit context cut; keeping a batch does not exempt it from handoff.
 
-Each immutable entry caches its tool-byte measure. This is a derived value of immutable content, not another mutable accounting authority. Selection examines complete batches, using response-local call/result pairing. Repeated IDs in later completed batches remain legal. An incomplete, orphaned or ambiguous exchange stops safe prefix selection; the algorithm does not invent a result to make progress.
+Keep the reducer and replay support for historical `Redacted` events. Removing
+an automatic policy must not resurrect content that an earlier recorded cut
+already removed. Calls and results remain paired, and canonical events are not
+rewritten.
 
-The result band measures eligible batches with whole results. Above twice its budget, select the oldest prefix sufficient to bring the measured band down toward one budget. Record a `Redacted` event with `Redaction.Result` and fixed sequence bounds. Applying it replaces result bodies with stubs while preserving their calls and identities. Re-stubbing an existing stub preserves its metadata.
-
-Then consider the call/stub band. It may remove only a stub-only prefix, never jump over a still-whole batch. Above twice that band's budget, record `Redaction.Tool` over complete old batches. Calls and results disappear together; surrounding visible text remains.
-
-Why twice the budget? A cut invalidates a region of the request. Cutting larger chunks less often avoids constantly shaving its front. This is hysteresis, not a guarantee about cache hits on an untested provider.
-
-The actor advances its presentation watermark only after a successful response. A new result therefore reaches a successful request before automatic clearing can select it. After restoration, the first request conservatively presents retained results again. Recorded cuts, however, are never reconsidered: raising T later cannot resurrect them.
+Actual provider context capacity remains a separate constraint. Retention is
+not a promise of unlimited context. If the material does not fit, report that
+limit and choose a deliberate reduction rather than silently discarding a
+previously kept result under another threshold.
 
 ## 14.5 Keep or stub, once
 
@@ -8866,7 +9006,7 @@ Selection occurs against the Context that was presented, before recording the co
 
 Every completed assistant response has a canonical entry, even an empty response. That entry closes the prior batch's once-only decision boundary. A later text-only turn or snapshot-only restart must not reconsider a batch that was kept. This uses the existing conversation structure rather than a persistent batch registry.
 
-Keeping is not unlimited retention. The ordinary ladder may still stub or remove an oversized kept batch when its band requires it. Small results, ordinary-model sessions and a zero target retain their defined behavior.
+Keeping protects the batch from immediate stubbing and later size-based reconsideration. It does not make context capacity unlimited or survive an explicit handoff. Small results, ordinary-model sessions and a zero target retain their defined behavior.
 
 ## 14.6 Explain the work so useful reasons survive
 
@@ -8894,6 +9034,14 @@ Narration is evidence of what the Agent said, not proof the statement remains tr
 
 ## 14.7 A handoff is a fact, not a destructive summary
 
+A handoff also releases media from active model context. Image, audio, video and
+document parts no longer travel in subsequent requests, whether supplied by a
+human or returned by a tool. Keep accompanying text; omit an entry if no parts
+remain. The person can supply media again when it is needed. This is a context
+reduction, not an instruction to erase the original event or delete its source
+file. The GUI may continue showing earlier messages and images. Existing log
+retention remains independent of what the model receives.
+
 The earlier positional `compress_context` experiment let a model choose messages to replace with a summary. The September 2026 account described repeated loss of most of the conversation, including the goal near its beginning. Later whole-task handoffs started a fresh instance from a document, introducing a second path for durable state. Neither approach is the mechanism to reproduce here.
 
 `micro_handoff` is smaller and more constrained. The model supplies a nonempty `text` note through the normal tool protocol. Admission validates it; the ordinary successful result is recorded before the note can take effect. If the response also contains another tool, its outcome must be recorded before the cut. Interruption pairs undispatched tails with their exact-ID refusals first. Independent Jobs are not cancelled merely because their observations no longer belong in context.
@@ -8906,6 +9054,40 @@ The actor then records `HandoffRecorded` carrying a value-like `HandoffPart`. Hi
 4. Removing older active handoff parts and appending the newest note.
 
 Do not recognize a handoff by a magic prose prefix. The marked part makes replacement precise. Engine converts it to ordinary system text only in the disposable provider projection. Canonical Context and snapshots retain its identity. Original notes and private parts remain in the event archive; clearing a working view does not rewrite history.
+
+### A checkpoint must not become its own next task
+
+A cut can preserve the wrong ambiguity. Suppose the assistant says, "I will save
+the checkpoint now," and then successfully calls `micro_handoff`. The cut removes
+the call and its successful result, but retains the promise. If the next request
+contains only that promise and an unlabelled note, the model may try to finish a
+handoff that has already finished. Repeating the same reassuring sentence is not
+progress, even when each individual cut is valid.
+
+Carry completion across the cut. In the current renderer, a typed `HandoffPart`
+projects with `[Completed micro_handoff checkpoint]`, followed by an explanation
+that the checkpoint and cut have already happened and that the model should
+continue from the note rather than repeat the handoff merely to perform it.
+This label is derived from the recorded fact, not inferred from assistant prose.
+It does not invent a missing tool result, change the canonical note, or prohibit
+a later handoff after more work. A refused handoff must not acquire this label.
+
+Test the continuation, not only the reduction. Use a real Agent with a bounded
+loopback provider that first returns a future-tense promise and a handoff call.
+On the following request, inspect the actual wire body. Require the completion
+label and the note, then return useful continuation. An adversarial peer should
+repeat the handoff when the label is absent, stopping after a small fixed number
+of requests so the test itself cannot loop forever. Require exactly one recorded
+handoff and the expected continuation, not merely a final response of any kind.
+Remove the label as a negative control: that version must fail the continuation
+assertion. Check snapshot restoration and provider projections too, and retain
+the separate tests for refused calls, companion ordering and interruption.
+
+The current focused check is `--handoff-continuation-tests` on the `agent/Tests`
+executable. It demonstrates a deterministic missing-receipt failure and its
+repair, not a guarantee that every live model will stop repeating itself. The
+historical endpoint grade below did not test this condition. Do not award an
+anti-loop claim merely because two successive handoffs retained their notes.
 
 The note should say what succeeded, what failed, where the source of truth lives, and what comes next. Failed approaches are often the highest-value bytes because they prevent repetition. Record uncertainty too. A note is a continuation aid, not proof of subjective continuity or a substitute for checking current state.
 
@@ -8975,7 +9157,7 @@ The library Agent owns the live byte target. The GUI's settings snapshot reads i
 
 The GUI field is `context_target_bytes`. Its convention is intentionally different from the library setter: zero or a negative value selects the 400,000-byte default, positive values round to thousands, and a rounded zero also selects the default. Large values are bounded safely. A wrong-typed optional field is ignored like the existing preference fields. The control shows acknowledged values, retains a proposed edit while saving, and restores acknowledgement on failure.
 
-The CLI takes `--context-budget-bytes N` or `EN_CONTEXT_BUDGET_BYTES`; an explicit flag wins. Here zero disables automatic reduction, and negative values refuse. Document this difference instead of hiding it behind a shared parser with contradictory semantics.
+The CLI takes `--context-budget-bytes N` or `EN_CONTEXT_BUDGET_BYTES`; an explicit flag wins. Here zero disables opt-in immediate result stubbing, and negative values refuse. Document this difference instead of hiding it behind a shared parser with contradictory semantics.
 
 Live reductions also change already-rendered cards. Incremental frames newer than a cursor cannot remove an older tool card. The GUI therefore uses its existing silent replay envelope when a recorded cut crosses the peer's view. Snapshot Context supplies the transcript; diagnostics cannot resurrect a cleared model dispatch card. The completed-response frontier retires both stored and late streamed partials at `ResponseEnded`, not only at the end of the entire turn.
 
@@ -9012,21 +9194,35 @@ dotnet Cli/bin/Debug/net10.0/ch04.dll render /owned/session/archive.jsonl
 
 These commands inspect recorded facts and render a request; they do not establish provider success. CLI JSON-line user input queues work. If an exercise needs a clear after a particular turn, wait for that turn's durable completion rather than sending several lines and assuming each blocks.
 
-The executable-scoped grader is invoked from the book repository with `-ch 14 -executable-only -gui EXECUTABLE -json`. Its executable argument is a launcher for the built C# GUI, not a static-assets directory. The launcher forwards flags; the grader supplies owned paths, dummy credentials and loopback peers. The default Go grading route remains separate.
+The historical executable-scoped grader was invoked from the book repository with `-ch 14 -executable-only -gui EXECUTABLE -json`. Its executable argument is a launcher for the built C# GUI, not a static-assets directory. The launcher forwards flags; the grader supplies owned paths, dummy credentials and loopback peers. The default Go grading route remains separate.
 
-Its eight checks cover instruction survival, handoff pairing and sibling order, keep/stub behavior, recorded cuts across a changed target, current declarations and actual MCP unload refusal, snapshot versus full-log replay, anchored SIGKILL/backup recovery, and total reduction. Current startup skills are explicit in restart fixtures; saved configuration is not secretly reactivated. Historical inline-tool placement is not credited to this C# path.
+Its eight checks covered instruction survival, handoff pairing and sibling order, keep/stub behavior, recorded cuts across a changed target, current declarations and actual MCP unload refusal, snapshot versus full-log replay, anchored SIGKILL/backup recovery, and total reduction. Current startup skills are explicit in restart fixtures; saved configuration is not secretly reactivated. Historical inline-tool placement is not credited to this C# path.
+
+That preserved grader includes old size-cut expectations; it does not certify the corrected retention contract below. Do not change frozen endpoints or claim its historical score as a new grade.
 
 Then use the application, not just the report. Observe a full result before a later stub, keep a result, clear while paused, issue two handoffs, refresh, and restart with zero diagnostic retention. Change settings from a second client and deliberately fail an owned settings write. Repeat the cut projection with SSE so a disappearing final cannot leave an old partial tool card. Speech wiring and visual/browser assertions are still not proof of native hearing or accessibility.
 
 ## 14.14 What this endpoint establishes
 
-The final component suite has 89 passing groups. A separate assembly consumer uses public APIs for policy updates, real host-control handoffs, paused clear, full archive replay, zero-log restoration and complete owner detachment. Its seeded historical tool exchanges are replay fixtures, not claims of executed effects. CLI and plain/SSE browser exercises separately use real actor, Job, persistence and host paths with working loopback boundary fakes.
+At the historical chapter boundary, the component suite had 89 passing groups. A separate assembly consumer uses public APIs for policy updates, real host-control handoffs, paused clear, full archive replay, zero-log restoration and complete owner detachment. Its seeded historical tool exchanges are replay fixtures, not claims of executed effects. CLI and plain/SSE browser exercises separately use real actor, Job, persistence and host paths with working loopback boundary fakes.
 
-The scoped executable grade passes all eight checks for 100/100. The first attempt scored 70/100 because its adapter assumed restored manuals and a Go event label; correcting the fixture made current startup selection explicit and checked the actual C# encoding. Those earlier failures remain failures, not retroactive successes. The progress record retains the detailed receipts and process exits.
+At that boundary, the scoped executable grade passed all eight checks for 100/100. The first attempt scored 70/100 because its adapter assumed restored manuals and a Go event label; correcting the fixture made current startup selection explicit and checked the actual C# encoding. Those earlier failures remain failures, not retroactive successes. The progress record retains the detailed receipts and process exits.
 
 The live-provider check remained blocked by the lack of an approved credential source in the test session. The local results establish the state transitions above, not model quality or the unverified speech and accessibility behavior.
 
 The lesson is not that smaller context proves better memory. It is that every retained byte has a reason, every cut is an inspectable fact, and recovery can reproduce the working state without guessing what the Agent must have meant.
+
+### Regression: large results stay kept
+
+Use a real Agent with a bounded fake provider. Return a result larger than the
+former two-times-T/8 cutoff; consume it and explicitly keep it, then make later
+requests without repeating the keep control. Assert the exact payload remains
+in each rendered request, no budget redaction is recorded, and save/restore
+retains the same decision. Also cover ordinary sessions without immediate
+stubbing, small companion results, and deliberate stubbing when keep is absent.
+A negative control restoring the old ladder must fail the large-kept case.
+Historical Chapter 14 grade receipts do not certify this revised retention
+contract; the old ladder expectations are superseded, not retroactively passed.
 
 ---
 
@@ -13332,6 +13528,7 @@ ensemble-data/
       jobs/
       children/
         researcher/
+          child.json
           save.json
           submit.md
           children/
@@ -13389,7 +13586,23 @@ Null or empty model/skill overrides inherit from that source. Snapshot its curre
 
 Serialize registry operations with one gate. Validate the complete registry before restoring any peer: missing files mean no peers, but malformed, inaccessible, duplicate, or damaged entries must not silently become an empty registry. Build peers through their ordinary owners, restore their own History, initialize their selected skills, and save initial History. Only atomic replacement of `ensemble.json` commits a new peer's successful creation. Failure joins and destroys newly constructed live peers without deleting prior conversations.
 
-Restoration creates registry peers, not their saved delegated descendants. Old child directories remain data until an explicit operation uses them. They are not instructions to respawn a tree.
+Restoration also reconstructs registered ordinary descendants under each restored peer and the host-configured initial Agent. A directory containing old History alone is not a registration. Disposable memory compressors must not become ordinary workers simply because they saved a conversation.
+
+### Restarting delegated work without replaying effects
+
+A host restart used to remove every live child from the tree even though its files survived. In our Measure X reconstruction, the child had made useful progress, but restarting the screenshot build made it disappear from the GUI and stopped its reminders. Manually spawning the same ID recovered the conversation; that was recovery work the application should handle.
+
+I require ordinary children to carry their restart registration in their own home. There is no second global child registry. `child.json` records a version, local identity, model, submission schema and accepted-work generation, current submission and pause flags, an acknowledged submission checksum, and goal configuration. It contains no credentials, provider endpoint, transcript copy, process handle, or copied service bag. Common owns this vocabulary and the real Agent fields; the functional Agent partial implements persistence and reconstruction through its Sandbox.
+
+Save changed restart settings before acknowledging them. New accepted work invalidates prior completion in the restart record even while the historical `submit.md` remains available. A restored submitted flag is usable only with the matching generation, payload checksum and a valid existing submission artifact. These are separate file replacements, not a multi-file transaction; a mismatch refuses restoration rather than inventing acceptance. In particular, reading an arbitrary old answer still cannot complete newer work. Model choices remain subject to the current parent's provider and sandbox policy.
+
+The host composition root calls `RestoreChildrenAsync`. Enumerate and validate ordinary child registrations, construct through the actual parent, restore each child's own History, initialize current skills, and reconstruct descendants. Refuse malformed or identity-mismatched records rather than treating corruption as an empty fleet. A failed restoration joins and removes the children it just constructed. An already-live child is not duplicated. Borrowed GUI mounts do not become startup owners.
+
+Restoring ownership is not replaying execution. Old HTTP requests, shell Jobs, queued tool calls, and observer handles are not restarted. Submitted children remain idle. Deliberately paused children remain paused. Explicit `shutdown_agent` and `kill_agent` retire restart registration while preserving saved work; ordinary host shutdown retains it.
+
+For registered children, goal file selection, enabled state and reminder interval now survive restart. A fresh timer begins only after restoration; there is no burst of missed reminders or immediate replay of an interrupted tool. The reminder tells the child to inspect saved results before continuing. Current skill authority and a fresh bounded goal-file read remain necessary. Missing authority or an unreadable goal leaves reminders off with an actionable diagnostic. A completed submission disables them durably. Standalone Agents retain their existing session-local goal contract.
+
+This is a restart contract, not a promise that an interrupted external effect did or did not happen. Recovery must reconcile evidence. Existing children created before registration was implemented need an explicit migration from their known live state; do not guess registrations from arbitrary saved directories.
 
 Ordinary application shutdown preserves registry and files. Explicit `DeletePeerAsync` refuses retained unfinished children before closing the target's admission, joins teardown, removes the registry entry, and detaches the live Agent. Saved files remain. If registry replacement fails, retain the stopped registered peer for a retry. Cancellation can stop a request before irreversible teardown; after shutdown begins, join to a definite outcome rather than abandon half a deletion.
 
@@ -13506,7 +13719,7 @@ Publication validates the payload, checks current generation and lifetime, atomi
 
 Validate the exact envelope, local child ID, schema, payload, and available parent provenance. A named parent's version-2 artifact must match that parent address; a copied artifact from another tree is not accepted merely because its leaf ID matches. Version-1 data remains explicitly unprovenanced. Address provenance is relative to this Ensemble, not a cryptographic signature or globally unique identity across unrelated installations.
 
-The tool reports `historical: true`. Reading old bytes does not set `Submission()`, clear a failure, advance a generation, or satisfy a join. Accepting new work invalidates old live completion even if the previous file remains on disk. Restoring History likewise does not revive old submission as new success.
+The tool reports `historical: true`. Reading old bytes does not set `Submission()`, clear a failure, advance a generation, or satisfy a join. Accepting new work invalidates old live completion even if the previous file remains on disk. Restoring History alone likewise does not revive old submission as new success. Ordinary child restart additionally requires its current registered generation and submitted state to agree with the validated artifact.
 
 This deliberately differs from a memory-first fallback. Fresh reads make external file replacement visible and avoid a second authoritative cache. Filesystem failures return bounded diagnostics rather than exposing an absolute private path.
 
@@ -13605,7 +13818,7 @@ Pass the executable host, not the DLL alone. If this shell's installed runtime c
   "$PWD/agent/Cli/bin/Debug/net10.0/ch04"
 ```
 
-The adapter supplies a loopback provider, owned working directory, shipped skill activation, correlated JSON control messages, and joined EOF shutdown. It holds model work to inspect activity, tests positive owned-child access and negative cross-tree access, observes a running change wait before releasing progress, checks fresh cursors and queued replies, and exercises recursive questions and bottom-up submission. Retained wire records distinguish finalized output from submission and current completion from historical files.
+The adapter supplies a loopback provider, owned working directory, shipped skill activation, correlated JSON control messages, and joined EOF shutdown. Its composition row now also launches the actual CLI twice against one isolated data home: the second process must expose an ordinary submitted child without another spawn, make no unsolicited inference, and retain the old conversation when explicitly given fresh work. This adds obligations to the existing row, not new points or a claim that all timer and GUI restoration races are graded. It holds model work to inspect activity, tests positive owned-child access and negative cross-tree access, observes a running change wait before releasing progress, checks fresh cursors and queued replies, and exercises recursive questions and bottom-up submission. Retained wire records distinguish finalized output from submission and current completion from historical files.
 
 These local checks do not verify live-provider entitlement, OAuth, billing, native-platform behavior, audible speech, or human accessibility. The earlier failures and the scope of each passing result remain in the progress record.
 
@@ -13615,7 +13828,7 @@ Implement and inspect the management layer through the existing owners:
 
 1. Declare lifecycle/work-phase values, ownership-tree snapshots, homes, peer operations, and child-output contracts in Common. Keep persistent state there and functional bodies in their responsible directories.
 2. Derive current activity from the actor, and accounting from Engine. Verify thinking, tool, waiting, paused, submitted-but-draining, idle failure, and shutdown boundaries without a duplicate scheduler flag.
-3. Give all top-level actors sibling homes. Separate those homes from History save paths. Persist strict immutable peer launch choices and restore peers without respawning descendants.
+3. Give all top-level actors sibling homes. Separate those homes from History save paths. Persist strict immutable peer launch choices and ordinary child restart records. Restore registered descendants through real parents; exclude disposable helpers and unregistered historical directories. Test fresh reminder intervals, retained pause, current submission generations, malformed registration and explicit removal without replaying tools.
 4. Derive canonical addresses through actual parents. Keep global trusted GUI lookup separate from direct-child tool authority, including repeated local IDs and unnamed transient roots.
 5. Add the management tools and the real shipped grants. Test an owned success as well as cross-tree refusal. Demonstrate that cancelled observation leaves underlying work alive.
 6. Verify graceful shutdown versus kill with held real work. Do not assume a prompt acknowledgment proves completed teardown, and do not resume paused work as a side effect of waiting.
@@ -13629,7 +13842,7 @@ Implement and inspect the management layer through the existing owners:
 
 Use a fresh owned data directory and browser profile. Keep an existing working Ensemble and its browser untouched. Watch a child move through thinking, tool execution, and waiting; then switch between two conversations and confirm that messages and controls go to the selected one. Check that late old-view fragments do not contaminate the new transcript and that replay does not narrate old content.
 
-Create a named peer, choose its model and skill, close the application cleanly, and restore from the same directory. Confirm its own conversation survives, the initial actor remains separately host-configured, and delegated children were not silently recreated. Delete the peer and verify that it no longer restores while its saved data remains available for deliberate inspection.
+Create a named peer, choose its model and skill, close the application cleanly, and restore from the same directory. Confirm its own conversation survives and the initial actor remains separately host-configured. Include an ordinary child with an enabled goal, a paused child, a submitted child, and a nested child. Verify that the tree returns, only eligible enabled reminders resume after a fresh interval, and the others remain stopped. Explicitly remove a child, restart again, and verify that retained files do not revive it. Delete the peer and verify that it no longer restores while its saved data remains available for deliberate inspection.
 
 If a selected skill needs browser tools, open the explicit independent relay. Also try cancellation before the relay arrives and a headless launch against the same requirement. The first must join rollback; the second must refuse promptly by default.
 
@@ -13637,7 +13850,7 @@ Then assess legibility, speech, and practical supervision with real work. Protoc
 
 ### Engineering takeaway
 
-A useful fleet is not a larger collection of callbacks. It is a set of understandable owners with precise operations: admit work, observe progress, preserve results, and destroy relationships completely. Keep facts where they belong—activity on the Agent, accounting on Engine, transcript on History, process lifetime on Job, launch configuration on Ensemble—and make every management operation travel through those actual relationships.
+A useful fleet is not a larger collection of callbacks. It is a set of understandable owners with precise operations: admit work, observe progress, preserve results, and destroy relationships completely. Keep facts where they belong: activity on the Agent, accounting on Engine, transcript on History, process lifetime on Job, and launch configuration on Ensemble. Make every management operation travel through those actual relationships.
 
 ---
 
@@ -13698,7 +13911,7 @@ and fail to use it.
 >
 > **Accounting and headroom.** Import the joined child's measured model/tier/billing rows exactly once, including failed and canceled attempts with completed usage. Do not alter the parent's latest direct response or cache lens, invent unknown counts, or charge again during replay. Determine pressure from the latest actor-accepted main response and a known selected-model window, not cumulative session totals. At 90%, add a request-only handoff warning. At 95%, declaration and dispatch admit only already-authorized `micro_handoff`. Never grant it implicitly. If a compressor is pending, wait for that exact attempt before the next main request while keeping the mailbox responsive; failed or invalidated work produces an explicit headroom error.
 >
-> **Settings and checks.** Keep the earlier conversation/tool byte budget behavior. Add six immutable memory policies: conversation, soul, memory, archive64, archive8, session. Default conversation budget is 3,000 UTF-8 bytes; each corpus band defaults to 1,500. High watermark defaults to twice budget, low watermark to budget. Zero selects defaults; invalid values refuse. SOUL has no automatic inbound waterfall. Save Agent-local policy atomically before publishing it. Startup reads it before scanning; disable retires active projection without deleting files, and re-enable freshly reads disk. GUI acknowledgment follows actual actor application and is scoped to the selected Agent. Test failure windows with real History, Sandbox, actors and owned local provider fakes; passing those tests does not prove real compression quality or provider caching.
+> **Settings and checks.** Keep the earlier conversation/tool byte budget behavior. Add six immutable memory policies: conversation, soul, memory, archive64, archive8, session. Default conversation budget is 3,000 UTF-8 bytes; each corpus band defaults to 1,500. Each band has one size setting: budget. Graduation triggers above twice budget and reduces toward budget; those thresholds are derived, not configurable. Zero selects the band default; negative sizes and sizes whose doubled threshold overflows refuse. SOUL has no automatic inbound waterfall. Save Agent-local policy atomically before publishing it. Startup reads it before scanning; disable retires active projection without deleting files, and re-enable freshly reads disk. GUI acknowledgment follows actual actor application and is scoped to the selected Agent. Test failure windows with real History, Sandbox, actors and owned local provider fakes; passing those tests does not prove real compression quality or provider caching.
 
 ### What This Means in Plain Language
 
@@ -13733,7 +13946,7 @@ The names `bucket-0` and `bucket-1` are storage conventions, not new owners. The
 
 ### A budget is a trigger and a writing target
 
-The default conversation budget is 3,000 UTF-8 bytes; SOUL, MEMORY, archive64, archive8 and session each default to 1,500. A zero budget selects the applicable default, rather than disabling a band. Default high and low watermarks are twice and once the resolved budget. Disabling is a separate boolean, so “off” cannot be confused with “use the default.”
+The default conversation budget is 3,000 UTF-8 bytes; SOUL, MEMORY, archive64, archive8 and session each default to 1,500. A zero budget selects the applicable default, rather than disabling a band. High and low watermarks are always twice and once the resolved budget; they are internal derived thresholds, not additional settings. Disabling is a separate boolean, so “off” cannot be confused with “use the default.”
 
 These are byte budgets, not token windows. The earlier Chapter 14 target and tool-result policies remain distinct. A main request can have substantial overhead from instructions, tool declarations and provider formatting; counting memory bytes alone cannot predict its token occupancy.
 
@@ -13968,7 +14181,7 @@ Stable files may be absent; invalid UTF-8, unreadable files and confinement fail
 
 `SetMemorySettingsAsync` is an in-memory library operation. `SaveMemorySettingsAsync` is the durable host operation. Both use the actor; the latter requires an Agent home and writes the versioned strict policy file through Sandbox's atomic replacement.
 
-The document contains `version: 1` and a `memory` object with six named band policies. Each policy has `budget`, `high_watermark`, `low_watermark` and `disabled`. It is not the host's appearance preference document. Unknown fields, duplicate keys, malformed values and unsupported versions refuse rather than silently select defaults.
+The document contains `version: 1` and a `memory` object with six named band policies. Each policy has only `budget` and `disabled`. The version-1 reader also accepts the complete legacy four-field shape (`budget`, `high_watermark`, `low_watermark`, `disabled`): legacy thresholds are validated but no longer configure the policy. Reading never rewrites the file; a later explicit save writes the size-only shape. Partial legacy shapes refuse. It is not the host's appearance preference document. Unknown fields, duplicate keys, malformed values and unsupported versions refuse rather than silently select defaults.
 
 The durable path preflights before saving. A failed save leaves the old policy and live worker alone. A successful save precedes policy publication and relevant worker invalidation. If application subsequently fails, the caller must be told that the new file was saved but the policy was not applied; that is a different state from “nothing changed.”
 
@@ -14082,10 +14295,11 @@ nine of ten checkpoints find the band under budget and do nothing.
 
 These are the reference test's reported structural numbers. The conversation stays at 1,600
 bytes against 16,000 unbounded. Four memories were written. One fold
-fired. The ladder from chapter 14 and the memory bands from this
-chapter are additive: the ladder removes tool bytes, the bands
-compress dialogue, and the combination holds the total context to a
-fraction of its unmanaged size.
+fired. The historical reference combined the old Chapter 14 size-cut ladder
+with memory-band compression. The current retention contract removes that
+ladder: a deliberately kept tool result is not silently cut by size. Memory
+compression and explicit handoff remain separate mechanisms; these historical
+numbers are not a measurement of the revised policy.
 
 The band sizes are not a compression measurement, and printing them
 as one would be wrong. The compressor in this test is a fake that
@@ -14999,7 +15213,7 @@ for name in ('memory', 'docs', 'handoffs', 'learnings'):
     'QuartzZephyr migration lunch recipes use apples and cinnamon, '
     'not database transactions.\n')
 # Disable live memory injection so this test must retrieve the retired source.
-band = dict(disabled=True, budget=5000, high_watermark=10000, low_watermark=5000)
+band = dict(disabled=True, budget=5000)
 settings = dict(version=1,
     memory={name: band for name in
             ('conversation', 'soul', 'memory', 'archive64', 'archive8', 'session')},
@@ -16383,7 +16597,7 @@ can depend on.
 
 ---
 
-# Chapter 25 — Goals
+# Chapter 25: Goals
 
 I would give Ensemble a job that ought to keep it occupied for most of a day. An hour later, it could be sitting there doing nothing. Codex had done the same thing. Neither program was necessarily broken. The model had finished a response, but the job was not finished. Work resumed when I noticed and poked it.
 
@@ -16400,9 +16614,9 @@ The first mechanism preserves an objective across compression. The second suppli
 
 > **C# edition boundary.** This implementation was originally built on the preserved `solutions/ch23` endpoint. The optional Codex path and Gateway have since been completed locally; their historical endpoints retain their original names. Goals does not depend on either integration. The final crossover exercise in Chapter 27 still requires the human's replacement acceptance.
 
-## §25.0 TL;DR — What to Build
+## §25.0 TL;DR: What to Build
 
-Build an opt-in, session-local Goals feature on the existing Agent actor. Do not add a scheduler service, a goal database, a second model conversation, or a browser-owned timer.
+Build an opt-in Goals feature on the existing Agent actor. Standalone settings are session-local; Chapter 20’s registered ordinary children persist their own goal settings for restart. Do not add a scheduler service, a goal database, a second model conversation, or a browser-owned timer.
 
 ### The control
 
@@ -16457,14 +16671,14 @@ Pause suspends the timer. Resume starts a fresh interval. Interrupt disables rem
 
 Show the selected Agent's status, not the host actor's status by accident. Distinguish unloaded, unconfigured, working, waiting for a reminder, paused, reminders off, and file error. Show disconnected or switching state honestly rather than presenting an old observation as current.
 
-Provide labelled Apply, Reminders off, Clear, and Reload controls. Acknowledgment means the actor applied the update. The browser must not optimistically claim success when a checkbox changes. These controls are session-local; they do not write the durable memory/recall policy or appearance preferences.
+Provide labelled Apply, Reminders off, Clear, and Reload controls. Acknowledgment means the actor applied the update. The browser must not optimistically claim success when a checkbox changes. These controls do not write the durable memory/recall policy or appearance preferences. Standalone settings are session-local; registered children save goal configuration in their own restart record before acknowledging changes.
 
 ## §25.1 Write an Objective, Not a Repeated Command
 
 A useful goal file tells the agent what remains, how to recognize completion, and where its authority ends:
 
 ```markdown
-# Goal — finish the parser correction
+# Goal: finish the parser correction
 
 The parser accepts a malformed trailing record. Reproduce that defect with
 an owned local fixture, correct it, and review the complete changed call path.
@@ -16584,7 +16798,7 @@ The interface must not collapse these states:
 
 **Submitted is not idle.** A delegated Agent's accepted submission is an authoritative result. A later automatic turn would admit new work and invalidate that result. Disable the goal at successful submission publication, then let the actor dispose its timer. A refused submission must leave the goal alone.
 
-**Restart is not resume.** The file remains on disk, but configuration is session-local. A new Agent needs an explicit setup. Children have their own sessions; the parent's file and enabled flag are not copied into them.
+**Restart is not replay.** Standalone configuration remains session-local and needs explicit setup in a new process. Chapter 20’s registered ordinary children restore their own goal configuration and enabled interval under current authority. Eligible reminders start a fresh delay after restoration; saved calls and Jobs are not replayed. Submitted children stay off and deliberately paused children stay paused. The parent's file and enabled flag are never copied into a child. Missing current authority or an unreadable goal prevents automatic continuation and requires explicit repair and re-enabling.
 
 In earlier runtime work, a missing visible explanation made a real failure look like an unexplained pause. That is a useful lesson here, but it is not a claim that the historical provider failure was reproduced in C#. If a file becomes unreadable, status should say so. If the socket disconnects, the GUI should say its current knowledge ended there.
 
@@ -16606,7 +16820,7 @@ Await actor application before acknowledging. Broadcast updates only to tabs vie
 
 The form has a draft, not a second configuration. Periodic status frames must not erase what the user is typing. Apply sends the draft; the acknowledgment repopulates the controls with accepted values. Reload discards the draft in favor of an observation. Off and Clear remain distinct actions.
 
-Working and reminders enabled are separate facts. An Agent can continue its current request after reminders are turned off. Show “Working — reminders off,” not “Off” as if the request had disappeared. Likewise, the displayed deadline is the core's observed deadline, not a browser countdown that promises a future callback.
+Working and reminders enabled are separate facts. An Agent can continue its current request after reminders are turned off. Show that the Agent is working with reminders off, not simply “Off” as if the request had disappeared. Likewise, the displayed deadline is the core's observed deadline, not a browser countdown that promises a future callback.
 
 Use text labels and ordinary keyboard-accessible controls. The local browser exercise checks their DOM behavior; it does not establish that a particular person can see or hear them comfortably. Human accessibility and audible behavior still require human use.
 
@@ -16713,49 +16927,49 @@ The omitted provider configuration is intentional: a chapter example must not si
 Open the owned GUI URL and the Goals controls:
 
 1. Confirm **No goal configured**. Startup loading the skill has not enabled anything.
-2. Enter the printed goal-file path, leave reminders unchecked, and Apply. Observe the acknowledgment and **Reminders off — goal retained**.
+2. Enter the printed goal-file path, leave reminders unchecked, and Apply. Observe the acknowledgment: reminders are off and the goal is retained.
 3. Send a short human request. Inspect an authorized request trace if you need evidence of instruction placement; the model's answer alone does not prove what was sent.
 4. Edit the goal file. Send another request or enable a short supervised reminder and observe the fresh objective.
 5. Pause before a deadline and verify that inference does not start. Resume and observe a fresh interval rather than an immediate accumulated alarm.
 6. Turn reminders off while work is active. The current work remains work; only future idle wakes stop.
-7. Reload the page. The same running Agent still owns its configuration. This is not process-restart persistence.
+7. Reload the page. The same running Agent still owns its configuration. Then separately test a registered child across process restart using Chapter 20’s exercise: its own enabled goal returns with a fresh interval, while a paused or submitted child does not run. Do not infer process persistence from a browser reload.
 8. Clear the goal. Confirm the file still exists. Close the owned host through its normal shutdown path.
 
 If a test or provider request is already running, inspect it instead of starting another copy just to obtain a newer timestamp. When finished or genuinely blocked, turn reminders off and say which state applies.
 
 ## §25.9 Exercises
 
-### Exercise 1 — Freshness in the Same Turn
+### Exercise 1: Freshness in the Same Turn
 
 Use a boundary provider that returns a tool batch editing the goal and calling `micro_handoff`. Capture the next request. Show that it contains the new objective without requiring a new human message. Also show that Goals did not append the file body to canonical History.
 
-### Exercise 2 — The Stale Callback
+### Exercise 2: The Stale Callback
 
 Arrange for a timer callback to become eligible, then reconfigure or unload before the actor accepts it. Show why disposing the timer alone is insufficient. Assert that the old generation produces no request.
 
-### Exercise 3 — Submission Is a Boundary
+### Exercise 3: Submission Is a Boundary
 
 Give a delegated Agent an independent goal. Refuse one malformed submission, then accept a valid one. Verify the goal stays enabled after refusal and stops after successful publication, while the parent's configuration is unchanged. Do not equate ordinary final prose with submission.
 
-### Exercise 4 — Status Without Authority
+### Exercise 4: Status Without Authority
 
 Query an Agent with Goals unloaded. The GUI should show that state, not grant the control to obtain status. Then load the skill and verify that no configuration appeared as a side effect.
 
-### Exercise 5 — Two Tabs, Two Agents
+### Exercise 5: Two Tabs, Two Agents
 
 View different Agents in two tabs. Apply a goal in one, switch the other, and introduce a delayed old status frame. Demonstrate both identity filtering and that an unsaved form draft is not periodically replaced by a status refresh.
 
-### Exercise 6 — Missing File, Honest Outcome
+### Exercise 6: Missing File, Honest Outcome
 
 Remove a configured file before a wake. Verify zero inference from that wake, an explicit file-error status, and usable Off/Clear controls. Restore the file and explicitly re-enable. Do not report the interrupted task as completed.
 
-## §25.10 What Goals Does—and Does Not—Buy Us
+## §25.10 What Goals Provides and Where It Stops
 
 The goal file carries a durable objective. The runtime brings its current contents into ordinary requests. An opt-in timer gives an idle Agent another chance to examine the work.
 
 That is useful, but it is not self-certifying autonomy. A reminder can encounter a real blocker. The model can misunderstand the objective. A healthy independent job may still need time. The process can be stopped, the file can disappear, or an active request can remain stuck without becoming idle.
 
-I require the agent to inspect, distinguish those states, and explain its decision. Continue when there is useful authorized work. Wait when waiting is correct. Ask when a human decision is genuinely needed. Stop reminders when the goal is complete or human-dependent—and preserve which of those happened.
+I require the agent to inspect, distinguish those states, and explain its decision. Continue when there is useful authorized work. Wait when waiting is correct. Ask when a human decision is genuinely needed. Stop reminders when the goal is complete or human-dependent, and preserve which of those happened.
 
 Goals should reduce the number of times I have to poke the agent. It should not reduce the amount of judgment in the work.
 
@@ -16763,16 +16977,18 @@ Goals should reduce the number of times I have to poke the agent. It should not 
 
 # Chapter 26: Voice and Images
 
-> **Opening draft.** This chapter currently contains only the TL;DR and the idea
-> in plain words. The new interaction paths have not been implemented or graded.
-> Working code comes next, then exercises and graders, passing results, and the
-> full chapter body. Earlier media support is a foundation, not evidence that
-> these GUI features already work.
+> **External media grading complete:100/100.** Image-files20, attachments25,
+> voice30 and host-screen25 pass their executable scopes. The native macOS
+> primary-display run verified both selector forms, delayed Jobs and full-image
+> replay without recapture. Provider, platform and human-use limits remain
+> explicit below; this score does not certify every device or failure race.
+> Speech output follows Chapter7's browser-local preferences and single
+> Agent-wide pause state.
 
-## TL;DR — Specification Brief
+## TL;DR: Specification Brief
 
 Extend the working GUI with push-to-talk input, pasted images, screenshots of the
-connected Ensemble page, and Agent inspection of image files. Build on the media
+computer running the C# server, and Agent inspection of image files. Build on the media
 parts and capability checks from Chapter 5 and the file authority from Chapter 18;
 do not create a second conversation or media pipeline.
 
@@ -16785,27 +17001,44 @@ do not create a second conversation or media pipeline.
   follows the existing hint contract. Display recording, transcription, and
   failure states, and provide cancellation. Empty or failed transcription sends
   nothing. Lost focus, pointer cancellation, connection loss, or an agent switch
-  cancels the pending operation rather than sending partial speech later. Late
+  cancels uncommitted work rather than sending partial speech later. Cancellation
+  cannot retract a message already admitted. Late
   callbacks must not submit it or redirect it to a newly selected Agent.
 - **Paste images into chat.** Accept image content from the clipboard, show a
   preview with removal controls, and send it with the accompanying text when the
   user presses Send. Preserve their order and the intended recipient. A preview
   is not delivery to the Agent. Validate format, size, and image dimensions before
   accepting the attachment; refusals leave the user's remaining draft intact.
-- **Capture the connected page.** Provide an Agent-callable screenshot operation
-  for the connected Ensemble page, with explicit capture authority and a truthful
-  result. The result must make actual image pixels available to the Agent, not
-  merely return a filename or a description of page elements. Other windows,
-  tabs, and the desktop are outside this initial scope and require a separate
-  permission decision. There is no background screen monitoring.
+- **Resize oversized images safely.** Use a maintained image library to decode
+  and proportionally downsize images that exceed delivery dimensions or byte
+  limits, without enlarging small images or overwriting original files. Bound
+  source bytes, decoded pixels, frame count, and output bytes; reject unsafe or
+  malformed input before expensive processing. Preserve readable detail where
+  possible, report the resulting dimensions and any reduction, and refuse clearly
+  if a useful bounded image cannot be produced. Deliver the actual resized bytes,
+  not only resize metadata. Test this shared behavior for pasted images,
+  screenshots, and image-file inspection; provider-specific limits remain explicit.
+- **Capture the server computer.** Implement the C# equivalent of CodeRhapsody's
+  host-side `list_displays` and `screenshot` tools. Enumerate displays and their
+  bounds; capture one whole selected display (display zero when omitted) on the
+  machine running Ensemble. Return actual bounded PNG pixels through the existing
+  image-tool path, with capture and output dimensions, not just a filename or DOM
+  description. A request from a phone captures the server computer, not the phone.
+  This operation does not require a connected Chrome page or a browser sharing
+  picker. Require explicit host-screen tool authority and respect OS screen-
+  recording permission; refuse denied access, invalid bounds, unavailable displays,
+  and unsupported platforms clearly. Do not elevate privileges or bypass OS
+  permission. Capture only on request, not as background screen monitoring.
 - **Inspect an image file.** Provide an image-reading operation for an explicit
   path, using the Agent's existing Sandbox and supported media representation.
   Enforce file authority, format, and resource limits; report missing, forbidden,
   or unsupported input honestly. The operation must deliver the image to the
   selected model, rather than treat a path, browser-only preview, or textual
   metadata as proof that the image was seen.
-- **Preserve the existing owners.** The browser owns capture and composition;
-  the Agent owns admission and History; the Engine renders supported media for
+- **Preserve the existing owners.** The browser owns microphone capture and
+  attachment composition; the server owns native screenshot capture and its
+  resource cleanup. The Agent owns tool authority, admission, and History; the
+  Engine renders supported media for
   its provider. Keep media references and provenance in the established parts,
   not base64 copies in ordinary transcript text. A model recommendation is not a
   media capability declaration. Unsupported models or placements refuse clearly;
@@ -16829,9 +17062,9 @@ a vendor, or phone usability; each needs evidence of its own.
 
 ## In Plain Words
 
-A person can already type to Ensemble and listen to its replies. That is useful
-at a desk, but a phone makes the missing inputs obvious. Describing a picture in
-text takes work that the picture could do directly. Typing a message occupies
+Bill was using Ensemble from his phone while away from his desk. Text input
+already worked, but the phone made the missing inputs obvious. Describing a
+picture takes work that the picture could do directly. Typing a message occupies
 hands that could instead hold a microphone button for a moment.
 
 The voice interaction is deliberately simple: hold, speak, release. Releasing
@@ -16854,17 +17087,892 @@ it. The Agent needs the actual image through the media path supported by its
 model. Otherwise, an apparently successful attachment would invite an answer
 based on a filename or a guess.
 
-Screenshots and image files meet at that same path. One obtains pixels from an
-authorized page capture; the other reads a named file under the existing file
-policy. Neither needs its own history or permission system. A structured page
-snapshot can help find controls, but it is not a screenshot and cannot establish
-what those controls look like. Conversely, permission to capture the Ensemble
-page does not grant access to everything else on the screen.
+Screenshots and image files meet at that same image-delivery path. The screenshot
+tool captures a whole display on the computer running the C# server, just
+as CodeRhapsody does. The image-file tool reads a named file under the existing
+file policy. Neither needs a second conversation history. File-read permission
+alone is not permission to capture the host screen.
+
+This distinction matters when the person is using a phone: the phone can ask the
+Agent to inspect the server computer's screen without sharing a Chrome tab or
+opening a browser picker. The operating system may still require screen-recording
+permission. If permission or platform support is absent, the tool must say so. A
+structured page snapshot is not a screenshot, and the separately implemented
+browser-tab capture is not a substitute for this host-side operation.
 
 The important boundary is not whether the interface has a microphone or camera
 symbol. It is whether the person's intended input reaches the intended Agent,
 with permission, once, and with a clear failure when it cannot. That boundary is
 what lets the same interaction remain trustworthy on a desktop or a phone.
+
+## 26.1 Four inputs, one conversation
+
+The new inputs should arrive at the conversation the person already understands.
+An image pasted beside a caption belongs to that message. A spoken sentence,
+after transcription, is a normal human message. An image inspected by a tool
+belongs to that tool call and its result. None of these paths needs another chat
+history or a private queue that competes with the Agent's mailbox.
+
+Their acquisition paths differ:
+
+```text
+clipboard or file picker → browser draft → server preparation → AgentInput
+microphone → bounded WAV → transcription → original Agent's mailbox
+Sandbox image file → preparation → typed tool result
+whole host display → native capture → preparation → typed tool result
+```
+
+After admission, the existing owners take over. The Agent records History and
+schedules work. The Engine renders a frozen request for its provider. The GUI
+projects that history for the person. A busy Agent receives a transcribed message
+through the same hint behavior as typed input; voice does not interrupt a model
+request by inventing a different scheduling rule.
+
+A preview proves that the browser decoded something. A filename proves that a
+name was returned. Neither proves that the model received pixels. The useful
+assertion is further downstream: the actual provider request contains the
+expected image bytes in the correct human message or paired tool result.
+
+That distinction shapes both implementation and tests. Keep images as typed
+media parts. A sentence such as “Screenshot saved to capture.png” is useful
+metadata, but it cannot stand in for the screenshot. Likewise, audio recording
+success is only the start of a voice operation. The intended Agent must eventually
+receive the transcript, or the operation must fail without sending it elsewhere.
+
+## 26.2 Put ownership where the lifetime lives
+
+The browser owns the live microphone track, its audio context and worklet, and
+the buffers used to make a recording. Its image composer owns pending file
+readers and preview URLs. Selection changes can therefore invalidate unfinished
+work immediately and release the resources those operations created.
+
+On the server, an Agent keeps its existing Sandbox for image-file access. Host
+capture has a different authority boundary: the operating system's displays are
+not files inside that Sandbox. The native backend owns its short-lived helper
+process and private scratch directory. It returns bytes into the same preparation
+pipeline rather than exposing a new general-purpose filesystem API.
+
+Voice transcription is an optional child of the Ensemble application. One
+application-owned client holds the separately selected payer and joins its HTTP
+work during destruction. A socket's voice lease borrows the actual Agent selected
+when recording began. It does not look up a fresh recipient after transcription
+finishes. The connection owns the lease and its notification work and joins them
+when the connection ends.
+
+These relationships matter most when something changes. A different selected
+Agent does not inherit an old recording. A replacement socket does not inherit
+permission to resend an old commit. Destroying a resource owner cannot simply
+forget a task because its cancellation token was signalled.
+
+Use immutable values at the boundaries. Prepared images own their output bytes;
+validated voice audio owns a snapshot of its canonical WAV. Once admitted, these
+values do not depend on a browser array that can still change or an original file
+that might be removed. The provider renderer consumes the frozen request, not
+whatever happens to be on disk later.
+
+## 26.3 Prepare an image once, with bounded work
+
+Image preparation is shared by attachments, image-file inspection, and host
+screenshots. This avoids three independent interpretations of orientation,
+resizing, and acceptable output.
+
+The source policy admits static PNG, JPEG, WebP, and GIF images. It bounds source
+bytes before unbounded reading, checks decoded dimensions before full raster
+processing, refuses animation, applies EXIF orientation, and strips metadata from
+the delivered derivative. Resizing preserves aspect ratio and transparency, never
+enlarges a small image, and never overwrites the original. The derivative is PNG.
+
+Bill asked for large images to be resized rather than merely rejected. The
+derivative needs to remain useful without changing the source. The current
+application limits serve different purposes:
+
+- A source image is at most **64 MiB** and **24 million decoded pixels**.
+- A prepared image has a longest edge of at most **2,048 pixels** and contains at
+  most **8 MiB** of PNG bytes.
+- One interactive input admits at most **four images**, each within that prepared
+  limit, with **16 MiB** of prepared image data in total.
+- The GUI separately bounds its combined source-image bytes at **64 MiB** before
+  preparation. A source-upload allowance is not a prepared-message allowance.
+- Each provider render has a fresh allowance of **32 image occurrences** and
+  **32 MiB** of image payloads, shared across human, tool, and ephemeral images.
+
+The last allowance is a request-admission check, not permission to delete older
+images from History. Repeated appearances consume it too. It excludes other
+request overhead, such as base64 expansion and JSON, and does not establish a
+provider's token capacity or account entitlement.
+
+### When an image limit made a working Agent look idle
+
+During page-by-page review of a scanned document, Cadence stopped responding to
+messages and automatic reminders. Restarting restored the same failure. Bill
+asked another Agent, Test, to investigate. Test reported 33 retained tool-result
+images totaling about 15 MiB: the count limit had been crossed, even though the
+byte allowance had not. Request construction failed locally before any provider
+request was sent. Each failed turn returned Cadence to idle with the same images
+still in active context.
+
+The guard protected the request, but its placement trapped the recovery. Asking
+Cadence to call `micro_handoff` required another model request, which the same
+guard refused. Token-pressure handling could not substitute for image accounting.
+The GUI compounded the problem: it narrated explicit error events, while this
+local failure recorded only turn completion with an error reason. Bill heard
+silence instead of an explanation.
+
+Test used the external **Clear tools** control to remove the image-bearing tool
+context without deleting canonical History or project files. Bill confirmed that
+Cadence responded again, then requested a proper handoff. The permanent lesson
+is to preserve a usable request *before* admitting the next image, and to report
+local failures through the same visible error path as provider failures. Raising
+the count limit would merely postpone the next trap.
+
+A regression must exercise the whole sequence: fill the image allowance, request
+one more image, receive an explicit refusal while the previous images remain,
+checkpoint, then retry successfully. Also test queued human attachments, byte
+exhaustion, and an already-over-limit saved context. A renderer test that merely
+expects the limit exception does not establish that the Agent can recover.
+
+The Agent checks cumulative image pressure before accepting new human images or
+publishing image-bearing tool results. Queued inputs reserve their allowance too.
+A human refusal admits neither the caption nor the images and preserves the GUI
+draft. A refused tool delivery records an explicit error instead of claiming the
+model received pixels; the Job retains its output. Automatic snapshots follow the
+same rule. Existing images remain available so the model can write a deliberate
+`micro_handoff`, then retry the refused image. No automatic image retirement or
+silent tool-result trimming is authorized by this safeguard.
+
+A previously saved over-limit context can still fail rendering. That refusal is
+recorded as a visible, narratable error before turn completion, without a provider
+request. For retained tool images, the external **Clear tools** control can restore
+headroom without requiring inference or deleting canonical History. It does not
+clear human attachments; those require an explicit handoff through host control.
+
+Preparation first chooses a bounded size. If the PNG remains too large, smaller
+attempts are sampled from the original decoded raster rather than repeatedly
+resampling a derivative. When a useful bounded output cannot be produced, the
+whole operation refuses. Report original and delivered dimensions so the model
+and person can reason about the detail that remains.
+
+The implementation uses pinned SkiaSharp packages. Choosing that dependency
+required testing the actual Debug and Release paths, not merely finding a
+library with a convenient API. An earlier library candidate encountered a
+Release-build licensing requirement and was replaced. The general lesson is to
+check the package version, distribution conditions, and native assets you will
+actually ship. A successful restore alone does not verify those assets on every
+operating system.
+
+These limits bound accepted input and allocation; they are not isolation from
+bugs in native decoders, a process-wide concurrency budget, or a guarantee of
+readable small print. Keep those claims separate.
+
+## 26.4 Inspecting a file must deliver the file's pixels
+
+`inspect_image` starts with ordinary tool authority and a supported image-result
+surface. Check the selected model's capability before reading the path. An
+unsupported model should receive a clear refusal, not cause private file access
+followed by silent omission.
+
+Then use the Agent's existing Sandbox to read and prepare the file. Do not add an
+absolute-path fallback because a confined read failed. In the public API, the
+preparation and access to the pixels are deliberately small:
+
+```csharp
+PreparedImage image = agent.PrepareImage(path);
+BlobPart pixels = image.Image;
+```
+
+The tool result contains those pixels together with dimensions and reduction
+metadata. It remains paired with the original tool-call ID. Errors such as a
+missing file, forbidden path, malformed image, or unsupported format are explicit;
+they do not become an apparently successful metadata-only result.
+
+Acquisition is performed once. Rendering a later turn should use the retained
+prepared bytes, not reopen the source path. Deleting the original after successful
+inspection is therefore a useful test: the first request and a later request must
+still contain identical prepared pixels.
+
+Tools retain their ordinary Job behavior. A foreground observation can return a
+running Job before image preparation finishes. The Job must retain a structured
+terminal result, including media, for later observation. A filename in an output
+log is not enough. Ending an observation does not cancel that Job, and an image
+must not be flattened into a JSON string merely because it arrived after the
+first observation window.
+
+Retention policy is also distinct from output allowance. A person may deliberately
+ask for a large result and keep it for discussion. Chapter 14's explicit retention
+and handoff rules govern that decision; the former size-based ladder must not
+silently override a kept result. A deliberate handoff removes media from derived
+active context while retaining accompanying text according to that reducer's
+contract. It does not prove that the original GUI history or every retained log
+entry was deleted.
+
+## 26.5 Render the media the provider actually supports
+
+The shared value is a typed image part. The wire encoding is provider-specific.
+Responses represents image-bearing function output as typed content alongside
+text; text-only results retain their simpler representation. Anthropic places
+image content inside the appropriate tool result. Gemini's supported
+function-response image form requires its own parts and references, along with
+preserved call identity and thought-signature information where applicable.
+
+Do not infer those contracts from model names. Human-input images and images in a
+function response are different capabilities. The implementation has an explicit
+function-response-image capability for the verified `gemini-3-flash-preview`
+path. That is not a promise about every newer Gemini model or an older fallback.
+Unsupported nesting or placement must refuse rather than disappear.
+
+Rendering must preserve ordering, call pairing, and the existing shared image
+budget. It must not mutate canonical History to satisfy a provider. Nor may it
+switch vendors, choose another model, or silently change the payer because the
+current selection lacks a capability.
+
+Test the actual outgoing request. A local fake provider can assert that a specific
+tool-call ID is answered by one image-bearing result and decode its pixels. A
+bounded real-provider probe establishes something additional: that the selected
+API and model accept the representation. Neither result implies entitlement or
+support for a different model, streaming mode, or platform.
+
+## 26.6 An attachment draft belongs to one recipient
+
+The browser's image composer retains the text and images that the person is
+preparing. It provides previews, removal, and an explicit file-picker fallback to
+clipboard paste. File reads are bounded and cancellable; preview URLs are revoked
+when no longer owned. Late file-reader completion cannot attach an image to a
+newly selected Agent.
+
+Sending captures the original socket, Agent address, and a monotonic per-socket
+sequence. The server prepares the images once, admits the text and prepared
+images together, and returns a matching acknowledgement with dimensions. This
+acknowledgement means actor admission, not completed inference.
+
+On a clear refusal, keep the draft available for correction. On success, clear
+only the matching draft. Ignore acknowledgements for another socket, Agent, or
+sequence. If the connection disappears after sending but before acknowledgement,
+the outcome is uncertain. Automatically resending could duplicate a message the
+Agent already accepted. Preserve that uncertainty and require an explicit human
+decision instead of treating reconnect as permission to retry.
+
+Keep layout work part of the interaction contract. The composer now gives the
+text input its own full-width row, with attachment, microphone, and Send controls
+below it. A phone-sized viewport and enlarged text must not squeeze the writing
+area to make room for another button. Accessible names and visible states matter
+more than a color change alone.
+
+Laptop image delivery was accepted in live use. Android paste was later accepted
+after reinstalling Chrome's web app. That establishes the successful interaction;
+it does not establish the underlying cause of the earlier failure. Retain the
+file picker as a useful explicit attachment path without declaring all Android
+clipboard behavior either broken or solved by that one observation.
+
+## 26.7 A screenshot of which computer?
+
+The screenshot requirement exposed a specification mistake. The first
+implementation captured the connected browser page with Chrome's sharing API.
+It produced actual pixels and passed isolated native-tab tests, but it captured
+the wrong surface for the requested feature.
+
+Bill clarified that he meant CodeRhapsody's host-side capture: ask the server to
+capture its primary display, or select another from its display list. Cadence
+had implemented a different feature. The clarification changed the remaining
+work even though the browser tests passed. A person
+using a phone can request a screenshot of the server's screen. There is no need
+to negotiate a Chrome tab picker on the phone.
+
+The two features remain distinct. Browser capture has browser gesture and picker
+requirements. Host capture has explicit tool authority and OS screen-recording
+permission. Success in either path does not establish acceptance of the other.
+The additional Ensemble confirmation dialog in the browser implementation was a
+design choice, not a separate requirement imposed by the human.
+
+The host interface follows the reference tool shape:
+
+```json
+{"name":"list_displays","arguments":{}}
+{"name":"screenshot","arguments":{"display":0}}
+{"name":"screenshot","arguments":{}}
+```
+
+These are example tool requests, not a script to run against an arbitrary private
+screen. Agree on the whole display before a native test. The only selection
+argument is optional `display`, a nonnegative zero-based integer. Omitting it
+selects display zero. There is no window measurement or rectangle selection.
+Old rectangle arguments refuse rather than silently expanding a region request
+to a whole-display capture. Strict interfaces that require a value can send zero.
+
+This simpler contract followed a live debugging failure: the model-facing surface
+supplied display and rectangle fields together, while the backend required one or
+the other. Repeated retries did not resolve that mismatch. Bill removed rectangle
+selection because window measurement was distracting from the debugging task.
+Test the advertised schema as well as the parser: an omitted selector and explicit
+zero must choose the same display, and no rectangle fields should be advertised.
+
+The source `host-screen` skill grants these tools separately from `code-tools`
+and browser access. Safe mode and unskilled legacy registries refuse them, and
+an unsupported image model is rejected before native screenshot acquisition.
+Recheck authority and cancellation before returning the prepared pixels. Installing
+a tool definition alone is not a grant to see the desktop.
+
+The current backend is **macOS-only**. It obtains bounded display metadata,
+preflights screen-recording permission, and runs the fixed built-in
+`/usr/sbin/screencapture` executable with a fixed argument structure. There is no
+model-selected shell command. The helper receives an empty environment and writes
+to private owned scratch. Its deadline is 15 seconds. Cancellation kills and joins
+the owned process and output readers before scratch removal; cleanup errors must
+not hide the original failure.
+
+The backend checks source-pixel bounds using conservative display scaling, then
+passes returned bytes through shared image preparation. Output dimensions must
+agree with the selected display and supported scale. Each request captures one
+whole display, not a composite of several. Other operating systems refuse explicitly. These are current
+implementation limits, not claims of full cross-platform parity with CodeRhapsody.
+
+Permission preflight currently refuses denied access; it does **not** open an OS
+permission prompt automatically. Before the display-only simplification, an agreed
+macOS synthetic-window test verified the native backend and tool-delivery path. It
+exercised native capture through the real Agent tool, a running Job followed by
+collection, actual pixels in the local fake-provider request, and identical replay
+on the next human turn. It made one capture and four local provider requests.
+This is not a paid-provider interpretation test, other-platform acceptance, or
+proof of every permission-change race. The later whole-display external run used
+a newly agreed primary-display fixture and verified omitted and explicit-zero
+selection, distinct delayed Jobs and replay. That run establishes the changed
+selection contract; old rectangle-based evidence alone did not. Browser-page
+replay remains separate from host-screen acceptance.
+
+That native test caught a HiDPI assumption the synthetic metadata tests could not.
+A 640×360 logical rectangle produced 1280×720 pixels. `CGDisplayPixelsWide/High`
+reported 1920×1080, while the current display mode's pixel dimensions were
+3840×2160. Read backing dimensions from the copied display mode and release that
+native object in `finally`; do not assume logical coordinates equal raster pixels.
+This matters before capture, because the source-pixel safety bound must include
+scaling. Verify the selected display's actual pixels as well as its dimensions;
+simply relaxing a failed dimension assertion is not acceptance.
+
+## 26.8 Make the recording format small enough to reason about
+
+Bill specified hold, talk, and release to send, without an editable transcript or
+another Send press. That interaction does not require every audio container a
+browser or provider can produce. The current recorder makes one canonical representation: mono,
+16 kHz, 16-bit PCM in a 44-byte-header WAV. At 60 seconds that is 960,000 samples,
+or **1,920,044 bytes including the header**.
+
+The browser recorder owns its original audio tracks, audio context, worklet,
+message ports, and sample storage. Keeping the original track membership is
+important: a mutable stream object must not make cleanup forget an original
+track or stop an unrelated track added later. The worklet provides bounded sample
+processing without playing the microphone back through the speakers.
+
+Release stops capture and finishes one WAV. Cancel, device loss, processing
+failure, or exceeding the duration limit produces no partial send. An asynchronous
+permission result or worklet load may arrive after cancellation. Recheck liveness
+before using it, stop late tracks, and join cleanup. Cancelling an operation does
+not mean the browser's native permission prompt or module load can be forcibly
+aborted.
+
+The server constructs `PcmVoiceAudio` only from a validated copied snapshot. It
+checks the exact canonical header, matched lengths, sample alignment, nonempty
+data, and the duration ceiling before paying for transcription. Duration derives
+from sample count, not a browser clock or an untrusted container field. This is a
+format validator, not a general WAV decoder or a speech detector; valid samples
+can still be silence.
+
+The hold controller sits above the recorder. Releasing before permission and
+recording are ready cancels the gesture instead of turning a late permission
+grant into background listening. It owns repeated releases and delayed finish
+callbacks. The page-level control adds pointer loss, blur, visibility, selection,
+and socket cancellation, plus the visible Cancel action.
+
+## 26.9 Keep the transcription payer explicit
+
+Transcription is a separate service operation from the Agent's chat inference.
+A running application with subscription-funded chat must not silently use an API
+key because that subscription cannot transcribe audio. The GUI host defaults to
+transcription off.
+
+To enable the implemented route, append explicit options to the authorized GUI
+host launch:
+
+```text
+--transcription openai-api-key
+--transcription-key-file /path/to/private/settings.json
+```
+
+The selected file must contain a nonempty `openai_api_key`. Alternatively, the
+explicitly enabled route can use `EN_TRANSCRIPTION_API_KEY`. Do not put the secret
+itself in command arguments, a fixture, or a transcript. An explicitly selected
+bad key file fails closed; it does not fall back to another credential source.
+Disabled transcription does not read the file. Advertising availability exposes
+payer and model metadata, not the key.
+
+The current client uploads the canonical WAV to OpenAI's transcription endpoint
+using `gpt-transcribe` and a non-streaming JSON response. Its fixed policy includes
+one active request per application-owned transcriber, no automatic retry, a
+45-second maximum request timeout, a 65,536-byte response bound, and a 32,768-byte
+transcript bound. Missing usage remains unknown; supplied malformed usage refuses.
+Token usage and duration usage are distinct, and neither is fabricated from the
+recording's duration.
+
+The single active request is a deliberate concurrency limit: simultaneous voice
+requests can receive a busy refusal rather than building an invisible paid queue.
+Cancellation invalidates delivery even if a transport returns late, and destruction
+joins that work before disposing its owner. Provider errors and cleanup failures
+must not expose the key. Raw audio does not belong in ordinary chat history or
+unredacted frame traces.
+
+Verify current [speech-to-text documentation](https://developers.openai.com/api/docs/guides/speech-to-text)
+and [model pricing](https://developers.openai.com/api/docs/models/gpt-transcribe)
+before a live test. Published rates are estimates for planning, not a measured
+bill. The accepted Dev test used an explicitly selected OpenAI key for
+transcription while retaining its existing chat funding.
+
+## 26.10 Separate readiness from commitment
+
+Bill's release-to-send requirement needs an admission protocol as well as a
+correct recorder and transcriber.
+
+A transcription result can be correct and still belong to an operation that the
+person has abandoned. The voice protocol therefore separates acquisition from
+commit:
+
+```text
+browser                          connection-owned server lease
+voice_begin  ------------------> bind original Agent and sequence
+             <------------------ voice_begun
+voice_audio  ------------------> validate WAV, transcribe once
+             <------------------ voice_ready
+voice_commit ------------------> consume once, admit to original Agent
+             <------------------ voice_accepted
+```
+
+Every request carries the original Agent address and sequence; the browser also
+keeps the original socket. An empty-string address is valid for an unnamed root,
+so check its type rather than rejecting it for being falsey. The server lease
+borrows the real Agent selected at begin. Comparing that relationship at commit
+prevents a delayed result from following the GUI's latest selection.
+
+`voice_ready` does not carry a draft transcript for another Send button. It tells
+the still-current browser session that transcription completed. The session
+rechecks its binding and automatically sends `voice_commit`. This preserves the
+required hold–talk–release interaction while giving cancellation a final boundary.
+
+The server consumes the lease before posting the ordinary message:
+
+```csharp
+consumed = true;
+commit = Target.PostAsync(
+    new AgentInput(InputKind.Message, transcription.Result.Text));
+```
+
+In the actual implementation this occurs under the lease gate, after checking the
+selected Agent, sequence, cancellation, prior consumption, and successful
+transcription. The acknowledgement reports admission. It does not report model
+completion, guarantee an audible response, or retract a message if the browser
+subsequently disconnects.
+
+After commit may have been sent, an error or lost acknowledgement is uncertain,
+not proof of non-delivery. Do not retry that capture on a replacement socket.
+The person can inspect the original conversation. A new intentional recording is
+a new operation; an automatic replay of the old one is not.
+
+## 26.11 Cancellation must win before the next effect
+
+A state notification is a callback boundary. Tests exposed a race in which a
+listener cancelled the session during a state change, but execution continued to
+the next send. Setting a variable earlier in the method was insufficient.
+
+The coordinator now rechecks terminal state and current binding at the send
+boundary. It also publishes its cleanup promise before notifying observers, so a
+reentrant cancellation can join the work that is actually being cleaned up. These
+rules are useful beyond voice: publishing an event can run code that invalidates
+the assumptions of the caller.
+
+Cleanup has two sides. Browser cancellation stops capture and makes late callbacks
+inert. Server lease disposal invalidates transcription/commit and joins the tasks
+it owns. A failed or cancelled request stays failed on its own task; disposal does
+not turn it into success. A consumed admission remains consumed, even when its
+outcome is uncertain to the browser.
+
+The microphone control supports pointer/touch holding and Space or Enter while
+the button is focused. The persisted page-level shortcut offers Right Alt, F8,
+or Off. Right Alt is refused for Apple Option-key use and AltGr/composition or
+modifier combinations; it is not a portable system-wide hotkey. Repeats cannot
+start another recording. Changing the preference, losing focus, or forming another
+key chord cancels instead of submitting a fragment. Native Windows and Linux
+keyboard behavior still needs platform acceptance beyond the simulated guards.
+
+An existing text or image draft is not silently bundled into a voice send. Resolve
+that draft first. Keep visible recording, transcription, cancellation, failure,
+and uncertain-commit states; a person listening quickly still needs to know
+whether the recording has stopped and whether a message may already have arrived.
+
+## 26.12 Test the boundary you intend to claim
+
+Use deterministic fixtures to expose races, then use bounded native checks for
+the device and provider behavior those fixtures cannot establish.
+
+For images, decode the outgoing PNG and inspect pixels, dimensions, and pairing.
+A randomized image prevents the fake provider from returning a memorized color
+answer. Verify that preparation leaves the source unchanged, then delete it and
+verify replay. Negative candidates should return plausible metadata without
+pixels or lose the retained payload; the grader must reject both.
+
+For voice, test the recorder, hold controller, browser session, and server lease
+separately, then combine the real components. Synthetic browser audio can exercise
+the actual worklet and canonical WAV production. A held fake transcription
+response lets the test cancel first, release the late response, and prove there
+is no later admission. Duplicate commits, wrong sequences, wrong sockets, and
+selection changes should fail without redirecting speech.
+
+The integrated voice fixture uses real WebSocket leases, the transcription
+multipart/parser path, Agent admission, a local fake model request, and canonical
+History. It bounds the number of requests and joins the browser, host, provider,
+and Agents. In a later live Dev test, Bill released the microphone and saw the transcript,
+but initially thought the Agent had not received it. Cadence checked the durable
+events: the Agent had processed the test messages and completed replies. Bill
+then accepted the interaction as successful. That established live hold/release
+transcription and response, not a display bug or a guarantee about every future
+recording.
+
+Fixtures also need review. A wrong model ID can refuse media before the tested
+path begins. Omitting a non-streaming field is not equivalent to requesting
+streaming. Reading History after destroying its owner is an invalid assertion.
+Those were fixture corrections, not product failures or passing feature evidence.
+
+The external CLI grade initially found a missing SkiaSharp assembly because its
+old `--no-restore` assets predated the image dependency. An offline asset refresh
+from already-cached packages fixed that run without a runtime source change.
+Build state, source state, installed state, and live acceptance are separate facts.
+Do not hide a stale-manifest workaround inside a claim that the product was fixed.
+
+## 26.13 What is verified, and what remains open
+
+At this draft boundary, image-file inspection has local provider-wire and replay
+tests plus a bounded live test for the exact supported Gemini path. Desktop and
+Android image attachment have human acceptance. Voice has component and integrated
+fake-provider tests, and the live Dev interaction has been accepted. Those facts
+do not establish every supported platform, every provider model, or every failure
+race.
+
+Host-screen tools are implemented in source with grant, safe-mode, argument,
+preparation, renderer, and fake-process cleanup tests. Native macOS acquisition,
+model-turn/delayed-Job delivery, and subsequent replay passed with an agreed
+synthetic window and a local fake provider. After simplifying the public tool to
+one display selector, Bill restarted the staged runtime and authorized a whole
+primary-display capture. The live `screenshot(display: 0)` call delivered actual
+3840-by-2160 pixels prepared to 2048-by-1152, with no window measurement, picker,
+or command-line workaround. Cadence inspected the returned GUI pixels. Omitted
+selection was only source-tested at that earlier boundary. The later external
+whole-display run below exercised both omitted selection and explicit zero.
+
+The shared implementation suite passed 339 groups with the child-restoration
+changes; those groups span the application and are not 339 independent multimedia
+acceptance tests. Installation, Bill's reported restart, and the successful live
+capture are separate observations. Neither the earlier synthetic-window test nor
+this earlier authorized display capture awarded the later external host-screen grade.
+
+The **20-point image-files**, **25-point attachment**, **30-point voice**, and
+**25-point host-screen** external scopes now pass, totaling **100/100**. The native
+host run used the agreed synthetic primary display, both selector forms, distinct
+delayed Jobs and full-payload replay on a new turn without recapture. This completes
+the external point allocation, not every platform or human-use acceptance claim.
+
+Speech output now follows Chapter7's browser-local preferences and one Agent-wide
+pause state. A tab addresses only its selected Agent. Stop speech and Escape
+cancel local current/queued speech, preserve typed drafts, and explicitly resume
+from any device. Unchanged local activity cannot veto that resume. Disconnect
+does not invent resume, and reconnect does not reassert stale activity. This repair is separate evidence,
+not a substitute for the separate voice-input external grade.
+
+The external grading gates are now complete. Preserve the remaining platform
+and human-use limitations rather than treating the score as universal acceptance.
+A written chapter, an installed button, a passing fake-provider test, and a live
+human interaction each establish something different.
+
+## 26.14 Review and operate the feature deliberately
+
+Before native capture, agree on a synthetic display and arrange OS permission with
+the person at the host. Do not sweep a private desktop to discover whether access
+works. Confirm actual returned pixels and dimensions, then exercise a model turn
+and delayed Job. Record platform refusals and the cross-display limitation rather
+than substituting browser capture for this test.
+
+Before a live voice check, verify the explicit payer and refresh the tested page.
+Use one short phrase first. A permission prompt may cancel the initial hold;
+allow it, then begin a new deliberate hold. Release should stop capture and send
+without another confirmation. Verify the original Agent's response as well as
+the transcript appearing in chat.
+
+Keep installation separate from testing. Stage only authorized runtime files,
+preserve launchers and credentials, and wait for the old process to exit fully
+before replacing a running host. A closed listener alone does not prove that
+History persistence and Agent destruction finished. Refresh browser assets after
+a verified rebuild; neither a source change nor a build proves the person is
+using the new page.
+
+These interactions extend the existing Agent rather than replace it. Pixels enter
+as typed media; accepted speech enters as ordinary text. Ownership, bounded work,
+explicit authority, and durable admission give the new controls their meaning.
+The following exercises test those relationships, not just whether a button can
+be made to light up.
+
+## Exercises: implementation contract
+
+These exercises extend the same Agent, History, Sandbox, and GUI. They do not
+ask for a parallel media service or a second conversation store. The proposed
+chapter allocation is 100 points. The image-files, attachments and voice commands
+below award separate 20-point, 25-point and 30-point scopes. None awards the
+host-screen scope by itself or certifies the entire chapter.
+The implementation's focused tests remain evidence, not external grades.
+
+### Exercise 26.1: Image-file delivery and replay (20 points)
+
+Implement `inspect_image` as a skill-authorized tool. Read the selected file through
+its Agent's Sandbox, prepare a bounded PNG without changing the original, and
+return actual image content in the matching tool result. Capability validation
+must precede file access. Keep errors explicit: a filename or a description of
+an image is not image delivery.
+
+The initial executable scope checks a narrower, concrete delivery contract:
+
+- Inspect a randomized 4096-by-64 PNG and prepare a 2048-by-32 PNG with the
+  expected interior pixels. Keep the tool-call ID and image placement intact.
+- Preserve the source byte-for-byte during inspection. Then retain the prepared
+  pixels after the source is deleted, so a later human turn can discuss them
+  without another file read or capture.
+- Deliver exactly one matching image result. Metadata-only content, absent or
+  corrupt bytes, wrong dimensions, wrong call pairing, duplicate images, and
+  missing replay must not earn credit.
+
+Use a real candidate CLI and a local fake provider. The grader creates a private
+workspace and a synthetic skill grant; it supplies no live vendor credentials.
+It observes the actual provider requests and joins the candidate process. Its
+fake provider does not prove real-provider availability or model understanding.
+
+Run the **Edition 3** command against an executable wrapper for the candidate's
+JSON CLI:
+
+```sh
+go run ./cmd/grade-edition3 -ch 26 -executable-only \
+  -media-scope image-files -json /absolute/path/to/candidate-cli
+```
+
+Do not substitute `./cmd/grade`: its Chapter 26 is the preserved Gateway grade.
+The new command reports a maximum of **20**, not 100. A 20/20 result certifies only
+this delivery-and-replay scope. Sandbox escapes, resource ceilings, unsupported
+models, cancellation, and cross-provider correctness still require their focused
+implementation tests and review; this scope does not certify them by implication.
+
+### Exercise 26.2: Addressed image attachments (25 points)
+
+Accept pasted images and explicit file selection into a removable preview draft.
+Keep accompanying text and image order, then send the whole message to the Agent
+and connection selected for that draft. A preview or client-side send is not
+actor admission: use the matching server acknowledgement before clearing it.
+
+Test whole-message refusal, late file-reader completion after selection changes,
+duplicate acknowledgements, and reconnect after an uncertain send. Refusal must
+preserve the usable draft. Uncertainty must not trigger automatic retransmission.
+The server must prepare and validate the real image bytes; a client MIME string
+is not sufficient validation. Check usable controls on a narrow phone viewport,
+but record native clipboard acceptance separately from viewport geometry.
+
+The external grader must observe the real addressed WebSocket path and the
+resulting model input. Its negative controls must reject preview-only delivery,
+lost accompanying text, a changed recipient, and duplicate admission. This
+25-point scope now has a passing executable driver. Run it against an ordinary
+GUI executable wrapper that forwards its arguments:
+
+```sh
+go run ./cmd/grade-edition3 -ch 26 -executable-only \
+  -media-scope attachments -browser-node /absolute/path/to/node \
+  -playwright-module /absolute/path/to/playwright \
+  -json /absolute/path/to/candidate-gui
+```
+
+The grader requires an already installed Playwright package and Chrome. It checks
+browser availability before launching the candidate; setup failure exits without
+a candidate score. It downloads nothing. The candidate accepts the ordinary GUI
+port, workspace, data-directory, provider/model/base-URL, funding and no-save
+options. The grader supplies a fresh key-free home and synthetic credential, not
+a running GUI or internal test host.
+
+Eight scenarios cover picker, synthetic paste/removal, separate recipient
+histories, late readers, refusal recovery, uncertain reconnect, acknowledgement
+ordering, and repeated wire envelopes. Randomized prepared pixels and captions
+must reach the loopback provider exactly once. Preview-only, lost-caption,
+misdirected and duplicate-send mutants fail named gates. A phone-sized viewport
+checks layout, not native clipboard support. The command reports **25/25**, not
+100/100; image-file replay remains its separate scope.
+
+### Exercise 26.3: Hold, release, and send once (30 points)
+
+Connect the microphone button and configurable page-level shortcut to bounded
+recording and explicitly funded transcription. Release sends once through the
+original Agent/socket lease, without an editable transcript or another Send step.
+Transcription readiness is not permission to redirect or duplicate admission.
+Keep the transcription payer separate from the running Agent's chat funding.
+
+Use synthetic audio and a bounded fake transcription provider first. Observe the
+real WAV, transcription request, lease, actor admission, and model request. Test
+permission arriving after release, repeat keydowns, duplicate replies, blur,
+Agent switching, disconnect, cancellation during an uncooperative response, and
+cleanup failures. Stop owned tracks and join owned work. A result that arrives
+after cancellation cannot become a late message. After a commit whose outcome is
+unknown, report uncertainty rather than retrying.
+
+The external grader must reject extra confirmation requirements, duplicate or
+misdirected sends, continued capture after cancellation, and implicit API-key
+fallback. Fake audio does not certify a native microphone or a paid API. Keep
+human phone acceptance and provider evidence separate. This 30-point scope now
+has a passing executable driver:
+
+```sh
+go run ./cmd/grade-edition3 -ch 26 -executable-only -media-scope voice \
+  -dotnet /absolute/path/to/dotnet -browser-node /absolute/path/to/node \
+  -playwright-module /absolute/path/to/playwright \
+  -json /absolute/path/to/candidate-runtime-directory
+```
+
+Unlike the executable wrappers above, the voice candidate is a directory containing
+`Ensemble.dll` and `Ensemble.Gui.dll`. The grader compiles its own public-API
+consumer against those assemblies with an installed .NET 10 SDK and empty package
+sources. Missing browser/SDK setup refuses before scoring; failure to satisfy the
+public consumer API is a candidate failure. No package installation or paid call
+is part of this command.
+
+The public `VoiceTranscriber(parent, key, HttpMessageHandler)` overload allows a
+trusted host to supply synthetic HTTP responses without changing the production
+URL or 45-second deadline. Handler ownership transfers only after successful
+construction; refused construction leaves it with the caller. Destruction joins
+active requests before disposing an owned handler. Use synthetic credentials in
+a grader transport, never a real payer key.
+
+Eight modes cover normal hold/release and duplicate commit, explicit funding off,
+permission after release, disconnect and Agent switching during capture or held
+transcription, and provider failure followed by a fresh deliberate recording.
+The oracle independently checks WAV bytes, exactly one human transcript in model
+input, canonical admission across both Agents, ended tracks and joined cleanup.
+Four mutants expose extra confirmation, duplicate commit, wrong recipient and
+actual track leakage. The command reports **30/30** for this synthetic scope,
+not native microphone reliability, real-provider behavior or the host-screen grade.
+
+### Exercise 26.4: Host screenshots (25 points)
+
+Implement `list_displays` and `screenshot` on the computer running the C# server.
+Support one optional display index, defaulting to display zero, and return prepared PNG pixels
+through the existing typed tool-result path. A browser tab, DOM reconstruction,
+file path, or text claiming success does not satisfy this exercise.
+
+Require the explicit host-screen grant and OS permission. Refuse safe mode,
+ungranted calls, unsupported platforms, invalid selection, and unsupported model
+image placement before their corresponding effects. Cancellation must join the
+owned capture process; temporary output must not leak. Preserve structured image
+results through delayed Jobs as well as immediate results.
+
+Test refusal and cleanup with synthetic helpers first. Native success must use
+an announced, agreed synthetic whole display, verify the actual pixels, and
+exercise both a model turn and delayed-Job delivery. Test omitted selection and
+explicit zero, another available display, invalid indices, and refusal of removed
+rectangle arguments before capture. Inspect the advertised schema: only optional
+`display` selects capture; observation controls do not select a region. Record
+platform limits honestly; one display is not cross-display compositing. Do not trigger a permission prompt while the human is away,
+elevate privilege, or introduce background monitoring.
+
+The external grader must reject metadata-only capture, a missing grant,
+capability checks performed after capture, a wrong display, mandatory selection,
+advertised rectangle arguments, missing delayed
+image payloads, and abandoned native work. The driver now passes synthetic wire
+candidates and the agreed real native run passes **25/25**. This result is distinct
+from the reference implementation's earlier synthetic-window and live-display
+acceptance; those earlier observations did not silently award this grade.
+
+Prepare a four-band fixture without opening or capturing any display. For example,
+a 3840-by-2160 backing display prepares to 2048-by-1152:
+
+```sh
+go run ./cmd/host-screen-pattern -width 2048 -height 1152 ./screen-fixture
+```
+
+The command writes `display.html` and a strict `pattern.json`, refusing to overwrite
+existing files. Open the HTML on the **server computer's primary display**, not
+on a requesting phone. Its button enters full-screen only through a human click
+and hides the cursor while full-screen.
+Wait until browser/OS overlays disappear and confirm that the whole display is
+synthetic. Prepared dimensions must match the current inventory; a mismatch
+refuses before capture. A manifest is an expectation, not proof that the screen
+currently contains the pattern.
+
+Only after fresh human authorization and confirmation of that setup, run:
+
+```sh
+go run ./cmd/grade-edition3 -ch 26 -executable-only -media-scope host-screen \
+  -allow-native-host-screen -host-pattern ./screen-fixture/pattern.json \
+  -json /absolute/path/to/candidate-cli
+```
+
+The flag is an explicit operator attestation, not an OS-permission bypass. The
+runner loads the grant, validates inventory, makes two primary-display screenshot
+requests (omitted selector and explicit zero), collects their distinct running
+Jobs, and checks both payloads on a new human turn without recapture. It refuses
+without the opt-in; it never substitutes an unapproved primary display for an
+approved secondary one. The current external scope uses one primary display.
+Other-display selection and platform refusals remain separately attributed.
+
+The pixel oracle checks every pixel within broad, predetermined band interiors:
+inset each band by5% horizontally and the frame by5% vertically, with a minimum
+two-pixel inset. Roughly81% of a large frame is checked, using the same three-level
+RGBA tolerance. Exact dimensions and byte-identical full-image replay remain
+required. Native testing exposed a darkened first row and a tiny corner indicator;
+the screenshot faithfully includes such display details. Do not mistake an HTML
+fixture's ideal colors for a guarantee that OS/browser edges contain nothing else.
+Negative controls alter the first checked pixel in every band and must fail.
+
+For diagnosis, `-host-failure-image /absolute/new/path.png` retains only the first
+mismatching bounded PNG with private permissions. It is opt-in and refuses existing
+paths; normal grading retains no images. Inspect actual failed pixels before
+changing acceptance criteria, and report changes rather than quietly widening them.
+
+The fake provider also distinguishes tool-free recall-judge requests by their
+system instruction and answers them with an empty selection without advancing the
+capture script. A longer prompt exposed this helper traffic before the main turn.
+HTTP request order alone is not the Agent's tool sequence. Retain a long-prompt
+schema-only regression that never enumerates or captures a display.
+
+
+Synthetic controls reject early tool advertisement, rectangle/mandatory-selector
+schemas, metadata-only output, missing or changed Jobs, bad pixels and lost replay.
+Focused backend tests and review must still establish pre-effect capability and
+permission checks and native cancellation: a returned error alone cannot prove
+that no OS side effect occurred. The native test verifies the selected colors on
+this display, not universal color-profile fidelity. Do not widen color tolerances
+merely to obtain a passing grade.
+
+## Grading boundary
+
+All four executable external scopes pass, totaling100/100: image-files20,
+attachments25, voice30 and host-screen25. The host scope has native macOS
+primary-display evidence; the others retain their documented fake-provider,
+synthetic audio and browser boundaries. Architecture review, other-platform
+acceptance and native microphone/phone reliability are not additional claims
+implied by that score. Building, staging, restarting and human acceptance remain
+separate facts. Preserve the evidence and limits beside the executable contracts.
+
+
+## Takeaways
+
+- Prepare and retain actual media bytes at admission; replay must not depend on
+  a source file or device still being available.
+- Bind asynchronous work to its original owner and recipient. A new GUI
+  selection cannot redirect an old recording or attachment.
+- Separate capture, transcription readiness, actor admission, and model response.
+  Each acknowledgement establishes only its own step.
+- Preserve uncertainty after a potentially delivered send. Retrying can duplicate
+  an action that already succeeded.
+- Test the claimed surface: browser capture is not host capture, fake audio is
+  not a native microphone, and a scoped grade is not chapter completion.
+
+[Chapter 27: Crossing Over to Ensemble](chapter-27.md) turns to using the built
+Agent as the working collaborator. The media paths here belong to that same
+Agent and its existing ownership rules.
 
 ---
 
@@ -16890,10 +17998,10 @@ replace the one I use now.
 
 This is the final implementation chapter. Its result is a replacement candidate
 and a safe way for the human to evaluate it. The crossover is complete when the
-human accepts that candidate for ordinary work—not when the student declares it
+human accepts that candidate for ordinary work, not when the student declares it
 finished, and not when an author adds up earlier test counts.
 
-## TL;DR — finish the replacement, not another demonstration
+## TL;DR: finish the replacement, not another demonstration
 
 Start from the completed C# application in `agent`. Do not
 rebuild it from nothing or transplant the old Go GUI. Implement the missing
@@ -16919,7 +18027,7 @@ Preserved source endpoints and grader commands retain their original names;
 see the numbering map in [the edition guide](README.md). Earlier editions remain
 historical records, not files to edit here.
 
-## In plain words — one system, a better place to use it
+## In plain words: one system, a better place to use it
 
 The GUI is a projection and control surface over the existing application.
 Ensemble owns Agents; Agents own their work, History, Engine, and related
@@ -17014,10 +18122,11 @@ ownership and operations, implementing missing presentation behavior without
 rebuilding the core. Do not add another tree or layout framework without a
 concrete need and architectural discussion.
 
-Integrate the existing acknowledged appearance preferences with Bootstrap's
-light/dark presentation. Do not create a second localStorage authority, lose
-saved explicit choices, or apply a rejected setting optimistically. New users
-start dark. Library event handling must not duplicate sends, resets or peer
+Integrate Bootstrap's light/dark presentation with the browser-owned theme
+preference described in Chapter 8. Local storage is the sole theme authority,
+not a second copy of shared settings. Seed it once from the legacy server theme
+when there is no saved local choice; later server frames cannot override it.
+Other shared settings still require acknowledgement. Preserve explicit choices. Library event handling must not duplicate sends, resets or peer
 operations; attaching it again after replay/reconnection must not accumulate
 handlers. Preserve target identity while updating the presentation.
 
@@ -17053,7 +18162,7 @@ Reserve the geometry, not just the labels. Wrapping flex rows and tabular digits
 alone do not stop a longer state or usage value from changing neighboring widths
 or row heights. Bound identity and numeric slots; give model and action controls
 stable tracks. At enlarged text or narrow widths, use an explicit responsive
-arrangement with reachable overflow rather than shrinking text. Pause/Resume
+arrangement with reachable overflow rather than shrinking text. Speech and Agent
 state changes must not make adjacent controls jump either.
 
 The status bar contains:
@@ -17067,17 +18176,23 @@ The status bar contains:
   Compatible model names are not proof of account entitlement. Preserve the
   distinction between running selection and persisted launch configuration.
 - A speaker-icon Speech control with an accessible name and native checked
-  semantics. Speech remains opt-in. Its state is the acknowledged appearance/
-  speech setting, not an independent second toggle. Per-message Speak and Stop
+  semantics. Speech remains opt-in and browser-local, defaulting off rather than
+  inheriting a server enable flag. Header and settings use the same local preference. Per-message Speak and Stop
   speech also use named speaker icons. Retain keyboard access and visible focus.
-- Compact Pause/Resume and Interrupt controls with useful labels, keyboard focus,
-  and adequate click targets. Do not confuse pausing admission with interrupting a
-  turn, or interrupting a turn with killing independent Jobs.
+- A separate Interrupt control with a useful label, keyboard focus and adequate
+  click target. Place Stop speech beside the microphone in the composer, not in
+  this header. Group those voice controls so wrapping cannot separate them.
+  Stop speech is identical to Escape: clear current/queued TTS but preserve the
+  draft, then explicitly resume the selected Agent from any device. Use a non-submit button. Do not build Pause/Resume
+  buttons or confuse stopping speech with interrupting Agent work.
 - A theme button showing a moon for dark and a sun for light. Its accessible
   name must state the switch action, not leave the meaning of the icon ambiguous.
-  Its setting must persist through the existing appearance store and agree with any equivalent
-  settings control. Use dark for a new user unless a saved explicit choice says
-  otherwise. Both themes need high contrast.
+  Its setting persists in this browser's origin-local storage and agrees with the
+  settings selector. Same-origin tabs share it; different devices and browser
+  profiles remain independent. Offer System as well as explicit Light and Dark.
+  If storage is blocked, retain a usable page-session choice without promising
+  persistence. Keep theme controls available offline and do not send theme changes
+  to the backend. Both themes need high contrast.
 
 Use the human's approved artwork proportionally for branding and the browser
 icon. Do not silently crop or redesign it, or leave a sample's placeholder in the
@@ -17276,7 +18391,7 @@ Check both themes, enlarged text, keyboard use, and long content in an actual
 browser. Combine the conditions: test the largest supported text size in narrow
 windows as well as on a desktop, not large text only on a wide screen and narrow
 screens only at the default size. Include long status values and an expanded or
-resized composer. Verify that the prompt, Send, model, theme, and pause/interrupt
+resized composer. Verify that the prompt, Send, model, theme, and speech/interrupt
 controls remain reachable, with a useful conversation reading area and no
 page-wide horizontal overflow. Hiding overflowing controls or silently shrinking
 the chosen text size is not a correction. Bounded status summaries, shorter
@@ -17315,6 +18430,21 @@ cannot change an already built assembly or an already loaded tab. Keep the
 existing borrowed-host and base-path behavior intact, with asset and socket URLs
 relative to the mounted page. Do not make the optional GUI a core dependency.
 
+Serve page HTML with `Cache-Control: no-store`. Give every local stylesheet,
+script and image a content-versioned URL path, including dynamically imported
+modules and their nested dependencies. Freeze one asset snapshot per host and
+use its content fingerprint in those paths. Versioned responses may be cached
+as immutable; never serve new bytes under an old version. Keep unversioned
+compatibility routes non-cacheable. An explicit disk override is also snapshotted
+at mapping time: restart the host to publish edits.
+
+Test root and mounted pages, content changes producing different URLs, old-version
+refusal, cache headers, and actual browser module requests. Browser cache clearing
+does not clear a reverse proxy's cache. Previously cached HTML or assets may need
+one initial proxy purge, and a proxy rule overriding the origin's cache policy
+must be corrected separately. Do not diagnose every startup failure as caching
+merely because one earlier incident had that cause.
+
 The current host accepts `--port`, `--workspace`, `--sandbox`, `--data-dir`,
 `--agent-name`, `--gui-dir`, and `--skills-dir`. Codex selection uses
 `--billing codex --codex-auth-file PATH`; its endpoint is pinned. Inspect the
@@ -17345,6 +18475,56 @@ provider request in the V3 API trace. A browser log showed a request to select
 why the remote trial failed. Inspect stale-browser and invalid-selection behavior
 without turning this clue into a claimed diagnosis. Give the human clear reload
 instructions and show a selection error without leaving controls falsely ready.
+
+### Diagnostics follow the owner
+
+Each Agent owns its diagnostic writers and its own `debug.log`, `api.log`, and
+`gui.log` in its data directory. Ensemble owns `ensemble.log` in the application
+container for host-wide activity. A child does not borrow its parent's writer,
+and selecting another conversation in a browser does not transfer the browser's
+fixed MCP relay identity. Route each event through the actual owner, not through
+a shared root logger or an untrusted address supplied by a client.
+
+Start fresh diagnostic files on each host restart. Load an Agent's durable state
+before replacing that Agent's previous diagnostic files; startup recovery messages
+need the host logger while restoration is in progress. Do not truncate `save.json`,
+its backup, event journals, memories, or credentials. Opening several diagnostic
+files is not a filesystem transaction: a later open can fail after an earlier file
+was replaced. Preserve that failure and attempt every opened writer's cleanup.
+
+Startup reset alone does not bound a long-running session. Each owned diagnostic
+stream has one file capped at 64 MiB, with no rotated previous file. Before a complete
+record would exceed that bound, flush and truncate the already-owned handle,
+reset its position, and write an explicit size-reset marker followed by the new
+record. Serialize that operation with writes and closing. Do not externally
+truncate an open file or reopen an unchecked pathname. Count UTF-8 bytes, including
+newlines and the marker, not characters or record count. Replace a record that
+cannot fit beside the marker with an explicit oversized-record notice and its
+original byte count; never keep a malformed fragment or silently exceed the cap.
+
+API diagnostics omit inline image/audio payloads while retaining their media type,
+encoded length, decoded byte count and SHA-256 where available. Project a diagnostic
+copy, then apply credential masking. Never alter provider requests, retained media
+or canonical History to reduce log size. Malformed structured traces are explicitly
+omitted rather than dumped raw. If API diagnostics are disabled, skip projection
+work. This policy is separate from saved-History retention. A reset loses earlier
+diagnostic context by design; it does not preserve a hidden archive.
+
+Serialize writes within each owner and retain credential masking at write time.
+Surface I/O failure and stop writing that file at an uncertain offset; cleanup must
+still attempt every owned close. Borrowed writers are not subject to automatic
+truncation. Close an Agent's owned writers only after its work has joined; close Ensemble's
+writer after its owned cleanup. Borrowed test or embedding writers stay with their
+caller. An outgoing GUI record labelled queued proves enqueueing, not delivery or
+Agent admission. A later tab selection must not reattribute an older frame.
+
+Verify independent Agents, a child and grandchild, browser selection and falsely
+addressed controls, API credential masking, and fresh files after restart with
+durable records preserved. Exercise repeated byte-limit resets, multi-byte text,
+oversized records, concurrent writers, failed reset/write, no prior-file creation,
+and unchanged actual media delivery despite diagnostic omission. Keep source tests distinct from installation and the
+human's actual restart. The implementation and its current verification boundary
+are recorded in [the diagnostic notes](../docs/edition-3-notes/agent-diagnostics.md).
 
 ## A safe trial and an independent way back
 
@@ -17415,39 +18595,44 @@ A useful session proceeds through these paths:
    output to test scrolling. Preserve the existing safe Markdown behavior:
    unordered and ordered lists must remain semantic lists, and source-wrapped
    prose must remain one paragraph rather than a stack of separate paragraphs.
-   Check headings, inline code, links, and fenced code without executing supplied
-   HTML. A styling change is not permission to replace a working renderer with a
-   less capable one. Reuse the working block parser when adding inline emphasis
-   or expandable code; test semantic elements and displayed whitespace, not only
-   a screenshot or text-content match. Inspect a real artifact supported by the renderer.
-   Disconnect/reconnect and verify repair without duplicate cards or lost text.
+   Check tables, nested lists/emphasis, blockquotes, links and fenced code while
+   chunks arrive. Follow Chapter 7's pinned browser-parser policy: raw HTML stays
+   inert, unsafe links refuse, and Markdown images make no remote requests.
+   Test semantic elements and displayed whitespace, not only a screenshot or
+   text-content match. Keep original Markdown and speech independent of HTML.
+   Verify coalescing and final flush, stable playback focus, selection spanning
+   multiple cards, preserved code expansion, narrow table scrolling, and no
+   forced jump while reading older content. Inspect actual rendered pixels and
+   obtain human streaming acceptance. Disconnect/reconnect must repair the view
+   without duplicate cards, lost text or delayed renders from a previous view.
 3. Create a peer, see its actual place in the tree, select it, return to the
    original, and delete the eligible peer through the existing operation.
    Demonstrate a refusal without pretending deletion succeeded. A displayed
    child must not grant its parent-tab browser authority.
 4. Change a model between turns and exercise the existing busy/refusal path.
-   Change appearance and selected-Agent memory/recall settings; observe the
-   acknowledgment and restart persistence. Simulate a write failure and show
+   Change shared appearance and selected-Agent memory/recall settings; observe
+   acknowledgement and restart persistence. Verify browser-local theme separately:
+   reload, cross-tab synchronization, profile isolation, OS changes, blocked storage,
+   and no backend theme writes. Simulate a write failure and show
    that the old accepted state remains. Selection changes must not apply a
    delayed result or a draft to the wrong Agent.
-5. Exercise Pause/Resume, Interrupt, opt-in speech and theme controls. In
-   particular, type while pause-on-input is active, press Pause explicitly, and
-   send: releasing the automatic typing pause must not undo the manual pause.
-   Also test the reverse order: press Pause, wait for its acknowledged state,
-   type a draft, then clear it or submit it. Observe outgoing controls as well as
-   the real actor's state: the browser must not send an automatic unpause that
-   releases the deliberate pause. A simple Pause/Resume click pair misses this
-   interaction. Keep automatic-pause ownership distinct from a manual request,
-   without creating a browser-owned copy of authoritative actor state.
-   A tab may remember that it requested an automatic pause; that is local control
-   intent, not authority over an already paused Agent. Typing after another tab's
-   Pause must not claim that pause. Explicit Resume must work with an unchanged
-   draft, and explicit Pause must be reachable while typing has automatically
-   paused the Agent. Exercise selection, reconnect, and interruption: stale local
-   intent must neither release someone else's pause nor travel to another Agent.
+5. Exercise Stop speech, Escape, Interrupt, opt-in speech and theme controls.
+   Build Chapter7's single last-command-wins Agent pause state from the start.
+   Typing and speech send local activity edges, not repeated pause demands.
+   Stop speech and Escape cancel local current/queued TTS, preserve the draft,
+   and explicitly resume the selected Agent even if another device caused pause.
+   Unchanged typing or speech cannot veto that resume. Both GUI Pause/Resume
+   buttons are absent. Test two devices, retained drafts and continued speech.
+   Disconnect does not resume; reconnect does not reassert stale activity.
+   Validate commands against the tab's selected Agent, never an unselected child.
+   Test saved child restoration of the single pause flag. Use actual actor status
+   as well as outgoing frames; a changed label alone proves nothing.
+   Verify local narration, rate, voice and speech-pausing preferences through
+   reload, same-origin tabs, independent profiles, blocked storage, removal and
+   offline changes. Server settings must not overwrite them, and controls must
+   send no server speech-settings patches. Turning speech off cancels local audio.
    Wait for actual ready phases: a seeded conversation can be `inputpending`,
-   while a completed turn can be `idle`. A guessed state predicate is a fixture
-   failure, not evidence that Resume failed.
+   while a completed turn can be `idle`. A guessed predicate is a fixture error.
    Keep model changes disabled during admitted work even when later usage/meter
    frames arrive; a status refresh must not accidentally re-enable the control.
    Queued speech counts as busy according to the existing policy; selection cancels
@@ -17466,11 +18651,12 @@ A useful session proceeds through these paths:
    identity-checked settlement used by end/error callbacks. Focus, pageshow and
    visibility events also check liveness. Settlement and cancellation clear the
    watcher; an old callback cannot settle the next utterance. Completion advances
-   queued speech before releasing the local speech pause, so typing or an explicit
-   manual Pause can still keep the Agent paused. Check queue advancement, typing overlap, manual Pause and external
-   Resume against the real server state. A hidden or frozen page may defer browser
+   queued speech before sending resume, so continuing local typing sends no resume.
+   Explicit Stop/Escape still overrides typing. Check queue advancement, typing
+   overlap and last-command-wins controls across connections against the
+   real server state. A hidden or frozen page may defer browser
    callbacks; socket loss additionally prevents delivery. Those cases do not
-   authorize blindly resuming an Agent whose pause may belong to someone else. A fake speech boundary verifies wiring,
+   authorize a server-invented resume on disconnect. A fake speech boundary verifies wiring,
    not hearing. Native voice quality, useful speed, and accessibility need the
    human's own browser and ears before acceptance.
 6. Stop and restart the owned host with the same saved trial state. Continue the
@@ -17592,7 +18778,7 @@ move private state into Git, delete the old installation, or interpret acceptanc
 as permission to publish or push. Execute the actual switch with the human.
 
 The code is rebuildable, not disposable. The durable artifact includes the
-judgment needed to rebuild it—and the judgment to know when it is ready to use.
+judgment needed to rebuild it, and the judgment to know when it is ready to use.
 
 ## Field notes from the first working Cadence crossover
 

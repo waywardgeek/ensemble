@@ -13,6 +13,30 @@ spec.loader.exec_module(build)
 
 
 class PrintBuildTests(unittest.TestCase):
+    def test_controlled_renderer_selection_and_failure(self):
+        import subprocess
+        with tempfile.TemporaryDirectory() as directory:
+            html = Path(directory) / 'input.html'
+            pdf = Path(directory) / 'output.pdf'
+            html.write_text('<p>Fixture</p>')
+            def rendered(args, **kwargs):
+                self.assertEqual(args[0], '/explicit/node')
+                self.assertEqual(args[2], '/explicit/playwright')
+                pdf.write_bytes(b'fixture')
+                return subprocess.CompletedProcess(args, 0, '', '')
+            with patch.dict(build.os.environ, {'BOOK_PLAYWRIGHT_MODULE': '/explicit/playwright',
+                                               'BOOK_NODE': '/explicit/node'}):
+                with patch.object(build.subprocess, 'run', side_effect=rendered):
+                    build.render(html, pdf)
+                with patch.object(build.subprocess, 'run', return_value=
+                                  subprocess.CompletedProcess([], 2, '', 'teardown failed')):
+                    with self.assertRaisesRegex(SystemExit, 'teardown failed'):
+                        build.render(html, pdf)
+                with patch.object(build.subprocess, 'run', return_value=
+                                  subprocess.CompletedProcess([], 0, '', '')):
+                    with self.assertRaisesRegex(SystemExit, 'produced no PDF'):
+                        build.render(html, pdf)
+
     def test_clean_html_and_wrapped_toc_anchor(self):
         html = '''<nav id="TOC"><ul>
 <li><a href="#contents">Contents</a></li>

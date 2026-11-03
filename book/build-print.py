@@ -21,6 +21,19 @@ GEORGIA = Path("/System/Library/Fonts/Supplemental/Georgia.ttf")
 
 def render(html: Path, pdf: Path) -> None:
     pdf.unlink(missing_ok=True)
+    # Optional controlled lifecycle for Chrome versions whose CLI teardown fails.
+    module = os.environ.get("BOOK_PLAYWRIGHT_MODULE")
+    if module:
+        completed = subprocess.run(
+            [os.environ.get("BOOK_NODE", "node"), str(ROOT / "scripts/print-book.cjs"),
+             module, CHROME, str(html.resolve()), str(pdf.resolve())],
+            capture_output=True, timeout=600, text=True,
+        )
+        if completed.returncode:
+            sys.exit(f"FATAL: controlled Chrome exited {completed.returncode}: {completed.stderr}")
+        if not pdf.exists():
+            sys.exit(f"FATAL: controlled Chrome produced no PDF at {pdf}")
+        return
     # A private profile cannot attach to the reader's running browser.
     with tempfile.TemporaryDirectory(prefix="edition3-print-") as profile:
         completed = subprocess.run(
