@@ -514,15 +514,37 @@ its backup, event journals, memories, or credentials. Opening several diagnostic
 files is not a filesystem transaction: a later open can fail after an earlier file
 was replaced. Preserve that failure and attempt every opened writer's cleanup.
 
+Startup reset alone does not bound a long-running session. Each owned diagnostic
+stream has one file capped at 64 MiB, with no rotated previous file. Before a complete
+record would exceed that bound, flush and truncate the already-owned handle,
+reset its position, and write an explicit size-reset marker followed by the new
+record. Serialize that operation with writes and closing. Do not externally
+truncate an open file or reopen an unchecked pathname. Count UTF-8 bytes, including
+newlines and the marker, not characters or record count. Replace a record that
+cannot fit beside the marker with an explicit oversized-record notice and its
+original byte count; never keep a malformed fragment or silently exceed the cap.
+
+API diagnostics omit inline image/audio payloads while retaining their media type,
+encoded length, decoded byte count and SHA-256 where available. Project a diagnostic
+copy, then apply credential masking. Never alter provider requests, retained media
+or canonical History to reduce log size. Malformed structured traces are explicitly
+omitted rather than dumped raw. If API diagnostics are disabled, skip projection
+work. This policy is separate from saved-History retention. A reset loses earlier
+diagnostic context by design; it does not preserve a hidden archive.
+
 Serialize writes within each owner and retain credential masking at write time.
-Close an Agent's owned writers only after its work has joined; close Ensemble's
+Surface I/O failure and stop writing that file at an uncertain offset; cleanup must
+still attempt every owned close. Borrowed writers are not subject to automatic
+truncation. Close an Agent's owned writers only after its work has joined; close Ensemble's
 writer after its owned cleanup. Borrowed test or embedding writers stay with their
 caller. An outgoing GUI record labelled queued proves enqueueing, not delivery or
 Agent admission. A later tab selection must not reattribute an older frame.
 
 Verify independent Agents, a child and grandchild, browser selection and falsely
 addressed controls, API credential masking, and fresh files after restart with
-durable records preserved. Keep source tests distinct from installation and the
+durable records preserved. Exercise repeated byte-limit resets, multi-byte text,
+oversized records, concurrent writers, failed reset/write, no prior-file creation,
+and unchanged actual media delivery despite diagnostic omission. Keep source tests distinct from installation and the
 human's actual restart. The implementation and its current verification boundary
 are recorded in [the diagnostic notes](../docs/edition-3-notes/agent-diagnostics.md).
 

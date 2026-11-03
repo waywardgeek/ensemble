@@ -113,8 +113,8 @@ public static partial class Gui
         var lastMeterWire = new Dictionary<Agent, string>();
         // An explicit path is an embedded-host trace override. Ordinary hosting
         // uses the actual Agent's writer, never a shared root conversation log.
-        using var trace = options.TracePath is null ? null : new StreamWriter(agent.Sandbox().OpenFile(
-            options.TracePath, FileMode.Create, FileAccess.Write)) { AutoFlush = true };
+        using var trace = options.TracePath is null ? null : new DiagnosticFile(agent.Sandbox().OpenFile(
+            options.TracePath, FileMode.Create, FileAccess.Write));
         void Trace(Agent? owner, string direction, string json)
         {
             string projection = TraceProjection(json);

@@ -42,17 +42,19 @@ public sealed partial class Ensemble
             // workspace. No Agent identity supplies this host-wide destination.
             string directory = DataDirectory();
             Directory.CreateDirectory(directory);
-            diagnostics = new StreamWriter(Path.Combine(directory, "ensemble.log"), append: false)
-            {
-                AutoFlush = true
-            };
+            diagnostics = new DiagnosticFile(new FileStream(Path.Combine(directory, "ensemble.log"),
+                FileMode.Create, FileAccess.Write, FileShare.Read));
             ownsDiagnostics = true;
         }
     }
 
     internal partial void Trace(Agent origin, string direction, string payload, IReadOnlyList<string>? exchangeSecrets)
     {
-        payload = RedactDiagnostic(payload, exchangeSecrets);
+        lock (traceGate)
+        {
+            if (apiTrace is null) return;
+        }
+        payload = RedactDiagnostic(DiagnosticMedia.Project(payload), exchangeSecrets);
         direction = RedactDiagnostic(direction, exchangeSecrets);
         string? diagnosticName = origin.Name is null ? null : RedactDiagnostic(origin.Name, exchangeSecrets);
         lock (traceGate)

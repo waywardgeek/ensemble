@@ -1,5 +1,63 @@
 # Agent-owned and Ensemble-owned diagnostics
 
+## Approved self-truncation upgrade — verified source, not installed
+
+Bill approved a single64MiB file per owned diagnostic stream, with no previous
+file. Fresh-on-successful-start remains. At the limit, flush and truncate the
+already-owned handle, reset its position, write an explicit JSON reset marker,
+then write the complete next record. This happens under the writer lock; keeping
+the authorized handle avoids a pathname reopen race. File size counts UTF-8 bytes
+including LF and the reset marker. A diagnostic record too large to fit beside
+the marker is replaced by a small oversized-record notice with its original UTF-8
+byte count. No fragments, prior files, or hidden overflow are retained.
+
+Agent debug/API/GUI files, the Ensemble host file and an explicitly owned GUI trace
+override use the same bounded resource. Borrowed writers remain caller-owned and
+are not truncated or closed by this policy. Destruction still joins work before
+closing owned writers; failed restoration still preserves prior Agent diagnostics.
+A write/reset failure is surfaced and prevents further writes on that file until
+it is closed, rather than assuming a valid offset after partial I/O.
+
+API trace copies replace typed inline image/audio data and media data URLs with
+MIME type, base64 character count, decoded byte count and SHA-256 where valid.
+Malformed media stays omitted; malformed structured payloads get an explicit
+omission notice. Existing credential masking follows projection. Actual provider
+requests, canonical History, retained blobs, journals, saves and memories remain
+unchanged. Disabled API logging returns before parsing/hashing payloads. This is
+not the saved-History gui.log_retention setting and introduces no global cache or
+new credential owner.
+
+Reason: the freshly started main host later held a9.84GiB MeasureX API log after
+about13.5hours. Startup truncation and per-session growth are separate problems.
+Image-heavy request traces repeat payloads; neither a restart policy nor a record
+count bounds their bytes. Bill chose no previous file because we have not needed
+rotated prior diagnostics in this collaboration, accepting loss of pre-reset
+context.
+
+Final verification: eight focused groups pass, including real-file resets,
+UTF-8 accounting, concurrent records, oversized omission, failed-reset poisoning,
+media summaries, borrowed writers, and existing ownership/redaction contracts.
+The final shared suite passes345/345. Real GUI diagnostic routing and image
+admission/privacy checks pass, as do all five public GUI groups. GUI and CLI
+builds are clean. Chapter27 hard prose lint passes with style advisories.
+The public image-files grader passes20/20: actual prepared PNG delivery and
+identical deleted-source replay, with CLI teardown joined. This is that scope's
+regression, not a new full Chapter26 grade.
+
+The first image run failed to load SkiaSharp because the CLI's no-restore output
+had an older dependency manifest. An offline restore using the retained multimedia
+package cache repaired the output; no package downloads occurred. The first
+repair attempt used an isolated cache lacking those packages and refused. A later
+grader invocation used incorrect flags and refused before candidate launch; the
+correct public command then passed. A clean compile alone does not certify a
+runnable dependency inventory.
+
+Evidence: /private/tmp/cadence-log-bounds/shared-final.log and
+/private/tmp/cadence-log-bounds/image-grade-final.json. Nothing installed or
+restarted. This policy bounds individual diagnostic files, not total disk use
+across Agents or filesystem snapshots.
+Earlier sections below preserve the previous ownership-upgrade history.
+
 ## Approved contract; implementation pending
 
 Bill requests one diagnostic owner per Agent and a separate Ensemble owner for

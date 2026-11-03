@@ -34,9 +34,8 @@ public sealed partial class Agent
                     guiPath ?? Path.Combine(DataDirectory(), "gui.log")];
                 foreach (string path in paths)
                 {
-                    opened.Add(new StreamWriter(Sandbox().OpenFile(
-                        path, FileMode.Create, FileAccess.Write))
-                        { AutoFlush = true });
+                    opened.Add(new DiagnosticFile(Sandbox().OpenFile(
+                        path, FileMode.Create, FileAccess.Write)));
                 }
                 diagnosticWriter = opened[0];
                 apiWriter = opened[1];
@@ -75,7 +74,12 @@ public sealed partial class Agent
 
     internal partial void Trace(string direction, string payload, IReadOnlyList<string>? exchangeSecrets)
     {
+        lock (diagnosticGate)
+        {
+            if (diagnosticWritersClosed || apiWriter is null) return;
+        }
         var root = Parent();
+        payload = DiagnosticMedia.Project(payload);
         var record = new JsonObject
         {
             ["direction"] = root.RedactDiagnostic(direction, exchangeSecrets),
@@ -92,7 +96,7 @@ public sealed partial class Agent
 
     public partial void TraceGui(string direction, string payload)
     {
-        string redacted = Parent().RedactDiagnostic($"{direction} {payload}");
+        string redacted = Parent().RedactDiagnostic($"{direction} {DiagnosticMedia.Project(payload)}");
         lock (diagnosticGate)
         {
             if (diagnosticWritersClosed || guiWriter is null) return;

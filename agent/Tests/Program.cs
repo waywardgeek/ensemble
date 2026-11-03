@@ -625,6 +625,10 @@ try
     }
     if (args is ["--diagnostic-tests"] || args.Length == 0)
     {
+        await AsyncCase("Bounded diagnostic UTF-8 records and failure lifetime", DiagnosticFileTests.Bounds);
+        await AsyncCase("Real diagnostic file resets without prior file or state changes", DiagnosticFileTests.RealFile);
+        await AsyncCase("Diagnostic-only media projection", DiagnosticMediaTests.Projection);
+        await AsyncCase("Agent/host trace media omission and unchanged inputs", DiagnosticMediaTests.TraceCopies);
         await AsyncCase("Chapter 19 readable diagnostic redaction", DiagnosticTests.KnownKeys);
         await AsyncCase("Agent-owned diagnostic files and fresh restart", DiagnosticTests.AgentFiles);
         await AsyncCase("Chapter 19 plan bearer trace redaction", AuthRenewalTests.BearerTrace);

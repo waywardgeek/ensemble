@@ -1,3 +1,16 @@
+# Current boundary: bounded diagnostics verified, source only
+
+Bill approved one64MiB file per owned diagnostic stream, no previous file,
+locked same-handle resets with markers, and oversized-record omission.
+Diagnostic media summaries preserve provider traffic and canonical History.
+Borrowed writers, successful-restoration ordering and joined cleanup remain.
+Eight focused groups, final shared345/345, GUI routing/image privacy and five
+public GUI groups pass. Actual CLI image delivery/replay passes20/20 after an
+offline dependency-manifest repair. Builds and Chapter27 hard lint pass.
+See [diagnostic evidence](edition-3-notes/agent-diagnostics.md).
+No installation or restart occurred. Chapter26 remains75 graded points with
+native host-screen acceptance awaiting fresh human authorization as below.
+
 # Current boundary: Chapter26 has75 graded points; native host test awaits Bill
 
 Image-files20/20, attachments25/25 and voice30/30 pass their public external
