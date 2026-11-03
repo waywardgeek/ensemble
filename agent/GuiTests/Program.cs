@@ -67,6 +67,11 @@ if (args is ["--diagnostic-tests"])
     await DiagnosticRoutingTests.RunAsync();
     return;
 }
+if (args is ["--voice-transport-tests"])
+{
+    await VoiceTransportTests.RunAsync();
+    return;
+}
 if (args is ["--image-tests"])
 {
     await ImageControlsTests.RunAsync();

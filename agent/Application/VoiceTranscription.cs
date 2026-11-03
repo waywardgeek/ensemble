@@ -38,6 +38,10 @@ public sealed partial class VoiceTranscriber
     public partial VoiceTranscriber(Ensemble parent, string apiKey)
         : this(parent, apiKey, null, TimeSpan.FromSeconds(45)) { }
 
+    public partial VoiceTranscriber(Ensemble parent, string apiKey, HttpMessageHandler transport)
+        : this(parent, apiKey, transport ?? throw new ArgumentNullException(nameof(transport)),
+            TimeSpan.FromSeconds(45)) { }
+
     internal partial VoiceTranscriber(Ensemble parent, string apiKey,
         HttpMessageHandler? transport, TimeSpan requestTimeout)
     {

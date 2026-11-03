@@ -42,6 +42,11 @@ public sealed partial class VoiceTranscriber
     private Task? destruction;
 
     public partial VoiceTranscriber(Ensemble parent, string apiKey);
+    // Trusted host-supplied transport; production URL and 45-second deadline stay fixed.
+    // Ownership transfers only on successful construction. The transcriber then
+    // disposes the handler after joining requests; refused construction leaves it
+    // caller-owned. Use synthetic credentials with a test transport.
+    public partial VoiceTranscriber(Ensemble parent, string apiKey, HttpMessageHandler transport);
     internal partial VoiceTranscriber(Ensemble parent, string apiKey,
         HttpMessageHandler? transport, TimeSpan requestTimeout);
     public partial Ensemble Parent();

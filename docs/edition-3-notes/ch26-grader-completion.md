@@ -26,19 +26,22 @@ availability/setup refusal must not be reported as a candidate behavior failure.
 Join browser, candidate and fake provider before deleting owned scratch files.
 Do not inflate the25-point scope from payload validity alone.
 
-## Voice: public testability decision pending
+## Voice: approved public transport seam, external driver still pending
 
-Actual source Common/VoiceTranscription.cs and Application/VoiceTranscription.cs:
-production public constructor(parent,key) uses fixed OpenAI endpoint,45s deadline;
-internal overload accepts HttpMessageHandler and bounded timeout. Recommended
-public overload(parent,key,handler) keeps the45s deadline and existing endpoint,
-reuses current ownership transfer (caller retains on refused construction;
-transcriber owns/disposes after successful construction), and allows an external
-public-API consumer to capture HTTP requests and supply synthetic responses.
-No production endpoint flag, credential lookup, payer fallback or paid grader
-call. Bill's approval of this public API choice is pending. An external candidate
-consumer must prove WAV, cancellation/lease/admission and model-input behavior;
-existing internal unit tests are not30 external points.
+Bill approved the public overload(parent,key,handler). It is implemented using the
+existing ownership mechanism, with the production URL and45-second deadline
+unchanged. Caller retains the handler on refused construction; successful
+construction transfers ownership to the transcriber, which joins pending work
+before disposal. No production endpoint flag, credential lookup, payer fallback
+or paid grader call was added.
+
+Two outside-core-assembly tests pass: fixed POST URI/model/exact WAV, explicit
+synthetic credential, one request, refused/null construction, disposal/detachment,
+and cancellation whose deliberately delayed cleanup must join before disposal.
+The core test build is clean and all nine existing --voice-tests groups pass,
+including deadline recovery, streamed response bounds and cleanup failure.
+These establish the public seam, NOT the30-point voice grade. The external driver
+must still prove WAV, cancellation/lease/admission and actual model-input behavior.
 
 ## Host screenshots: scoped native acceptance required
 
