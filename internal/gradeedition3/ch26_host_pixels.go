@@ -10,7 +10,7 @@ import (
 // Native acceptance must supply dimensions and colors of the agreed full-display
 // synthetic pattern. This oracle never enumerates or captures a display.
 func validateHostScreenPNG(pixels []byte, width, height int, challenge imageChallenge) error {
-	if len(pixels) == 0 || len(pixels) > 8<<20 || width < 16 || height < 8 || width > 2048 || height > 2048 {
+	if len(pixels) == 0 || len(pixels) > 8<<20 || width < 32 || height < 8 || width > 2048 || height > 2048 {
 		return fmt.Errorf("host PNG or expected dimensions exceed bounds")
 	}
 	config, err := png.DecodeConfig(bytes.NewReader(pixels))

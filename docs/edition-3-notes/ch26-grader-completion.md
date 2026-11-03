@@ -282,3 +282,29 @@ Another-display acceptance needs its own appropriate authorization/setup. Native
 refusal tests against potentially broken candidates also belong behind that gate,
 not a supposedly source-only call that could capture if its policy is defective.
 No new public backend injection API is proposed or silently added here.
+
+### Host native wire runner drafted; exercised only with synthetic candidates
+
+A pure provider state machine now loads the skill, validates display declarations
+and primary inventory, requests omitted/default0 then explicit0 screenshots with
+zero-delay observation, collects each original running Job handle, validates
+actual typed PNGs, and compares both retained payloads after an explicit new
+human-turn barrier. No tool is requested during replay. Changed handles, reused
+capture handles, absent delayed delivery, metadata-only results and lost replay
+are refused. Tool-error extraction excludes image bytes from diagnostics.
+
+The CLI runner refuses before launch without explicit native authorization or
+when selection is not the agreed primary display. Expected prepared dimensions
+and four distinct colors define the full-display pattern; these are not a capture
+rectangle. Minimum width32 ensures seam exclusions leave checked interior pixels.
+Unit regressions cover degenerate colors and formerly empty pixel interiors.
+The runner owns a bounded temporary CLI/provider session and joins exit before
+removing files; primary-displays-only is an explicit scope, not a fallback.
+
+Only a Python synthetic CLI has exercised the native runner so far. It fabricates
+in-memory64x32 PNGs and Job replies, invokes no display APIs, and passes the full
+protocol. Independent metadata-only, missing-Job and replay-loss candidates fail
+named gates. The current real CLI has run only the separate declaration probe.
+Both Go packages pass. No native enumeration, permission prompt or capture has
+occurred. Public native CLI opt-in/pattern setup, final review and freshly agreed
+human-controlled native execution remain pending; host25points are still ungraded.

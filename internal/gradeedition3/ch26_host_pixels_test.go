@@ -43,3 +43,17 @@ func TestHostScreenPixelOracle(t *testing.T) {
 		t.Fatal("accepted altered interior pixel")
 	}
 }
+
+func TestHostScreenOracleRejectsEmptyInteriors(t *testing.T) {
+	challenge, _, err := newImageChallenge()
+	if err != nil {
+		t.Fatal(err)
+	}
+	var encoded bytes.Buffer
+	if err := png.Encode(&encoded, image.NewNRGBA(image.Rect(0, 0, 16, 8))); err != nil {
+		t.Fatal(err)
+	}
+	if err := validateHostScreenPNG(encoded.Bytes(), 16, 8, challenge); err == nil {
+		t.Fatal("seam exclusions left no pixels to verify")
+	}
+}
