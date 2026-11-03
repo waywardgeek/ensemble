@@ -1,8 +1,9 @@
 # Chapters
 
 The C# foundation includes Goals, Gateway, and the optional Codex path.
-Chapter 26 is an opening draft for multimedia interaction, not an implemented
-or graded increment. Chapter 27 retains the final replacement-readiness exercise. See the [edition guide](README.md) for historical source endpoint
+Chapter 26 covers multimedia interaction; its four external media scopes pass
+100/100 with their documented platform and fixture limits. Chapter 27 retains
+the final replacement-readiness exercise. See the [edition guide](README.md) for historical source endpoint
 numbers, verification limits, and builds.
 
 - [Preface](preface.md)
