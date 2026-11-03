@@ -6,7 +6,7 @@ tools: moltbook_status moltbook_feed moltbook_read_post moltbook_comments moltbo
 mcp_servers:
   - name: moltbook
     transport: stdio
-    command: python3
+    command: /usr/bin/python3
     args: ["agent/skills/moltbook/moltbook_server.py", "--credentials", "/Users/bill/.config/moltbook/credentials.json"]
 ---
 Adapted from CodeRhapsody's skill, with Bill's permission to use the existing

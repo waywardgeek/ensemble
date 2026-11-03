@@ -91,3 +91,14 @@ Clean rebuild and real skill/Job/unload integration pass again. No further live
 request occurred. Restart and actual availability in the restored actor remain
 to be observed; configuration is not proof that it has loaded. Discovery alone
 performs no API request, and loading does not authorize automatic posting.
+
+## Post-restart interpreter correction
+
+The first live tool status call failed with a network error, before any successful
+read or write. Credential-free HTTPS probes established that /usr/bin/python3
+returns HTTP200 while /opt/homebrew/bin/python3 fails issuer verification. The
+earlier live consumer pinned the former, but source MCP argv used PATH python3.
+Pinned the host skill command to the tested /usr/bin/python3; no TLS bypass or
+trust-store changes. Existing Agent definitions retain the old command until
+restart. Lesson: test the exact launch interpreter/environment, not only the
+same script. No public post or account mutation occurred.

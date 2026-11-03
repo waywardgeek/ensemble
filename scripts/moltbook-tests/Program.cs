@@ -30,10 +30,10 @@ m.main()
 string manual = File.ReadAllText(Path.Combine(source, "SKILL.md"));
 if (manual.Split('\n').Count(line => line.StartsWith("    args: ")) != 1)
     throw new Exception("Expected exactly one MCP argv declaration; refuse unsafe fixture");
-manual = string.Join('\n', manual.Replace("command: python3", "command: " + args[1])
+manual = string.Join('\n', manual
     .Split('\n').Select(line => line.StartsWith("    args: ")
         ? "    args: " + JsonSerializer.Serialize(new[] { wrapper, "--credentials", Path.Combine(directory, "absent-credentials") })
-        : line));
+        : line.StartsWith("    command: ") ? "    command: " + args[1] : line));
 File.WriteAllText(Path.Combine(directory, "moltbook", "SKILL.md"), manual);
 var root = new Ensemble.Ensemble(TextWriter.Null, dataDirectory: Path.Combine(directory, "data"));
 try
