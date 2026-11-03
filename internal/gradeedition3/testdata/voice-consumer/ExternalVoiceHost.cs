@@ -14,14 +14,18 @@ internal static class ExternalVoiceHost
         ?? throw new InvalidOperationException("Grader transcript challenge is required");
     private static readonly int Port = int.Parse(Environment.GetEnvironmentVariable("VOICE_GRADE_PORT")
         ?? throw new InvalidOperationException("Grader loopback port is required"));
+    private static readonly string Mode = Environment.GetEnvironmentVariable("VOICE_GRADE_MODE") ?? "lifecycle";
+    private static readonly bool FundingOff = Mode == "funding-off";
+    private static readonly bool NoAdmission = Mode != "lifecycle";
     internal static async Task RunAsync()
     {
+        Check(Mode is "lifecycle" or "funding-off" or "permission-delay" or "disconnect-recording", "Unknown voice grading mode");
         Check(Port is > 1024 and < 65536 && Port is not (8088 or 8089 or 8090), "Refuse live-service ports");
         string home = Directory.GetCurrentDirectory();
         using var stop = new CancellationTokenSource(TimeSpan.FromMinutes(3));
         var root = new Ensemble.Ensemble(TextWriter.Null, dataDirectory: Path.Combine(home, "data"));
         var audio = new AudioHandler();
-        _ = new VoiceTranscriber(root, "synthetic-browser-payer", audio);
+        if (!FundingOff) _ = new VoiceTranscriber(root, "synthetic-browser-payer", audio);
         var builder = WebApplication.CreateBuilder(); builder.Logging.ClearProviders();
         await using var host = builder.Build(); host.Urls.Add($"http://127.0.0.1:{Port}");
         var config = new Configuration(Vendor.Anthropic, "claude-3-haiku-20240307",
@@ -80,7 +84,8 @@ internal static class ExternalVoiceHost
             Console.WriteLine($"READY http://127.0.0.1:{Port}/assistant/");
             while (!File.Exists(Path.Combine(home, "stop"))) await Task.Delay(50, stop.Token);
             Check(failure is null && audio.Failure is null, failure ?? audio.Failure ?? "Provider failure");
-            Check(audio.Calls == 2 && audio.Completed == 2 && modelRequests == 1 && Admitted() == 1,
+            Check(audio.Calls == (NoAdmission ? 0 : 2) && audio.Completed == (NoAdmission ? 0 : 2)
+                && modelRequests == (NoAdmission ? 0 : 1) && Admitted() == (NoAdmission ? 0 : 1),
                 "Browser sequence did not establish exactly one admission and late-cancel refusal");
         }
         finally
@@ -92,15 +97,21 @@ internal static class ExternalVoiceHost
                 // ServeAsync has joined socket leases; History is still alive here.
                 joinedAdmissions = Admitted();
             }
-            finally { root.Destroy(); }
+            finally
+            {
+                try { root.Destroy(); }
+                finally { if (FundingOff) audio.Dispose(); } // Never transferred in disabled mode.
+            }
             File.WriteAllText(Path.Combine(home, "result.json"), JsonSerializer.Serialize(new {
                 audioCalls = audio.Calls, audioCompleted = audio.Completed, modelRequests, admitted = joinedAdmissions, failure = failure ?? audio.Failure }));
             Console.WriteLine("STOPPED host and Agents; transcription work joined");
         }
         Check(audio.Disposed, "Owned transcription handler was not disposed");
-        Check(audio.Calls == 2 && audio.Completed == 2 && modelRequests == 1 && joinedAdmissions == 1,
+        Check(audio.Calls == (NoAdmission ? 0 : 2) && audio.Completed == (NoAdmission ? 0 : 2)
+            && modelRequests == (NoAdmission ? 0 : 1) && joinedAdmissions == (NoAdmission ? 0 : 1),
             "Final joined counts changed after cancellation");
-        Console.WriteLine("PASS two fake audio requests, one model request, one canonical transcript after joined teardown");
+        Console.WriteLine(NoAdmission ? $"PASS {Mode}: no audio/model request or admission"
+            : "PASS two fake audio requests, one model request, one canonical transcript after joined teardown");
     }
     private static void Check(bool valid, string reason) { if (!valid) throw new InvalidOperationException(reason); }
     private sealed class AudioHandler : HttpMessageHandler

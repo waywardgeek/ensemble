@@ -12,13 +12,14 @@ assert.ok(target.port && !['8088', '8089', '8090'].includes(target.port), 'Never
   const page = await browser.newPage(); page.setDefaultTimeout(15000);
   const errors = []; page.on('pageerror', e => errors.push(e.message));
   try {
-    await page.addInitScript(() => {
+    await page.addInitScript(mode => {
       window.voiceFrames = []; window.voiceReplies = []; window.testAudio = [];
       navigator.mediaDevices.getUserMedia = async () => {
         const context = new AudioContext(); const oscillator = context.createOscillator();
         const destination = context.createMediaStreamDestination();
         oscillator.connect(destination); oscillator.start(); await context.resume();
         testAudio.push({context, oscillator, stream:destination.stream});
+        if (mode === 'permission-delay') return await new Promise(resolve => { window.voicePermissionResolve = () => resolve(destination.stream); });
         return destination.stream;
       };
       const NativeSocket = WebSocket;
@@ -36,9 +37,44 @@ assert.ok(target.port && !['8088', '8089', '8090'].includes(target.port), 'Never
           return super.send(text);
         }
       };
-    });
+    }, process.env.VOICE_GRADE_MODE);
     await page.goto(base);
+    if (process.env.VOICE_GRADE_MODE === 'funding-off') {
+      await page.waitForFunction(() => !document.querySelector('#send').disabled);
+      assert.equal(await page.locator('#voice-hold').isDisabled(), true, 'Model funding enabled microphone');
+      const recipient = await page.locator('#agent-tree [aria-selected="true"] > .tree-row > [data-agent]').getAttribute('data-agent');
+      await page.evaluate(agent => voiceSocket.send(JSON.stringify({type:'voice_begin', agent_id:agent, sequence:1})), recipient);
+      await page.waitForFunction(() => voiceReplies.some(frame => frame.type === 'error' && frame.voice_sequence === 1));
+      assert.equal(await page.evaluate(() => testAudio.length), 0, 'Disabled voice requested audio');
+      const result = await page.evaluate(async () => (await fetch('/fixture/status')).json());
+      assert.equal(result.audioCalls, 0); assert.equal(result.modelRequests, 0); assert.equal(result.admitted, 0);
+      assert.equal(result.failure, null); assert.deepEqual(errors, []);
+      console.log('PASS funding off: disabled microphone, forged lease refused, no model-key fallback or admission');
+      return;
+    }
     await page.waitForFunction(() => !document.querySelector('#voice-hold').disabled);
+    if (['permission-delay', 'disconnect-recording'].includes(process.env.VOICE_GRADE_MODE)) {
+      const box = await page.locator('#voice-hold').boundingBox();
+      await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+      await page.mouse.down();
+      if (process.env.VOICE_GRADE_MODE === 'permission-delay') {
+        await page.waitForFunction(() => typeof window.voicePermissionResolve === 'function');
+        await page.mouse.up();
+        await page.evaluate(() => voicePermissionResolve());
+      } else {
+        await page.waitForFunction(() => document.querySelector('#voice-status').textContent.startsWith('Recording.'));
+        await page.evaluate(() => voiceSocket.close());
+        await page.mouse.up();
+      }
+      await page.waitForFunction(() => testAudio.length > 0 && testAudio.every(audio => audio.stream.getTracks().every(track => track.readyState === 'ended')));
+      assert.equal(await page.evaluate(() => voiceFrames.filter(frame => frame.type === 'voice_audio' || frame.type === 'voice_commit').length), 0,
+        'Cancelled capture uploaded or committed audio');
+      const result = await page.evaluate(async () => (await fetch('/fixture/status')).json());
+      assert.equal(result.audioCalls, 0); assert.equal(result.modelRequests, 0); assert.equal(result.admitted, 0);
+      assert.equal(result.failure, null); assert.deepEqual(errors, []);
+      console.log('PASS ' + process.env.VOICE_GRADE_MODE + ': late/active tracks ended, no upload or admission');
+      return;
+    }
     await page.evaluate(() => {
       document.querySelector('#narrate').checked = false;
       document.querySelector('#narrate').dispatchEvent(new Event('change', {bubbles:true}));

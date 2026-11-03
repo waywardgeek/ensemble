@@ -180,3 +180,27 @@ package downloads. No installation or restart. This is NOT a30-point grade:
 recipient-switch/disconnect/permission timing, funding-off behavior, independent
 negative controls, reusable external orchestration and scored CLI remain pending.
 The temporary development launcher is not the final grader command.
+
+### Voice funding and capture-cancellation modes
+
+The separately compiled consumer now supports lifecycle, funding-off,
+permission-delay and disconnect-recording modes. Unknown modes and live-service
+ports refuse. Funding-off creates no transcriber despite the independent synthetic
+model credential; the browser mic is disabled and a forged public voice_begin
+receives a sequence-correlated refusal. Zero audio/model calls and admissions are
+required. The never-transferred fake handler remains caller-owned and is disposed
+by the consumer, rather than pretending the disabled transcriber owned it.
+
+Permission-delay returns a synthetic stream only after release; all late tracks
+must end with no voice_audio/commit. Disconnect-recording closes the actual socket
+after recording starts; tracks must end and no upload/admission is allowed.
+Both modes passed with zero audio/model requests and canonical admissions, followed
+by joined host/Agent teardown. Final funding-off and lifecycle regression also
+passed after these changes. Evidence under /private/tmp/cadence-voice-driver/:
+permission-delay-7q30zh4l, disconnect-recording-2htufvs1, funding-off-gmig8ihd and
+lifecycle-p2x07nl1. Builds are clean. No native permission prompt or paid call.
+
+A reusable development launcher is saved at /private/tmp/cadence-voice-driver/run.py;
+it uses fresh workspaces/ports and owns both process groups. This is not yet the
+portable scored CLI. Recipient switching, additional independent mutants and
+final external orchestration remain next. Voice still awards no30-point credit.
