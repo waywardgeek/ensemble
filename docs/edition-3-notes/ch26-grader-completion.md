@@ -1,3 +1,112 @@
+# External media scopes complete:100/100, with native host25/25
+
+The public host-screen command passed25/25 and exited0. It loaded the grant,
+validated primary inventory/schema, captured omitted/default and explicit0 through
+distinct delayed Jobs, and verified both full PNG payloads on a new human turn
+without recapture. Candidate/provider shutdown joined. Report:
+/private/tmp/cadence-host-driver/native-grade-interiors.json.
+Earlier scopes remain image-files20, attachments25 and voice30: total100 external
+points, not universal platform/microphone/phone acceptance or a new whole-book grade.
+
+Bill explicitly approved continued primary-display test captures without repeated
+permission questions during this investigation. He reports the corner indicator
+was not directly visible on the physical display (perhaps faint); its origin is
+not proved. Inspected retained PNGs showed a dark top row, then a tiny corner dot.
+Pixel analysis found all checked band interiors otherwise correct. Bill approved
+predetermined broad interiors rather than demanding ideal HTML colors at OS edges.
+The oracle now insets each band by5% horizontally and the frame by5% vertically,
+minimum2pixels, checking about81% of a large frame with unchanged ±3 RGBA tolerance.
+Exact dimensions and full byte-identical replay remain mandatory. Every band's
+first checked pixel has a negative alteration test. No screenshot-output code changed.
+
+Lessons retained: distinguish recall helper requests from main-turn sequence;
+inspect failed pixels before changing an oracle; native display overlays are not
+necessarily screenshot defects. The initial two-pixel edge-only adjustment was
+insufficient for the observed dot and was superseded with Bill's explicit agreement,
+not expanded silently. Original failed reports and PNGs remain in the temporary
+evidence directory. Optional failure PNG output is absolute, no-overwrite,0600,
+bounded, and disabled by default. Tests cover exact retention and overwrite refusal.
+Both Go grader packages pass; earlier failed attempts below preserve chronology.
+No application installation/restart, paid provider, or native microphone use here.
+
+# Cursor-hidden attempt: exact band centers, top-edge mismatch
+
+Bill reloaded/reentered fullscreen, confirmed the cursor hidden, and explicitly
+authorized another at-most-two-capture attempt. Initial command mistakenly named
+nonexistent native-pattern-candidate and refused before candidate launch; corrected
+command used the inspected candidate launcher. The run received one PNG and failed
+validation before capture2/replay, then exited. No further capture authorized.
+Report: /private/tmp/cadence-host-driver/native-grade-cursor-hidden.json.
+
+First mismatch is prepared pixel(2,0): actual RGBA(12,22,25,255) versus expected
+(32,60,69,255). All four center samples exactly match their expected band colors.
+This narrows investigation to an edge/rendering artifact; it does not prove its
+cause or establish that every non-center pixel matches. Cursor hiding did not
+make the strict oracle pass. Do not loosen tolerance based on this alone.
+
+The fixture still deletes temporary capture data. Next proposed human-approved
+step is one synthetic capture retained for actual pixel inspection, rather than
+more blind retries or asking Bill to identify subpixel edge details visually.
+No screenshot inspection claimed; host scope remains ungraded.
+
+# Native pixel attempt: first screenshot delivered, strict pattern mismatch
+
+After renewed permission, corrected routing passed discovery and inventory and
+received the first actual PNG via its delayed Job. Prepared dimensions decoded
+successfully, but strict interior-pixel comparison failed before capture2/replay.
+Report: /private/tmp/cadence-host-driver/native-grade-corrected.json. The candidate
+and provider exited. Exactly one capture reached validation; no automatic retry.
+Temporary pixels were cleaned up, so no retrospective visual inspection is claimed.
+
+Bill reports a visible cursor tip on the display. That may explain mismatch if
+captured, but is not proved. Pattern generator and prepared display.html now hide
+the cursor only in fullscreen; page reload/reentry is required. The oracle now
+reports the first mismatch coordinate/expected/actual RGBA and band-center colors,
+without widening tolerance or retaining screen images. Color management remains
+an alternative to investigate from evidence. Another capture needs confirmed
+synthetic fullscreen and fresh authority. No host points earned yet.
+
+# Native preflight failure diagnosed: recall request shifted grader script
+
+Bill kept the synthetic primary display covered and renewed permission for the
+same at-most-two-capture scope. Retry again stopped before enumeration/capture.
+Improved diagnostics showed0 screenshot/0 list_displays and no host-load result.
+Report: /private/tmp/cadence-host-driver/native-grade-retry.json.
+
+The schema probe's79-character prompt passed; substituting the native runner's
+115-character prompt reproduced failure without native calls. Recall's default
+80-character threshold explained a concrete request difference. A bounded system
+signature diagnostic confirmed the first request was the tool-free recall judge.
+The fake provider incorrectly answered that helper with load_skill and advanced
+its capture script; the main Agent's first request then looked like a failed load.
+Skill tools/loadable-skills headers were correct. This was grader routing, not
+native pixel or screenshot evidence.
+
+Grader source now answers only identified tool-free recall system requests with
+[] without advancing the host script. Tests reject diversion by user-text matches
+or tool-bearing requests. The longer-prompt real CLI schema regression passes,
+as do all TestHost guards, synthetic pixels/Jobs/replay and negative candidates.
+Evidence: /private/tmp/cadence-host-driver/recall-routing-tests.log. No native
+capture or points earned yet. Next needs confirmed synthetic display and renewed
+authorization; do not automatically recapture. Current changes are source-only.
+
+# Native attempt: stopped before enumeration/capture
+
+Bill confirmed the prepared four-band pattern covered the primary display and
+explicitly authorized enumeration plus exactly two captures. The native command
+exited1 at post-skill-load declaration validation: host tools were not uniquely
+declared. Script ordering places this before list_displays or screenshot, so no
+native enumeration/capture occurred. Report:
+/private/tmp/cadence-host-driver/native-grade.json. No new external points earned.
+Bill was told he could leave fullscreen; another native attempt needs confirmation
+of the synthetic display and renewed permission, not an automatic retry.
+
+The same CLI passed the noncapturing schema-only probe. That probe also passed
+with the native runner's explanatory text/context settings and original isolated
+HOME/TMP environment. Cause remains unproved. Diagnostic source changes expose
+actual declaration counts and bounded skill-load text/refusal on failure; they
+are not a claimed discovery fix. The schema probe never requests native tools.
+
 # Native-test boundary: host command ready, no native grade yet
 
 Host-screen now has a guarded public CLI and static local pattern generator.

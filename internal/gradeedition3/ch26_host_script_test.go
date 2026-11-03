@@ -7,6 +7,8 @@ import (
 	"fmt"
 	"image"
 	"image/png"
+	"os"
+	"path/filepath"
 	"testing"
 )
 
@@ -152,5 +154,46 @@ func TestHostScreenRejectsPregrantTools(t *testing.T) {
 	script, _ := hostScriptFixture(t)
 	if _, err := script.step([]byte(`{"tools":[{"name":"screenshot"}]}`)); err == nil {
 		t.Fatal("host tool advertised before grant")
+	}
+}
+
+func TestHostRecallRequestRouting(t *testing.T) {
+	judge := `{"system":[{"type":"text","text":"You select relevant stored context for the latest user query."}],"messages":[]}`
+	if !hostRecallRequest([]byte(judge)) {
+		t.Fatal("recall judge not identified")
+	}
+	for _, ordinary := range []string{
+		`{"system":"ordinary","messages":[{"content":"You select relevant stored context for the latest user query."}]}`,
+		`{"system":"You select relevant stored context for the latest user query.","tools":[{"name":"load_skill"}]}`,
+		`{`,
+	} {
+		if hostRecallRequest([]byte(ordinary)) {
+			t.Fatal("ordinary or invalid request diverted")
+		}
+	}
+}
+
+func TestHostFailureImageRetention(t *testing.T) {
+	script, pixels := hostScriptFixture(t)
+	script.stage, script.running, script.current = 3, true, "failed-image"
+	script.failureImagePath = filepath.Join(t.TempDir(), "failure.png")
+	script.challenge.colors[0].R = 0
+	if _, err := script.step(hostWire(t, hostResult(script.current, hostImage(pixels)))); err == nil {
+		t.Fatal("accepted altered pattern")
+	}
+	saved, err := os.ReadFile(script.failureImagePath)
+	if err != nil || !bytes.Equal(saved, pixels) {
+		t.Fatal("failed pixels were not retained exactly")
+	}
+	sentinel := []byte("preserve existing")
+	if err := os.WriteFile(script.failureImagePath, sentinel, 0600); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := script.step(hostWire(t, hostResult(script.current, hostImage(pixels)))); err == nil {
+		t.Fatal("overwriting failure not reported")
+	}
+	saved, err = os.ReadFile(script.failureImagePath)
+	if err != nil || !bytes.Equal(saved, sentinel) {
+		t.Fatal("existing evidence overwritten")
 	}
 }

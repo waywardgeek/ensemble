@@ -23,6 +23,7 @@ type HostNativePattern struct {
 	Colors [4][3]uint8 `json:"colors"`
 }
 type HostNativeConfig struct {
+	FailureImagePath string
 	Candidate        string
 	NativeAuthorized bool
 	Display          int
@@ -36,7 +37,7 @@ func runHostNativeCLI(config HostNativeConfig) (result error) {
 	if err := validateHostNativeConfig(config); err != nil {
 		return err
 	}
-	script := &hostScreenScript{width: config.Pattern.Width, height: config.Pattern.Height}
+	script := &hostScreenScript{width: config.Pattern.Width, height: config.Pattern.Height, failureImagePath: config.FailureImagePath}
 	for index, rgb := range config.Pattern.Colors {
 		script.challenge.colors[index] = color.NRGBA{rgb[0], rgb[1], rgb[2], 255}
 	}
@@ -73,6 +74,9 @@ func runHostNativeCLI(config HostNativeConfig) (result error) {
 		if exchanges > 24 {
 			failure = fmt.Errorf("host grading exceeded bounded provider exchanges")
 			return &fakevendor.Reply{Text: "HOST_GRADE_REFUSED"}
+		}
+		if hostRecallRequest(body) {
+			return &fakevendor.Reply{Text: "[]"}
 		}
 		reply, err := script.step(body)
 		if err != nil {
@@ -166,6 +170,15 @@ func runHostNativeCLI(config HostNativeConfig) (result error) {
 }
 
 func validateHostNativeConfig(config HostNativeConfig) error {
+	if config.FailureImagePath != "" {
+		if !filepath.IsAbs(config.FailureImagePath) {
+			return fmt.Errorf("failure image path must be absolute")
+		}
+		if _, err := os.Lstat(config.FailureImagePath); !errors.Is(err, os.ErrNotExist) {
+			return fmt.Errorf("failure image path must not exist")
+		}
+	}
+
 	if !config.NativeAuthorized {
 		return fmt.Errorf("native host-screen grading requires fresh explicit synthetic-display authorization")
 	}

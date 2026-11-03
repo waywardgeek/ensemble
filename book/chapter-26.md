@@ -690,18 +690,19 @@ The shared implementation suite passed 339 groups with the child-restoration
 changes; those groups span the application and are not 339 independent multimedia
 acceptance tests. Installation, Bill's reported restart, and the successful live
 capture are separate observations. Neither the earlier synthetic-window test nor
-this authorized display capture awards the unfinished external host-screen grade.
+this earlier authorized display capture awarded the later external host-screen grade.
 
-The **20-point image-files**, **25-point attachment**, and **30-point voice**
-external scopes pass. The remaining **25 points are ungraded**: the host-screen
-external driver still needs its agreed native run and passing evidence. The exercises below retain those
-obligations rather than presenting scoped results as 100/100.
+The **20-point image-files**, **25-point attachment**, **30-point voice**, and
+**25-point host-screen** external scopes now pass, totaling **100/100**. The native
+host run used the agreed synthetic primary display, both selector forms, distinct
+delayed Jobs and full-payload replay on a new turn without recapture. This completes
+the external point allocation, not every platform or human-use acceptance claim.
 
-The earlier reproduced speech-playback disconnect leak is repaired with
-connection-owned automatic holds, as taught in Chapter 7. Typing and speech are
-independent causes; disconnect releases only that connection's hold, while a
-manual runtime hold remains intact. Stop speech and Escape cancel current and
-queued speech without clearing a typed draft. This repair is separate evidence,
+Speech output now follows Chapter7's browser-local preferences and one Agent-wide
+pause state. A tab addresses only its selected Agent. Stop speech and Escape
+cancel local current/queued speech, preserve typed drafts, and explicitly resume
+from any device. Unchanged local activity cannot veto that resume. Disconnect
+does not invent resume, and reconnect does not reassert stale activity. This repair is separate evidence,
 not a substitute for the separate voice-input external grade.
 
 This draft describes the implementation before the remaining acceptance and
@@ -742,7 +743,7 @@ These exercises extend the same Agent, History, Sandbox, and GUI. They do not
 ask for a parallel media service or a second conversation store. The proposed
 chapter allocation is 100 points. The image-files, attachments and voice commands
 below award separate 20-point, 25-point and 30-point scopes. None awards the
-remaining 25 host-screen points or certifies the entire chapter.
+host-screen scope by itself or certifies the entire chapter.
 The implementation's focused tests remain evidence, not external grades.
 
 ### Exercise 26.1: Image-file delivery and replay (20 points)
@@ -903,9 +904,9 @@ The external grader must reject metadata-only capture, a missing grant,
 capability checks performed after capture, a wrong display, mandatory selection,
 advertised rectangle arguments, missing delayed
 image payloads, and abandoned native work. The driver now passes synthetic wire
-candidates, but its real native run remains pending and **no 25 points are awarded**.
-The reference implementation's earlier macOS synthetic-window and live-display
-acceptance do not silently complete this new external grade.
+candidates and the agreed real native run passes **25/25**. This result is distinct
+from the reference implementation's earlier synthetic-window and live-display
+acceptance; those earlier observations did not silently award this grade.
 
 Prepare a four-band fixture without opening or capturing any display. For example,
 a 3840-by-2160 backing display prepares to 2048-by-1152:
@@ -916,7 +917,8 @@ go run ./cmd/host-screen-pattern -width 2048 -height 1152 ./screen-fixture
 
 The command writes `display.html` and a strict `pattern.json`, refusing to overwrite
 existing files. Open the HTML on the **server computer's primary display**, not
-on a requesting phone. Its button enters full-screen only through a human click.
+on a requesting phone. Its button enters full-screen only through a human click
+and hides the cursor while full-screen.
 Wait until browser/OS overlays disappear and confirm that the whole display is
 synthetic. Prepared dimensions must match the current inventory; a mismatch
 refuses before capture. A manifest is an expectation, not proof that the screen
@@ -938,23 +940,44 @@ without the opt-in; it never substitutes an unapproved primary display for an
 approved secondary one. The current external scope uses one primary display.
 Other-display selection and platform refusals remain separately attributed.
 
+The pixel oracle checks every pixel within broad, predetermined band interiors:
+inset each band by5% horizontally and the frame by5% vertically, with a minimum
+two-pixel inset. Roughly81% of a large frame is checked, using the same three-level
+RGBA tolerance. Exact dimensions and byte-identical full-image replay remain
+required. Native testing exposed a darkened first row and a tiny corner indicator;
+the screenshot faithfully includes such display details. Do not mistake an HTML
+fixture's ideal colors for a guarantee that OS/browser edges contain nothing else.
+Negative controls alter the first checked pixel in every band and must fail.
+
+For diagnosis, `-host-failure-image /absolute/new/path.png` retains only the first
+mismatching bounded PNG with private permissions. It is opt-in and refuses existing
+paths; normal grading retains no images. Inspect actual failed pixels before
+changing acceptance criteria, and report changes rather than quietly widening them.
+
+The fake provider also distinguishes tool-free recall-judge requests by their
+system instruction and answers them with an empty selection without advancing the
+capture script. A longer prompt exposed this helper traffic before the main turn.
+HTTP request order alone is not the Agent's tool sequence. Retain a long-prompt
+schema-only regression that never enumerates or captures a display.
+
+
 Synthetic controls reject early tool advertisement, rectangle/mandatory-selector
 schemas, metadata-only output, missing or changed Jobs, bad pixels and lost replay.
 Focused backend tests and review must still establish pre-effect capability and
 permission checks and native cancellation: a returned error alone cannot prove
-that no OS side effect occurred. Color-profile fidelity also remains subject to
-the actual agreed native test; do not widen pixel tolerances merely to obtain a
-passing grade.
+that no OS side effect occurred. The native test verifies the selected colors on
+this display, not universal color-profile fidelity. Do not widen color tolerances
+merely to obtain a passing grade.
 
 ## Grading boundary
 
-Image-file, attachment and voice scopes have executable external graders at this
-checkpoint, totaling 75 points. Keep their results separate from the pending
-host-screen scope, architecture review and native-platform acceptance. Passing
-component tests, building an application, staging binaries, restarting a host,
-and obtaining human acceptance are different facts. Chapter completion still
-requires passing results for the remaining external scopes and reconciliation of
-all outstanding acceptance and review obligations. Keep this status visible until those results exist.
+All four executable external scopes pass, totaling100/100: image-files20,
+attachments25, voice30 and host-screen25. The host scope has native macOS
+primary-display evidence; the others retain their documented fake-provider,
+synthetic audio and browser boundaries. Architecture review, other-platform
+acceptance and native microphone/phone reliability are not additional claims
+implied by that score. Building, staging, restarting and human acceptance remain
+separate facts. Preserve the evidence and limits beside the executable contracts.
 
 
 ## Takeaways

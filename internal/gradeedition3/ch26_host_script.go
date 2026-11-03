@@ -3,8 +3,10 @@ package gradeedition3
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"math"
+	"os"
 	"strconv"
 
 	"github.com/waywardgeek/ensemble/internal/fakevendor"
@@ -13,6 +15,7 @@ import (
 // Pure provider script. It performs no native operation itself. The real CLI
 // runner must require fresh native authorization before using its tool replies.
 type hostScreenScript struct {
+	failureImagePath     string
 	challenge            imageChallenge
 	width, height        int
 	stage, waits, handle int
@@ -22,6 +25,17 @@ type hostScreenScript struct {
 	captureHandles       []int
 	payloads             [][]byte
 	imageIDs             []string
+}
+
+// A fresh CLI can recall skill text before its main turn. Answer only the
+// tool-free judge, without spending a step in the host capture protocol.
+func hostRecallRequest(body []byte) bool {
+	var request struct {
+		System json.RawMessage   `json:"system"`
+		Tools  []json.RawMessage `json:"tools"`
+	}
+	return json.Unmarshal(body, &request) == nil && len(request.Tools) == 0 &&
+		bytes.Contains(request.System, []byte("You select relevant stored context for the latest user query."))
 }
 
 func (script *hostScreenScript) tool(id, name string, args map[string]any) *fakevendor.Reply {
@@ -73,7 +87,8 @@ func (script *hostScreenScript) step(body []byte) (*fakevendor.Reply, error) {
 			}
 		}
 		if screenshots != 1 || displays != 1 {
-			return nil, fmt.Errorf("host tools not uniquely declared after skill load")
+			load, loadError := hostToolText(body, script.current)
+			return nil, fmt.Errorf("host tools not uniquely declared after skill load (%d screenshot, %d list_displays); load result: %s; error: %v", screenshots, displays, load, loadError)
 		}
 		script.stage = 2
 		return script.tool("host-displays", "list_displays", map[string]any{"ai_callback_delay": 10}), nil
@@ -154,6 +169,16 @@ func (script *hostScreenScript) step(body []byte) (*fakevendor.Reply, error) {
 			return nil, fmt.Errorf("capture did not demonstrate delayed Job delivery")
 		}
 		if err := validateHostScreenPNG(pixels, script.width, script.height, script.challenge); err != nil {
+			if script.failureImagePath != "" && len(pixels) <= 8<<20 {
+				file, saveError := os.OpenFile(script.failureImagePath, os.O_WRONLY|os.O_CREATE|os.O_EXCL, 0600)
+				if saveError == nil {
+					_, saveError = file.Write(pixels)
+					saveError = errors.Join(saveError, file.Close())
+				}
+				if saveError != nil {
+					err = errors.Join(err, fmt.Errorf("retain failure image: %w", saveError))
+				}
+			}
 			return nil, err
 		}
 		script.payloads = append(script.payloads, append([]byte(nil), pixels...))

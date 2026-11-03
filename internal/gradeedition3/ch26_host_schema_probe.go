@@ -38,13 +38,16 @@ func runHostScreenSchemaCLI(bin string) (result error) {
 	var calls atomic.Int32
 	bodies := make(chan []byte, 4)
 	provider := fakevendor.NewWithOptions(nil, fakevendor.Options{Route: func(body []byte) *fakevendor.Reply {
+		if hostRecallRequest(body) {
+			return &fakevendor.Reply{Text: "[]"}
+		}
 		number := calls.Add(1)
 		select {
 		case bodies <- append([]byte(nil), body...):
 		default:
 		}
 		if number == 1 {
-			return &fakevendor.Reply{Tools: []fakevendor.ToolCall{hintCall("host-schema-load", "load_skill", map[string]any{"name": "host-screen", "ai_callback_delay": 10})}}
+			return &fakevendor.Reply{Text: "Use only the agreed fully synthetic primary display.", Tools: []fakevendor.ToolCall{hintCall("host-schema-load", "load_skill", map[string]any{"name": "host-screen", "ai_callback_delay": 10})}}
 		}
 		return &fakevendor.Reply{Text: "HOST_SCHEMA_COMPLETE; no enumeration or capture requested."}
 	}})
@@ -56,7 +59,8 @@ func runHostScreenSchemaCLI(bin string) (result error) {
 	command.Env = append(voiceGradeEnvironment(filepath.Join(root, "home")),
 		"LLM_VENDOR=anthropic", "LLM_MODEL=claude-3-haiku-20240307", "LLM_BASE_URL="+provider.URL(),
 		"LLM_API_KEY=synthetic-host-schema-key", "LLM_REQUIRE_TOOL_EXPLANATION=false",
-		"EN_DISABLE_STREAMING=1", "EN_DISABLE_SAVE=1", "EN_SKILLS_DIR="+skills, "EN_PRIMARY_SKILL=primary")
+		"EN_DISABLE_STREAMING=1", "EN_DISABLE_SAVE=1", "EN_SKILLS_DIR="+skills, "EN_PRIMARY_SKILL=primary",
+		"EN_STUB_TOOL_RESULTS=0", "EN_CONTEXT_BUDGET_BYTES=400000")
 	input, err := command.StdinPipe()
 	if err != nil {
 		return err
@@ -90,7 +94,7 @@ func runHostScreenSchemaCLI(bin string) (result error) {
 			result = fmt.Errorf("expected two declaration exchanges, got %d", calls.Load())
 		}
 	}()
-	if _, err := fmt.Fprintln(input, `{"kind":"prompt","text":"Load host-screen and describe its declaration only; do not invoke native tools."}`); err != nil {
+	if _, err := fmt.Fprintln(input, `{"kind":"prompt","text":"Use only the approved synthetic primary display. Capture default and explicit zero through the scripted tool calls."}`); err != nil {
 		return err
 	}
 	var last []byte
@@ -128,7 +132,8 @@ func runHostScreenSchemaCLI(bin string) (result error) {
 		}
 	}
 	if screenshots != 1 || displays != 1 {
-		return fmt.Errorf("expected one screenshot and one list_displays declaration, got %d/%d", screenshots, displays)
+		load, loadError := hostToolText(last, "host-schema-load")
+		return fmt.Errorf("expected one screenshot and one list_displays declaration, got %d/%d; load result: %s; error: %v", screenshots, displays, load, loadError)
 	}
 	select {
 	case <-output.ended:

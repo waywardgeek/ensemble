@@ -127,7 +127,7 @@ func WriteHostPattern(directory string, width, height int) (HostNativePattern, e
 		fmt.Fprintf(&bands, "<div style=\"background:rgb(%d,%d,%d)\"></div>", rgb[0], rgb[1], rgb[2])
 	}
 	html := `<!doctype html><meta charset="utf-8"><title>Synthetic primary-display test</title>
-<style>html,body{margin:0;width:100%;height:100%;overflow:hidden}#pattern{position:fixed;inset:0;display:grid;grid-template-columns:repeat(4,1fr)}#instructions{position:fixed;left:10%;right:10%;top:25%;padding:2rem;background:white;color:black;font:20px sans-serif}:fullscreen #instructions{display:none}</style>
+<style>html,body{margin:0;width:100%;height:100%;overflow:hidden}#pattern{position:fixed;inset:0;display:grid;grid-template-columns:repeat(4,1fr)}#instructions{position:fixed;left:10%;right:10%;top:25%;padding:2rem;background:white;color:black;font:20px sans-serif}:fullscreen #instructions{display:none}:fullscreen,:fullscreen *{cursor:none!important}</style>
 <div id="pattern">` + bands.String() + `</div><section id="instructions"><h1>Synthetic display test</h1><p>Place this window on the primary display. This button only enters full-screen; it does not take a screenshot.</p><p>Confirm that all four bands fill the entire display before separately authorizing the grader. Escape exits full-screen. Do not capture while these instructions are visible.</p><button id="fullscreen">Enter full-screen pattern</button></section>
 <script>document.querySelector('#fullscreen').onclick=()=>document.documentElement.requestFullscreen().catch(error=>alert(error.message));</script>`
 	writeNew := func(path string, data []byte) error {

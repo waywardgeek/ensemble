@@ -21,15 +21,24 @@ func validateHostScreenPNG(pixels []byte, width, height int, challenge imageChal
 	if err != nil {
 		return fmt.Errorf("host PNG cannot decode")
 	}
+	// Validate broad predetermined interiors, not browser/OS edge decoration.
+	// Five percent per side (at least two pixels) still checks about 81% of
+	// the image. Exact dimensions and byte-identical full replay are separate.
+	verticalInset := max(2, height/20)
 	for band, want := range challenge.colors {
-		for y := 0; y < height; y++ {
-			// Ignore only resampling seams, not arbitrary private/background regions.
-			for x := band*width/4 + 2; x < (band+1)*width/4-2; x++ {
+		left, right := band*width/4, (band+1)*width/4
+		horizontalInset := max(2, (right-left)/20)
+		for y := verticalInset; y < height-verticalInset; y++ {
+			for x := left + horizontalInset; x < right-horizontalInset; x++ {
 				got := color.NRGBAModel.Convert(raster.At(x, y)).(color.NRGBA)
 				for _, pair := range [][2]uint8{{got.R, want.R}, {got.G, want.G}, {got.B, want.B}, {got.A, want.A}} {
 					delta := int(pair[0]) - int(pair[1])
 					if delta < -3 || delta > 3 {
-						return fmt.Errorf("host pixels differ from agreed synthetic display pattern")
+						centers := make([]color.NRGBA, 4)
+						for index := range centers {
+							centers[index] = color.NRGBAModel.Convert(raster.At((2*index+1)*width/8, height/2)).(color.NRGBA)
+						}
+						return fmt.Errorf("host pixels differ from agreed synthetic display pattern: first mismatch (%d,%d), got RGBA %v, expected %v; band-center RGBA %v", x, y, got, want, centers)
 					}
 				}
 			}

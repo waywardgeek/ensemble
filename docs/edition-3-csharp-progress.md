@@ -1,3 +1,15 @@
+# Current boundary: Chapter26 external media scopes pass100/100
+
+Native primary-display host scope passes25/25: default/explicit0 capture through
+distinct delayed Jobs and full-payload replay without recapture, joined exit.
+Combined with image-files20, attachments25 and voice30, external allocation is100.
+Grader now routes recall-helper requests separately and checks agreed broad band
+interiors while preserving exact dimensions/color tolerance/full replay. Failed
+pixel evidence and reasons are preserved; native platform limits remain explicit.
+See [completion evidence](edition-3-notes/ch26-grader-completion.md).
+No application install/restart. Bill reports browser-local speech works after
+reload; that is live human feedback, not an independently verified binary install.
+
 # Current boundary: browser-local speech and simple pause verified, source only
 
 Speech preferences now belong to the browser profile; fresh profiles stay silent.

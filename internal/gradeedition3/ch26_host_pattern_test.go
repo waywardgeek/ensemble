@@ -34,6 +34,9 @@ func TestHostPatternFiles(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	if !strings.Contains(string(html), ":fullscreen,:fullscreen *{cursor:none!important}") {
+		t.Fatal("fullscreen synthetic pattern does not hide the cursor")
+	}
 	if strings.Contains(string(html), "http:") || strings.Contains(string(html), "https:") || !strings.Contains(string(html), "requestFullscreen") {
 		t.Fatal("unexpected display fixture dependencies")
 	}

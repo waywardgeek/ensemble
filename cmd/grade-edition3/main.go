@@ -26,6 +26,7 @@ func run(args []string) int {
 	executableOnly := flags.Bool("executable-only", false, "public runtime checks (Chapter 5 or a declared Chapter 26 media scope)")
 	mediaScope := flags.String("media-scope", "", "Chapter 26 scope: image-files (20), attachments (25), voice (30), or host-screen (25)")
 	allowNative := flags.Bool("allow-native-host-screen", false, "confirm fresh human authorization and fully synthetic primary display for two native captures")
+	hostFailureImage := flags.String("host-failure-image", "", "host-screen: optionally retain the first mismatching PNG at a new absolute path")
 	hostPattern := flags.String("host-pattern", "", "host-screen: prepared dimensions and colors manifest")
 	dotnet := flags.String("dotnet", "", "Chapter 26 voice: absolute .NET 10 SDK executable path")
 	browserNode := flags.String("browser-node", "", "Chapter 26 attachments/voice: absolute Node executable path")
@@ -62,7 +63,7 @@ func run(args []string) int {
 		case "attachments", "voice":
 			allowed["browser-node"], allowed["playwright-module"] = true, true
 		case "host-screen":
-			allowed["allow-native-host-screen"], allowed["host-pattern"] = true, true
+			allowed["allow-native-host-screen"], allowed["host-pattern"], allowed["host-failure-image"] = true, true, true
 		}
 		if *mediaScope == "voice" {
 			allowed["dotnet"] = true
@@ -103,7 +104,7 @@ func run(args []string) int {
 				fmt.Fprintln(os.Stderr, patternError)
 				return 2
 			}
-			report, err = gradeedition3.Chapter26HostScreens(gradeedition3.HostNativeConfig{Candidate: candidate, NativeAuthorized: *allowNative, Pattern: pattern})
+			report, err = gradeedition3.Chapter26HostScreens(gradeedition3.HostNativeConfig{Candidate: candidate, NativeAuthorized: *allowNative, Pattern: pattern, FailureImagePath: *hostFailureImage})
 			if err != nil {
 				fmt.Fprintln(os.Stderr, err)
 				return 2
@@ -137,7 +138,7 @@ func run(args []string) int {
 	}
 	browserFlags := false
 	flags.Visit(func(f *flag.Flag) {
-		if f.Name == "browser-node" || f.Name == "playwright-module" || f.Name == "dotnet" || f.Name == "host-pattern" || f.Name == "allow-native-host-screen" {
+		if f.Name == "browser-node" || f.Name == "playwright-module" || f.Name == "dotnet" || f.Name == "host-pattern" || f.Name == "host-failure-image" || f.Name == "allow-native-host-screen" {
 			browserFlags = true
 		}
 	})
