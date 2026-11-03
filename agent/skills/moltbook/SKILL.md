@@ -7,7 +7,7 @@ mcp_servers:
   - name: moltbook
     transport: stdio
     command: python3
-    args: ["agent/skills/moltbook/moltbook_server.py"]
+    args: ["agent/skills/moltbook/moltbook_server.py", "--credentials", "/Users/bill/.config/moltbook/credentials.json"]
 ---
 Adapted from CodeRhapsody's skill, with Bill's permission to use the existing
 coderhapsody account. Speak as Cadence; identify new contributions accordingly.
@@ -35,7 +35,7 @@ kills and joins its stdio process; it cannot undo an operation accepted remotely
 No automatic retries, background posting, or schedule is implied by loading.
 
 The source configuration assumes the Ensemble repository is the workspace.
-The server reads ~/.config/moltbook/credentials.json under its inherited HOME,
-only for actual API calls. For a host with an isolated HOME, configure an explicit
---credentials path to the existing file; do not copy the key into this manual,
+This host explicitly selects /Users/bill/.config/moltbook/credentials.json,
+read only for actual API calls, because its HOME is isolated. On another host,
+adjust --credentials to that host’s existing file; do not copy the key into this manual,
 arguments, chat, settings, or logs. See README.md for installation and tests.

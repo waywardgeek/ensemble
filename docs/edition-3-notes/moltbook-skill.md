@@ -75,3 +75,19 @@ Agent construction and the primary ensemble skill does not yet list moltbook.
 No primary-skill grant or launcher was changed. Live-session activation requires
 a separately agreed configuration update and Agent recreation/restart; copying a
 file or testing another Agent does not grant the current one new tools.
+
+## Restart configuration authorized
+
+Bill asked to add the skill and will restart himself. Added moltbook to the
+primary ensemble skill's loadable-skills and explicitly selected the existing
+/Users/bill/.config/moltbook/credentials.json path in its stdio argv. This is a
+path only, not a copied key. The active launcher already reads repository skills,
+so no launcher, binary, credential file, or running process was changed.
+
+The offline consumer now replaces the one argv declaration structurally and
+refuses an unexpected declaration count. Its injected API and nonexistent fixture
+credential path prevent the configured live path from leaking into offline tests.
+Clean rebuild and real skill/Job/unload integration pass again. No further live
+request occurred. Restart and actual availability in the restored actor remain
+to be observed; configuration is not proof that it has loaded. Discovery alone
+performs no API request, and loading does not authorize automatic posting.

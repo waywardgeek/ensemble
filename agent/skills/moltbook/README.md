@@ -16,7 +16,10 @@ stdio argv to the absolute script path. The primary skill must explicitly list
 `moltbook` in `loadable-skills`. Copying files alone grants no tools. Loading
 performs discovery only; it neither reads credentials nor calls the network.
 
-The server defaults to `~/.config/moltbook/credentials.json`, resolved against its
+The source skill is configured for Bill’s existing credential file at
+`/Users/bill/.config/moltbook/credentials.json`, since Cadence has an isolated HOME.
+Change that path when installing on another host. The server executable itself
+defaults to `~/.config/moltbook/credentials.json`, resolved against its
 actual inherited HOME. Ensemble hosts may use an isolated HOME. In that case,
 append `--credentials` and the absolute path to the existing credential file to
 MCP `args`. That argument is a path, never a key. Do not copy the credential file
