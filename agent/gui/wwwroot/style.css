@@ -331,3 +331,11 @@ body.compact #transcript { padding: .3rem; }
 #voice-hold { min-width: 44px; min-height: 44px; touch-action: none; user-select: none; -webkit-user-select: none; }
 #voice-hold[aria-pressed="true"] { outline: 2px solid currentColor; outline-offset: 2px; }
 #voice-status { grid-column: 1 / -1; overflow-wrap: anywhere; font-size: .875em; }
+
+/* Markdown tables scroll within the bubble, never widen the chat pane. */
+.message .markdown-table { max-width: 100%; overflow-x: auto; margin: .35rem 0; }
+.message table { border-collapse: collapse; width: 100%; }
+.message th, .message td { border: 1px solid var(--edge); padding: .3rem .45rem; }
+.message th { font-weight: 650; }
+.message blockquote { border-left: 3px solid var(--muted); padding-left: .65rem; margin: .4rem 0; }
+.message > :last-child { margin-bottom: 0; }

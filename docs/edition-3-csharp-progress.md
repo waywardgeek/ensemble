@@ -1,3 +1,16 @@
+# Current boundary: browser Markdown candidate ready for Dev review
+
+Pinned local markdown-it replaces the handwritten subset in source. Safe parser
+policy, body-only rendering, bounded delta coalescing, selection deferral and
+replay cancellation are covered by the actual embedded-page test. Real streamed
+fake-provider/speech completion and five public GUI groups pass, as do playback,
+contrast and 32 composer layouts. See [prototype evidence](edition-3-notes/markdown-prototype.md).
+No Dev/main installation or restart; human streaming/phone acceptance and final
+chapter reconciliation remain pending. Prior pause/model-picker source-only
+notes below are historical: Bill subsequently rebuilt/restarted; recent compact
+playback/full-width bubble layout was visually accepted. Cloudflare stale CSS
+was resolved by Bill purging its cache; asset versioning remains deferred.
+
 # Current boundary: connection-owned automatic pause verified, source only
 
 Bill approved replacing GUI Pause/Resume with one Stop speech button identical

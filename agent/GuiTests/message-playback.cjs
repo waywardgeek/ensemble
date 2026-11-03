@@ -5,7 +5,7 @@ const path = require('node:path');
 const { chromium } = require('../../edition-2/agent/gui/node_modules/playwright');
 const root = path.resolve(__dirname, '../gui/wwwroot');
 const source = fs.readFileSync(path.join(root, 'app.js'), 'utf8');
-const render = source.slice(source.indexOf('function render(card) {'), source.indexOf('// State is acknowledged,', source.indexOf('function render(card) {')));
+const render = source.slice(source.indexOf('// Coalesce streamed chunks'), source.indexOf('// State is acknowledged,', source.indexOf('// Coalesce streamed chunks')));
 (async () => {
  const browser = await chromium.launch({ executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome', headless: true });
  try {

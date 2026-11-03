@@ -147,34 +147,6 @@ function readable(part) {
     return ""; // Never speak provider signatures or hidden opaque metadata.
 }
 
-// A deliberately small safe Markdown renderer: paragraphs, headings, lists,
-// inline code, links, and fenced code. It never interprets provider HTML.
-function inline(parent, text) {
-    const token = /(`[^`]+`|\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)|\*\*[^*]+\*\*|\*[^*]+\*)/g;
-    let start = 0;
-    for (const match of text.matchAll(token)) {
-        parent.append(document.createTextNode(text.slice(start, match.index)));
-        if (match[0].startsWith("`")) {
-            const code = document.createElement("code");
-            code.textContent = match[0].slice(1, -1);
-            parent.append(code);
-        } else if (match[0].startsWith("*")) {
-            const strong = match[0].startsWith("**");
-            const emphasis = document.createElement(strong ? "strong" : "em");
-            const delimiter = strong ? 2 : 1;
-            emphasis.textContent = match[0].slice(delimiter, -delimiter);
-            parent.append(emphasis);
-        } else {
-            const link = document.createElement("a");
-            link.textContent = match[2];
-            link.href = match[3];
-            link.rel = "noopener noreferrer";
-            parent.append(link);
-        }
-        start = match.index + match[0].length;
-    }
-    parent.append(document.createTextNode(text.slice(start)));
-}
 // Lexical display only, not a language parser. Every original byte remains
 // in text nodes; provider code never becomes HTML or executable script.
 function highlight(code, source) {
@@ -194,49 +166,6 @@ function highlight(code, source) {
     code.append(document.createTextNode(source.slice(offset)));
 }
 
-function markdown(parent, text) {
-    const segments = text.split(/```[^\n]*\n([\s\S]*?)(?:```|$)/g);
-    segments.forEach((segment, index) => {
-        if (index % 2) {
-            const pre = document.createElement("pre");
-            const code = document.createElement("code");
-            const long = segment.length > 1800 || segment.split("\n").length > 24;
-            const details = document.createElement("details");
-            const summary = document.createElement("summary");
-            summary.textContent = "Expand complete code";
-            const preview = document.createElement("pre");
-            preview.textContent = segment.slice(0, 1800).split("\n").slice(0, 24).join("\n") + "\n…";
-            highlight(code, segment);
-            pre.append(code);
-            if (long) {
-                details.append(summary, pre);
-                details.ontoggle = () => { preview.hidden = details.open; };
-                parent.append(preview, details);
-            } else {
-                parent.append(pre);
-            }
-            return;
-        }
-        for (const paragraph of segment.split(/\n\s*\n/)) {
-            if (!paragraph) continue;
-            const lines = paragraph.split("\n");
-            if (lines.every(line => /^\s*(?:[-*]|\d+\.)\s+/.test(line))) {
-                const list = document.createElement(/^\s*\d/.test(lines[0]) ? "ol" : "ul");
-                for (const line of lines) {
-                    const item = document.createElement("li");
-                    inline(item, line.replace(/^\s*(?:[-*]|\d+\.)\s+/, ""));
-                    list.append(item);
-                }
-                parent.append(list);
-                continue;
-            }
-            const heading = paragraph.match(/^(#{1,6})\s+([^\n]+)$/);
-            const node = document.createElement(heading ? `h${Math.min(heading[1].length + 1, 6)}` : "p");
-            inline(node, heading ? heading[2] : paragraph);
-            parent.append(node);
-        }
-    });
-}
 // A connection owns one transient hold while either local cause remains.
 // Other connections' holds and explicit runtime pauses are independent.
 function updatePauseCause() {
@@ -467,21 +396,53 @@ function fullOutputLinks(card) {
     links.append(download, notice);
     card.node.append(links);
 }
+// Coalesce streamed chunks without delaying authoritative text or speech.
+const pendingCardRenders = new Set();
+let cardRenderTimer = null;
+function cardHasSelection(card) {
+    const selection = window.getSelection();
+    if (!selection || selection.isCollapsed) return false;
+    for (let index = 0; index < selection.rangeCount; index++) {
+        if (selection.getRangeAt(index).intersectsNode(card.node)) return true;
+    }
+    return false;
+}
+function flushCardRenders() {
+    cardRenderTimer = null;
+    for (const card of pendingCardRenders) {
+        if (cardHasSelection(card)) continue;
+        pendingCardRenders.delete(card);
+        render(card);
+    }
+}
+function queueCardRender(card) {
+    pendingCardRenders.add(card);
+    if (cardRenderTimer === null) cardRenderTimer = setTimeout(flushCardRenders, 50);
+}
+document.addEventListener("selectionchange", () => {
+    if (pendingCardRenders.size && cardRenderTimer === null)
+        cardRenderTimer = setTimeout(flushCardRenders, 50);
+});
 function render(card) {
+    if (cardHasSelection(card)) { queueCardRender(card); return; }
+    pendingCardRenders.delete(card);
     const artifact = ["tool_call", "tool_result", "blob"].includes(card.kind);
     const pane = artifact ? toolTranscript : transcript;
+    const savedScrollTop = pane.scrollTop;
     const nearBottom = pane.scrollHeight - pane.scrollTop - pane.clientHeight < 90;
     if (card.node.parentElement !== pane) pane.append(card.node);
     const oldDetails = card.node.querySelector("details");
     const wasOpen = oldDetails ? oldDetails.open : false;
-    card.node.replaceChildren();
+    const prose = ["text", "thinking", "reasoning_summary"].includes(card.kind);
+    const keepBody = prose && card.node.querySelector(":scope > .message");
+    if (!keepBody) card.node.replaceChildren();
     card.node.className = "part";
     card.node.dataset.role = card.role;
     card.node.dataset.kind = card.kind;
     card.node.dataset.status = card.status;
-    const heading = document.createElement("div");
+    const heading = card.node.querySelector(":scope > .card-heading") || document.createElement("div");
     heading.className = "card-heading";
-    const title = document.createElement("strong");
+    const title = heading.querySelector("strong") || document.createElement("strong");
     const argument = card.kind === "tool_call" ? Object.values(card.input || {}).find(value => typeof value === "string") : null;
     const summary = argument ? ` · ${argument.slice(0, 100)}` : "";
     const kind = card.kind === "reasoning_summary" || card.kind === "thinking" ? "Thinking" : card.kind;
@@ -498,22 +459,23 @@ function render(card) {
         status.textContent = card.status;
         card.node.append(status);
     }
-    const speaker = actionButton("Speak", () => speak(card));
+    const speaker = heading.querySelector('[data-action="speak"]') || actionButton("Speak", () => speak(card));
     speaker.setAttribute("aria-label", `Speak ${author} ${card.kind}`);
     speaker.title = speaker.getAttribute("aria-label");
-    setButtonIcon(speaker, "icon-speaker");
+    if (!speaker.dataset.action) setButtonIcon(speaker, "icon-speaker");
     speaker.dataset.action = "speak";
     speaker.disabled = !card.text.trim() || (!speech && !transcriptSpeech);
     // Playback belongs with the speaker label, not in the prose flow.
-    heading.append(title, speaker);
-    card.node.append(heading);
+    if (!title.parentElement) heading.append(title);
+    if (!speaker.parentElement) heading.append(speaker);
+    if (!heading.parentElement) card.node.append(heading);
     // Supplied thinking is readable prose, not a hidden tool payload. Keep its
     // original kind/provenance; the friendly label does not invent hidden reasoning.
-    if (["text", "thinking", "reasoning_summary"].includes(card.kind)) {
-        const body = document.createElement("div");
+    if (prose) {
+        const body = keepBody || document.createElement("div");
         body.className = "message";
         markdown(body, card.text);
-        card.node.append(body);
+        if (!body.parentElement) card.node.append(body);
     } else {
         const details = document.createElement("details");
         details.open = wasOpen;
@@ -546,7 +508,7 @@ function render(card) {
     }
     for (const part of card.parts || []) media(card.node, part, card);
     fullOutputLinks(card);
-    if (nearBottom) pane.scrollTop = pane.scrollHeight;
+    pane.scrollTop = nearBottom ? pane.scrollHeight : savedScrollTop;
 }
 // State is acknowledged, not inferred from transcript content or tool activity.
 function renderControls() {
@@ -688,6 +650,9 @@ function handle(frame) {
         }
         showAgents();
         replaying = true;
+        clearTimeout(cardRenderTimer);
+        cardRenderTimer = null;
+        pendingCardRenders.clear();
         cards.clear();
         transcript.replaceChildren();
         toolTranscript.replaceChildren();
@@ -781,7 +746,11 @@ function handle(frame) {
             render(call);
         }
     }
-    render(card);
+    if (frame.type === "part_delta" && !replaying) {
+        // Insert once in arrival order; updates only replace this card's body.
+        if (!card.node.parentElement) render(card);
+        else queueCardRender(card);
+    } else render(card);
     narrate(card);
 }
 function connect() {
