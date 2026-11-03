@@ -1,14 +1,12 @@
 # Chapter 26: Voice and Images
 
-> **Full narrative draft; acceptance and grading remain open.** Voice and image
-> paths have implementation evidence and live acceptance as described below.
-> Host-screen capture, model-turn delivery, delayed Jobs, and replay passed an
-> agreed macOS synthetic-window test with a local fake provider before selection
-> was simplified to whole displays. Updated whole-display native acceptance remains
-> open. The image-files, attachment and voice external scopes pass, totaling 75 points;
-> 25 points remain ungraded for host screenshots. Speech-pause cleanup
-> now uses connection-owned holds as taught in Chapter 7. The narrative was drafted at the human's
-> request; it is not a claim of complete implementation acceptance or grading.
+> **External media grading complete:100/100.** Image-files20, attachments25,
+> voice30 and host-screen25 pass their executable scopes. The native macOS
+> primary-display run verified both selector forms, delayed Jobs and full-image
+> replay without recapture. Provider, platform and human-use limits remain
+> explicit below; this score does not certify every device or failure race.
+> Speech output follows Chapter7's browser-local preferences and single
+> Agent-wide pause state.
 
 ## TL;DR: Specification Brief
 
@@ -457,10 +455,11 @@ exercised native capture through the real Agent tool, a running Job followed by
 collection, actual pixels in the local fake-provider request, and identical replay
 on the next human turn. It made one capture and four local provider requests.
 This is not a paid-provider interpretation test, other-platform acceptance, or
-proof of every permission-change race. Display-only native model-turn acceptance
-requires a newly agreed whole-display fixture; old rectangle-based evidence does
-not certify that changed selection contract. The earlier browser replay test remains
-separate from host-screen acceptance.
+proof of every permission-change race. The later whole-display external run used
+a newly agreed primary-display fixture and verified omitted and explicit-zero
+selection, distinct delayed Jobs and replay. That run establishes the changed
+selection contract; old rectangle-based evidence alone did not. Browser-page
+replay remains separate from host-screen acceptance.
 
 That native test caught a HiDPI assumption the synthetic metadata tests could not.
 A 640×360 logical rectangle produced 1280×720 pixels. `CGDisplayPixelsWide/High`
@@ -684,7 +683,8 @@ one display selector, Bill restarted the staged runtime and authorized a whole
 primary-display capture. The live `screenshot(display: 0)` call delivered actual
 3840-by-2160 pixels prepared to 2048-by-1152, with no window measurement, picker,
 or command-line workaround. Cadence inspected the returned GUI pixels. Omitted
-selection is source-tested; it was not a separate live invocation.
+selection was only source-tested at that earlier boundary. The later external
+whole-display run below exercised both omitted selection and explicit zero.
 
 The shared implementation suite passed 339 groups with the child-restoration
 changes; those groups span the application and are not 339 independent multimedia
@@ -705,8 +705,8 @@ from any device. Unchanged local activity cannot veto that resume. Disconnect
 does not invent resume, and reconnect does not reassert stale activity. This repair is separate evidence,
 not a substitute for the separate voice-input external grade.
 
-This draft describes the implementation before the remaining acceptance and
-grading gates close. Update this status from evidence as the work finishes.
+The external grading gates are now complete. Preserve the remaining platform
+and human-use limitations rather than treating the score as universal acceptance.
 A written chapter, an installed button, a passing fake-provider test, and a live
 human interaction each establish something different.
 
@@ -878,7 +878,7 @@ Four mutants expose extra confirmation, duplicate commit, wrong recipient and
 actual track leakage. The command reports **30/30** for this synthetic scope,
 not native microphone reliability, real-provider behavior or the host-screen grade.
 
-### Exercise 26.4: Host screenshots (25 points; native acceptance pending)
+### Exercise 26.4: Host screenshots (25 points)
 
 Implement `list_displays` and `screenshot` on the computer running the C# server.
 Support one optional display index, defaulting to display zero, and return prepared PNG pixels
