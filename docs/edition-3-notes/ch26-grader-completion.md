@@ -73,3 +73,37 @@ model/tool/Job path. Do not reuse earlier one-shot capture permission or capture
 the working desktop. Refusal/cleanup tests can run without native capture. Keep
 platform/display limits and ungraded cases explicit; no permission prompting
 while Bill is away.
+
+### Expanded external attachment checks
+
+The same public candidate probe now also passes synthetic paste of two images,
+preview removal to one, and caption/pixel delivery. A two-Agent scenario seeds
+separate unpredictable history markers through ordinary chat, creates/selects a
+peer through the UI, then requires the image provider request to contain only the
+selected recipient's marker. Three provider requests are required in that case.
+
+A transport fault corrupts only the first synthetic payload. The server must
+return a sequence-correlated error, preserve an editable caption/image draft,
+and accept a later valid send with exactly one provider request. Initial runs
+failed because the fixture watched image-status for refusal wording; that element
+tracks read/send/uncertainty, while notification is separate. Observed protocol
+confirmed correct sequence1 refusal. The corrected fixture uses that frame as
+its barrier and checks actual draft editability and retention independently.
+
+The final five-scenario run (picker, paste/removal, recipient, refusal recovery,
+lost-caption negative) passed in5.94seconds; owned processes joined. This remains
+partial and unscored: late readers, uncertain reconnect, duplicate/stale replies,
+and additional negative candidates still need coverage. Synthetic paste is not
+native phone clipboard acceptance.
+
+The expanded seven-scenario run passed in10.46seconds, with final shell exit0.
+Uncertain-send injection drops the first image at the browser transport boundary
+and closes that socket. After a fresh connection, automatic and repeated-form
+retries remain absent, caption/image remain held, and explicit discard permits a
+new successful attachment. Exactly one provider request is observed. A delayed
+synthetic FileReader is cancelled by real tree selection away from the recipient;
+after selecting that recipient again, manually delivering its stale callback
+cannot restore a preview. Subsequent fresh paste/removal/admission still passes.
+These use test-owned browser API replacements, not application-private globals.
+Duplicate/stale acknowledgement controls and further independent negative
+candidates remain open; no external score has been increased.

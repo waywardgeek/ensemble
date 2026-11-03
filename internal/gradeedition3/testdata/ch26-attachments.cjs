@@ -24,7 +24,7 @@ assert.ok(caption && process.env.ATTACHMENT_PNG && process.env.ATTACHMENT_RESULT
             const frame = JSON.parse(String(payload));
             // Retain protocol evidence, never copy image payloads into the report.
             frames.push({ direction, type: frame.type, sequence: frame.sequence,
-              agent_id: frame.agent_id, text: frame.text, images: frame.images?.map(image =>
+              agent_id: frame.agent_id, text: frame.text, message: frame.message, image_sequence: frame.image_sequence, images: frame.images?.map(image =>
                 ({ width: image.width, height: image.height })) });
           } catch { /* Non-JSON traffic is not admission evidence. */ }
         });
@@ -40,14 +40,101 @@ assert.ok(caption && process.env.ATTACHMENT_PNG && process.env.ATTACHMENT_RESULT
         await route.fulfill({ response, body: source.replace(anchor, "text: '', images:") });
       });
     }
+    if (['refusal', 'uncertain'].includes(process.env.ATTACHMENT_FAULT)) {
+      await page.addInitScript(fault => {
+        const Native = WebSocket;
+        let damaged = false;
+        window.attachmentFaultEvidence = { opens: 0, attempts: 0 };
+        window.WebSocket = class extends Native {
+          constructor(...args) {
+            super(...args);
+            this.addEventListener('open', () => window.attachmentFaultEvidence.opens++);
+          }
+          send(data) {
+            const frame = JSON.parse(data);
+            if (frame.type === 'image_prompt') window.attachmentFaultEvidence.attempts++;
+            if (!damaged && frame.type === 'image_prompt') {
+              damaged = true;
+              if (fault === 'uncertain') { this.close(); return; }
+              frame.images[0].data = 'invalid-base64!';
+              data = JSON.stringify(frame);
+            }
+            super.send(data);
+          }
+        };
+      }, process.env.ATTACHMENT_FAULT);
+    }
     await page.goto(base.href);
     await page.locator('#send').waitFor({ state: 'visible' });
     await page.waitForFunction(() => !document.querySelector('#send').disabled);
+    if (process.env.ATTACHMENT_RECIPIENT === '1') {
+      await page.locator('#prompt').fill(caption + '-original-history');
+      await page.locator('#send').click();
+      await page.getByText('ATTACHMENT_PROBE_COMPLETE', { exact: true }).waitFor({ state: 'visible' });
+      await page.locator('#peer-open').click();
+      await page.locator('#peer-name').fill('AttachmentRecipient');
+      await page.locator('#peer-model').fill('claude-3-haiku-20240307');
+      await page.locator('#peer-create').click();
+      const recipient = page.locator('#agent-tree [data-agent]').filter({ hasText: 'AttachmentRecipient' });
+      await recipient.click();
+      await page.waitForFunction(() => !document.querySelector('#send').disabled);
+      await page.locator('#prompt').fill(caption + '-recipient-history');
+      await page.locator('#send').click();
+      await page.getByText('ATTACHMENT_PROBE_COMPLETE', { exact: true }).waitFor({ state: 'visible' });
+    }
+    if (process.env.ATTACHMENT_FAULT === 'late-reader') {
+      await page.evaluate(() => {
+        const Native = FileReader;
+        let held = false;
+        window.attachmentReaderEvidence = { aborts: 0, reader: null };
+        window.FileReader = class {
+          static LOADING = 1;
+          constructor() {
+            if (held) return new Native();
+            held = true; this.readyState = 0;
+            window.attachmentReaderEvidence.reader = this;
+          }
+          readAsDataURL() { this.readyState = 1; }
+          abort() { this.readyState = 2; window.attachmentReaderEvidence.aborts++; }
+        };
+      });
+      const chooser = page.waitForEvent('filechooser');
+      await page.locator('#attach-images').click();
+      await (await chooser).setFiles(process.env.ATTACHMENT_PNG);
+      await page.waitForFunction(() => window.attachmentReaderEvidence.reader?.readyState === 1);
+      await page.locator('#agent-tree [data-agent]').filter({ hasText: 'AttachmentProbe' }).click();
+      await page.waitForFunction(() => window.attachmentReaderEvidence.aborts === 1);
+      await page.locator('#agent-tree [data-agent]').filter({ hasText: 'AttachmentRecipient' }).click();
+      await page.waitForFunction(() => !document.querySelector('#send').disabled);
+      await page.evaluate(encoded => {
+        const reader = window.attachmentReaderEvidence.reader;
+        reader.result = 'data:image/png;base64,' + encoded;
+        reader.onload();
+      }, fs.readFileSync(process.env.ATTACHMENT_PNG).toString('base64'));
+      assert.equal(await page.locator('#image-previews img').count(), 0, 'Stale reader restored an image after switching');
+    }
     await page.locator('#prompt').fill(caption);
-    const chooser = page.waitForEvent('filechooser');
-    await page.locator('#attach-images').click();
-    await (await chooser).setFiles(process.env.ATTACHMENT_PNG);
+    if (process.env.ATTACHMENT_INPUT === 'paste') {
+      const encoded = fs.readFileSync(process.env.ATTACHMENT_PNG).toString('base64');
+      await page.locator('#prompt').evaluate((input, encoded) => {
+        const bytes = Uint8Array.from(atob(encoded), value => value.charCodeAt(0));
+        const transfer = new DataTransfer();
+        for (let index = 0; index < 2; index++) {
+          transfer.items.add(new File([bytes], `synthetic-${index}.png`, { type: 'image/png' }));
+        }
+        input.dispatchEvent(new ClipboardEvent('paste', {
+          clipboardData: transfer, bubbles: true, cancelable: true
+        }));
+      }, encoded);
+      await page.waitForFunction(() => document.querySelectorAll('#image-previews img').length === 2);
+      await page.locator('#image-previews button').first().click();
+    } else {
+      const chooser = page.waitForEvent('filechooser');
+      await page.locator('#attach-images').click();
+      await (await chooser).setFiles(process.env.ATTACHMENT_PNG);
+    }
     await page.locator('#image-previews img').waitFor({ state: 'visible' });
+    assert.equal(await page.locator('#image-previews img').count(), 1, 'Preview removal failed');
     assert.equal(await page.locator('#prompt').inputValue(), caption);
     await page.waitForFunction(() => !document.querySelector('#send').disabled);
     // Public DOM submission twice within one task exercises the once-only gate.
@@ -55,23 +142,58 @@ assert.ok(caption && process.env.ATTACHMENT_PNG && process.env.ATTACHMENT_RESULT
       input.form.requestSubmit();
       input.form.requestSubmit();
     });
+    if (process.env.ATTACHMENT_FAULT === 'uncertain') {
+      await page.locator('#discard-image-draft').waitFor({ state: 'visible' });
+      await page.waitForFunction(() => window.attachmentFaultEvidence.opens >= 2);
+      assert.equal(await page.locator('#send').isDisabled(), true, 'Uncertain draft became sendable');
+      await page.locator('#prompt').evaluate(input => {
+        input.form.requestSubmit(); input.form.requestSubmit();
+      });
+      assert.equal(await page.evaluate(() => window.attachmentFaultEvidence.attempts), 1,
+        'Uncertain send retried after reconnect');
+      assert.equal(await page.locator('#prompt').inputValue(), caption, 'Uncertain caption lost');
+      assert.equal(await page.locator('#image-previews img').count(), 1, 'Uncertain image lost');
+      await page.locator('#discard-image-draft').click();
+      assert.equal(await page.locator('#image-previews img').count(), 0);
+      await page.locator('#prompt').fill(caption);
+      const chooser = page.waitForEvent('filechooser');
+      await page.locator('#attach-images').click();
+      await (await chooser).setFiles(process.env.ATTACHMENT_PNG);
+      await page.waitForFunction(() => !document.querySelector('#send').disabled);
+      await page.locator('#send').click();
+    }
+    if (process.env.ATTACHMENT_FAULT === 'refusal') {
+      const deadline = Date.now() + 15000;
+      while (!frames.some(frame => frame.direction === 'received' && frame.type === 'error' && frame.image_sequence === 1)) {
+        assert.ok(Date.now() < deadline, 'Missing correlated image refusal');
+        await page.waitForTimeout(20);
+      }
+      await page.waitForFunction(() => !document.querySelector('#prompt').readOnly);
+      assert.equal(await page.locator('#prompt').inputValue(), caption, 'Refusal lost caption');
+      assert.equal(await page.locator('#prompt').evaluate(input => input.readOnly), false, 'Refusal locked draft');
+      assert.equal(await page.locator('#image-previews img').count(), 1, 'Refusal lost image');
+      await page.locator('#send').click();
+    }
     await page.waitForFunction(() => document.querySelectorAll('#image-previews img').length === 0);
     const sends = frames.filter(frame => frame.direction === 'sent' && frame.type === 'image_prompt');
-    assert.equal(sends.length, 1, 'Duplicate or missing image admission request');
-    assert.equal(sends[0].text, caption, 'Caption changed in transport');
-    assert.equal(sends[0].images.length, 1, 'Image missing in transport');
+    assert.equal(sends.length, process.env.ATTACHMENT_FAULT === 'refusal' ? 2 : 1, 'Duplicate or missing image admission request');
+    const admitted = sends.at(-1);
+    assert.equal(admitted.text, caption, 'Caption changed in transport');
+    assert.equal(admitted.images.length, 1, 'Image missing in transport');
     const accepted = frames.filter(frame => frame.direction === 'received' &&
-      frame.type === 'image_accepted' && frame.sequence === sends[0].sequence &&
-      frame.agent_id === sends[0].agent_id);
+      frame.type === 'image_accepted' && frame.sequence === admitted.sequence &&
+      frame.agent_id === admitted.agent_id);
     assert.equal(accepted.length, 1, 'Missing or duplicate addressed acknowledgement');
     assert.equal(accepted[0].images[0].width, 2048);
     assert.equal(accepted[0].images[0].height, 32);
     assert.equal(await page.locator('#prompt').inputValue(), '', 'Accepted draft not cleared');
-    // Admission is not completion: observe the answer through the public UI.
-    await page.getByText('ATTACHMENT_PROBE_COMPLETE', { exact: true }).waitFor({ state: 'visible' });
+    // Admission is not completion: require the newly produced answer.
+    const replies = process.env.ATTACHMENT_RECIPIENT === '1' ? 2 : 1;
+    await page.waitForFunction(count => [...document.querySelectorAll('#transcript p')]
+      .filter(node => node.textContent === 'ATTACHMENT_PROBE_COMPLETE').length === count, replies);
     assert.deepEqual(errors, [], 'Browser exceptions');
     fs.writeFileSync(process.env.ATTACHMENT_RESULT, JSON.stringify({
-      scope: 'attachment-picker-admission-only', caption, request: sends[0], acknowledgement: accepted[0]
+      scope: 'attachment-picker-admission-only', caption, request: admitted, acknowledgement: accepted[0]
     }, null, 2));
   } finally {
     await browser.close();

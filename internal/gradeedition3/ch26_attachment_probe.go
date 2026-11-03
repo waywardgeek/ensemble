@@ -41,6 +41,9 @@ func (output *probeOutput) Write(data []byte) (int, error) {
 // AttachmentProbe configures a partial, unscored public-GUI probe. Explicit
 // executable paths avoid installing browser tools or borrowing live services.
 type AttachmentProbe struct {
+	Fault            string
+	Recipient        bool
+	InputMode        string
 	Candidate        string
 	Node             string
 	BrowserDriver    string
@@ -78,6 +81,12 @@ func RunAttachmentPickerProbe(config AttachmentProbe) (result error) {
 		return err
 	}
 	caption := "attachment-" + filepath.Base(root)
+	expectedCalls := int32(1)
+	recipientMode := "0"
+	if config.Recipient {
+		expectedCalls = 3
+		recipientMode = "1"
+	}
 	requests := make(chan []byte, 8)
 	var calls atomic.Int32
 	provider := fakevendor.NewWithOptions(nil, fakevendor.Options{Route: func(body []byte) *fakevendor.Reply {
@@ -136,8 +145,8 @@ func RunAttachmentPickerProbe(config AttachmentProbe) (result error) {
 				}
 			}
 		}
-		if result == nil && calls.Load() != 1 {
-			result = fmt.Errorf("expected one provider request, got %d", calls.Load())
+		if result == nil && calls.Load() != expectedCalls {
+			result = fmt.Errorf("expected %d provider requests, got %d", expectedCalls, calls.Load())
 		}
 		if result == nil && diagnostics.overflow {
 			result = fmt.Errorf("candidate diagnostic bound exceeded")
@@ -165,7 +174,7 @@ func RunAttachmentPickerProbe(config AttachmentProbe) (result error) {
 	browser := exec.CommandContext(ctx, config.Node, config.BrowserDriver)
 	browser.Dir = root
 	browser.Env = append(append([]string{}, env...), "GUI_URL="+base,
-		"PLAYWRIGHT_MODULE="+config.PlaywrightModule, "ATTACHMENT_MUTATION="+config.BrowserMutation, "ATTACHMENT_CAPTION="+caption,
+		"PLAYWRIGHT_MODULE="+config.PlaywrightModule, "ATTACHMENT_MUTATION="+config.BrowserMutation, "ATTACHMENT_INPUT="+config.InputMode, "ATTACHMENT_FAULT="+config.Fault, "ATTACHMENT_RECIPIENT="+recipientMode, "ATTACHMENT_CAPTION="+caption,
 		"ATTACHMENT_PNG="+imagePath, "ATTACHMENT_RESULT="+filepath.Join(root, "browser-result.json"))
 	browserOutput := &probeOutput{}
 	browser.Stdout, browser.Stderr = browserOutput, browserOutput
@@ -175,13 +184,21 @@ func RunAttachmentPickerProbe(config AttachmentProbe) (result error) {
 	if browserOutput.overflow {
 		return fmt.Errorf("browser diagnostic bound exceeded")
 	}
-	select {
-	case body := <-requests:
-		if _, err := attachmentPNG(body, caption, challenge); err != nil {
-			return err
+	for index := int32(0); index < expectedCalls; index++ {
+		select {
+		case body := <-requests:
+			if index != expectedCalls-1 {
+				continue
+			}
+			if _, err := attachmentPNG(body, caption, challenge); err != nil {
+				return err
+			}
+			if config.Recipient && (!bytes.Contains(body, []byte(caption+"-recipient-history")) || bytes.Contains(body, []byte(caption+"-original-history"))) {
+				return fmt.Errorf("attachment reached wrong recipient history")
+			}
+		case <-ctx.Done():
+			return fmt.Errorf("provider received no attachment")
 		}
-	case <-ctx.Done():
-		return fmt.Errorf("provider received no attachment")
 	}
 	return nil
 }
