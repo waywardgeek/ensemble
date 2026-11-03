@@ -150,3 +150,33 @@ Remaining before recording25attachment points: expose the complete scenario set
 through the scored executable CLI, validate browser/tool setup separately from
 candidate behavior, review failure/cleanup reporting, run that exact public
 command and reconcile chapter commands/results. Current score remains20 overall.
+
+## Voice external-consumer foundation: partial, unscored
+
+A standalone net10 consumer under testdata/voice-consumer references candidate
+Ensemble.dll and Ensemble.Gui.dll by CandidateDirectory; it has no project/friend
+reference to the internal tests. The approved three-argument public transport
+constructor is its only transcription seam. Port and randomized transcript are
+explicit environment inputs; live8088/8089/8090 are refused. Its grader-owned HTTP
+boundaries use separate synthetic audio/model credentials. The WAV oracle checks
+canonical identifiers, lengths, mono16kHz/PCM16 fields and bounds independently
+rather than calling the candidate's PCM validator. The model oracle requires
+exactly one human text part equal to the randomized transcript, and separately
+counts canonical History admission through the public view.
+
+The adapted browser driver uses public UI and test-owned WebSocket/audio API
+instrumentation. A clean public-consumer build and actual Chrome run passed:
+shortcut save/reload/dialog guard; repeated-key hold/release producing real PCM;
+one transcript admission/model input; duplicate commit refusal; blur before upload;
+held uncooperative second transcription cancelled before late success; all tracks
+ended; two audio calls/completions, one model request and one canonical transcript.
+Joined host/Agents teardown and owned-handler disposal passed. No native microphone
+or paid request occurred. Evidence /private/tmp/cadence-voice-driver/exact-i9p2shu0/
+contains host.log and result.json; earlier run-vnmjxhzf is the weaker initial oracle.
+
+The candidate GUI was rebuilt source-only to include the public overload. Consumer
+build used an empty NuGet package-source configuration and DLL references, no
+package downloads. No installation or restart. This is NOT a30-point grade:
+recipient-switch/disconnect/permission timing, funding-off behavior, independent
+negative controls, reusable external orchestration and scored CLI remain pending.
+The temporary development launcher is not the final grader command.
