@@ -253,3 +253,32 @@ The portable runner still must build this trusted consumer against supplied
 candidate runtime assemblies using explicit .NET/browser tools, validate setup,
 run the scenario set and expose a scored voice command. No production fake-provider
 flag is needed. Voice remains ungraded; external coverage stays45 points.
+
+## Host-screen external foundation: source-only, unscored
+
+The ordinary current CLI builds cleanly and passes an external declaration probe:
+the fake provider requests only load_skill(host-screen), then inspects the next
+advertised screenshot/list_displays declarations. It never requests either native
+tool. Required-display and rectangle-advertising synthetic CLI candidates fail
+named schema assertions. Opt-in test uses CH26_HOST_CANDIDATE; the current wrapper
+is /private/tmp/cadence-host-driver/candidate and targets the promotion CLI build.
+No native enumeration, permission prompt or capture occurred.
+
+Typed tool PNG extraction is shared with the existing image-file oracle without
+changing its fixed image-file dimensions/pixel checks. A separate host pattern
+oracle accepts explicit agreed prepared dimensions and four synthetic colors,
+checks actual bounded PNG bytes and all band interiors (excluding resampling
+seams), and rejects filename-only payload, wrong dimensions and altered pixels.
+Generated-PNG tests and both Go grader/command packages pass. Source-only oracles
+award no host-screen points; total external coverage remains75.
+
+Next implement the opt-in native CLI script and its synthetic wire negatives:
+load skill, validate declaration, capture only the freshly agreed whole display,
+observe running Job and collect that same handle, inspect actual paired pixels,
+and verify retained bytes on a later turn without recapture. Omitted/default0 and
+explicit0 acceptance require an agreed synthetic primary display; do not silently
+capture an unapproved primary display when permission covers a secondary one.
+Another-display acceptance needs its own appropriate authorization/setup. Native
+refusal tests against potentially broken candidates also belong behind that gate,
+not a supposedly source-only call that could capture if its policy is defective.
+No new public backend injection API is proposed or silently added here.

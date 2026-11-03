@@ -57,6 +57,15 @@ func newImageChallenge() (imageChallenge, []byte, error) {
 }
 
 func imageToolPNG(body []byte, callID string, challenge imageChallenge) ([]byte, error) {
+	pixels, err := imageToolPixels(body, callID)
+	if err != nil {
+		return nil, err
+	}
+	return validatePreparedImagePNG(pixels, challenge)
+}
+
+// Placement and payload validation shared by image-file and host-screen drivers.
+func imageToolPixels(body []byte, callID string) ([]byte, error) {
 	if len(body) > 16<<20 {
 		return nil, fmt.Errorf("provider request exceeds grader bound")
 	}
@@ -122,7 +131,7 @@ func imageToolPNG(body []byte, callID string, challenge imageChallenge) ([]byte,
 	if images != 1 {
 		return nil, fmt.Errorf("expected one image, got %d", images)
 	}
-	return validatePreparedImagePNG(pixels, challenge)
+	return pixels, nil
 }
 
 // Shared pixel oracle for tool results and human attachments. Wire ownership is
