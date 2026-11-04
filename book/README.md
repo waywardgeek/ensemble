@@ -1,7 +1,7 @@
 # Edition 3 — C# inside Ensemble
 
-This edition includes the completed Chapter 26, Voice and Images, and the
-current Chapter 27 crossover requirements, alongside Gateway, Goals, and the
+This edition includes the completed Chapter 25, Voice and Images, and the
+current Chapter 30 crossover requirements, alongside Gateway, Goals, and the
 optional Codex-backed path. Bill directed the architecture; Cadence
 implemented, exercised and reviewed the C# work personally inside Ensemble.
 
@@ -19,11 +19,16 @@ Historical foundation checks alone were not that human acceptance. The optional 
 completed after Gateway and Goals, and its historical `ch24` endpoint intentionally
 contains that foundation. Earlier endpoints are not renamed or overwritten.
 
-The assembled Markdown, EPUB, print interior, and covered reading PDF were rebuilt
-from the current manuscript after Chapter 26 passed all 100 external media points.
+The last release artifacts (assembled Markdown, EPUB, print interior, and covered
+reading PDF) were rebuilt
+from the current manuscript after the former Chapter 26 passed all 100 external media points.
 The release checks cover EPUB navigation and local resources, print typography,
 contents destinations, page labels, and reading-copy links. They are not a new
 whole-book execution grade or KDP preview approval.
+**Working manuscript:** the current 00–30 ordering and design outlines are newer
+than those release artifacts. The PDFs/EPUB have not been rebuilt for this
+renumbering. Connections, Agenda, and Puffin are not completed chapters.
+
 The companion publication is available under [companion/](companion/README.md).
 
 ## Sequential manuscript numbers and historical endpoints
@@ -41,17 +46,20 @@ endpoints, archived evidence, or executable grader flags to match the book.
 | 21 | Memory | 22 / `ch22` |
 | 22 | Recall | 23 / `ch23` |
 | 23 | Codex/cache | 24 / `ch24` |
-| 24 | Gateway | 26 / `ch26` |
-| 25 | Goals | 27 / `ch27` |
-| 26 | [Voice and Images](chapter-26.md) | Completed narrative and exercises; external scopes pass 100/100: images 20, attachments 25, voice 30, host screenshots 25. Platform and synthetic-fixture limits remain explicit. |
-| 27 | Crossover | Active source in `agent/`; no numbered snapshot |
+| 24 | Goals | 27 / `ch27` |
+| 25 | [Voice and Images](chapter-25.md) | External media grader remains `-ch 26`; scopes pass 100/100 with documented limits. |
+| 26 | Gateway | 26 / `ch26`; whole-state persistence upgrade in progress |
+| 27 | Connections | Design-stage outline; no implemented endpoint or grade |
+| 28 | Agenda | Design-stage outline; no implemented endpoint or grade |
+| 29 | Puffin | Design-stage outline; no implemented endpoint or grade |
+| 30 | Crossover | Active source in `agent/`; no numbered snapshot |
 
 The two former historical crossover chapters were removed, not merged into
 unrelated chapters. Earlier editions and their chapter numbering are unchanged.
 
 ## What completion means
 
-Chapter 26 contains its TL;DR, In Plain Words, implementation contracts, and
+Chapter 25 contains its TL;DR, In Plain Words, implementation contracts, and
 externally graded exercises. Its four media scopes pass 100/100. The native
 host-screen scope verifies default and explicit primary-display captures through
 delayed Jobs and byte-identical new-turn replay without recapture. This does not

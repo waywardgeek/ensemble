@@ -1,10 +1,10 @@
 # Chapters
 
-The C# foundation includes Goals, Gateway, and the optional Codex path.
-Chapter 26 covers multimedia interaction; its four external media scopes pass
-100/100 with their documented platform and fixture limits. Chapter 27 retains
-the final replacement-readiness exercise. See the [edition guide](README.md) for historical source endpoint
-numbers, verification limits, and builds.
+The foundation includes Goals, multimedia, and Gateway. Chapter 25's four
+external media scopes pass 100/100 with documented limits. Gateway's whole-state
+persistence upgrade is in progress; Connections, Agenda, and Puffin are planned
+chapters, not completed assignments. Chapter 30 retains crossover acceptance.
+See the [edition guide](README.md) for historical endpoint and grader mappings.
 
 - [Preface](preface.md)
 - [Chapter 0: The Perpetual Machine](chapter-00.md)
@@ -31,10 +31,13 @@ numbers, verification limits, and builds.
 - [Chapter 21: Forgetting on Purpose](chapter-21.md)
 - [Chapter 22: Auto-Recall](chapter-22.md)
 - [Chapter 23: While the Cache Is Broken](chapter-23.md)
-- [Chapter 24: Gateway](chapter-24.md)
-- [Chapter 25: Goals](chapter-25.md)
-- [Chapter 26: Voice and Images](chapter-26.md)
-- [Chapter 27: Crossing Over to Ensemble](chapter-27.md)
+- [Chapter 24: Goals](chapter-24.md)
+- [Chapter 25: Voice and Images](chapter-25.md)
+- [Chapter 26: Gateway](chapter-26.md)
+- [Chapter 27: Connections (design outline)](chapter-27.md)
+- [Chapter 28: Agenda (design outline)](chapter-28.md)
+- [Chapter 29: Puffin (design outline)](chapter-29.md)
+- [Chapter 30: Crossing Over to Ensemble](chapter-30.md)
 - [Epilogue: What we can rebuild](epilogue.md)
 - [A note from Bill](note-from-bill.md)
 
@@ -43,9 +46,6 @@ Ideas for future editions, not unfinished requirements of this one:
 - **Artifacts, deep dive.** Ch8 introduced the artifact; this goes further:
   renderers, addressable bytes, the content-addressed store that ch15 Q3
   needs, and sandboxed untrusted renderers.
-- **Connections.** Connectors to outside systems (deferred from the GUI
-  design): auth, credential flow, and what the agent may touch.
-- Scheduler to work with gateway: Now you can wake up with a morning briefing.
 - **Workflows.** AI Native ch9-10: a skill is advice, a workflow is a
   program; then workflows the agent writes for itself. Also where the ch5
   three-agent exercise and the wake-once check were deferred.

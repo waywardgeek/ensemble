@@ -40,3 +40,9 @@ This is the replacement companion for the C# edition of the agentic codebook. It
 Chapters 00–25 are drafted and reviewed against the current codebook. The new crossover is reserved for Chapter 26 and is not included here. The approved companion preface is preserved unchanged.
 
 This directory contains the new Markdown manuscript. The existing published companion and its source directory have not been removed or republished. No assembled PDF or EPUB has been generated from this draft.
+
+## Implementation-book renumbering
+
+This separate companion retains its existing chapter numbering. Its Gateway
+and Goals implementation links now target main-book Chapters 26 and 24.
+New main-book Chapters 27–29 are design outlines, not companion content.

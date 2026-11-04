@@ -1,3 +1,14 @@
+# Current boundary: manuscript renumbering and Gateway upgrade begun
+
+Current sequence: Goals24, Voice and Images25, Gateway26, Connections27,
+Agenda28, Puffin29, CrossingOver30. Chapters27–29 are explicitly design-stage
+outlines, not implemented or graded chapters. Historical endpoints and grader
+flags are unchanged; prior evidence below uses its original numbering.
+Gateway whole-state JSON persistence is authorized and not yet implemented.
+Existing separate periodic policy/queue saves do not meet the new contract.
+No live services or published PDF/EPUB artifacts changed. See the
+[detailed design](edition-3-notes/puffin-chapter-outlines.md).
+
 # Current boundary: browser-profile font and shortcut complete, source only
 
 Font size and hold-to-talk shortcut now use origin-local profile storage, matching

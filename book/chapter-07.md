@@ -336,7 +336,7 @@ narration off cancels that browser's current and queued speech. A rate or voice
 change affects the next constructed utterance, not audio already speaking.
 Microphone recording and transcription funding are separate from speech output.
 The hold-to-talk shortcut is a browser-profile preference, not Agent policy;
-Chapter8 specifies its local storage and Chapter26 implements its input guards.
+Chapter8 specifies its local storage and Chapter25 implements its input guards.
 Automatic narration reads only new content for the Agent selected in that tab.
 A selected tab may be in the background; selection is not foreground visibility.
 

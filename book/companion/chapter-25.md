@@ -52,4 +52,4 @@ Status refreshes preserve unsaved draft edits rather than overwriting them, and 
 
 Goals closes a modest but recurring gap: the distance between finishing a response and finishing an authorized job. The objective stays current through compression, and idle time can produce a new chance to act. When the work is complete or genuinely blocked, disabling reminders is the control action; explaining that state to the human is still the Agent’s responsibility.
 
-[Implementation chapter](../chapter-25.md)
+[Implementation chapter](../chapter-24.md)

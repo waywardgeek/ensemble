@@ -1,10 +1,11 @@
 # Connections, Agenda, and Puffin: detailed design outline
 
-Status: revised design outline, not completed chapters or implementation approval.
-Bill approved these three subjects and the name Agenda. Place the enhanced Gateway
-chapter immediately before Connections, after checking construction dependencies.
-Keep Crossing Over last. Do not assign final numbers, rename manuscript files,
-frozen endpoints, or grader flags yet.
+Status: design outline. Bill authorized manuscript renumbering and the bounded
+Gateway upgrade. Current order is Goals 24, Voice and Images 25, Gateway 26,
+Connections 27, Agenda 28, Puffin 29, and Crossing Over 30. Chapters 27–29 are
+explicit design-stage landing outlines, not completed construction assignments.
+Historical endpoints and grader flags retain their original numbers. This does
+not authorize deployment or resolve the open contracts below.
 
 Sources: [current decisions](scheduling-and-puffin.md) and
 [xyzzy inventory](puffin-xyzzy-inventory.md). Settled decisions are distinguished

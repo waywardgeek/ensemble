@@ -1,3 +1,16 @@
+## Current increment: Gateway foundation and the Puffin sequence
+
+Bill authorized current-manuscript renumbering: Goals 24, multimedia 25,
+Gateway 26, Connections 27, Agenda 28, Puffin 29, crossover 30. New chapters
+27–29 remain design-stage outlines. Historical endpoints and grader flags do
+not move. The bounded Gateway upgrade starts with complete-state JSON saves
+before durable acknowledgment, no Gateway event journal. Agenda will have its
+own snapshot and journal; Puffin reuses Ensemble persistence. See the
+[design outline](edition-3-notes/puffin-chapter-outlines.md).
+Earlier progress and chapter-specific instructions below are historical where
+superseded. Work personally with ensemble-coding active; no live deployment,
+restart, or unrelated cleanup is authorized by this increment.
+
 # Edition 3 — direct C# chapter execution
 
 ## Current layout — Edition 3 promoted, 2026-10-31

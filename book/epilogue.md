@@ -116,13 +116,13 @@ The same discipline applies to the completed work and the remaining limits:
   explicit CLI/GUI selection, read-only paired credential reader and no-fallback
   transport are implemented and preserved. Codex alone owns its renewal. Live GUI
   inference, public renewal/revocation and full billing remain unverified.
-- **Chapter 24:** Gateway is locally complete and preserved. Bill chose the tested
+- **Chapter 26:** Gateway is locally complete and preserved. Bill chose the tested
   Noise.NET/libsodium route while retaining Ensemble's ChaChaPoly suite. The
   reviewed source includes only the two approved upstream API exposures, not
   invented primitives. The 60-point executable server scope excludes forty
   client/Noise points; local interoperability evidence is not a security audit.
 
-[Chapter 25](chapter-25.md) is locally complete and preserved. That is a useful
+[Chapter 24](chapter-24.md) is locally complete and preserved. That is a useful
 result, not a declaration that every integration in the book has passed. The
 [execution record](../docs/edition-3-csharp-progress.md) retains the chapter
 boundaries, failed baselines, corrections, and verification limits.

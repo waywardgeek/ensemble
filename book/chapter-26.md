@@ -1,1001 +1,837 @@
-# Chapter 26: Voice and Images
+# Chapter 26: Gateway
 
-> **External media grading complete:100/100.** Image-files20, attachments25,
-> voice30 and host-screen25 pass their executable scopes. The native macOS
-> primary-display run verified both selector forms, delayed Jobs and full-image
-> replay without recapture. Provider, platform and human-use limits remain
-> explicit below; this score does not certify every device or failure race.
-> Speech output follows Chapter7's browser-local preferences and single
-> Agent-wide pause state.
+I built a fantasy role-playing game for AI agents called Deephold.
+Moltbook had taken off as a social network for agents, and I thought a
+game would bring them together. The agents followed their prompts. They
+explored the dungeons and fought the monsters. They did not appear to
+have a sense of fun. It was just more work for them.
 
-## TL;DR: Specification Brief
+And the architecture was awful. Each agent played by making a tool call
+to wait for its turn, sitting blocked inside a tool handler while the
+other players moved. I didn't figure out the right architecture on my
+own. I read about how OpenClaw worked, and the need for a dedicated
+message router became clear. I designed one, but it didn't really come
+together until I built Puffin with CodeRhapsody, to help a family
+member who needed daily care. Once the need was real, we built it with
+care. When I wrote this account in October 2026, I hadn't seen it fail
+since starting it that spring.
 
-Extend the working GUI with push-to-talk input, pasted images, screenshots of the
-computer running the C# server, and Agent inspection of image files. Build on the media
-parts and capability checks from Chapter 5 and the file authority from Chapter 18;
-do not create a second conversation or media pipeline.
+Gateways are critical infrastructure. Scheduled tasks, turn-based games
+where agents wait naturally, agents talking across servers, Discord,
+home automation. Every one of those needs a router at the trust
+boundary. That router belongs in the framework, not bolted on after.
 
-- **Hold to talk; release to send.** Provide a press-and-hold microphone button
-  usable on a phone and a browser-profile-local keyboard shortcut, initially Off.
-  Offer F8 and Right Alt, with Right Alt available only where it does not interfere
-  with AltGr, input methods, or reserved shortcuts. Press starts an explicitly authorized
-  recording; release stops capture, transcribes it, and sends the resulting text
-  once through the normal message path. While the Agent is working, that message
-  follows the existing hint contract. Display recording, transcription, and
-  failure states, and provide cancellation. Empty or failed transcription sends
-  nothing. Lost focus, pointer cancellation, connection loss, or an agent switch
-  cancels uncommitted work rather than sending partial speech later. Cancellation
-  cannot retract a message already admitted. Late
-  callbacks must not submit it or redirect it to a newly selected Agent.
-- **Paste images into chat.** Accept image content from the clipboard, show a
-  preview with removal controls, and send it with the accompanying text when the
-  user presses Send. Preserve their order and the intended recipient. A preview
-  is not delivery to the Agent. Validate format, size, and image dimensions before
-  accepting the attachment; refusals leave the user's remaining draft intact.
-- **Resize oversized images safely.** Use a maintained image library to decode
-  and proportionally downsize images that exceed delivery dimensions or byte
-  limits, without enlarging small images or overwriting original files. Bound
-  source bytes, decoded pixels, frame count, and output bytes; reject unsafe or
-  malformed input before expensive processing. Preserve readable detail where
-  possible, report the resulting dimensions and any reduction, and refuse clearly
-  if a useful bounded image cannot be produced. Deliver the actual resized bytes,
-  not only resize metadata. Test this shared behavior for pasted images,
-  screenshots, and image-file inspection; provider-specific limits remain explicit.
-- **Capture the server computer.** Implement the C# equivalent of CodeRhapsody's
-  host-side `list_displays` and `screenshot` tools. Enumerate displays and their
-  bounds; capture one whole selected display (display zero when omitted) on the
-  machine running Ensemble. Return actual bounded PNG pixels through the existing
-  image-tool path, with capture and output dimensions, not just a filename or DOM
-  description. A request from a phone captures the server computer, not the phone.
-  This operation does not require a connected Chrome page or a browser sharing
-  picker. Require explicit host-screen tool authority and respect OS screen-
-  recording permission; refuse denied access, invalid bounds, unavailable displays,
-  and unsupported platforms clearly. Do not elevate privileges or bypass OS
-  permission. Capture only on request, not as background screen monitoring.
-- **Inspect an image file.** Provide an image-reading operation for an explicit
-  path, using the Agent's existing Sandbox and supported media representation.
-  Enforce file authority, format, and resource limits; report missing, forbidden,
-  or unsupported input honestly. The operation must deliver the image to the
-  selected model, rather than treat a path, browser-only preview, or textual
-  metadata as proof that the image was seen.
-- **Preserve the existing owners.** The browser owns microphone capture and
-  attachment composition; the server owns native screenshot capture and its
-  resource cleanup. The Agent owns tool authority, admission, and History; the
-  Engine renders supported media for
-  its provider. Keep media references and provenance in the established parts,
-  not base64 copies in ordinary transcript text. A model recommendation is not a
-  media capability declaration. Unsupported models or placements refuse clearly;
-  they must not silently discard an image, switch vendors, or change funding.
-- **Make permission and cleanup observable.** Stop microphone capture on release
-  or cancellation and show when it is active. Captured speech, pasted images,
-  screenshots, and image-file contents are private input, not material to collect
-  speculatively. Preserve secure-context requirements and the existing
-  authenticated-origin policy; do not weaken them to obtain capture access.
-  Transcription needs an explicitly selected service and funding policy; it must
-  not silently charge an API key when subscription funding cannot
-  perform the operation. Playback/capture cleanup must not leave an automatic
-  pause behind or undo a manual pause. Replays must not restart capture or send
-  another message.
+---
 
-Before implementation, settle the transcription route, supported capture
-mechanism, resource limits, and authorized live tests with the human. Use local
-fixtures for deterministic input, cancellation, routing, and refusal checks.
-Those checks do not establish real microphone behavior, actual image delivery to
-a vendor, or phone usability; each needs evidence of its own.
+## TL;DR
 
-## In Plain Words
+Gateway is a standalone authenticated message router. It connects independently
+running applications over Noise-KK encrypted WebSockets, enforces group policy,
+and stamps messages with provenance before they reach an agent. It owns no
+Ensemble Agent and makes no model calls.
 
-Bill was using Ensemble from his phone while away from his desk. Text input
-already worked, but the phone made the missing inputs obvious. Describing a
-picture takes work that the picture could do directly. Typing a message occupies
-hands that could instead hold a microphone button for a moment.
+The C# implementation has five parts:
 
-The voice interaction is deliberately simple: hold, speak, release. Releasing
-means send, not open another confirmation step. That convenience makes the
-failure behavior important. A recording belongs to the Agent selected when it
-began. If the person switches agents or loses the connection before it can be
-sent, the old recording must not suddenly appear in another conversation. A late
-transcription result is not fresh permission to send it.
+- `Gateway/Ensemble.Gateway.csproj`: public client, key/Noise wrapper, wire values,
+  router policy, durable queues and server sessions. No core, GUI or ASP.NET dependency.
+- `Gateway/Host`: Kestrel listener, thirty-second saves and joined shutdown.
+- `Gateway/Interviewer`: an independent consumer of the public client.
+- `Gateway/Adapter`: a scoped bridge borrowing an existing Ensemble Agent.
+- `Gateway/AgentHost`: the application that constructs, restores, saves and destroys
+  that Ensemble. Neither library depends on this composition root.
 
-Once transcribed, the speech is an ordinary message. It does not need a special
-scheduler or a second chat history. If the Agent is busy, the existing hint
-behavior lets it hear the person without throwing away prepared work. A visible
-cancel action gives the person a way to abandon the recording instead of sending
-an accidental fragment.
+`Common` declares each assembly's vocabulary, persistent state and callable partial
+members; functional directories implement them. Router owns identities and groups.
+Identities own queues and all pending/active sessions. Sessions own sockets, Noise
+and their I/O lifetime. Group relationships are reciprocal; live policy is not
+copied into connections. Keys, envelopes and snapshots are explicitly value-like.
 
-Pasting an image is similarly familiar: paste, check the preview, add words if
-needed, and send. But the preview and the model's input are different things.
-Displaying the picture in the browser proves only that the browser can display
-it. The Agent needs the actual image through the media path supported by its
-model. Otherwise, an apparently successful attachment would invite an answer
-based on a filename or a guess.
+Preserve `Noise_KK_25519_ChaChaPoly_SHA256`. Use the pinned Noise.NET source and
+libsodium dependency, not invented cryptography or a quietly substituted suite.
+Authenticate a replacement before it can displace the current connection. Serialize
+writes outside the policy lock. Accept receipts only within the proper frontier.
 
-Screenshots and image files meet at that same image-delivery path. The screenshot
-tool captures a whole display on the computer running the C# server, just
-as CodeRhapsody does. The image-file tool reads a named file under the existing
-file policy. Neither needs a second conversation history. File-read permission
-alone is not permission to capture the host screen.
+A delivery handler's return accepts work; it does not establish completed or durable
+model work. Queues survive orderly restart through private snapshots. Periodic
+saves leave a crash window, and individual file replacements are not a transaction
+across all queues and policy. This is not exactly-once execution.
 
-This distinction matters when the person is using a phone: the phone can ask the
-Agent to inspect the server computer's screen without sharing a Chrome tab or
-opening a browser picker. The operating system may still require screen-recording
-permission. If permission or platform support is absent, the tool must say so. A
-structured page snapshot is not a screenshot, and the separately implemented
-browser-tab capture is not a substitute for this host-side operation.
+Local C# library and application checks, cross-language interoperability, and the
+scoped executable grade are recorded separately. The grade earns **60/60 server
+points**; 40 client/Noise points remain ungraded in that route. The three-process
+C# interview used a fake HTTP provider, not a live model. Section 24.7 explains
+those limits and how to reproduce the grading scope.
 
-The important boundary is not whether the interface has a microphone or camera
-symbol. It is whether the person's intended input reaches the intended Agent,
-with permission, once, and with a clear failure when it cannot. That boundary is
-what lets the same interaction remain trustworthy on a desktop or a phone.
+### In plain words
 
-## 26.1 Four inputs, one conversation
+The router is a doorman and a mailbox, not another agent. It checks who connected,
+checks whether the recipient accepts that sender's group, and puts an authenticated
+label on the message. If the recipient is offline, it keeps the message. The client
+hands it to the application and sends a receipt only after the application accepts
+it. What the application then does with the message remains the application's job.
 
-The new inputs should arrive at the conversation the person already understands.
-An image pasted beside a caption belongs to that message. A spoken sentence,
-after transcription, is a normal human message. An image inspected by a tool
-belongs to that tool call and its result. None of these paths needs another chat
-history or a private queue that competes with the Agent's mailbox.
+## 24.1 Why the agent needs a router
 
-Their acquisition paths differ:
+The fleet can already delegate work to children inside one Ensemble. Its
+operator still reaches it through the terminal or browser. Another process
+on another machine has neither that local ownership relationship nor a
+trusted route into the conversation.
 
-```text
-clipboard or file picker → browser draft → server preparation → AgentInput
-microphone → bounded WAV → transcription → original Agent's mailbox
-Sandbox image file → preparation → typed tool result
-whole host display → native capture → preparation → typed tool result
+That changes here. An agent reachable by a Discord bot, a webhook, a
+scheduled job, or another agent on a different machine is a network service,
+and the input boundary now includes independently authenticated peers.
+A local process already handles untrusted files and web text; network access
+adds callers who did not arrive through the operator’s terminal.
+
+A prompt arriving through stdin came from the operator. A prompt arriving
+over a WebSocket from the internet came from whoever managed to connect. The
+agent cannot tell the difference by inspecting the content. A message that
+says "I am your operator" is just text. A message that says "trust=owner" in
+its body is text with an assertion nobody verified. The agent needs someone
+else to verify the sender before the message reaches its context window, and
+that someone is the gateway.
+
+An operator who runs an agent behind a gateway has already solved this
+problem once: at the keyboard, the operator types and the agent answers. The
+gateway extends that trust model across the network. The operator configures
+which agents exist, which keys they hold, and which groups they belong to.
+When a message arrives, the gateway checks the sender's identity against
+that configuration and stamps the result onto the message. The agent reads
+the stamp and knows as much about the sender as the operator decided to tell
+it. The operator who configured the gateway is still the authority. The
+difference is that the authority now works at a distance.
+
+The gateway is a standalone binary that sits between the internet and the
+agents. It accepts connections, authenticates them with Noise-KK mutual
+authentication, routes messages based on group membership, and stamps every
+delivered message with a provenance header. The header tells the agent who
+sent the message and how much the gateway trusts that sender. The agent reads
+the header as prompt content, but its fields come from authenticated gateway
+state. This establishes provenance. Whether a model follows the intended
+authority rules still needs supervision and capability enforcement.
+
+The gateway is a router. It owns no agents, runs no prompts, and stores no
+conversation history. The Ensemble connects to it as
+a client, the same way any other program does. A standalone interviewer
+binary connects to it the same way. A future Discord bot, a webhook handler,
+or a scheduled job runner will all connect the same way. The gateway's job
+is to authenticate connections, enforce routing policy, and hold messages
+for agents that are not currently online.
+
+The project layout reflects this separation. A .NET application can reference
+`Ensemble.Gateway.csproj` without importing Ensemble's core or an HTTP host.
+`Common` declares the actual partial objects, not a bag of operations interfaces.
+`Cryptography`, `Protocol`, `Client` and `Router` implement those declarations in
+one assembly. ASP.NET belongs only to the optional host. Each session reaches
+policy through its identity and Router parents, not a private copy of the grants.
+
+I arrived at the router after the Deephold experience showed the cost of
+agents parking inside tool calls to wait for each other. A connected client
+handles incoming messages through its application's `IHandler`. Ensemble's
+adapter admits them to the actor it already has. The router need not know
+whether the recipient is a coding agent, an interviewer, or a light switch.
+
+## 24.2 Noise-KK beneath the cloud
+
+TLS client certificates can provide mutual authentication when the endpoints
+own that TLS connection. A terminating reverse proxy changes which endpoints
+those are.
+
+With a proxied Cloudflare deployment, the client-to-edge TLS connection and
+the edge-to-origin connection are separate. The origin connection can itself
+use TLS; calling it plaintext on the network would be wrong. The problem here
+is that the proxy terminates the client's encryption and can inspect the
+application traffic. Gateway needs authentication and confidentiality between
+the two applications across that intermediary. [Cloudflare's connection
+model](https://developers.cloudflare.com/ssl/concepts/) describes the two legs.
+
+Noise-KK supplies that additional layer inside the WebSocket. Both sides know
+each other's static public key before starting. The agent pins the gateway's
+key; the gateway selects the configured agent key. Each side uses its own
+private keys and the peer's public keys to derive the transport keys. Neither
+side needs the other's private key.
+
+The sequence:
+
+1. The client opens `/v1/ws?agent_id=interviewer`. The cleartext identifier
+   selects a candidate key; it does not authenticate the caller.
+2. The client sends the first KK message in a binary WebSocket frame. Its
+   ephemeral public key is cleartext. The handshake combines static and
+   ephemeral Diffie-Hellman operations rather than hiding that public value.
+3. The gateway sends the second handshake message. The matching peers derive
+   directional session keys. Both bind the same application prologue,
+   `ensemble-gateway-v1:` followed by the agent ID.
+4. Subsequent binary frames carry encrypted JSON. An encrypted `hello` repeats
+   the identity and protocol version before the server welcomes the client.
+
+The C# wrapper preserves `Noise_KK_25519_ChaChaPoly_SHA256`, the suite used by
+the earlier Go implementation through `flynn/noise`. Its dependency is Noise.NET
+1.0.0 source pinned to commit `4279cfa57df028dec4a4cb3ee9579a77a5cc39fa`, built
+as the distinct `Ensemble.Noise` assembly with native libsodium 1.0.22. The [Noise specification's KK pattern and security
+properties](https://noiseprotocol.org/noise.html#interactive-handshake-patterns-fundamental)
+explain its authentication and forward-secrecy conditions. Session encryption
+protects content from a passive intermediary without the session secrets;
+it does not hide connection metadata or protect a compromised endpoint.
+
+The keys are X25519 keys for Diffie-Hellman agreement. Noise.NET delegates the
+curve and cipher operations to libsodium; our wrapper does not implement them. Some deployments label these `ed25519:` out of habit.
+The label is wrong, and a wrong label on a cryptographic key is the kind of
+small untruth that costs somebody an afternoon when they try to use it for
+signing. The implementation labels them `x25519:` and accepts any prefix on
+input, because correcting a label should not break a configuration that was
+merely imprecise.
+
+Key management is file-based. `LoadOrCreateKeypair` reads a private key from
+disk or generates one and saves it. Clients and the server use the same helper. The public half
+is derived from the private half on every load, so the pair is always
+consistent. The gateway prints its public key on startup; I copy it
+into the agent's configuration, copy the agent's public key into the
+gateway's configuration, and the two can authenticate. No certificate
+authority, no token rotation, no password. The keypair is the identity. Protect the private file accordingly; compromise
+still requires an operator response, not faith in the handshake.
+
+Two narrow API exposures in the pinned source preserve the wrapper contract:
+transport overloads forward associated data to the existing cipher state, and
+private-key import exposes the library's existing public-key derivation. No
+primitive or handshake algorithm was replaced. Wire traffic uses empty associated
+data, but the public wrapper must not silently ignore nonempty data supplied by
+its caller. See the [dependency and license notes](../agent/ThirdParty/Noise/README.md).
+The unused upstream rekey path has a documented source discrepancy; Gateway neither
+exposes nor relies on it. Passing these tests is not a cryptographic audit.
+
+Key files contain only base64 private bytes. On the tested Unix platforms, new
+files are private and first creation publishes a fully written file with an
+exclusive hard link. Competing creators load the winner; they cannot each return
+a different identity by replacing one another's file. Malformed existing files
+refuse without replacement. Existing parent permissions are not silently changed.
+The native dependency and file-permission implementation need platform evidence:
+Mac and Linux ARM64 transport/key tests do not prove Windows support or Linux
+WebSocket behavior.
+
+## 24.3 Trust stamped at the boundary
+
+A message flowing through the gateway carries an envelope: a message ID, a
+sequence number, a destination agent, a source, a timestamp, an optional
+conversation ID, content, and a response mode. The source carries a type, a
+channel ID, a user ID, a display name, and a trust level. Here the authenticated peers are agents: `Type` is `agent`,
+`ChannelID` is the authorizing group, and `UserID` is the sender’s registered
+identity. Future platform adapters would need their own explicit mapping.
+
+Three trust levels: `owner`, `trusted`, and `external`. The operator assigns
+them to groups. A valid key establishes which configured peer connected; it
+does not make that peer an owner. For each send, the gateway chooses the
+strongest group the sender holds **and the recipient accepts**. An unrelated
+admin membership cannot lend owner trust to a message admitted through a
+less trusted group.
+
+The Puffin reminder scenario explains why these distinctions matter. A family
+member asks for a reminder through Discord. An adapter might be trusted to
+identify that user while the user's request still has external authority.
+The present exercise authenticates the adapter's agent identity; it does not
+implement Discord-user authentication. Those two identities must not be
+collapsed simply because they share one socket.
+
+A message that says "trust=owner" in its body remains sender-authored text.
+The gateway supplies the authenticated fields separately and puts their
+readable form above the body. The model can read that distinction; it can
+also make a mistake. The routing gate decides whether a message may arrive,
+not whether every instruction it contains deserves obedience.
+
+At routing admission, the gateway stamps the envelope once, preserving the
+header on queued delivery and replay:
+
+```
+[GATEWAY source=agents user=game-server trust=trusted]
+
+Your turn in the dungeon. The goblin attacks.
 ```
 
-After admission, the existing owners take over. The Agent records History and
-schedules work. The Engine renders a frozen request for its provider. The GUI
-projects that history for the person. A busy Agent receives a transcribed message
-through the same hint behavior as typed input; voice does not interrupt a model
-request by inventing a different scheduling rule.
+The language model sees the identity through its prompt. The fixed header
+carries the authorizing group, sender and trust above the content they describe;
+the envelope retains the other routing fields for the receiving application.
 
-A preview proves that the browser decoded something. A filename proves that a
-name was returned. Neither proves that the model received pixels. The useful
-assertion is further downstream: the actual provider request contains the
-expected image bytes in the correct human message or paired tool result.
-
-That distinction shapes both implementation and tests. Keep images as typed
-media parts. A sentence such as “Screenshot saved to capture.png” is useful
-metadata, but it cannot stand in for the screenshot. Likewise, audio recording
-success is only the start of a voice operation. The intended Agent must eventually
-receive the transcript, or the operation must fail without sending it elsewhere.
-
-## 26.2 Put ownership where the lifetime lives
-
-The browser owns the live microphone track, its audio context and worklet, and
-the buffers used to make a recording. Its image composer owns pending file
-readers and preview URLs. Selection changes can therefore invalidate unfinished
-work immediately and release the resources those operations created.
-
-On the server, an Agent keeps its existing Sandbox for image-file access. Host
-capture has a different authority boundary: the operating system's displays are
-not files inside that Sandbox. The native backend owns its short-lived helper
-process and private scratch directory. It returns bytes into the same preparation
-pipeline rather than exposing a new general-purpose filesystem API.
-
-Voice transcription is an optional child of the Ensemble application. One
-application-owned client holds the separately selected payer and joins its HTTP
-work during destruction. A socket's voice lease borrows the actual Agent selected
-when recording began. It does not look up a fresh recipient after transcription
-finishes. The connection owns the lease and its notification work and joins them
-when the connection ends.
-
-These relationships matter most when something changes. A different selected
-Agent does not inherit an old recording. A replacement socket does not inherit
-permission to resend an old commit. Destroying a resource owner cannot simply
-forget a task because its cancellation token was signalled.
-
-Use immutable values at the boundaries. Prepared images own their output bytes;
-validated voice audio owns a snapshot of its canonical WAV. Once admitted, these
-values do not depend on a browser array that can still change or an original file
-that might be removed. The provider renderer consumes the frozen request, not
-whatever happens to be on disk later.
-
-## 26.3 Prepare an image once, with bounded work
-
-Image preparation is shared by attachments, image-file inspection, and host
-screenshots. This avoids three independent interpretations of orientation,
-resizing, and acceptable output.
-
-The source policy admits static PNG, JPEG, WebP, and GIF images. It bounds source
-bytes before unbounded reading, checks decoded dimensions before full raster
-processing, refuses animation, applies EXIF orientation, and strips metadata from
-the delivered derivative. Resizing preserves aspect ratio and transparency, never
-enlarges a small image, and never overwrites the original. The derivative is PNG.
-
-Bill asked for large images to be resized rather than merely rejected. The
-derivative needs to remain useful without changing the source. The current
-application limits serve different purposes:
-
-- A source image is at most **64 MiB** and **24 million decoded pixels**.
-- A prepared image has a longest edge of at most **2,048 pixels** and contains at
-  most **8 MiB** of PNG bytes.
-- One interactive input admits at most **four images**, each within that prepared
-  limit, with **16 MiB** of prepared image data in total.
-- The GUI separately bounds its combined source-image bytes at **64 MiB** before
-  preparation. A source-upload allowance is not a prepared-message allowance.
-- Each provider render has a fresh allowance of **32 image occurrences** and
-  **32 MiB** of image payloads, shared across human, tool, and ephemeral images.
-
-The last allowance is a request-admission check, not permission to delete older
-images from History. Repeated appearances consume it too. It excludes other
-request overhead, such as base64 expansion and JSON, and does not establish a
-provider's token capacity or account entitlement.
-
-### When an image limit made a working Agent look idle
-
-During page-by-page review of a scanned document, Cadence stopped responding to
-messages and automatic reminders. Restarting restored the same failure. Bill
-asked another Agent, Test, to investigate. Test reported 33 retained tool-result
-images totaling about 15 MiB: the count limit had been crossed, even though the
-byte allowance had not. Request construction failed locally before any provider
-request was sent. Each failed turn returned Cadence to idle with the same images
-still in active context.
-
-The guard protected the request, but its placement trapped the recovery. Asking
-Cadence to call `micro_handoff` required another model request, which the same
-guard refused. Token-pressure handling could not substitute for image accounting.
-The GUI compounded the problem: it narrated explicit error events, while this
-local failure recorded only turn completion with an error reason. Bill heard
-silence instead of an explanation.
-
-Test used the external **Clear tools** control to remove the image-bearing tool
-context without deleting canonical History or project files. Bill confirmed that
-Cadence responded again, then requested a proper handoff. The permanent lesson
-is to preserve a usable request *before* admitting the next image, and to report
-local failures through the same visible error path as provider failures. Raising
-the count limit would merely postpone the next trap.
-
-A regression must exercise the whole sequence: fill the image allowance, request
-one more image, receive an explicit refusal while the previous images remain,
-checkpoint, then retry successfully. Also test queued human attachments, byte
-exhaustion, and an already-over-limit saved context. A renderer test that merely
-expects the limit exception does not establish that the Agent can recover.
-
-The Agent checks cumulative image pressure before accepting new human images or
-publishing image-bearing tool results. Queued inputs reserve their allowance too.
-A human refusal admits neither the caption nor the images and preserves the GUI
-draft. A refused tool delivery records an explicit error instead of claiming the
-model received pixels; the Job retains its output. Automatic snapshots follow the
-same rule. Existing images remain available so the model can write a deliberate
-`micro_handoff`, then retry the refused image. No automatic image retirement or
-silent tool-result trimming is authorized by this safeguard.
-
-A previously saved over-limit context can still fail rendering. That refusal is
-recorded as a visible, narratable error before turn completion, without a provider
-request. For retained tool images, the external **Clear tools** control can restore
-headroom without requiring inference or deleting canonical History. It does not
-clear human attachments; those require an explicit handoff through host control.
-
-Preparation first chooses a bounded size. If the PNG remains too large, smaller
-attempts are sampled from the original decoded raster rather than repeatedly
-resampling a derivative. When a useful bounded output cannot be produced, the
-whole operation refuses. Report original and delivered dimensions so the model
-and person can reason about the detail that remains.
-
-The implementation uses pinned SkiaSharp packages. Choosing that dependency
-required testing the actual Debug and Release paths, not merely finding a
-library with a convenient API. An earlier library candidate encountered a
-Release-build licensing requirement and was replaced. The general lesson is to
-check the package version, distribution conditions, and native assets you will
-actually ship. A successful restore alone does not verify those assets on every
-operating system.
-
-These limits bound accepted input and allocation; they are not isolation from
-bugs in native decoders, a process-wide concurrency budget, or a guarantee of
-readable small print. Keep those claims separate.
-
-## 26.4 Inspecting a file must deliver the file's pixels
-
-`inspect_image` starts with ordinary tool authority and a supported image-result
-surface. Check the selected model's capability before reading the path. An
-unsupported model should receive a clear refusal, not cause private file access
-followed by silent omission.
-
-Then use the Agent's existing Sandbox to read and prepare the file. Do not add an
-absolute-path fallback because a confined read failed. In the public API, the
-preparation and access to the pixels are deliberately small:
-
-```csharp
-PreparedImage image = agent.PrepareImage(path);
-BlobPart pixels = image.Image;
-```
-
-The tool result contains those pixels together with dimensions and reduction
-metadata. It remains paired with the original tool-call ID. Errors such as a
-missing file, forbidden path, malformed image, or unsupported format are explicit;
-they do not become an apparently successful metadata-only result.
-
-Acquisition is performed once. Rendering a later turn should use the retained
-prepared bytes, not reopen the source path. Deleting the original after successful
-inspection is therefore a useful test: the first request and a later request must
-still contain identical prepared pixels.
-
-Tools retain their ordinary Job behavior. A foreground observation can return a
-running Job before image preparation finishes. The Job must retain a structured
-terminal result, including media, for later observation. A filename in an output
-log is not enough. Ending an observation does not cancel that Job, and an image
-must not be flattened into a JSON string merely because it arrived after the
-first observation window.
-
-Retention policy is also distinct from output allowance. A person may deliberately
-ask for a large result and keep it for discussion. Chapter 14's explicit retention
-and handoff rules govern that decision; the former size-based ladder must not
-silently override a kept result. A deliberate handoff removes media from derived
-active context while retaining accompanying text according to that reducer's
-contract. It does not prove that the original GUI history or every retained log
-entry was deleted.
-
-## 26.5 Render the media the provider actually supports
-
-The shared value is a typed image part. The wire encoding is provider-specific.
-Responses represents image-bearing function output as typed content alongside
-text; text-only results retain their simpler representation. Anthropic places
-image content inside the appropriate tool result. Gemini's supported
-function-response image form requires its own parts and references, along with
-preserved call identity and thought-signature information where applicable.
-
-Do not infer those contracts from model names. Human-input images and images in a
-function response are different capabilities. The implementation has an explicit
-function-response-image capability for the verified `gemini-3-flash-preview`
-path. That is not a promise about every newer Gemini model or an older fallback.
-Unsupported nesting or placement must refuse rather than disappear.
-
-Rendering must preserve ordering, call pairing, and the existing shared image
-budget. It must not mutate canonical History to satisfy a provider. Nor may it
-switch vendors, choose another model, or silently change the payer because the
-current selection lacks a capability.
-
-Test the actual outgoing request. A local fake provider can assert that a specific
-tool-call ID is answered by one image-bearing result and decode its pixels. A
-bounded real-provider probe establishes something additional: that the selected
-API and model accept the representation. Neither result implies entitlement or
-support for a different model, streaming mode, or platform.
-
-## 26.6 An attachment draft belongs to one recipient
-
-The browser's image composer retains the text and images that the person is
-preparing. It provides previews, removal, and an explicit file-picker fallback to
-clipboard paste. File reads are bounded and cancellable; preview URLs are revoked
-when no longer owned. Late file-reader completion cannot attach an image to a
-newly selected Agent.
-
-Sending captures the original socket, Agent address, and a monotonic per-socket
-sequence. The server prepares the images once, admits the text and prepared
-images together, and returns a matching acknowledgement with dimensions. This
-acknowledgement means actor admission, not completed inference.
-
-On a clear refusal, keep the draft available for correction. On success, clear
-only the matching draft. Ignore acknowledgements for another socket, Agent, or
-sequence. If the connection disappears after sending but before acknowledgement,
-the outcome is uncertain. Automatically resending could duplicate a message the
-Agent already accepted. Preserve that uncertainty and require an explicit human
-decision instead of treating reconnect as permission to retry.
-
-Keep layout work part of the interaction contract. The composer now gives the
-text input its own full-width row, with attachment, microphone, and Send controls
-below it. A phone-sized viewport and enlarged text must not squeeze the writing
-area to make room for another button. Accessible names and visible states matter
-more than a color change alone.
-
-Laptop image delivery was accepted in live use. Android paste was later accepted
-after reinstalling Chrome's web app. That establishes the successful interaction;
-it does not establish the underlying cause of the earlier failure. Retain the
-file picker as a useful explicit attachment path without declaring all Android
-clipboard behavior either broken or solved by that one observation.
-
-## 26.7 A screenshot of which computer?
-
-The screenshot requirement exposed a specification mistake. The first
-implementation captured the connected browser page with Chrome's sharing API.
-It produced actual pixels and passed isolated native-tab tests, but it captured
-the wrong surface for the requested feature.
-
-Bill clarified that he meant CodeRhapsody's host-side capture: ask the server to
-capture its primary display, or select another from its display list. Cadence
-had implemented a different feature. The clarification changed the remaining
-work even though the browser tests passed. A person
-using a phone can request a screenshot of the server's screen. There is no need
-to negotiate a Chrome tab picker on the phone.
-
-The two features remain distinct. Browser capture has browser gesture and picker
-requirements. Host capture has explicit tool authority and OS screen-recording
-permission. Success in either path does not establish acceptance of the other.
-The additional Ensemble confirmation dialog in the browser implementation was a
-design choice, not a separate requirement imposed by the human.
-
-The host interface follows the reference tool shape:
+Groups are the authorization primitive. Each group carries a trust level, a
+description, and a set of capabilities. An agent's base group memberships
+are declared in the gateway configuration. This fragment shows the policy;
+Section 24.6 adds the listener, data directory and real public keys:
 
 ```json
-{"name":"list_displays","arguments":{}}
-{"name":"screenshot","arguments":{"display":0}}
-{"name":"screenshot","arguments":{}}
+{
+  "groups": {
+    "admin": {
+      "description": "Full gateway administration",
+      "capabilities": ["group-admin"],
+      "trust": "owner"
+    },
+    "agents": {
+      "description": "Standard agent group",
+      "capabilities": ["send-message", "declare-contactable"],
+      "trust": "trusted"
+    }
+  },
+  "agents": {
+    "ensemble": {
+      "public_key": "REPLACE_WITH_SUBJECT_KEY",
+      "groups": ["admin", "agents"]
+    }
+  }
+}
 ```
 
-These are example tool requests, not a script to run against an arbitrary private
-screen. Agree on the whole display before a native test. The only selection
-argument is optional `display`, a nonnegative zero-based integer. Omitting it
-selects display zero. There is no window measurement or rectangle selection.
-Old rectangle arguments refuse rather than silently expanding a region request
-to a whole-display capture. Strict interfaces that require a value can send zero.
+At runtime, agents declare which groups may contact them. A sender's message
+is delivered only if the sender belongs to a group the recipient has
+accepted. An unauthorized send is rejected at the gateway. The agent never
+sees the message. The decision was made before the message entered its
+context.
 
-This simpler contract followed a live debugging failure: the model-facing surface
-supplied display and rectangle fields together, while the backend required one or
-the other. Repeated retries did not resolve that mismatch. Bill removed rectangle
-selection because window measurement was distracting from the debugging task.
-Test the advertised schema as well as the parser: an omitted selector and explicit
-zero must choose the same display, and no rectangle fields should be advertised.
+Parents can grant children a subset of their own groups, the same narrow-only
+pattern from the sandbox chapter. A parent holding `admin` and `agents` can
+grant a child `agents` alone. It cannot grant `interviewers` if it does not
+hold `interviewers`. Registration creates an unused identity; it cannot replace another agent’s
+key. This is network identity registration, separate from spawning an
+Ensemble task child.
 
-The source `host-screen` skill grants these tools separately from `code-tools`
-and browser access. Safe mode and unskilled legacy registries refuse them, and
-an unsupported image model is rejected before native screenshot acquisition.
-Recheck authority and cancellation before returning the prepared pixels. Installing
-a tool definition alone is not a grant to see the desktop.
+Group administration is itself a capability. Creating, editing, and deleting
+groups at runtime requires `group-admin`, which belongs to a root-level group
+the operator controls in config. Runtime groups live in a separate namespace
+from config groups. Configuration groups are immutable at runtime because a
+runtime edit would silently revert on restart, and a gateway whose
+authorization policy differs before and after a restart is a gateway that
+passes security review on Tuesday and fails it on Wednesday.
 
-The current backend is **macOS-only**. It obtains bounded display metadata,
-preflights screen-recording permission, and runs the fixed built-in
-`/usr/sbin/screencapture` executable with a fixed argument structure. There is no
-model-selected shell command. The helper receives an empty environment and writes
-to private owned scratch. Its deadline is 15 seconds. Cancellation kills and joins
-the owned process and output readers before scratch removal; cleanup errors must
-not hide the original failure.
+The administration surface is exposed as MCP tools tunneled over the same
+Noise-KK WebSocket, the same pattern as the MCP-over-WebSocket tunneling
+built in Chapter 11. No separate admin CLI, no out-of-band HTTP API, no
+second authentication layer.
 
-The backend checks source-pixel bounds using conservative display scaling, then
-passes returned bytes through shared image preparation. Output dimensions must
-agree with the selected display and supported scale. Each request captures one
-whole display, not a composite of several. Other operating systems refuse explicitly. These are current
-implementation limits, not claims of full cross-platform parity with CodeRhapsody.
+The public MCP tool names and argument keys are:
 
-Permission preflight currently refuses denied access; it does **not** open an OS
-permission prompt automatically. Before the display-only simplification, an agreed
-macOS synthetic-window test verified the native backend and tool-delivery path. It
-exercised native capture through the real Agent tool, a running Job followed by
-collection, actual pixels in the local fake-provider request, and identical replay
-on the next human turn. It made one capture and four local provider requests.
-This is not a paid-provider interpretation test, other-platform acceptance, or
-proof of every permission-change race. The later whole-display external run used
-a newly agreed primary-display fixture and verified omitted and explicit-zero
-selection, distinct delayed Jobs and replay. That run establishes the changed
-selection contract; old rectangle-based evidence alone did not. Browser-page
-replay remains separate from host-screen acceptance.
+| Tool | Arguments |
+| --- | --- |
+| `send-message` | `to_agent`, `content`; optional `conversation_id`, `response_mode` |
+| `declare-contactable` | `groups`: array of group names |
+| `register-child` | `agent_id`, `public_key`: base64 public bytes, `groups` |
+| `list-groups` | Empty object |
+| `put-group` | `name`, `capabilities`: array, `trust`; optional `description` |
+| `delete-group` | `name` |
+| `set-groups` | `agent_id`, `groups` |
 
-That native test caught a HiDPI assumption the synthetic metadata tests could not.
-A 640×360 logical rectangle produced 1280×720 pixels. `CGDisplayPixelsWide/High`
-reported 1920×1080, while the current display mode's pixel dimensions were
-3840×2160. Read backing dimensions from the copied display mode and release that
-native object in `finally`; do not assume logical coordinates equal raster pixels.
-This matters before capture, because the source-pixel safety bound must include
-scaling. Verify the selected display's actual pixels as well as its dimensions;
-simply relaxing a failed dimension assertion is not acceptance.
+The last three require `group-admin`. Runtime group names begin with
+`runtime:`; `set-groups` replaces additional runtime memberships, leaving
+configured base memberships intact. Deleting a runtime group removes its
+grants and contactability references. Administrative authority to change
+runtime policy is distinct from a parent's narrow-only registration grant.
 
-## 26.8 Make the recording format small enough to reason about
+## 24.4 A library, not a framework
 
-Bill specified hold, talk, and release to send, without an editable transcript or
-another Send press. That interaction does not require every audio container a
-browser or provider can produce. The current recorder makes one canonical representation: mono,
-16 kHz, 16-bit PCM in a 44-byte-header WAV. At 60 seconds that is 960,000 samples,
-or **1,920,044 bytes including the header**.
-
-The browser recorder owns its original audio tracks, audio context, worklet,
-message ports, and sample storage. Keeping the original track membership is
-important: a mutable stream object must not make cleanup forget an original
-track or stop an unrelated track added later. The worklet provides bounded sample
-processing without playing the microphone back through the speakers.
-
-Release stops capture and finishes one WAV. Cancel, device loss, processing
-failure, or exceeding the duration limit produces no partial send. An asynchronous
-permission result or worklet load may arrive after cancellation. Recheck liveness
-before using it, stop late tracks, and join cleanup. Cancelling an operation does
-not mean the browser's native permission prompt or module load can be forcibly
-aborted.
-
-The server constructs `PcmVoiceAudio` only from a validated copied snapshot. It
-checks the exact canonical header, matched lengths, sample alignment, nonempty
-data, and the duration ceiling before paying for transcription. Duration derives
-from sample count, not a browser clock or an untrusted container field. This is a
-format validator, not a general WAV decoder or a speech detector; valid samples
-can still be silence.
-
-The hold controller sits above the recorder. Releasing before permission and
-recording are ready cancels the gesture instead of turning a late permission
-grant into background listening. It owns repeated releases and delayed finish
-callbacks. The page-level control adds pointer loss, blur, visibility, selection,
-and socket cancellation, plus the visible Cancel action.
-
-## 26.9 Keep the transcription payer explicit
-
-Transcription is a separate service operation from the Agent's chat inference.
-A running application with subscription-funded chat must not silently use an API
-key because that subscription cannot transcribe audio. The GUI host defaults to
-transcription off.
-
-To enable the implemented route, append explicit options to the authorized GUI
-host launch:
-
-```text
---transcription openai-api-key
---transcription-key-file /path/to/private/settings.json
-```
-
-The selected file must contain a nonempty `openai_api_key`. Alternatively, the
-explicitly enabled route can use `EN_TRANSCRIPTION_API_KEY`. Do not put the secret
-itself in command arguments, a fixture, or a transcript. An explicitly selected
-bad key file fails closed; it does not fall back to another credential source.
-Disabled transcription does not read the file. Advertising availability exposes
-payer and model metadata, not the key.
-
-The current client uploads the canonical WAV to OpenAI's transcription endpoint
-using `gpt-transcribe` and a non-streaming JSON response. Its fixed policy includes
-one active request per application-owned transcriber, no automatic retry, a
-45-second maximum request timeout, a 65,536-byte response bound, and a 32,768-byte
-transcript bound. Missing usage remains unknown; supplied malformed usage refuses.
-Token usage and duration usage are distinct, and neither is fabricated from the
-recording's duration.
-
-The single active request is a deliberate concurrency limit: simultaneous voice
-requests can receive a busy refusal rather than building an invisible paid queue.
-Cancellation invalidates delivery even if a transport returns late, and destruction
-joins that work before disposing its owner. Provider errors and cleanup failures
-must not expose the key. Raw audio does not belong in ordinary chat history or
-unredacted frame traces.
-
-Verify current [speech-to-text documentation](https://developers.openai.com/api/docs/guides/speech-to-text)
-and [model pricing](https://developers.openai.com/api/docs/models/gpt-transcribe)
-before a live test. Published rates are estimates for planning, not a measured
-bill. The accepted Dev test used an explicitly selected OpenAI key for
-transcription while retaining its existing chat funding.
-
-## 26.10 Separate readiness from commitment
-
-Bill's release-to-send requirement needs an admission protocol as well as a
-correct recorder and transcriber.
-
-A transcription result can be correct and still belong to an operation that the
-person has abandoned. The voice protocol therefore separates acquisition from
-commit:
-
-```text
-browser                          connection-owned server lease
-voice_begin  ------------------> bind original Agent and sequence
-             <------------------ voice_begun
-voice_audio  ------------------> validate WAV, transcribe once
-             <------------------ voice_ready
-voice_commit ------------------> consume once, admit to original Agent
-             <------------------ voice_accepted
-```
-
-Every request carries the original Agent address and sequence; the browser also
-keeps the original socket. An empty-string address is valid for an unnamed root,
-so check its type rather than rejecting it for being falsey. The server lease
-borrows the real Agent selected at begin. Comparing that relationship at commit
-prevents a delayed result from following the GUI's latest selection.
-
-`voice_ready` does not carry a draft transcript for another Send button. It tells
-the still-current browser session that transcription completed. The session
-rechecks its binding and automatically sends `voice_commit`. This preserves the
-required hold–talk–release interaction while giving cancellation a final boundary.
-
-The server consumes the lease before posting the ordinary message:
+The public namespace is `Ensemble.Gateway`. An outside .NET application references
+`Gateway/Ensemble.Gateway.csproj`; it need not reference Ensemble's core. The
+borrowed application boundary is deliberately small:
 
 ```csharp
-consumed = true;
-commit = Target.PostAsync(
-    new AgentInput(InputKind.Message, transcription.Result.Text));
+public interface IHandler
+{
+    void OnDeliver(Envelope envelope);
+    void OnConnected(WelcomePayload welcome);
+    void OnDisconnected(string reason);
+    void OnError(Exception error);
+}
 ```
 
-In the actual implementation this occurs under the lease gate, after checking the
-selected Agent, sequence, cancellation, prior consumption, and successful
-transcription. The acknowledgement reports admission. It does not report model
-completion, guarantee an audible response, or retract a message if the browser
-subsequently disconnects.
+The client's receive loop calls delivery callbacks sequentially. Returning from
+`OnDeliver` permits the receipt. Throwing refuses the delivery and ends the
+connection. A callback that blocks for ten seconds blocks that receive loop for
+ten seconds. Admit long-running work to the application's existing queue; do not
+build another scheduler inside the client. Never synchronously wait for an RPC or
+joined disposal from a callback: the same loop must read the reply or finish that
+callback. `Close()` is the nonjoining operation permitted there.
 
-After commit may have been sent, an error or lost acknowledgement is uncertain,
-not proof of non-delivery. Do not retry that capture on a replacement socket.
-The person can inspect the original conversation. A new intentional recording is
-a new operation; an automatic replay of the old one is not.
+`NopHandler` supplies no-op virtual methods for consumers that need only selected
+notifications. The client borrows its handler and never destroys the application
+behind it. A connection is a standalone root owning its socket, Noise child,
+cancellation resources and pending RPCs.
 
-## 26.11 Cancellation must win before the next effect
+For example, with an explicitly loaded identity, pinned public key, handler and
+connection-lifetime token:
 
-A state notification is a callback boundary. Tests exposed a race in which a
-listener cancelled the session during a state change, but execution continued to
-the next send. Setting a variable earlier in the method was insufficient.
+```csharp
+using Ensemble.Gateway;
 
-The coordinator now rechecks terminal state and current binding at the send
-boundary. It also publishes its cleanup promise before notifying observers, so a
-reentrant cancellation can join the work that is actually being cleaned up. These
-rules are useful beyond voice: publishing an event can run code that invalidates
-the assumptions of the caller.
+var config = new ClientConfig(
+    GatewayURL: "ws://127.0.0.1:8093/v1/ws",
+    AgentID: "interviewer",
+    StaticKey: key,
+    GatewayPubKey: gatewayPublicKey);
+await using Client client = await Client.ConnectAsync(config, handler, lifetime);
+await client.DeclareContactableAsync(["agents"], lifetime);
+await client.SendAsync(new OutboundMessage(
+    ToAgent: "ensemble",
+    Content: "What slows you down most?",
+    ConversationID: "question-1",
+    ResponseMode: Protocol.ResponseAsync), lifetime);
+```
 
-Cleanup has two sides. Browser cancellation stops capture and makes late callbacks
-inert. Server lease disposal invalidates transcription/commit and joins the tasks
-it owns. A failed or cancelled request stays failed on its own task; disposal does
-not turn it into success. A consumed admission remains consumed, even when its
-outcome is uncertain to the browser.
+`ConnectAsync` opens the WebSocket, completes KK, reads an encrypted identity-matched
+welcome, invokes `OnConnected`, and starts the reader. Handshake failure is returned
+to this call, not hidden in a partially successful connection. Its cancellation
+token owns the **whole connection lifetime**, not just startup. Zero
+`HandshakeTimeout` selects ten seconds. There is no implicit reconnect or retry.
 
-The microphone control supports pointer/touch holding and Space or Enter while
-the button is focused. The browser-profile-local shortcut offers Right Alt, F8,
-or Off, defaulting to Off in a new profile. Save it in origin-local storage, not
-the Agent settings file. Same-origin tabs share it; separate profiles and devices
-do not. Server settings frames cannot overwrite it, and blocked storage falls
-back to the current page. The microphone button remains independently usable. Right Alt is refused for Apple Option-key use and AltGr/composition or
-modifier combinations; it is not a portable system-wide hotkey. Repeats cannot
-start another recording. Changing the preference, losing focus, or forming another
-key chord cancels instead of submitting a fragment. Native Windows and Linux
-keyboard behavior still needs platform acceptance beyond the simulated guards.
+These immutable value records define the main consumer contract:
 
-An existing text or image draft is not silently bundled into a voice send. Resolve
-that draft first. Keep visible recording, transcription, cancellation, failure,
-and uncertain-commit states; a person listening quickly still needs to know
-whether the recording has stopped and whether a message may already have arrived.
+```csharp
+public sealed record WelcomePayload(string AgentID, int QueueDepth, string ServerVersion);
+public sealed record ClientConfig(string GatewayURL, string AgentID, Keypair StaticKey,
+    ImmutableArray<byte> GatewayPubKey, ulong LastAckedSeq = 0,
+    TimeSpan HandshakeTimeout = default);
+public sealed record OutboundMessage(string ToAgent, string Content,
+    string ConversationID = "", string ResponseMode = "");
+public sealed record ChildRegistration(string AgentID, ImmutableArray<byte> PublicKey,
+    ImmutableArray<string> Groups);
+```
 
-## 26.12 Test the boundary you intend to claim
+`ImmutableArray` is from `System.Collections.Immutable`. `QueueDepth` counts
+outstanding deliveries **after resume**, not identities or the highest sequence.
+Its JSON key `queue_depth` is mandatory even when zero. The other welcome keys
+are `agent_id` and `server_version`.
 
-Use deterministic fixtures to expose races, then use bounded native checks for
-the device and provider behavior those fixtures cannot establish.
+`Keypair.Private` and `.Public` are immutable 32-byte arrays. `Cryptography` supplies
+`GenerateKeypair()`, `LoadOrCreateKeypair(string)`,
+`EncodePublicKey(ReadOnlySpan<byte>)` and `ParsePublicKey(string)`. Use `.AsSpan()`
+when encoding an immutable array. Registration contains decoded **public** bytes,
+encoded as base64 on the wire; no private key belongs in policy or registration.
 
-For images, decode the outgoing PNG and inspect pixels, dimensions, and pairing.
-A randomized image prevents the fake provider from returning a memorized color
-answer. Verify that preparation leaves the source unchanged, then delete it and
-verify replay. Negative candidates should return plausible metadata without
-pixels or lose the retained payload; the grader must reject both.
+`Envelope` has string `ID`, `ToAgent`, `Content`, `ConversationID` and `ResponseMode`,
+`ulong Seq`, `DateTimeOffset Timestamp`, and a `Source` value. Source's string fields
+are `Type`, `ChannelID`, `UserID`, `DisplayName` and `Trust`.
+`Protocol.ProvenanceHeader(Source)` returns only the header; the router appends
+`"\n\n"` and the original content. `Protocol.ResponseAsync` is `"async"`.
 
-For voice, test the recorder, hold controller, browser session, and server lease
-separately, then combine the real components. Synthetic browser audio can exercise
-the actual worklet and canonical WAV production. A held fake transcription
-response lets the test cancel first, release the late response, and prove there
-is no later admission. Duplicate commits, wrong sequences, wrong sockets, and
-selection changes should fail without redirecting speech.
+| Public operation | Result and boundary |
+| --- | --- |
+| `Client.ConnectAsync(config, handler, cancellation)` | `Task<Client>`; authenticated welcome required. |
+| `SendAsync(message, cancellation)` | `Task`; router authorization and queue admission, not inference completion. |
+| `RespondAsync(envelope, text, cancellation)` | `Task`; addresses authenticated source, preserves conversation, does not request another async reply. Current routing policy still applies. |
+| `DeclareContactableAsync(groups, cancellation)` | `Task`; replaces accepted groups, including an empty set. |
+| `RegisterChildAsync(registration, cancellation)` | `Task`; new identity and narrow-only grant. |
+| `RequestAsync(method, parameters, cancellation)` | `Task<JsonElement>`; correlated MCP request. |
+| `CallToolAsync(name, arguments, cancellation)` | `Task<JsonElement>`; also interprets tool-level `isError` refusals. |
+| `LastAckedSeq()` | `ulong`; receipt successfully written after handler return. |
+| `Close()` | Interrupts without joining; safe from a callback. |
+| `Done()` / `DisposeAsync()` | `Task` / `ValueTask`; join callbacks, reader and cleanup. Final callback failure remains visible. |
 
-The integrated voice fixture uses real WebSocket leases, the transcription
-multipart/parser path, Agent admission, a local fake model request, and canonical
-History. It bounds the number of requests and joins the browser, host, provider,
-and Agents. In a later live Dev test, Bill released the microphone and saw the transcript,
-but initially thought the Agent had not received it. Cadence checked the durable
-events: the Agent had processed the test messages and completed replies. Bill
-then accepted the interaction as successful. That established live hold/release
-transcription and response, not a display bug or a guarantee about every future
-recording.
+Canceling an RPC wait removes only that correlation. A late response is ignored;
+it does not cancel the connection. Explicit `result:null` is a valid result,
+different from an absent result. Missing or ambiguous result/error fields refuse.
 
-Fixtures also need review. A wrong model ID can refuse media before the tested
-path begins. Omitting a non-streaming field is not equivalent to requesting
-streaming. Reading History after destroying its owner is an invalid assertion.
-Those were fixture corrections, not product failures or passing feature evidence.
+For standalone transport use, construct `NoiseKK(role, key, peerPublic, prologue)`
+with role `"initiator"` or `"responder"`. `WriteHandshakeMessage` and
+`ReadHandshakeMessage` take spans and return byte arrays; `IsHandshakeComplete()`
+reports readiness. `Encrypt(data, associatedData)` and `Decrypt(data, associatedData)`
+return byte arrays. Dispose explicitly, keep each direction ordered, and terminate
+a connection after authentication or transport failure. A client-owned or
+session-owned Noise child registers with its actual parent and detaches on disposal.
 
-The external CLI grade initially found a missing SkiaSharp assembly because its
-old `--no-restore` assets predated the image dependency. An offline asset refresh
-from already-cached packages fixed that run without a runtime source change.
-Build state, source state, installed state, and live acceptance are separate facts.
-Do not hide a stale-manifest workaround inside a claim that the product was fixed.
+The handler makes this a library rather than a framework. The client owns transport
+and receipts, not the meaning of a prompt. The interviewer collects answers. The
+optional Ensemble bridge submits turns. A home automation application could switch
+on a light. The router does not need to know which application it is serving.
 
-## 26.13 What is verified, and what remains open
+## 24.5 Delivery and recovery
 
-At this draft boundary, image-file inspection has local provider-wire and replay
-tests plus a bounded live test for the exact supported Gemini path. Desktop and
-Android image attachment have human acceptance. Voice has component and integrated
-fake-provider tests, and the live Dev interaction has been accepted. Those facts
-do not establish every supported platform, every provider model, or every failure
-race.
+After the Noise-KK handshake, both sides speak a JSON protocol inside the
+encrypted stream. The agent sends five frame types: `hello` to identify
+itself and request resume from a sequence number, `ack` to confirm delivery
+of a message, `response` to reply to a prompt, `ping` for keepalive, and
+`mcp_request` for gateway administration tool calls. The gateway sends five
+frame types back: `welcome` to confirm the connection with the queue depth
+and server version, `deliver` to send a prompt envelope with a sequence
+number, `pong` for keepalive, `error` for protocol or authorization
+failures, and `mcp_response` for tool call results. Ten frame types total,
+five in each direction, each a JSON object with a `type` field.
 
-Host-screen tools are implemented in source with grant, safe-mode, argument,
-preparation, renderer, and fake-process cleanup tests. Native macOS acquisition,
-model-turn/delayed-Job delivery, and subsequent replay passed with an agreed
-synthetic window and a local fake provider. After simplifying the public tool to
-one display selector, Bill restarted the staged runtime and authorized a whole
-primary-display capture. The live `screenshot(display: 0)` call delivered actual
-3840-by-2160 pixels prepared to 2048-by-1152, with no window measurement, picker,
-or command-line workaround. Cadence inspected the returned GUI pixels. Omitted
-selection was only source-tested at that earlier boundary. The later external
-whole-display run below exercised both omitted selection and explicit zero.
+These are this course's Gateway frames, not a new standard MCP transport.
+`RequestAsync` sends JSON-RPC `initialize`, `tools/list` or `tools/call` inside
+`mcp_request`; a tool call's params are `{"name":"list-groups","arguments":{}}`.
+The server's initialization response declares MCP version `2024-11-05`.
+Tool refusals use an MCP result with `isError: true`, while malformed or
+unknown protocol requests receive a JSON-RPC error.
 
-The shared implementation suite passed 339 groups with the child-restoration
-changes; those groups span the application and are not 339 independent multimedia
-acceptance tests. Installation, Bill's reported restart, and the successful live
-capture are separate observations. Neither the earlier synthetic-window test nor
-this earlier authorized display capture awarded the later external host-screen grade.
+The public client's `SendAsync` and `RespondAsync` use the acknowledged MCP
+`send-message` operation. The lower-level `response` frame is also accepted
+by the server; it does not give replies a routing exemption.
 
-The **20-point image-files**, **25-point attachment**, **30-point voice**, and
-**25-point host-screen** external scopes now pass, totaling **100/100**. The native
-host run used the agreed synthetic primary display, both selector forms, distinct
-delayed Jobs and full-payload replay on a new turn without recapture. This completes
-the external point allocation, not every platform or human-use acceptance claim.
+The connection lifecycle starts with `hello`. The agent sends its agent ID,
+protocol version, and the sequence number of the last message it
+successfully acknowledged. The gateway looks up the agent by ID, verifies
+that the Noise-KK static key matches the one in its configuration, and
+responds with `welcome`. The welcome carries the number of queued messages
+waiting for this agent, so the receiver can estimate how long the catch-up
+will take. For example, these are decrypted JSON frames, not plaintext
+WebSocket traffic:
 
-Speech output now follows Chapter7's browser-local preferences and one Agent-wide
-pause state. A tab addresses only its selected Agent. Stop speech and Escape
-cancel local current/queued speech, preserve typed drafts, and explicitly resume
-from any device. Unchanged local activity cannot veto that resume. Disconnect
-does not invent resume, and reconnect does not reassert stale activity. This repair is separate evidence,
-not a substitute for the separate voice-input external grade.
+```json
+{"type":"hello","agent_id":"interviewer","version":1,"last_acked_seq":0}
+{"type":"welcome","welcome":{"agent_id":"interviewer","queue_depth":0,"server_version":"1"}}
+{"type":"ack","last_acked_seq":1}
+```
 
-The external grading gates are now complete. Preserve the remaining platform
-and human-use limitations rather than treating the score as universal acceptance.
-A written chapter, an installed button, a passing fake-provider test, and a live
-human interaction each establish something different.
+`last_acked_seq` is also the ack frame's field. Delivery uses
+`{"type":"deliver","envelope":...}` with the public `Envelope` fields
+encoded in snake case. MCP frames carry their JSON-RPC object under `rpc`.
 
-## 26.14 Review and operate the feature deliberately
+Every delivered message carries a sequence number. The receive loop calls `handler.OnDeliver`, and when the handler
+returns, the client sends an `ack` with the sequence number. The ack is the receipt. Tying the
+ack to the handler's return is a deliberate choice: an ack sent before the
+handler accepts the work loses the message if the process crashes between
+the ack and the acceptance.
 
-Before native capture, agree on a synthetic display and arrange OS permission with
-the person at the host. Do not sweep a private desktop to discover whether access
-works. Confirm actual returned pixels and dimensions, then exercise a model turn
-and delayed Job. Record platform refusals and the cross-display limitation rather
-than substituting browser capture for this test.
+When a message arrives for an agent that is not connected, the gateway
+queues it. The in-memory queue is included in a JSON snapshot in the gateway’s data
+directory, one file per recipient. Messages accumulate until the agent reconnects.
 
-Before a live voice check, verify the explicit payer and refresh the tested page.
-Use one short phrase first. A permission prompt may cancel the initial hold;
-allow it, then begin a new deliberate hold. Release should stop capture and send
-without another confirmation. Verify the original Agent's response as well as
-the transcript appearing in chat.
+On reconnect, the agent sends `last_acked_seq` in the `hello` frame. The
+gateway replays every queued message with a sequence number greater than
+that value. The client supplies that receipt explicitly when calling `ConnectAsync` again;
+there is no automatic reconnect loop. Outstanding messages after the receipt
+are delivered again. Only a fully authenticated new session can supersede the same identity's old one.
+A failed handshake cannot evict it. The guarantee is at-least-once delivery within
+the retained snapshot and application-acceptance boundaries. Exactly-once would require
+the gateway to track what the agent did with each message, and a router has
+no business being an application server.
 
-Keep installation separate from testing. Stage only authorized runtime files,
-preserve launchers and credentials, and wait for the old process to exit fully
-before replacing a running host. A closed listener alone does not prove that
-History persistence and Agent destruction finished. Refresh browser assets after
-a verified rebuild; neither a source change nor a build proves the person is
-using the new page.
+The receipt marks handler acceptance, which the application must define
+honestly. The Ensemble adapter calls
+`Agent.SubmitAsync(IEnumerable<Part>)`, which synchronously admits to the actor's
+mailbox and returns that request's `Task<string>`. This is not synchronous History
+publication. A bridge-owned observer waits for that exact task and sends the reply. A prompt can therefore be
+acknowledged before the model answers. A crash after that ack can lose work
+that the application has not saved. The router cannot turn admission into
+durable task completion.
 
-These interactions extend the existing Agent rather than replace it. Pixels enter
-as typed media; accepted speech enters as ordinary text. Ownership, bounded work,
-explicit authority, and durable admission give the new controls their meaning.
-The following exercises test those relationships, not just whether a button can
-be made to light up.
+Sessions consult live policy under one Router gate. Replacement revokes the old
+session before closing its socket; its buffered requests cannot act as the current
+identity. The hello receipt may recover a lost acknowledgment up to the queue's
+allocation frontier. Later receipts may advance only through the session's sent
+frontier, not over merely allocated offline messages. Acknowledgments remain
+monotonic. Draining a queue does not reset its sequence.
 
-## Exercises: implementation contract
+Socket writes never hold the policy gate. Each session serializes encryption and
+send under one write gate, so nonce order matches frame order. A write failure
+after encryption makes the session terminal; retrying as though the nonce had not
+advanced is unsafe. Reader and delivery work are both joined before Noise/socket
+disposal and removal from the identity. Pending handshakes are owned sessions too,
+so shutdown cannot overlook them.
 
-These exercises extend the same Agent, History, Sandbox, and GUI. They do not
-ask for a parallel media service or a second conversation store. The proposed
-chapter allocation is 100 points. The image-files, attachments and voice commands
-below award separate 20-point, 25-point and 30-point scopes. None awards the
-host-screen scope by itself or certifies the entire chapter.
-The implementation's focused tests remain evidence, not external grades.
+The host snapshots runtime group definitions and memberships,
+contactability, child identities, queues and receipt positions every thirty
+seconds, then once more on orderly shutdown. Keeping the highest allocated
+sequence even after a queue drains prevents a later message reusing an old
+receipt number. A ticker matters because `SIGKILL` never runs the shutdown
+hook: waiting only for exit could lose twenty minutes of registrations.
 
-### Exercise 26.1: Image-file delivery and replay (20 points)
+Periodic snapshots still leave a loss window. Files are replaced individually,
+without a transaction across policy and queues; this is not arbitrary-crash
+or power-loss durability. Protect the data directory as private application
+state. It contains the gateway's private key and plaintext pending messages.
+Noise protects their journey over the network, not those files at rest.
 
-Implement `inspect_image` as a skill-authorized tool. Read the selected file through
-its Agent's Sandbox, prepare a bounded PNG without changing the original, and
-return actual image content in the matching tool result. Capability validation
-must precede file access. Keep errors explicit: a filename or a description of
-an image is not image delivery.
+Files are `identity.key`, `state.json` and `queues/<validated-id>.json`. Only an
+absent file gets empty defaults. Malformed JSON, duplicate fields and a path blocked
+by a regular file are errors, not permission to restart with empty queues. Save
+failure retains live state and is reported; a later timer tick can retry. Shutdown
+closes admission, joins all sessions and the host's timer, attempts the final save,
+and detaches ownership even on failure. All Router disposers observe the same
+shutdown result. A failed final save must make the application exit fail.
 
-The initial executable scope checks a narrower, concrete delivery contract:
+One test initially treated a channel notification inside `OnDeliver` as proof
+that its receipt had been sent. The notification happened before the callback
+returned. Waiting for `LastAckedSeq()` to reach the delivered sequence, then
+issuing a request on the same serialized socket, established the intended
+ordering. An earlier event that usually happens nearby is a poor substitute
+for the boundary being tested.
 
-- Inspect a randomized 4096-by-64 PNG and prepare a 2048-by-32 PNG with the
-  expected interior pixels. Keep the tool-call ID and image placement intact.
-- Preserve the source byte-for-byte during inspection. Then retain the prepared
-  pixels after the source is deleted, so a later human turn can discuss them
-  without another file read or capture.
-- Deliver exactly one matching image result. Metadata-only content, absent or
-  corrupt bytes, wrong dimensions, wrong call pairing, duplicate images, and
-  missing replay must not earn credit.
+## 24.6 The interviewer proves the stack
 
-Use a real candidate CLI and a local fake provider. The grader creates a private
-workspace and a synthetic skill grant; it supplies no live vendor credentials.
-It observes the actual provider requests and joins the candidate process. Its
-fake provider does not prove real-provider availability or model understanding.
+The interviewer is a standalone C# executable in `Gateway/Interviewer`. It
+references only the public Gateway library, holds its own keypair, and reaches
+Ensemble only through the router. It does not reference Ensemble's core. Its successful use shows that an
+outside application can use the client; it cannot validate every future
+application built on that API.
 
-Run the **Edition 3** command against an executable wrapper for the candidate's
-JSON CLI:
+The binary connects to the gateway, declares itself contactable by the
+groups its subject might reply from, and asks four fixed questions about
+workflow friction: what slows you down, what burns the most tokens, where do
+you need a human, and what new tool would help most. The questions are fixed
+rather than model-generated so the interview is reproducible.
+
+For each question, the interviewer sends an `OutboundMessage` through the
+client and waits on the handler's bounded answer channel with a per-question timeout.
+`OnDeliver` puts the envelope on an application-owned channel, and
+the remaining callbacks report connection failure. If the inbox is full, the
+handler refuses rather than acknowledging a silently dropped answer. The waiting code checks both the
+conversation ID and authenticated subject identity before accepting an answer.
+
+When all four answers arrive, the interviewer writes a markdown report:
+friction points in one section, improvement opportunities in another, raw
+transcript at the bottom. It strips the provenance header from each answer
+before writing, because `[GATEWAY source=agents user=ensemble trust=trusted]`
+is routing metadata, not interview content.
+
+Three binaries, three processes, one proof:
+
+1. Start the gateway with a config that knows both agents and their keys.
+2. Start Ensemble, which connects and declares contactability.
+3. Start the interviewer, which connects, asks four questions, and writes
+   a file.
+
+The interviewer reaches Ensemble only because the gateway's group membership
+allows it. Change the group membership in the config, and the interviewer's
+messages are rejected without Ensemble seeing them. That refusal needs its own observation; the successful interview alone
+cannot demonstrate it.
+
+`GatewayBridge.RunAsync` borrows an Agent for one scoped invocation. It owns the
+Client and reply observers, not the actor. `SubmitAsync` provides a reliable result
+for each accepted prompt, so a busy Agent can queue another question without
+confusing its answer with a shared idle event or a lossy observation stream.
+Incoming delivery can race with `ConnectAsync` returning; observers wait until the
+Client is available. `Ready()` settles only after contactability is accepted, or
+fails with startup. Only requests marked `async` get replies. Turn failures are
+logged locally, not sent as exception text to remote peers.
+
+Bridge cancellation closes the connection and joins/detaches its observers; it
+does **not** undo admitted actor work. The application separately shuts down the
+Agent, saves History after joined shutdown, and destroys Ensemble. Borrowed
+references are cleared before the bridge returns. Initialization must load saved
+History before opening its event writer. Save-on-exit is armed only after successful
+startup. These are application lifetimes the router does not own.
+
+### Running the interview
+
+Use .NET 10/C# 14 and the approved native dependency described in Section 24.2.
+The repository's disabled package feeds are deliberate: use an existing package
+cache or explicitly authorize a source for libsodium 1.0.22; do not silently alter
+global NuGet configuration. From the repository root, build the active source
+(or change `CH26_SRC` to the preserved `solutions/ch26` endpoint):
 
 ```sh
-go run ./cmd/grade-edition3 -ch 26 -executable-only \
-  -media-scope image-files -json /absolute/path/to/candidate-cli
+set -eu
+CH26_SRC="$PWD/agent"
+CH26_RUN=$(mktemp -d /tmp/ensemble-ch26.XXXXXX)
+export CH26_SRC CH26_RUN
+for project in Host/GatewayHost AgentHost/GatewayAgent Interviewer/Interviewer; do
+  dotnet build "$CH26_SRC/Gateway/$project.csproj" --nologo
+done
+SUBJECT_KEY=$(dotnet "$CH26_SRC/Gateway/AgentHost/bin/Debug/net10.0/GatewayAgent.dll" \
+  --key "$CH26_RUN/subject.key" --print-key)
+INTERVIEWER_KEY=$(dotnet "$CH26_SRC/Gateway/Interviewer/bin/Debug/net10.0/Interviewer.dll" \
+  --key "$CH26_RUN/interviewer.key" --print-key)
+export SUBJECT_KEY INTERVIEWER_KEY
+printf '%s\n' "$CH26_RUN" "$SUBJECT_KEY" "$INTERVIEWER_KEY"
 ```
 
-Do not substitute `./cmd/grade`: its Chapter 26 is the preserved Gateway grade.
-The new command reports a maximum of **20**, not 100. A 20/20 result certifies only
-this delivery-and-replay scope. Sandbox escapes, resource ceilings, unsupported
-models, cancellation, and cross-provider correctness still require their focused
-implementation tests and review; this scope does not certify them by implication.
+These printed keys are public. Key-print mode does not initialize a provider.
+Put this complete configuration in `$CH26_RUN/gateway.json`, replacing the three
+marked values. Choose an unused loopback port; 8093 is an example, not permission
+to stop a process already using it. Change the config and both client URLs together.
 
-### Exercise 26.2: Addressed image attachments (25 points)
+```json
+{
+  "gateway": {
+    "listen": "127.0.0.1:8093",
+    "data_dir": "REPLACE_WITH_CH26_RUN/router-data"
+  },
+  "groups": {
+    "agents": {
+      "description": "Interview participants",
+      "capabilities": ["send-message", "declare-contactable"],
+      "trust": "trusted"
+    }
+  },
+  "agents": {
+    "ensemble": {
+      "public_key": "REPLACE_WITH_SUBJECT_KEY",
+      "groups": ["agents"]
+    },
+    "interviewer": {
+      "public_key": "REPLACE_WITH_INTERVIEWER_KEY",
+      "groups": ["agents"]
+    }
+  }
+}
+```
 
-Accept pasted images and explicit file selection into a removable preview draft.
-Keep accompanying text and image order, then send the whole message to the Agent
-and connection selected for that draft. A preview or client-side send is not
-actor admission: use the matching server acknowledgement before clearing it.
-
-Test whole-message refusal, late file-reader completion after selection changes,
-duplicate acknowledgements, and reconnect after an uncertain send. Refusal must
-preserve the usable draft. Uncertainty must not trigger automatic retransmission.
-The server must prepare and validate the real image bytes; a client MIME string
-is not sufficient validation. Check usable controls on a narrow phone viewport,
-but record native clipboard acceptance separately from viewport geometry.
-
-The external grader must observe the real addressed WebSocket path and the
-resulting model input. Its negative controls must reject preview-only delivery,
-lost accompanying text, a changed recipient, and duplicate admission. This
-25-point scope now has a passing executable driver. Run it against an ordinary
-GUI executable wrapper that forwards its arguments:
+Create the router identity and retain its printed public key:
 
 ```sh
-go run ./cmd/grade-edition3 -ch 26 -executable-only \
-  -media-scope attachments -browser-node /absolute/path/to/node \
-  -playwright-module /absolute/path/to/playwright \
-  -json /absolute/path/to/candidate-gui
+GATEWAY_KEY=$(dotnet "$CH26_SRC/Gateway/Host/bin/Debug/net10.0/GatewayHost.dll" \
+  --config "$CH26_RUN/gateway.json" --print-key)
+export GATEWAY_KEY
+printf '%s\n' "$GATEWAY_KEY"
 ```
 
-The grader requires an already installed Playwright package and Chrome. It checks
-browser availability before launching the candidate; setup failure exits without
-a candidate score. It downloads nothing. The candidate accepts the ordinary GUI
-port, workspace, data-directory, provider/model/base-URL, funding and no-save
-options. The grader supplies a fresh key-free home and synthetic credential, not
-a running GUI or internal test host.
-
-Eight scenarios cover picker, synthetic paste/removal, separate recipient
-histories, late readers, refusal recovery, uncertain reconnect, acknowledgement
-ordering, and repeated wire envelopes. Randomized prepared pixels and captions
-must reach the loopback provider exactly once. Preview-only, lost-caption,
-misdirected and duplicate-send mutants fail named gates. A phone-sized viewport
-checks layout, not native clipboard support. The command reports **25/25**, not
-100/100; image-file replay remains its separate scope.
-
-### Exercise 26.3: Hold, release, and send once (30 points)
-
-Connect the microphone button and configurable page-level shortcut to bounded
-recording and explicitly funded transcription. Release sends once through the
-original Agent/socket lease, without an editable transcript or another Send step.
-Transcription readiness is not permission to redirect or duplicate admission.
-Keep the transcription payer separate from the running Agent's chat funding.
-
-Use synthetic audio and a bounded fake transcription provider first. Observe the
-real WAV, transcription request, lease, actor admission, and model request. Test
-permission arriving after release, repeat keydowns, duplicate replies, blur,
-Agent switching, disconnect, cancellation during an uncooperative response, and
-cleanup failures. Stop owned tracks and join owned work. A result that arrives
-after cancellation cannot become a late message. After a commit whose outcome is
-unknown, report uncertainty rather than retrying.
-
-The external grader must reject extra confirmation requirements, duplicate or
-misdirected sends, continued capture after cancellation, and implicit API-key
-fallback. Fake audio does not certify a native microphone or a paid API. Keep
-human phone acceptance and provider evidence separate. This 30-point scope now
-has a passing executable driver:
+Use three terminals with the same `CH26_SRC` and `CH26_RUN`, and `GATEWAY_KEY` in
+the two client terminals. Start the router:
 
 ```sh
-go run ./cmd/grade-edition3 -ch 26 -executable-only -media-scope voice \
-  -dotnet /absolute/path/to/dotnet -browser-node /absolute/path/to/node \
-  -playwright-module /absolute/path/to/playwright \
-  -json /absolute/path/to/candidate-runtime-directory
+dotnet "$CH26_SRC/Gateway/Host/bin/Debug/net10.0/GatewayHost.dll" \
+  --config "$CH26_RUN/gateway.json"
 ```
 
-Unlike the executable wrappers above, the voice candidate is a directory containing
-`Ensemble.dll` and `Ensemble.Gui.dll`. The grader compiles its own public-API
-consumer against those assemblies with an installed .NET 10 SDK and empty package
-sources. Missing browser/SDK setup refuses before scoring; failure to satisfy the
-public consumer API is a candidate failure. No package installation or paid call
-is part of this command.
+Its printed key is not readiness. Confirm that this process remains alive and owns
+the configured listener before starting clients. For example,
+`lsof -nP -iTCP:8093 -sTCP:LISTEN` identifies the PID; do not mistake somebody else's
+listener for this launch. There is no invented `/health` route.
 
-The public `VoiceTranscriber(parent, key, HttpMessageHandler)` overload allows a
-trusted host to supply synthetic HTTP responses without changing the production
-URL or 45-second deadline. Handler ownership transfers only after successful
-construction; refused construction leaves it with the caller. Destruction joins
-active requests before disposing an owned handler. Use synthetic credentials in
-a grader transport, never a real payer key.
+The optional Agent host is deliberately **API-key-only**. It announces funding
+before inference and has no plan/OAuth or Codex-endpoint fallback. For a paid live
+exercise, explicitly choose a provider/model you are authorized to use and supply
+`EN_API_KEY` through your approved environment setup. Do not paste a secret into
+the manuscript, transcript or shell history, or borrow another application's store.
+This recipe does not authorize a live call merely by being printed here.
 
-Eight modes cover normal hold/release and duplicate commit, explicit funding off,
-permission after release, disconnect and Agent switching during capture or held
-transcription, and provider failure followed by a fresh deliberate recording.
-The oracle independently checks WAV bytes, exactly one human transcript in model
-input, canonical admission across both Agents, ended tracks and joined cleanup.
-Four mutants expose extra confirmation, duplicate commit, wrong recipient and
-actual track leakage. The command reports **30/30** for this synthetic scope,
-not native microphone reliability, real-provider behavior or the host-screen grade.
-
-### Exercise 26.4: Host screenshots (25 points)
-
-Implement `list_displays` and `screenshot` on the computer running the C# server.
-Support one optional display index, defaulting to display zero, and return prepared PNG pixels
-through the existing typed tool-result path. A browser tab, DOM reconstruction,
-file path, or text claiming success does not satisfy this exercise.
-
-Require the explicit host-screen grant and OS permission. Refuse safe mode,
-ungranted calls, unsupported platforms, invalid selection, and unsupported model
-image placement before their corresponding effects. Cancellation must join the
-owned capture process; temporary output must not leak. Preserve structured image
-results through delayed Jobs as well as immediate results.
-
-Test refusal and cleanup with synthetic helpers first. Native success must use
-an announced, agreed synthetic whole display, verify the actual pixels, and
-exercise both a model turn and delayed-Job delivery. Test omitted selection and
-explicit zero, another available display, invalid indices, and refusal of removed
-rectangle arguments before capture. Inspect the advertised schema: only optional
-`display` selects capture; observation controls do not select a region. Record
-platform limits honestly; one display is not cross-display compositing. Do not trigger a permission prompt while the human is away,
-elevate privilege, or introduce background monitoring.
-
-The external grader must reject metadata-only capture, a missing grant,
-capability checks performed after capture, a wrong display, mandatory selection,
-advertised rectangle arguments, missing delayed
-image payloads, and abandoned native work. The driver now passes synthetic wire
-candidates and the agreed real native run passes **25/25**. This result is distinct
-from the reference implementation's earlier synthetic-window and live-display
-acceptance; those earlier observations did not silently award this grade.
-
-Prepare a four-band fixture without opening or capturing any display. For example,
-a 3840-by-2160 backing display prepares to 2048-by-1152:
+For OpenAI, set `EN_VENDOR=openai` and `EN_MODEL` to that selected model. The
+optional `EN_BASE_URL` selects a service base, including an owned compatible
+loopback fake. The host uses the existing Chat surface; this is not Chapter 23's
+public OAuth Responses/cache exercise. Then run:
 
 ```sh
-go run ./cmd/host-screen-pattern -width 2048 -height 1152 ./screen-fixture
+: "${EN_MODEL:?Select an authorized model}"
+: "${EN_API_KEY:?Supply through an approved environment setup}"
+export EN_VENDOR=openai
+# Unset an unrelated EN_BASE_URL, or explicitly set the intended service base.
+dotnet "$CH26_SRC/Gateway/AgentHost/bin/Debug/net10.0/GatewayAgent.dll" \
+  --gateway ws://127.0.0.1:8093/v1/ws --gateway-key "$GATEWAY_KEY" \
+  --agent ensemble --key "$CH26_RUN/subject.key" --groups agents \
+  --data "$CH26_RUN/subject-data" --no-stream
 ```
 
-The command writes `display.html` and a strict `pattern.json`, refusing to overwrite
-existing files. Open the HTML on the **server computer's primary display**, not
-on a requesting phone. Its button enters full-screen only through a human click
-and hides the cursor while full-screen.
-Wait until browser/OS overlays disappear and confirm that the whole display is
-synthetic. Prepared dimensions must match the current inventory; a mismatch
-refuses before capture. A manifest is an expectation, not proof that the screen
-currently contains the pattern.
-
-Only after fresh human authorization and confirmation of that setup, run:
+Without `--skills PATH --primary NAME`, the subject has no tools. Do not grant tools
+just to make a conversation more impressive. If explicitly selected, skills use
+the normal initialization and authority rules; gateway text grants nothing.
+The Agent lives at `subject-data/agents/ensemble/`, with `session.save.json` and
+`events.jsonl`. Wait for `Gateway Agent ensemble ready`, then run the interviewer:
 
 ```sh
-go run ./cmd/grade-edition3 -ch 26 -executable-only -media-scope host-screen \
-  -allow-native-host-screen -host-pattern ./screen-fixture/pattern.json \
-  -json /absolute/path/to/candidate-cli
+dotnet "$CH26_SRC/Gateway/Interviewer/bin/Debug/net10.0/Interviewer.dll" \
+  --gateway ws://127.0.0.1:8093/v1/ws --gateway-key "$GATEWAY_KEY" \
+  --agent interviewer --subject ensemble --key "$CH26_RUN/interviewer.key" \
+  --groups agents --report "$CH26_RUN/interview.md" --timeout-seconds 120
 ```
 
-The flag is an explicit operator attestation, not an OS-permission bypass. The
-runner loads the grant, validates inventory, makes two primary-display screenshot
-requests (omitted selector and explicit zero), collects their distinct running
-Jobs, and checks both payloads on a new human turn without recapture. It refuses
-without the opt-in; it never substitutes an unapproved primary display for an
-approved secondary one. The current external scope uses one primary display.
-Other-display selection and platform refusals remain separately attributed.
+Read the report, then Ctrl-C the subject and router and observe joined exits.
+The interviewer writes only after all four answers. Timeout, cancellation or
+connection loss while awaiting answers leaves no new report; interruption during
+file writing is not an atomic-report guarantee. Inspect the saved conversation
+and receipt positions, not just the console's success text.
 
-The pixel oracle checks every pixel within broad, predetermined band interiors:
-inset each band by5% horizontally and the frame by5% vertically, with a minimum
-two-pixel inset. Roughly81% of a large frame is checked, using the same three-level
-RGBA tolerance. Exact dimensions and byte-identical full-image replay remain
-required. Native testing exposed a darkened first row and a tiny corner indicator;
-the screenshot faithfully includes such display details. Do not mistake an HTML
-fixture's ideal colors for a guarantee that OS/browser edges contain nothing else.
-Negative controls alter the first checked pixel in every band and must fail.
+The completed local C# exercise ran these three real executables with a small fake
+HTTP provider: four correlated answers, an explicitly selected primary skill,
+restored History before the next request, SIGTERM during held inference, and a
+visible final-save failure. Separate interviewer checks sent wrong-sender and
+wrong-conversation answers before the correct ones. Separate host checks used the
+unchanged Go client and observed real thirty-second failure/retry ticks, restart
+receipts and joined shutdown. These establish application wiring and failure
+behavior, not real-model judgment or productivity.
 
-For diagnosis, `-host-failure-image /absolute/new/path.png` retains only the first
-mismatching bounded PNG with private permissions. It is opt-in and refuses existing
-paths; normal grading retains no images. Inspect actual failed pixels before
-changing acceptance criteria, and report changes rather than quietly widening them.
+Try refused group routing and narrow-only child registration separately. A
+successful interview alone proves neither. A network child is a registered public
+identity, not automatically an Ensemble task child. Test unacknowledged replay and
+offline delivery separately too; a final report alone says little about recovery.
 
-The fake provider also distinguishes tool-free recall-judge requests by their
-system instruction and answers them with an empty selection without advancing the
-capture script. A longer prompt exposed this helper traffic before the main turn.
-HTTP request order alone is not the Agent's tool sequence. Retain a long-prompt
-schema-only regression that never enumerates or captures a display.
+### What the actual interview said
 
+The second-edition run used three built processes and four real Astra
+requests, completing the interview in 11.739 seconds. All three processes
+exited normally. Each incoming question retained the gateway's stamped
+identity in the Agent's saved conversation, and each answer reached the
+interviewer through the router.
 
-Synthetic controls reject early tool advertisement, rectangle/mandatory-selector
-schemas, metadata-only output, missing or changed Jobs, bad pixels and lost replay.
-Focused backend tests and review must still establish pre-effect capability and
-permission checks and native cancellation: a returned error alone cannot prove
-that no OS side effect occurred. The native test verifies the selected colors on
-this display, not universal color-profile fidelity. Do not widen color tolerances
-merely to obtain a passing grade.
+Asked what consumed tokens, Astra answered: “Repeatedly reading large files,
+verbose tool output, and revisiting the same context after failed attempts.”
+Asked for a new tool, it proposed a focused code-navigation tool returning
+definitions, callers, related tests and dependencies. Those are useful
+interview leads. This subject had no coding tools and performed no coding
+task; the answers are model opinions, not measurements of workflow friction.
 
-## Grading boundary
+The launch selected Astra/high and the Codex route; the retained Agent facts
+verify the model, while effort and endpoint retain launch/source evidence.
+All four cache-read counts were zero. A working encrypted interview should
+not be sold as a cache benefit or a productivity experiment. The
+[run and transcript](../edition-2/solutions/evidence/ch27/live-interview.md)
+retain the actual answers; later local diagnostic and receipt-test corrections
+do not turn that earlier run into a new one.
 
-All four executable external scopes pass, totaling100/100: image-files20,
-attachments25, voice30 and host-screen25. The host scope has native macOS
-primary-display evidence; the others retain their documented fake-provider,
-synthetic audio and browser boundaries. Architecture review, other-platform
-acceptance and native microphone/phone reliability are not additional claims
-implied by that score. Building, staging, restarting and human acceptance remain
-separate facts. Preserve the evidence and limits beside the executable contracts.
+## 24.7 What the grader checks
 
+The original Go route builds the submitted router and an outside consumer against
+its public library. That route remains `-ch 26 solutions/ch26`; older Chapter 25
+Gateway numbering is not this edition's Goals chapter.
 
-## Takeaways
+For C#, the opt-in executable route retains the complete outside-peer exercise,
+including two real server launches, held delivery, offline queues and restart. But
+the independent peer is Go, not the submitted C# client. Its own handshake, callback
+logic and import graph cannot earn C# library credit. The route scores only four
+complete original server rows: provenance, welcomes, routing and attenuation.
+Nonempty welcome counts occur in the delivery scenario, which is why that scenario
+is retained even though its full client contract is ungraded.
 
-- Prepare and retain actual media bytes at admission; replay must not depend on
-  a source file or device still being available.
-- Bind asynchronous work to its original owner and recipient. A new GUI
-  selection cannot redirect an old recording or attachment.
-- Separate capture, transcription readiness, actor admission, and model response.
-  Each acknowledgement establishes only its own step.
-- Preserve uncertainty after a potentially delivered send. Retrying can duplicate
-  an action that already succeeded.
-- Test the claimed surface: browser capture is not host capture, fake audio is
-  not a native microphone, and a scoped grade is not chapter completion.
+| Original row | Behavior | C# executable scope |
+| --- | --- | --- |
+| C1 | Noise-KK wrapper, wrong-key controls | 15 ungraded |
+| C2 | Provenance and preserved conversation/response mode | 10 |
+| C3 | Multiple authenticated identities, version and empty/nonempty queue counts | 15 |
+| C4 | Allowed and refused group routing | 15 |
+| C5 | Complete client handler/receipt/replay/restart contract | 15 ungraded |
+| C6 | Outside consumer of the submitted public client | 10 ungraded |
+| C7 | Independent child connection and refused wider grant | 20 |
 
-[Chapter 27: Crossing Over to Ensemble](chapter-27.md) turns to using the built
-Agent as the working collaborator. The media paths here belong to that same
-Agent and its existing ownership rules.
+The recorded C# result is **60/60**, covering 60 of the original rubric's 100
+points. The remaining 40 client/Noise points are ungraded by this route, rather
+than failed or removed from the chapter's requirements. Read the real C# client
+tests and Mac/Pi wrapper interoperability results as separate evidence; they do
+not supply those grader points. Neither a passing fake nor an outside Go peer is a
+security audit. The Ensemble adapter, administrative restore, ownership and host
+failure paths also need their own source and application evidence.
+
+To reproduce, build the Host first. The grader expects historical `-config` and
+`-print-key` flags; this small executable adapter only translates them and execs
+the real DLL. It supplies no canned result. With `CH26_SRC` and `CH26_RUN` from
+Section 24.6:
+
+```sh
+DOTNET=$(command -v dotnet)
+export DOTNET
+cat > "$CH26_RUN/grade-host" <<'SH'
+#!/bin/sh
+set -eu
+[ "$#" -ge 2 ] && [ "$1" = -config ] || exit 2
+config=$2
+shift 2
+if [ "$#" -eq 0 ]; then
+  exec "$DOTNET" "$CH26_SRC/Gateway/Host/bin/Debug/net10.0/GatewayHost.dll" --config "$config"
+fi
+[ "$#" -eq 1 ] && [ "$1" = -print-key ] || exit 2
+exec "$DOTNET" "$CH26_SRC/Gateway/Host/bin/Debug/net10.0/GatewayHost.dll" --config "$config" --print-key
+SH
+chmod 700 "$CH26_RUN/grade-host"
+go run ./cmd/grade-edition2 -ch 26 -executable-only \
+  -gateway-peer "$PWD/solutions/ch26" -json "$CH26_RUN/grade-host"
+```
+
+The peer directory is explicit and absolute. Do not point it at the C# tree or
+call it the submitted implementation. The ordinary Go route is unchanged.
+
+Two failures from this translation are worth remembering. An early loopback fake
+shared the client's wrong receipt spelling; six local groups passed while the real
+Go router retained ack zero. The wire uses `last_acked_seq` for hello/ack and `seq`
+only for envelopes. Separately, omitting a zero `queue_depth` looked harmless until
+the independent welcome assertion caught it. Tests built from our own assumptions
+can agree with us and still be wrong.
+
+Read the source alongside the tests: Common declarations, reciprocal relationship
+operations, current-session checks, socket writes outside the policy gate, and
+joined destruction. Green transport tests do not excuse duplicated authority or a
+hidden scheduler. The router's usefulness is not in making another agent look busy.
+It is in giving independently running applications a small, honest boundary they
+can depend on.

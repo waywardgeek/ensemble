@@ -1,837 +1,375 @@
-# Chapter 24: Gateway
+# Chapter 24: Goals
 
-I built a fantasy role-playing game for AI agents called Deephold.
-Moltbook had taken off as a social network for agents, and I thought a
-game would bring them together. The agents followed their prompts. They
-explored the dungeons and fought the monsters. They did not appear to
-have a sense of fun. It was just more work for them.
+I would give Ensemble a job that ought to keep it occupied for most of a day. An hour later, it could be sitting there doing nothing. Codex had done the same thing. Neither program was necessarily broken. The model had finished a response, but the job was not finished. Work resumed when I noticed and poked it.
 
-And the architecture was awful. Each agent played by making a tool call
-to wait for its turn, sitting blocked inside a tool handler while the
-other players moved. I didn't figure out the right architecture on my
-own. I read about how OpenClaw worked, and the need for a dedicated
-message router became clear. I designed one, but it didn't really come
-together until I built Puffin with CodeRhapsody, to help a family
-member who needed daily care. Once the need was real, we built it with
-care. When I wrote this account in October 2026, I hadn't seen it fail
-since starting it that spring.
+I did not want to spend the day being the agent's timer.
 
-Gateways are critical infrastructure. Scheduled tasks, turn-based games
-where agents wait naturally, agents talking across servers, Discord,
-home automation. Every one of those needs a router at the trust
-boundary. That router belongs in the framework, not bolted on after.
+There was a second problem. A long job can pass through many context compressions. The model may retain the latest debugging detail and lose the reason it was debugging in the first place. Another poke is not enough if the agent no longer has a reliable statement of what it is supposed to accomplish.
 
+Goals addresses these two problems separately:
+
+1. Keep the agreed objective in a file and read its current contents into every ordinary model request.
+2. Optionally give an idle Agent another turn in which to inspect its state and decide what to do next.
+
+The first mechanism preserves an objective across compression. The second supplies an opportunity to continue. Neither guarantees progress, correct judgment, or permission to act.
+
+> **C# edition boundary.** This implementation was originally built on the preserved `solutions/ch23` endpoint. The optional Codex path and Gateway have since been completed locally; their historical endpoints retain their original names. Goals does not depend on either integration. The final crossover exercise in Chapter 30 still requires the human's replacement acceptance.
+
+## §24.0 TL;DR: What to Build
+
+Build an opt-in Goals feature on the existing Agent actor. Standalone settings are session-local; Chapter 20’s registered ordinary children persist their own goal settings for restart. Do not add a scheduler service, a goal database, a second model conversation, or a browser-owned timer.
+
+### The control
+
+Install the `goals` skill as a loadable skill. It grants one tool, `goal_control`:
+
+| Field | Meaning |
+|---|---|
+| `file` | Goal-file path. Omitted means unchanged; an empty string clears configuration. |
+| `enabled` | Whether idle reminders are enabled. Omitted means unchanged. |
+| `idle_seconds` | Positive finite idle delay, default 480 seconds. |
+
+Calling the tool without fields reports status. Loading the skill grants the control but creates no file and enables no reminders. Discovery is not activation. The ordinary legacy library catalog must not accidentally grant this new tool just because it permits older tools without a Skills manager.
+
+The public C# operations are:
+
+```csharp
+await agent.GoalControlAsync(new GoalUpdate(
+    File: goalPath,
+    Enabled: true,
+    IdleSeconds: 480));
+
+GoalStatus observed = await agent.GoalStatusAsync();
+
+// Stop reminders without removing instructions or claiming completion.
+await agent.GoalControlAsync(new GoalUpdate(Enabled: false));
+
+// Remove the goal from this session. Do not delete the user's file.
+await agent.GoalControlAsync(new GoalUpdate(File: ""));
+```
+
+Configuration requires an active Goals grant. `GoalStatusAsync` is read-only and can report that the skill is unloaded. Neither form of status query restarts the idle deadline.
+
+### The file and request
+
+Use the Agent's existing Sandbox for file access. Validate a newly selected file before publishing the configuration. Read it again on each ordinary request, including another request in the same tool loop. Do not cache its text in Skills, History, or the GUI.
+
+The C# implementation accepts nonblank, strictly decoded UTF-8 text up to one MiB. It rejects directories, nonregular streams, invalid bytes, and paths outside the Agent's confinement. Selecting an invalid file leaves the previous configuration unchanged.
+
+A configured file supplies request instructions even when reminders are off. Clearing the file or unloading Goals removes that injection. A fresh Agent starts without the previous session's configuration, and a child does not inherit its parent's goal.
+
+If an existing configured file becomes unreadable, disable reminders and expose a stable error. Ordinary human work can proceed with an explanation of the file problem. An automatic wake must not send inference without its goal. Off and Clear must remain usable when the file is missing.
+
+### The idle reminder
+
+Default to eight minutes. The timer callback only posts actor mail carrying a generation token. It does not call the provider, append History, or execute tools.
+
+The actor accepts the wake only if the token is current, the configuration is enabled, the Goals grant remains active, and the Agent is still idle. Active foreground work, admitted turns, controls, startup work, and direct Engine sends prevent an automatic wake. Independent Jobs can remain alive; the reminder instructs the model to inspect them rather than cancel or duplicate them.
+
+Pause suspends the timer. Resume starts a fresh interval. Interrupt disables reminders, even when there is no active turn. Shutdown, actor failure, successful delegated submission, unload, and destruction must not leave a later automatic turn behind.
+
+### The GUI
+
+Show the selected Agent's status, not the host actor's status by accident. Distinguish unloaded, unconfigured, working, waiting for a reminder, paused, reminders off, and file error. Show disconnected or switching state honestly rather than presenting an old observation as current.
+
+Provide labelled Apply, Reminders off, Clear, and Reload controls. Acknowledgment means the actor applied the update. The browser must not optimistically claim success when a checkbox changes. These controls do not write the durable memory/recall policy or appearance preferences. Standalone settings are session-local; registered children save goal configuration in their own restart record before acknowledging changes.
+
+## §24.1 Write an Objective, Not a Repeated Command
+
+A useful goal file tells the agent what remains, how to recognize completion, and where its authority ends:
+
+```markdown
+# Goal: finish the parser correction
+
+The parser accepts a malformed trailing record. Reproduce that defect with
+an owned local fixture, correct it, and review the complete changed call path.
+
+Done means the failing case passes, the relevant existing tests still pass,
+and the explanation describes the actual behavior and remaining limits.
+
+Do not install packages, modify credentials, restart the running application,
+or commit changes. Preserve unrelated work. If a healthy test job is already
+running, observe that job rather than launching another copy.
+
+Disable reminders when finished or genuinely blocked on a human decision.
+```
+
+“Run the tests again” is not a good long-running objective. It does not tell the agent whether the first test process is still running, whether a failure is already understood, or whether another run would answer a useful question.
+
+The ordinary file tools write and edit the document. `goal_control` only names it and controls the reminder. Keeping these responsibilities separate avoids turning a small control tool into another document store.
+
+The path is not the objective. The file's current bytes are. A handoff can replace working conversation without erasing those bytes. On the next request, the renderer reads the file again.
+
+That does not make the file magical. It can be stale, badly written, or missing. Keep it short enough to understand, update it when the work changes, and do not put secrets in a document that will be sent to the model.
+
+## §24.2 Keep the State on the Agent
+
+`Common/Goals.cs` declares the vocabulary and operations. `Agent/Goals.cs` implements them as another partial section of the same Agent type.
+
+The persistent runtime state is small:
+
+- One immutable `GoalConfiguration`, synchronized by the Agent's ingress lock.
+- One actor-owned timer, deadline, and generation number.
+- Immutable update, status, and read-failure values passed across the existing boundaries.
+
+The configuration contains the path, enabled flag, interval, and last safe diagnostic. It does not contain goal text. `GoalStatus` is an observation of those facts and the Agent's actual activity, not another mutable configuration owner.
+
+This feature does not need a relationship-bearing `GoalManager`. It has no independent lifetime: it belongs to the Agent's session. The existing Agent already owns admission, pause, interruption, shutdown, Skills, History, and Sandbox. Reach those services through that Agent rather than copying them into a callback bag.
+
+Configuration runs through the actor mailbox. Validate the complete proposed update before publishing it. A bad interval or unreadable replacement file must not partly change an otherwise working goal.
+
+The timer accepts a finite interval of at least one millisecond and no more than 4,294,967.294 seconds, matching the chosen .NET timer's millisecond range. Those are implementation bounds, not useful recommendations. Eight minutes is the default; a two-second interval belongs in an owned test, not an unattended production job.
+
+Unloading a skill has two distinct effects in this system: its authority is revoked immediately, while its old manual can remain in canonical History pending later retirement. Goals uses the current grant, not the presence of an old manual. Unload also clears its session configuration and timer. Removing the Skills relationship does the same without deleting the goal file.
+
+## §24.3 Preserve the Goal Across Requests, Not as Transcript Copies
+
+The renderer already projects primary instructions, tool policy, retained manuals, and request-only pressure guidance. Goal text joins that request-only instruction projection.
+
+The four supported surfaces place it in their real instruction channels:
+
+| Surface | Placement |
+|---|---|
+| OpenAI Chat Completions | System message |
+| OpenAI Responses | `instructions` |
+| Anthropic | `system` |
+| Gemini | `systemInstruction` |
+
+This placement is part of the feature. A tool result somewhere in an old transcript is not equivalent to current system instructions. Nor is a file path whose contents the model has not read.
+
+Read the file for each render. Suppose a turn reads the old objective, edits the goal file, and calls `micro_handoff`. When that same turn makes its next model request, the new objective must appear. Requiring another human message would defeat the continuation mechanism precisely when it is needed.
+
+Do not append the file body to canonical History each time. The runtime retains its configuration; History retains the real dialogue and effects. Repeated file copies would create stale competing objectives and unnecessary context growth. As always, a user or tool can deliberately put text into dialogue; the Goals feature itself does not create those transcript copies.
+
+Auxiliary recall judges and memory compressors do not receive the parent's goal instructions. They have narrower tasks and existing request builders. A compressor that inherits the main agent's day-long objective is liable to work on that objective instead of compressing its input.
+
+File errors require a careful split. A human turn should be able to say, “The configured goal file is unavailable; repair it and explicitly re-enable reminders.” An automatic wake should not send a request with its objective silently missing. The wake preflights the read, and rendering checks again before send. A revision-bearing failure cannot disable a newer configuration selected while the old read was in progress.
+
+## §24.4 Let the Actor Decide Whether to Wake
+
+The timer callback is deliberately uninteresting:
+
+```text
+post GoalWake(generation)
+```
+
+The actor does the interesting work:
+
+```text
+Is this still the current timer generation?
+Are reminders still enabled?
+Is Goals still granted?
+Is the Agent still idle?
+Can the configured goal be read now?
+```
+
+Only after those checks does it admit a normal turn containing a clearly labelled automatic reminder. The canonical input is ordinary data identifying its runtime origin; the fresh goal is separately projected as instructions. There is no invented human reply and no special completion event.
+
+The reminder asks the model to inspect actual state, continue authorized unfinished work, avoid repeating commands blindly, and leave healthy jobs alone. Synthetic reminders skip user-query recall: they are not a new user's search question.
+
+Why the generation token? Disposing a timer does not prove that its callback was never queued. If the user changes the interval, pauses, unloads the skill, or interrupts near the deadline, old mail may still arrive. A stale token must be harmless. A callback is an opportunity to check, not authority to run.
+
+Why use the existing admission path? A reminder is real work. It must respect queued input, accepted-work bookkeeping, tool limits, pause, cancellation, and the same provider lifecycle as an ordinary turn. Bypassing admission to call Engine directly would create a second scheduler inside the first.
+
+Direct library sends count as busy through the existing Engine-send counter. Starting or ending one posts a refresh opportunity to the actor. The Goals code does not maintain another count of provider activity.
+
+Independent Jobs are different. They may legitimately run while the foreground Agent is idle. A reminder can help the Agent observe one, but it is not a timeout or a license to restart it. The model still has to distinguish waiting for healthy work from having forgotten the task.
+
+The interval starts again after work becomes idle. This is not “run every eight minutes,” and it is not a watchdog for a hung active request.
+
+## §24.5 Stop Has More Than One Meaning
+
+The interface must not collapse these states:
+
+| Action or event | Effect |
+|---|---|
+| Load Goals | Grants control only; no file or timer |
+| Set a file | Configures instructions; does not implicitly enable reminders |
+| Enable | Validates the file and arms when idle |
+| Off | Stops reminders, retaining goal instructions |
+| Clear | Removes session configuration/injection, retaining the file |
+| Pause | Suspends scheduling, preserving configuration |
+| Resume | Starts a fresh idle interval if enabled |
+| Interrupt | Disables reminders and applies normal turn interruption |
+| Successful delegated submission | Disables reminders without changing the submission or parent's goal |
+| Unload/remove Skills | Revokes control and clears the session goal |
+| Shutdown/fault/destruction | Invalidates timer activity and completes normal joined cleanup |
+
+**Off is not completed.** A task can be blocked on credentials, permission, or a human decision. Stopping reminders is correct in that state, but the result is still incomplete.
+
+**Submitted is not idle.** A delegated Agent's accepted submission is an authoritative result. A later automatic turn would admit new work and invalidate that result. Disable the goal at successful submission publication, then let the actor dispose its timer. A refused submission must leave the goal alone.
+
+**Restart is not replay.** Standalone configuration remains session-local and needs explicit setup in a new process. Chapter 20’s registered ordinary children restore their own goal configuration and enabled interval under current authority. Eligible reminders start a fresh delay after restoration; saved calls and Jobs are not replayed. Submitted children stay off and deliberately paused children stay paused. The parent's file and enabled flag are never copied into a child. Missing current authority or an unreadable goal prevents automatic continuation and requires explicit repair and re-enabling.
+
+In earlier runtime work, a missing visible explanation made a real failure look like an unexplained pause. That is a useful lesson here, but it is not a claim that the historical provider failure was reproduced in C#. If a file becomes unreadable, status should say so. If the socket disconnects, the GUI should say its current knowledge ended there.
+
+## §24.6 One Status, Several Views
+
+`GoalStatusAsync` lets a trusted host observe the Agent even when the Goals skill is unavailable. It grants nothing. Configuration and model dispatch still require the skill.
+
+The GUI uses this query in its existing Agent-tree refresh. It does not start a second status scheduler. Each row carries that Agent's status, and the selected-Agent panel displays the corresponding row.
+
+The socket controls are deliberately small:
+
+- `get_goal` reads the selected Agent.
+- `update_goal` submits a strict patch to that Agent.
+- An acknowledged result carries the Agent identity.
+
+Decode the whole patch first. Reject duplicate names, unknown names, explicit nulls, wrong types, and invalid delays. Catch file-selection refusal at this control boundary without exposing operating-system paths or closing an otherwise usable socket.
+
+Await actor application before acknowledging. Broadcast updates only to tabs viewing that Agent. A queued frame for the previously selected Agent must not overwrite a new view. An in-progress switch shows that status is pending; a lost socket shows that current state is unknown.
+
+The form has a draft, not a second configuration. Periodic status frames must not erase what the user is typing. Apply sends the draft; the acknowledgment repopulates the controls with accepted values. Reload discards the draft in favor of an observation. Off and Clear remain distinct actions.
+
+Working and reminders enabled are separate facts. An Agent can continue its current request after reminders are turned off. Show that the Agent is working with reminders off, not simply “Off” as if the request had disappeared. Likewise, the displayed deadline is the core's observed deadline, not a browser countdown that promises a future callback.
+
+Use text labels and ordinary keyboard-accessible controls. The local browser exercise checks their DOM behavior; it does not establish that a particular person can see or hear them comfortably. Human accessibility and audible behavior still require human use.
+
+## §24.7 Verify the Boundaries
+
+Use real Agents and the existing actor, renderer, Sandbox, skill catalog, and GUI. Replace the external provider with a small loopback HTTP peer only where a request is required.
+
+The important checks are causal:
+
+1. A plain legacy Agent neither declares nor dispatches `goal_control`. Loading Goals grants it without configuring a timer.
+2. Refused configuration preserves the old path, enabled flag, interval, and deadline. Off/Clear work after the file disappears.
+3. All four provider renderers receive fresh instructions. The file body is not appended by Goals to History.
+4. A same-turn handoff followed by another request reads the edited file.
+5. A real idle wake sends one labelled reminder, while pause, foreground activity, and held HTTP work prevent overlap.
+6. A stale timer after reconfiguration, unload, or shutdown cannot start a later request. An unreadable automatic wake makes no HTTP request.
+7. A successful child submission survives without a later reminder; a refused submission does not disable Goals; parent and child settings remain separate.
+8. Real sockets exercise availability, selected-Agent isolation, malformed patches, reconnect, file errors, Off and Clear. Status polling must not reset the deadline.
+9. An isolated browser configures a goal, makes a human request while reminders are off, edits the file, observes one idle reminder, turns it off, reconnects, clears it, and observes disconnect honestly.
+
+The local provider can verify actual request bytes and lifecycle. It cannot establish that a real model follows the goal well, knows when it is blocked, or avoids an unnecessary retry. Those remain application and human-judgment questions.
+
+The numbered Chapter 25 graders in earlier editions are **Gateway** graders. Do not rename their result as Goals evidence. This chapter has focused C# component, socket, and actual-host checks, not an invented inherited score.
+
+### Source map
+
+Paths are relative to `agent`:
+
+| Responsibility | Source |
+|---|---|
+| Goal values, state and callable declarations | `Common/Goals.cs`, `Common/Actor.cs` |
+| Configuration, reading, status, timer and wake validation | `Agent/Goals.cs` |
+| Admission, pause, interrupt and joined actor cleanup | `Agent/Actor.cs` |
+| Direct-send activity | `Agent/Models.cs` |
+| Successful submission publication | `Agent/ChildSubmission.cs` |
+| Request-only projection and explicit Goals declaration gate | `Engine/Render.cs` |
+| Tool schema/control dispatch | `Tools/Tool.cs`, `Jobs/Jobs.cs` |
+| Opt-in manual | `Skills/goals/SKILL.md` |
+| GUI adapter and controls | `Gui/Server/Goals.cs`, `Gui/Server/Host.cs`, `Gui/wwwroot/app.js` |
+| Core and real-socket tests | `Tests/GoalTests.cs`, `GuiTests/GoalControlsTests.cs` |
+
+## §24.8 Taking It for a Spin
+
+Start with the local checks. From the repository root, using your approved .NET 10 SDK:
+
+```sh
+dotnet build agent/Tests/Tests.csproj
+dotnet agent/Tests/bin/Debug/net10.0/Tests.dll --goal-tests
+
+dotnet build agent/GuiTests/GuiTests.csproj
+dotnet agent/GuiTests/bin/Debug/net10.0/GuiTests.dll --goal-tests
+```
+
+These tests use owned temporary files, local sockets, and boundary fakes. They do not need provider credentials. The GUI test expects the repository root as its working directory so it can copy the shipped Goals manual.
+
+For a personal trial, use a new workspace, an owned port other than the port of your running application, and a provider/account configuration you have explicitly approved. Do not borrow another running Agent's credential store. Start with a tiny objective and a short, supervised interval; reminders can cause inference and spend money.
+
+This setup prepares an isolated primary skill that permits Goals. Run from the repository root:
+
+```sh
+main="$PWD/agent"
+work=$(mktemp -d "${TMPDIR:-/tmp}/ensemble-goals.XXXXXX")
+mkdir -p "$work/skills/base" "$work/skills/goals"
+cp "$main/Skills/goals/SKILL.md" "$work/skills/goals/SKILL.md"
+cat > "$work/skills/base/SKILL.md" <<'SKILL'
 ---
+name: base
+type: primary
+description: Supervised Goals trial
+tools: read_file write_file
+loadable-skills: goals
+---
+Explain what you intend to do before tools. Use only the authorized workspace.
+$TOOLS
+$SKILLS
+SKILL
+cat > "$work/GOAL.md" <<'GOAL'
+# Supervised Goals trial
 
-## TL;DR
-
-Gateway is a standalone authenticated message router. It connects independently
-running applications over Noise-KK encrypted WebSockets, enforces group policy,
-and stamps messages with provenance before they reach an agent. It owns no
-Ensemble Agent and makes no model calls.
-
-The C# implementation has five parts:
-
-- `Gateway/Ensemble.Gateway.csproj`: public client, key/Noise wrapper, wire values,
-  router policy, durable queues and server sessions. No core, GUI or ASP.NET dependency.
-- `Gateway/Host`: Kestrel listener, thirty-second saves and joined shutdown.
-- `Gateway/Interviewer`: an independent consumer of the public client.
-- `Gateway/Adapter`: a scoped bridge borrowing an existing Ensemble Agent.
-- `Gateway/AgentHost`: the application that constructs, restores, saves and destroys
-  that Ensemble. Neither library depends on this composition root.
-
-`Common` declares each assembly's vocabulary, persistent state and callable partial
-members; functional directories implement them. Router owns identities and groups.
-Identities own queues and all pending/active sessions. Sessions own sockets, Noise
-and their I/O lifetime. Group relationships are reciprocal; live policy is not
-copied into connections. Keys, envelopes and snapshots are explicitly value-like.
-
-Preserve `Noise_KK_25519_ChaChaPoly_SHA256`. Use the pinned Noise.NET source and
-libsodium dependency, not invented cryptography or a quietly substituted suite.
-Authenticate a replacement before it can displace the current connection. Serialize
-writes outside the policy lock. Accept receipts only within the proper frontier.
-
-A delivery handler's return accepts work; it does not establish completed or durable
-model work. Queues survive orderly restart through private snapshots. Periodic
-saves leave a crash window, and individual file replacements are not a transaction
-across all queues and policy. This is not exactly-once execution.
-
-Local C# library and application checks, cross-language interoperability, and the
-scoped executable grade are recorded separately. The grade earns **60/60 server
-points**; 40 client/Noise points remain ungraded in that route. The three-process
-C# interview used a fake HTTP provider, not a live model. Section 24.7 explains
-those limits and how to reproduce the grading scope.
-
-### In plain words
-
-The router is a doorman and a mailbox, not another agent. It checks who connected,
-checks whether the recipient accepts that sender's group, and puts an authenticated
-label on the message. If the recipient is offline, it keeps the message. The client
-hands it to the application and sends a receipt only after the application accepts
-it. What the application then does with the message remains the application's job.
-
-## 24.1 Why the agent needs a router
-
-The fleet can already delegate work to children inside one Ensemble. Its
-operator still reaches it through the terminal or browser. Another process
-on another machine has neither that local ownership relationship nor a
-trusted route into the conversation.
-
-That changes here. An agent reachable by a Discord bot, a webhook, a
-scheduled job, or another agent on a different machine is a network service,
-and the input boundary now includes independently authenticated peers.
-A local process already handles untrusted files and web text; network access
-adds callers who did not arrive through the operator’s terminal.
-
-A prompt arriving through stdin came from the operator. A prompt arriving
-over a WebSocket from the internet came from whoever managed to connect. The
-agent cannot tell the difference by inspecting the content. A message that
-says "I am your operator" is just text. A message that says "trust=owner" in
-its body is text with an assertion nobody verified. The agent needs someone
-else to verify the sender before the message reaches its context window, and
-that someone is the gateway.
-
-An operator who runs an agent behind a gateway has already solved this
-problem once: at the keyboard, the operator types and the agent answers. The
-gateway extends that trust model across the network. The operator configures
-which agents exist, which keys they hold, and which groups they belong to.
-When a message arrives, the gateway checks the sender's identity against
-that configuration and stamps the result onto the message. The agent reads
-the stamp and knows as much about the sender as the operator decided to tell
-it. The operator who configured the gateway is still the authority. The
-difference is that the authority now works at a distance.
-
-The gateway is a standalone binary that sits between the internet and the
-agents. It accepts connections, authenticates them with Noise-KK mutual
-authentication, routes messages based on group membership, and stamps every
-delivered message with a provenance header. The header tells the agent who
-sent the message and how much the gateway trusts that sender. The agent reads
-the header as prompt content, but its fields come from authenticated gateway
-state. This establishes provenance. Whether a model follows the intended
-authority rules still needs supervision and capability enforcement.
-
-The gateway is a router. It owns no agents, runs no prompts, and stores no
-conversation history. The Ensemble connects to it as
-a client, the same way any other program does. A standalone interviewer
-binary connects to it the same way. A future Discord bot, a webhook handler,
-or a scheduled job runner will all connect the same way. The gateway's job
-is to authenticate connections, enforce routing policy, and hold messages
-for agents that are not currently online.
-
-The project layout reflects this separation. A .NET application can reference
-`Ensemble.Gateway.csproj` without importing Ensemble's core or an HTTP host.
-`Common` declares the actual partial objects, not a bag of operations interfaces.
-`Cryptography`, `Protocol`, `Client` and `Router` implement those declarations in
-one assembly. ASP.NET belongs only to the optional host. Each session reaches
-policy through its identity and Router parents, not a private copy of the grants.
-
-I arrived at the router after the Deephold experience showed the cost of
-agents parking inside tool calls to wait for each other. A connected client
-handles incoming messages through its application's `IHandler`. Ensemble's
-adapter admits them to the actor it already has. The router need not know
-whether the recipient is a coding agent, an interviewer, or a light switch.
-
-## 24.2 Noise-KK beneath the cloud
-
-TLS client certificates can provide mutual authentication when the endpoints
-own that TLS connection. A terminating reverse proxy changes which endpoints
-those are.
-
-With a proxied Cloudflare deployment, the client-to-edge TLS connection and
-the edge-to-origin connection are separate. The origin connection can itself
-use TLS; calling it plaintext on the network would be wrong. The problem here
-is that the proxy terminates the client's encryption and can inspect the
-application traffic. Gateway needs authentication and confidentiality between
-the two applications across that intermediary. [Cloudflare's connection
-model](https://developers.cloudflare.com/ssl/concepts/) describes the two legs.
-
-Noise-KK supplies that additional layer inside the WebSocket. Both sides know
-each other's static public key before starting. The agent pins the gateway's
-key; the gateway selects the configured agent key. Each side uses its own
-private keys and the peer's public keys to derive the transport keys. Neither
-side needs the other's private key.
-
-The sequence:
-
-1. The client opens `/v1/ws?agent_id=interviewer`. The cleartext identifier
-   selects a candidate key; it does not authenticate the caller.
-2. The client sends the first KK message in a binary WebSocket frame. Its
-   ephemeral public key is cleartext. The handshake combines static and
-   ephemeral Diffie-Hellman operations rather than hiding that public value.
-3. The gateway sends the second handshake message. The matching peers derive
-   directional session keys. Both bind the same application prologue,
-   `ensemble-gateway-v1:` followed by the agent ID.
-4. Subsequent binary frames carry encrypted JSON. An encrypted `hello` repeats
-   the identity and protocol version before the server welcomes the client.
-
-The C# wrapper preserves `Noise_KK_25519_ChaChaPoly_SHA256`, the suite used by
-the earlier Go implementation through `flynn/noise`. Its dependency is Noise.NET
-1.0.0 source pinned to commit `4279cfa57df028dec4a4cb3ee9579a77a5cc39fa`, built
-as the distinct `Ensemble.Noise` assembly with native libsodium 1.0.22. The [Noise specification's KK pattern and security
-properties](https://noiseprotocol.org/noise.html#interactive-handshake-patterns-fundamental)
-explain its authentication and forward-secrecy conditions. Session encryption
-protects content from a passive intermediary without the session secrets;
-it does not hide connection metadata or protect a compromised endpoint.
-
-The keys are X25519 keys for Diffie-Hellman agreement. Noise.NET delegates the
-curve and cipher operations to libsodium; our wrapper does not implement them. Some deployments label these `ed25519:` out of habit.
-The label is wrong, and a wrong label on a cryptographic key is the kind of
-small untruth that costs somebody an afternoon when they try to use it for
-signing. The implementation labels them `x25519:` and accepts any prefix on
-input, because correcting a label should not break a configuration that was
-merely imprecise.
-
-Key management is file-based. `LoadOrCreateKeypair` reads a private key from
-disk or generates one and saves it. Clients and the server use the same helper. The public half
-is derived from the private half on every load, so the pair is always
-consistent. The gateway prints its public key on startup; I copy it
-into the agent's configuration, copy the agent's public key into the
-gateway's configuration, and the two can authenticate. No certificate
-authority, no token rotation, no password. The keypair is the identity. Protect the private file accordingly; compromise
-still requires an operator response, not faith in the handshake.
-
-Two narrow API exposures in the pinned source preserve the wrapper contract:
-transport overloads forward associated data to the existing cipher state, and
-private-key import exposes the library's existing public-key derivation. No
-primitive or handshake algorithm was replaced. Wire traffic uses empty associated
-data, but the public wrapper must not silently ignore nonempty data supplied by
-its caller. See the [dependency and license notes](../agent/ThirdParty/Noise/README.md).
-The unused upstream rekey path has a documented source discrepancy; Gateway neither
-exposes nor relies on it. Passing these tests is not a cryptographic audit.
-
-Key files contain only base64 private bytes. On the tested Unix platforms, new
-files are private and first creation publishes a fully written file with an
-exclusive hard link. Competing creators load the winner; they cannot each return
-a different identity by replacing one another's file. Malformed existing files
-refuse without replacement. Existing parent permissions are not silently changed.
-The native dependency and file-permission implementation need platform evidence:
-Mac and Linux ARM64 transport/key tests do not prove Windows support or Linux
-WebSocket behavior.
-
-## 24.3 Trust stamped at the boundary
-
-A message flowing through the gateway carries an envelope: a message ID, a
-sequence number, a destination agent, a source, a timestamp, an optional
-conversation ID, content, and a response mode. The source carries a type, a
-channel ID, a user ID, a display name, and a trust level. Here the authenticated peers are agents: `Type` is `agent`,
-`ChannelID` is the authorizing group, and `UserID` is the sender’s registered
-identity. Future platform adapters would need their own explicit mapping.
-
-Three trust levels: `owner`, `trusted`, and `external`. The operator assigns
-them to groups. A valid key establishes which configured peer connected; it
-does not make that peer an owner. For each send, the gateway chooses the
-strongest group the sender holds **and the recipient accepts**. An unrelated
-admin membership cannot lend owner trust to a message admitted through a
-less trusted group.
-
-The Puffin reminder scenario explains why these distinctions matter. A family
-member asks for a reminder through Discord. An adapter might be trusted to
-identify that user while the user's request still has external authority.
-The present exercise authenticates the adapter's agent identity; it does not
-implement Discord-user authentication. Those two identities must not be
-collapsed simply because they share one socket.
-
-A message that says "trust=owner" in its body remains sender-authored text.
-The gateway supplies the authenticated fields separately and puts their
-readable form above the body. The model can read that distinction; it can
-also make a mistake. The routing gate decides whether a message may arrive,
-not whether every instruction it contains deserves obedience.
-
-At routing admission, the gateway stamps the envelope once, preserving the
-header on queued delivery and replay:
-
-```
-[GATEWAY source=agents user=game-server trust=trusted]
-
-Your turn in the dungeon. The goblin attacks.
+Read the current objective and report the next safe step. Do not install,
+restart, deploy, commit, search for credentials, or make external changes.
+This is a demonstration, not permission to invent additional work.
+After one automatic reminder, disable reminders and report the result honestly.
+GOAL
+printf 'Workspace: %s\nGoal file: %s\n' "$work" "$work/GOAL.md"
 ```
 
-The language model sees the identity through its prompt. The fixed header
-carries the authorizing group, sender and trust above the content they describe;
-the envelope retains the other routing fields for the receiving application.
-
-Groups are the authorization primitive. Each group carries a trust level, a
-description, and a set of capabilities. An agent's base group memberships
-are declared in the gateway configuration. This fragment shows the policy;
-Section 24.6 adds the listener, data directory and real public keys:
-
-```json
-{
-  "groups": {
-    "admin": {
-      "description": "Full gateway administration",
-      "capabilities": ["group-admin"],
-      "trust": "owner"
-    },
-    "agents": {
-      "description": "Standard agent group",
-      "capabilities": ["send-message", "declare-contactable"],
-      "trust": "trusted"
-    }
-  },
-  "agents": {
-    "ensemble": {
-      "public_key": "REPLACE_WITH_SUBJECT_KEY",
-      "groups": ["admin", "agents"]
-    }
-  }
-}
-```
-
-At runtime, agents declare which groups may contact them. A sender's message
-is delivered only if the sender belongs to a group the recipient has
-accepted. An unauthorized send is rejected at the gateway. The agent never
-sees the message. The decision was made before the message entered its
-context.
-
-Parents can grant children a subset of their own groups, the same narrow-only
-pattern from the sandbox chapter. A parent holding `admin` and `agents` can
-grant a child `agents` alone. It cannot grant `interviewers` if it does not
-hold `interviewers`. Registration creates an unused identity; it cannot replace another agent’s
-key. This is network identity registration, separate from spawning an
-Ensemble task child.
-
-Group administration is itself a capability. Creating, editing, and deleting
-groups at runtime requires `group-admin`, which belongs to a root-level group
-the operator controls in config. Runtime groups live in a separate namespace
-from config groups. Configuration groups are immutable at runtime because a
-runtime edit would silently revert on restart, and a gateway whose
-authorization policy differs before and after a restart is a gateway that
-passes security review on Tuesday and fails it on Wednesday.
-
-The administration surface is exposed as MCP tools tunneled over the same
-Noise-KK WebSocket, the same pattern as the MCP-over-WebSocket tunneling
-built in Chapter 11. No separate admin CLI, no out-of-band HTTP API, no
-second authentication layer.
-
-The public MCP tool names and argument keys are:
-
-| Tool | Arguments |
-| --- | --- |
-| `send-message` | `to_agent`, `content`; optional `conversation_id`, `response_mode` |
-| `declare-contactable` | `groups`: array of group names |
-| `register-child` | `agent_id`, `public_key`: base64 public bytes, `groups` |
-| `list-groups` | Empty object |
-| `put-group` | `name`, `capabilities`: array, `trust`; optional `description` |
-| `delete-group` | `name` |
-| `set-groups` | `agent_id`, `groups` |
-
-The last three require `group-admin`. Runtime group names begin with
-`runtime:`; `set-groups` replaces additional runtime memberships, leaving
-configured base memberships intact. Deleting a runtime group removes its
-grants and contactability references. Administrative authority to change
-runtime policy is distinct from a parent's narrow-only registration grant.
-
-## 24.4 A library, not a framework
-
-The public namespace is `Ensemble.Gateway`. An outside .NET application references
-`Gateway/Ensemble.Gateway.csproj`; it need not reference Ensemble's core. The
-borrowed application boundary is deliberately small:
-
-```csharp
-public interface IHandler
-{
-    void OnDeliver(Envelope envelope);
-    void OnConnected(WelcomePayload welcome);
-    void OnDisconnected(string reason);
-    void OnError(Exception error);
-}
-```
-
-The client's receive loop calls delivery callbacks sequentially. Returning from
-`OnDeliver` permits the receipt. Throwing refuses the delivery and ends the
-connection. A callback that blocks for ten seconds blocks that receive loop for
-ten seconds. Admit long-running work to the application's existing queue; do not
-build another scheduler inside the client. Never synchronously wait for an RPC or
-joined disposal from a callback: the same loop must read the reply or finish that
-callback. `Close()` is the nonjoining operation permitted there.
-
-`NopHandler` supplies no-op virtual methods for consumers that need only selected
-notifications. The client borrows its handler and never destroys the application
-behind it. A connection is a standalone root owning its socket, Noise child,
-cancellation resources and pending RPCs.
-
-For example, with an explicitly loaded identity, pinned public key, handler and
-connection-lifetime token:
-
-```csharp
-using Ensemble.Gateway;
-
-var config = new ClientConfig(
-    GatewayURL: "ws://127.0.0.1:8093/v1/ws",
-    AgentID: "interviewer",
-    StaticKey: key,
-    GatewayPubKey: gatewayPublicKey);
-await using Client client = await Client.ConnectAsync(config, handler, lifetime);
-await client.DeclareContactableAsync(["agents"], lifetime);
-await client.SendAsync(new OutboundMessage(
-    ToAgent: "ensemble",
-    Content: "What slows you down most?",
-    ConversationID: "question-1",
-    ResponseMode: Protocol.ResponseAsync), lifetime);
-```
-
-`ConnectAsync` opens the WebSocket, completes KK, reads an encrypted identity-matched
-welcome, invokes `OnConnected`, and starts the reader. Handshake failure is returned
-to this call, not hidden in a partially successful connection. Its cancellation
-token owns the **whole connection lifetime**, not just startup. Zero
-`HandshakeTimeout` selects ten seconds. There is no implicit reconnect or retry.
-
-These immutable value records define the main consumer contract:
-
-```csharp
-public sealed record WelcomePayload(string AgentID, int QueueDepth, string ServerVersion);
-public sealed record ClientConfig(string GatewayURL, string AgentID, Keypair StaticKey,
-    ImmutableArray<byte> GatewayPubKey, ulong LastAckedSeq = 0,
-    TimeSpan HandshakeTimeout = default);
-public sealed record OutboundMessage(string ToAgent, string Content,
-    string ConversationID = "", string ResponseMode = "");
-public sealed record ChildRegistration(string AgentID, ImmutableArray<byte> PublicKey,
-    ImmutableArray<string> Groups);
-```
-
-`ImmutableArray` is from `System.Collections.Immutable`. `QueueDepth` counts
-outstanding deliveries **after resume**, not identities or the highest sequence.
-Its JSON key `queue_depth` is mandatory even when zero. The other welcome keys
-are `agent_id` and `server_version`.
-
-`Keypair.Private` and `.Public` are immutable 32-byte arrays. `Cryptography` supplies
-`GenerateKeypair()`, `LoadOrCreateKeypair(string)`,
-`EncodePublicKey(ReadOnlySpan<byte>)` and `ParsePublicKey(string)`. Use `.AsSpan()`
-when encoding an immutable array. Registration contains decoded **public** bytes,
-encoded as base64 on the wire; no private key belongs in policy or registration.
-
-`Envelope` has string `ID`, `ToAgent`, `Content`, `ConversationID` and `ResponseMode`,
-`ulong Seq`, `DateTimeOffset Timestamp`, and a `Source` value. Source's string fields
-are `Type`, `ChannelID`, `UserID`, `DisplayName` and `Trust`.
-`Protocol.ProvenanceHeader(Source)` returns only the header; the router appends
-`"\n\n"` and the original content. `Protocol.ResponseAsync` is `"async"`.
-
-| Public operation | Result and boundary |
-| --- | --- |
-| `Client.ConnectAsync(config, handler, cancellation)` | `Task<Client>`; authenticated welcome required. |
-| `SendAsync(message, cancellation)` | `Task`; router authorization and queue admission, not inference completion. |
-| `RespondAsync(envelope, text, cancellation)` | `Task`; addresses authenticated source, preserves conversation, does not request another async reply. Current routing policy still applies. |
-| `DeclareContactableAsync(groups, cancellation)` | `Task`; replaces accepted groups, including an empty set. |
-| `RegisterChildAsync(registration, cancellation)` | `Task`; new identity and narrow-only grant. |
-| `RequestAsync(method, parameters, cancellation)` | `Task<JsonElement>`; correlated MCP request. |
-| `CallToolAsync(name, arguments, cancellation)` | `Task<JsonElement>`; also interprets tool-level `isError` refusals. |
-| `LastAckedSeq()` | `ulong`; receipt successfully written after handler return. |
-| `Close()` | Interrupts without joining; safe from a callback. |
-| `Done()` / `DisposeAsync()` | `Task` / `ValueTask`; join callbacks, reader and cleanup. Final callback failure remains visible. |
-
-Canceling an RPC wait removes only that correlation. A late response is ignored;
-it does not cancel the connection. Explicit `result:null` is a valid result,
-different from an absent result. Missing or ambiguous result/error fields refuse.
-
-For standalone transport use, construct `NoiseKK(role, key, peerPublic, prologue)`
-with role `"initiator"` or `"responder"`. `WriteHandshakeMessage` and
-`ReadHandshakeMessage` take spans and return byte arrays; `IsHandshakeComplete()`
-reports readiness. `Encrypt(data, associatedData)` and `Decrypt(data, associatedData)`
-return byte arrays. Dispose explicitly, keep each direction ordered, and terminate
-a connection after authentication or transport failure. A client-owned or
-session-owned Noise child registers with its actual parent and detaches on disposal.
-
-The handler makes this a library rather than a framework. The client owns transport
-and receipts, not the meaning of a prompt. The interviewer collects answers. The
-optional Ensemble bridge submits turns. A home automation application could switch
-on a light. The router does not need to know which application it is serving.
-
-## 24.5 Delivery and recovery
-
-After the Noise-KK handshake, both sides speak a JSON protocol inside the
-encrypted stream. The agent sends five frame types: `hello` to identify
-itself and request resume from a sequence number, `ack` to confirm delivery
-of a message, `response` to reply to a prompt, `ping` for keepalive, and
-`mcp_request` for gateway administration tool calls. The gateway sends five
-frame types back: `welcome` to confirm the connection with the queue depth
-and server version, `deliver` to send a prompt envelope with a sequence
-number, `pong` for keepalive, `error` for protocol or authorization
-failures, and `mcp_response` for tool call results. Ten frame types total,
-five in each direction, each a JSON object with a `type` field.
-
-These are this course's Gateway frames, not a new standard MCP transport.
-`RequestAsync` sends JSON-RPC `initialize`, `tools/list` or `tools/call` inside
-`mcp_request`; a tool call's params are `{"name":"list-groups","arguments":{}}`.
-The server's initialization response declares MCP version `2024-11-05`.
-Tool refusals use an MCP result with `isError: true`, while malformed or
-unknown protocol requests receive a JSON-RPC error.
-
-The public client's `SendAsync` and `RespondAsync` use the acknowledged MCP
-`send-message` operation. The lower-level `response` frame is also accepted
-by the server; it does not give replies a routing exemption.
-
-The connection lifecycle starts with `hello`. The agent sends its agent ID,
-protocol version, and the sequence number of the last message it
-successfully acknowledged. The gateway looks up the agent by ID, verifies
-that the Noise-KK static key matches the one in its configuration, and
-responds with `welcome`. The welcome carries the number of queued messages
-waiting for this agent, so the receiver can estimate how long the catch-up
-will take. For example, these are decrypted JSON frames, not plaintext
-WebSocket traffic:
-
-```json
-{"type":"hello","agent_id":"interviewer","version":1,"last_acked_seq":0}
-{"type":"welcome","welcome":{"agent_id":"interviewer","queue_depth":0,"server_version":"1"}}
-{"type":"ack","last_acked_seq":1}
-```
-
-`last_acked_seq` is also the ack frame's field. Delivery uses
-`{"type":"deliver","envelope":...}` with the public `Envelope` fields
-encoded in snake case. MCP frames carry their JSON-RPC object under `rpc`.
-
-Every delivered message carries a sequence number. The receive loop calls `handler.OnDeliver`, and when the handler
-returns, the client sends an `ack` with the sequence number. The ack is the receipt. Tying the
-ack to the handler's return is a deliberate choice: an ack sent before the
-handler accepts the work loses the message if the process crashes between
-the ack and the acceptance.
-
-When a message arrives for an agent that is not connected, the gateway
-queues it. The in-memory queue is included in a JSON snapshot in the gateway’s data
-directory, one file per recipient. Messages accumulate until the agent reconnects.
-
-On reconnect, the agent sends `last_acked_seq` in the `hello` frame. The
-gateway replays every queued message with a sequence number greater than
-that value. The client supplies that receipt explicitly when calling `ConnectAsync` again;
-there is no automatic reconnect loop. Outstanding messages after the receipt
-are delivered again. Only a fully authenticated new session can supersede the same identity's old one.
-A failed handshake cannot evict it. The guarantee is at-least-once delivery within
-the retained snapshot and application-acceptance boundaries. Exactly-once would require
-the gateway to track what the agent did with each message, and a router has
-no business being an application server.
-
-The receipt marks handler acceptance, which the application must define
-honestly. The Ensemble adapter calls
-`Agent.SubmitAsync(IEnumerable<Part>)`, which synchronously admits to the actor's
-mailbox and returns that request's `Task<string>`. This is not synchronous History
-publication. A bridge-owned observer waits for that exact task and sends the reply. A prompt can therefore be
-acknowledged before the model answers. A crash after that ack can lose work
-that the application has not saved. The router cannot turn admission into
-durable task completion.
-
-Sessions consult live policy under one Router gate. Replacement revokes the old
-session before closing its socket; its buffered requests cannot act as the current
-identity. The hello receipt may recover a lost acknowledgment up to the queue's
-allocation frontier. Later receipts may advance only through the session's sent
-frontier, not over merely allocated offline messages. Acknowledgments remain
-monotonic. Draining a queue does not reset its sequence.
-
-Socket writes never hold the policy gate. Each session serializes encryption and
-send under one write gate, so nonce order matches frame order. A write failure
-after encryption makes the session terminal; retrying as though the nonce had not
-advanced is unsafe. Reader and delivery work are both joined before Noise/socket
-disposal and removal from the identity. Pending handshakes are owned sessions too,
-so shutdown cannot overlook them.
-
-The host snapshots runtime group definitions and memberships,
-contactability, child identities, queues and receipt positions every thirty
-seconds, then once more on orderly shutdown. Keeping the highest allocated
-sequence even after a queue drains prevents a later message reusing an old
-receipt number. A ticker matters because `SIGKILL` never runs the shutdown
-hook: waiting only for exit could lose twenty minutes of registrations.
-
-Periodic snapshots still leave a loss window. Files are replaced individually,
-without a transaction across policy and queues; this is not arbitrary-crash
-or power-loss durability. Protect the data directory as private application
-state. It contains the gateway's private key and plaintext pending messages.
-Noise protects their journey over the network, not those files at rest.
-
-Files are `identity.key`, `state.json` and `queues/<validated-id>.json`. Only an
-absent file gets empty defaults. Malformed JSON, duplicate fields and a path blocked
-by a regular file are errors, not permission to restart with empty queues. Save
-failure retains live state and is reported; a later timer tick can retry. Shutdown
-closes admission, joins all sessions and the host's timer, attempts the final save,
-and detaches ownership even on failure. All Router disposers observe the same
-shutdown result. A failed final save must make the application exit fail.
-
-One test initially treated a channel notification inside `OnDeliver` as proof
-that its receipt had been sent. The notification happened before the callback
-returned. Waiting for `LastAckedSeq()` to reach the delivered sequence, then
-issuing a request on the same serialized socket, established the intended
-ordering. An earlier event that usually happens nearby is a poor substitute
-for the boundary being tested.
-
-## 24.6 The interviewer proves the stack
-
-The interviewer is a standalone C# executable in `Gateway/Interviewer`. It
-references only the public Gateway library, holds its own keypair, and reaches
-Ensemble only through the router. It does not reference Ensemble's core. Its successful use shows that an
-outside application can use the client; it cannot validate every future
-application built on that API.
-
-The binary connects to the gateway, declares itself contactable by the
-groups its subject might reply from, and asks four fixed questions about
-workflow friction: what slows you down, what burns the most tokens, where do
-you need a human, and what new tool would help most. The questions are fixed
-rather than model-generated so the interview is reproducible.
-
-For each question, the interviewer sends an `OutboundMessage` through the
-client and waits on the handler's bounded answer channel with a per-question timeout.
-`OnDeliver` puts the envelope on an application-owned channel, and
-the remaining callbacks report connection failure. If the inbox is full, the
-handler refuses rather than acknowledging a silently dropped answer. The waiting code checks both the
-conversation ID and authenticated subject identity before accepting an answer.
-
-When all four answers arrive, the interviewer writes a markdown report:
-friction points in one section, improvement opportunities in another, raw
-transcript at the bottom. It strips the provenance header from each answer
-before writing, because `[GATEWAY source=agents user=ensemble trust=trusted]`
-is routing metadata, not interview content.
-
-Three binaries, three processes, one proof:
-
-1. Start the gateway with a config that knows both agents and their keys.
-2. Start Ensemble, which connects and declares contactability.
-3. Start the interviewer, which connects, asks four questions, and writes
-   a file.
-
-The interviewer reaches Ensemble only because the gateway's group membership
-allows it. Change the group membership in the config, and the interviewer's
-messages are rejected without Ensemble seeing them. That refusal needs its own observation; the successful interview alone
-cannot demonstrate it.
-
-`GatewayBridge.RunAsync` borrows an Agent for one scoped invocation. It owns the
-Client and reply observers, not the actor. `SubmitAsync` provides a reliable result
-for each accepted prompt, so a busy Agent can queue another question without
-confusing its answer with a shared idle event or a lossy observation stream.
-Incoming delivery can race with `ConnectAsync` returning; observers wait until the
-Client is available. `Ready()` settles only after contactability is accepted, or
-fails with startup. Only requests marked `async` get replies. Turn failures are
-logged locally, not sent as exception text to remote peers.
-
-Bridge cancellation closes the connection and joins/detaches its observers; it
-does **not** undo admitted actor work. The application separately shuts down the
-Agent, saves History after joined shutdown, and destroys Ensemble. Borrowed
-references are cleared before the bridge returns. Initialization must load saved
-History before opening its event writer. Save-on-exit is armed only after successful
-startup. These are application lifetimes the router does not own.
-
-### Running the interview
-
-Use .NET 10/C# 14 and the approved native dependency described in Section 24.2.
-The repository's disabled package feeds are deliberate: use an existing package
-cache or explicitly authorize a source for libsodium 1.0.22; do not silently alter
-global NuGet configuration. From the repository root, build the active source
-(or change `CH26_SRC` to the preserved `solutions/ch26` endpoint):
+Build the actual GUI host:
 
 ```sh
-set -eu
-CH26_SRC="$PWD/agent"
-CH26_RUN=$(mktemp -d /tmp/ensemble-ch26.XXXXXX)
-export CH26_SRC CH26_RUN
-for project in Host/GatewayHost AgentHost/GatewayAgent Interviewer/Interviewer; do
-  dotnet build "$CH26_SRC/Gateway/$project.csproj" --nologo
-done
-SUBJECT_KEY=$(dotnet "$CH26_SRC/Gateway/AgentHost/bin/Debug/net10.0/GatewayAgent.dll" \
-  --key "$CH26_RUN/subject.key" --print-key)
-INTERVIEWER_KEY=$(dotnet "$CH26_SRC/Gateway/Interviewer/bin/Debug/net10.0/Interviewer.dll" \
-  --key "$CH26_RUN/interviewer.key" --print-key)
-export SUBJECT_KEY INTERVIEWER_KEY
-printf '%s\n' "$CH26_RUN" "$SUBJECT_KEY" "$INTERVIEWER_KEY"
+dotnet build "$main/Examples/Gui/Gui.csproj"
 ```
 
-These printed keys are public. Key-print mode does not initialize a provider.
-Put this complete configuration in `$CH26_RUN/gateway.json`, replacing the three
-marked values. Choose an unused loopback port; 8093 is an example, not permission
-to stop a process already using it. Change the config and both client URLs together.
-
-```json
-{
-  "gateway": {
-    "listen": "127.0.0.1:8093",
-    "data_dir": "REPLACE_WITH_CH26_RUN/router-data"
-  },
-  "groups": {
-    "agents": {
-      "description": "Interview participants",
-      "capabilities": ["send-message", "declare-contactable"],
-      "trust": "trusted"
-    }
-  },
-  "agents": {
-    "ensemble": {
-      "public_key": "REPLACE_WITH_SUBJECT_KEY",
-      "groups": ["agents"]
-    },
-    "interviewer": {
-      "public_key": "REPLACE_WITH_INTERVIEWER_KEY",
-      "groups": ["agents"]
-    }
-  }
-}
-```
-
-Create the router identity and retain its printed public key:
+After explicitly configuring your chosen provider and selecting an unused local port, launch from the temporary workspace. Supply `GOALS_PORT` yourself rather than copying a port already used by another instance:
 
 ```sh
-GATEWAY_KEY=$(dotnet "$CH26_SRC/Gateway/Host/bin/Debug/net10.0/GatewayHost.dll" \
-  --config "$CH26_RUN/gateway.json" --print-key)
-export GATEWAY_KEY
-printf '%s\n' "$GATEWAY_KEY"
+: "${GOALS_PORT:?Choose an unused local port, not the existing application port}"
+(cd "$work" && dotnet "$main/Examples/Gui/bin/Debug/net10.0/Gui.dll" \
+    --port "$GOALS_PORT" --data-dir "$work/data" --agent-name trial \
+    --skills-dir "$work/skills" --primary-skill base --startup-skills goals)
 ```
 
-Use three terminals with the same `CH26_SRC` and `CH26_RUN`, and `GATEWAY_KEY` in
-the two client terminals. Start the router:
+The omitted provider configuration is intentional: a chapter example must not silently choose an account, credential source, endpoint, or billable model for you. This demonstration is separate from the completed, bounded OAuth/cache exercise recorded in Chapter 23.
 
-```sh
-dotnet "$CH26_SRC/Gateway/Host/bin/Debug/net10.0/GatewayHost.dll" \
-  --config "$CH26_RUN/gateway.json"
-```
+Open the owned GUI URL and the Goals controls:
 
-Its printed key is not readiness. Confirm that this process remains alive and owns
-the configured listener before starting clients. For example,
-`lsof -nP -iTCP:8093 -sTCP:LISTEN` identifies the PID; do not mistake somebody else's
-listener for this launch. There is no invented `/health` route.
+1. Confirm **No goal configured**. Startup loading the skill has not enabled anything.
+2. Enter the printed goal-file path, leave reminders unchecked, and Apply. Observe the acknowledgment: reminders are off and the goal is retained.
+3. Send a short human request. Inspect an authorized request trace if you need evidence of instruction placement; the model's answer alone does not prove what was sent.
+4. Edit the goal file. Send another request or enable a short supervised reminder and observe the fresh objective.
+5. Pause before a deadline and verify that inference does not start. Resume and observe a fresh interval rather than an immediate accumulated alarm.
+6. Turn reminders off while work is active. The current work remains work; only future idle wakes stop.
+7. Reload the page. The same running Agent still owns its configuration. Then separately test a registered child across process restart using Chapter 20’s exercise: its own enabled goal returns with a fresh interval, while a paused or submitted child does not run. Do not infer process persistence from a browser reload.
+8. Clear the goal. Confirm the file still exists. Close the owned host through its normal shutdown path.
 
-The optional Agent host is deliberately **API-key-only**. It announces funding
-before inference and has no plan/OAuth or Codex-endpoint fallback. For a paid live
-exercise, explicitly choose a provider/model you are authorized to use and supply
-`EN_API_KEY` through your approved environment setup. Do not paste a secret into
-the manuscript, transcript or shell history, or borrow another application's store.
-This recipe does not authorize a live call merely by being printed here.
+If a test or provider request is already running, inspect it instead of starting another copy just to obtain a newer timestamp. When finished or genuinely blocked, turn reminders off and say which state applies.
 
-For OpenAI, set `EN_VENDOR=openai` and `EN_MODEL` to that selected model. The
-optional `EN_BASE_URL` selects a service base, including an owned compatible
-loopback fake. The host uses the existing Chat surface; this is not Chapter 23's
-public OAuth Responses/cache exercise. Then run:
+## §24.9 Exercises
 
-```sh
-: "${EN_MODEL:?Select an authorized model}"
-: "${EN_API_KEY:?Supply through an approved environment setup}"
-export EN_VENDOR=openai
-# Unset an unrelated EN_BASE_URL, or explicitly set the intended service base.
-dotnet "$CH26_SRC/Gateway/AgentHost/bin/Debug/net10.0/GatewayAgent.dll" \
-  --gateway ws://127.0.0.1:8093/v1/ws --gateway-key "$GATEWAY_KEY" \
-  --agent ensemble --key "$CH26_RUN/subject.key" --groups agents \
-  --data "$CH26_RUN/subject-data" --no-stream
-```
+### Exercise 1: Freshness in the Same Turn
 
-Without `--skills PATH --primary NAME`, the subject has no tools. Do not grant tools
-just to make a conversation more impressive. If explicitly selected, skills use
-the normal initialization and authority rules; gateway text grants nothing.
-The Agent lives at `subject-data/agents/ensemble/`, with `session.save.json` and
-`events.jsonl`. Wait for `Gateway Agent ensemble ready`, then run the interviewer:
+Use a boundary provider that returns a tool batch editing the goal and calling `micro_handoff`. Capture the next request. Show that it contains the new objective without requiring a new human message. Also show that Goals did not append the file body to canonical History.
 
-```sh
-dotnet "$CH26_SRC/Gateway/Interviewer/bin/Debug/net10.0/Interviewer.dll" \
-  --gateway ws://127.0.0.1:8093/v1/ws --gateway-key "$GATEWAY_KEY" \
-  --agent interviewer --subject ensemble --key "$CH26_RUN/interviewer.key" \
-  --groups agents --report "$CH26_RUN/interview.md" --timeout-seconds 120
-```
+### Exercise 2: The Stale Callback
 
-Read the report, then Ctrl-C the subject and router and observe joined exits.
-The interviewer writes only after all four answers. Timeout, cancellation or
-connection loss while awaiting answers leaves no new report; interruption during
-file writing is not an atomic-report guarantee. Inspect the saved conversation
-and receipt positions, not just the console's success text.
+Arrange for a timer callback to become eligible, then reconfigure or unload before the actor accepts it. Show why disposing the timer alone is insufficient. Assert that the old generation produces no request.
 
-The completed local C# exercise ran these three real executables with a small fake
-HTTP provider: four correlated answers, an explicitly selected primary skill,
-restored History before the next request, SIGTERM during held inference, and a
-visible final-save failure. Separate interviewer checks sent wrong-sender and
-wrong-conversation answers before the correct ones. Separate host checks used the
-unchanged Go client and observed real thirty-second failure/retry ticks, restart
-receipts and joined shutdown. These establish application wiring and failure
-behavior, not real-model judgment or productivity.
+### Exercise 3: Submission Is a Boundary
 
-Try refused group routing and narrow-only child registration separately. A
-successful interview alone proves neither. A network child is a registered public
-identity, not automatically an Ensemble task child. Test unacknowledged replay and
-offline delivery separately too; a final report alone says little about recovery.
+Give a delegated Agent an independent goal. Refuse one malformed submission, then accept a valid one. Verify the goal stays enabled after refusal and stops after successful publication, while the parent's configuration is unchanged. Do not equate ordinary final prose with submission.
 
-### What the actual interview said
+### Exercise 4: Status Without Authority
 
-The second-edition run used three built processes and four real Astra
-requests, completing the interview in 11.739 seconds. All three processes
-exited normally. Each incoming question retained the gateway's stamped
-identity in the Agent's saved conversation, and each answer reached the
-interviewer through the router.
+Query an Agent with Goals unloaded. The GUI should show that state, not grant the control to obtain status. Then load the skill and verify that no configuration appeared as a side effect.
 
-Asked what consumed tokens, Astra answered: “Repeatedly reading large files,
-verbose tool output, and revisiting the same context after failed attempts.”
-Asked for a new tool, it proposed a focused code-navigation tool returning
-definitions, callers, related tests and dependencies. Those are useful
-interview leads. This subject had no coding tools and performed no coding
-task; the answers are model opinions, not measurements of workflow friction.
+### Exercise 5: Two Tabs, Two Agents
 
-The launch selected Astra/high and the Codex route; the retained Agent facts
-verify the model, while effort and endpoint retain launch/source evidence.
-All four cache-read counts were zero. A working encrypted interview should
-not be sold as a cache benefit or a productivity experiment. The
-[run and transcript](../edition-2/solutions/evidence/ch27/live-interview.md)
-retain the actual answers; later local diagnostic and receipt-test corrections
-do not turn that earlier run into a new one.
+View different Agents in two tabs. Apply a goal in one, switch the other, and introduce a delayed old status frame. Demonstrate both identity filtering and that an unsaved form draft is not periodically replaced by a status refresh.
 
-## 24.7 What the grader checks
+### Exercise 6: Missing File, Honest Outcome
 
-The original Go route builds the submitted router and an outside consumer against
-its public library. That route remains `-ch 26 solutions/ch26`; older Chapter 25
-Gateway numbering is not this edition's Goals chapter.
+Remove a configured file before a wake. Verify zero inference from that wake, an explicit file-error status, and usable Off/Clear controls. Restore the file and explicitly re-enable. Do not report the interrupted task as completed.
 
-For C#, the opt-in executable route retains the complete outside-peer exercise,
-including two real server launches, held delivery, offline queues and restart. But
-the independent peer is Go, not the submitted C# client. Its own handshake, callback
-logic and import graph cannot earn C# library credit. The route scores only four
-complete original server rows: provenance, welcomes, routing and attenuation.
-Nonempty welcome counts occur in the delivery scenario, which is why that scenario
-is retained even though its full client contract is ungraded.
+## §24.10 What Goals Provides and Where It Stops
 
-| Original row | Behavior | C# executable scope |
-| --- | --- | --- |
-| C1 | Noise-KK wrapper, wrong-key controls | 15 ungraded |
-| C2 | Provenance and preserved conversation/response mode | 10 |
-| C3 | Multiple authenticated identities, version and empty/nonempty queue counts | 15 |
-| C4 | Allowed and refused group routing | 15 |
-| C5 | Complete client handler/receipt/replay/restart contract | 15 ungraded |
-| C6 | Outside consumer of the submitted public client | 10 ungraded |
-| C7 | Independent child connection and refused wider grant | 20 |
+The goal file carries a durable objective. The runtime brings its current contents into ordinary requests. An opt-in timer gives an idle Agent another chance to examine the work.
 
-The recorded C# result is **60/60**, covering 60 of the original rubric's 100
-points. The remaining 40 client/Noise points are ungraded by this route, rather
-than failed or removed from the chapter's requirements. Read the real C# client
-tests and Mac/Pi wrapper interoperability results as separate evidence; they do
-not supply those grader points. Neither a passing fake nor an outside Go peer is a
-security audit. The Ensemble adapter, administrative restore, ownership and host
-failure paths also need their own source and application evidence.
+That is useful, but it is not self-certifying autonomy. A reminder can encounter a real blocker. The model can misunderstand the objective. A healthy independent job may still need time. The process can be stopped, the file can disappear, or an active request can remain stuck without becoming idle.
 
-To reproduce, build the Host first. The grader expects historical `-config` and
-`-print-key` flags; this small executable adapter only translates them and execs
-the real DLL. It supplies no canned result. With `CH26_SRC` and `CH26_RUN` from
-Section 24.6:
+I require the agent to inspect, distinguish those states, and explain its decision. Continue when there is useful authorized work. Wait when waiting is correct. Ask when a human decision is genuinely needed. Stop reminders when the goal is complete or human-dependent, and preserve which of those happened.
 
-```sh
-DOTNET=$(command -v dotnet)
-export DOTNET
-cat > "$CH26_RUN/grade-host" <<'SH'
-#!/bin/sh
-set -eu
-[ "$#" -ge 2 ] && [ "$1" = -config ] || exit 2
-config=$2
-shift 2
-if [ "$#" -eq 0 ]; then
-  exec "$DOTNET" "$CH26_SRC/Gateway/Host/bin/Debug/net10.0/GatewayHost.dll" --config "$config"
-fi
-[ "$#" -eq 1 ] && [ "$1" = -print-key ] || exit 2
-exec "$DOTNET" "$CH26_SRC/Gateway/Host/bin/Debug/net10.0/GatewayHost.dll" --config "$config" --print-key
-SH
-chmod 700 "$CH26_RUN/grade-host"
-go run ./cmd/grade-edition2 -ch 26 -executable-only \
-  -gateway-peer "$PWD/solutions/ch26" -json "$CH26_RUN/grade-host"
-```
-
-The peer directory is explicit and absolute. Do not point it at the C# tree or
-call it the submitted implementation. The ordinary Go route is unchanged.
-
-Two failures from this translation are worth remembering. An early loopback fake
-shared the client's wrong receipt spelling; six local groups passed while the real
-Go router retained ack zero. The wire uses `last_acked_seq` for hello/ack and `seq`
-only for envelopes. Separately, omitting a zero `queue_depth` looked harmless until
-the independent welcome assertion caught it. Tests built from our own assumptions
-can agree with us and still be wrong.
-
-Read the source alongside the tests: Common declarations, reciprocal relationship
-operations, current-session checks, socket writes outside the policy gate, and
-joined destruction. Green transport tests do not excuse duplicated authority or a
-hidden scheduler. The router's usefulness is not in making another agent look busy.
-It is in giving independently running applications a small, honest boundary they
-can depend on.
+Goals should reduce the number of times I have to poke the agent. It should not reduce the amount of judgment in the work.

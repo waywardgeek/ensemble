@@ -66,7 +66,7 @@ in place of `dotnet` when launching the terminal client too.
 
 Choose your own data directory, workspace, funding configuration and unused port
 for a real launch. Do not replace a running host just to refresh source. The GUI
-embeds its assets at build time. See [the crossover chapter](book/chapter-27.md)
+embeds its assets at build time. See [the crossover chapter](book/chapter-30.md)
 and the source README for application behavior and qualified test evidence.
 
 `make test` runs the C# regression executable and root Go tooling tests;

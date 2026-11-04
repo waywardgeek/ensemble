@@ -435,6 +435,6 @@ a live GUI test or a claim that every provider will behave well tomorrow.
 The chapter's end condition is not “we have a workaround, therefore keep it
 forever.” When the public route gives satisfactory measured reuse for the intended
 workload, prefer it and retire unnecessary detours. Until then, preserve a clear
-escape hatch without silently changing who pays. Chapter25 records a different
+escape hatch without silently changing who pays. Chapter30 records a different
 kind of failure: the gap between a patch, a passing test and the application a
 person actually uses. Gateway and Goals continue on the same ownership model.
