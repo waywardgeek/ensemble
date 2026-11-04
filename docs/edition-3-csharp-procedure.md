@@ -1,3 +1,14 @@
+## Current increment: two books, Development-Driven Specs
+
+The coding-agent book stays in `book/`, currently Chapters 00–26 with Crossing
+Over last. Gateway and the provisional Connections/Agenda/Puffin subjects and
+active notes now live in `puffin-book/`. Follow its
+[discussion record](../puffin-book/notes/book-direction.md): build and learn with
+Bill, then record the resulting expertise in executable teaching. Do not design
+the whole book or Watchtower in advance. Earlier numbering/planning boundaries
+below are historical where superseded. Source, graders and frozen endpoints do
+not move. This documentation refactor authorizes no deployment or restart.
+
 ## Current increment: Gateway foundation and the Puffin sequence
 
 Bill authorized current-manuscript renumbering: Goals 24, multimedia 25,
@@ -6,7 +17,7 @@ Gateway 26, Connections 27, Agenda 28, Puffin 29, crossover 30. New chapters
 not move. The bounded Gateway upgrade starts with complete-state JSON saves
 before durable acknowledgment, no Gateway event journal. Agenda will have its
 own snapshot and journal; Puffin reuses Ensemble persistence. See the
-[design outline](edition-3-notes/puffin-chapter-outlines.md).
+[design outline](../puffin-book/notes/puffin-chapter-outlines.md).
 Earlier progress and chapter-specific instructions below are historical where
 superseded. Work personally with ensemble-coding active; no live deployment,
 restart, or unrelated cleanup is authorized by this increment.

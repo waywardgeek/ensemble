@@ -6,16 +6,20 @@ teaching/construction sequence and exercises. Numbering remains provisional.
 This section records the latest discussion and supersedes conflicting priorities
 in the historical investigation below. Puffin is the concrete proving application
 for shared infrastructure, not a special-purpose owner of platform services.
-Continue design first; decide the chapter boundaries afterward. "Puffin" is the
-working subject, not an assigned chapter number. Existing Chapter27 remains
-Crossing Over to Ensemble until an explicit manuscript reorganization.
+Build and learn together using [Development-Driven Specs](book-direction.md).
+The outlines are provisional records, not a mandate to finish the design before
+writing code. The second book's working name is The Puffin book; its chapter
+numbering and final boundaries remain open. Crossing Over stays in the coding-agent
+book, currently Chapter 26.
 
-## Latest naming, chapter order, and persistence decisions
+## Latest naming and persistence decisions
 
-The three new chapter subjects are **Connections, Agenda, and Puffin**. Agenda is
-our shared calendar/task/scheduler, not a Puffin-owned subsystem. Move Gateway's
-teaching immediately before Connections after dependency review; keep Crossing
-Over last. Actual numbering/files remain unchanged pending that review.
+The subjects are **Connections, Agenda, and Puffin**. Agenda is our shared
+calendar/task/scheduler, not a Puffin-owned subsystem. Gateway teaching and the
+active notes now live in this book. Watchtower is the security system; include
+what is needed for the first working Puffin, without committing to the entire
+Counterpoint scope. See the [discussion record](book-direction.md) for monitoring,
+OpenClaw attribution, self-improvement and the development method.
 
 Bill selected complete-file persistence for Gateway: serialize durable updates,
 validate and write a full JSON state candidate, flush/replace under an explicit

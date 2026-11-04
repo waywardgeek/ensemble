@@ -1,3 +1,15 @@
+# Current boundary: Puffin book split
+
+Gateway teaching, Connections/Agenda/Puffin outlines and four active notes moved
+to `puffin-book/`. Its README and discussion record capture OpenClaw attribution,
+Development-Driven Specs, Watchtower, monitoring and self-improvement. The first
+book stays in `book/`, with Crossing Over moved from30 to26 to keep the remaining
+manuscript contiguous. Local models and Actions-pane/artifact work remain first-book
+closeout directions, not completed work. Prior release artifacts, frozen endpoints,
+grader flags, implementation and the original Counterpoint design are unchanged.
+See [the Puffin book](../puffin-book/README.md). Earlier chapter numbers below are
+historical; linked moved notes now resolve to their new home.
+
 # Current boundary: Gateway complete-state source candidate verified
 
 Gateway now saves one versioned JSON state before durable mutation publication;
@@ -10,7 +22,7 @@ a deliberately unsaved candidate fails its intended admission assertion. Real
 Host offline modes pass. This is not power-loss or full historical rubric credit.
 Source review, hard prose lint, current navigation, changed links and syntax
 checks pass. Candidate is ready for Bill's deployment decision. No deployment,
-restart, push or regenerated release artifacts. See [evidence and limits](edition-3-notes/gateway-complete-state.md).
+restart, push or regenerated release artifacts. See [evidence and limits](../puffin-book/notes/gateway-complete-state.md).
 
 # Current boundary: manuscript renumbering and Gateway upgrade begun
 
@@ -21,7 +33,7 @@ flags are unchanged; prior evidence below uses its original numbering.
 Gateway whole-state JSON persistence is authorized and not yet implemented.
 Existing separate periodic policy/queue saves do not meet the new contract.
 No live services or published PDF/EPUB artifacts changed. See the
-[detailed design](edition-3-notes/puffin-chapter-outlines.md).
+[detailed design](../puffin-book/notes/puffin-chapter-outlines.md).
 
 # Current boundary: browser-profile font and shortcut complete, source only
 
@@ -319,7 +331,7 @@ and authorized Agent launches, with Gateway routing agentic messages as well as
 connections. Preserve Puffin's useful behavior; upgrade plans require Bill's
 approval before implementation. Initial source findings, reported incidents,
 supervision boundaries, proposed policies, migration risks, and open decisions:
-[Scheduling and Puffin investigation](edition-3-notes/scheduling-and-puffin.md).
+[Scheduling and Puffin investigation](../puffin-book/notes/scheduling-and-puffin.md).
 The follow-up records the proposed separate scheduler executable and Gateway-owned
 identity component, plus Bill's approved-family/Google-first sign-in direction.
 Implementation and security/migration details still require plan approval.

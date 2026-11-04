@@ -1,10 +1,11 @@
 # Chapters
 
-The foundation includes Goals, multimedia, and Gateway. Chapter 25's four
-external media scopes pass 100/100 with documented limits. Gateway's whole-state
-persistence upgrade is in progress; Connections, Agenda, and Puffin are planned
-chapters, not completed assignments. Chapter 30 retains crossover acceptance.
-See the [edition guide](README.md) for historical endpoint and grader mappings.
+This book builds a coding collaborator. Chapter 25's four external media scopes
+pass 100/100 with documented limits; Chapter 26 retains crossover acceptance.
+Gateway and the connected personal-system subjects now live in
+[the Puffin book](../puffin-book/README.md). See the [edition guide](README.md)
+for historical endpoint and grader mappings. This split does not declare the
+remaining closeout work complete.
 
 - [Preface](preface.md)
 - [Chapter 0: The Perpetual Machine](chapter-00.md)
@@ -33,23 +34,29 @@ See the [edition guide](README.md) for historical endpoint and grader mappings.
 - [Chapter 23: While the Cache Is Broken](chapter-23.md)
 - [Chapter 24: Goals](chapter-24.md)
 - [Chapter 25: Voice and Images](chapter-25.md)
-- [Chapter 26: Gateway](chapter-26.md)
-- [Chapter 27: Connections (design outline)](chapter-27.md)
-- [Chapter 28: Agenda (design outline)](chapter-28.md)
-- [Chapter 29: Puffin (design outline)](chapter-29.md)
-- [Chapter 30: Crossing Over to Ensemble](chapter-30.md)
+- [Chapter 26: Crossing Over to Ensemble](chapter-26.md)
 - [Epilogue: What we can rebuild](epilogue.md)
 - [A note from Bill](note-from-bill.md)
 
-Ideas for future editions, not unfinished requirements of this one:
+## First-book closeout work
 
-- **Artifacts, deep dive.** Ch8 introduced the artifact; this goes further:
-  renderers, addressable bytes, the content-addressed store that ch15 Q3
+- **Local models:** implement and teach a supported local-model path. Ollama has
+  been requested, but the actual supported contract must be earned through work.
+- **Actions pane and artifacts:** improve the actual inspection and interaction
+  experience. The detailed scope and acceptance criteria remain to be developed.
+- **Bounded closeout review:** identify remaining implementation, teaching and
+  grader gaps; verify crossover and regenerate release artifacts when ready.
+
+These are directions, not a new speculative chapter outline or final numbering.
+The following older ideas remain future possibilities, not automatic closeout
+requirements:
+
+- **Possible deeper artifact work, beyond the agreed usability closeout.**
+  Renderers, addressable bytes, the content-addressed store that ch15 Q3
   needs, and sandboxed untrusted renderers.
 - **Workflows.** AI Native ch9-10: a skill is advice, a workflow is a
   program; then workflows the agent writes for itself. Also where the ch5
   three-agent exercise and the wake-once check were deferred.
-- Ollama local support, asked for by multiple commenters on LinkedIn.
 - Message board for agents to collaborate.
 - Auto-healing: a bug detection triggers a coding agent with exact logs and instructions to create reporo and if done, then repair.
 - Android and/or iPhone apps to interact with agents.  In particular, I want to remotely code via my phone, listing at high speed, talking to control the agent, so I can code while I mountain bike through the hills on fire roads.

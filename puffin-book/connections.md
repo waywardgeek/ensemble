@@ -1,8 +1,8 @@
-# Chapter 27: Connections
+# Connections
 
 > **Design-stage outline.** This chapter is not an implemented or graded
-> construction assignment. Its detailed contracts and exercises are still being
-> developed. Do not infer deployment authority or completed capabilities from it.
+> construction assignment. It is a provisional record of ideas, not an advance specification
+> or a fixed table of contents. Development will determine the teaching. Do not infer deployment authority or completed capabilities from it.
 
 ## In Plain Words
 
@@ -18,7 +18,7 @@ Establish who is communicating, which external account is connected, and which A
 
 ## Design and acceptance boundaries
 
-The [detailed three-chapter outline](../docs/edition-3-notes/puffin-chapter-outlines.md)
+The [detailed three-chapter outline](notes/puffin-chapter-outlines.md)
 is the current design record, including open choices and proposed exercises.
 Earlier teaching chapters will be revised at their original construction points
 as required capabilities are implemented and verified. Historical endpoints and

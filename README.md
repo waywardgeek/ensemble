@@ -66,7 +66,7 @@ in place of `dotnet` when launching the terminal client too.
 
 Choose your own data directory, workspace, funding configuration and unused port
 for a real launch. Do not replace a running host just to refresh source. The GUI
-embeds its assets at build time. See [the crossover chapter](book/chapter-30.md)
+embeds its assets at build time. See [the crossover chapter](book/chapter-26.md)
 and the source README for application behavior and qualified test evidence.
 
 `make test` runs the C# regression executable and root Go tooling tests;
@@ -94,3 +94,10 @@ for the current layout.
 tools, never install them. See [book build instructions](book/README.md#build-locally)
 for prerequisites and isolated output. Generated publications are distinct from
 source edits; a source promotion alone does not publish a new book or upload it.
+
+## The Puffin book
+
+[The Puffin book](puffin-book/README.md) is the working home for Gateway,
+Connections, Agenda, Puffin and the related Watchtower/security work. Its notes
+follow Development-Driven Specs; outlines are provisional, not completed features.
+The coding-agent book remains under `book/`.

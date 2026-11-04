@@ -64,4 +64,4 @@ The concurrency rules serve the same boundary. Socket writes never hold the poli
 
 The independent interviewer exercises the public client rather than reaching into Ensemble. It accepts answers only from the authenticated subject and matching conversation, and it refuses a full inbox instead of acknowledging a dropped answer. That small consumer illustrates the design’s value: the router establishes identity, policy, and delivery; the application decides what a question and its answer mean.
 
-[Implementation chapter](../chapter-26.md)
+[Implementation chapter](../../puffin-book/gateway.md)

@@ -4,8 +4,9 @@
 
 Reviewed and locally verified source candidate, personally implemented by Cadence under Bill's
 bounded Gateway authorization. No deployment, service restart, push, provider
-request or new worker. Current manuscript Gateway is Chapter 26; historical
-chapter flags and endpoint directories retain their original meaning.
+request or new worker. Gateway teaching has moved to [the Puffin book](../gateway.md), without a new
+chapter number. Historical chapter flags and endpoint directories retain their
+original meaning.
 
 ## Contract and ownership
 

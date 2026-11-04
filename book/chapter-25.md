@@ -996,6 +996,6 @@ separate facts. Preserve the evidence and limits beside the executable contracts
 - Test the claimed surface: browser capture is not host capture, fake audio is
   not a native microphone, and a scoped grade is not chapter completion.
 
-[Chapter 30: Crossing Over to Ensemble](chapter-30.md) turns to using the built
+[Chapter 26: Crossing Over to Ensemble](chapter-26.md) turns to using the built
 Agent as the working collaborator. The media paths here belong to that same
 Agent and its existing ownership rules.

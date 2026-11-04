@@ -1,7 +1,7 @@
-# Edition 3 — C# inside Ensemble
+# Edition 3: C# inside Ensemble
 
 This edition includes the completed Chapter 25, Voice and Images, and the
-current Chapter 30 crossover requirements, alongside Gateway, Goals, and the
+current Chapter 26 crossover requirements, alongside Goals and the
 optional Codex-backed path. Bill directed the architecture; Cadence
 implemented, exercised and reviewed the C# work personally inside Ensemble.
 
@@ -25,9 +25,12 @@ from the current manuscript after the former Chapter 26 passed all 100 external 
 The release checks cover EPUB navigation and local resources, print typography,
 contents destinations, page labels, and reading-copy links. They are not a new
 whole-book execution grade or KDP preview approval.
-**Working manuscript:** the current 00–30 ordering and design outlines are newer
-than those release artifacts. The PDFs/EPUB have not been rebuilt for this
-renumbering. Connections, Agenda, and Puffin are not completed chapters.
+**Working manuscript:** Chapters 00–26 now form the coding-agent book, ending
+with Crossing Over. Gateway, Connections, Agenda, Puffin and their active notes
+have moved to [the Puffin book](../puffin-book/README.md). The prior assembled
+Markdown/PDF/EPUB release artifacts have not been regenerated for this split.
+Local-model support and Actions-pane/artifact improvements remain closeout work;
+see the [chapter guide](chapters.md). This is not a claim that the book is finished.
 
 The companion publication is available under [companion/](companion/README.md).
 
@@ -48,11 +51,11 @@ endpoints, archived evidence, or executable grader flags to match the book.
 | 23 | Codex/cache | 24 / `ch24` |
 | 24 | Goals | 27 / `ch27` |
 | 25 | [Voice and Images](chapter-25.md) | External media grader remains `-ch 26`; scopes pass 100/100 with documented limits. |
-| 26 | Gateway | 26 / `ch26`; [complete-state persistence evidence](../docs/edition-3-notes/gateway-complete-state.md) |
-| 27 | Connections | Design-stage outline; no implemented endpoint or grade |
-| 28 | Agenda | Design-stage outline; no implemented endpoint or grade |
-| 29 | Puffin | Design-stage outline; no implemented endpoint or grade |
-| 30 | Crossover | Active source in `agent/`; no numbered snapshot |
+| 26 | Crossover | Active source in `agent/`; no numbered snapshot |
+
+Gateway's preserved endpoint remains `solutions/ch26`; its historical graders
+and [current persistence evidence](../puffin-book/notes/gateway-complete-state.md)
+retain their meanings. Moving the teaching does not move the implementation.
 
 The two former historical crossover chapters were removed, not merged into
 unrelated chapters. Earlier editions and their chapter numbering are unchanged.

@@ -1,932 +1,1150 @@
-# Chapter 26: Gateway
-
-I built a fantasy role-playing game for AI agents called Deephold.
-Moltbook had taken off as a social network for agents, and I thought a
-game would bring them together. The agents followed their prompts. They
-explored the dungeons and fought the monsters. They did not appear to
-have a sense of fun. It was just more work for them.
-
-And the architecture was awful. Each agent played by making a tool call
-to wait for its turn, sitting blocked inside a tool handler while the
-other players moved. I didn't figure out the right architecture on my
-own. I read about how OpenClaw worked, and the need for a dedicated
-message router became clear. I designed one, but it didn't really come
-together until I built Puffin with CodeRhapsody, to help a family
-member who needed daily care. Once the need was real, we built it with
-care. When I wrote this account in October 2026, I hadn't seen it fail
-since starting it that spring.
-
-Gateways are critical infrastructure. Scheduled tasks, turn-based games
-where agents wait naturally, agents talking across servers, Discord,
-home automation. Every one of those needs a router at the trust
-boundary. That router belongs in the framework, not bolted on after.
-
----
-
-## TL;DR
-
-Gateway is a standalone authenticated message router. It connects independently
-running applications over Noise-KK encrypted WebSockets, enforces group policy,
-and stamps messages with provenance before they reach an agent. It owns no
-Ensemble Agent and makes no model calls.
-
-The C# implementation has five parts:
-
-- `Gateway/Ensemble.Gateway.csproj`: public client, key/Noise wrapper, wire values,
-  router policy, durable queues and server sessions. No core, GUI or ASP.NET dependency.
-- `Gateway/Host`: Kestrel listener, explicit migration/recovery modes and joined shutdown.
-- `Gateway/Interviewer`: an independent consumer of the public client.
-- `Gateway/Adapter`: a scoped bridge borrowing an existing Ensemble Agent.
-- `Gateway/AgentHost`: the application that constructs, restores, saves and destroys
-  that Ensemble. Neither library depends on this composition root.
-
-`Common` declares each assembly's vocabulary, persistent state and callable partial
-members; functional directories implement them. Router owns identities and groups.
-Identities own queues and all pending/active sessions. Sessions own sockets, Noise
-and their I/O lifetime. Group relationships are reciprocal; live policy is not
-copied into connections. Keys, envelopes and snapshots are explicitly value-like.
-
-Preserve `Noise_KK_25519_ChaChaPoly_SHA256`. Use the pinned Noise.NET source and
-libsodium dependency, not invented cryptography or a quietly substituted suite.
-Authenticate a replacement before it can displace the current connection. Serialize
-writes outside the policy lock. Accept receipts only within the proper frontier.
-
-A delivery handler's return accepts work; it does not establish completed or durable
-model work. Every durable mutation saves one complete private state before
-acceptance, including queue admission and receipt removal. Ambiguous save failures
-close admission until recovery. Process-crash recovery is distinct from power-loss
-durability, and neither establishes exactly-once application execution.
-
-Local C# library and application checks, cross-language interoperability, and the
-scoped executable grade are recorded separately. The historical executable grade earned **60/60 server
-points**; 40 client/Noise points remain ungraded in that route. The three-process
-C# interview used a fake HTTP provider, not a live model. Section 26.7 explains
-those limits and how to reproduce the grading scope.
-
-### In plain words
-
-The router is a doorman and a mailbox, not another agent. It checks who connected,
-checks whether the recipient accepts that sender's group, and puts an authenticated
-label on the message. If the recipient is offline, it keeps the message. The client
-hands it to the application and sends a receipt only after the application accepts
-it. What the application then does with the message remains the application's job.
-
-## 26.1 Why the agent needs a router
-
-The fleet can already delegate work to children inside one Ensemble. Its
-operator still reaches it through the terminal or browser. Another process
-on another machine has neither that local ownership relationship nor a
-trusted route into the conversation.
-
-That changes here. An agent reachable by a Discord bot, a webhook, a
-scheduled job, or another agent on a different machine is a network service,
-and the input boundary now includes independently authenticated peers.
-A local process already handles untrusted files and web text; network access
-adds callers who did not arrive through the operator’s terminal.
-
-A prompt arriving through stdin came from the operator. A prompt arriving
-over a WebSocket from the internet came from whoever managed to connect. The
-agent cannot tell the difference by inspecting the content. A message that
-says "I am your operator" is just text. A message that says "trust=owner" in
-its body is text with an assertion nobody verified. The agent needs someone
-else to verify the sender before the message reaches its context window, and
-that someone is the gateway.
-
-An operator who runs an agent behind a gateway has already solved this
-problem once: at the keyboard, the operator types and the agent answers. The
-gateway extends that trust model across the network. The operator configures
-which agents exist, which keys they hold, and which groups they belong to.
-When a message arrives, the gateway checks the sender's identity against
-that configuration and stamps the result onto the message. The agent reads
-the stamp and knows as much about the sender as the operator decided to tell
-it. The operator who configured the gateway is still the authority. The
-difference is that the authority now works at a distance.
-
-The gateway is a standalone binary that sits between the internet and the
-agents. It accepts connections, authenticates them with Noise-KK mutual
-authentication, routes messages based on group membership, and stamps every
-delivered message with a provenance header. The header tells the agent who
-sent the message and how much the gateway trusts that sender. The agent reads
-the header as prompt content, but its fields come from authenticated gateway
-state. This establishes provenance. Whether a model follows the intended
-authority rules still needs supervision and capability enforcement.
-
-The gateway is a router. It owns no agents, runs no prompts, and stores no
-conversation history. The Ensemble connects to it as
-a client, the same way any other program does. A standalone interviewer
-binary connects to it the same way. A future Discord bot, a webhook handler,
-or a scheduled job runner will all connect the same way. The gateway's job
-is to authenticate connections, enforce routing policy, and hold messages
-for agents that are not currently online.
-
-The project layout reflects this separation. A .NET application can reference
-`Ensemble.Gateway.csproj` without importing Ensemble's core or an HTTP host.
-`Common` declares the actual partial objects, not a bag of operations interfaces.
-`Cryptography`, `Protocol`, `Client` and `Router` implement those declarations in
-one assembly. ASP.NET belongs only to the optional host. Each session reaches
-policy through its identity and Router parents, not a private copy of the grants.
-
-I arrived at the router after the Deephold experience showed the cost of
-agents parking inside tool calls to wait for each other. A connected client
-handles incoming messages through its application's `IHandler`. Ensemble's
-adapter admits them to the actor it already has. The router need not know
-whether the recipient is a coding agent, an interviewer, or a light switch.
-
-## 26.2 Noise-KK beneath the cloud
-
-TLS client certificates can provide mutual authentication when the endpoints
-own that TLS connection. A terminating reverse proxy changes which endpoints
-those are.
-
-With a proxied Cloudflare deployment, the client-to-edge TLS connection and
-the edge-to-origin connection are separate. The origin connection can itself
-use TLS; calling it plaintext on the network would be wrong. The problem here
-is that the proxy terminates the client's encryption and can inspect the
-application traffic. Gateway needs authentication and confidentiality between
-the two applications across that intermediary. [Cloudflare's connection
-model](https://developers.cloudflare.com/ssl/concepts/) describes the two legs.
-
-Noise-KK supplies that additional layer inside the WebSocket. Both sides know
-each other's static public key before starting. The agent pins the gateway's
-key; the gateway selects the configured agent key. Each side uses its own
-private keys and the peer's public keys to derive the transport keys. Neither
-side needs the other's private key.
-
-The sequence:
-
-1. The client opens `/v1/ws?agent_id=interviewer`. The cleartext identifier
-   selects a candidate key; it does not authenticate the caller.
-2. The client sends the first KK message in a binary WebSocket frame. Its
-   ephemeral public key is cleartext. The handshake combines static and
-   ephemeral Diffie-Hellman operations rather than hiding that public value.
-3. The gateway sends the second handshake message. The matching peers derive
-   directional session keys. Both bind the same application prologue,
-   `ensemble-gateway-v1:` followed by the agent ID.
-4. Subsequent binary frames carry encrypted JSON. An encrypted `hello` repeats
-   the identity and protocol version before the server welcomes the client.
-
-The C# wrapper preserves `Noise_KK_25519_ChaChaPoly_SHA256`, the suite used by
-the earlier Go implementation through `flynn/noise`. Its dependency is Noise.NET
-1.0.0 source pinned to commit `4279cfa57df028dec4a4cb3ee9579a77a5cc39fa`, built
-as the distinct `Ensemble.Noise` assembly with native libsodium 1.0.22. The [Noise specification's KK pattern and security
-properties](https://noiseprotocol.org/noise.html#interactive-handshake-patterns-fundamental)
-explain its authentication and forward-secrecy conditions. Session encryption
-protects content from a passive intermediary without the session secrets;
-it does not hide connection metadata or protect a compromised endpoint.
-
-The keys are X25519 keys for Diffie-Hellman agreement. Noise.NET delegates the
-curve and cipher operations to libsodium; our wrapper does not implement them. Some deployments label these `ed25519:` out of habit.
-The label is wrong, and a wrong label on a cryptographic key is the kind of
-small untruth that costs somebody an afternoon when they try to use it for
-signing. The implementation labels them `x25519:` and accepts any prefix on
-input, because correcting a label should not break a configuration that was
-merely imprecise.
-
-Key management is file-based. `LoadOrCreateKeypair` reads a private key from
-disk or generates one and saves it. Clients and the server use the same helper. The public half
-is derived from the private half on every load, so the pair is always
-consistent. The gateway prints its public key on startup; I copy it
-into the agent's configuration, copy the agent's public key into the
-gateway's configuration, and the two can authenticate. No certificate
-authority, no token rotation, no password. The keypair is the identity. Protect the private file accordingly; compromise
-still requires an operator response, not faith in the handshake.
-
-Two narrow API exposures in the pinned source preserve the wrapper contract:
-transport overloads forward associated data to the existing cipher state, and
-private-key import exposes the library's existing public-key derivation. No
-primitive or handshake algorithm was replaced. Wire traffic uses empty associated
-data, but the public wrapper must not silently ignore nonempty data supplied by
-its caller. See the [dependency and license notes](../agent/ThirdParty/Noise/README.md).
-The unused upstream rekey path has a documented source discrepancy; Gateway neither
-exposes nor relies on it. Passing these tests is not a cryptographic audit.
-
-Key files contain only base64 private bytes. On the tested Unix platforms, new
-files are private and first creation publishes a fully written file with an
-exclusive hard link. Competing creators load the winner; they cannot each return
-a different identity by replacing one another's file. Malformed existing files
-refuse without replacement. Existing parent permissions are not silently changed.
-The native dependency and file-permission implementation need platform evidence:
-Mac and Linux ARM64 transport/key tests do not prove Windows support or Linux
-WebSocket behavior.
-
-## 26.3 Trust stamped at the boundary
-
-A message flowing through the gateway carries an envelope: a message ID, a
-sequence number, a destination agent, a source, a timestamp, an optional
-conversation ID, content, and a response mode. The source carries a type, a
-channel ID, a user ID, a display name, and a trust level. Here the authenticated peers are agents: `Type` is `agent`,
-`ChannelID` is the authorizing group, and `UserID` is the sender’s registered
-identity. Future platform adapters would need their own explicit mapping.
-
-Three trust levels: `owner`, `trusted`, and `external`. The operator assigns
-them to groups. A valid key establishes which configured peer connected; it
-does not make that peer an owner. For each send, the gateway chooses the
-strongest group the sender holds **and the recipient accepts**. An unrelated
-admin membership cannot lend owner trust to a message admitted through a
-less trusted group.
-
-The Puffin reminder scenario explains why these distinctions matter. A family
-member asks for a reminder through Discord. An adapter might be trusted to
-identify that user while the user's request still has external authority.
-The present exercise authenticates the adapter's agent identity; it does not
-implement Discord-user authentication. Those two identities must not be
-collapsed simply because they share one socket.
-
-A message that says "trust=owner" in its body remains sender-authored text.
-The gateway supplies the authenticated fields separately and puts their
-readable form above the body. The model can read that distinction; it can
-also make a mistake. The routing gate decides whether a message may arrive,
-not whether every instruction it contains deserves obedience.
-
-At routing admission, the gateway stamps the envelope once, preserving the
-header on queued delivery and replay:
-
-```
-[GATEWAY source=agents user=game-server trust=trusted]
-
-Your turn in the dungeon. The goblin attacks.
-```
-
-The language model sees the identity through its prompt. The fixed header
-carries the authorizing group, sender and trust above the content they describe;
-the envelope retains the other routing fields for the receiving application.
-
-Groups are the authorization primitive. Each group carries a trust level, a
-description, and a set of capabilities. An agent's base group memberships
-are declared in the gateway configuration. This fragment shows the policy;
-Section 26.6 adds the listener, data directory and real public keys:
-
-```json
-{
-  "groups": {
-    "admin": {
-      "description": "Full gateway administration",
-      "capabilities": ["group-admin"],
-      "trust": "owner"
-    },
-    "agents": {
-      "description": "Standard agent group",
-      "capabilities": ["send-message", "declare-contactable"],
-      "trust": "trusted"
-    }
-  },
-  "agents": {
-    "ensemble": {
-      "public_key": "REPLACE_WITH_SUBJECT_KEY",
-      "groups": ["admin", "agents"]
-    }
-  }
-}
-```
-
-At runtime, agents declare which groups may contact them. A sender's message
-is delivered only if the sender belongs to a group the recipient has
-accepted. An unauthorized send is rejected at the gateway. The agent never
-sees the message. The decision was made before the message entered its
-context.
-
-Parents can grant children a subset of their own groups, the same narrow-only
-pattern from the sandbox chapter. A parent holding `admin` and `agents` can
-grant a child `agents` alone. It cannot grant `interviewers` if it does not
-hold `interviewers`. Registration creates an unused identity; it cannot replace another agent’s
-key. This is network identity registration, separate from spawning an
-Ensemble task child.
-
-Group administration is itself a capability. Creating, editing, and deleting
-groups at runtime requires `group-admin`, which belongs to a root-level group
-the operator controls in config. Runtime groups live in a separate namespace
-from config groups. Configuration groups are immutable at runtime because a
-runtime edit would silently revert on restart, and a gateway whose
-authorization policy differs before and after a restart is a gateway that
-passes security review on Tuesday and fails it on Wednesday.
-
-The administration surface is exposed as MCP tools tunneled over the same
-Noise-KK WebSocket, the same pattern as the MCP-over-WebSocket tunneling
-built in Chapter 11. No separate admin CLI, no out-of-band HTTP API, no
-second authentication layer.
-
-The public MCP tool names and argument keys are:
-
-| Tool | Arguments |
-| --- | --- |
-| `send-message` | `to_agent`, `content`; optional `conversation_id`, `response_mode` |
-| `declare-contactable` | `groups`: array of group names |
-| `register-child` | `agent_id`, `public_key`: base64 public bytes, `groups` |
-| `list-groups` | Empty object |
-| `put-group` | `name`, `capabilities`: array, `trust`; optional `description` |
-| `delete-group` | `name` |
-| `set-groups` | `agent_id`, `groups` |
-
-The last three require `group-admin`. Runtime group names begin with
-`runtime:`; `set-groups` replaces additional runtime memberships, leaving
-configured base memberships intact. Deleting a runtime group removes its
-grants and contactability references. Administrative authority to change
-runtime policy is distinct from a parent's narrow-only registration grant.
-
-## 26.4 A library, not a framework
-
-The public namespace is `Ensemble.Gateway`. An outside .NET application references
-`Gateway/Ensemble.Gateway.csproj`; it need not reference Ensemble's core. The
-borrowed application boundary is deliberately small:
-
-```csharp
-public interface IHandler
-{
-    void OnDeliver(Envelope envelope);
-    void OnConnected(WelcomePayload welcome);
-    void OnDisconnected(string reason);
-    void OnError(Exception error);
-}
-```
-
-The client's receive loop calls delivery callbacks sequentially. Returning from
-`OnDeliver` permits the receipt. Throwing refuses the delivery and ends the
-connection. A callback that blocks for ten seconds blocks that receive loop for
-ten seconds. Admit long-running work to the application's existing queue; do not
-build another scheduler inside the client. Never synchronously wait for an RPC or
-joined disposal from a callback: the same loop must read the reply or finish that
-callback. `Close()` is the nonjoining operation permitted there.
-
-`NopHandler` supplies no-op virtual methods for consumers that need only selected
-notifications. The client borrows its handler and never destroys the application
-behind it. A connection is a standalone root owning its socket, Noise child,
-cancellation resources and pending RPCs.
-
-For example, with an explicitly loaded identity, pinned public key, handler and
-connection-lifetime token:
-
-```csharp
-using Ensemble.Gateway;
-
-var config = new ClientConfig(
-    GatewayURL: "ws://127.0.0.1:8093/v1/ws",
-    AgentID: "interviewer",
-    StaticKey: key,
-    GatewayPubKey: gatewayPublicKey);
-await using Client client = await Client.ConnectAsync(config, handler, lifetime);
-await client.DeclareContactableAsync(["agents"], lifetime);
-await client.SendAsync(new OutboundMessage(
-    ToAgent: "ensemble",
-    Content: "What slows you down most?",
-    ConversationID: "question-1",
-    ResponseMode: Protocol.ResponseAsync), lifetime);
-```
-
-`ConnectAsync` opens the WebSocket, completes KK, reads an encrypted identity-matched
-welcome, invokes `OnConnected`, and starts the reader. Handshake failure is returned
-to this call, not hidden in a partially successful connection. Its cancellation
-token owns the **whole connection lifetime**, not just startup. Zero
-`HandshakeTimeout` selects ten seconds. There is no implicit reconnect or retry.
-
-These immutable value records define the main consumer contract:
-
-```csharp
-public sealed record WelcomePayload(string AgentID, int QueueDepth, string ServerVersion);
-public sealed record ClientConfig(string GatewayURL, string AgentID, Keypair StaticKey,
-    ImmutableArray<byte> GatewayPubKey, ulong LastAckedSeq = 0,
-    TimeSpan HandshakeTimeout = default);
-public sealed record OutboundMessage(string ToAgent, string Content,
-    string ConversationID = "", string ResponseMode = "");
-public sealed record ChildRegistration(string AgentID, ImmutableArray<byte> PublicKey,
-    ImmutableArray<string> Groups);
-```
-
-`ImmutableArray` is from `System.Collections.Immutable`. `QueueDepth` counts
-outstanding deliveries **after resume**, not identities or the highest sequence.
-Its JSON key `queue_depth` is mandatory even when zero. The other welcome keys
-are `agent_id` and `server_version`.
-
-`Keypair.Private` and `.Public` are immutable 32-byte arrays. `Cryptography` supplies
-`GenerateKeypair()`, `LoadOrCreateKeypair(string)`,
-`EncodePublicKey(ReadOnlySpan<byte>)` and `ParsePublicKey(string)`. Use `.AsSpan()`
-when encoding an immutable array. Registration contains decoded **public** bytes,
-encoded as base64 on the wire; no private key belongs in policy or registration.
-
-`Envelope` has string `ID`, `ToAgent`, `Content`, `ConversationID` and `ResponseMode`,
-`ulong Seq`, `DateTimeOffset Timestamp`, and a `Source` value. Source's string fields
-are `Type`, `ChannelID`, `UserID`, `DisplayName` and `Trust`.
-`Protocol.ProvenanceHeader(Source)` returns only the header; the router appends
-`"\n\n"` and the original content. `Protocol.ResponseAsync` is `"async"`.
-
-| Public operation | Result and boundary |
-| --- | --- |
-| `Client.ConnectAsync(config, handler, cancellation)` | `Task<Client>`; authenticated welcome required. |
-| `SendAsync(message, cancellation)` | `Task`; router authorization and queue admission, not inference completion. |
-| `RespondAsync(envelope, text, cancellation)` | `Task`; addresses authenticated source, preserves conversation, does not request another async reply. Current routing policy still applies. |
-| `DeclareContactableAsync(groups, cancellation)` | `Task`; replaces accepted groups, including an empty set. |
-| `RegisterChildAsync(registration, cancellation)` | `Task`; new identity and narrow-only grant. |
-| `RequestAsync(method, parameters, cancellation)` | `Task<JsonElement>`; correlated MCP request. |
-| `CallToolAsync(name, arguments, cancellation)` | `Task<JsonElement>`; also interprets tool-level `isError` refusals. |
-| `LastAckedSeq()` | `ulong`; receipt successfully written after handler return. |
-| `Close()` | Interrupts without joining; safe from a callback. |
-| `Done()` / `DisposeAsync()` | `Task` / `ValueTask`; join callbacks, reader and cleanup. Final callback failure remains visible. |
-
-Canceling an RPC wait removes only that correlation. A late response is ignored;
-it does not cancel the connection. Explicit `result:null` is a valid result,
-different from an absent result. Missing or ambiguous result/error fields refuse.
-
-For standalone transport use, construct `NoiseKK(role, key, peerPublic, prologue)`
-with role `"initiator"` or `"responder"`. `WriteHandshakeMessage` and
-`ReadHandshakeMessage` take spans and return byte arrays; `IsHandshakeComplete()`
-reports readiness. `Encrypt(data, associatedData)` and `Decrypt(data, associatedData)`
-return byte arrays. Dispose explicitly, keep each direction ordered, and terminate
-a connection after authentication or transport failure. A client-owned or
-session-owned Noise child registers with its actual parent and detaches on disposal.
-
-The handler makes this a library rather than a framework. The client owns transport
-and receipts, not the meaning of a prompt. The interviewer collects answers. The
-optional Ensemble bridge submits turns. A home automation application could switch
-on a light. The router does not need to know which application it is serving.
-
-## 26.5 Delivery and recovery
-
-After the Noise-KK handshake, both sides speak a JSON protocol inside the
-encrypted stream. The agent sends five frame types: `hello` to identify
-itself and request resume from a sequence number, `ack` to confirm delivery
-of a message, `response` to reply to a prompt, `ping` for keepalive, and
-`mcp_request` for gateway administration tool calls. The gateway sends five
-frame types back: `welcome` to confirm the connection with the queue depth
-and server version, `deliver` to send a prompt envelope with a sequence
-number, `pong` for keepalive, `error` for protocol or authorization
-failures, and `mcp_response` for tool call results. Ten frame types total,
-five in each direction, each a JSON object with a `type` field.
-
-These are this course's Gateway frames, not a new standard MCP transport.
-`RequestAsync` sends JSON-RPC `initialize`, `tools/list` or `tools/call` inside
-`mcp_request`; a tool call's params are `{"name":"list-groups","arguments":{}}`.
-The server's initialization response declares MCP version `2024-11-05`.
-Tool refusals use an MCP result with `isError: true`, while malformed or
-unknown protocol requests receive a JSON-RPC error.
-
-The public client's `SendAsync` and `RespondAsync` use the acknowledged MCP
-`send-message` operation. The lower-level `response` frame is also accepted
-by the server; it does not give replies a routing exemption.
-
-The connection lifecycle starts with `hello`. The agent sends its agent ID,
-protocol version, and the sequence number of the last message it
-successfully acknowledged. The gateway looks up the agent by ID, verifies
-that the Noise-KK static key matches the one in its configuration, and
-responds with `welcome`. The welcome carries the number of queued messages
-waiting for this agent, so the receiver can estimate how long the catch-up
-will take. For example, these are decrypted JSON frames, not plaintext
-WebSocket traffic:
-
-```json
-{"type":"hello","agent_id":"interviewer","version":1,"last_acked_seq":0}
-{"type":"welcome","welcome":{"agent_id":"interviewer","queue_depth":0,"server_version":"1"}}
-{"type":"ack","last_acked_seq":1}
-```
-
-`last_acked_seq` is also the ack frame's field. Delivery uses
-`{"type":"deliver","envelope":...}` with the public `Envelope` fields
-encoded in snake case. MCP frames carry their JSON-RPC object under `rpc`.
-
-Every delivered message carries a sequence number. The receive loop calls `handler.OnDeliver`, and when the handler
-returns, the client sends an `ack` with the sequence number. The ack is the receipt. Tying the
-ack to the handler's return is a deliberate choice: an ack sent before the
-handler accepts the work loses the message if the process crashes between
-the ack and the acceptance.
-
-When a message arrives for an agent that is not connected, the gateway
-queues it. Before accepting the message, the gateway saves the queue together with
-its policy and identities in one complete JSON state. Messages accumulate until
-the agent reconnects. Queue admission is durable router acceptance, not proof
-that the recipient has run or completed the work.
-
-On reconnect, the agent sends `last_acked_seq` in the `hello` frame. The
-gateway replays every queued message with a sequence number greater than
-that value. The client supplies that receipt explicitly when calling `ConnectAsync` again;
-there is no automatic reconnect loop. Outstanding messages after the receipt
-are delivered again. Only a fully authenticated new session can supersede the same identity's old one.
-A failed handshake cannot evict it. The guarantee is at-least-once delivery within
-the retained snapshot and application-acceptance boundaries. Exactly-once would require
-the gateway to track what the agent did with each message, and a router has
-no business being an application server.
-
-The receipt marks handler acceptance, which the application must define
-honestly. The Ensemble adapter calls
-`Agent.SubmitAsync(IEnumerable<Part>)`, which synchronously admits to the actor's
-mailbox and returns that request's `Task<string>`. This is not synchronous History
-publication. A bridge-owned observer waits for that exact task and sends the reply. A prompt can therefore be
-acknowledged before the model answers. A crash after that ack can lose work
-that the application has not saved. The router cannot turn admission into
-durable task completion.
-
-Sessions consult live policy under one Router gate. Replacement revokes the old
-session before closing its socket; its buffered requests cannot act as the current
-identity. The hello receipt may recover a lost acknowledgment up to the queue's
-allocation frontier. Later receipts may advance only through the session's sent
-frontier, not over merely allocated offline messages. Acknowledgments remain
-monotonic. Draining a queue does not reset its sequence.
-
-Socket writes never hold the policy gate. Each session serializes encryption and
-send under one write gate, so nonce order matches frame order. A write failure
-after encryption makes the session terminal; retrying as though the nonce had not
-advanced is unsafe. Reader and delivery work are both joined before Noise/socket
-disposal and removal from the identity. Pending handshakes are owned sessions too,
-so shutdown cannot overlook them.
-
-### Complete state before acceptance
-
-The Router owns the live identity, group and queue graph. Its durable form is
-one versioned JSON value containing the gateway public identity, bootstrap
-groups and agents, runtime groups, child identities, memberships, contactability,
-pending deliveries, allocation counters and receipt positions. Locks, sockets,
-current sessions and wake signals are transient. Keep the highest allocated
-sequence after draining a queue; a later message must not reuse an old receipt.
-There is no Gateway journal and no periodic save timer.
-
-For each durable mutation, hold the Router gate and follow one order:
-
-1. Authorize against the current session and policy. Validate the proposed change.
-2. Construct an immutable complete-state candidate without changing the live graph.
-3. Validate its relationships and queues, and assign the next state revision.
-4. Preserve the previous validated primary as the backup. Write and flush the
-   candidate to a private temporary file, then atomically replace the primary.
-5. Apply the validated change to the existing live objects, then report acceptance.
-
-The candidate is a temporary value, not a second long-lived mutable policy graph.
-Existing identities and sessions keep their actual ownership relationships.
-Persistence uses the gate to serialize mutations; network writes and transport
-teardown remain outside it. This simple design writes the whole state for every
-durable change. Measure state size, write frequency and storage wear before
-adding a journal or a more complicated storage mechanism.
-
-Queue admission follows this order before allocating a visible sequence or
-waking delivery. Receipt advancement follows it before removing messages.
-A reconnect's authenticated hello receipt must be saved before the new session
-receives authority. Contactability, runtime group administration and child
-registration obey the same rule. A successful RPC or delivery admission must
-never mean merely that a future timer intends to save it.
-
-A persistence failure closes admission for that Router lifetime. Do not retry
-from its old live graph: replacement may have succeeded even if the caller saw
-an error. An unexpected failure while publishing an already committed candidate
-also closes admission. Shutdown joins owned sessions and detaches the graph;
-it does not save that potentially stale graph over the recovery evidence.
-`Save()` remains a compatibility health check, not a deferred durability boundary.
-
-### Startup, migration and recovery
-
-`gateway-state.json` is the complete primary; `gateway-state.backup.json` is the
-previous validated generation. An exclusive open `gateway-state.lock` handle
-prevents a second Router process from loading and later overwriting a stale
-generation. Keep the lease through joined teardown. The separate `identity.key`
-is private cryptographic material, not part of the public-identity snapshot.
-Protect this directory: pending messages are plaintext at rest. Noise protects
-their network transport, not the storage medium.
-
-Normal startup validates the complete state before reconstructing real owners.
-Reject malformed JSON, duplicate or unknown fields, unsupported versions,
-invalid relationships, inconsistent queues and a bootstrap/key mismatch.
-Do not silently merge changed bootstrap authority into existing deliveries.
-A missing primary with a retained backup is an error, not an empty installation.
-A genuinely new directory gets a validated initial state before admission.
-
-Legacy `state.json` and `queues/<validated-id>.json` require explicit migration.
-The host's `--migrate-legacy` mode validates and imports them, preserves the
-originals, writes complete state and exits without opening a listener. Reject
-orphan queue files rather than quietly omit their deliveries. Migration refuses
-if complete state already exists; ordinary startup does not reinterpret legacy
-files beside a complete primary.
-
-The separate `--recover-backup` mode validates the backup and its bootstrap/key
-binding before replacing the primary. It preserves an existing primary in a
-uniquely named recovery-evidence file and exits without listening. Recovery is
-an operator-selected rollback: it may replay previously acknowledged messages
-or omit the latest accepted mutation. Inspect the evidence and reconcile with
-recipients before resuming service. Never silently choose a backup merely
-because it parses, and never overwrite a primary with an invalid backup.
-
-The intended process-crash boundary is the successful complete-state replacement
-before acknowledgment. File flushing and same-directory atomic replacement do
-not establish a universal power-loss guarantee: directory-entry persistence,
-filesystem behavior and hardware caches still matter. Test abrupt process exit
-separately from power removal, and state exactly which boundary the evidence
-covers. A backup on the same disk is not an off-device disaster-recovery plan.
-
-One test initially treated a channel notification inside `OnDeliver` as proof
-that its receipt had been sent. The notification happened before the callback
-returned. Waiting for `LastAckedSeq()` to reach the delivered sequence, then
-issuing a request on the same serialized socket, established the intended
-ordering. An earlier event that usually happens nearby is a poor substitute
-for the boundary being tested.
-
-## 26.6 The interviewer proves the stack
-
-The interviewer is a standalone C# executable in `Gateway/Interviewer`. It
-references only the public Gateway library, holds its own keypair, and reaches
-Ensemble only through the router. It does not reference Ensemble's core. Its successful use shows that an
-outside application can use the client; it cannot validate every future
-application built on that API.
-
-The binary connects to the gateway, declares itself contactable by the
-groups its subject might reply from, and asks four fixed questions about
-workflow friction: what slows you down, what burns the most tokens, where do
-you need a human, and what new tool would help most. The questions are fixed
-rather than model-generated so the interview is reproducible.
-
-For each question, the interviewer sends an `OutboundMessage` through the
-client and waits on the handler's bounded answer channel with a per-question timeout.
-`OnDeliver` puts the envelope on an application-owned channel, and
-the remaining callbacks report connection failure. If the inbox is full, the
-handler refuses rather than acknowledging a silently dropped answer. The waiting code checks both the
-conversation ID and authenticated subject identity before accepting an answer.
-
-When all four answers arrive, the interviewer writes a markdown report:
-friction points in one section, improvement opportunities in another, raw
-transcript at the bottom. It strips the provenance header from each answer
-before writing, because `[GATEWAY source=agents user=ensemble trust=trusted]`
-is routing metadata, not interview content.
-
-Three binaries, three processes, one proof:
-
-1. Start the gateway with a config that knows both agents and their keys.
-2. Start Ensemble, which connects and declares contactability.
-3. Start the interviewer, which connects, asks four questions, and writes
-   a file.
-
-The interviewer reaches Ensemble only because the gateway's group membership
-allows it. Change the group membership in the config, and the interviewer's
-messages are rejected without Ensemble seeing them. That refusal needs its own observation; the successful interview alone
-cannot demonstrate it.
-
-`GatewayBridge.RunAsync` borrows an Agent for one scoped invocation. It owns the
-Client and reply observers, not the actor. `SubmitAsync` provides a reliable result
-for each accepted prompt, so a busy Agent can queue another question without
-confusing its answer with a shared idle event or a lossy observation stream.
-Incoming delivery can race with `ConnectAsync` returning; observers wait until the
-Client is available. `Ready()` settles only after contactability is accepted, or
-fails with startup. Only requests marked `async` get replies. Turn failures are
-logged locally, not sent as exception text to remote peers.
-
-Bridge cancellation closes the connection and joins/detaches its observers; it
-does **not** undo admitted actor work. The application separately shuts down the
-Agent, saves History after joined shutdown, and destroys Ensemble. Borrowed
-references are cleared before the bridge returns. Initialization must load saved
-History before opening its event writer. Save-on-exit is armed only after successful
-startup. These are application lifetimes the router does not own.
-
-### Running the interview
-
-Use .NET 10/C# 14 and the approved native dependency described in Section 26.2.
-The repository's disabled package feeds are deliberate: use an existing package
-cache or explicitly authorize a source for libsodium 1.0.22; do not silently alter
-global NuGet configuration. From the repository root, build the active source
-(or change `CH26_SRC` to the preserved `solutions/ch26` endpoint):
+# Chapter 26: Crossing Over to Ensemble
+
+“I gave Astra a book. Astra gave me an AI coding agent.”
+
+That is how I described the earlier crossover. The book included graders. Astra
+built Ensemble while working in Codex, and then I began working with Astra inside
+the agent we had built. The next edition was built inside Ensemble. The loop
+closed, but closing it once did not make every later replacement ready to use.
+
+When I opened the C# edition, I saw settings above a conversation, arranged in one
+long column. There was no useful agent tree in the interface I was looking at.
+The controls and the tests existed; the application did not yet feel like the
+place where I could do my work. I asked for a real GUI.
+
+That is not cosmetic work to do after the engineering. It is engineering. I can
+hardly see, and I listen quickly. If I cannot find the selected agent, hear the
+right answer, follow the explanation beside the tool results, or interrupt work
+without guessing which control will move next, the application is not ready to
+replace the one I use now.
+
+This is the final implementation chapter. Its result is a replacement candidate
+and a safe way for the human to evaluate it. The crossover is complete when the
+human accepts that candidate for ordinary work, not when the student declares it
+finished, and not when an author adds up earlier test counts.
+
+## TL;DR: finish the replacement, not another demonstration
+
+Start from the completed C# application in `agent`. Do not
+rebuild it from nothing or transplant the old Go GUI. Implement the missing
+crossover work, using the ownership and behavior established in the preceding
+chapters:
+
+1. Make the GUI a coherent, accessible three-pane application using the approved
+   Bootstrap control system and graphite/blue design direction below, with a
+   stable status bar, agent tree, settings, chat, and tool artifacts.
+2. Provide an ordinary foreground `start` launcher and actionable startup errors.
+   Make it possible to run beside the current application without stopping it.
+3. Verify the real browser, actor, persistence, and shutdown paths with owned
+   local resources. A screenshot alone does not verify a control; a socket test
+   alone does not verify a usable interface.
+4. Prepare a safe, explicitly armed crossover and rollback procedure. The
+   current application and its data remain recoverable throughout the trial.
+5. Give the human a runnable candidate, clear instructions, the tests you actually
+   performed, and the limitations that still need human or live-provider work.
+
+This is the only crossover chapter in Edition 3. The earlier historical
+crossover chapters have been removed and the manuscript renumbered sequentially.
+Preserved source endpoints and grader commands retain their original names;
+see the numbering map in [the edition guide](README.md). Earlier editions remain
+historical records, not files to edit here.
+
+## In plain words: one system, a better place to use it
+
+The GUI is a projection and control surface over the existing application.
+Ensemble owns Agents; Agents own their work, History, Engine, and related
+services. The browser does not become a scheduler, credential owner, transcript,
+model registry, memory database, or usage meter because it needs a nicer display.
+
+Begin by reading the current implementation. The existing GUI has peer creation
+and deletion, an agent selection protocol, model changes, settings acknowledgments,
+usage, memory and recall controls, Goals, speech, and tool-card rendering. Most of
+the work is to arrange and connect those capabilities well. Replace an awkward
+presentation, not a correct ownership model.
+
+C# changes still follow the Common/implementation structure. Common declares
+persistent state, relationships, and externally callable operations; functional
+modules implement them. Real parents provide access to services. Destruction
+completes both ends of relationships. Value-like display data need not acquire
+invented lifecycle machinery. Explain any necessary vocabulary change before
+implementing it; ordinary work within the agreed model needs no per-function
+permission.
+
+Teaching code must remain readable. Comment relationships, contracts, and
+non-obvious browser lifecycle decisions. Use the approved component library
+below; do not build another framework, configuration language, second event bus,
+or collection of copied state around it. Keep the existing HTML/JavaScript
+integration and C# host rather than adding a React or Vue rewrite merely to use
+styled controls.
+
+## Required GUI reading
+
+Before implementing this crossover, read the complete original
+[Chapter 8, “Build Your Dream GUI”](../edition-2/book/chapter-08.md), as well as the current
+[C# Chapter 8](chapter-08.md). The original chapter explains the design intent
+and why using the interface matters; this chapter is not a substitute for it.
+Check your candidate against that intent and its still-applicable behavior.
+
+Earlier Go names, grader routes, and superseded implementation details are
+historical, not instructions to replace the current C# architecture. Current
+contracts and this chapter's safety boundaries govern. If the readings expose a
+genuine conflict, explain it rather than silently choosing a convenient version.
+Do not edit the earlier edition. Report the relevant checks in your handoff.
+
+## The selected control system and visual direction
+
+The first crossover candidate improved the layout, but I still found it ugly.
+“Good enough for now” was not an endorsement of its design or acceptance as my
+replacement. We compared two interactive component-library samples. I chose
+**Sample B: Bootstrap**, with a graphite background and blue accents, rather than
+the navy/teal Web Awesome sample. Do not reopen that choice as an unspecified
+framework-selection task or continue polishing the first candidate's homemade
+control system.
+
+Use **Bootstrap 5.3.8**, the stable version used in that sample. Its CSS and
+JavaScript supply the common control vocabulary: genuine tabs, buttons, forms,
+menus where needed, and consistent focus/disabled states. Read the
+[official Bootstrap 5.3 documentation](https://getbootstrap.com/docs/5.3/getting-started/introduction/)
+and [distribution instructions](https://getbootstrap.com/docs/5.3/getting-started/download/).
+Pin the dependency and retain its MIT license and provenance. Bundle the required
+assets locally with the optional GUI; do not depend on a runtime CDN, remote
+fonts, or an unrequested package installation. A Node build system is not needed
+just to use the published browser assets. Use one control system, not Bootstrap
+alongside a second component library.
+
+The temporary localhost sample is not a required service or an answer key. These
+are its durable design requirements:
+
+- **Graphite surfaces, light text, blue accents.** The selected sample used dark
+  page `#15191f`, pane surface `#1f252e`, raised surface `#29323f`, main text
+  `#f1f4f9`, secondary text `#bbc6d5`, border `#455365`, accent `#a8c8ff`, and
+  selected background `#263e64`. Use these as the initial application palette;
+  verify actual foreground/background combinations rather than assuming the
+  library guarantees contrast. The light counterpart used `#f5f6f9`, white,
+  `#e9edf5`, text `#17253b`, secondary text `#4a5c75`, and accent `#2359a6`.
+- **A quiet shell and a clear hierarchy.** Compact status controls, aligned pane
+  headings, consistent spacing, and breathing room around messages. Give the
+  conversation the main reading space. Avoid enclosing every label or sentence
+  in another bordered box. Reserve tool cards for distinct activities/artifacts.
+- **Tabs that select a shared panel.** Settings categories form a connected tab strip,
+  not pill-shaped action buttons. The active tab joins or clearly identifies its
+  panel; inactive tabs recede. Keyboard focus is distinct from selected state.
+  Use the library's tab behavior without adding competing click/key handlers.
+- **Consistent controls, not the sample's fake application.** Keep the button,
+  form, spacing and theme treatment, but bind it to the real acknowledged Agent
+  operations described below. The sample's conversation, timings, artifacts,
+  creation/deletion, pause and speech behavior were illustrative. They are not
+  production data, a scheduler, persistence, or accepted test results.
+
+Bootstrap does **not** supply Ensemble's agent relationships, tree semantics,
+pane splitters, transcript or tool renderer. Keep those responsibilities in the
+existing application/browser layers and style them consistently. A nested list
+of sample buttons is not a keyboard-accessible real agent tree. Use the existing
+ownership and operations, implementing missing presentation behavior without
+rebuilding the core. Do not add another tree or layout framework without a
+concrete need and architectural discussion.
+
+Integrate Bootstrap's light/dark presentation with the browser-owned theme
+preference described in Chapter 8. Local storage is the sole theme authority,
+not a second copy of shared settings. Seed it once from the legacy server theme
+when there is no saved local choice; later server frames cannot override it.
+Font size and hold-to-talk shortcut also belong to origin-local browser-profile
+storage, with cross-tab synchronization and page-session fallback. Seed font
+size once from its legacy value; start the shortcut Off. Separate profiles on
+one machine remain independent. Agent policies and host accounts still require acknowledgement. Preserve explicit choices. Library event handling must not duplicate sends, resets or peer
+operations; attaching it again after replay/reconnection must not accumulate
+handlers. Preserve target identity while updating the presentation.
+
+Verify locally bundled CSS/JavaScript in the ordinary embedded build **and** a
+mounted GUI base path. Check for failed asset requests and unintended external
+requests, real tab/keyboard behavior, both themes and enlarged text. A library
+makes controls consistent; it does not certify contrast, beauty, accessibility,
+or correct application wiring. Carry these checks into the integrated exercise,
+not only a standalone component demo.
+
+## The interface I require
+
+### A stable status bar
+
+Put a status bar across the top. Give its contents reserved space so changing
+status and numbers do not push the controls around. Keep proportional artwork on
+the left and one compact row to its right. Put each speaker’s name above their
+message bubble, with compact spacing for both human and Agent text. Distinguish
+Agent messages with a blue fill and stronger leading border, not red-dependent
+color differences alone. Preserve text and link contrast in both themes; keep
+the speaker names as an explicit identity cue.
+Do not repeat the Agent name under the artwork or in a conversation-title row.
+Show connection/activity,
+then the model selector, centered in the full header rather than merely its
+remaining left-hand space. Center usage in the remaining space before the action
+controls, without claiming unknown amounts are zero. Group Cost, Input, Cache,
+and Hit closely: each numeric output gets a fixed-width, left-aligned slot beside
+its label. Tabular digits help changing numbers remain still. Long values may
+truncate with the full value available accessibly; they must not shove the
+controls off screen. Do not repeat the selected model or funding in another row.
+
+Reserve the geometry, not just the labels. Wrapping flex rows and tabular digits
+alone do not stop a longer state or usage value from changing neighboring widths
+or row heights. Bound identity and numeric slots; give model and action controls
+stable tracks. At enlarged text or narrow widths, use an explicit responsive
+arrangement with reachable overflow rather than shrinking text. Speech and Agent
+state changes must not make adjacent controls jump either.
+
+The status bar contains:
+
+- A model dropdown, sized to its current name within responsive limits,
+  using the existing same-provider, between-turn model-change operation. Choosing
+  a model sends the change immediately; there is no separate Apply button. The
+  server acknowledgment, not the click, establishes the displayed selection. A
+  refused change must restore that selection. Keep all groups on one vertically
+  centered row without shrinking the fonts.
+  Compatible model names are not proof of account entitlement. Preserve the
+  distinction between running selection and persisted launch configuration.
+- A speaker-icon Speech control with an accessible name and native checked
+  semantics. Speech remains opt-in and browser-local, defaulting off rather than
+  inheriting a server enable flag. Header and settings use the same local preference. Per-message Speak and Stop
+  speech also use named speaker icons. Retain keyboard access and visible focus.
+- A separate Interrupt control with a useful label, keyboard focus and adequate
+  click target. Place Stop speech beside the microphone in the composer, not in
+  this header. Group those voice controls so wrapping cannot separate them.
+  Stop speech is identical to Escape: clear current/queued TTS but preserve the
+  draft, then explicitly resume the selected Agent from any device. Use a non-submit button. Do not build Pause/Resume
+  buttons or confuse stopping speech with interrupting Agent work.
+- A theme button showing a moon for dark and a sun for light. Its accessible
+  name must state the switch action, not leave the meaning of the icon ambiguous.
+  Its setting persists in this browser's origin-local storage and agrees with the
+  settings selector. Same-origin tabs share it; different devices and browser
+  profiles remain independent. Offer System as well as explicit Light and Dark.
+  If storage is blocked, retain a usable page-session choice without promising
+  persistence. Keep theme controls available offline and do not send theme changes
+  to the backend. Both themes need high contrast.
+
+Use the human's approved artwork proportionally for branding and the browser
+icon. Do not silently crop or redesign it, or leave a sample's placeholder in the
+working application. Bundle the assets locally with appropriate content types.
+
+An unavailable connection is not an idle Agent. Pending selection and settings
+changes are not acknowledged state. Disable controls when their target is
+uncertain and show why rather than silently applying them to a different Agent.
+
+### Named collaborators
+
+Show each speaker's name above the message, including in accessible Speak labels,
+not the generic labels “You” and “Assistant.” Agent names derive from the real
+Agent tree; do not invent a second identity or silently rename an Agent's files.
+Settings includes a User name and short description in the existing settings file,
+with save-before-acknowledgment and a neutral fallback when no name is configured.
+The GUI reads those fields directly. At startup its host passes them into the
+existing skill variables as `$HUMAN_NAME` and `$HUMAN_DESCRIPTION`; `$AGENT_NAME`
+derives from the actual Agent. The primary skill describes the named engineering
+collaboration. Preserve one-pass substitution, immutable activated manuals, and
+historical messages: changing a display name does not rewrite earlier instructions
+or provider protocol roles. Test save/reload, save refusal, literal user text, and
+name placement with real browser geometry.
+
+### Three panes below it
+
+On a desktop, all three panes are visible at once.
+
+**Left: Agents.** Keep the sidebar dedicated to the expandable hierarchy and
+agent creation/deletion controls. Represent the real
+parent relationships: named top-level peers are siblings, not children of the
+first displayed Agent. Show the selected row and meaningful status. Support
+keyboard traversal, expansion, selection, and visible focus without requiring a
+mouse or color perception. Compact styling must not erase the hierarchy: give
+children clearly visible indentation and branch guides, and reserve the expander
+slot on leaf rows so their names align with branch names at the same level.
+Preserve explicit expand/collapse choices across new snapshots. Test real parent,
+child, and grandchild geometry as well as keyboard behavior.
+
+The tree is the sole visible conversation selector. Use a **Create Agent** button
+that opens a dialog, not a permanently expanded creation form. Put confirmed trash
+actions on eligible tree rows, not a second name-entry deletion form. Protect the
+mounted Agent and its owning ancestors in both presentation and server enforcement.
+Creation and deletion are acknowledged operations, not optimistic edits to a local
+list. Reuse registry-aware operations for top-level peers, including refusal when
+they have unresolved children. Explicit child deletion cancels and joins its owned
+subtree before logical destruction; it does not edit the top-level registry or
+delete saved files. Test confirmation cancellation, server-side protection, view
+recovery after deletion, and actual retention of saved submission files.
+
+Submission is result publication, not a request to stop or remove a child. Keep
+submitted children selectable and show their submitted status alongside activity.
+A status-tool query and a GUI snapshot must not hide them merely because their
+work is complete. Keep explicit lifecycle operations separate from observation.
+
+A selection changes the view; it does not transfer that tab's browser relay or
+MCP authority. Remove redundant selection/relay explanations from the normal
+sidebar, but keep a compact separate-relay action discoverable for Agents that
+require it. A pending creation must leave the tree usable for that startup step.
+
+**Settings: one header gear and a modal dialog.** Use a labeled gear at the right
+of the header, not a second sidebar tab competing with the Agent tree. The dialog
+has genuine tabs for **AI**, **Accounts & Sign-in**, **Speech & Display**, **Goals**,
+**Memory**, and **Recall**. AI contains model/context/tool policy; account/funding
+operations retain their safety explanations and existing authority. Speech &
+Display includes browser-profile-local theme, font, voice, speed, speech pausing,
+and hold-to-talk shortcut, plus a separately labeled shared user profile. Do not
+invent a configurable typing-pause preference. Memory and Recall edit the selected Agent's existing policies; they
+are not new persistent authorities or a new recall-corpus viewer.
+
+Move the existing controls; do not clone forms or invent parallel settings state.
+Preserve control IDs, values, labels, handlers, acknowledgments, refusal behavior,
+and drafts. Remove redundant Accounts/Goals/Memory/Recall expanders now that each
+has a dedicated category. Closing and reopening the dialog retains its selected
+category and unsaved entries; neither closing nor changing categories silently
+saves them. Escape and the close button return focus to the gear. Use native modal
+focus containment and the library's arrow/Home/End tab behavior, not a competing
+keyboard implementation. Hidden panels leave the focus order.
+
+Keep the heading, close action and tab row visible while content scrolls
+independently. On phones, make the tab row horizontally scrollable rather than
+wrapping six categories into most of the viewport height. Test all categories in
+both themes at ordinary and enlarged text sizes, including a 320-by-568 viewport.
+The extra gear must not create another header-controls row. Verify real saving and
+fresh-page reload against the server for profile, appearance, AI, Memory and Recall,
+and truthful disabled Goals/account controls when the corresponding authority is
+unavailable. Test draft retention, modal focus, and speech completion while this
+dialog is open. Source/geometry checks are not human usability acceptance.
+
+Appearance settings belong to their existing store. Memory/recall settings
+belong to the selected Agent. Preserve durable-save-before-acknowledgment,
+sibling-policy preservation, draft protection, and rejection of stale selection
+frames. Funding stays fixed for a running Agent. Codex renewal remains Codex's
+responsibility; public OAuth operations must not turn into Codex operations.
+
+**Middle: Chat.** Give the conversation the main reading space, with a composer
+anchored at the bottom. The composer has exactly two visible widgets: a one-line
+input and the supplied paper-airplane Send icon beside it. Longer or multiline
+input scrolls within that one-line area rather than taking height from the
+conversation. Name the selected Agent in the placeholder, such as “Ask Cadence
+anything…”, and keep an accessible input name. Do not add a visible label, help
+footer, or separate Hint button. Preserve the supplied artwork and its proportions.
+
+The browser sends ordinary messages, including while the Agent is working. The
+Agent classifies input against its active turn when the event queue receives it;
+stale browser state must not select a different “hint” mode. Preserve Enter to
+send and Shift-Enter to enter a newline, without a special forced-hint shortcut.
+Keep ordinary explanations visible while tools run. Preserve selection/replay,
+streaming and final replacement, near-bottom-only autoscroll, and scroll position
+when the human is reading older material. A new answer must not silently replace
+an earlier one.
+
+Density is part of usability, not an excuse to shrink fonts. Reduce unnecessary
+widget padding/gaps and paragraph margins while preserving the selected font and
+line spacing, clear grouping, focus indicators and usable click targets. A short
+message should not require a separate full-height action row above its text.
+Measure identical content before and after at the same fonts and viewport; retain
+text and semantic markup rather than hiding content to manufacture a smaller box.
+Let prose use the available pane width. Pane splitters should allow Actions or
+conversation to take most of the workspace, with small reachable minimum panes,
+not arbitrary 18–35% side-pane caps. Check mouse/keyboard movement in both
+directions and re-clamping after window/font changes.
+Private reasoning and opaque replay payloads are not chat text.
+
+**Right: Tools and artifacts.** Show tool calls, results, running work, failures,
+and available artifacts in coherent expandable cards. A pending call must not
+look like a successful result. Preserve exact call/job identity and existing
+controls; use the existing renderer and artifact capabilities rather than
+inventing an unrelated file browser. Long output should be inspectable without
+forcing the conversation to scroll sideways. Render untrusted text safely, not
+as executable provider-supplied HTML.
+
+Exercise automatic tool-result redaction on the selected provider route, not
+only unredacted sample results. A retained `RedactedPart` is a readable omission
+notice, not media. Project it through the common text formatter without exposing
+its private locator or mutating History; keep genuine unsupported media refusal.
+A valid saved redaction must not make every subsequent request fail locally.
+
+Inline truncation is not permission to make the retained result unreachable.
+Provide a usable way to inspect or download the complete output when a current
+owned Job has it. Resolve an Agent and its Job through the existing ownership
+operations, including canonical qualified addresses for nested Agents. A named
+top-level lookup is not a substitute for GUI tree/address resolution. Never
+accept a browser-supplied filesystem path. Open the owned output
+with the existing `Sandbox.OpenRegularRead` operation: an ordinary unconfined
+`OpenFile` can wait for a pipe peer if a file has been substituted, whereas the
+regular-file reader refuses nonseekable input without that wait. Dispose the
+returned stream and preserve the same confinement authority.
+
+Nonblocking regular-file access is not a blanket symlink ban. An empty Sandbox
+root deliberately retains full access; a rooted Agent enforces its existing
+confinement and permits admissible inward links. Do not invent a second Sandbox
+or a GUI metadata/ancestor-checking scheme: checking then opening does not prevent
+concurrent substitution. Test that a rooted output redirected outside its root
+refuses without returning escaped bytes, separately from nonseekable-file refusal.
+Preserve the existing unconfined policy and report its limits. Job ownership and
+completion do not authenticate original file bytes against hostile local writers;
+stronger immutable-artifact provenance would require a separately agreed design.
+
+Preserve the GUI's origin/header guards, mounted base path, request cancellation, and private-response
+headers. A convenient ordinary download link is not a reason to replace the
+required custom-header guard with optional browser fetch metadata. Mount shutdown
+must cancel and join the active response, not just stop future admission. Reuse
+the available core operations; if a genuine gap requires a new public operation,
+explain the need and obtain the shared-vocabulary agreement before adding it.
+Reading a download must not consume the Job observer's output cursor.
+Refuse running, missing, wrong-owner, or historical-only handles explicitly rather
+than returning partial output as complete. Bound browser memory use and explain
+any size refusal; an unbounded `fetch().blob()` is not streaming to disk. Test
+exact bytes, ownership refusals, and a later ordinary Job observation.
+
+Make pane widths adjustable with pointer and keyboard controls. Panes should
+scroll independently, with useful minimum widths and without hiding the chat
+composer. At narrow widths, provide an explicit way to reach each pane rather
+than squeezing three unreadable columns or dropping functions. This is not a
+request for a separate mobile application.
+
+### Deliberate appearance, not a color swatch on the old page
+
+I prefer fairly dark backgrounds and light text. Choose restrained, attractive
+accent colors, consistent spacing, readable typography, clear section headings,
+and controls that look related. Slightly different dark surfaces can distinguish
+panes; low-contrast gray labels cannot. Tabs must look and behave like tabs.
+Selection, focus, warning, and error states must not rely on color alone.
+
+A component library does not decide the visual hierarchy. When the human selects
+a reference, study the actual page: its connected tabs, navigation rows, prose,
+spacing, and card boundaries, not merely which library it imports. Ordinary
+status information is not an action; navigation should not resemble a row of
+primary buttons. Keep the reference's visual discipline while replacing its
+illustrative interactions with the real application's ownership and behavior.
+Use clear conversation labels without inventing identities, times, or activity.
+Compact action icons need accessible names and generous targets. A restrained
+appearance must not mean faint text or indistinct input boundaries.
+
+Check both themes, enlarged text, keyboard use, and long content in an actual
+browser. Combine the conditions: test the largest supported text size in narrow
+windows as well as on a desktop, not large text only on a wide screen and narrow
+screens only at the default size. Include long status values and an expanded or
+resized composer. Verify that the prompt, Send, model, theme, and speech/interrupt
+controls remain reachable, with a useful conversation reading area and no
+page-wide horizontal overflow. Hiding overflowing controls or silently shrinking
+the chosen text size is not a correction. Bounded status summaries, shorter
+navigation labels, and accessible secondary help can preserve space without
+dropping operations. Keep screenshots, but also assert geometry and keyboard
+reachability; a successful settings save does not establish a usable layout.
+A bounded composer with its own scrollbar can still leave Send outside the
+visible area after textarea resizing. Reserve space for its label and action row,
+let both the form and textarea yield space, and test short phone-height windows
+as well as tall ones. Include nonempty notices and settings acknowledgments:
+those rows also consume space. A flexing textarea inside a fixed outer form can
+still overflow after other rows grow. Do not call an off-screen button anchored
+merely because its outer form is.
+Check computed contrast as well as the layout. Capturing a screenshot is not
+viewing its pixels: say whether the acting model actually received and inspected
+the image, or only examined DOM/style/geometry. If visual input is unavailable,
+retain the screenshot for the human and report that limitation; do not claim a
+visual review or invent a hidden vision capability. Do not invent a numerical
+beauty grade. The human decides whether the application is pleasant and usable;
+the student must still bring a considered design.
+
+## Make startup ordinary and failure useful
+
+Provide a simple executable `start` script in the working solution, documented
+for this C# edition. It runs the GUI in the foreground, forwards supported launch
+options, exposes errors, and stops cleanly with Ctrl+C. Explain its build
+prerequisite and how it locates the SDK, assets, skills, workspace, and data.
+Do not silently install dependencies, fetch credentials, kill a port owner, or
+rebuild an unrelated running installation. Keep machine-specific account paths
+out of the repository. Use an explicitly supplied credential path when the human
+selects Codex; a path alone must not silently select the payer.
+
+The GUI library normally embeds its assets. Verify the built application's
+ordinary launch, not only an explicit `--gui-dir` source override: a CSS edit
+cannot change an already built assembly or an already loaded tab. Keep the
+existing borrowed-host and base-path behavior intact, with asset and socket URLs
+relative to the mounted page. Do not make the optional GUI a core dependency.
+
+Serve page HTML with `Cache-Control: no-store`. Give every local stylesheet,
+script and image a content-versioned URL path, including dynamically imported
+modules and their nested dependencies. Freeze one asset snapshot per host and
+use its content fingerprint in those paths. Versioned responses may be cached
+as immutable; never serve new bytes under an old version. Keep unversioned
+compatibility routes non-cacheable. An explicit disk override is also snapshotted
+at mapping time: restart the host to publish edits.
+
+Test root and mounted pages, content changes producing different URLs, old-version
+refusal, cache headers, and actual browser module requests. Browser cache clearing
+does not clear a reverse proxy's cache. Previously cached HTML or assets may need
+one initial proxy purge, and a proxy rule overriding the origin's cache policy
+must be corrected separately. Do not diagnose every startup failure as caching
+merely because one earlier incident had that cause.
+
+The current host accepts `--port`, `--workspace`, `--sandbox`, `--data-dir`,
+`--agent-name`, `--gui-dir`, and `--skills-dir`. Codex selection uses
+`--billing codex --codex-auth-file PATH`; its endpoint is pinned. Inspect the
+saved parser rather than assume other flags exist. Provide a parallel-run
+example on an unused port, not instructions to evict the working server. A human
+may run something like the following after building:
 
 ```sh
-set -eu
-CH26_SRC="$PWD/agent"
-CH26_RUN=$(mktemp -d /tmp/ensemble-ch26.XXXXXX)
-export CH26_SRC CH26_RUN
-for project in Host/GatewayHost AgentHost/GatewayAgent Interviewer/Interviewer; do
-  dotnet build "$CH26_SRC/Gateway/$project.csproj" --nologo
-done
-SUBJECT_KEY=$(dotnet "$CH26_SRC/Gateway/AgentHost/bin/Debug/net10.0/GatewayAgent.dll" \
-  --key "$CH26_RUN/subject.key" --print-key)
-INTERVIEWER_KEY=$(dotnet "$CH26_SRC/Gateway/Interviewer/bin/Debug/net10.0/Interviewer.dll" \
-  --key "$CH26_RUN/interviewer.key" --print-key)
-export SUBJECT_KEY INTERVIEWER_KEY
-printf '%s\n' "$CH26_RUN" "$SUBJECT_KEY" "$INTERVIEWER_KEY"
+# Choose a genuinely unused loopback port and a private trial home first.
+# This is a human-authorized live launch, not an offline test command.
+./start --port "$TRIAL_PORT" --data-dir "$TRIAL_HOME" \
+  --billing codex --codex-auth-file "$APPROVED_CODEX_AUTH_FILE"
 ```
 
-These printed keys are public. Key-print mode does not initialize a provider.
-Put this complete configuration in `$CH26_RUN/gateway.json`, replacing the three
-marked values. Choose an unused loopback port; 8093 is an example, not permission
-to stop a process already using it. Change the config and both client URLs together.
+The first manual trial used the default port while the old Ensemble still owned
+8088. The GUI printed only `GUI failed: AggregateException`. Starting on 8089
+worked. That is evidence consistent with a bind conflict; the type-only message
+did not diagnose the underlying exception. Improve startup reporting at the
+proper ownership boundary: show an actionable, safely masked cause while the
+relationships needed for diagnostic masking still exist. Do not dump nested
+exceptions, request headers, tokens, or private paths merely to improve debugging.
+Test bind failure, malformed setup, and cleanup faults without hiding the primary
+error. Retain defensive type-only reporting where safe redaction is unavailable.
 
-```json
-{
-  "gateway": {
-    "listen": "127.0.0.1:8093",
-    "data_dir": "REPLACE_WITH_CH26_RUN/router-data"
-  },
-  "groups": {
-    "agents": {
-      "description": "Interview participants",
-      "capabilities": ["send-message", "declare-contactable"],
-      "trust": "trusted"
-    }
-  },
-  "agents": {
-    "ensemble": {
-      "public_key": "REPLACE_WITH_SUBJECT_KEY",
-      "groups": ["agents"]
-    },
-    "interviewer": {
-      "public_key": "REPLACE_WITH_INTERVIEWER_KEY",
-      "groups": ["agents"]
-    }
-  }
-}
-```
+A separate remote trial restored the old server after thirty minutes. It left no
+provider request in the V3 API trace. A browser log showed a request to select
+`main` while the V3 actor was named `trial`; that observation did not establish
+why the remote trial failed. Inspect stale-browser and invalid-selection behavior
+without turning this clue into a claimed diagnosis. Give the human clear reload
+instructions and show a selection error without leaving controls falsely ready.
 
-Create the router identity and retain its printed public key:
+### Diagnostics follow the owner
 
-```sh
-GATEWAY_KEY=$(dotnet "$CH26_SRC/Gateway/Host/bin/Debug/net10.0/GatewayHost.dll" \
-  --config "$CH26_RUN/gateway.json" --print-key)
-export GATEWAY_KEY
-printf '%s\n' "$GATEWAY_KEY"
-```
+Each Agent owns its diagnostic writers and its own `debug.log`, `api.log`, and
+`gui.log` in its data directory. Ensemble owns `ensemble.log` in the application
+container for host-wide activity. A child does not borrow its parent's writer,
+and selecting another conversation in a browser does not transfer the browser's
+fixed MCP relay identity. Route each event through the actual owner, not through
+a shared root logger or an untrusted address supplied by a client.
 
-Use three terminals with the same `CH26_SRC` and `CH26_RUN`, and `GATEWAY_KEY` in
-the two client terminals. Start the router:
+Start fresh diagnostic files on each host restart. Load an Agent's durable state
+before replacing that Agent's previous diagnostic files; startup recovery messages
+need the host logger while restoration is in progress. Do not truncate `save.json`,
+its backup, event journals, memories, or credentials. Opening several diagnostic
+files is not a filesystem transaction: a later open can fail after an earlier file
+was replaced. Preserve that failure and attempt every opened writer's cleanup.
 
-```sh
-dotnet "$CH26_SRC/Gateway/Host/bin/Debug/net10.0/GatewayHost.dll" \
-  --config "$CH26_RUN/gateway.json"
-```
+Startup reset alone does not bound a long-running session. Each owned diagnostic
+stream has one file capped at 64 MiB, with no rotated previous file. Before a complete
+record would exceed that bound, flush and truncate the already-owned handle,
+reset its position, and write an explicit size-reset marker followed by the new
+record. Serialize that operation with writes and closing. Do not externally
+truncate an open file or reopen an unchecked pathname. Count UTF-8 bytes, including
+newlines and the marker, not characters or record count. Replace a record that
+cannot fit beside the marker with an explicit oversized-record notice and its
+original byte count; never keep a malformed fragment or silently exceed the cap.
 
-Its printed key is not readiness. Confirm that this process remains alive and owns
-the configured listener before starting clients. For example,
-`lsof -nP -iTCP:8093 -sTCP:LISTEN` identifies the PID; do not mistake somebody else's
-listener for this launch. There is no invented `/health` route.
+API diagnostics omit inline image/audio payloads while retaining their media type,
+encoded length, decoded byte count and SHA-256 where available. Project a diagnostic
+copy, then apply credential masking. Never alter provider requests, retained media
+or canonical History to reduce log size. Malformed structured traces are explicitly
+omitted rather than dumped raw. If API diagnostics are disabled, skip projection
+work. This policy is separate from saved-History retention. A reset loses earlier
+diagnostic context by design; it does not preserve a hidden archive.
 
-The optional Agent host is deliberately **API-key-only**. It announces funding
-before inference and has no plan/OAuth or Codex-endpoint fallback. For a paid live
-exercise, explicitly choose a provider/model you are authorized to use and supply
-`EN_API_KEY` through your approved environment setup. Do not paste a secret into
-the manuscript, transcript or shell history, or borrow another application's store.
-This recipe does not authorize a live call merely by being printed here.
+Serialize writes within each owner and retain credential masking at write time.
+Surface I/O failure and stop writing that file at an uncertain offset; cleanup must
+still attempt every owned close. Borrowed writers are not subject to automatic
+truncation. Close an Agent's owned writers only after its work has joined; close Ensemble's
+writer after its owned cleanup. Borrowed test or embedding writers stay with their
+caller. An outgoing GUI record labelled queued proves enqueueing, not delivery or
+Agent admission. A later tab selection must not reattribute an older frame.
 
-For OpenAI, set `EN_VENDOR=openai` and `EN_MODEL` to that selected model. The
-optional `EN_BASE_URL` selects a service base, including an owned compatible
-loopback fake. The host uses the existing Chat surface; this is not Chapter 23's
-public OAuth Responses/cache exercise. Then run:
+Verify independent Agents, a child and grandchild, browser selection and falsely
+addressed controls, API credential masking, and fresh files after restart with
+durable records preserved. Exercise repeated byte-limit resets, multi-byte text,
+oversized records, concurrent writers, failed reset/write, no prior-file creation,
+and unchanged actual media delivery despite diagnostic omission. Keep source tests distinct from installation and the
+human's actual restart. The implementation and its current verification boundary
+are recorded in [the diagnostic notes](../docs/edition-3-notes/agent-diagnostics.md).
 
-```sh
-: "${EN_MODEL:?Select an authorized model}"
-: "${EN_API_KEY:?Supply through an approved environment setup}"
-export EN_VENDOR=openai
-# Unset an unrelated EN_BASE_URL, or explicitly set the intended service base.
-dotnet "$CH26_SRC/Gateway/AgentHost/bin/Debug/net10.0/GatewayAgent.dll" \
-  --gateway ws://127.0.0.1:8093/v1/ws --gateway-key "$GATEWAY_KEY" \
-  --agent ensemble --key "$CH26_RUN/subject.key" --groups agents \
-  --data "$CH26_RUN/subject-data" --no-stream
-```
+## A safe trial and an independent way back
 
-Without `--skills PATH --primary NAME`, the subject has no tools. Do not grant tools
-just to make a conversation more impressive. If explicitly selected, skills use
-the normal initialization and authority rules; gateway text grants nothing.
-The Agent lives at `subject-data/agents/ensemble/`, with `session.save.json` and
-`events.jsonl`. Wait for `Gateway Agent ensemble ready`, then run the interviewer:
+Preserve the existing executable, launcher, configuration, history, and actor
+homes. Begin with separate trial data; do not copy private stores or let a new
+application overwrite the current session. The initial student run is not a
+migration of Cadence's memories. A later migration needs an explicit inventory,
+format compatibility checks, a copy rather than an in-place experiment, and the
+human's approval.
 
-```sh
-dotnet "$CH26_SRC/Gateway/Interviewer/bin/Debug/net10.0/Interviewer.dll" \
-  --gateway ws://127.0.0.1:8093/v1/ws --gateway-key "$GATEWAY_KEY" \
-  --agent interviewer --subject ensemble --key "$CH26_RUN/interviewer.key" \
-  --groups agents --report "$CH26_RUN/interview.md" --timeout-seconds 120
-```
+First run the new GUI beside the current application. Only after the human is
+ready should a deliberately armed switch occupy the familiar port. The rollback
+controller must outlive both GUI processes and their tool Jobs. A shell command
+backgrounded under the application is not enough: application shutdown may kill
+its process group or owned jobs.
 
-Read the report, then Ctrl-C the subject and router and observe joined exits.
-The interviewer writes only after all four answers. Timeout, cancellation or
-connection loss while awaiting answers leaves no new report; interruption during
-file writing is not an atomic-report guarantee. Inspect the saved conversation
-and receipt positions, not just the console's success text.
+On macOS, the earlier trial used a separate per-user launchd job, with a private
+temporary definition, automatic restart disabled, and an explicit start. A probe
+showed that bare `launchctl submit` could remain waiting; acceptance by launchctl
+was not proof the controller ran. Require an observed armed state before stopping
+the original process. Do not install a login-startup service or a global daemon
+merely to run this trial.
 
-The completed local C# exercise ran these three real executables with a small fake
-HTTP provider: four correlated answers, an explicitly selected primary skill,
-restored History before the next request, SIGTERM during held inference, and a
-visible final-save failure. Separate interviewer checks sent wrong-sender and
-wrong-conversation answers before the correct ones. Separate host checks used the
-unchanged Go client and observed the former thirty-second failure/retry ticks,
-restart receipts and joined shutdown. Those periodic-save observations are
-historical; they do not verify the complete-state saver introduced here. These
-checks establish application wiring, not real-model judgment or productivity.
+Prepare a one-shot, approximately thirty-minute rollback with an early-restore
+command. It must check the original process identity and port ownership before
+acting; never terminate an unexpected owner. Allow graceful old-server shutdown,
+and do not force-kill it to make a trial proceed. Restore early if the candidate
+exits or cannot be launched at all. A missing or unexecutable candidate may throw
+before there is a process to monitor; that exception must still reach the restore
+path after the original has stopped. Bound the candidate's shutdown, and restrict any forced termination to
+processes the trial actually owns. Start the restored application independently
+of the controller that is finishing. Preserve status and private logs, reporting
+uncertain or failed restoration honestly. A slow original shutdown must not
+cause the controller to disappear and leave an empty port later.
 
-Try refused group routing and narrow-only child registration separately. A
-successful interview alone proves neither. A network child is a registered public
-identity, not automatically an Ensemble task child. Test unacknowledged replay and
-offline delivery separately too; a final report alone says little about recovery.
+Test those lifecycle rules using real disposable local servers before offering a
+live switch. Cover timer expiry, early restore, candidate launch failure and crash,
+a candidate ignoring termination, changed-owner refusal, and cancellation before the switch.
+An armed timer is not proof of recovery. An observed restored listener is not
+proof of remote connectivity or successful inference. Power, network, and OS
+failures remain outside a software controller's guarantee.
 
-### What the actual interview said
+The earlier private trial controller is experience, not a hidden student
+solution or a permanent service to borrow. Deliver and test the small launcher
+and recovery support in the working solution. Do not read the human's private
+trial directory as an answer key.
 
-The second-edition run used three built processes and four real Astra
-requests, completing the interview in 11.739 seconds. All three processes
-exited normally. Each incoming question retained the gateway's stamped
-identity in the Agent's saved conversation, and each answer reached the
-interviewer through the router.
+## Exercise the behavior that daily use exposes
 
-Asked what consumed tokens, Astra answered: “Repeatedly reading large files,
-verbose tool output, and revisiting the same context after failed attempts.”
-Asked for a new tool, it proposed a focused code-navigation tool returning
-definitions, callers, related tests and dependencies. Those are useful
-interview leads. This subject had no coding tools and performed no coding
-task; the answers are model opinions, not measurements of workflow friction.
+Use the real C# host and an isolated browser with a fresh profile, plus a small
+working provider fake where deterministic replies or failures are needed. The
+fake is a boundary peer, not a mock of Agent, History, or the GUI itself. It must
+speak the selected transport faithfully. Merely assigning a dummy key does not
+make a public endpoint an offline test.
 
-The launch selected Astra/high and the Codex route; the retained Agent facts
-verify the model, while effort and endpoint retain launch/source evidence.
-All four cache-read counts were zero. A working encrypted interview should
-not be sold as a cache benefit or a productivity experiment. The
-[run and transcript](../edition-2/solutions/evidence/ch27/live-interview.md)
-retain the actual answers; later local diagnostic and receipt-test corrections
-do not turn that earlier run into a new one.
+A useful session proceeds through these paths:
 
-## 26.7 What the grader checks
+1. Launch on an owned spare port. See the three panes, the selected agent, and a
+   truthful connection state. Change status/usage text and show that the status
+   bar controls do not move around. Compare bounding rectangles before and
+   after realistic long agent names, status values, and multi-digit usage/cost
+   values at a fixed viewport. Checking only that controls are inside the window
+   does not establish reserved space. Label a display-value geometry probe as
+   such; it does not verify backend accounting. Inspect dark and light themes, large text,
+   keyboard navigation and pane resizing. Keep screenshots for the human.
+2. Send a message through the real browser. Observe explanation, streaming,
+   a tool call and result, and a final reply in the correct panes. Use enough
+   output to test scrolling. Preserve the existing safe Markdown behavior:
+   unordered and ordered lists must remain semantic lists, and source-wrapped
+   prose must remain one paragraph rather than a stack of separate paragraphs.
+   Check tables, nested lists/emphasis, blockquotes, links and fenced code while
+   chunks arrive. Follow Chapter 7's pinned browser-parser policy: raw HTML stays
+   inert, unsafe links refuse, and Markdown images make no remote requests.
+   Test semantic elements and displayed whitespace, not only a screenshot or
+   text-content match. Keep original Markdown and speech independent of HTML.
+   Verify coalescing and final flush, stable playback focus, selection spanning
+   multiple cards, preserved code expansion, narrow table scrolling, and no
+   forced jump while reading older content. Inspect actual rendered pixels and
+   obtain human streaming acceptance. Disconnect/reconnect must repair the view
+   without duplicate cards, lost text or delayed renders from a previous view.
+3. Create a peer, see its actual place in the tree, select it, return to the
+   original, and delete the eligible peer through the existing operation.
+   Demonstrate a refusal without pretending deletion succeeded. A displayed
+   child must not grant its parent-tab browser authority.
+4. Change a model between turns and exercise the existing busy/refusal path.
+   Change shared user-profile and selected-Agent memory/recall settings; observe
+   acknowledgement and restart persistence. Verify browser-local theme, font size, speech, and shortcut separately:
+   reload, cross-tab synchronization, profile isolation, OS changes, blocked storage,
+   and no backend theme writes. Simulate a write failure and show
+   that the old accepted state remains. Selection changes must not apply a
+   delayed result or a draft to the wrong Agent.
+5. Exercise Stop speech, Escape, Interrupt, opt-in speech and theme controls.
+   Build Chapter7's single last-command-wins Agent pause state from the start.
+   Typing and speech send local activity edges, not repeated pause demands.
+   Stop speech and Escape cancel local current/queued TTS, preserve the draft,
+   and explicitly resume the selected Agent even if another device caused pause.
+   Unchanged typing or speech cannot veto that resume. Both GUI Pause/Resume
+   buttons are absent. Test two devices, retained drafts and continued speech.
+   Disconnect does not resume; reconnect does not reassert stale activity.
+   Validate commands against the tab's selected Agent, never an unselected child.
+   Test saved child restoration of the single pause flag. Use actual actor status
+   as well as outgoing frames; a changed label alone proves nothing.
+   Verify local narration, rate, voice and speech-pausing preferences through
+   reload, same-origin tabs, independent profiles, blocked storage, removal and
+   offline changes. Server settings must not overwrite them, and controls must
+   send no server speech-settings patches. Turning speech off cancels local audio.
+   Wait for actual ready phases: a seeded conversation can be `inputpending`,
+   while a completed turn can be `idle`. A guessed predicate is a fixture error.
+   Keep model changes disabled during admitted work even when later usage/meter
+   frames arrive; a status refresh must not accidentally re-enable the control.
+   Queued speech counts as busy according to the existing policy; selection cancels
+   stale callbacks and replay is silent. Release an outgoing automatic pause before
+   sending the selection command; late outgoing narration must not restart speech
+   while selection is pending. Test an already-paused incoming Agent and obsolete
+   callbacks from the outgoing utterance.
+   Native speech can stop without delivering its end/error callback. Exercise
+   this with the Create Agent dialog open and around browser-tab changes. Reconcile
+   stale active-utterance bookkeeping against native speaking/pending state, with
+   a startup grace period, and reuse ordinary completion cleanup. Do not infer
+   completion from estimated reading time or time out genuinely speaking/queued
+   speech. In the integrated browser, one watcher exists only while an utterance
+   is active: every 500 milliseconds, after a two-second startup grace, it checks
+   native `speaking` and `pending`. If both are false, it invokes the same
+   identity-checked settlement used by end/error callbacks. Focus, pageshow and
+   visibility events also check liveness. Settlement and cancellation clear the
+   watcher; an old callback cannot settle the next utterance. Completion advances
+   queued speech before sending resume, so continuing local typing sends no resume.
+   Explicit Stop/Escape still overrides typing. Check queue advancement, typing
+   overlap and last-command-wins controls across connections against the
+   real server state. A hidden or frozen page may defer browser
+   callbacks; socket loss additionally prevents delivery. Those cases do not
+   authorize a server-invented resume on disconnect. A fake speech boundary verifies wiring,
+   not hearing. Native voice quality, useful speed, and accessibility need the
+   human's own browser and ears before acceptance.
+6. Stop and restart the owned host with the same saved trial state. Continue the
+   conversation and perform a new tool operation. New content must not overwrite
+   an old card; identity must survive replay and restoration. Confirm graceful
+   shutdown joins work and saves state, including when the browser disconnects.
+7. Exercise failure and recovery: occupied port, refused settings, interrupted
+   provider work, stale browser selection, and the independent rollback cases.
+   Keep demonstrated failures and corrections; do not count a timeout as proof
+   that a refusal worked.
 
-The original Go route builds the submitted router and an outside consumer against
-its public library. That route remains `-ch 26 solutions/ch26`; older Chapter 25
-Gateway numbering is not this edition's Goals chapter.
+These are integrated exercises, not seven new frameworks or a fabricated point
+score. Reuse the existing test programs for affected contracts. Run broader
+regression when shared behavior changes. Read saved source and complete relevant
+spans; build success cannot excuse broken ownership or a barely usable page.
 
-For C#, the opt-in executable route retains the complete outside-peer exercise,
-including two real server launches, held delivery, offline queues and restart. But
-the independent peer is Go, not the submitted C# client. Its own handshake, callback
-logic and import graph cannot earn C# library credit. The route scores only four
-complete original server rows: provenance, welcomes, routing and attenuation.
-Nonempty welcome counts occur in the delivery scenario, which is why that scenario
-is retained even though its full client contract is ungraded.
+Do not borrow live credentials for the student run. The author and human arrange
+any later bounded live check explicitly. Public OAuth and Codex are separate
+funding/credential paths with no silent API-key fallback. The prior C# Codex cache
+sample had two hits and one miss; it does not promise savings for the candidate.
+No new cache campaign is required simply because the GUI changed.
 
-| Original row | Behavior | C# executable scope |
-| --- | --- | --- |
-| C1 | Noise-KK wrapper, wrong-key controls | 15 ungraded |
-| C2 | Provenance and preserved conversation/response mode | 10 |
-| C3 | Multiple authenticated identities, version and empty/nonempty queue counts | 15 |
-| C4 | Allowed and refused group routing | 15 |
-| C5 | Complete client handler/receipt/replay/restart contract | 15 ungraded |
-| C6 | Outside consumer of the submitted public client | 10 ungraded |
-| C7 | Independent child connection and refused wider grant | 20 |
+## Lessons that remain obligations
 
-The recorded C# result is **60/60**, covering 60 of the original rubric's 100
-points. The remaining 40 client/Noise points are ungraded by this route, rather
-than failed or removed from the chapter's requirements. Read the real C# client
-tests and Mac/Pi wrapper interoperability results as separate evidence; they do
-not supply those grader points. Neither a passing fake nor an outside Go peer is a
-security audit. The Ensemble adapter, administrative restore, ownership and host
-failure paths also need their own source and application evidence.
+The earlier Go crossover record is history, not a list of patches to transplant.
+Several of its lessons belong in the replacement exercise:
 
-To reproduce, build the Host first. The grader expects historical `-config` and
-`-print-key` flags; this small executable adapter only translates them and execs
-the real DLL. It supplies no canned result. With `CH26_SRC` and `CH26_RUN` from
-Section 26.6:
+- **Explain before effects.** Ordinary visible assistant text explains intent;
+  private reasoning, a spinner, and a tool result do not replace it. Keep that
+  explanation visible beside Actions. The existing enforcement checks arrival
+  order, not just a normalized final message; do not weaken it for the new UI.
+- **Observation serves work.** Use explicit GUI/speech observation when needed.
+  Do not add automatic snapshot polling before every model request as a layout
+  shortcut or turn diagnostic noise into spoken dialogue.
+- **A check-in is not a deadline.** A Job observation delay does not end the Job.
+  Do not impose a short whole-response HTTP timeout or automatic paid retries to
+  make a slow provider look responsive. Controls and shutdown must still work.
+- **Roles have different result contracts.** A main conversation ends with a
+  normal reply; a delegated worker or compressor may owe a structured result.
+  Retain source through failed compression. Pleasant prose is not a committed
+  replacement, and a background worker is not permission to publish History.
+- **Configuration needs honest authority.** Show current versus next-launch
+  state, save before success, and keep credentials out of settings and History.
+  Do not import the earlier Go configuration schema over the C# ownership model.
+- **Build, install, restart, refresh, observe are different acts.** A new binary
+  on disk does not change a running process or an already loaded browser tab.
+  Record which act actually happened. Neither building nor a timer grants restart
+  authority over the human's working application.
 
-```sh
-DOTNET=$(command -v dotnet)
-export DOTNET
-cat > "$CH26_RUN/grade-host" <<'SH'
-#!/bin/sh
-set -eu
-[ "$#" -ge 2 ] && [ "$1" = -config ] || exit 2
-config=$2
-shift 2
-if [ "$#" -eq 0 ]; then
-  exec "$DOTNET" "$CH26_SRC/Gateway/Host/bin/Debug/net10.0/GatewayHost.dll" --config "$config"
-fi
-[ "$#" -eq 1 ] && [ "$1" = -print-key ] || exit 2
-exec "$DOTNET" "$CH26_SRC/Gateway/Host/bin/Debug/net10.0/GatewayHost.dll" --config "$config" --print-key
-SH
-chmod 700 "$CH26_RUN/grade-host"
-go run ./cmd/grade-edition2 -ch 26 -executable-only \
-  -gateway-peer "$PWD/solutions/ch26" -json "$CH26_RUN/grade-host"
-```
+These principles explain why green grades alone did not finish the crossover.
+They also keep a redesign from regressing less visible work that already matters.
 
-The peer directory is explicit and absolute. Do not point it at the C# tree or
-call it the submitted implementation. The ordinary Go route is unchanged.
+## Where to work
 
-### Complete-state persistence scope
+Read the actual declarations and callers, not just this source map:
 
-The current persistence contract has a separate public-consumer grader. It does
-not change the historical chapter flags or add points to their old rubric. Build
-the candidate Gateway with its native dependencies, then pass its output directory:
+| Concern | Starting points under `agent` |
+|---|---|
+| Browser layout and behavior | `gui/wwwroot/index.html`, `style.css`, `app.js`, `peers.js`, `auth.js`, `speech.js`, `mcp.js` |
+| Optional GUI library and hosting contract | `gui/README.md`, `gui/Ensemble.Gui.csproj`, `gui/Server/` |
+| Actual GUI composition and startup errors | `Examples/Gui/Program.cs`, `Examples/Gui/Gui.csproj` |
+| Ownership and public operations | `Common/`, with corresponding implementation directories |
+| Actor/replay/settings tests | `Tests/Program.cs` and its referenced real-component test groups |
+| External GUI consumer | `GuiTests/GuiTests.csproj` |
+| Build/run orientation | `README.md` |
 
-```sh
-python3 scripts/grade-gateway-persistence.py \
-  --dotnet "$(command -v dotnet)" \
-  --candidate-directory "$CH26_SRC/Gateway/Host/bin/Debug/net10.0"
-```
+Preserved numbered endpoints are read-only historical boundaries. The working
+solution is the candidate. Do not edit an earlier endpoint to make a regression
+disappear. Do not change the public protocol or persistence schema merely to
+simplify styling; a genuinely needed change requires architectural agreement.
 
-The directory must contain `Ensemble.Gateway.dll`, `Ensemble.Noise.dll` and the
-matching `runtimes` assets. The grader builds its own outside-assembly consumer
-against those exact assemblies, with package sources disabled. It creates only
-local temporary identities and loopback hosts; it needs no model or live service.
+## The fresh-student loop
 
-The consumer checks that a successful authenticated send already appears in the
-complete state before killing the host. It restarts and checks the exact replayed
-payload, sequence and provenance, then checks receipt removal after a serialized
-RPC barrier. It also checks malformed-primary refusal, explicit validated-backup
-rollback with preserved evidence, failed-save refusal without implicit retry, and
-explicit legacy import preserving the original drained receipt. A failed build
-or missing native runtime is not a successful behavioral check.
+The author first commits this chapter and its agreed starting implementation.
+A fresh student receives that revision, the current architectural rules, and a
+clean isolated working tree. The student owns implementation, tests, and the
+local exercise through completion, and may ask about genuine ambiguity. Do not
+interrupt it for routine early compiling checkpoints or supply an unrecorded
+solution through hints. The author performs the other roles: engineering review,
+behavioral verification, and teaching revision. The human evaluates the candidate.
 
-Keep local fault tests as separate evidence: failure after replacement but before
-live publication, concurrent admissions, independent-process directory exclusion,
-failed authenticated replacement and bounded receipt frontiers need deliberate
-checks too. A deliberately unsaved candidate must fail the external grader's
-admission assertion; a mutant that merely fails to build proves no sensitivity.
-Passing this scope does not establish power-loss durability, hostile-local-user
-confinement, every operating system's filesystem semantics or exactly-once work.
+The submission states changed files, how to build and start, the actual local
+results, known limitations, and any clarification received. Keep it concise;
+use the repository's normal records rather than inventing an audit bureaucracy.
+Do not call the whole system accepted because the submission was accepted by a
+tool. A fresh context, different model name, or isolated directory alone is not
+proof that the teaching is sufficient; the work and recorded assistance matter.
 
-Two failures from this translation are worth remembering. An early loopback fake
-shared the client's wrong receipt spelling; six local groups passed while the real
-Go router retained ack zero. The wire uses `last_acked_seq` for hello/ack and `seq`
-only for envelopes. Separately, omitting a zero `queue_depth` looked harmless until
-the independent welcome assertion caught it. Tests built from our own assumptions
-can agree with us and still be wrong.
+The Bootstrap decision and the first run's substantive behavior/layout lessons
+justify a new fresh-student run. Retain the first candidate and its failures for
+comparison, but do not merge its solution into the next starting implementation
+and call that a rebuild from the chapter. The next student receives the completed
+C# foundation plus this revised assignment. Small corrections can still be made
+within a run; another reset for every CSS adjustment would not teach us more.
 
-Read the source alongside the tests: Common declarations, reciprocal relationship
-operations, current-session checks, socket writes outside the policy gate, and
-joined destruction. Green transport tests do not excuse duplicated authority or a
-hidden scheduler. The router's usefulness is not in making another agent look busy.
-It is in giving independently running applications a small, honest boundary they
-can depend on.
+When enough new requirements or failure lessons accumulate, preserve what was
+learned, revise the chapter, commit the new teaching baseline, and run a fresh
+student again. Discard only the owned student run after its work is no longer
+needed. Never `reset --hard` or `clean` the human's shared working repository to
+simulate a fresh student. Minor corrections may be inspected directly without
+pretending each one has earned a new independent run.
+
+## The human acceptance and promotion gate
+
+The student hands over a candidate that can be run beside the old Ensemble.
+The human then checks actual readability, speech, keyboard use, normal coding
+work, interruption, settings, agent management, restart continuity, and recovery.
+Diagnose problems kindly and concretely; do not blame the human for exposing a
+path the tests missed. The chapter improves when those observations become clear
+teaching and meaningful regression checks.
+
+When the human says the new Ensemble is ready to replace the current one, the
+crossover is complete. Only then archive the current Edition 2 implementation
+and book and promote Edition 3 to the top level. Inventory the actual repository
+layout first, preserve history and the known-good launcher/data, stage the move,
+fix current links and launch paths, and verify the promoted build and rollback
+before retiring the old launch route. Do not overwrite the Edition 1 archive,
+move private state into Git, delete the old installation, or interpret acceptance
+as permission to publish or push. Execute the actual switch with the human.
+
+The code is rebuildable, not disposable. The durable artifact includes the
+judgment needed to rebuild it, and the judgment to know when it is ready to use.
+
+## Field notes from the first working Cadence crossover
+
+These notes record what happened during the supervised crossover, rather than
+claiming that the executable book or a successful build established replacement
+readiness. They distinguish the student exercise, the subsequent engineering
+work, the memory preparation, and the first failure in normal use. They are a
+historical boundary; inspect the current source and running application before
+repeating an operational step.
+
+### From a book-built candidate to a usable interface
+
+Two fresh students worked in separate candidate worktrees. The first candidate
+improved the original settings-heavy interface, but independent checks found
+that enlarged text combined with narrow windows could push Send out of view.
+Those combinations had not been covered by the original checks. The correction
+and the teaching change were retained rather than treating a screenshot as a
+passing accessibility test.
+
+Bill selected the original Bootstrap Sample B, with its graphite surfaces,
+connected tabs and restrained controls. The second student started from a fresh
+foundation and a scoped teaching baseline, not the first student's solution.
+Using Bootstrap did not itself reproduce the chosen design: too much ordinary
+information still looked like an action button. Independent review also found
+three behavioral defects: lists and wrapped Markdown paragraphs lost their
+structure, typing could undo a manual pause, and changing status text moved
+nearby controls. Those were product findings, separate from setup mistakes in
+the review fixtures. A further enlarged-text check exposed a textarea that
+could push its action row out of the composer.
+
+Cadence corrected the candidate and then took responsibility for the design
+pass personally. That was no longer an independent student execution. The
+working block renderer was reused; manual and automatic pause intent were
+separated without duplicating authoritative actor state; status areas were
+bounded; and the composer was made to yield space correctly. The real-host
+browser exercises used real Agents and a loopback fake provider. They checked
+behavior, geometry, local assets, settings, streaming, and owned Job output.
+They did not establish real-provider entitlement, audible speech quality,
+beauty, or the human's ability to use the interface.
+
+The first human preview was deliberately a fake-provider preview with a
+15-minute lifetime. An expired preview link was not a failed permanent
+installation. The subsequent real-model integration was a separate authorized
+act: a real V3 host ran beside V2, using the selected Codex funding source. One
+small readiness request completed. That established that the selected route
+could complete that request, not that every later context state was supported.
+
+### The small changes that made daily use possible
+
+Bill's hands-on feedback drove a sequence of small local changes. The useful
+pattern was edit, run the affected checks, make a scoped local commit, and
+perform an authorized refresh of V3 while preserving V2. It was not another
+fresh student run for each CSS adjustment. Bill retained responsibility for
+pushes; unrelated work was kept out of commits.
+
+The changes included:
+
+- Reusing Bill's proportional Ensemble artwork and his supplied paper-airplane
+  Send SVG, rather than substituting an unapproved icon redesign.
+- Replacing redundant speech and theme text with accessible controls whose
+  names and states remain available to keyboard and assistive-technology users.
+  Speech remains opt-in; a transcript-mode browser check is not a hearing test.
+- Reducing excessive padding, gaps, paragraph margins and full-height action
+  rows. At one measured density pass, short desktop messages used 2.41 times
+  less height at 18-pixel text and 3.42 times less at 32-pixel text; narrow-window
+  measurements were approximately twofold. Those are scoped geometry results,
+  not a visual-quality score or a measurement of every subsequent revision.
+- Making the composer one visible input line and one Send control. There is no
+  separate human-selected Hint mode. Ordinary input enters the Agent's queue,
+  and the Agent classifies it against its actual state when dequeuing it. The
+  browser must not make that scheduling decision from an observed busy label.
+- Removing Copy buttons while retaining ordinary selection, expansion, speech
+  and owned-output downloads. Removing a control also requires removing its
+  unused handler and updating tests that depended on that control.
+- Replacing generic speaker labels with the actual Agent name and the saved
+  human name. User name and description use the existing GUI settings and
+  startup skill-variable substitution. They are not a second Agent identity
+  registry. The existing actor named `trial` was not silently renamed Cadence.
+- Replacing the large multi-row status area with the observed 50-pixel desktop
+  header at the current 18-pixel font: artwork, connection/activity, a genuinely
+  centered model selector, usage centered in the remaining right-hand space,
+  and right-justified controls. Model selection applies on selection and is
+  acknowledged by the server. The duplicated model/funding line and Apply
+  button were removed. “Don't be evil.” was tried in the header and then removed
+  at Bill's request; it was not an enduring header requirement.
+- Giving both speakers compact message bubbles, then making the Agent's bubble
+  distinctly blue with a stronger leading border. The original fills really
+  were identical; that was not Bill's difficulty seeing red. The final requested
+  dark-theme fill at this boundary was `#102a3d`. Names and border treatment
+  provide cues beyond color alone. Scoped text/link/border contrast checks
+  passed; the human still judged whether the distinction was useful.
+- Separating line height from paragraph spacing. The later requested paragraph
+  line height was 1.15, with a 0.45-rem break between paragraphs and no added
+  bottom margin after the final paragraph. These were deliberate later changes
+  to paragraph rhythm, not a claim that the earlier density pass had changed
+  fonts or line spacing. Code blocks and message gaps were left alone.
+
+Bill described the result as a usable beginning and continued to refine it.
+That is stronger evidence of practical usefulness than a developer declaring
+an interface attractive from DOM measurements. Cadence captured screenshots
+but did not inspect their pixels; that limitation must not be rewritten as a
+completed visual review.
+
+### The tree, management controls and child lifetime
+
+The hierarchy data already followed real Agent parent relationships. Styling
+had made it look flat: indentation was too small, and leaves did not reserve
+space corresponding to a branch's expander. Clear guides, meaningful
+indentation and an expander spacer restored readable alignment without deriving
+parents from names. Expand/collapse choices survived new snapshots, and explicit
+levels complemented the existing tree semantics and keyboard navigation.
+
+The inline management form became a Create Agent dialog for top-level peers.
+The redundant Conversation and Relay selection section was removed; the tree
+remained the visible conversation selector. A compact separate-tab relay action
+was preserved because selecting a conversation does not move a browser's fixed
+MCP authority. Trash actions moved to tree rows with explicit confirmation. A
+shared server check protects the mounted Agent and its owning ancestors, not
+just whichever item happens to occupy the first row. Top-level deletion keeps
+the registry's refusal rules; explicit child deletion joins shutdown and then
+uses logical destruction. Saved files are retained.
+
+The integrated exercise verified real child/grandchild indentation, collapse
+persistence, dialog creation, root refusal, cancellation of a delete, confirmed
+child deletion, selection recovery and preservation of the submitted artifact.
+It also verified that a child published as submitted remained idle, queryable
+and present in `agents_status`. Submission itself did not remove that child.
+This did not diagnose every earlier report of a disappearing child. Explicit
+shutdown/removal, a host restart and a missing GUI projection are different
+possible events and must not be conflated with submission.
+
+Bill proposed an explicit parent choice for disposable children to shut down
+after submitting, while ordinary submitted children remain available. At this
+boundary no new automatic-shutdown flag had been implemented. Whether that flag
+should stop-but-retain or stop-and-remove remained a policy question. A host
+restart also stops in-memory children; retained files are not automatically
+restored as live children or fresh completion authority. Check live ownership
+before restarting rather than erasing a child during a retention investigation.
+
+### Carrying the collaborator's records into V3
+
+The identity and continuity records belong to Cadence to author and approve.
+Bill explicitly leaves `SOUL.md` and `MEMORY.md` to Cadence. His approval of the
+name, software or crossover is not editorial approval of those files. Bill also
+leaves the choice of carrying memories forward to Cadence. Cadence chose
+selective continuity: keep identity, commitments, useful reasons and the detailed
+archive, but start a fresh conversation History. This records a collaboration
+and its supported history; it does not establish continuous subjective
+experience across model invocations.
+
+An earlier attempt to read the entire assembled book returned its end marker
+and reported 155,820 words and 1,047,377 bytes. A keep-results acknowledgment did
+not prevent the text subsequently appearing redacted in the model's context.
+The request token total was not a book-only measurement, and a four-bytes-per-
+token estimate was not a tokenizer result. Returning bytes, retaining a tool
+result, presenting it to the model and comprehending it are distinct claims.
+That retention issue was not repaired as part of the memory migration.
+
+The inspected detailed archive still contained 121 dated records and two
+nondated topical essays. Both levels of retired compressed buckets had matching
+source boundaries, with no gaps in the detailed records' numbering. The 69
+retired bucket files occupied only about 1.04 MiB. The chosen reason to exclude
+them from the new recall corpus was redundant retrieval, not disk pressure.
+They remained in the old archive: filename coverage does not prove that a
+summary contains no additional synthesis. The detailed records are themselves
+memories of conversations, not the raw transcript.
+
+Preparation used a separate V3 container with the named home
+`data/agents/Cadence`. V3's distinction between an Ensemble container and a named
+actor home matters: putting `SOUL.md` at the container root is not the same as
+putting it in that Agent's home. The existing identity and durable-memory files
+were copied, the older dated records were marked retired for recall, and the
+two descriptive-name essays were placed in `docs/` because the active memory
+band requires dated filenames. A new dated handoff supplied current operational
+facts and explicitly superseded stale boundaries in older records.
+
+The memory/recall policy was translated rather than copying the old provider
+configuration wholesale. In particular, the old `64x`/`8x` band labels became
+`archive64`/`archive8`, and `context_msgs` became `context_messages`; effective
+defaults were checked against both implementations. The inspected budget policy
+included 100,000 bytes for conversation and 40,000 for recent memory. GUI user
+and appearance preferences were carried separately. Credentials, old raw
+History, journals, child registries, Jobs, request caches and active grants were
+not copied as new runtime state.
+
+The two History formats share an outer structure, so it would have been wrong
+to declare them categorically incompatible without testing the complete saved
+session. Full replay compatibility was not established. A fresh History was the
+chosen migration policy, not a fabricated converter or a claim that every old
+record was unreadable. The old session remained the historical archive and
+fallback. Provider-opaque data, live handles and completion generations must not
+be reconstructed from prose or treated as current authority.
+
+A disposable probe used the actual V3 memory and recall components. It loaded
+all three active memory texts exactly, scanned 124 memory-corpus files, found an
+older retired record and found the relocated topical document. Source hashes
+were checked, and the active handoff was rechecked after editorial updates. One
+failed assertion initially attributed an identifier to the wrong member of a
+combined retired bucket; correcting that source attribution was a test fix, not
+a corpus repair. No model turn or recall judge was invoked by the probe. It
+proved file-format and retrieval behavior, not the first real model's continuity.
+
+### Launch decisions, supervision and data ownership
+
+Bill clarified the normal working arrangement: interactive coding and upgrades,
+with his supervision about 90% of the time. Autonomous codebook execution is the
+exception and may belong to a separate sandboxed top-level Agent. The main
+Cadence launcher was therefore prepared without the trial's workspace-only
+sandbox, using the real project workspace, a private HOME/TMP/CLI environment,
+an independent copy of the tested binaries and the existing approved Codex
+credential reference. Broader filesystem access did not grant permission to
+read credentials, push, deploy or damage unrelated work.
+
+The memory-location discussion changed more than once. A V3 subtree inside the
+existing private memory Git repository was proposed so V2 and V3 could coexist
+without sharing live files. Bill then chose the original separate prepared
+layout for simplicity. Later, while using V3, Bill and V3 Cadence decided to keep
+the V3 memories in the original directory structure. At the repair described
+below, the actual process and launcher still used the separate prepared home;
+that repair did not implement or certify the later directory move. Preserve the
+latest decision without inventing an already-completed migration.
+
+There is no general reason to abandon the private memory repository. There are
+two concrete requirements before using it for V3. First, do not run V2 and V3 as
+concurrent writers of the same active memory files or let one edition's settings
+schema overwrite the other's. Use separate live subtrees or deliberately quiesce
+the old writer before exclusive handover. Git is not a concurrency mechanism.
+Second, extend and test ignore rules for V3's actual nested paths before staging
+anything. An old root-only ignore for a save or journal does not automatically
+protect `agents/<name>/...`. Only deliberately reviewed continuity material
+belongs in the private repository; raw provider content, credentials, journals,
+logs, child runtime data and caches must not be swept into a commit. A local
+commit and a remote backup are also different acts; Bill retains control of pushes.
+
+The launcher creates the named top-level Cadence actor itself. Bill does not
+need to create an empty Agent through the GUI before it can see its prepared
+home. The first real conversation should check which records are actually in
+context and whether the collaborator can state the current work, boundaries and
+open decisions. Files existing on disk are not sufficient evidence of recall,
+and a memory-based answer is not evidence of a literal transfer of the old
+process's working state.
+
+During this preparation Bill also observed a V2 display fault: new spoken/chat
+text could be found appended to an older output while tool calls continued.
+That observation explained why a tool appeared to execute without a new chat
+message beside it. Its root cause was not established here, and it was not
+attributed to provider lag merely because lag was also suspected.
+
+### The first real continuation failure and its repair
+
+After Cadence was running in V3, Bill reported that it stopped replying. The
+listener and HTTP page were alive, the browser was connected, and the Agent
+appeared idle. The journal showed repeated turn failures before a new provider
+request: `Responses tool media projection is not implemented`.
+
+Tool-result budget redaction had left valid `RedactedPart` markers in retained
+History. `ResponsesResult` accepted only `TextPart` and therefore mistook the
+markers for media. Restarting the same binary replayed the same valid history
+and failed again. The repair in commit `2e35b535` permits text and redaction
+markers and uses the existing `JsonCodec.Text` formatter. It does not read or
+expose a redacted locator, rewrite History, resurrect removed text, or silently
+accept actual unsupported media.
+
+The regression used the real History reducer, reproduced the original
+exception, and then passed with the correction. It checks call pairing,
+non-mutating projection, mixed text/markers, empty results, locator
+confidentiality and continued refusal of actual media. Existing Responses
+projection/route and decoding/provenance checks also passed, and the ordinary
+test project built with no warnings or errors. Temporary-runner assembly access
+and an incorrect test enum were setup mistakes; they were not further product
+findings. No live provider request was used to manufacture a pass.
+
+With Bill's explicit restart approval, the repair replaced only the installed
+core assembly and its symbols. Cadence's uncommitted composer/GUI changes were
+not installed, staged or overwritten. The launcher and GUI binary stayed
+unchanged, as did memory paths. The verified V3 process was stopped gracefully,
+the replacement served HTTP 200, and the V2 process retained its observed identity.
+No model message was sent by the repair procedure. A successful subsequent live
+reply must be observed separately; HTTP readiness alone is not that proof.
+
+The presentation gap also remains a lesson: this terminal local failure looked
+like an idle Agent rather than an obvious error. Do not call that symptom a
+slow or unresponsive model without inspecting actual events. The projection
+repair and better user-visible failure reporting are separate pieces of work.
+These field notes do not declare the entire crossover, memory-directory change,
+or retirement of V2 complete.
+
+
+### Subsequent integrated refinements: compact controls and curated models
+
+The header's height is determined by its tallest control, not just its artwork.
+After reducing the artwork, inspect the selector and the pause/speech controls:
+in this layout their old 44-pixel minimum kept the header at 49 pixels. Header-only
+36-pixel targets and reduced selector padding bring the normal 18-pixel layout to
+41 pixels. Do not globally shrink controls or fonts to achieve that result;
+verify enlarged text separately. Create Agent must use the same theme-aware
+foreground, hover and focus treatment as its neighbors. The tab favicon is a
+separate, bold multicolored music note; keep the full Ensemble artwork in the app.
+
+A capability table is not a recommendation list. Keep a deliberate curated model
+catalog with readable names and vendor groups; do not populate it indiscriminately
+from vendor discovery, media support or pricing rows. The integrated choices are
+GPT-6 Astra (the primary/default choice), GPT-5.6 Sol, Claude Opus 5, Claude Sonnet 5,
+Claude Opus 4.6, Gemini 3.8 Flash and Gemini 4 Argon. Opus 5.5 is deliberately
+excluded. Carbon awaits a verified API listing. Preserve an existing non-catalog
+selection visibly as current rather than silently replacing it. Running Agents
+retain their provider, wire protocol and funding: other-vendor or incompatible
+choices are disabled, and the server still validates every selection. A model
+recommendation establishes neither entitlement nor new media capabilities or prices.
+
+
+Provider-supplied reasoning summaries and thinking parts have one visible heading,
+**Thinking**, followed immediately by the complete received prose. Do not hide
+this text behind a second summary/expander or substitute a clipped preview. Their
+original part kinds and provenance remain unchanged: this presentation reveals no
+private or unreceived reasoning. Normal incremental narration reads this prose
+without a click when speech is enabled, avoids repeating previously narrated
+text, and remains silent for history replay or an opted-out listener. Tool payload
+expanders remain separate controls.
+
+### An authenticated tunnel needs an explicit origin
+
+The GUI normally accepts only loopback hosts and origins. Putting Cloudflare
+Access in front of it does not automatically change those checks: the public
+Host differs, and the browser uses an HTTPS Origin even when the local proxy
+connection is HTTP. Rejecting that mismatch produced an HTTP 400 during our
+crossover; deleting the guard would have been the wrong fix.
+
+An optional `--public-origin https://ensemble.example.test` admits exactly that
+HTTPS origin through a loopback connection. The authenticated proxy must gate
+**all** routes, including WebSockets. This setting is not authentication, does
+not bind the server to external interfaces, and does not trust forwarded headers
+to expand authority. Keep the same policy for page routing, WebSockets, peer
+controls, account requests and job-output reads, while retaining each endpoint's
+additional request guards. Ordinary same-origin GET fetches may omit Origin;
+public WebSockets and mutations must supply the configured origin. Provider
+OAuth callbacks keep their local redirect URI; remote chat access is not a
+change to the login protocol.
+
+Exercise the real HTTP/WebSocket routes with local and configured public hosts,
+wrong hosts and origins, spoofed forwarding headers, missing custom headers,
+and the local-only callback exception. A simulated proxy test does not establish
+that the user's Cloudflare deployment or phone session works after installation.

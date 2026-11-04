@@ -13,7 +13,7 @@ Goals addresses these two problems separately:
 
 The first mechanism preserves an objective across compression. The second supplies an opportunity to continue. Neither guarantees progress, correct judgment, or permission to act.
 
-> **C# edition boundary.** This implementation was originally built on the preserved `solutions/ch23` endpoint. The optional Codex path and Gateway have since been completed locally; their historical endpoints retain their original names. Goals does not depend on either integration. The final crossover exercise in Chapter 30 still requires the human's replacement acceptance.
+> **C# edition boundary.** This implementation was originally built on the preserved `solutions/ch23` endpoint. The optional Codex path and Gateway have since been completed locally; their historical endpoints retain their original names. Goals does not depend on either integration. The final crossover exercise in Chapter 26 still requires the human's replacement acceptance.
 
 ## §24.0 TL;DR: What to Build
 

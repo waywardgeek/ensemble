@@ -1,11 +1,13 @@
 # Connections, Agenda, and Puffin: detailed design outline
 
-Status: design outline. Bill authorized manuscript renumbering and the bounded
-Gateway upgrade. Current order is Goals 24, Voice and Images 25, Gateway 26,
-Connections 27, Agenda 28, Puffin 29, and Crossing Over 30. Chapters 27–29 are
-explicit design-stage landing outlines, not completed construction assignments.
-Historical endpoints and grader flags retain their original numbers. This does
-not authorize deployment or resolve the open contracts below.
+Status: provisional design record moved into the Puffin book. Gateway now has
+an implemented complete-state foundation; Connections, Agenda and Puffin remain
+unimplemented subjects. No chapter numbers or final table of contents are assigned.
+Bill's [Development-Driven Specs direction](book-direction.md) governs this work:
+retain these ideas and open decisions, then revise the teaching from actual
+implementation, tests and use. This outline is not a fixed advance specification.
+Historical endpoints and grader flags retain their original meanings. Nothing here
+authorizes deployment or resolves the open contracts below.
 
 Sources: [current decisions](scheduling-and-puffin.md) and
 [xyzzy inventory](puffin-xyzzy-inventory.md). Settled decisions are distinguished
@@ -36,15 +38,20 @@ a fresh implementation should not have to reconstruct our repair history.
   partials implement behavior. No copied service bags, duplicate authoritative
   registries, or ID-based reconstruction of live relationships to bypass ownership.
 
-## Gateway foundation: update the design first, refine through vertical slices
+## Gateway foundation and the next development slices
 
-Begin with a bounded design delta against the existing Gateway, not a new router
-and not a speculative rewrite of all its clients. Current inspected source owns
-identities/groups and per-identity queues, has separate mutable policy/queue
-snapshots and periodic/orderly saving. Those are existing facts, not evidence of
-the stronger complete-file acknowledgment contract proposed below.
+The bounded Gateway complete-state upgrade is implemented and locally verified;
+see [its evidence and limits](gateway-complete-state.md). It retains the real owner
+graph, saves durable candidates before publication, and has explicit migration and
+backup recovery. This does not implement the Person directory or Connections.
 
-### Establish before building Connections
+The following checklist records the earlier design questions. Items about complete
+state now have an implemented answer in the Gateway teaching; person/connection
+ownership and later delivery contracts still need concrete development with Bill.
+Do not treat this list as a new router specification or a requirement to settle
+all future interfaces before the next bounded implementation.
+
+### Questions and contracts for dependent work
 
 1. **Owner map.** Keep Router's real identity/group/session/queue relationships.
    Define the authoritative Person directory in Gateway infrastructure and how
@@ -94,9 +101,10 @@ saved state must not mix policy and queues from different generations. Verify
 backup preservation and refusal of malformed complete state. Existing crypto,
 authenticated replacement, attenuation and reconnect obligations remain in force.
 
-Before moving the chapter, check all manuscript/code construction dependencies.
-The current Goals text explicitly says it does not depend on Gateway; that supports
-but does not complete this check. Endpoint and external grader numbers stay fixed.
+Gateway teaching has moved to `puffin-book/gateway.md`. Goals remains in the
+first book and explicitly does not depend on Gateway. Recheck actual dependencies
+as later construction changes; moving a chapter does not certify new integrations.
+
 
 ### Then update as we go
 
@@ -105,6 +113,7 @@ If a missing contract is exposed, revise Gateway's source, focused tests and ori
 teaching before the dependent chapter claims completion. Reuse unaffected evidence;
 rerun touched behavior and relevant shared regressions. Do not hide a required
 foundation upgrade in a later appendix or freeze an unsuitable API for numbering.
+
 
 ## Construction sequence and teaching rules
 
