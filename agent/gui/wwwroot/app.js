@@ -429,6 +429,29 @@ document.addEventListener("selectionchange", () => {
     if (pendingCardRenders.size && cardRenderTimer === null)
         cardRenderTimer = setTimeout(flushCardRenders, 50);
 });
+function toolObservationLabel(card) {
+    // These are call/observation facts, never claims about current execution.
+    switch (card.status) {
+        case "planned": return "Requested";
+        case "started": return "Dispatched · awaiting result";
+        case "finished": return "Result returned";
+        case "error": return "Error reported";
+        default: return "Observation state unavailable";
+    }
+}
+function recordedJobLabel(job) {
+    if (!Number.isSafeInteger(job?.handle) || job.handle <= 0) return "";
+    // A retained snapshot is not a live Job monitor. Replay must not imply that
+    // an old running observation still describes the process now.
+    let state = "unavailable";
+    switch (job.status) {
+        case "running": state = "running"; break;
+        case "done": state = "finished"; break;
+        case "killed": state = "killed"; break;
+    }
+    const exit = Number.isSafeInteger(job.exit_code) ? ` · exit code ${job.exit_code}` : "";
+    return `Job ${job.handle} · state when observed: ${state}${exit}`;
+}
 function render(card) {
     if (cardHasSelection(card)) { queueCardRender(card); return; }
     pendingCardRenders.delete(card);
@@ -461,12 +484,20 @@ function render(card) {
         : card.role === "assistant" ? (agentRows.find(row => row.key === card.agent)?.id || card.agent || "Agent") : card.role;
     title.textContent = artifact ? card.name || card.toolName || kind
         : card.kind === "text" ? author : kind;
-    title.title = `${author} · ${card.name || card.toolName || kind}${summary}${card.status ? " · " + card.status : ""}`;
+    const statusLabel = artifact && card.status ? toolObservationLabel(card) : card.status;
+    title.title = `${author} · ${card.name || card.toolName || kind}${summary}${statusLabel ? " · " + statusLabel : ""}`;
     if (artifact && card.status) {
         const status = document.createElement("div");
         status.className = "tool-state";
-        status.textContent = card.status;
+        status.textContent = toolObservationLabel(card);
         card.node.append(status);
+    }
+    const jobLabel = card.kind === "tool_result" ? recordedJobLabel(card.job) : "";
+    if (jobLabel) {
+        const recorded = document.createElement("div");
+        recorded.className = "tool-state job-state";
+        recorded.textContent = jobLabel;
+        card.node.append(recorded);
     }
     const speaker = heading.querySelector('[data-action="speak"]') || actionButton("Speak", () => speak(card));
     speaker.setAttribute("aria-label", `Speak ${author} ${card.kind}`);

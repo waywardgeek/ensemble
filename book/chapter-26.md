@@ -29,4 +29,12 @@ interaction. This is one increment, not completion of this chapter's exercises,
 public grading or student reconstruction. See the
 [development evidence](../docs/edition-3-notes/artifacts-and-actions.md).
 
+## Implemented increment: recorded observation state
+
+Tool cards distinguish Result returned from the Job's state when observed.
+Typed recorded metadata supplies the state and optional exit code; prose does not.
+[Chapter 7](chapter-07.md#74-truthful-tool-cards) teaches the distinction at the
+projection boundary. This is not a live Job monitor. Pair navigation, stable tool
+controls and the chapter's broader acceptance gates remain unfinished.
+
 Next: [Running Local Models](chapter-27.md).

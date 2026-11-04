@@ -1,6 +1,46 @@
 # Artifacts and Actions: development evidence
 
-## Current boundary: logical snippet copying, source candidate
+## Current boundary: observation labels and recorded Job state
+
+The browser now labels existing machine states Requested, Dispatched/awaiting
+result, Result returned and Error reported. Tooltips use the same wording. Raw
+`planned`/`started`/`finished`/`error` values and speech decisions are unchanged.
+A tool result's existing typed Job metadata supplies a separate handle and
+state-when-observed line, including its optional exit code. Running/done/killed
+map to running/finished/killed. Unknown values stay unavailable; missing exit code
+is not zero. No result prose is parsed into Job facts.
+
+This uses the existing JobInfo/codec/projection path, whose source was inspected.
+No new poller, status registry, persistent field, Job behavior or provider request
+was added. An old observation stays unchanged after a newer result for the same
+Job; its label intentionally does not promise present execution state. Error
+reported is not a claim that the underlying process failed rather than the
+observation. Exact raw detail remains available.
+
+Final evidence: `/private/tmp/cadence-actions-state-final.F5B8mq`, including source
+SHA256 receipt, logs and two changed candidate scripts. Explicit offline GuiTests
+build passed with zero warnings/errors. `actions-state.cjs`,
+`actions-baseline.cjs`, `markdown-copy.cjs` and `markdown-page.cjs` passed against
+the actual embedded page. Label and recorded-running-to-finished mutants failed
+the intended assertions through opt-in local `GUI_ACTIONS_SOURCE` asset overrides.
+The fixture and owned Agents/provider joined with exit0. No live service changed.
+
+The new state tests inject synthetic wire frames into the production page handler;
+they establish presentation and retained-card behavior, not a new end-to-end Job
+lifecycle or persistence acceptance result. They cover requested/dispatched/error,
+recorded running/done/killed, nonzero/missing exit codes, malformed handles,
+unknown status, contradictory prose, later observations, tooltips and mobile
+containment. Earlier pre-tooltip evidence is retained at
+`/private/tmp/cadence-actions-state.crF020`, not substituted for the final run.
+
+Chapter7's original tool-state teaching now distinguishes readable labels from
+machine states and explains recorded rather than live Job status. Pair navigation,
+focus preservation for tool-card updates, public artifact grading and fresh
+student reconstruction remain pending. This is a bounded presentation increment,
+not completion of the Actions chapter.
+
+
+## Earlier boundary: logical snippet copying, source candidate
 
 Bill approved copying logical code payload, excluding fences and container
 prefixes while preserving code whitespace and terminal newline. Parser LF
@@ -129,9 +169,8 @@ failed run also joined its host cleanup.
 
 ## Next work and acceptance limits
 
-The snippet source increment above is verified within its stated scope. Next
-resolve Actions state presentation over real facts, including the distinction
-between a completed observation and a still-running Job.
+The snippet source increment above is verified within its stated scope. The next Actions work is explicit pair navigation and stable tool-card
+interaction. The recorded-state distinction is implemented above.
 
 Later slices cover paired state presentation, agreed timestamps/durations and
 explicit work-product offers. Public grader points, broader sensitivity checks, substantive

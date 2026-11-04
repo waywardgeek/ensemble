@@ -48,7 +48,10 @@ assert(!['8088', '8089', '8090'].includes(origin.port));
         assert.match(await page.locator('[data-part-id="actions-baseline-edit-result"] .edit-change').textContent(), /- before\n\+ after/);
         assert.equal(await page.locator('[data-part-id="actions-baseline-report-result"] a[download]').count(), 0);
         console.log('PASS six synthetic Actions pairs, raw results, edit detail and no invented report download');
-        console.log('BASELINE LIMIT: observation is labeled finished even when its text reports a running Job');
+        const running = page.locator('[data-part-id="actions-baseline-running-result"]');
+        assert.equal(await running.locator('.tool-state').textContent(), 'Result returned');
+        assert.equal(await running.locator('.job-state').count(), 0);
+        console.log('PASS untyped result text is not interpreted as Job state');
 
         const search = page.locator('[data-part-id="actions-baseline-search-result"]');
         await search.locator('summary').click();

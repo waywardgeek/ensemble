@@ -173,13 +173,25 @@ Those are outcomes, not reasons to falsify the admission history.
 
 The GUI projects admitted execution as `tool_dispatched`. Refused calls have
 no such frame. They still get their paired result and visible error status.
-The browser's plan card can therefore change from **planned** to **started**
-to **finished/error**, without portraying a refusal as real execution.
+Retain the wire-level states `planned`, `started`, `finished` and `error` for
+machine behavior, but label them **Requested**, **Dispatched: awaiting result**,
+**Result returned** and **Error reported**. These labels describe admission and
+observation without portraying a refusal as real execution.
 
 `tool_finished` means the foreground observation returned. A running-job report
 can be a legitimate result: waiting stopped, while the independent job remains
 alive. Preserve the job handle and locator. Do not relabel that observation as
 process termination.
+
+When a result includes typed Job metadata, show its handle and **state when
+observed** separately: running, finished or killed, with the recorded exit code
+when available. Finished does not imply success, and an absent exit code is not
+zero. Keep earlier snapshots intact when a later observation arrives. Reopening
+an old transcript does not prove that a once-running Job is still running now.
+Unknown metadata stays unknown; prose that resembles a Job report must not create
+status facts. A live Job monitor would be a separate feature, not an inference
+from this retained result. Error reported likewise does not by itself distinguish
+a failed observation from unsuccessful execution; retain the exact result detail.
 
 `turn_ended` carries the completed answer when the turn completed normally, or
 an explicit terminal reason otherwise. It is not inferred from a transient

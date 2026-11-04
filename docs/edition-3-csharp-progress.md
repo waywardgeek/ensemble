@@ -1,3 +1,15 @@
+# Current boundary: recorded Actions-state presentation
+
+Actions now distinguishes Result returned from a typed Job state when observed.
+Requested/dispatched/error labels and tooltips are explicit; raw machine states
+and speech behavior stay unchanged. Unknown metadata is not inferred from prose.
+Four real-page suites pass; ambiguous-label and false-Job-completion mutants fail
+intended assertions. Build and joined fixture exit0. Chapter7 teaching updated.
+This is presentation evidence, not new lifecycle/persistence or public-grade
+certification. Pair navigation/stable tool controls and Chapter7/26 student gates
+remain open. See [evidence](edition-3-notes/artifacts-and-actions.md).
+No install, restart, release rebuild or human acceptance claim.
+
 # Current boundary: snippet copying source increment
 
 Closed assistant-text fences now offer logical-payload copying, with agreed LF
