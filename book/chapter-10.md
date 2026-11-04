@@ -105,6 +105,15 @@ Startup tries the primary and backup independently. Missing files allow a new se
 
 If both candidates fail, construction/startup is refused and saving is not armed. Do not “repair” an unreadable save by silently overwriting it with an empty conversation.
 
+### Persist descriptions, not live file grants
+
+Work-product metadata on a retained successful result survives snapshot and event
+roundtrips as ordinary immutable data. Do not serialize the Agent's live offer
+collection, file streams or active transfers. Loading a description must never
+reopen its path, register its ID, or create download authority. A new Agent with
+the same display name is still a new lifetime. Chapter 26 tests retained offer
+metadata alongside explicit refusal by the replacement live owner.
+
 ## 10.5 Reapply the current runtime
 
 Saved configuration is documentary. The application still supplies the current Configuration, skill catalog, primary skill, variable values, and tool handlers.

@@ -475,6 +475,21 @@ returns a running Job before the barrier opens, and its recorded duration remain
 unchanged after joined completion. Test refusal separately. Avoid a fragile test
 that assumes a loaded machine must finish within a tiny wall-clock threshold.
 
+### Completed structured results carry delivery metadata
+
+When a tool returns a structured result, keep its typed metadata with the owned
+Job until the completed observation delivers it. A timed running report is not
+that result. Later `wait_for_job` uses the original handle and delivers the
+completed metadata under the observing call's normal correlation. Preserve it
+when adding a Job snapshot or one-shot-limit notice; do not flatten the result
+to its output-file text. The work-product integration in Chapter 26 exercises
+this path with a successful offer that may arrive after an initial running report.
+
+An HTTP file transfer is not another tool observation or a new background Job.
+It has its own explicit lifetime, owned by the offering Agent and joined before
+that Agent's Sandbox is destroyed. Request cancellation stops that transfer;
+it does not erase the earlier offer or cancel another transfer.
+
 ## 4.7 The terminal
 
 `run_command` runs under a pseudo-terminal, and the chapter has a receipt of

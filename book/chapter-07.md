@@ -209,6 +209,23 @@ or absent timing metadata cannot become zero, current time or an inferred value.
 Test rerender, snapshot-only replay, exact timestamp detail and the distinction
 between an untimed draft and its finalized card.
 
+### Offer controls consume typed facts
+
+The later work-product feature renders a Download control only for a successful
+typed offer, never a pathname inferred from text. Bind the control to the actual
+card's Agent and opaque offer ID. Rendering or replaying an offer must make no
+download request. A human click starts the transfer, and the server rechecks live
+authority and the Sandbox. History can describe an expired offer without granting
+access to it.
+
+Retain the same control and feedback during ordinary rerenders. Give an active
+transfer a Cancel action. Bound both declared and streamed byte counts before
+creating a download Blob; an absent Content-Length does not remove the cap.
+Abort on transcript replacement, and check the current card object again before
+starting the browser download. A late response from an old card must not save a
+file under a replacement card's identity. Expose expired/unavailable and cancelled
+states without retrying automatically. Use download-only bytes, not inline HTML.
+
 ### Preserve paired controls and reading position
 
 Use the result frame's `tool_part_id` to link a result to its actual call card.

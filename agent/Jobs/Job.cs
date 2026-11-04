@@ -375,7 +375,7 @@ public sealed partial class Job
                     {
                         cursor = bytes;
                         return new ToolResultPart(callID, completed.Parts, completed.IsError,
-                            info, completed.ToolReferences);
+                            info, completed.ToolReferences, completed.WorkProduct);
                     }
                 }
                 bool truncated = fresh.Length > maxBytes;

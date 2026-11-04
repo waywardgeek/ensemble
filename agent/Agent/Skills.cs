@@ -38,8 +38,9 @@ public sealed partial class Agent
         }
         var context = History().View();
         var active = context.Dialogue.SelectMany(entry => entry.Parts).OfType<SkillPart>().ToArray();
-        // Host-screen access is never implied by the legacy unskilled registry.
-        if (name is "list_displays" or "screenshot")
+        // Screen capture and work-product offering require explicit grants, even
+        // when the legacy unskilled registry exposes ordinary file operations.
+        if (name is "list_displays" or "screenshot" or "offer_work_product")
         {
             return context.EnabledTools(policy).Contains(name);
         }

@@ -273,7 +273,7 @@ public sealed partial class Jobs
         }
         var pattern = selected.Pattern == "" ? "none" : selected.Pattern;
         var notice = $"[tool_limits consumed by this {call.Name} call: ai_callback_delay {selected.Delay}s, ai_callback_pattern {pattern}, max_output_bytes {selected.MaxBytes}]\n";
-        return new ToolObservation(new ToolResultPart(result.CallID, [new TextPart(notice), .. result.Parts], result.IsError, result.Job, result.ToolReferences), duration);
+        return new ToolObservation(new ToolResultPart(result.CallID, [new TextPart(notice), .. result.Parts], result.IsError, result.Job, result.ToolReferences, result.WorkProduct), duration);
     }
 
     private async Task<ToolResultPart> Control(ToolCallPart call, JobLimits limits, CancellationToken cancellation)

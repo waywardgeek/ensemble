@@ -79,7 +79,7 @@ public static partial class Gui
             {
                 facts.Add(new Event(EventKind.ToolReturned, seq: entry.Seq, time: entry.Time, parts: result.Parts,
                     callID: result.CallID, isError: result.IsError, job: result.Job,
-                    toolReferences: result.ToolReferences, observationDuration: entry.ObservationDuration));
+                    toolReferences: result.ToolReferences, observationDuration: entry.ObservationDuration, workProduct: result.WorkProduct));
             }
             else if (entry.Actor == Actor.Agent)
             {
@@ -181,6 +181,11 @@ public static partial class Gui
                 {
                     ["type"] = "tool_finished", ["agent_id"] = agentID, ["seq"] = fact.Seq,
                     ["observation_ms"] = fact.ObservationDuration?.TotalMilliseconds,
+                    ["work_product"] = fact.WorkProduct is null ? null : new JsonObject
+                    {
+                        ["id"] = fact.WorkProduct.ID, ["name"] = fact.WorkProduct.Name,
+                        ["offered_bytes"] = fact.WorkProduct.OfferedBytes
+                    },
                     ["recorded_at"] = fact.Time?.ToString("O"),
                     ["part_id"] = id, ["tool_part_id"] = calls.GetValueOrDefault(fact.CallID),
                     ["call_id"] = fact.CallID, ["result"] = JsonCodec.Text(fact.Parts),

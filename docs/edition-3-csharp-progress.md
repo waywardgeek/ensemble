@@ -1,3 +1,16 @@
+# Current boundary: work-product download source candidate
+
+Explicitly granted work-product offers carry typed retained descriptions, not
+restored live authority. Agent-owned copies enforce64 MiB, cancel and join before
+Sandbox teardown;64 offers per lifetime, click-time bytes, expiry on destruction
+or restart. Guarded HTTP and click-only browser download paths are implemented.
+Core3, actual HTTP boundary/abort/mount-stop, seven browser suites and350 shared
+groups pass. Truncated/stale-download/replay-cancellation mutants fail intended
+assertions. Test hosts join with exit0. Foundations3/4/7/9/10/18/26 updated.
+Named public artifact grading, coherent Chapter26 exercises, fresh students and
+Bill's usability acceptance remain open. No installation, restart or publication.
+See [evidence](edition-3-notes/artifacts-and-actions.md).
+
 # Current boundary: recorded timing source increment
 
 History's recorded time and monotonic admitted-dispatch observation duration now

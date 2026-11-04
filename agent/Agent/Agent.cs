@@ -188,6 +188,8 @@ public sealed partial class Agent
         }
         try
         {
+            // Revoke new offer/read admission before draining admitted work.
+            Attempt(CloseWorkProducts);
             Attempt(() => ShutdownAsync().GetAwaiter().GetResult());
             Attempt(DestroyChildren);
             destroyed = true;

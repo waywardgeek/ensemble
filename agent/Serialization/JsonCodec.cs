@@ -101,6 +101,17 @@ public static partial class JsonCodec
         return JsonNode.Parse(value.GetRawText());
     }
 
+    private static JsonObject? WriteWorkProduct(WorkProductInfo? value) => value is null ? null : new()
+    {
+        ["id"] = value.ID, ["name"] = value.Name, ["offered_bytes"] = value.OfferedBytes
+    };
+    private static WorkProductInfo? ReadWorkProduct(JsonElement owner)
+    {
+        if (!owner.TryGetProperty("work_product", out var value) || value.ValueKind == JsonValueKind.Null)
+            return null;
+        return new WorkProductInfo(String(value, "id"), String(value, "name"), value.GetProperty("offered_bytes").GetInt64());
+    }
+
     public static partial JsonObject WritePart(Part part) => part switch
     {
         HandoffPart p => new() { ["type"] = "handoff", ["text"] = p.Text },
@@ -132,6 +143,7 @@ public static partial class JsonCodec
         {
             ["type"] = "tool_result",
             ["call_id"] = p.CallID,
+            ["work_product"] = WriteWorkProduct(p.WorkProduct),
             ["parts"] = Parts(p.Parts),
             ["tool_references"] = new JsonArray(p.ToolReferences.Select(name => (JsonNode?)JsonValue.Create(name)).ToArray()),
             ["is_error"] = p.IsError
@@ -199,7 +211,7 @@ public static partial class JsonCodec
         "blob" => new BlobPart(String(value, "mime"), ReadRef(value.GetProperty("ref"))),
         "opaque" => new OpaquePart(ReadProvenance(value.GetProperty("from")), value.GetProperty("data")),
         "tool_call" => new ToolCallPart(String(value, "call_id"), ReadProvenance(value.GetProperty("from")), String(value, "name"), value.GetProperty("args"), value.TryGetProperty("opaque", out var op) ? op : null),
-        "tool_result" => new ToolResultPart(String(value, "call_id"), Parts(value), Flag(value, "is_error"), toolReferences: value.TryGetProperty("tool_references", out var references) ? references.EnumerateArray().Select(item => item.GetString()!) : null),
+        "tool_result" => new ToolResultPart(String(value, "call_id"), Parts(value), Flag(value, "is_error"), workProduct: ReadWorkProduct(value), toolReferences: value.TryGetProperty("tool_references", out var references) ? references.EnumerateArray().Select(item => item.GetString()!) : null),
         "redacted" => new RedactedPart(String(value, "kind"), value.GetProperty("bytes").GetInt64(), String(value, "reason"), value.TryGetProperty("ref", out var r) ? ReadRef(r) : null),
         var t => throw new FormatException($"Unknown part type: {t}")
     };
@@ -270,6 +282,7 @@ public static partial class JsonCodec
                 {
                     tool["parts"] = Parts(value.Parts);
                     tool["is_error"] = value.IsError;
+                    if (value.WorkProduct is not null) tool["work_product"] = WriteWorkProduct(value.WorkProduct);
                     if (!value.ToolReferences.IsEmpty)
                     {
                         tool["tool_references"] = new JsonArray(value.ToolReferences.Select(name => (JsonNode?)JsonValue.Create(name)).ToArray());
@@ -398,6 +411,7 @@ public static partial class JsonCodec
                 var tool = root.GetProperty("tool");
                 return new(kind, seq, time, parts: Parts(tool), callID: String(tool, "call_id"), name: OptionalString(tool, "name"),
                     args: tool.TryGetProperty("args", out var args) ? args : null, isError: Flag(tool, "is_error"),
+                    workProduct: ReadWorkProduct(tool),
                     observationDuration: root.TryGetProperty("observation_ticks", out var ticks) ? TimeSpan.FromTicks(ticks.GetInt64()) : null,
                     toolReferences: tool.TryGetProperty("tool_references", out var toolRefs) ? toolRefs.EnumerateArray().Select(item => item.GetString()!) : null,
                     job: tool.TryGetProperty("job", out var job) ? new JobInfo(

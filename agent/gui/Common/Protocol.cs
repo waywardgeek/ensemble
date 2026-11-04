@@ -57,6 +57,9 @@ public static partial class Gui
     // response copy observes both mount shutdown and request cancellation.
     private static partial void MapJobOutput(Microsoft.AspNetCore.Routing.IEndpointRouteBuilder routes,
         Agent source, int port, string? publicOrigin, CancellationToken stopping);
+    // Explicit live work-product offers; the Agent owns and joins each copy.
+    private static partial void MapWorkProducts(Microsoft.AspNetCore.Routing.IEndpointRouteBuilder routes,
+        Agent source, int port, string? publicOrigin, CancellationToken stopping);
     // Current-process accounting comes from Engine, never reconstructed from replay.
     public static partial JsonObject MeterFrame(Agent agent);
     // Replay and live durable delivery use this exact same projection.

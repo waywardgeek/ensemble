@@ -273,6 +273,23 @@ unanswered. Removing the shortcut also required its inherited Chapter 2 fake
 to finish the new protocol with a final reply. Extend the fake's conversation;
 keep its existing provenance and replay assertions.
 
+### Preserve typed result metadata
+
+A tool result can carry more than readable text. Keep immutable delivery metadata
+separate from its prose, and preserve it through the Agent's recorded event and
+result projections. Chapter 26 uses this seam for work-product offers: an opaque
+ID, display filename and size when offered accompany a successful result. A path
+or URL-looking string in ordinary prose cannot create that metadata or authorize
+a download. Error results cannot advertise a successful offer.
+
+Preserve the typed value when a Job returns its completed structured result and
+when one-shot observation notices wrap that result. A running report has no
+completed offer yet. Provider rendering consumes the ordinary description, not
+the opaque download identifier. Retained metadata is a description, not restored
+live authority; the owning Agent's live collection decides availability. The
+actual offer tool and download integration are constructed in Chapter 26 after
+the Sandbox and browser boundaries exist.
+
 ## 3.3 Six tools, and three named
 
 | tool | share of corpus | shape |

@@ -222,9 +222,10 @@ public sealed partial class ToolResultPart : Part
     public readonly ImmutableArray<Part> Parts;
     public readonly bool IsError;
     public readonly JobInfo? Job;
+    public readonly WorkProductInfo? WorkProduct;
     // Discovery evidence; only the deferred adapter emits provider references.
     public readonly ImmutableArray<string> ToolReferences;
-    public partial ToolResultPart(string callID, IEnumerable<Part> parts, bool isError = false, JobInfo? job = null, IEnumerable<string>? toolReferences = null);
+    public partial ToolResultPart(string callID, IEnumerable<Part> parts, bool isError = false, JobInfo? job = null, IEnumerable<string>? toolReferences = null, WorkProductInfo? workProduct = null);
 }
 // A safe replacement in derived context. Ref preserves a blob locator internally;
 // text projection must not disclose that locator to the model.
@@ -259,6 +260,7 @@ public sealed partial class Event
     public readonly long RedactTo;
     public readonly Redaction? Level;
     public readonly JobInfo? Job;
+    public readonly WorkProductInfo? WorkProduct;
     public readonly ImmutableArray<string> ToolReferences;
     // Display identity is independent of provider call IDs and opaque payloads.
     // ResponseID is the durable RequestSent sequence; IDs are parser-local,
@@ -280,7 +282,7 @@ public sealed partial class Event
         Redaction? level = null, string reason = "", JobInfo? job = null,
         long responseID = 0, IEnumerable<int>? partIDs = null, IEnumerable<string>? toolReferences = null,
         MemoryEntry? memory = null, MemoryRetirement? retirement = null, string taskID = "",
-        CompressionLaunch? compression = null, CompressionOutcome? outcome = null, TimeSpan? observationDuration = null);
+        CompressionLaunch? compression = null, CompressionOutcome? outcome = null, TimeSpan? observationDuration = null, WorkProductInfo? workProduct = null);
     // Attach finalized parser identities without altering canonical parts.
     public partial Event WithDisplay(long responseID, IEnumerable<int> partIDs);
     // Copy with History-assigned ordering; the original value is unchanged.

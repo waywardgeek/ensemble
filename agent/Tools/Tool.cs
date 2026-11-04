@@ -59,7 +59,7 @@ public sealed partial class Tool
     }
 
     public partial McpClient? Remote() => remote;
-    internal partial bool HasStructuredResult() => kind is ToolKind.Remote or ToolKind.InspectImage or ToolKind.Screenshot || waitForCompletion;
+    internal partial bool HasStructuredResult() => kind is ToolKind.Remote or ToolKind.InspectImage or ToolKind.Screenshot or ToolKind.OfferWorkProduct || waitForCompletion;
     internal partial bool WaitsForCompletion() => waitForCompletion;
 
     public partial Agent Parent() => parent ?? throw new InvalidOperationException("Tool is detached");
@@ -111,6 +111,11 @@ public sealed partial class Tool
                 Field("display", "integer", "Optional zero-based display index; omitted selects primary display 0. Captures the whole selected display.");
                 properties["display"]!["minimum"] = 0;
                 properties["display"]!["default"] = 0;
+                break;
+            case ToolKind.OfferWorkProduct:
+                name = "offer_work_product";
+                description = "Offer one Sandbox file for the human to download by clicking. No automatic transfer. Click-time contents, 64 MiB maximum, 64 offers per Agent lifetime; expires on Agent destruction or restart. Requires work-products skill.";
+                Field("path", "string", "Regular work-product file within the Agent's filesystem authority. Not a public URL or image input.", true);
                 break;
             case ToolKind.InspectImage:
                 name = "inspect_image";
@@ -485,6 +490,10 @@ public sealed partial class Tool
             if (kind is ToolKind.ListDisplays or ToolKind.Screenshot)
             {
                 return await HostScreenAsync(call, cancellation).ConfigureAwait(false);
+            }
+            if (kind == ToolKind.OfferWorkProduct)
+            {
+                return OfferWorkProduct(call, cancellation);
             }
             if (kind == ToolKind.InspectImage)
             {

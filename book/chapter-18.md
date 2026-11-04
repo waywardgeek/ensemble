@@ -288,6 +288,24 @@ This is the tested symlink-substitution boundary, not a claim about arbitrary
 privileged directory relocation, mount changes, or an attacker who already
 controls the host process. Keep that threat distinction visible.
 
+### Offers do not replace the filesystem boundary
+
+A work-product offer retains an authorized pathname inside its live Agent, not
+in a browser URL. Resolve and validate a regular file when creating the offer,
+then reopen through that same Sandbox for each deliberate download. A former
+successful check cannot authorize a subsequently replaced file or outward link.
+Use the existing nonblocking regular-file read so a FIFO cannot hold teardown
+waiting for a peer. Full-access Agents retain their configured filesystem scope;
+the download feature must not pretend that all Agents are workspace-confined.
+
+The Agent owns each in-flight copy's file handle and cancellation lifetime; the
+HTTP response stream is borrowed. Close admission, cancel copies and join their
+cleanup before closing the Sandbox. Perform copying and cancellation callbacks
+outside the ownership lock so a slow destination does not block unrelated reads.
+The approved click-time policy is not an immutable snapshot against concurrent
+same-size edits. Same-origin checks protect the HTTP boundary but do not establish
+a new human identity or make a bearer offer ID sufficient authentication.
+
 ## 18.4 The kernel half -- `sandbox-exec`
 
 The shell never calls our C# code, so the kernel has to enforce the

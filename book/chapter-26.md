@@ -54,4 +54,20 @@ projection checks pass, as do six browser suites and347 shared regression groups
 Timestamp-now and duration-zero mutants fail their intended assertions. Public
 grading, student reconstruction and human acceptance remain open.
 
+## Implemented increment: work-product source candidate
+
+The candidate now has explicitly granted file offers, typed retained metadata,
+Agent-owned cancellable copies and a guarded browser download route. The human
+clicks to transfer current contents; no frozen store or automatic transfer is
+created. Offers expire on Agent destruction or restart. Limits are 64 MiB per
+transfer and 64 offers per Agent lifetime, with refusal rather than eviction at
+the offer cap. Image-input and Job-output limits remain separate.
+
+Focused ownership, grant, replay, transfer-lifetime and real HTTP tests pass.
+Seven browser suites, truncated/stale-download negative controls and 350 shared
+regression groups pass. Explicit client-abort, mount-stop and replay-cancellation checks also pass. Full
+teaching, named public grader,
+exercises, student reconstruction and human acceptance remain open. This section
+is an increment record, not a completed chapter specification.
+
 Next: [Running Local Models](chapter-27.md).

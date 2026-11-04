@@ -198,7 +198,7 @@ public sealed partial class Engine
         return Parent().Tools().Where(tool => Parent().AllowsMemoryTool(tool.Name())
             && (tool.Name() != "goal_control" || Parent().GoalAvailable(context))
             && config.AllowsTool(tool.Name())
-            && (tool.Name() is not ("list_displays" or "screenshot") || enabled.Contains(tool.Name()))
+            && (tool.Name() is not ("list_displays" or "screenshot" or "offer_work_product") || enabled.Contains(tool.Name()))
             && !Parent().IsAutomaticTool(tool.Name())
             && ((skills.Length == 0 && Parent().SkillManager() is null) || declared.Contains(tool.Name()))).ToArray();
     }

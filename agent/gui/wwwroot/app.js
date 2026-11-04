@@ -402,6 +402,75 @@ function fullOutputLinks(card) {
     links.append(download, notice);
     card.node.append(links);
 }
+function workProductLinks(card) {
+    const offer = card.workProduct;
+    if (card.kind !== "tool_result" || card.status === "error" || !offer
+        || typeof offer.id !== "string" || !/^[a-f0-9]{32}$/i.test(offer.id)
+        || typeof offer.name !== "string" || !offer.name.trim() || /[\x00-\x1f\x7f/\\]/.test(offer.name)
+        || !Number.isSafeInteger(offer.offered_bytes) || offer.offered_bytes < 0
+        || offer.offered_bytes > 64 * 1024 * 1024) return;
+    const box = document.createElement("div");
+    box.className = "work-product-links";
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "btn btn-sm btn-outline-primary";
+    const label = "Download " + offer.name;
+    button.textContent = label;
+    const policy = document.createElement("small");
+    policy.textContent = `${offer.offered_bytes.toLocaleString()} bytes when offered · current contents on click · 64 MiB limit · expires on restart`;
+    const notice = document.createElement("span");
+    notice.setAttribute("role", "status");
+    const url = new URL("./work-products/download", document.baseURI);
+    url.searchParams.set("agent", card.agent);
+    url.searchParams.set("offer", offer.id);
+    button.addEventListener("click", async () => {
+        if (card.workProductController) { card.workProductController.abort(); return; }
+        if (selectionPending || !currentCard(card)) return;
+        const controller = new AbortController();
+        card.workProductController = controller;
+        button.textContent = "Cancel download";
+        notice.textContent = "Downloading current file contents…";
+        try {
+            const response = await fetch(url, {
+                headers: { "X-Ensemble-Work-Product": "1" }, signal: controller.signal
+            });
+            if (!response.ok) throw new Error(response.status === 403
+                ? "Download access refused."
+                : "Offer expired, unavailable, or exceeds the 64 MiB limit.");
+            const limit = 64 * 1024 * 1024;
+            if (Number(response.headers.get("Content-Length")) > limit)
+                throw new Error("Work product exceeds the 64 MiB download limit.");
+            const reader = response.body.getReader();
+            const chunks = [];
+            let bytes = 0;
+            while (true) {
+                const chunk = await reader.read();
+                if (chunk.done) break;
+                bytes += chunk.value.byteLength;
+                if (bytes > limit) throw new Error("Work product exceeds the 64 MiB download limit.");
+                chunks.push(chunk.value);
+            }
+            if (controller.signal.aborted || !currentCard(card))
+                throw new DOMException("Offer view changed", "AbortError");
+            const local = URL.createObjectURL(new Blob(chunks, { type: "application/octet-stream" }));
+            const anchor = document.createElement("a");
+            anchor.href = local;
+            anchor.download = offer.name;
+            anchor.click();
+            setTimeout(() => URL.revokeObjectURL(local), 1000);
+            notice.textContent = `Downloaded ${bytes.toLocaleString()} bytes.`;
+        } catch (error) {
+            if (currentCard(card)) notice.textContent = error.name === "AbortError"
+                ? "Download cancelled." : "Download failed: " + error.message;
+        } finally {
+            controller.abort();
+            if (card.workProductController === controller) card.workProductController = null;
+            button.textContent = label;
+        }
+    });
+    box.append(button, policy, notice);
+    card.node.append(box);
+}
 // Coalesce streamed chunks without delaying authoritative text or speech.
 const pendingCardRenders = new Set();
 let cardRenderTimer = null;
@@ -621,6 +690,12 @@ function render(card) {
         fullOutputLinks(card);
         card.renderedJobHandle = card.job?.handle;
     }
+    if (card.renderedWorkProductID !== card.workProduct?.id) {
+        card.workProductController?.abort();
+        card.node.querySelector(":scope > .work-product-links")?.remove();
+        workProductLinks(card);
+        card.renderedWorkProductID = card.workProduct?.id;
+    }
     renderRecordedTiming(card);
     if (artifact) renderPairLink(card);
 
@@ -769,6 +844,7 @@ function handle(frame) {
         clearTimeout(cardRenderTimer);
         cardRenderTimer = null;
         pendingCardRenders.clear();
+        for (const card of cards.values()) card.workProductController?.abort();
         cards.clear();
         transcript.replaceChildren();
         toolTranscript.replaceChildren();
@@ -851,6 +927,7 @@ function handle(frame) {
         card.kind = "tool_result";
         card.parts = frame.parts || [];
         card.job = frame.job;
+        card.workProduct = frame.is_error ? null : frame.work_product;
         card.role = "tool";
         card.status = frame.is_error ? "error" : "finished";
         card.text = (frame.result || (frame.parts || []).map(readable).join("\n"))

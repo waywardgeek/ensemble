@@ -214,7 +214,15 @@ internal static class CrossoverFixture
                     throw new InvalidOperationException("Submitted child missing from agents_status.");
             }
             Console.WriteLine("PASS submitted child remains idle, queryable, owned, and listed in agents_status");
-            File.WriteAllText(Path.Combine(directory, "fixture.json"), JsonSerializer.Serialize(new { handle, runningHandle, nestedHandle, oversizedHandle, cursorHandle, bulkHandle, removedHandle, outputHash, retainedArtifact = Path.Combine(retained.DataDirectory(), "submit.md") }));
+            string productPath = Path.Combine(directory, "offered-report.bin");
+            File.WriteAllBytes(productPath, [1, 2, 3]);
+            var workProduct = selected.OfferWorkProduct(productPath);
+            byte[] productBytes = System.Security.Cryptography.RandomNumberGenerator.GetBytes(32769);
+            File.WriteAllBytes(productPath, productBytes);
+            string workProductHash = Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(productBytes)).ToLowerInvariant();
+            selected.History().Append(new Event(EventKind.ToolObserved, callID: "fixture-work-product",
+                parts: [new TextPart("A real work-product offer for the isolated browser test.")], workProduct: workProduct));
+            File.WriteAllText(Path.Combine(directory, "fixture.json"), JsonSerializer.Serialize(new { workProduct = new { workProduct.ID, workProduct.Name, workProduct.OfferedBytes }, workProductHash, handle, runningHandle, nestedHandle, oversizedHandle, cursorHandle, bulkHandle, removedHandle, outputHash, retainedArtifact = Path.Combine(retained.DataDirectory(), "submit.md") }));
             Console.WriteLine("READY http://127.0.0.1:18202/assistant/ (embedded assets; loopback provider :18203)");
             while (!File.Exists(stopFile))
             {

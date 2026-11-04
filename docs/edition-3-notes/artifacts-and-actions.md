@@ -1,3 +1,85 @@
+## Work products: integrated source candidate
+
+Bill approved explicit granted offers, human-click transfer without a second
+approval dialog, click-time contents rather than immutable storage, expiry on
+Agent destruction/restart, 64 MiB per transfer and 64 offers per Agent lifetime.
+Additional offers refuse at the cap; existing offers are not silently evicted.
+Image-input and existing completed-Job-output limits remain separate.
+
+The Agent owns immutable live offer records behind its lifetime gate. IDs are
+opaque; retained WorkProductInfo exposes ID, filename and size when offered, not
+a host path. Both offering and opening use the same Sandbox regular-file read.
+Failed validation consumes no slot. Deserializing a result restores metadata only,
+never the live collection. Typed metadata follows successful ToolResultPart/Event,
+codec, numbering, Context, structured Job completion and GUI projection paths.
+Error results cannot offer files; result redaction drops metadata with the payload.
+
+The new work-products skill explicitly grants offer_work_product. Built-in
+installation and primary-skill discovery do not grant it; legacy unskilled model
+declarations exclude it. Unload prevents new offers. The packaged full/ensemble
+primary manifests list it as loadable; installed skill files are unchanged.
+Provider text describes the offer without transmitting its opaque ID. A focused
+Anthropic rendering assertion checks actual JSON properties and ID absence.
+
+CopyWorkProductAsync owns an in-flight transfer with an explicit Agent parent,
+opened file, linked cancellation and joined cleanup. The destination is borrowed.
+Agent destruction closes admission, cancels transfers and joins cleanup before
+Sandbox teardown. Copying and cancellation callbacks run outside the ownership
+gate. The HTTP route accepts only Agent identity and offer ID, checks the existing
+origin/custom-header boundary, and serves no-store, nosniff, download-only binary
+content. Failed partial transfers abort rather than report a truncated success.
+This is not a new GUI login mechanism or a file snapshot resistant to concurrent
+same-size modifications.
+
+The browser renders controls only from successful typed metadata. No transfer
+occurs on render. It captures the card's owner/offer, checks both declared and
+streamed 64 MiB bounds, supports cancellation, retains controls through rerender,
+and checks current card identity before initiating a browser download. Replay
+aborts discarded cards' requests. Expired offers show refusal, not a fresh grant.
+
+Verification: core --work-product-tests passes3 groups for ownership/click-time
+bytes/caps/replacement symlink, real skill and delayed Job metadata/replay, and
+barrier-controlled cancellation/joined Agent teardown. The output stream remains
+borrowed; a blocked copy does not block another. GUI --work-product-tests passes
+the real loopback HTTP route, including exact64 MiB transfer, oversized growth,
+missing file, foreign owner, same-name replacement, origin/header and path-query
+refusals. The additional slow-response test described below covers actual HTTP abort.
+
+Final browser/shared evidence: `/private/tmp/cadence-work-products-final.01eDyF`.
+Seven actual-page suites pass, including exact real-route post-offer file hash,
+click-only transfer, original filename, cancellation, expired metadata, exact
+64 MiB browser success, overflow with and without Content-Length, and stale-card
+completion refusal. Truncated-bytes and stale-completion mutants fail intended
+assertions. Fixture/provider/owned Agents join with exit0. Shared suite passes
+350/0 from the repository. Earlier browser evidence is
+`/private/tmp/cadence-work-products-browser.3mqruk`.
+
+Corrections retained: the first provider oracle matched the legitimate tool name
+with a broad substring; it now checks JSON property names plus opaque-ID absence.
+The first shared run passed348/1 because an exact ToolTests built-in inventory
+omitted the new name. A second legacy declaration expectation also needed to
+exclude the explicitly gated tool. Both exact expectations were corrected without
+changing production authority. The corrected pre-transfer shared run passed349/0
+in `/private/tmp/cadence-work-products.jVxCLY/shared-final.log`; it is earlier than
+the final350/0. Browser request tracking was moved before navigation so an
+accidental replay-time download cannot evade the click-only test.
+
+Targeted follow-up: job266 passes real client-abort and mount-stop tests using a
+barrier-controlled response sink at the test host's external I/O boundary. The
+real socket, route, Agent and Sandbox remain in use. Cancellation reaches the
+copy, and both request and mount remain unfinished until cleanup is released.
+Job268 in `/private/tmp/cadence-work-product-cancel.jSP234` passes the actual replay
+handler test; omitting replay cancellation fails the named assertion. The fixture
+joins with exit0. Only these two test files changed after the earlier350/0 run;
+production source still matches that receipt. No broad rerun was needed merely
+for freshness. Final ownership review covered admission, both membership links,
+borrowed response streams, cancellation outside the gate and joined teardown.
+
+Remaining gates: public artifact grader and its sensitivity,
+coherent Chapter26 exercises/integration, fresh student reconstruction for the
+substantively changed foundations, and Bill's usability acceptance. No installed
+application, service, credential, release output or publication was changed.
+
 ## Recorded time and observation duration: source increment verified
 
 Bill approved finalized fact recorded time, local display with exact timestamp,
@@ -266,3 +348,8 @@ explicit work-product offers. Public grader points, broader sensitivity checks, 
 chapter teaching, fresh student reconstruction and Bill's usability acceptance
 remain pending. Students can ask Cadence questions and run public graders under
 the [closeout plan](first-book-closeout-plan.md).
+
+Foundation lint follow-up: Chapters3/4/10 retain exactly the pre-existing em-dash
+lines compared with HEAD; Chapter18 passes hard checks. Advisories remain. The
+printed lint exit1 was retained even though a subsequent log-print command exited0;
+this is not recorded as a full manuscript lint pass.

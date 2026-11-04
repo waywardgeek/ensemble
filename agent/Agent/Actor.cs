@@ -190,7 +190,7 @@ public sealed partial class Agent
         }
         if (fact.Kind is EventKind.ToolReturned or EventKind.ToolObserved)
         {
-            var part = new ToolResultPart(fact.CallID, fact.Parts, fact.IsError, fact.Job, fact.ToolReferences);
+            var part = new ToolResultPart(fact.CallID, fact.Parts, fact.IsError, fact.Job, fact.ToolReferences, fact.WorkProduct);
             Publish(new Observation(ObservationKind.PartFinal, saved.Seq, part));
         }
     }
@@ -618,7 +618,7 @@ public sealed partial class Agent
                 {
                     Record(new Event(EventKind.ToolObserved, callID: result.CallID, parts: result.Parts,
                         isError: result.IsError, job: result.Job, toolReferences: result.ToolReferences,
-                        observationDuration: message.ObservationDuration));
+                        observationDuration: message.ObservationDuration, workProduct: result.WorkProduct));
                     StageHandoff(message.Call!, result);
                     message.ToolReply!.TrySetResult(result);
                 }
@@ -865,7 +865,7 @@ public sealed partial class Agent
                 ? EventKind.ToolObserved : EventKind.ToolReturned;
             Record(new Event(resultKind, callID: result.CallID, parts: result.Parts,
                 isError: result.IsError, job: isControl ? null : result.Job, toolReferences: result.ToolReferences,
-                observationDuration: message.ObservationDuration));
+                observationDuration: message.ObservationDuration, workProduct: result.WorkProduct));
             StageHandoff(completedCall, result);
             if (active?.Kind != MailKind.DirectTool)
             {

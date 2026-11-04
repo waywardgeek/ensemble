@@ -81,6 +81,14 @@ static string Wire(Vendor vendor, Context context, string model = "model-a")
 }
 try
 {
+    if (args is ["--work-product-tests"])
+    {
+        CheckCase("Work-product ownership, click-time bytes, lifetime and bounds", WorkProductTests.OwnershipAndBounds);
+        await AsyncCase("Work-product explicit tool authority and metadata replay", WorkProductTests.ToolAndReplay);
+        await AsyncCase("Work-product transfer cancellation and joined Agent teardown", WorkProductTests.TransferLifetime);
+        Console.WriteLine($"{passed} passed, {failures} failed");
+        return failures == 0 ? 0 : 1;
+    }
     if (args is ["--recorded-time-tests"])
     {
         CheckCase("Recorded times survive reduction, snapshot and legacy replay", PersistenceTests.RecordedTime);
@@ -921,6 +929,9 @@ try
     await AsyncCase("Chapter 11 automatic tools stay outside discovery", ActorTests.AutomaticDiscovery);
     await AsyncCase("Chapter 11 automatic completion respects pause and server errors", ActorTests.AutomaticPauseAndError);
     await AsyncCase("Chapter 11 failed HTTP consumes automatic ephemera", ActorTests.AutomaticFailedRequest);
+    CheckCase("Work-product ownership, click-time bytes, lifetime and bounds", WorkProductTests.OwnershipAndBounds);
+        await AsyncCase("Work-product explicit tool authority and metadata replay", WorkProductTests.ToolAndReplay);
+        await AsyncCase("Work-product transfer cancellation and joined Agent teardown", WorkProductTests.TransferLifetime);
     CheckCase("Recorded times survive reduction, snapshot and legacy replay", PersistenceTests.RecordedTime);
     await AsyncCase("Observation timing ends before independent Job completion", GuiCoreTests.ObservationTiming);
     CheckCase("portable snapshot, tail, log-only, retention and archive", PersistenceTests.Replay);
