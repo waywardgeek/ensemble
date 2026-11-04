@@ -278,6 +278,42 @@ code highlighting. Test malicious markup, encoded unsafe links and remote image
 syntax, including the absence of network requests. Library configuration is a
 security boundary, not a substitute for these tests.
 
+### Copy the logical code, not the preview
+
+Give explicitly closed fenced code in assistant text a **Copy code** button.
+Here, exact means the parser's logical code payload: omit the fences and Markdown
+quote/list prefixes; retain code indentation, Unicode, blank lines, trailing spaces
+and the payload's terminal newline. Accept the pinned parser's normalization to
+LF line endings. The original Markdown remains unchanged in the backing card and
+History. This is code copying, not a byte-for-byte export of the Markdown source.
+Junien's [snippet contribution](https://github.com/waywardgeek/ensemble/pull/7)
+informs this requirement and its clipboard-denial and literal-content tests.
+
+An unfinished fence renders readable code but has no Copy button, even after the
+response ends. Inline code, indented code, human text and reasoning cards have no
+snippet-copy controls. Reuse the existing parser rather than add a competing
+fence grammar. In the pinned parser, a fence token's source span includes its
+opening line, every body line, and a closing line only if consumed. Container
+prefix removal preserves body-line count. Count an unterminated final body line
+too; end-of-input must not masquerade as a closer. Test this assumption against
+empty blocks, nested quotes/lists, mismatched fences and indentation whenever the
+parser changes.
+
+Use an explicit button click and the clipboard write API. Capture the complete
+logical payload at that click; neither highlighting nor a collapsed preview is
+the source. The control stays outside long-code expansion, so copying a collapsed
+snippet still copies all its code. Report success only after the write completes.
+When the API is absent or denies access, show an honest failure status and a
+labelled read-only field containing the same payload for manual selection/copy.
+Do not read the clipboard, execute the snippet or submit it as a prompt.
+
+Keep unchanged snippet controls when later prose streams. Retaining the node
+preserves pending-copy state, success feedback, expansion and manual selection;
+restore keyboard focus if reparenting blurs that same retained control. A changed
+payload gets a new control. Late clipboard completion belongs to the old snippet
+and must not update a replacement card or redirect its copied bytes. These are
+browser interaction lifetimes, not additional persistent artifact ownership.
+
 ### Stream Markdown, render the accumulated text
 
 Keep the complete original Markdown in the backing card. Send text deltas over
@@ -484,7 +520,12 @@ Test real components with small external fakes. Important cases include:
    origin without granting it actor input capability.
 7. Inspect actual narrow-layout controls and safe rendering of hostile-looking
    code. Exercise full-content speaker buttons through a fake speech boundary.
-8. Exercise queued speech, interrupted-utterance cleanup, automatic typing pause,
+8. Compare copied bytes for complete fences, including Unicode, CRLF input,
+   quoted/list-contained code, empty blocks and a long collapsed preview. Refuse
+   unfinished fences; test denied/missing clipboard access, manual selection,
+   focus during streaming and completion after the original card disappears.
+   A deliberately preview-only copy and an unfinished-fence copy must fail.
+9. Exercise queued speech, interrupted-utterance cleanup, automatic typing pause,
    cross-tab resume, Stop speech/Escape preserving a draft, disconnect/reconnect,
    selection cleanup, transient restart state, and silent visibility wakeup.
 
@@ -501,6 +542,9 @@ This route covers 80 points: wire behavior, reconnect replay, GUI trace, and
 pause semantics. It excludes inherited Chapter 6 scoring and Go topology
 checks. The full historical Go route remains available and unchanged in scope.
 Neither route establishes accessible speech quality or real provider acceptance.
+These historical points do not certify the added snippet-copy obligations.
+Focused browser tests and the forthcoming named Artifacts grader cover that
+contract separately; student reconstruction and human usability remain distinct.
 
 For a human exercise, use a bounded task in the owned workspace. Watch a
 response stream, inspect thinking and tool details, send a hint, pause and

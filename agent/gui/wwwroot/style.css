@@ -340,5 +340,12 @@ body.compact #transcript { padding: .3rem; }
 .message blockquote { border-left: 3px solid var(--muted); padding-left: .65rem; margin: .4rem 0; }
 .message > :last-child { margin-bottom: 0; }
 
+/* Copy always owns the complete logical snippet, even beside a short preview. */
+.message .code-snippet { min-width: 0; margin: .35rem 0; }
+.message .snippet-controls { display: flex; flex-wrap: wrap; align-items: center; gap: .4rem; }
+.message .snippet-controls button { min-width: 44px; min-height: 44px; }
+.message .snippet-controls [role="status"] { font-size: .85em; overflow-wrap: anywhere; }
+.message .snippet-manual { width: 100%; min-height: 8rem; max-height: 20rem; font-family: monospace; }
+
 /* Explicitly preserve hidden-card semantics if card layout styles change. */
 #transcript .part[hidden] { display: none; }

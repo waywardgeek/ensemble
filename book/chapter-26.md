@@ -19,4 +19,14 @@ proposed slices and unresolved decisions. Implementation, public grading and
 fresh student reconstruction will earn the final teaching here. Permanent file
 storage, arbitrary HTML previews and a full timing profiler are outside scope.
 
+## Implemented increment: snippet copying
+
+The source candidate now supports logical-payload copying for explicitly closed
+assistant code fences. [Chapter 7](chapter-07.md#copy-the-logical-code-not-the-preview)
+teaches the contract at the original rendering construction point. Its focused
+browser verification includes denied clipboard access and stable streaming
+interaction. This is one increment, not completion of this chapter's exercises,
+public grading or student reconstruction. See the
+[development evidence](../docs/edition-3-notes/artifacts-and-actions.md).
+
 Next: [Running Local Models](chapter-27.md).

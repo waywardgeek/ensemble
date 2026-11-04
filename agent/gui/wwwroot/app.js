@@ -483,7 +483,7 @@ function render(card) {
     if (prose) {
         const body = keepBody || document.createElement("div");
         body.className = "message";
-        markdown(body, card.text);
+        markdown(body, card.text, card.kind === "text" && card.role === "assistant");
         if (!body.parentElement) card.node.append(body);
     } else {
         const details = document.createElement("details");

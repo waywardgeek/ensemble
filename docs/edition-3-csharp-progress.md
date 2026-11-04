@@ -1,3 +1,14 @@
+# Current boundary: snippet copying source increment
+
+Closed assistant-text fences now offer logical-payload copying, with agreed LF
+normalization, exact whitespace, denied-clipboard manual fallback and stable
+controls during streaming. Final embedded-page copy/Markdown/Actions suites pass;
+unfinished-fence and preview-copy mutants fail intended assertions. Fixture build
+and joined host pass. Chapter7 foundation teaching is updated; Chapters7/26 final
+student gates and named public grader coverage remain pending. No deployment,
+release rebuild or human/native-clipboard acceptance is implied. See
+[the evidence and limits](edition-3-notes/artifacts-and-actions.md).
+
 # Current boundary: first-book closeout navigation
 
 The working manuscript now contains Chapters 00–28: Voice and Images25,
