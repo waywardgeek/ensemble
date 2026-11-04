@@ -11,7 +11,7 @@ public static partial class Gui
         return $"{agentID}:r{responseID}:p{partID}";
     }
 
-    public static partial JsonObject PartFrame(string agentID, string id, Part part, Actor role, long sequence)
+    public static partial JsonObject PartFrame(string agentID, string id, Part part, Actor role, long sequence, DateTimeOffset? recordedAt)
     {
         var wire = JsonCodec.WritePart(part);
         wire["role"] = role == Actor.Agent ? "assistant" : role.ToString().ToLowerInvariant();
@@ -58,7 +58,7 @@ public static partial class Gui
         return new JsonObject
         {
             ["type"] = "part_final", ["agent_id"] = agentID, ["part_id"] = id,
-            ["seq"] = sequence, ["part"] = wire
+            ["seq"] = sequence, ["part"] = wire, ["recorded_at"] = recordedAt?.ToString("O")
         };
     }
 
@@ -77,18 +77,18 @@ public static partial class Gui
             }
             if (entry.Parts is [ToolResultPart result])
             {
-                facts.Add(new Event(EventKind.ToolReturned, seq: entry.Seq, parts: result.Parts,
+                facts.Add(new Event(EventKind.ToolReturned, seq: entry.Seq, time: entry.Time, parts: result.Parts,
                     callID: result.CallID, isError: result.IsError, job: result.Job,
-                    toolReferences: result.ToolReferences));
+                    toolReferences: result.ToolReferences, observationDuration: entry.ObservationDuration));
             }
             else if (entry.Actor == Actor.Agent)
             {
-                facts.Add(new Event(EventKind.ResponseEnded, seq: entry.Seq, parts: entry.Parts,
+                facts.Add(new Event(EventKind.ResponseEnded, seq: entry.Seq, time: entry.Time, parts: entry.Parts,
                     responseID: entry.ResponseID, partIDs: entry.PartIDs));
             }
             else
             {
-                facts.Add(new Event(EventKind.MessageReceived, seq: entry.Seq, actor: entry.Actor, parts: entry.Parts));
+                facts.Add(new Event(EventKind.MessageReceived, seq: entry.Seq, time: entry.Time, actor: entry.Actor, parts: entry.Parts));
             }
         }
         return facts.OrderBy(fact => fact.Seq).ToImmutableArray();
@@ -149,7 +149,7 @@ public static partial class Gui
                         ? $"{agentID}:e{fact.Seq}:p{i}"
                         : PartID(agentID, fact.ResponseID, fact.PartIDs[i]);
                     var role = fact.Kind == EventKind.ResponseEnded ? Actor.Agent : fact.Actor ?? Actor.Human;
-                    frames.Add(PartFrame(agentID, id, fact.Parts[i], role, fact.Seq));
+                    frames.Add(PartFrame(agentID, id, fact.Parts[i], role, fact.Seq, fact.Time));
                     ids.Add(id);
                     if (fact.Parts[i] is ToolCallPart call)
                     {
@@ -168,6 +168,7 @@ public static partial class Gui
                 frames.Add(new JsonObject
                 {
                     ["type"] = "tool_dispatched", ["agent_id"] = agentID, ["seq"] = fact.Seq,
+                    ["recorded_at"] = fact.Time?.ToString("O"),
                     ["part_id"] = id, ["call_id"] = fact.CallID, ["name"] = fact.Name,
                     ["input"] = JsonNode.Parse(fact.Args!.Value.GetRawText()),
                     ["job"] = fact.Job is null ? null : JsonNode.Parse(JsonCodec.WriteEvent(fact))?["tool"]?["job"]?.DeepClone()
@@ -179,6 +180,8 @@ public static partial class Gui
                 frames.Add(new JsonObject
                 {
                     ["type"] = "tool_finished", ["agent_id"] = agentID, ["seq"] = fact.Seq,
+                    ["observation_ms"] = fact.ObservationDuration?.TotalMilliseconds,
+                    ["recorded_at"] = fact.Time?.ToString("O"),
                     ["part_id"] = id, ["tool_part_id"] = calls.GetValueOrDefault(fact.CallID),
                     ["call_id"] = fact.CallID, ["result"] = JsonCodec.Text(fact.Parts),
                     ["parts"] = new JsonArray(fact.Parts.Select(p => (JsonNode)JsonCodec.WritePart(p)).ToArray()),

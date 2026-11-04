@@ -272,7 +272,7 @@ public sealed partial class History
                         }
                     }
                     pendingEntries.Add(new Entry(entry.Seq, entry.Actor,
-                        updatedParts, entry.ResponseID, entry.PartIDs));
+                        updatedParts, entry.ResponseID, entry.PartIDs, entry.Time, entry.ObservationDuration));
                 }
                 dialogue = pendingEntries;
                 break;
@@ -281,7 +281,7 @@ public sealed partial class History
                 dialogue.RemoveAll(entry => entry.Parts.Any(part => part is SkillPart));
                 if (!value.Parts.IsEmpty)
                 {
-                    dialogue.Add(new Entry(value.Seq, Actor.System, value.Parts));
+                    dialogue.Add(new Entry(value.Seq, Actor.System, value.Parts, time: value.Time));
                 }
                 phase = Phase.Idle;
                 break;
@@ -289,18 +289,18 @@ public sealed partial class History
                 // Hints are human conversation, not primary or skill instructions.
                 // Preserve an explicitly recorded system actor for ordinary
                 // historical system entries; never infer role from event position.
-                dialogue.Add(new Entry(value.Seq, value.Actor!.Value, value.Parts));
+                dialogue.Add(new Entry(value.Seq, value.Actor!.Value, value.Parts, time: value.Time));
                 break;
             case EventKind.RecallAdded:
                 // Retrieved text has the user's data role but never changes the
                 // user's entry, phase, usage, ephemera or tool authority.
-                dialogue.Add(new Entry(value.Seq, Actor.Human, value.Parts));
+                dialogue.Add(new Entry(value.Seq, Actor.Human, value.Parts, time: value.Time));
                 break;
             case EventKind.HandoffRecorded:
                 dialogue = HandoffDialogue(dialogue, value);
                 break;
             case EventKind.SkillLoaded:
-                dialogue.Add(new Entry(value.Seq, Actor.System, value.Parts));
+                dialogue.Add(new Entry(value.Seq, Actor.System, value.Parts, time: value.Time));
                 break;
             case EventKind.MessageReceived:
                 if (phase == Phase.Idle)
@@ -314,7 +314,7 @@ public sealed partial class History
                 }
                 else
                 {
-                    dialogue.Add(new Entry(value.Seq, value.Actor!.Value, value.Parts));
+                    dialogue.Add(new Entry(value.Seq, value.Actor!.Value, value.Parts, time: value.Time));
                 }
                 break;
             case EventKind.RequestSent:
@@ -327,7 +327,7 @@ public sealed partial class History
 
                 break;
             case EventKind.ResponseEnded:
-                dialogue.Add(new Entry(value.Seq, Actor.Agent, value.Parts, value.ResponseID, value.PartIDs));
+                dialogue.Add(new Entry(value.Seq, Actor.Agent, value.Parts, value.ResponseID, value.PartIDs, value.Time));
                 usage = usage.Add(value.Usage ?? new Usage());
                 if (phase == Phase.InFlight)
                 {
@@ -336,7 +336,7 @@ public sealed partial class History
 
                 break;
             case EventKind.ToolReturned:
-                dialogue.Add(new Entry(value.Seq, Actor.Tool, [new ToolResultPart(value.CallID, value.Parts, value.IsError, value.Job, value.ToolReferences)]));
+                dialogue.Add(new Entry(value.Seq, Actor.Tool, [new ToolResultPart(value.CallID, value.Parts, value.IsError, value.Job, value.ToolReferences)], time: value.Time, observationDuration: value.ObservationDuration));
                 if (phase == Phase.ToolsPending && LastCallsComplete(dialogue))
                 {
                     phase = Phase.InputPending;
@@ -434,7 +434,7 @@ public sealed partial class History
                     }
                     // A skill at the range start is preserved. Give the summary
                     // the first replaced entry's identity, not that skill's ID.
-                    result.Add(new Entry(entry.Seq, Actor.System, replacement));
+                    result.Add(new Entry(entry.Seq, Actor.System, replacement, time: value.Time));
                     inserted = true;
                 }
                 continue;
@@ -455,7 +455,7 @@ public sealed partial class History
                         t.IsError, t.Job, t.ToolReferences)
                     : p);
             var ids = entry.PartIDs.IsEmpty ? [] : kept.Select(index => entry.PartIDs[index]).ToImmutableArray();
-            result.Add(new Entry(entry.Seq, entry.Actor, parts, entry.ResponseID, ids));
+            result.Add(new Entry(entry.Seq, entry.Actor, parts, entry.ResponseID, ids, entry.Time, entry.ObservationDuration));
         }
         return result;
     }

@@ -479,6 +479,32 @@ function renderPairLink(card) {
     }
     button.textContent = card.kind === "tool_call" ? "View latest result" : "View call";
 }
+function renderRecordedTiming(card) {
+    let stamp = card.node.querySelector(":scope > .recorded-time");
+    const parsed = typeof card.recordedAt === "string" ? new Date(card.recordedAt) : null;
+    if (parsed && Number.isFinite(parsed.getTime())) {
+        if (!stamp) {
+            stamp = document.createElement("time");
+            stamp.className = "recorded-time";
+            card.node.append(stamp);
+        }
+        stamp.dateTime = card.recordedAt;
+        stamp.textContent = "Recorded " + parsed.toLocaleString();
+        stamp.title = "Finalized fact recorded at " + card.recordedAt;
+        stamp.setAttribute("aria-label", stamp.title);
+    } else stamp?.remove();
+    let elapsed = card.node.querySelector(":scope > .observation-duration");
+    if (card.kind === "tool_result" && Number.isFinite(card.observationMs) && card.observationMs >= 0) {
+        if (!elapsed) {
+            elapsed = document.createElement("div");
+            elapsed.className = "observation-duration";
+            card.node.append(elapsed);
+        }
+        elapsed.textContent = "Observation: " + (card.observationMs / 1000).toLocaleString(undefined,
+            { maximumFractionDigits: 3 }) + " s";
+        elapsed.title = "Dispatch to returned observation: " + card.observationMs + " ms; not background Job runtime";
+    } else elapsed?.remove();
+}
 function render(card) {
     if (cardHasSelection(card)) { queueCardRender(card); return; }
     pendingCardRenders.delete(card);
@@ -595,6 +621,7 @@ function render(card) {
         fullOutputLinks(card);
         card.renderedJobHandle = card.job?.handle;
     }
+    renderRecordedTiming(card);
     if (artifact) renderPairLink(card);
 
     pane.scrollTop = nearBottom ? pane.scrollHeight : savedScrollTop;
@@ -793,6 +820,11 @@ function handle(frame) {
     }
     if (!frame.part_id) return;
     const card = cardFor(frame.part_id);
+    if (["part_final", "tool_finished"].includes(frame.type)
+        || (frame.type === "tool_dispatched" && !card.recordedAt)) {
+        card.recordedAt = frame.recorded_at;
+    }
+    if (frame.type === "tool_finished") card.observationMs = frame.observation_ms;
     if (frame.type === "part_delta") {
         if (card.final) return;
         card.kind = frame.kind;

@@ -81,6 +81,13 @@ static string Wire(Vendor vendor, Context context, string model = "model-a")
 }
 try
 {
+    if (args is ["--recorded-time-tests"])
+    {
+        CheckCase("Recorded times survive reduction, snapshot and legacy replay", PersistenceTests.RecordedTime);
+        await AsyncCase("Observation timing ends before independent Job completion", GuiCoreTests.ObservationTiming);
+        Console.WriteLine($"{passed} passed, {failures} failed");
+        return failures == 0 ? 0 : 1;
+    }
     if (args is ["--tool-retention-tests"])
     {
         await AsyncCase("Ordinary results survive later requests and snapshot replay", ActorTests.ToolRetention);
@@ -914,6 +921,8 @@ try
     await AsyncCase("Chapter 11 automatic tools stay outside discovery", ActorTests.AutomaticDiscovery);
     await AsyncCase("Chapter 11 automatic completion respects pause and server errors", ActorTests.AutomaticPauseAndError);
     await AsyncCase("Chapter 11 failed HTTP consumes automatic ephemera", ActorTests.AutomaticFailedRequest);
+    CheckCase("Recorded times survive reduction, snapshot and legacy replay", PersistenceTests.RecordedTime);
+    await AsyncCase("Observation timing ends before independent Job completion", GuiCoreTests.ObservationTiming);
     CheckCase("portable snapshot, tail, log-only, retention and archive", PersistenceTests.Replay);
 CheckCase("validated backup recovery and failure nonmutation", PersistenceTests.Recovery);
 await AsyncCase("automatic lifecycle and current runtime reconfiguration", PersistenceTests.Runtime);

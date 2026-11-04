@@ -1,3 +1,16 @@
+# Current boundary: recorded timing source increment
+
+History's recorded time and monotonic admitted-dispatch observation duration now
+survive retained Context and snapshot-only replay. GUI shows local recorded time
+with exact timestamp detail and fixed Observation duration, not Job runtime.
+Missing legacy values stay unknown. Focused core/projection tests, six browser
+suites and347 shared groups pass; timing mutants fail intended assertions.
+Joined fixture exit0. Earlier shared harness had13 missing-cwd-fixture failures
+and one overstrong zero-delay refusal assertion; corrected run passes, evidence
+retained. Chapters2/4/7/10/26 updated; student/public-grader/human gates remain open.
+No install, restart, publication or live timer. See
+[evidence](edition-3-notes/artifacts-and-actions.md).
+
 # Current boundary: paired Actions and stable controls
 
 Explicit call/latest-result navigation uses actual current card relationships.

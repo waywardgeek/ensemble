@@ -452,6 +452,29 @@ its input loop. Returning a final model answer alone does not end the CLI
 session; EOF does. A library application has the same responsibility when it
 finishes using its Agent.
 
+### Measure the observation, not the worker
+
+Immediately after successfully recording dispatch admission, capture a monotonic
+clock reading. When the foreground observation produces its result, calculate the
+elapsed duration once and return it alongside that immutable result. The Agent
+records both in its paired returned event. Keep the clock local to the dispatch;
+a shared timer registry or polling loop would add another lifecycle authority.
+
+A schema or permission refusal has no admitted duration. An execution error after
+admission may have one. Cancellation that ends observation but leaves its Job
+running fixes the observation's duration at that boundary; later completion must
+not rewrite it. A control's own observation can likewise be measured without
+creating a wrapper Job. Paths without an explicit dispatch boundary, including
+the current skill-activation path, retain unknown duration rather than inventing
+one. This feature does not change their admission behavior.
+
+Persist the optional duration exactly as nonnegative ticks on the result event
+and retained Entry. The GUI may format seconds, but provider payloads remain
+unchanged. Test with a real custom tool held behind a barrier: the observation
+returns a running Job before the barrier opens, and its recorded duration remains
+unchanged after joined completion. Test refusal separately. Avoid a fragile test
+that assumes a loaded machine must finish within a tiny wall-clock threshold.
+
 ## 4.7 The terminal
 
 `run_command` runs under a pseudo-terminal, and the chapter has a receipt of

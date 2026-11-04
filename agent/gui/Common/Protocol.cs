@@ -66,5 +66,5 @@ public static partial class Gui
     private static partial ImmutableArray<Event> DisplayFacts(HistorySnapshot snapshot);
     public static partial string PartID(string agentID, long responseID, int partID);
     // Human-readable wire data retains the full canonical part under part.
-    public static partial JsonObject PartFrame(string agentID, string id, Part part, Actor role, long sequence);
+    public static partial JsonObject PartFrame(string agentID, string id, Part part, Actor role, long sequence, DateTimeOffset? recordedAt = null);
 }

@@ -219,6 +219,10 @@ public static partial class JsonCodec
             o["time"] = time.ToString("O");
         }
 
+        if (value.ObservationDuration is { } duration)
+        {
+            o["observation_ticks"] = duration.Ticks;
+        }
         switch (value.Kind)
         {
             case EventKind.HintReceived:
@@ -394,6 +398,7 @@ public static partial class JsonCodec
                 var tool = root.GetProperty("tool");
                 return new(kind, seq, time, parts: Parts(tool), callID: String(tool, "call_id"), name: OptionalString(tool, "name"),
                     args: tool.TryGetProperty("args", out var args) ? args : null, isError: Flag(tool, "is_error"),
+                    observationDuration: root.TryGetProperty("observation_ticks", out var ticks) ? TimeSpan.FromTicks(ticks.GetInt64()) : null,
                     toolReferences: tool.TryGetProperty("tool_references", out var toolRefs) ? toolRefs.EnumerateArray().Select(item => item.GetString()!) : null,
                     job: tool.TryGetProperty("job", out var job) ? new JobInfo(
                         job.GetProperty("handle").GetInt32(), String(job, "status"),

@@ -45,4 +45,13 @@ Detached controls cannot navigate through stale card objects. The focused
 actual-page tests and two deliberate defects verify this presentation increment.
 Public grading, student reconstruction and human usability acceptance remain open.
 
+## Implemented increment: recorded timing
+
+Recorded fact times now travel through retained Context and snapshot replay;
+monotonic dispatch-to-return durations describe foreground observations, not Job
+runtime. The foundations are taught in Chapters 2, 4, 7 and 10. Focused core and
+projection checks pass, as do six browser suites and347 shared regression groups.
+Timestamp-now and duration-zero mutants fail their intended assertions. Public
+grading, student reconstruction and human acceptance remain open.
+
 Next: [Running Local Models](chapter-27.md).

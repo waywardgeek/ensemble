@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Collections.Immutable;
 using System.Text.Json;
 using System.Text.Json.Nodes;
@@ -107,7 +108,7 @@ public sealed partial class Jobs
         return JsonSerializer.SerializeToElement(args);
     }
 
-    internal partial async Task<ToolResultPart> DispatchAsync(ToolCallPart call, CancellationToken cancellation, string? refusal)
+    internal partial async Task<ToolObservation> DispatchAsync(ToolCallPart call, CancellationToken cancellation, string? refusal)
     {
         JobLimits selected;
         bool consumed;
@@ -121,6 +122,7 @@ public sealed partial class Jobs
         cancellation.ThrowIfCancellationRequested();
         var tool = Parent().Tools().SingleOrDefault(t => t.Name() == call.Name);
         ToolResultPart result;
+        long? dispatchedAt = null;
         if (!Parent().ToolEnabled(call.Name))
         {
             Parent().History().Append(new Event(EventKind.ToolCalled,
@@ -175,6 +177,7 @@ public sealed partial class Jobs
                     tool.Validate(ExecutionArguments(call.Args));
                     Parent().History().Append(new Event(EventKind.ToolStarted,
                         callID: call.CallID, name: call.Name, args: call.Args));
+                    dispatchedAt = Stopwatch.GetTimestamp();
                     result = await Control(call, selected, cancellation);
                 }
             }
@@ -226,6 +229,7 @@ public sealed partial class Jobs
                 {
                     Parent().History().Append(new Event(EventKind.ToolStarted,
                         callID: call.CallID, name: call.Name, args: call.Args, job: job.Snapshot()));
+                    dispatchedAt = Stopwatch.GetTimestamp();
                 }
             }
             catch
@@ -262,13 +266,14 @@ public sealed partial class Jobs
                     true, job.Snapshot());
             }
         }
+        TimeSpan? duration = dispatchedAt is { } start ? Stopwatch.GetElapsedTime(start) : null;
         if (!consumed)
         {
-            return result;
+            return new ToolObservation(result, duration);
         }
         var pattern = selected.Pattern == "" ? "none" : selected.Pattern;
         var notice = $"[tool_limits consumed by this {call.Name} call: ai_callback_delay {selected.Delay}s, ai_callback_pattern {pattern}, max_output_bytes {selected.MaxBytes}]\n";
-        return new ToolResultPart(result.CallID, [new TextPart(notice), .. result.Parts], result.IsError, result.Job, result.ToolReferences);
+        return new ToolObservation(new ToolResultPart(result.CallID, [new TextPart(notice), .. result.Parts], result.IsError, result.Job, result.ToolReferences), duration);
     }
 
     private async Task<ToolResultPart> Control(ToolCallPart call, JobLimits limits, CancellationToken cancellation)

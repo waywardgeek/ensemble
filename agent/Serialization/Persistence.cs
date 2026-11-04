@@ -13,6 +13,8 @@ public static partial class JsonCodec
             dialogue.Add(new JsonObject
             {
                 ["seq"] = entry.Seq,
+                ["time"] = entry.Time,
+                ["observation_ticks"] = entry.ObservationDuration?.Ticks,
                 ["actor"] = entry.Actor.ToString().ToLowerInvariant(),
                 ["parts"] = new JsonArray(entry.Parts.Select(WritePart).ToArray()),
                 ["response_id"] = entry.ResponseID,
@@ -53,7 +55,11 @@ public static partial class JsonCodec
             {
                 throw new FormatException("Invalid saved display identities");
             }
-            entries.Add(new Entry(seq, actor, parts, responseID, ids));
+            DateTimeOffset? time = raw.TryGetProperty("time", out var recorded) && recorded.ValueKind != JsonValueKind.Null
+                ? recorded.GetDateTimeOffset() : null;
+            TimeSpan? duration = raw.TryGetProperty("observation_ticks", out var ticks) && ticks.ValueKind != JsonValueKind.Null
+                ? TimeSpan.FromTicks(ticks.GetInt64()) : null;
+            entries.Add(new Entry(seq, actor, parts, responseID, ids, time, duration));
         }
         var ephemeral = value.GetProperty("ephemeral").EnumerateArray().Select(ReadPart).ToImmutableArray();
         var phase = EnumValue<Phase>(String(value, "phase"));

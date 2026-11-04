@@ -244,6 +244,7 @@ public sealed partial class Event
     public readonly long Seq;
     public readonly EventKind Kind;
     public readonly DateTimeOffset? Time;
+    public readonly TimeSpan? ObservationDuration;
     public readonly Actor? Actor;
     public readonly ImmutableArray<Part> Parts;
     public readonly Provenance? From;
@@ -279,7 +280,7 @@ public sealed partial class Event
         Redaction? level = null, string reason = "", JobInfo? job = null,
         long responseID = 0, IEnumerable<int>? partIDs = null, IEnumerable<string>? toolReferences = null,
         MemoryEntry? memory = null, MemoryRetirement? retirement = null, string taskID = "",
-        CompressionLaunch? compression = null, CompressionOutcome? outcome = null);
+        CompressionLaunch? compression = null, CompressionOutcome? outcome = null, TimeSpan? observationDuration = null);
     // Attach finalized parser identities without altering canonical parts.
     public partial Event WithDisplay(long responseID, IEnumerable<int> partIDs);
     // Copy with History-assigned ordering; the original value is unchanged.
@@ -294,11 +295,14 @@ public sealed partial class Entry
     public readonly long ToolBytes;
     public readonly bool HasWholeToolResults;
     public readonly long Seq;
+    // Original recorded fact time; null means legacy or synthetic, never now.
+    public readonly DateTimeOffset? Time;
+    public readonly TimeSpan? ObservationDuration;
     public readonly Actor Actor;
     public readonly ImmutableArray<Part> Parts;
     public readonly long ResponseID;
     public readonly ImmutableArray<int> PartIDs;
-    public partial Entry(long seq, Actor actor, IEnumerable<Part> parts, long responseID = 0, IEnumerable<int>? partIDs = null);
+    public partial Entry(long seq, Actor actor, IEnumerable<Part> parts, long responseID = 0, IEnumerable<int>? partIDs = null, DateTimeOffset? time = null, TimeSpan? observationDuration = null);
 }
 
 /// <summary>Immutable replay result. History replaces this value after each event.

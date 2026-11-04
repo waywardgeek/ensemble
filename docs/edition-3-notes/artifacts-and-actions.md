@@ -1,3 +1,54 @@
+## Recorded time and observation duration: source increment verified
+
+Bill approved finalized fact recorded time, local display with exact timestamp,
+and monotonic dispatch-to-result observation duration, not background Job runtime.
+No streaming spans, whole-turn profiler or live timer is included.
+
+History-assigned UTC time now survives in immutable Entry values, their snapshot
+codec, filtering and handoff. A replacement summary carries its replacement fact's
+time. Historical absent time stays null. The GUI reconstructs finalized facts
+from these entries, so snapshot-only replay does not depend on retained diagnostic
+Events for dialogue timestamps. Existing diagnostic retention remains unchanged;
+direct-tool observations removed with that tail are not made permanent elsewhere.
+
+An internal immutable ToolObservation returns the existing result plus nullable
+elapsed time. Jobs captures a monotonic clock after successful ToolStarted append
+and stops it when the foreground observation has returned. Agent records the
+value on ToolReturned/ToolObserved; retained tool entries preserve it. Nullable
+nonnegative ticks roundtrip exactly, while GUI frames expose milliseconds. There
+is no shared timer registry, new Job lifetime or provider payload field. Refusals
+and skill activation without that explicit dispatch boundary remain untimed.
+
+Focused core tests pass: exact timestamp/offset and duration persistence, legacy
+omission, malformed/negative values, filtering, replacement summaries, handoff,
+and actual History append. A real barrier-held custom tool proves a running Job
+can outlive its recorded observation duration; later completion does not rewrite
+that result. The outside-assembly GUI projection test passes with an empty
+diagnostic tail, known original times and legacy unknown values.
+
+Browser evidence: `/private/tmp/cadence-timing-check.raf8eH`. Timing, pairing,
+state, baseline, copy and Markdown suites pass; timestamp-now and duration-zero
+mutants fail their assertions, as do the earlier pairing mutants. The fixture,
+provider and owned Agents exit0 after joined stop. Native acceptance, public
+grader points and fresh chapter reconstruction are not established.
+
+Failures and corrections: the first focused handoff fixture supplied TextPart
+instead of required HandoffPart; pure reduction correctly skipped it. The first
+shared run after duration edits launched from the browser fixture directory,
+causing thirteen missing-repository-fixture failures. A fourteenth failure was
+an overstrong new test: a zero-delay refused call's first report need not yet
+contain its worker's error. The corrected test checks no ToolStarted/no effect
+and absent duration, rather than the first report's IsError. The corrected shared
+run passes347/0 with exit0 in `shared-repo.log`; earlier `shared.log` is retained. A prior
+recorded-time-only shared run passed346/0 and does not certify duration changes.
+
+Chapters2/4/7/10/26 receive construction-point teaching and verification criteria.
+Their student/public-grader gates remain open. The final test-registration edit
+only corrects indentation; runtime and GUI source match the tested candidate.
+Hard lint failures in Chapters2/4/10
+are pre-existing em-dash lines, compared unchanged with HEAD; Chapter7/26 hard
+checks pass with advisories. No installation, restart or publication occurred.
+
 ## Pair navigation and stable tool controls
 
 The browser now keeps heading, details, preview and output controls instead of

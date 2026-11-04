@@ -364,7 +364,7 @@ public sealed partial class Event
         string error, long redactFrom, long redactTo, Redaction? level, string reason, JobInfo? job,
         long responseID, IEnumerable<int>? partIDs, IEnumerable<string>? toolReferences,
         MemoryEntry? memory, MemoryRetirement? retirement, string taskID,
-        CompressionLaunch? compression, CompressionOutcome? outcome)
+        CompressionLaunch? compression, CompressionOutcome? outcome, TimeSpan? observationDuration)
     {
         if (!Enum.IsDefined(kind) || (actor.HasValue && !Enum.IsDefined(actor.Value)))
         {
@@ -394,6 +394,12 @@ public sealed partial class Event
         TaskID = taskID;
         Compression = compression;
         Outcome = outcome;
+        if (observationDuration is { } duration && (duration < TimeSpan.Zero
+            || kind is not (EventKind.ToolReturned or EventKind.ToolObserved)))
+        {
+            throw new ArgumentException("Observation duration requires a returned tool observation");
+        }
+        ObservationDuration = observationDuration;
         Kind = kind;
         Seq = seq;
         Time = time;
@@ -452,17 +458,21 @@ public sealed partial class Event
         }
     }
 
-    public partial Event Numbered(long seq, DateTimeOffset time) => new(Kind, seq, time, Actor, Parts, From, Usage, CallID, Name, Args, IsError, Error, RedactFrom, RedactTo, Level, Reason, Job, ResponseID, PartIDs, ToolReferences, Memory, Retirement, TaskID, Compression, Outcome);
+    public partial Event Numbered(long seq, DateTimeOffset time) => new(Kind, seq, time, Actor, Parts, From, Usage, CallID, Name, Args, IsError, Error, RedactFrom, RedactTo, Level, Reason, Job, ResponseID, PartIDs, ToolReferences, Memory, Retirement, TaskID, Compression, Outcome, ObservationDuration);
 
     public partial Event WithDisplay(long responseID, IEnumerable<int> partIDs) =>
         new(Kind, Seq, Time, Actor, Parts, From, Usage, CallID, Name, Args,
-            IsError, Error, RedactFrom, RedactTo, Level, Reason, Job, responseID, partIDs, ToolReferences, Memory, Retirement, TaskID, Compression, Outcome);
+            IsError, Error, RedactFrom, RedactTo, Level, Reason, Job, responseID, partIDs, ToolReferences, Memory, Retirement, TaskID, Compression, Outcome, ObservationDuration);
 }
 public sealed partial class Entry
 {
-    public partial Entry(long seq, Actor actor, IEnumerable<Part> parts, long responseID, IEnumerable<int>? partIDs)
+    public partial Entry(long seq, Actor actor, IEnumerable<Part> parts, long responseID, IEnumerable<int>? partIDs, DateTimeOffset? time, TimeSpan? observationDuration)
     {
+        if (observationDuration is { } duration && duration < TimeSpan.Zero)
+            throw new ArgumentException("Negative observation duration");
+        ObservationDuration = observationDuration;
         Seq = seq;
+        Time = time;
         Actor = actor;
         Parts = parts.ToImmutableArray();
         ResponseID = responseID;

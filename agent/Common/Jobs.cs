@@ -17,6 +17,9 @@ public sealed record JobInfo(int Handle, string Status, string OutputPath, long 
 // Value-like observation policy. Delay wakes the caller; it never stops work.
 public sealed record JobLimits(double Delay = 3, string Pattern = "", int MaxBytes = 16384);
 
+// Immutable foreground observation, not the independent Job runtime.
+internal sealed record ToolObservation(ToolResultPart Result, TimeSpan? Duration);
+
 // Jobs strongly owns every admitted Job until explicit destruction. The lock
 // protects membership and pending observation settings; it is never held while work drains.
 public sealed partial class Jobs
@@ -44,7 +47,7 @@ public sealed partial class Jobs
     // Actor-only admission. Automatic work uses normal Job lifetime/output, but
     // is never admitted by a guessed tool name or an ordinary model call.
     internal partial Job StartAutomatic(AutomaticTool automatic);
-    internal partial Task<ToolResultPart> DispatchAsync(ToolCallPart call, CancellationToken cancellation = default, string? refusal = null);
+    internal partial Task<ToolObservation> DispatchAsync(ToolCallPart call, CancellationToken cancellation = default, string? refusal = null);
     // Validate before replacing the one pending observation override.
     public partial void SetLimits(JobLimits limits);
     // Cap current observers at the default delay measured from their start.

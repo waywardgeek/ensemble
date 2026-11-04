@@ -70,6 +70,53 @@ internal static class GuiCoreTests
         }
     }
 
+    public static async Task ObservationTiming()
+    {
+        var app = new Application(TextWriter.Null);
+        var agent = new Agent(app, new Configuration(Vendor.Anthropic, "fixture", "http://127.0.0.1"));
+        var entered = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var release = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        _ = new Tool(agent, "timing_probe", "Observation timing probe", JsonSerializer.SerializeToElement(new
+        {
+            type = "object", properties = new { }, additionalProperties = false
+        }), async (job, args, cancellation) =>
+        {
+            entered.TrySetResult();
+            await release.Task.WaitAsync(cancellation);
+            return "completed after observation";
+        });
+        try
+        {
+            var origin = agent.Configuration().Target();
+            await agent.DispatchAsync(new ToolCallPart("timing-bad", origin,
+                "timing_probe", JsonSerializer.SerializeToElement(new { extra = true, ai_callback_delay = 0 })));
+            Check(!agent.History().Events().Any(fact => fact.Kind == EventKind.ToolStarted && fact.CallID == "timing-bad")
+                && !entered.Task.IsCompleted, "Invalid timing probe was admitted");
+            var result = await agent.DispatchAsync(new ToolCallPart("timing-ok", origin,
+                "timing_probe", JsonSerializer.SerializeToElement(new { ai_callback_delay = 0 })));
+            await entered.Task.WaitAsync(TimeSpan.FromSeconds(5));
+            Check(!release.Task.IsCompleted && result.Job?.Status == "running",
+                "Timing probe did not return while independent work remained running");
+            var facts = agent.History().Events();
+            var returned = facts.Single(fact => fact.Kind == EventKind.ToolObserved && fact.CallID == "timing-ok");
+            Check(returned.ObservationDuration is { } duration && duration >= TimeSpan.Zero,
+                "Admitted observation has no nonnegative monotonic duration");
+            Check(facts.Single(fact => fact.Kind == EventKind.ToolObserved && fact.CallID == "timing-bad")
+                .ObservationDuration is null, "Refusal invented an admitted duration");
+            Check(JsonCodec.ReadEvent(JsonCodec.WriteEvent(returned)).ObservationDuration == returned.ObservationDuration,
+                "Event codec changed observation duration");
+            release.TrySetResult();
+            await agent.ShutdownAsync();
+            Check(agent.History().Events().Single(fact => fact.Seq == returned.Seq).ObservationDuration == returned.ObservationDuration,
+                "Job completion rewrote earlier observation duration");
+        }
+        finally
+        {
+            release.TrySetResult();
+            app.Destroy();
+        }
+    }
+
     public static async Task LifecycleFacts()
     {
         var app = new Application(TextWriter.Null);

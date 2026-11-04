@@ -193,6 +193,22 @@ status facts. A live Job monitor would be a separate feature, not an inference
 from this retained result. Error reported likewise does not by itself distinguish
 a failed observation from unsuccessful execution; retain the exact result detail.
 
+### Display recorded time and observation duration
+
+Project finalized facts with their recorded timestamp. The timestamp belongs to
+the retained Entry, not the browser's first paint or the diagnostic tail. Show a
+local date/time and expose its exact offset-bearing value in accessible detail.
+A streamed draft has no finalized timestamp yet. Keep a call's original recorded
+time when its dispatch status arrives; each result has its own recorded time.
+Missing historical values remain unknown.
+
+Show a returned tool's optional duration as **Observation**, explicitly identifying
+dispatch-to-return elapsed time rather than background Job runtime. Format the
+recorded value; never start a live counter on a retained running result. Invalid
+or absent timing metadata cannot become zero, current time or an inferred value.
+Test rerender, snapshot-only replay, exact timestamp detail and the distinction
+between an untimed draft and its finalized card.
+
 ### Preserve paired controls and reading position
 
 Use the result frame's `tool_part_id` to link a result to its actual call card.

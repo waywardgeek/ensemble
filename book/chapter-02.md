@@ -343,6 +343,20 @@ metadata, and metadata is allowed to be wrong: the clock on the machine that
 wrote the log may have been skewed, two events may share a timestamp, and a log
 assembled from two machines may not be monotonic at all. `Seq` is.
 
+History assigns UTC recorded time when it appends a fact. Carry that nullable
+value into its reduced Entry; replay and rendering must never substitute the
+current clock. Filtering or trimming an entry preserves its time. A newly
+synthesized summary carries the summary event's recorded time even though it
+occupies an earlier conversation position. Historical missing time stays unknown.
+
+A returned tool observation can also carry a nullable, nonnegative
+`ObservationDuration`. Chapter 4 measures it with a monotonic clock after dispatch
+admission, not by subtracting event timestamps. It describes the foreground
+observation, not the independent Job's total runtime. Keep it on the event and
+retained Entry, outside the provider-facing result payload. Copy operations such
+as numbering and reduction preserve this metadata; event constructors refuse it
+on non-result event kinds. Event ordering continues to use sequence numbers.
+
 Nothing in the log is ever edited, reordered, or deleted in place. When
 something needs to be removed from what the model sees, a new event goes on the
 end saying so, and the old event stays where it was. The log is written as
@@ -359,6 +373,7 @@ public sealed partial class Event
     public readonly long Seq;
     public readonly EventKind Kind;
     public readonly DateTimeOffset? Time;
+    public readonly TimeSpan? ObservationDuration;
     public readonly Actor? Actor;
     public readonly ImmutableArray<Part> Parts;
     public readonly Provenance? From;
@@ -372,7 +387,7 @@ public sealed partial class Event
         Actor? actor = null, IEnumerable<Part>? parts = null, Provenance? from = null,
         Usage? usage = null, string callID = "", string name = "", JsonElement? args = null,
         bool isError = false, string error = "", long redactFrom = 0, long redactTo = 0,
-        Redaction? level = null, string reason = "");
+        Redaction? level = null, string reason = "", TimeSpan? observationDuration = null);
     public partial Event Numbered(long seq, DateTimeOffset time);
 }
 ```
@@ -494,9 +509,12 @@ read. The shared shape is:
 public sealed partial class Entry
 {
     public readonly long Seq;
+    public readonly DateTimeOffset? Time;
+    public readonly TimeSpan? ObservationDuration;
     public readonly Actor Actor;
     public readonly ImmutableArray<Part> Parts;
-    public partial Entry(long seq, Actor actor, IEnumerable<Part> parts);
+    public partial Entry(long seq, Actor actor, IEnumerable<Part> parts,
+        DateTimeOffset? time = null, TimeSpan? observationDuration = null);
 }
 
 public sealed partial class Context

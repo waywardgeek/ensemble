@@ -47,6 +47,56 @@ internal static class PersistenceTests
         return JsonNode.Parse(JsonCodec.WriteSave(new SaveDocument(context, 1000, config, [])))!["context"]!.ToJsonString();
     }
 
+    public static void RecordedTime()
+    {
+        var original = new DateTimeOffset(2026, 11, 5, 9, 10, 11, TimeSpan.FromHours(-8));
+        var later = original.AddMinutes(3);
+        var context = History.Reduce(new Context(), new Event(EventKind.MessageReceived,
+            seq: 1, time: original, actor: Actor.Human, parts: [new TextPart("retained")]));
+        Check(context.Dialogue.Single().Time == original, "Reduction lost recorded time");
+        var config = JsonSerializer.SerializeToElement(new { model = "x", vendor = "anthropic", system_prompt = "", tools = Array.Empty<object>() });
+        var saved = JsonNode.Parse(JsonCodec.WriteSave(new SaveDocument(context, 1, config, [])))!;
+        var restored = JsonCodec.ReadSave(saved.ToJsonString()).Context!.Dialogue.Single();
+        Check(restored.Time == original && restored.Time.Value.Offset == original.Offset,
+            "Snapshot changed recorded time or offset");
+        saved["context"]!["dialogue"]![0]!.AsObject().Remove("time");
+        Check(JsonCodec.ReadSave(saved.ToJsonString()).Context!.Dialogue.Single().Time is null,
+            "Legacy snapshot invented a timestamp");
+        saved["context"]!["dialogue"]![0]!["time"] = "not a timestamp";
+        Refuses(() => JsonCodec.ReadSave(saved.ToJsonString()));
+        var filtered = History.Reduce(context, new Event(EventKind.Redacted, seq: 2,
+            time: later, redactFrom: 1, redactTo: 1, level: Redaction.Tool));
+        Check(filtered.Dialogue.Single().Time == original, "Filtering changed original time");
+        var summarized = History.Reduce(context, new Event(EventKind.Redacted, seq: 2,
+            time: later, redactFrom: 1, redactTo: 1, level: Redaction.Summary,
+            parts: [new TextPart("summary")]));
+        Check(summarized.Dialogue.Single().Time == later, "Summary borrowed replaced entry time");
+        var handoff = History.Reduce(context, new Event(EventKind.HandoffRecorded, seq: 2,
+            time: later, parts: [new HandoffPart("checkpoint")]));
+        Check(handoff.Dialogue[0].Time == original && handoff.Dialogue[1].Time == later,
+            "Handoff changed retained or checkpoint time");
+        var measured = TimeSpan.FromTicks(1234567);
+        var returned = new Event(EventKind.ToolReturned, seq: 2, time: later,
+            callID: "timed", parts: [new TextPart("result")], observationDuration: measured);
+        var timed = History.Reduce(context, returned);
+        Check(timed.Dialogue.Last().ObservationDuration == measured, "Reduction dropped duration");
+        var roundtrip = JsonCodec.ReadSave(JsonCodec.WriteSave(new SaveDocument(timed, 2, config, [])));
+        Check(roundtrip.Context!.Dialogue.Last().ObservationDuration == measured, "Snapshot rounded duration");
+        Check(returned.Numbered(3, later).ObservationDuration == measured, "Numbering dropped duration");
+        Refuses(() => new Event(EventKind.ToolReturned, callID: "negative", observationDuration: TimeSpan.FromTicks(-1)));
+        Refuses(() => new Event(EventKind.MessageReceived, observationDuration: measured));
+        var app = new Application(TextWriter.Null);
+        try
+        {
+            var agent = Agent(app);
+            var fact = agent.History().Append(new Event(EventKind.MessageReceived,
+                actor: Actor.Human, parts: [new TextPart("actual append")]));
+            Check(fact.Time is not null && agent.History().View().Dialogue.Last().Time == fact.Time,
+                "History-assigned time did not reach retained Context");
+        }
+        finally { app.Destroy(); }
+    }
+
     public static void Replay()
     {
         string directory = DirectoryForTest();

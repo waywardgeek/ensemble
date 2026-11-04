@@ -127,7 +127,7 @@ public sealed partial class Agent
         long WorkGeneration = 0, TaskCompletionSource<AgentWorkStatus>? StatusReply = null, QuestionInfo? Question = null, MemorySettings? MemorySettings = null, MemoryCompletion? MemoryCompletion = null, bool PersistMemorySettings = false,
         string? RecallQuery = null, Mail? RecallTurn = null, RecallCompletion? RecallCompletion = null, RecallSettings? RecallSettings = null, GoalUpdate? GoalUpdate = null,
         TaskCompletionSource<GoalStatus>? GoalReply = null, long GoalGeneration = 0,
-        GoalReadFailure? GoalFailure = null, bool AutomaticGoal = false);
+        GoalReadFailure? GoalFailure = null, bool AutomaticGoal = false, TimeSpan? ObservationDuration = null);
 
     // Human session control, not a model tool. Reject busy/queued work; retain
     // conversation, Engine, meter, lens, provider, surface and funding route.
@@ -172,8 +172,8 @@ public sealed partial class Agent
     private partial void Record(Event fact, ImmutableArray<int> partIDs = default);
     internal partial void Publish(Observation value);
     private partial Task TransportWorker(string body, CancellationToken cancellation);
-    private partial Task ToolWorker(Task<ToolResultPart> work);
-    private partial Task ControlWorker(Mail request, Task<ToolResultPart> work);
+    private partial Task ToolWorker(Task<ToolObservation> work);
+    private partial Task ControlWorker(Mail request, Task<ToolObservation> work);
     private partial Task StartupWorker(Mail request, Task work);
     private partial void SkipRemaining(string reason);
 }

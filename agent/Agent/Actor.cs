@@ -617,7 +617,8 @@ public sealed partial class Agent
                 try
                 {
                     Record(new Event(EventKind.ToolObserved, callID: result.CallID, parts: result.Parts,
-                        isError: result.IsError, job: result.Job, toolReferences: result.ToolReferences));
+                        isError: result.IsError, job: result.Job, toolReferences: result.ToolReferences,
+                        observationDuration: message.ObservationDuration));
                     StageHandoff(message.Call!, result);
                     message.ToolReply!.TrySetResult(result);
                 }
@@ -863,7 +864,8 @@ public sealed partial class Agent
             var resultKind = active?.Kind == MailKind.DirectTool
                 ? EventKind.ToolObserved : EventKind.ToolReturned;
             Record(new Event(resultKind, callID: result.CallID, parts: result.Parts,
-                isError: result.IsError, job: isControl ? null : result.Job, toolReferences: result.ToolReferences));
+                isError: result.IsError, job: isControl ? null : result.Job, toolReferences: result.ToolReferences,
+                observationDuration: message.ObservationDuration));
             StageHandoff(completedCall, result);
             if (active?.Kind != MailKind.DirectTool)
             {
@@ -1038,12 +1040,13 @@ public sealed partial class Agent
         }
     }
 
-    private partial async Task ControlWorker(Mail request, Task<ToolResultPart> work)
+    private partial async Task ControlWorker(Mail request, Task<ToolObservation> work)
     {
         Mail completion;
         try
         {
-            completion = request with { Kind = MailKind.ControlDone, Result = await work };
+            var observed = await work;
+            completion = request with { Kind = MailKind.ControlDone, Result = observed.Result, ObservationDuration = observed.Duration };
         }
         catch (Exception error)
         {
@@ -1139,12 +1142,13 @@ public sealed partial class Agent
         mailbox.Writer.TryWrite(completion);
     }
 
-    private partial async Task ToolWorker(Task<ToolResultPart> work)
+    private partial async Task ToolWorker(Task<ToolObservation> work)
     {
         Mail completion;
         try
         {
-            completion = new Mail(MailKind.ToolDone, Result: await work);
+            var observed = await work;
+            completion = new Mail(MailKind.ToolDone, Result: observed.Result, ObservationDuration: observed.Duration);
         }
         catch (Exception error)
         {

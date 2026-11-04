@@ -26,9 +26,9 @@ public sealed partial class History
             // immutable parts remain in canonical events for historical replay.
             var parts = indices.Select(index => entry.Parts[index] is TextPart text
                 ? new TextPart(text.Text) : entry.Parts[index]);
-            retained.Add(new Entry(entry.Seq, entry.Actor, parts, entry.ResponseID, ids));
+            retained.Add(new Entry(entry.Seq, entry.Actor, parts, entry.ResponseID, ids, entry.Time, entry.ObservationDuration));
         }
-        retained.Add(new Entry(value.Seq, Actor.System, value.Parts));
+        retained.Add(new Entry(value.Seq, Actor.System, value.Parts, time: value.Time));
         return retained;
     }
 }

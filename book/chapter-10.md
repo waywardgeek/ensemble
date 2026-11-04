@@ -75,6 +75,14 @@ There are three useful equivalent representations:
 | Snapshot plus tail | Complete through N | Includes required events > N |
 | Log-only | `null` | Complete from event 1 |
 
+Each retained Entry carries its optional recorded time and observation duration.
+Serialize the time with its offset and the duration as exact nonnegative ticks.
+Missing fields in legacy saves mean unknown, not restart time or zero. Preserve
+them through filtering, handoff and snapshot-only replay; a replacement summary
+uses its own recorded fact time. This does not extend diagnostic retention:
+discarded direct-tool or lifecycle diagnostics are still discarded, not copied
+into a second permanent timing log.
+
 A snapshot-only save is the first row with an empty log. It must restore both conversation and future numbering correctly.
 
 ## 10.4 Safe replacement and recovery
@@ -200,7 +208,7 @@ Use an owned directory, loopback fake provider, dummy key, and isolated browser 
 
 1. Send several turns, exit normally, restart without replay flags, and inspect the actual next provider request for each prior human turn exactly once.
 2. Change vendor, model, primary skill, variable values, and allowed tools. Check that saved conversation survives while current configuration governs the next request and save.
-3. Compare snapshot-plus-log, snapshot-only, log-only, and older-snapshot/newer-tail representations. Require equal effective conversation and continuous event numbering.
+3. Compare snapshot-plus-log, snapshot-only, log-only, and older-snapshot/newer-tail representations. Require equal effective conversation and continuous event numbering. Include exact retained recorded times and observation durations; remove timing fields to test legacy unknown values, and reject malformed times or negative durations.
 4. Save opaque values, exact-number arguments, media locators, usage, redacted results, summaries, and display identities. Test the real codec and reducer, not a substitute persistence model.
 5. Corrupt primary alone, then both candidates. Isolate invalid cases so a valid backup cannot hide decoder rejection. Verify file and live-state nonmutation on refusal.
 6. Block an archive or replacement path. Require a visible failure, no false success, and no diagnostic trimming. Verify a corrupt primary is not rotated over the good backup.

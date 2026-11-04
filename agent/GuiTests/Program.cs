@@ -62,6 +62,11 @@ static async Task<JsonElement> Frame(ClientWebSocket socket, string type, Cancel
             return json.RootElement.Clone();
     }
 }
+if (args is ["--recorded-time-tests"])
+{
+    RecordedTimeTests.Run();
+    return;
+}
 if (args is ["--diagnostic-tests"])
 {
     await DiagnosticRoutingTests.RunAsync();
