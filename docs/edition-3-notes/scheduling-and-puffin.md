@@ -10,6 +10,33 @@ Continue design first; decide the chapter boundaries afterward. "Puffin" is the
 working subject, not an assigned chapter number. Existing Chapter27 remains
 Crossing Over to Ensemble until an explicit manuscript reorganization.
 
+## Latest naming, chapter order, and persistence decisions
+
+The three new chapter subjects are **Connections, Agenda, and Puffin**. Agenda is
+our shared calendar/task/scheduler, not a Puffin-owned subsystem. Move Gateway's
+teaching immediately before Connections after dependency review; keep Crossing
+Over last. Actual numbering/files remain unchanged pending that review.
+
+Bill selected complete-file persistence for Gateway: serialize durable updates,
+validate and write a full JSON state candidate, flush/replace under an explicit
+durability contract, then publish/acknowledge. Preserve a validated backup. Queue
+admission and receipt changes count as durable updates; sockets/pings do not.
+**No Gateway event journal for now.** This supersedes the intermediate proposal
+of one journal for Gateway as well as Agenda and Ensemble.
+
+Agenda uses authoritative in-memory objects with JSON snapshots and its own
+sequenced event journal, using one validated append/apply path for live changes
+and deterministic state-only recovery. Puffin keeps Ensemble's existing persistence.
+Journals/snapshots must not contain credentials or replay external effects. Backup
+storage, retention and exact power-loss guarantees remain to be settled; private
+Git is not a selected live database or sole backup mechanism.
+
+Use ensemble-coding whenever writing code for any of these components. Update
+prior chapters as their construction contracts change, rather than require a
+fresh student to apply later repair notes. The revised outline recommends a
+bounded Gateway design delta first, then concrete vertical slices and continued
+refinement; it does not authorize a full speculative Gateway rewrite.
+
 ## Settled direction
 
 - Build a better Puffin in Ensemble and preserve her identity and useful memories.
