@@ -1,5 +1,8 @@
 # Rebuilding Puffin: current design direction
 
+See the [first three-chapter outline](puffin-chapter-outlines.md) for the proposed
+teaching/construction sequence and exercises. Numbering remains provisional.
+
 This section records the latest discussion and supersedes conflicting priorities
 in the historical investigation below. Puffin is the concrete proving application
 for shared infrastructure, not a special-purpose owner of platform services.
