@@ -1,3 +1,13 @@
+# Current boundary: paired Actions and stable controls
+
+Explicit call/latest-result navigation uses actual current card relationships.
+Tool controls retain focus, expansion and output feedback; selection defers
+rendering and focused readers retain pane position. Five actual-page suites pass;
+whole-card replacement and stale-navigation mutants fail intended assertions.
+Clean build and joined fixture exit0. Chapter7 teaching updated. Public grader,
+student and human acceptance remain open; no deployment or lifecycle change.
+See [evidence](edition-3-notes/artifacts-and-actions.md).
+
 # Current boundary: recorded Actions-state presentation
 
 Actions now distinguishes Result returned from a typed Job state when observed.

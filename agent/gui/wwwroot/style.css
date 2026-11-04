@@ -182,6 +182,7 @@ article.part { min-width: 0; margin: 0 0 0.325rem; }
 .card-heading strong { flex: 1; min-width: 0; overflow-wrap: anywhere; color: var(--bs-body-color); font-weight: 650; }
 .card-heading .btn { font-size: .7rem; padding: 0.0375rem 0.0875rem; }
 .tool-state { color: var(--muted); font-size: .68rem; margin-bottom: 0.075rem; }
+#tool-transcript [data-action="view-pair"] { min-height: 44px; min-width: 44px; margin-top: .2rem; }
 .part p { margin: 0 0 0.2125rem; overflow-wrap: anywhere; }
 .part p:last-child { margin-bottom: 0; }
 .part h2, .part h3, .part h4 { font-size: 1.15rem; margin: 0.275rem 0 0.1625rem; }

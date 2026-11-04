@@ -193,6 +193,31 @@ status facts. A live Job monitor would be a separate feature, not an inference
 from this retained result. Error reported likewise does not by itself distinguish
 a failed observation from unsuccessful execution; retain the exact result detail.
 
+### Preserve paired controls and reading position
+
+Use the result frame's `tool_part_id` to link a result to its actual call card.
+Names, Job handles and result prose cannot establish that relationship. Each
+result offers **View call**; its call offers **View latest result**. Earlier
+results retain their own call link. An absent or wrong-kind counterpart leaves
+an ordinary readable result without a guessed link.
+
+Keep these as relationships between the current presentation objects, not a
+second transcript. On activation, check both objects against the current card
+map and selected Agent, and require connected nodes. A detached button from an
+old replay must not target a new card merely because its ID was reused. Explicit
+navigation focuses and scrolls the counterpart; its controls have at least a
+44-pixel touch target.
+
+Preserve the actual heading, details summary and download controls when a result
+updates its call. Restoring only `details.open` after replacing the DOM loses
+keyboard focus and pending-control feedback. Update raw text only when changed,
+retain unchanged attachment and output controls, and defer repaint while selected
+text intersects the card. Selection release schedules the deferred render.
+Incoming output preserves pane position while the reader has focus or selection
+inside that pane. Otherwise, only a reader already near the bottom follows new
+output. Test both focus on the details summary and focus on the pair button when
+another result arrives; those exercise different update paths.
+
 `turn_ended` carries the completed answer when the turn completed normally, or
 an explicit terminal reason otherwise. It is not inferred from a transient
 return to Idle between tool rounds. The GUI derives the answer from the last

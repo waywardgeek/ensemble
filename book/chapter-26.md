@@ -34,7 +34,15 @@ public grading or student reconstruction. See the
 Tool cards distinguish Result returned from the Job's state when observed.
 Typed recorded metadata supplies the state and optional exit code; prose does not.
 [Chapter 7](chapter-07.md#74-truthful-tool-cards) teaches the distinction at the
-projection boundary. This is not a live Job monitor. Pair navigation, stable tool
-controls and the chapter's broader acceptance gates remain unfinished.
+projection boundary. This is not a live Job monitor.
+
+## Implemented increment: pairing and stable reading
+
+Explicit call/latest-result navigation now uses the projected call relationship.
+Tool-card controls retain focus, expansion and download feedback during updates;
+selected text defers rendering and focused readers retain their pane position.
+Detached controls cannot navigate through stale card objects. The focused
+actual-page tests and two deliberate defects verify this presentation increment.
+Public grading, student reconstruction and human usability acceptance remain open.
 
 Next: [Running Local Models](chapter-27.md).

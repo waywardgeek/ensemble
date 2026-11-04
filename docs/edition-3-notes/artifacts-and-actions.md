@@ -1,3 +1,40 @@
+## Pair navigation and stable tool controls
+
+The browser now keeps heading, details, preview and output controls instead of
+replacing an entire tool card on status updates. Raw text changes only when its
+value changes; selection continues to defer rendering. Current card relationships
+provide View call and View latest result. Activation checks object identity,
+selected Agent and connected nodes, refusing stale controls after replacement.
+Pair controls have 44-pixel targets. Focus or selection inside a pane prevents
+incoming output from pulling the reader to the bottom.
+
+`agent/GuiTests/actions-pairing.cjs` uses the actual embedded page and synthetic
+wire facts. It checks retained summary and pair-button focus, expansion, output
+control identity and feedback, selected-text deferral, focused-reader scroll,
+latest and earlier result navigation, missing/wrong-kind counterparts and detached
+controls with reused IDs. The pending-download case sets the control state
+synthetically; it does not claim new transport cancellation coverage.
+
+Final evidence: `/private/tmp/cadence-pairing-check.3dACzV`. Pairing, state,
+baseline, snippet-copy and Markdown suites pass. Whole-card replacement and
+stale-navigation mutants fail the intended assertions. Explicit SDK build has
+zero warnings/errors; browser and joined host exit0. Source hashes are retained
+in that directory. No installation, public-grade points, student reconstruction
+or human usability acceptance is implied.
+
+Earlier evidence `/private/tmp/cadence-actions-pairing.AfThSs` passed the initial
+five suites. The expanded selection test in
+`/private/tmp/cadence-actions-pairing-final.wNr2wX` initially selected text in closed
+details and obtained an empty selection. Opening details corrected the test setup;
+no product fix was inferred from that failure. Both hosts joined cleanup.
+Review also caught that requiring a result node to be connected before retaining
+the call button would remove focus during the result's first insertion. Rendering
+keeps the valid current-object link; activation still requires connected nodes.
+
+Lesson: retaining an expanded value is not retaining the actual control and its
+interaction state. Tests must exercise the reader's visible state, not a selection
+inside hidden detail.
+
 # Artifacts and Actions: development evidence
 
 ## Current boundary: observation labels and recorded Job state
@@ -169,8 +206,9 @@ failed run also joined its host cleanup.
 
 ## Next work and acceptance limits
 
-The snippet source increment above is verified within its stated scope. The next Actions work is explicit pair navigation and stable tool-card
-interaction. The recorded-state distinction is implemented above.
+The snippet, recorded-state and pair-navigation increments above are verified
+within their stated presentation scopes. Next are recorded timing semantics and
+explicit work-product offers.
 
 Later slices cover paired state presentation, agreed timestamps/durations and
 explicit work-product offers. Public grader points, broader sensitivity checks, substantive

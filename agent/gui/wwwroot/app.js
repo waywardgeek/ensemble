@@ -452,19 +452,46 @@ function recordedJobLabel(job) {
     const exit = Number.isSafeInteger(job.exit_code) ? ` · exit code ${job.exit_code}` : "";
     return `Job ${job.handle} · state when observed: ${state}${exit}`;
 }
+function currentCard(card) {
+    return card && cards.get(card.id) === card && card.agent === agentID && card.node.isConnected;
+}
+function renderPairLink(card) {
+    const target = card.kind === "tool_call" ? card.latestResult : card.callCard;
+    let button = card.node.querySelector(':scope > [data-action="view-pair"]');
+    // The result may be assigned before its first DOM insertion. Keep the
+    // existing control through that update; clicks still require connected cards.
+    if (!target || cards.get(target.id) !== target || target.agent !== card.agent) {
+        button?.remove();
+        return;
+    }
+    if (!button) {
+        button = actionButton("", () => {
+            // Resolve the actual relationship on click; replay invalidates old
+            // objects even when the new transcript reuses the same wire IDs.
+            const counterpart = card.kind === "tool_call" ? card.latestResult : card.callCard;
+            if (!currentCard(card) || !currentCard(counterpart)) return;
+            counterpart.node.tabIndex = -1;
+            counterpart.node.focus({ preventScroll: true });
+            counterpart.node.scrollIntoView({ block: "nearest" });
+        });
+        button.dataset.action = "view-pair";
+        card.node.append(button);
+    }
+    button.textContent = card.kind === "tool_call" ? "View latest result" : "View call";
+}
 function render(card) {
     if (cardHasSelection(card)) { queueCardRender(card); return; }
     pendingCardRenders.delete(card);
     const artifact = ["tool_call", "tool_result", "blob"].includes(card.kind);
     const pane = artifact ? toolTranscript : transcript;
     const savedScrollTop = pane.scrollTop;
-    const nearBottom = pane.scrollHeight - pane.scrollTop - pane.clientHeight < 90;
+    const reading = pane.contains(document.activeElement) || [...cards.values()].some(
+        item => item.node.parentElement === pane && cardHasSelection(item));
+    const nearBottom = !reading && pane.scrollHeight - pane.scrollTop - pane.clientHeight < 90;
     if (card.node.parentElement !== pane) pane.append(card.node);
-    const oldDetails = card.node.querySelector("details");
-    const wasOpen = oldDetails ? oldDetails.open : false;
     const prose = ["text", "thinking", "reasoning_summary"].includes(card.kind);
     const keepBody = prose && card.node.querySelector(":scope > .message");
-    if (!keepBody) card.node.replaceChildren();
+    if (!keepBody && !artifact) card.node.replaceChildren();
     card.node.className = "part";
     card.node.dataset.role = card.role;
     card.node.dataset.kind = card.kind;
@@ -487,18 +514,18 @@ function render(card) {
     const statusLabel = artifact && card.status ? toolObservationLabel(card) : card.status;
     title.title = `${author} · ${card.name || card.toolName || kind}${summary}${statusLabel ? " · " + statusLabel : ""}`;
     if (artifact && card.status) {
-        const status = document.createElement("div");
+        const status = card.node.querySelector(":scope > .tool-state:not(.job-state)") || document.createElement("div");
         status.className = "tool-state";
         status.textContent = toolObservationLabel(card);
-        card.node.append(status);
+        if (!status.parentElement) card.node.append(status);
     }
     const jobLabel = card.kind === "tool_result" ? recordedJobLabel(card.job) : "";
     if (jobLabel) {
-        const recorded = document.createElement("div");
+        const recorded = card.node.querySelector(":scope > .job-state") || document.createElement("div");
         recorded.className = "tool-state job-state";
         recorded.textContent = jobLabel;
-        card.node.append(recorded);
-    }
+        if (!recorded.parentElement) card.node.append(recorded);
+    } else card.node.querySelector(":scope > .job-state")?.remove();
     const speaker = heading.querySelector('[data-action="speak"]') || actionButton("Speak", () => speak(card));
     speaker.setAttribute("aria-label", `Speak ${author} ${card.kind}`);
     speaker.title = speaker.getAttribute("aria-label");
@@ -517,37 +544,59 @@ function render(card) {
         markdown(body, card.text, card.kind === "text" && card.role === "assistant");
         if (!body.parentElement) card.node.append(body);
     } else {
-        const details = document.createElement("details");
-        details.open = wasOpen;
-        const summary = document.createElement("summary");
-        summary.textContent = "Expand complete received payload";
-        const pre = document.createElement("pre");
-        pre.textContent = card.text;
-        details.append(summary);
-        if (card.change) {
+        let details = card.node.querySelector(":scope > details");
+        if (!details) {
+            details = document.createElement("details");
+            const summary = document.createElement("summary");
+            summary.textContent = "Expand complete received payload";
+            details.append(summary, document.createElement("pre"));
+            card.node.append(details);
+        }
+        const pre = details.querySelector("pre:not(.edit-change)");
+        if (pre.textContent !== card.text) pre.textContent = card.text;
+        pre.className = card.toolName === "search_files" ? "search-results" : "tool-output";
+        if (card.change && !details.querySelector(".edit-change")) {
             const label = document.createElement("p");
             label.textContent = "Applied exact replacement (not a whole-file diff)";
             const change = document.createElement("pre");
             change.className = "edit-change";
             change.textContent = "- " + card.change.old_text.split("\n").join("\n- ")
                 + "\n+ " + card.change.new_text.split("\n").join("\n+ ");
-            details.append(label, change);
+            details.insertBefore(label, pre);
+            details.insertBefore(change, pre);
         }
-        pre.className = card.toolName === "search_files" ? "search-results" : "tool-output";
-        details.append(pre);
         if (artifact && card.kind !== "blob") {
-            const preview = document.createElement("pre");
-            preview.className = "preview";
+            let preview = card.node.querySelector(":scope > .preview");
+            if (!preview) {
+                preview = document.createElement("pre");
+                preview.className = "preview";
+                card.node.insertBefore(preview, details);
+                details.ontoggle = () => { preview.hidden = details.open; };
+            }
             const clipped = card.text.slice(0, 1400).split("\n").slice(0, 18).join("\n");
-            preview.textContent = clipped + (clipped.length < card.text.length ? "\n… (bounded preview)" : "");
-            preview.hidden = wasOpen;
-            details.ontoggle = () => { preview.hidden = details.open; };
-            card.node.append(preview);
+            const previewText = clipped + (clipped.length < card.text.length ? "\n… (bounded preview)" : "");
+            if (preview.textContent !== previewText) preview.textContent = previewText;
+            preview.hidden = details.open;
         }
-        card.node.append(details);
     }
-    for (const part of card.parts || []) media(card.node, part, card);
-    fullOutputLinks(card);
+    // Passive attachments and the owned-output control are separate from raw
+    // detail. A call status update must not replace a focused summary or an
+    // in-flight download button. Parts are immutable projection values.
+    if (card.renderedParts !== card.parts) {
+        card.node.querySelector(":scope > .artifact-media")?.remove();
+        const attachments = document.createElement("div");
+        attachments.className = "artifact-media";
+        for (const part of card.parts || []) media(attachments, part, card);
+        if (attachments.childNodes.length) card.node.append(attachments);
+        card.renderedParts = card.parts;
+    }
+    if (card.renderedJobHandle !== card.job?.handle) {
+        card.node.querySelector(":scope > .artifact-links")?.remove();
+        fullOutputLinks(card);
+        card.renderedJobHandle = card.job?.handle;
+    }
+    if (artifact) renderPairLink(card);
+
     pane.scrollTop = nearBottom ? pane.scrollHeight : savedScrollTop;
 }
 // State is acknowledged, not inferred from transcript content or tool activity.
@@ -775,8 +824,11 @@ function handle(frame) {
         card.text = (frame.result || (frame.parts || []).map(readable).join("\n"))
             .replace(/\x1b\[[0-?]*[ -/]*[@-~]/g, "");
         card.final = true;
-        if (frame.tool_part_id && cards.has(frame.tool_part_id)) {
+        if (frame.tool_part_id && cards.get(frame.tool_part_id)?.kind === "tool_call" &&
+            cards.get(frame.tool_part_id)?.agent === card.agent) {
             const call = cards.get(frame.tool_part_id);
+            call.latestResult = card;
+            card.callCard = call;
             call.status = frame.is_error ? "error" : "finished";
             card.toolName = call.name;
             if (!frame.is_error && call.name === "edit_file" &&
@@ -791,6 +843,7 @@ function handle(frame) {
         if (!card.node.parentElement) render(card);
         else queueCardRender(card);
     } else render(card);
+    if (card.callCard) renderPairLink(card.callCard);
     narrate(card);
 }
 function connect() {
