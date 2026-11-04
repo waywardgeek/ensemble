@@ -1,3 +1,19 @@
+## Current increment: first-book closeout and student reconstruction
+
+Bill authorized completion of the Artifacts/Actions and Local Models closeout,
+with Local Models the last development slice. Cadence implements personally;
+after each substantive chapter upgrade, Bill authorizes a fresh student sub-agent
+in an explicitly scoped isolated worktree to reconstruct that chapter from honest
+prerequisites. No completed-solution leakage or automatic student patch adoption.
+Collect questions, explicit submissions and independent grading; revise original
+teaching and retest substantive gaps. One closeout student at a time; preserve the
+existing Measure X ownership. This supersedes earlier no-worker wording only for
+these bounded chapter-student exercises. See
+[the execution plan](edition-3-notes/first-book-closeout-plan.md).
+Deployment, restarts, installs, model downloads, paid probes and laptop/network
+changes require separate authority. Local-model target: existing Ollama launched
+inside WSL on Bill's Alienware laptop; hardware and versions await verification.
+
 ## Current increment: two books, Development-Driven Specs
 
 The coding-agent book stays in `book/`, currently Chapters 00–26 with Crossing
