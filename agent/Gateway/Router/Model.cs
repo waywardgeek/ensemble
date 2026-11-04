@@ -245,31 +245,36 @@ internal sealed partial class DeliveryQueue
     {
         if (saved is not null)
         {
-            if (saved.Ack > saved.Next) throw new InvalidDataException("Receipt exceeds allocated sequence.");
-            ulong previous = saved.Ack;
-            foreach (Envelope entry in saved.Messages ?? [])
-            {
-                Envelope? message = entry is null ? null : Wire.NormalizeEnvelope(entry);
-                if (message is null || previous == ulong.MaxValue || message.Seq != previous + 1 ||
-                    message.Seq > saved.Next || message.ToAgent != parent.id ||
-                    message.ID != $"{parent.id}:{message.Seq}" || message.Timestamp == default ||
-                    message.Source is not { Type: "agent" } source || string.IsNullOrEmpty(source.UserID) ||
-                    string.IsNullOrEmpty(source.ChannelID) || source.Trust is not ("external" or "trusted" or "owner") ||
-                    message.Content is null || message.ConversationID is null || message.ResponseMode is null)
-                {
-                    throw new InvalidDataException("Invalid persisted delivery queue.");
-                }
-                // Old accepted policy may no longer exist: envelopes are stamped
-                // historical values, not live membership links to reconstruct.
-                _ = Wire.Encode(new Frame("deliver", Envelope: message));
-                messages.Add(message);
-                previous = message.Seq;
-            }
-            if (previous != saved.Next) throw new InvalidDataException("Persisted queue has missing deliveries.");
-            next = saved.Next;
-            ack = saved.Ack;
+            QueueState normalized = ValidateState(parent.id, saved);
+            messages.AddRange(normalized.Messages!.Value);
+            next = normalized.Next;
+            ack = normalized.Ack;
         }
         parent.AddQueue(this);
+    }
+
+    internal static partial QueueState ValidateState(string identity, QueueState saved)
+    {
+        if (saved.Ack > saved.Next) throw new InvalidDataException("Receipt exceeds allocated sequence.");
+        ulong previous = saved.Ack;
+        var normalized = ImmutableArray.CreateBuilder<Envelope>();
+        foreach (Envelope entry in saved.Messages ?? [])
+        {
+            Envelope? message = entry is null ? null : Wire.NormalizeEnvelope(entry);
+            if (message is null || previous == ulong.MaxValue || message.Seq != previous + 1 ||
+                message.Seq > saved.Next || message.ToAgent != identity ||
+                message.ID != $"{identity}:{message.Seq}" || message.Timestamp == default ||
+                message.Source is not { Type: "agent" } source || string.IsNullOrEmpty(source.UserID) ||
+                string.IsNullOrEmpty(source.ChannelID) || source.Trust is not ("external" or "trusted" or "owner") ||
+                message.Content is null || message.ConversationID is null || message.ResponseMode is null)
+                throw new InvalidDataException("Invalid persisted delivery queue.");
+            // Provenance describes acceptance-time authority, not today's links.
+            _ = Wire.Encode(new Frame("deliver", Envelope: message));
+            normalized.Add(message);
+            previous = message.Seq;
+        }
+        if (previous != saved.Next) throw new InvalidDataException("Persisted queue has missing deliveries.");
+        return new(saved.Next, saved.Ack, normalized.ToImmutable());
     }
 
     internal partial RouterIdentity Parent() => parent ?? throw new ObjectDisposedException(nameof(DeliveryQueue));
@@ -317,8 +322,12 @@ internal sealed partial class DeliveryQueue
                 Protocol.ProvenanceHeader(source) + "\n\n" + message.Content,
                 message.ConversationID, message.ResponseMode, DateTimeOffset.UtcNow, source);
             _ = Wire.Encode(new Frame("deliver", Envelope: envelope));
-            messages.Add(envelope);
-            next = sequence;
+            QueueState candidate = new(sequence, ack, messages.Append(envelope).ToImmutableArray());
+            owner.CommitQueue(identity, candidate, () =>
+            {
+                messages.Add(envelope);
+                next = sequence;
+            });
             return envelope;
         }
     }
@@ -333,8 +342,12 @@ internal sealed partial class DeliveryQueue
             RequireOwned(identity, owner);
             if (sequence > next) throw new InvalidOperationException("Receipt exceeds allocated sequence.");
             if (sequence <= ack) return;
-            messages.RemoveAll(message => message.Seq <= sequence);
-            ack = sequence;
+            QueueState candidate = new(next, sequence, messages.Where(message => message.Seq > sequence).ToImmutableArray());
+            owner.CommitQueue(identity, candidate, () =>
+            {
+                messages.RemoveAll(message => message.Seq <= sequence);
+                ack = sequence;
+            });
         }
     }
 

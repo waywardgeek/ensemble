@@ -6,7 +6,7 @@ public sealed partial class Router
 {
     public partial bool ContainsIdentity(string id)
     {
-        lock (gate) { return !stopped && identities.ContainsKey(id); }
+        lock (gate) { return !stopped && !persistenceFailed && identities.ContainsKey(id); }
     }
 
     internal partial Keypair StaticKey() => key;
@@ -63,10 +63,11 @@ public sealed partial class Router
         }
         lock (gate)
         {
-            try { SaveLocked(); }
-            catch (Exception error) { failures.Add(error); }
             try { DestroyModel(); }
             catch (Exception error) { failures.Add(error); }
+            try { stateLease?.Dispose(); }
+            catch (Exception error) { failures.Add(error); }
+            stateLease = null;
             disposed = true;
         }
         if (failures.Count == 0) completion.TrySetResult();

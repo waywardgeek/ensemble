@@ -83,6 +83,7 @@ sealed class Fixture : IAsyncDisposable
         Application = new Application(Diagnostics);
         Agent = new Agent(Application, new Configuration(Vendor.Anthropic, "model-a", address,
             "fake-only", disableStreaming: true), name: "subject");
+        Agent.AttachDiagnostics(Diagnostics, null, null);
         string gateway = address.Replace("http:", "ws:") + "/v1/ws";
         Sender = await Client.ConnectAsync(new(gateway, "sender", senderKey, routerKey.Public), Answers, Deadline.Token);
         await Sender.DeclareContactableAsync(["agents"], Deadline.Token);
@@ -96,9 +97,8 @@ sealed class Fixture : IAsyncDisposable
     public async Task<Envelope> Answer() => await Answers.Messages.Reader.ReadAsync(Deadline.Token);
     public ulong QueuedReplies()
     {
-        Router.Save();
-        using var json = JsonDocument.Parse(File.ReadAllText(Path.Combine(DirectoryPath, "queues", "sender.json")));
-        return json.RootElement.GetProperty("next").GetUInt64();
+        using var json = JsonDocument.Parse(File.ReadAllText(Path.Combine(DirectoryPath, "gateway-state.json")));
+        return json.RootElement.GetProperty("queues").GetProperty("sender").GetProperty("next").GetUInt64();
     }
     public async Task Receipt(ulong expected)
     {
@@ -106,10 +106,9 @@ sealed class Fixture : IAsyncDisposable
         while (true)
         {
             Deadline.Token.ThrowIfCancellationRequested();
-            Router.Save();
-            string path = Path.Combine(DirectoryPath, "queues", "subject.json");
+            string path = Path.Combine(DirectoryPath, "gateway-state.json");
             using var json = JsonDocument.Parse(await File.ReadAllTextAsync(path, Deadline.Token));
-            if (json.RootElement.GetProperty("ack").GetUInt64() >= expected)
+            if (json.RootElement.GetProperty("queues").GetProperty("subject").GetProperty("ack").GetUInt64() >= expected)
                 return;
             await Task.Delay(10, Deadline.Token);
         }

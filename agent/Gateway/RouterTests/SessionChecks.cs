@@ -11,9 +11,10 @@ internal static class SessionChecks
         ("real C# client/server delivery, RPC concurrency and reply provenance", PublicClients),
         ("offline replay, lost receipt, drained restart and continuing sequence", Replay),
         ("failed authentication/hello cannot replace an active session", Replacement),
+        ("failed receipt persistence refuses acknowledgment and replacement", ReceiptPersistenceFailure),
         ("blocked delivery does not hold policy gate; future receipt refuses", Backpressure),
         ("encrypted frame validation, protocol errors and handshake deadline", BadFrames),
-        ("shutdown joins pending handshake and active sessions before saving", Shutdown)
+        ("shutdown joins pending handshake and active sessions without rewriting state", Shutdown)
     ];
 
     private static void Check(bool condition, string message)
@@ -109,9 +110,10 @@ internal static class SessionChecks
         await last.Send(new { type = "ack", last_acked_seq = 3 });
         await last.Ping();
         await restart.Router.DisposeAsync();
-        using JsonDocument disk = JsonDocument.Parse(File.ReadAllBytes(Path.Combine(host.Home, "queues", "bob.json")));
-        Check(disk.RootElement.GetProperty("next").GetUInt64() == 3 && disk.RootElement.GetProperty("ack").GetUInt64() == 3,
-            "Joined final save did not retain receipt three.");
+        using JsonDocument disk = JsonDocument.Parse(File.ReadAllBytes(Path.Combine(host.Home, "gateway-state.json")));
+        JsonElement queue = disk.RootElement.GetProperty("queues").GetProperty("bob");
+        Check(queue.GetProperty("next").GetUInt64() == 3 && queue.GetProperty("ack").GetUInt64() == 3,
+            "Durable receipt three was not retained.");
     }
 
     private static async Task Replacement()
@@ -144,6 +146,47 @@ internal static class SessionChecks
         _ = await current.Connection.End.WaitAsync(host.Deadline.Token);
         Check(current.Connection.Socket.Disposed && host.Router.Identity("alice").Sessions().Length == 1, "Replacement did not join/detach old session.");
         await replacement.Ping();
+    }
+
+    private static async Task ReceiptPersistenceFailure()
+    {
+        foreach (bool reconnect in new[] { false, true })
+        {
+            await using RouterHost host = await RouterHost.Start();
+            host.Contact("bob");
+            host.Router.Route(host.Router.Identity("alice"), new("bob", "retain until saved receipt"));
+            using RawGatewayPeer current = await RawGatewayPeer.Open(host, "bob");
+            await current.Handshake();
+            await Welcome(current, "bob", 1);
+            Check((await current.Read()).GetProperty("envelope").GetProperty("seq").GetUInt64() == 1,
+                "Receipt fault fixture did not deliver sequence one");
+            RouterIdentity identity = host.Router.Identity("bob");
+            Ensemble.Gateway.Session original = identity.Sessions().Single();
+            string primary = Path.Combine(host.Home, "gateway-state.json");
+            string committed = File.ReadAllText(primary);
+            string backup = Path.Combine(host.Home, "gateway-state.backup.json");
+            File.Delete(backup);
+            Directory.CreateDirectory(backup);
+            if (reconnect)
+            {
+                using RawGatewayPeer replacement = await RawGatewayPeer.Open(host, "bob");
+                await replacement.Handshake(receipt: 1);
+                await Rejected<IOException>(replacement, host);
+                Check(identity.IsCurrent(original), "Failed receipt save replaced current session authority");
+            }
+            else
+            {
+                await current.Send(new { type = "ack", last_acked_seq = 1 });
+                await Rejected<IOException>(current, host);
+            }
+            QueueState queue = identity.Queue().Snapshot();
+            Check(queue.Ack == 0 && queue.Messages!.Value.Length == 1 && File.ReadAllText(primary) == committed,
+                "Failed receipt persistence removed an accepted delivery");
+            Check(!host.Router.ContainsIdentity("bob"), "Poisoned Router still admits new sessions");
+            Directory.Delete(backup);
+            await host.DisposeAsync();
+            Check(File.ReadAllText(primary) == committed, "Failed receipt teardown rewrote primary");
+        }
     }
 
     private static async Task Backpressure()
@@ -210,6 +253,7 @@ internal static class SessionChecks
         Check(session.HasNoise(), "Pending handshake did not own Noise.");
         await using Client active = await Client.ConnectAsync(host.Config("bob"), new NopHandler(), host.Deadline.Token);
         RouterHost.Connection activeConnection = await host.Next();
+        string beforeClose = File.ReadAllText(Path.Combine(host.Home, "gateway-state.json"));
         Task first = host.Router.DisposeAsync().AsTask();
         Task second = host.Router.DisposeAsync().AsTask();
         Check(ReferenceEquals(first, second), "Concurrent shutdown did not share a joined result.");
@@ -219,7 +263,7 @@ internal static class SessionChecks
         await active.Done().WaitAsync(host.Deadline.Token);
         Check(session.parent is null && !session.HasNoise() && pending.Connection.Socket.Disposed && activeConnection.Socket.Disposed,
             "Shutdown retained session/Noise/socket ownership.");
-        Check(File.Exists(Path.Combine(host.Home, "state.json")), "Shutdown did not save state.");
+        Check(File.ReadAllText(Path.Combine(host.Home, "gateway-state.json")) == beforeClose, "Shutdown rewrote state.");
 
         RouterHost faulty = await RouterHost.Start();
         bool injected = false;
@@ -240,7 +284,7 @@ internal static class SessionChecks
                 Check(error.Flatten().InnerExceptions.Any(item => item is IOException), "Wrong cleanup failure.");
             }
             Check(child.parent is null && !child.HasNoise() && peer.Connection.Socket.Disposed, "Cleanup failure retained ownership.");
-            Check(File.Exists(Path.Combine(faulty.Home, "state.json")), "Cleanup failure skipped final save.");
+            Check(File.Exists(Path.Combine(faulty.Home, "gateway-state.json")), "Cleanup failure lost durable state.");
             Check(await peer.Connection.End.WaitAsync(faulty.Deadline.Token) is AggregateException, "HTTP caller missed cleanup failure.");
         }
         finally

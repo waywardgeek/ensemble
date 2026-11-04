@@ -38,7 +38,7 @@ internal sealed record QueueState(
 /// Standalone routing root. It owns policy identities/groups, and each identity
 /// owns its delivery queue. It owns no Ensemble Agent and performs no inference.
 /// One gate covers authorization and admission; network I/O must stay outside it.
-/// Snapshots are periodic/orderly-restart protection, not a multi-file transaction.
+/// Durable mutations save a complete candidate before publishing or acknowledging it.
 /// </summary>
 public sealed partial class Router : IAsyncDisposable
 {
@@ -48,17 +48,20 @@ public sealed partial class Router : IAsyncDisposable
     private readonly Dictionary<string, RouterGroup> groups = new(StringComparer.Ordinal);
     private readonly Dictionary<string, RouterIdentity> identities = new(StringComparer.Ordinal);
     private bool stopped;
+    private bool persistenceFailed;
+    private long revision;
+    private FileStream? stateLease;
     private bool disposed;
 
     /// <summary>Validate bootstrap and restore state before admitting any work.
     /// A broken existing file refuses startup; it is never replaced with defaults.</summary>
     public partial Router(RouterConfig config, Keypair key);
     public static partial RouterConfig ReadConfig(string path);
-    /// <summary>Individually replace private queue/policy files; retain receipts
-    /// even when all messages have been accepted. The host schedules snapshots.</summary>
+    /// <summary>Check that durable admission is healthy. Every accepted mutation
+    /// is already saved; this compatibility checkpoint does not rewrite state.</summary>
     public partial void Save();
-    /// <summary>End admission, cancel and join sessions, save, then detach all
-    /// owned model objects even if saving fails. Concurrent callers share the
+    /// <summary>End admission, cancel and join sessions, then detach all
+    /// owned model objects even after a persistence failure. Concurrent callers share the
     /// close result. Durable files and caller-owned immutable keys are retained.</summary>
     public partial ValueTask DisposeAsync();
 
@@ -78,8 +81,7 @@ public sealed partial class Router : IAsyncDisposable
     private partial object Call(RouterIdentity caller, string name, JsonElement args);
     private partial object Admin(string name, JsonElement args);
     private partial RouterGroup[] ResolveGroups(ImmutableArray<string> names, bool runtimeOnly = false);
-    private partial void Load(RouterConfig config);
-    private partial void SaveLocked();
+    private partial void LoadLegacy(RouterConfig config);
     private partial void DestroyModel();
     private static partial T? ReadOptional<T>(string path) where T : class;
     private static partial void ReplaceFile<T>(string path, T value);

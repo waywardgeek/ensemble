@@ -4,10 +4,12 @@ using Ensemble.Gateway;
 
 // The policy groups exercise the real graph, RPC dispatcher and filesystem.
 // SessionChecks adds real loopback WebSockets, independent JSON and backpressure.
-internal static class Program
+internal static partial class Program
 {
     private static async Task<int> Main(string[] args)
     {
+        if (args.Length == 2 && args[0] == "--crash-writer") return await CrashWriter(args[1]);
+        if (args.Length == 2 && args[0] == "--lease-contender") return await LeaseContender(args[1]);
         int failed = 0;
         List<(string Name, Func<Task> Run)> cases =
         [
@@ -16,9 +18,10 @@ internal static class Program
             ("narrow child registration and live runtime administration", Administration),
             ("snapshot restore preserves policy, pending messages and drained receipt", Restart),
             ("independent Go-shaped files and fail-closed restore", DiskValidation),
-            ("save failure is retryable; failed close still detaches", SaveFailure),
+            ("failed persistence poisons admission; close preserves evidence", SaveFailure),
             ("RPC contracts and published strict tool schemas", Rpc),
-            ("concurrent admission and save preserve contiguous queue", ConcurrentAdmission)
+            ("concurrent admission and save preserve contiguous queue", ConcurrentAdmission),
+            ("process lease and abrupt-exit durable admission", ProcessCrash)
         ];
         if (args.SequenceEqual(["--sessions-only"])) cases.Clear();
         cases.AddRange(SessionChecks.Cases);
@@ -183,7 +186,7 @@ internal static class Program
         Call(first, "admin", "set-groups", new { agent_id = "muted", groups = new[] { "runtime:team" } });
         Call(first, "alice", "register-child", new { agent_id = "child:one", public_key = Keys.EncodePublicKey(Keys.GenerateKeypair().Public.AsSpan()), groups = new[] { "agents" } });
         await first.DisposeAsync();
-        Check(File.Exists(Path.Combine(home, "queues", "child:one.json")), "Wrong Go queue filename");
+        Check(File.Exists(Path.Combine(home, "gateway-state.json")) && !Directory.Exists(Path.Combine(home, "queues")), "State was split into legacy files");
         RouterConfig invalidBootstrap = config with
         {
             Agents = config.Agents.SetItem("alice", config.Agents["alice"] with { Groups = ["runtime:team"] })
@@ -201,99 +204,9 @@ internal static class Program
         Check(third.Route(third.Identity("alice"), new("bob", "three")).Seq == 3, "Drained sequence reused");
         if (!OperatingSystem.IsWindows())
         {
-            Check(File.GetUnixFileMode(Path.Combine(home, "state.json")) == (UnixFileMode.UserRead | UnixFileMode.UserWrite), "State file permissions");
-            Check(File.GetUnixFileMode(Path.Combine(home, "queues")) == (UnixFileMode.UserRead | UnixFileMode.UserWrite | UnixFileMode.UserExecute), "Queue directory permissions");
+            Check(File.GetUnixFileMode(Path.Combine(home, "gateway-state.json")) == (UnixFileMode.UserRead | UnixFileMode.UserWrite), "State file permissions");
+            Check(File.GetUnixFileMode(Path.Combine(home, "gateway-state.backup.json")) == (UnixFileMode.UserRead | UnixFileMode.UserWrite), "Backup file permissions");
         }
-    }
-
-    private static async Task DiskValidation()
-    {
-        try
-        {
-            _ = Router.ReadConfig("absent-gateway-" + Guid.NewGuid().ToString("N") + ".json");
-            throw new Exception("Missing configuration accepted.");
-        }
-        catch (FileNotFoundException) { }
-        string obstructed = Home();
-        File.WriteAllText(Path.Combine(obstructed, "queues"), "not a directory");
-        Refuses(() => _ = new Router(Configuration(obstructed), Keys.GenerateKeypair()));
-        Check(File.ReadAllText(Path.Combine(obstructed, "queues")) == "not a directory", "Startup changed obstruction");
-        string dangling = Home();
-        File.CreateSymbolicLink(Path.Combine(dangling, "state.json"), Path.Combine(dangling, "missing.json"));
-        Refuses(() => _ = new Router(Configuration(dangling), Keys.GenerateKeypair()));
-        string home = Home();
-        RouterConfig config = Configuration(home);
-        Keypair key = Keys.GenerateKeypair();
-        Directory.CreateDirectory(Path.Combine(home, "queues"));
-        // Independent JSON reproduces Go omitempty/null forms, not a round trip
-        // through the implementation's records or serializer.
-        string valid = """
-            {"next":2,"ack":1,"messages":[{"id":"bob:2","seq":2,"to_agent":"bob","content":"historical",
-            "timestamp":"2026-01-02T03:04:05Z","source":{"type":"agent","channel_id":"removed","user_id":"old-sender","trust":"trusted"}}]}
-            """;
-        string path = Path.Combine(home, "queues", "bob.json");
-        File.WriteAllText(path, valid);
-        await using (Router router = new(config, key))
-        {
-            Envelope envelope = router.Identity("bob").Queue().After(0)!;
-            Check(envelope.ConversationID == "" && envelope.ResponseMode == "" && envelope.Source.DisplayName == "", "Go omissions rejected");
-            router.Identity("bob").Queue().Acknowledge(2);
-        }
-        File.WriteAllText(path, "{\"next\":2,\"ack\":2,\"messages\":null}");
-        await using (Router router = new(config, key)) Check(router.Identity("bob").Queue().After(0) is null, "Go drained null queue rejected");
-        string[] corrupt =
-        [
-            "{\"next\":2,\"ack\":3,\"messages\":[]}",
-            "{\"next\":2,\"ack\":1,\"messages\":[]}",
-            "{\"next\":2,\"next\":2,\"ack\":2,\"messages\":[]}",
-            "{\"next\":2,\"ack\":2}", "null", "{",
-            valid.Replace("bob:2", "wrong"), valid.Replace("\"seq\":2", "\"seq\":1")
-        ];
-        foreach (string bad in corrupt)
-        {
-            File.WriteAllText(path, bad);
-            Refuses(() => _ = new Router(config, key));
-            Check(File.ReadAllText(path) == bad, "Failed restore overwrote evidence");
-        }
-        File.WriteAllText(path, "{\"next\":18446744073709551615,\"ack\":18446744073709551615,\"messages\":null}");
-        await using (Router full = new(config, key))
-        {
-            Call(full, "bob", "declare-contactable", new { groups = new[] { "agents" } });
-            Refuses(() => full.Route(full.Identity("alice"), new("bob", "overflow")));
-            Check(full.Identity("bob").Queue().Snapshot().Next == ulong.MaxValue, "Overflow mutated sequence");
-        }
-        string statePath = Path.Combine(home, "state.json");
-        string state = File.ReadAllText(statePath);
-        File.WriteAllText(statePath, state.Replace("\"contactable\":", "\"unrecognized\":"));
-        Refuses(() => _ = new Router(config, key));
-    }
-
-    private static async Task SaveFailure()
-    {
-        string home = Home();
-        Router router = new(Configuration(home), Keys.GenerateKeypair());
-        string queues = Path.Combine(home, "queues");
-        File.WriteAllText(queues, "owned obstruction");
-        Refuses(router.Save);
-        Check(router.Identity("alice").parent == router, "Save failure detached live identity");
-        File.Delete(queues);
-        router.Save();
-        RouterIdentity alice = router.Identity("alice");
-        DeliveryQueue queue = alice.Queue();
-        // Only remove our own empty test snapshot files; never shared resources.
-        Directory.Delete(queues, recursive: true);
-        File.WriteAllText(queues, "owned obstruction");
-        try { await router.DisposeAsync(); throw new Exception("Expected final save failure."); }
-        catch (IOException) { }
-        Check(alice.parent is null && queue.parent is null, "Save failure blocked destruction");
-        Check(File.ReadAllText(queues) == "owned obstruction", "Save overwrote obstruction");
-        // A completed failed shutdown remains failed for subsequent observers;
-        // joining twice must not turn an unsuccessful final save into success.
-        Task first = router.DisposeAsync().AsTask();
-        Task second = router.DisposeAsync().AsTask();
-        Check(ReferenceEquals(first, second), "Failed shutdown result was not shared");
-        try { await first; throw new Exception("Repeated close hid its save failure."); }
-        catch (IOException) { }
     }
 
     private static async Task ConcurrentAdmission()
@@ -331,7 +244,7 @@ internal static class Program
             File.Copy(Path.Combine(original.Gateway.DataDirectory, "queues", id + ".json"), Path.Combine(home, "queues", id + ".json"));
         }
         RouterConfig config = original with { Gateway = original.Gateway with { DataDirectory = home } };
-        await using Router router = new(config, Keys.GenerateKeypair());
+        await using Router router = Router.MigrateLegacy(config, Keys.GenerateKeypair());
         QueueState bob = router.Identity("bob").Queue().Snapshot();
         Check(bob.Next == 3 && bob.Ack == 3 && bob.Messages!.Value.IsEmpty, "Real Go receipt did not restore");
         Check(router.Group("agents").HasMember(router.Identity("bob"), GroupLink.Contact), "Real Go contacts did not restore");

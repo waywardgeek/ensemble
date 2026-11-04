@@ -2,7 +2,7 @@ using System.Net;
 using Ensemble.Gateway;
 
 // Composition root only: Router owns policy, queues and upgraded connections.
-// This executable owns the HTTP listener, periodic saver and console lifetime.
+// This executable owns the HTTP listener and console lifetime. Durable mutations save before admission.
 try
 {
     return await Run(args);
@@ -17,6 +17,7 @@ static async Task<int> Run(string[] arguments)
 {
     string configPath = "gateway.json";
     bool printKey = false;
+    string? recovery = null;
     for (int index = 0; index < arguments.Length; index++)
     {
         switch (arguments[index])
@@ -27,13 +28,20 @@ static async Task<int> Run(string[] arguments)
             case "--print-key":
                 printKey = true;
                 break;
+            case "--migrate-legacy":
+            case "--recover-backup":
+                if (recovery is not null) throw new ArgumentException("Choose exactly one recovery operation.");
+                recovery = arguments[index];
+                break;
             case "--help":
-                Console.WriteLine("GatewayHost [--config gateway.json] [--print-key]");
+                Console.WriteLine("GatewayHost [--config gateway.json] [--print-key | --migrate-legacy | --recover-backup]");
                 return 0;
             default:
                 throw new ArgumentException("Expected --config PATH or --print-key; use --help for usage.");
         }
     }
+
+    if (printKey && recovery is not null) throw new ArgumentException("Key output cannot be combined with recovery.");
 
     RouterConfig config = Router.ReadConfig(configPath);
     ArgumentNullException.ThrowIfNull(config.Gateway);
@@ -46,9 +54,19 @@ static async Task<int> Run(string[] arguments)
     if (printKey)
         return 0;
 
-    Router router = new(config, key);
+    Router router = recovery switch
+    {
+        "--migrate-legacy" => Router.MigrateLegacy(config, key),
+        "--recover-backup" => Router.RecoverBackup(config, key),
+        _ => new Router(config, key)
+    };
+    if (recovery is not null)
+    {
+        await router.DisposeAsync();
+        Console.WriteLine("Gateway recovery completed. Review state before starting the listener normally.");
+        return 0;
+    }
     WebApplication? app = null;
-    Task? saver = null;
     List<Exception> failures = [];
     try
     {
@@ -97,7 +115,6 @@ static async Task<int> Run(string[] arguments)
         });
         await app.StartAsync();
         CancellationToken stopping = app.Lifetime.ApplicationStopping;
-        saver = SavePeriodically(router, stopping);
         try
         {
             await Task.Delay(Timeout.InfiniteTimeSpan, stopping);
@@ -122,17 +139,6 @@ static async Task<int> Run(string[] arguments)
             try
             {
                 httpStop = app.StopAsync();
-            }
-            catch (Exception error)
-            {
-                failures.Add(error);
-            }
-        }
-        if (saver is not null)
-        {
-            try
-            {
-                await saver;
             }
             catch (Exception error)
             {
@@ -173,31 +179,6 @@ static async Task<int> Run(string[] arguments)
     if (failures.Count != 0)
         throw new AggregateException("Gateway host failed; all owned cleanup was attempted.", failures);
     return 0;
-}
-
-static async Task SavePeriodically(Router router, CancellationToken stopping)
-{
-    using PeriodicTimer timer = new(TimeSpan.FromSeconds(30));
-    try
-    {
-        while (await timer.WaitForNextTickAsync(stopping))
-        {
-            try
-            {
-                router.Save();
-            }
-            catch (Exception error)
-            {
-                // A failed snapshot does not discard live queues or disable later
-                // ticks. Final-save failure still makes process shutdown fail.
-                Console.Error.WriteLine($"gateway persistence: {error.Message}");
-            }
-        }
-    }
-    catch (OperationCanceledException) when (stopping.IsCancellationRequested)
-    {
-        // Join before Router's final snapshot; no saver survives its owner.
-    }
 }
 
 static async Task<IPEndPoint> ListenEndpoint(string text)

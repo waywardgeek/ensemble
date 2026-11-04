@@ -69,7 +69,12 @@ public sealed partial class Router
             case "declare-contactable":
                 Arguments(args, "groups");
                 if (!caller.Capable("declare-contactable")) throw new InvalidOperationException("declare-contactable capability required.");
-                caller.ReplaceGroups(GroupLink.Contact, ResolveGroups(Names(args, "groups")));
+                RouterGroup[] contacts = ResolveGroups(Names(args, "groups"));
+                GatewayState contactState = Snapshot();
+                Commit(contactState with { Policy = contactState.Policy with
+                {
+                    Contactable = contactState.Policy.Contactable.SetItem(caller.id, contacts.Select(group => group.name).ToImmutableArray())
+                } }, () => caller.ReplaceGroups(GroupLink.Contact, contacts));
                 return "contactability updated";
             case "register-child":
                 Arguments(args, "agent_id", "public_key", "groups");
@@ -81,13 +86,23 @@ public sealed partial class Router
                 RouterGroup[] allowed = caller.Memberships();
                 if (proposed.Any(group => !allowed.Contains(group)))
                     throw new InvalidOperationException("Child groups exceed parent permissions.");
-                RouterIdentity child = new(this, id, publicKey, "", configured: false);
-                try
+                GatewayState childState = Snapshot();
+                IdentityDefinition childDefinition = new(Keys.EncodePublicKey(publicKey.AsSpan()), proposed.Select(group => group.name).ToImmutableArray());
+                Commit(childState with
                 {
+                    Policy = childState.Policy with
+                    {
+                        Children = childState.Policy.Children.Add(id, childDefinition),
+                        Memberships = childState.Policy.Memberships.Add(id, []),
+                        Contactable = childState.Policy.Contactable.Add(id, [])
+                    },
+                    Queues = childState.Queues.Add(id, new(0, 0, []))
+                }, () =>
+                {
+                    RouterIdentity child = new(this, id, publicKey, "", configured: false);
                     child.ReplaceGroups(GroupLink.Base, proposed);
                     _ = new DeliveryQueue(child);
-                }
-                catch { child.Destroy(); throw; }
+                });
                 return "child registered";
             case "list-groups":
                 Arguments(args);
@@ -112,7 +127,11 @@ public sealed partial class Router
             Arguments(args, "agent_id", "groups");
             RouterIdentity target = Identity(Text(args, "agent_id"));
             RouterGroup[] replacement = ResolveGroups(Names(args, "groups"), runtimeOnly: true);
-            target.ReplaceGroups(GroupLink.Grant, replacement);
+            GatewayState state = Snapshot();
+            Commit(state with { Policy = state.Policy with
+            {
+                Memberships = state.Policy.Memberships.SetItem(target.id, replacement.Select(group => group.name).ToImmutableArray())
+            } }, () => target.ReplaceGroups(GroupLink.Grant, replacement));
             return "memberships updated";
         }
         if (name == "put-group") Arguments(args, "name", "description", "capabilities", "trust");
@@ -125,11 +144,24 @@ public sealed partial class Router
         {
             GroupDefinition definition = new(Names(args, "capabilities"), Text(args, "trust"), Text(args, "description", optional: true));
             ValidateGroup(definition);
-            if (groups.TryGetValue(groupName, out RouterGroup? group)) group.Update(definition);
-            else _ = new RouterGroup(this, groupName, definition, runtime: true);
+            GatewayState state = Snapshot();
+            Commit(state with { Policy = state.Policy with { Groups = state.Policy.Groups.SetItem(groupName, definition) } }, () =>
+            {
+                if (groups.TryGetValue(groupName, out RouterGroup? group)) group.Update(definition);
+                else _ = new RouterGroup(this, groupName, definition, runtime: true);
+            });
             return "group updated";
         }
-        Group(groupName).Destroy();
+        RouterGroup removed = Group(groupName);
+        GatewayState deletion = Snapshot();
+        ImmutableArray<string> Without(ImmutableArray<string> names) => names.Where(value => value != groupName).ToImmutableArray();
+        Commit(deletion with { Policy = deletion.Policy with
+        {
+            Groups = deletion.Policy.Groups.Remove(groupName),
+            Children = deletion.Policy.Children.ToImmutableDictionary(pair => pair.Key, pair => pair.Value with { Groups = Without(pair.Value.Groups) }),
+            Memberships = deletion.Policy.Memberships.ToImmutableDictionary(pair => pair.Key, pair => Without(pair.Value)),
+            Contactable = deletion.Policy.Contactable.ToImmutableDictionary(pair => pair.Key, pair => Without(pair.Value))
+        } }, removed.Destroy);
         return "group deleted";
     }
 

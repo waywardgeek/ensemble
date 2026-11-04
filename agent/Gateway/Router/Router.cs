@@ -6,23 +6,7 @@ namespace Ensemble.Gateway;
 
 public sealed partial class Router
 {
-    public partial Router(RouterConfig config, Keypair key)
-    {
-        ArgumentNullException.ThrowIfNull(config);
-        ArgumentNullException.ThrowIfNull(config.Gateway);
-        ArgumentNullException.ThrowIfNull(key);
-        if (string.IsNullOrWhiteSpace(config.Gateway.DataDirectory))
-            throw new ArgumentException("Gateway requires an explicit data directory.");
-        directory = Path.GetFullPath(config.Gateway.DataDirectory);
-        this.key = key;
-        try { Load(config); }
-        catch
-        {
-            DestroyModel();
-            disposed = true;
-            throw;
-        }
-    }
+    public partial Router(RouterConfig config, Keypair key) : this(config, key, StartupMode.Open) { }
 
     public static partial RouterConfig ReadConfig(string path) =>
         ReadOptional<RouterConfig>(path) ?? throw new FileNotFoundException("Gateway configuration is missing.", path);
@@ -47,6 +31,7 @@ public sealed partial class Router
     internal partial void RequireLive()
     {
         if (stopped || disposed) throw new ObjectDisposedException(nameof(Router));
+        if (persistenceFailed) throw new InvalidOperationException("Gateway persistence failed; explicit recovery and restart required.");
     }
 
     internal partial void RequireIdentity(RouterIdentity identity)
@@ -144,10 +129,14 @@ public sealed partial class Router
         return resolved.ToArray();
     }
 
-    private partial void Load(RouterConfig config)
+    private partial void LoadLegacy(RouterConfig config)
     {
         ArgumentNullException.ThrowIfNull(config.Groups);
         ArgumentNullException.ThrowIfNull(config.Agents);
+        string legacyQueues = Path.Combine(directory, "queues");
+        if (!Directory.Exists(legacyQueues) &&
+            (Path.Exists(legacyQueues) || new FileInfo(legacyQueues).LinkTarget is not null))
+            throw new InvalidDataException("Legacy queue path is unavailable or is not a directory.");
         foreach (var (name, definition) in config.Groups)
             _ = new RouterGroup(this, name, definition, runtime: false);
         RouterState? saved = ReadOptional<RouterState>(Path.Combine(directory, "state.json"));
@@ -173,8 +162,21 @@ public sealed partial class Router
             _ = new DeliveryQueue(identity, queue);
         }
         foreach (var (id, definition) in config.Agents) LoadIdentity(id, definition, configured: true);
+        if (saved is not null)
+        {
+            foreach (var (id, definition) in saved.Children) LoadIdentity(id, definition, configured: false);
+        }
+        if (Directory.Exists(legacyQueues))
+        {
+            foreach (string path in Directory.EnumerateFileSystemEntries(legacyQueues))
+            {
+                string name = Path.GetFileName(path);
+                if (!name.EndsWith(".json", StringComparison.Ordinal) ||
+                    !identities.ContainsKey(name[..^5]) || Directory.Exists(path))
+                    throw new InvalidDataException("Unrecognized legacy queue entry; explicit migration must account for every file.");
+            }
+        }
         if (saved is null) return;
-        foreach (var (id, definition) in saved.Children) LoadIdentity(id, definition, configured: false);
         foreach (var (id, names) in saved.Memberships)
             Identity(id).ReplaceGroups(GroupLink.Grant, ResolveGroups(names, runtimeOnly: true));
         foreach (var (id, names) in saved.Contactable)
@@ -183,29 +185,7 @@ public sealed partial class Router
 
     public partial void Save()
     {
-        lock (gate)
-        {
-            RequireLive();
-            SaveLocked();
-        }
-    }
-
-    private partial void SaveLocked()
-    {
-        // No fsync or cross-file atomicity is claimed. Queue-first matches the
-        // reference's loss window; a snapshot error is reported, never ignored.
-        foreach (RouterIdentity identity in identities.Values)
-            ReplaceFile(Path.Combine(directory, "queues", identity.id + ".json"), identity.Queue().Snapshot());
-        RouterState state = new(
-            groups.Values.Where(group => group.runtime).ToImmutableDictionary(group => group.name, group => group.Definition()),
-            identities.Values.Where(identity => !identity.configured).ToImmutableDictionary(identity => identity.id,
-                identity => new IdentityDefinition(Keys.EncodePublicKey(identity.publicKey.AsSpan()),
-                    identity.Groups(GroupLink.Base).Select(group => group.name).ToImmutableArray(), identity.displayName)),
-            identities.Values.ToImmutableDictionary(identity => identity.id,
-                identity => identity.Groups(GroupLink.Grant).Select(group => group.name).ToImmutableArray()),
-            identities.Values.ToImmutableDictionary(identity => identity.id,
-                identity => identity.Groups(GroupLink.Contact).Select(group => group.name).ToImmutableArray()));
-        ReplaceFile(Path.Combine(directory, "state.json"), state);
+        lock (gate) { RequireLive(); }
     }
 
     private partial void DestroyModel()
@@ -262,7 +242,7 @@ public sealed partial class Router
                 owned = true;
                 stream.Write(bytes);
                 stream.WriteByte((byte)'\n');
-                stream.Flush();
+                stream.Flush(flushToDisk: true);
             }
             File.Move(temporary, path, overwrite: true);
             owned = false;

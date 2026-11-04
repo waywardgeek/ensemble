@@ -1,3 +1,17 @@
+# Current boundary: Gateway complete-state source candidate verified
+
+Gateway now saves one versioned JSON state before durable mutation publication;
+no Gateway journal, periodic saver or teardown save. Failures close admission.
+Explicit legacy migration and validated backup recovery preserve originals and
+refuse silent empty fallback. Chapter26 teaches the construction and limits.
+Router16, public client6, adapter6 groups pass, with real sessions and independent
+process crash/lease checks. Public persistence grader passes against Host output;
+a deliberately unsaved candidate fails its intended admission assertion. Real
+Host offline modes pass. This is not power-loss or full historical rubric credit.
+Source review, hard prose lint, current navigation, changed links and syntax
+checks pass. Candidate is ready for Bill's deployment decision. No deployment,
+restart, push or regenerated release artifacts. See [evidence and limits](edition-3-notes/gateway-complete-state.md).
+
 # Current boundary: manuscript renumbering and Gateway upgrade begun
 
 Current sequence: Goals24, Voice and Images25, Gateway26, Connections27,

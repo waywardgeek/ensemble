@@ -48,7 +48,7 @@ endpoints, archived evidence, or executable grader flags to match the book.
 | 23 | Codex/cache | 24 / `ch24` |
 | 24 | Goals | 27 / `ch27` |
 | 25 | [Voice and Images](chapter-25.md) | External media grader remains `-ch 26`; scopes pass 100/100 with documented limits. |
-| 26 | Gateway | 26 / `ch26`; whole-state persistence upgrade in progress |
+| 26 | Gateway | 26 / `ch26`; [complete-state persistence evidence](../docs/edition-3-notes/gateway-complete-state.md) |
 | 27 | Connections | Design-stage outline; no implemented endpoint or grade |
 | 28 | Agenda | Design-stage outline; no implemented endpoint or grade |
 | 29 | Puffin | Design-stage outline; no implemented endpoint or grade |

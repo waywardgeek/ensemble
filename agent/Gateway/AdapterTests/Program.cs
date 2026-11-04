@@ -81,9 +81,8 @@ await Test("closed actor refuses delivery before receipt", async () =>
     catch (IOException) { }
     // The fixture's teardown still collects the already-observed failed run.
     f.Running = Task.CompletedTask;
-    f.Router.Save();
-    using var json = System.Text.Json.JsonDocument.Parse(await File.ReadAllTextAsync(Path.Combine(f.DirectoryPath, "queues", "subject.json")));
-    Check(json.RootElement.GetProperty("ack").GetUInt64() == 0, "Refused delivery was acknowledged.");
+    using var json = System.Text.Json.JsonDocument.Parse(await File.ReadAllTextAsync(Path.Combine(f.DirectoryPath, "gateway-state.json")));
+    Check(json.RootElement.GetProperty("queues").GetProperty("subject").GetProperty("ack").GetUInt64() == 0, "Refused delivery was acknowledged.");
     Check(!f.Requests.Reader.TryRead(out _), "Closed actor performed inference.");
 });
 await Test("authentication failure settles readiness and joined outcome together", async () =>

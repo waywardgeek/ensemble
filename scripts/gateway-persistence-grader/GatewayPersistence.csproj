@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <LangVersion>14</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Ensemble.Gateway"><HintPath>$(CandidateDirectory)/Ensemble.Gateway.dll</HintPath></Reference>
+    <Reference Include="Ensemble.Noise"><HintPath>$(CandidateDirectory)/Ensemble.Noise.dll</HintPath></Reference>
+    <Content Include="$(CandidateDirectory)/runtimes/**/*" Link="runtimes/%(RecursiveDir)%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+</Project>

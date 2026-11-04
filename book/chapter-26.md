@@ -34,7 +34,7 @@ The C# implementation has five parts:
 
 - `Gateway/Ensemble.Gateway.csproj`: public client, key/Noise wrapper, wire values,
   router policy, durable queues and server sessions. No core, GUI or ASP.NET dependency.
-- `Gateway/Host`: Kestrel listener, thirty-second saves and joined shutdown.
+- `Gateway/Host`: Kestrel listener, explicit migration/recovery modes and joined shutdown.
 - `Gateway/Interviewer`: an independent consumer of the public client.
 - `Gateway/Adapter`: a scoped bridge borrowing an existing Ensemble Agent.
 - `Gateway/AgentHost`: the application that constructs, restores, saves and destroys
@@ -52,14 +52,15 @@ Authenticate a replacement before it can displace the current connection. Serial
 writes outside the policy lock. Accept receipts only within the proper frontier.
 
 A delivery handler's return accepts work; it does not establish completed or durable
-model work. Queues survive orderly restart through private snapshots. Periodic
-saves leave a crash window, and individual file replacements are not a transaction
-across all queues and policy. This is not exactly-once execution.
+model work. Every durable mutation saves one complete private state before
+acceptance, including queue admission and receipt removal. Ambiguous save failures
+close admission until recovery. Process-crash recovery is distinct from power-loss
+durability, and neither establishes exactly-once application execution.
 
 Local C# library and application checks, cross-language interoperability, and the
-scoped executable grade are recorded separately. The grade earns **60/60 server
+scoped executable grade are recorded separately. The historical executable grade earned **60/60 server
 points**; 40 client/Noise points remain ungraded in that route. The three-process
-C# interview used a fake HTTP provider, not a live model. Section 24.7 explains
+C# interview used a fake HTTP provider, not a live model. Section 26.7 explains
 those limits and how to reproduce the grading scope.
 
 ### In plain words
@@ -70,7 +71,7 @@ label on the message. If the recipient is offline, it keeps the message. The cli
 hands it to the application and sends a receipt only after the application accepts
 it. What the application then does with the message remains the application's job.
 
-## 24.1 Why the agent needs a router
+## 26.1 Why the agent needs a router
 
 The fleet can already delegate work to children inside one Ensemble. Its
 operator still reaches it through the terminal or browser. Another process
@@ -131,7 +132,7 @@ handles incoming messages through its application's `IHandler`. Ensemble's
 adapter admits them to the actor it already has. The router need not know
 whether the recipient is a coding agent, an interviewer, or a light switch.
 
-## 24.2 Noise-KK beneath the cloud
+## 26.2 Noise-KK beneath the cloud
 
 TLS client certificates can provide mutual authentication when the endpoints
 own that TLS connection. A terminating reverse proxy changes which endpoints
@@ -208,7 +209,7 @@ The native dependency and file-permission implementation need platform evidence:
 Mac and Linux ARM64 transport/key tests do not prove Windows support or Linux
 WebSocket behavior.
 
-## 24.3 Trust stamped at the boundary
+## 26.3 Trust stamped at the boundary
 
 A message flowing through the gateway carries an envelope: a message ID, a
 sequence number, a destination agent, a source, a timestamp, an optional
@@ -253,7 +254,7 @@ the envelope retains the other routing fields for the receiving application.
 Groups are the authorization primitive. Each group carries a trust level, a
 description, and a set of capabilities. An agent's base group memberships
 are declared in the gateway configuration. This fragment shows the policy;
-Section 24.6 adds the listener, data directory and real public keys:
+Section 26.6 adds the listener, data directory and real public keys:
 
 ```json
 {
@@ -322,7 +323,7 @@ configured base memberships intact. Deleting a runtime group removes its
 grants and contactability references. Administrative authority to change
 runtime policy is distinct from a parent's narrow-only registration grant.
 
-## 24.4 A library, not a framework
+## 26.4 A library, not a framework
 
 The public namespace is `Ensemble.Gateway`. An outside .NET application references
 `Gateway/Ensemble.Gateway.csproj`; it need not reference Ensemble's core. The
@@ -437,7 +438,7 @@ and receipts, not the meaning of a prompt. The interviewer collects answers. The
 optional Ensemble bridge submits turns. A home automation application could switch
 on a light. The router does not need to know which application it is serving.
 
-## 24.5 Delivery and recovery
+## 26.5 Delivery and recovery
 
 After the Noise-KK handshake, both sides speak a JSON protocol inside the
 encrypted stream. The agent sends five frame types: `hello` to identify
@@ -487,8 +488,10 @@ handler accepts the work loses the message if the process crashes between
 the ack and the acceptance.
 
 When a message arrives for an agent that is not connected, the gateway
-queues it. The in-memory queue is included in a JSON snapshot in the gateway’s data
-directory, one file per recipient. Messages accumulate until the agent reconnects.
+queues it. Before accepting the message, the gateway saves the queue together with
+its policy and identities in one complete JSON state. Messages accumulate until
+the agent reconnects. Queue admission is durable router acceptance, not proof
+that the recipient has run or completed the work.
 
 On reconnect, the agent sends `last_acked_seq` in the `hello` frame. The
 gateway replays every queued message with a sequence number greater than
@@ -523,26 +526,84 @@ advanced is unsafe. Reader and delivery work are both joined before Noise/socket
 disposal and removal from the identity. Pending handshakes are owned sessions too,
 so shutdown cannot overlook them.
 
-The host snapshots runtime group definitions and memberships,
-contactability, child identities, queues and receipt positions every thirty
-seconds, then once more on orderly shutdown. Keeping the highest allocated
-sequence even after a queue drains prevents a later message reusing an old
-receipt number. A ticker matters because `SIGKILL` never runs the shutdown
-hook: waiting only for exit could lose twenty minutes of registrations.
+### Complete state before acceptance
 
-Periodic snapshots still leave a loss window. Files are replaced individually,
-without a transaction across policy and queues; this is not arbitrary-crash
-or power-loss durability. Protect the data directory as private application
-state. It contains the gateway's private key and plaintext pending messages.
-Noise protects their journey over the network, not those files at rest.
+The Router owns the live identity, group and queue graph. Its durable form is
+one versioned JSON value containing the gateway public identity, bootstrap
+groups and agents, runtime groups, child identities, memberships, contactability,
+pending deliveries, allocation counters and receipt positions. Locks, sockets,
+current sessions and wake signals are transient. Keep the highest allocated
+sequence after draining a queue; a later message must not reuse an old receipt.
+There is no Gateway journal and no periodic save timer.
 
-Files are `identity.key`, `state.json` and `queues/<validated-id>.json`. Only an
-absent file gets empty defaults. Malformed JSON, duplicate fields and a path blocked
-by a regular file are errors, not permission to restart with empty queues. Save
-failure retains live state and is reported; a later timer tick can retry. Shutdown
-closes admission, joins all sessions and the host's timer, attempts the final save,
-and detaches ownership even on failure. All Router disposers observe the same
-shutdown result. A failed final save must make the application exit fail.
+For each durable mutation, hold the Router gate and follow one order:
+
+1. Authorize against the current session and policy. Validate the proposed change.
+2. Construct an immutable complete-state candidate without changing the live graph.
+3. Validate its relationships and queues, and assign the next state revision.
+4. Preserve the previous validated primary as the backup. Write and flush the
+   candidate to a private temporary file, then atomically replace the primary.
+5. Apply the validated change to the existing live objects, then report acceptance.
+
+The candidate is a temporary value, not a second long-lived mutable policy graph.
+Existing identities and sessions keep their actual ownership relationships.
+Persistence uses the gate to serialize mutations; network writes and transport
+teardown remain outside it. This simple design writes the whole state for every
+durable change. Measure state size, write frequency and storage wear before
+adding a journal or a more complicated storage mechanism.
+
+Queue admission follows this order before allocating a visible sequence or
+waking delivery. Receipt advancement follows it before removing messages.
+A reconnect's authenticated hello receipt must be saved before the new session
+receives authority. Contactability, runtime group administration and child
+registration obey the same rule. A successful RPC or delivery admission must
+never mean merely that a future timer intends to save it.
+
+A persistence failure closes admission for that Router lifetime. Do not retry
+from its old live graph: replacement may have succeeded even if the caller saw
+an error. An unexpected failure while publishing an already committed candidate
+also closes admission. Shutdown joins owned sessions and detaches the graph;
+it does not save that potentially stale graph over the recovery evidence.
+`Save()` remains a compatibility health check, not a deferred durability boundary.
+
+### Startup, migration and recovery
+
+`gateway-state.json` is the complete primary; `gateway-state.backup.json` is the
+previous validated generation. An exclusive open `gateway-state.lock` handle
+prevents a second Router process from loading and later overwriting a stale
+generation. Keep the lease through joined teardown. The separate `identity.key`
+is private cryptographic material, not part of the public-identity snapshot.
+Protect this directory: pending messages are plaintext at rest. Noise protects
+their network transport, not the storage medium.
+
+Normal startup validates the complete state before reconstructing real owners.
+Reject malformed JSON, duplicate or unknown fields, unsupported versions,
+invalid relationships, inconsistent queues and a bootstrap/key mismatch.
+Do not silently merge changed bootstrap authority into existing deliveries.
+A missing primary with a retained backup is an error, not an empty installation.
+A genuinely new directory gets a validated initial state before admission.
+
+Legacy `state.json` and `queues/<validated-id>.json` require explicit migration.
+The host's `--migrate-legacy` mode validates and imports them, preserves the
+originals, writes complete state and exits without opening a listener. Reject
+orphan queue files rather than quietly omit their deliveries. Migration refuses
+if complete state already exists; ordinary startup does not reinterpret legacy
+files beside a complete primary.
+
+The separate `--recover-backup` mode validates the backup and its bootstrap/key
+binding before replacing the primary. It preserves an existing primary in a
+uniquely named recovery-evidence file and exits without listening. Recovery is
+an operator-selected rollback: it may replay previously acknowledged messages
+or omit the latest accepted mutation. Inspect the evidence and reconcile with
+recipients before resuming service. Never silently choose a backup merely
+because it parses, and never overwrite a primary with an invalid backup.
+
+The intended process-crash boundary is the successful complete-state replacement
+before acknowledgment. File flushing and same-directory atomic replacement do
+not establish a universal power-loss guarantee: directory-entry persistence,
+filesystem behavior and hardware caches still matter. Test abrupt process exit
+separately from power removal, and state exactly which boundary the evidence
+covers. A backup on the same disk is not an off-device disaster-recovery plan.
 
 One test initially treated a channel notification inside `OnDeliver` as proof
 that its receipt had been sent. The notification happened before the callback
@@ -551,7 +612,7 @@ issuing a request on the same serialized socket, established the intended
 ordering. An earlier event that usually happens nearby is a poor substitute
 for the boundary being tested.
 
-## 24.6 The interviewer proves the stack
+## 26.6 The interviewer proves the stack
 
 The interviewer is a standalone C# executable in `Gateway/Interviewer`. It
 references only the public Gateway library, holds its own keypair, and reaches
@@ -608,7 +669,7 @@ startup. These are application lifetimes the router does not own.
 
 ### Running the interview
 
-Use .NET 10/C# 14 and the approved native dependency described in Section 24.2.
+Use .NET 10/C# 14 and the approved native dependency described in Section 26.2.
 The repository's disabled package feeds are deliberate: use an existing package
 cache or explicitly authorize a source for libsodium 1.0.22; do not silently alter
 global NuGet configuration. From the repository root, build the active source
@@ -730,9 +791,10 @@ HTTP provider: four correlated answers, an explicitly selected primary skill,
 restored History before the next request, SIGTERM during held inference, and a
 visible final-save failure. Separate interviewer checks sent wrong-sender and
 wrong-conversation answers before the correct ones. Separate host checks used the
-unchanged Go client and observed real thirty-second failure/retry ticks, restart
-receipts and joined shutdown. These establish application wiring and failure
-behavior, not real-model judgment or productivity.
+unchanged Go client and observed the former thirty-second failure/retry ticks,
+restart receipts and joined shutdown. Those periodic-save observations are
+historical; they do not verify the complete-state saver introduced here. These
+checks establish application wiring, not real-model judgment or productivity.
 
 Try refused group routing and narrow-only child registration separately. A
 successful interview alone proves neither. A network child is a registered public
@@ -762,7 +824,7 @@ not be sold as a cache benefit or a productivity experiment. The
 retain the actual answers; later local diagnostic and receipt-test corrections
 do not turn that earlier run into a new one.
 
-## 24.7 What the grader checks
+## 26.7 What the grader checks
 
 The original Go route builds the submitted router and an outside consumer against
 its public library. That route remains `-ch 26 solutions/ch26`; older Chapter 25
@@ -797,7 +859,7 @@ failure paths also need their own source and application evidence.
 To reproduce, build the Host first. The grader expects historical `-config` and
 `-print-key` flags; this small executable adapter only translates them and execs
 the real DLL. It supplies no canned result. With `CH26_SRC` and `CH26_RUN` from
-Section 24.6:
+Section 26.6:
 
 ```sh
 DOTNET=$(command -v dotnet)
@@ -821,6 +883,39 @@ go run ./cmd/grade-edition2 -ch 26 -executable-only \
 
 The peer directory is explicit and absolute. Do not point it at the C# tree or
 call it the submitted implementation. The ordinary Go route is unchanged.
+
+### Complete-state persistence scope
+
+The current persistence contract has a separate public-consumer grader. It does
+not change the historical chapter flags or add points to their old rubric. Build
+the candidate Gateway with its native dependencies, then pass its output directory:
+
+```sh
+python3 scripts/grade-gateway-persistence.py \
+  --dotnet "$(command -v dotnet)" \
+  --candidate-directory "$CH26_SRC/Gateway/Host/bin/Debug/net10.0"
+```
+
+The directory must contain `Ensemble.Gateway.dll`, `Ensemble.Noise.dll` and the
+matching `runtimes` assets. The grader builds its own outside-assembly consumer
+against those exact assemblies, with package sources disabled. It creates only
+local temporary identities and loopback hosts; it needs no model or live service.
+
+The consumer checks that a successful authenticated send already appears in the
+complete state before killing the host. It restarts and checks the exact replayed
+payload, sequence and provenance, then checks receipt removal after a serialized
+RPC barrier. It also checks malformed-primary refusal, explicit validated-backup
+rollback with preserved evidence, failed-save refusal without implicit retry, and
+explicit legacy import preserving the original drained receipt. A failed build
+or missing native runtime is not a successful behavioral check.
+
+Keep local fault tests as separate evidence: failure after replacement but before
+live publication, concurrent admissions, independent-process directory exclusion,
+failed authenticated replacement and bounded receipt frontiers need deliberate
+checks too. A deliberately unsaved candidate must fail the external grader's
+admission assertion; a mutant that merely fails to build proves no sensitivity.
+Passing this scope does not establish power-loss durability, hostile-local-user
+confinement, every operating system's filesystem semantics or exactly-once work.
 
 Two failures from this translation are worth remembering. An early loopback fake
 shared the client's wrong receipt spelling; six local groups passed while the real
