@@ -1,7 +1,7 @@
 # Chapters
 
 This book builds a coding collaborator. Chapter 25's four external media scopes
-pass 100/100 with documented limits; Chapter 26 retains crossover acceptance.
+pass 100/100 with documented limits; Chapter 28 retains crossover acceptance.
 Gateway and the connected personal-system subjects now live in
 [the Puffin book](../puffin-book/README.md). See the [edition guide](README.md)
 for historical endpoint and grader mappings. This split does not declare the
@@ -34,7 +34,9 @@ remaining closeout work complete.
 - [Chapter 23: While the Cache Is Broken](chapter-23.md)
 - [Chapter 24: Goals](chapter-24.md)
 - [Chapter 25: Voice and Images](chapter-25.md)
-- [Chapter 26: Crossing Over to Ensemble](chapter-26.md)
+- [Chapter 26: Artifacts and Actions](chapter-26.md) (in development)
+- [Chapter 27: Running Local Models](chapter-27.md) (in development)
+- [Chapter 28: Crossing Over to Ensemble](chapter-28.md)
 - [Epilogue: What we can rebuild](epilogue.md)
 - [A note from Bill](note-from-bill.md)
 
@@ -47,7 +49,10 @@ remaining closeout work complete.
 - **Bounded closeout review:** identify remaining implementation, teaching and
   grader gaps; verify crossover and regenerate release artifacts when ready.
 
-These are directions, not a new speculative chapter outline or final numbering.
+Chapters 26 and 27 reserve these subjects without claiming completed teaching.
+Artifacts comes first; Local Models is the last development slice. The
+[execution plan](../docs/edition-3-notes/first-book-closeout-plan.md) includes
+fresh student reconstruction with question access and public graders.
 The following older ideas remain future possibilities, not automatic closeout
 requirements:
 

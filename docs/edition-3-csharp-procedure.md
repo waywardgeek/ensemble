@@ -1,3 +1,14 @@
+# Current boundary: first-book closeout navigation
+
+The working manuscript now contains Chapters 00–28: Voice and Images25,
+Artifacts and Actions26, Running Local Models27, and Crossing Over28.
+Chapters26–27 are explicitly in-development placeholders, not implemented or
+student-verified chapters. Historical endpoints and grader flags are unchanged;
+media grading remains `-ch 26`. Local Models is the last development slice.
+The [closeout plan](edition-3-notes/first-book-closeout-plan.md) governs the work
+and bounded student reconstruction. Prior release outputs remain unchanged.
+Earlier boundary entries below retain historical chapter numbers.
+
 ## Current increment: first-book closeout and student reconstruction
 
 Bill authorized completion of the Artifacts/Actions and Local Models closeout,

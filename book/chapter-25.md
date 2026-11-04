@@ -128,7 +128,7 @@ symbol. It is whether the person's intended input reaches the intended Agent,
 with permission, once, and with a clear failure when it cannot. That boundary is
 what lets the same interaction remain trustworthy on a desktop or a phone.
 
-## 26.1 Four inputs, one conversation
+## 25.1 Four inputs, one conversation
 
 The new inputs should arrive at the conversation the person already understands.
 An image pasted beside a caption belongs to that message. A spoken sentence,
@@ -162,7 +162,7 @@ metadata, but it cannot stand in for the screenshot. Likewise, audio recording
 success is only the start of a voice operation. The intended Agent must eventually
 receive the transcript, or the operation must fail without sending it elsewhere.
 
-## 26.2 Put ownership where the lifetime lives
+## 25.2 Put ownership where the lifetime lives
 
 The browser owns the live microphone track, its audio context and worklet, and
 the buffers used to make a recording. Its image composer owns pending file
@@ -193,7 +193,7 @@ values do not depend on a browser array that can still change or an original fil
 that might be removed. The provider renderer consumes the frozen request, not
 whatever happens to be on disk later.
 
-## 26.3 Prepare an image once, with bounded work
+## 25.3 Prepare an image once, with bounded work
 
 Image preparation is shared by attachments, image-file inspection, and host
 screenshots. This avoids three independent interpretations of orientation,
@@ -287,7 +287,7 @@ These limits bound accepted input and allocation; they are not isolation from
 bugs in native decoders, a process-wide concurrency budget, or a guarantee of
 readable small print. Keep those claims separate.
 
-## 26.4 Inspecting a file must deliver the file's pixels
+## 25.4 Inspecting a file must deliver the file's pixels
 
 `inspect_image` starts with ordinary tool authority and a supported image-result
 surface. Check the selected model's capability before reading the path. An
@@ -328,7 +328,7 @@ active context while retaining accompanying text according to that reducer's
 contract. It does not prove that the original GUI history or every retained log
 entry was deleted.
 
-## 26.5 Render the media the provider actually supports
+## 25.5 Render the media the provider actually supports
 
 The shared value is a typed image part. The wire encoding is provider-specific.
 Responses represents image-bearing function output as typed content alongside
@@ -354,7 +354,7 @@ bounded real-provider probe establishes something additional: that the selected
 API and model accept the representation. Neither result implies entitlement or
 support for a different model, streaming mode, or platform.
 
-## 26.6 An attachment draft belongs to one recipient
+## 25.6 An attachment draft belongs to one recipient
 
 The browser's image composer retains the text and images that the person is
 preparing. It provides previews, removal, and an explicit file-picker fallback to
@@ -386,7 +386,7 @@ it does not establish the underlying cause of the earlier failure. Retain the
 file picker as a useful explicit attachment path without declaring all Android
 clipboard behavior either broken or solved by that one observation.
 
-## 26.7 A screenshot of which computer?
+## 25.7 A screenshot of which computer?
 
 The screenshot requirement exposed a specification mistake. The first
 implementation captured the connected browser page with Chrome's sharing API.
@@ -470,7 +470,7 @@ This matters before capture, because the source-pixel safety bound must include
 scaling. Verify the selected display's actual pixels as well as its dimensions;
 simply relaxing a failed dimension assertion is not acceptance.
 
-## 26.8 Make the recording format small enough to reason about
+## 25.8 Make the recording format small enough to reason about
 
 Bill specified hold, talk, and release to send, without an editable transcript or
 another Send press. That interaction does not require every audio container a
@@ -504,7 +504,7 @@ grant into background listening. It owns repeated releases and delayed finish
 callbacks. The page-level control adds pointer loss, blur, visibility, selection,
 and socket cancellation, plus the visible Cancel action.
 
-## 26.9 Keep the transcription payer explicit
+## 25.9 Keep the transcription payer explicit
 
 Transcription is a separate service operation from the Agent's chat inference.
 A running application with subscription-funded chat must not silently use an API
@@ -547,7 +547,7 @@ before a live test. Published rates are estimates for planning, not a measured
 bill. The accepted Dev test used an explicitly selected OpenAI key for
 transcription while retaining its existing chat funding.
 
-## 26.10 Separate readiness from commitment
+## 25.10 Separate readiness from commitment
 
 Bill's release-to-send requirement needs an admission protocol as well as a
 correct recorder and transcriber.
@@ -596,7 +596,7 @@ not proof of non-delivery. Do not retry that capture on a replacement socket.
 The person can inspect the original conversation. A new intentional recording is
 a new operation; an automatic replay of the old one is not.
 
-## 26.11 Cancellation must win before the next effect
+## 25.11 Cancellation must win before the next effect
 
 A state notification is a callback boundary. Tests exposed a race in which a
 listener cancelled the session during a state change, but execution continued to
@@ -630,7 +630,7 @@ that draft first. Keep visible recording, transcription, cancellation, failure,
 and uncertain-commit states; a person listening quickly still needs to know
 whether the recording has stopped and whether a message may already have arrived.
 
-## 26.12 Test the boundary you intend to claim
+## 25.12 Test the boundary you intend to claim
 
 Use deterministic fixtures to expose races, then use bounded native checks for
 the device and provider behavior those fixtures cannot establish.
@@ -669,7 +669,7 @@ from already-cached packages fixed that run without a runtime source change.
 Build state, source state, installed state, and live acceptance are separate facts.
 Do not hide a stale-manifest workaround inside a claim that the product was fixed.
 
-## 26.13 What is verified, and what remains open
+## 25.13 What is verified, and what remains open
 
 At this draft boundary, image-file inspection has local provider-wire and replay
 tests plus a bounded live test for the exact supported Gemini path. Desktop and
@@ -713,7 +713,7 @@ and human-use limitations rather than treating the score as universal acceptance
 A written chapter, an installed button, a passing fake-provider test, and a live
 human interaction each establish something different.
 
-## 26.14 Review and operate the feature deliberately
+## 25.14 Review and operate the feature deliberately
 
 Before native capture, agree on a synthetic display and arrange OS permission with
 the person at the host. Do not sweep a private desktop to discover whether access
@@ -749,7 +749,7 @@ below award separate 20-point, 25-point and 30-point scopes. None awards the
 host-screen scope by itself or certifies the entire chapter.
 The implementation's focused tests remain evidence, not external grades.
 
-### Exercise 26.1: Image-file delivery and replay (20 points)
+### Exercise 25.1: Image-file delivery and replay (20 points)
 
 Implement `inspect_image` as a skill-authorized tool. Read the selected file through
 its Agent's Sandbox, prepare a bounded PNG without changing the original, and
@@ -787,7 +787,7 @@ this delivery-and-replay scope. Sandbox escapes, resource ceilings, unsupported
 models, cancellation, and cross-provider correctness still require their focused
 implementation tests and review; this scope does not certify them by implication.
 
-### Exercise 26.2: Addressed image attachments (25 points)
+### Exercise 25.2: Addressed image attachments (25 points)
 
 Accept pasted images and explicit file selection into a removable preview draft.
 Keep accompanying text and image order, then send the whole message to the Agent
@@ -829,7 +829,7 @@ misdirected and duplicate-send mutants fail named gates. A phone-sized viewport
 checks layout, not native clipboard support. The command reports **25/25**, not
 100/100; image-file replay remains its separate scope.
 
-### Exercise 26.3: Hold, release, and send once (30 points)
+### Exercise 25.3: Hold, release, and send once (30 points)
 
 Connect the microphone button and configurable page-level shortcut to bounded
 recording and explicitly funded transcription. Release sends once through the
@@ -881,7 +881,7 @@ Four mutants expose extra confirmation, duplicate commit, wrong recipient and
 actual track leakage. The command reports **30/30** for this synthetic scope,
 not native microphone reliability, real-provider behavior or the host-screen grade.
 
-### Exercise 26.4: Host screenshots (25 points)
+### Exercise 25.4: Host screenshots (25 points)
 
 Implement `list_displays` and `screenshot` on the computer running the C# server.
 Support one optional display index, defaulting to display zero, and return prepared PNG pixels
@@ -996,6 +996,6 @@ separate facts. Preserve the evidence and limits beside the executable contracts
 - Test the claimed surface: browser capture is not host capture, fake audio is
   not a native microphone, and a scoped grade is not chapter completion.
 
-[Chapter 26: Crossing Over to Ensemble](chapter-26.md) turns to using the built
+[Chapter 28: Crossing Over to Ensemble](chapter-28.md) turns to using the built
 Agent as the working collaborator. The media paths here belong to that same
 Agent and its existing ownership rules.
