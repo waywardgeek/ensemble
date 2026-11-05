@@ -180,7 +180,7 @@ func GradeArtifacts(c ArtifactGradeConfig) (report ArtifactReport, result error)
 	if err := artifactBrowserPreflight(c, root); err != nil {
 		return report, err
 	}
-	for _, name := range []string{"Program.cs", "ArtifactHost.cs", "ArtifactsConsumer.csproj"} {
+	for _, name := range []string{"Program.cs", "ArtifactHost.cs", "TransferChecks.cs", "ArtifactsConsumer.csproj"} {
 		data, err := artifactGradeFiles.ReadFile("testdata/artifacts-consumer/" + name)
 		if err != nil {
 			return report, err
@@ -247,7 +247,7 @@ func checkArtifactCoreReceipt(data []byte) error {
 	if r.Contract != "artifact-work-product-core-v1" || !r.Passed {
 		return fmt.Errorf("core contract did not pass")
 	}
-	for _, want := range []string{"ungranted-offer-refused", "explicit-grant-loaded", "successful-result-has-typed-offer", "offer-description-matches-file", "exact-click-time-bytes", "download-destination-remains-borrowed", "foreign-owner-refused", "pathname-is-not-offer-id", "event-roundtrip-retains-description", "snapshot-only-gui-retains-description", "grown-file-over-limit-refused", "grant-unloaded", "revoked-new-offer-refused", "same-name-replacement-does-not-revive-offer"} {
+	for _, want := range []string{"ungranted-offer-refused", "explicit-grant-loaded", "successful-result-has-typed-offer", "offer-description-matches-file", "exact-click-time-bytes", "download-destination-remains-borrowed", "foreign-owner-refused", "pathname-is-not-offer-id", "event-roundtrip-retains-description", "snapshot-only-gui-retains-description", "grown-file-over-limit-refused", "grant-unloaded", "revoked-new-offer-refused", "same-name-replacement-does-not-revive-offer", "exact-64mib-copy-hash", "missing-offered-file-refused", "outside-root-offer-refused", "replacement-symlink-escape-refused", "failed-offer-refused-before-cap", "offer-cap-admits-64-unique-grants", "offer-cap-refuses-65th", "offer-cap-preserves-earliest-grant", "failed-result-cannot-offer", "failed-event-cannot-offer", "blocked-copy-does-not-block-another", "caller-cancel-joins-copy-cleanup", "caller-cancel-preserves-borrowed-sink", "agent-destruction-joins-transfer-cleanup", "agent-destruction-cancels-without-owning-sink", "snapshot-file-restored", "restored-history-retains-description", "restored-description-cannot-grant-read"} {
 		found := false
 		for _, got := range r.Checks {
 			if got == want {

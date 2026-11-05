@@ -426,17 +426,55 @@ failed run also joined its host cleanup.
 
 ## Next work and acceptance limits
 
-The snippet, recorded-state and pair-navigation increments above are verified
-within their stated presentation scopes. Next are recorded timing semantics and
-explicit work-product offers.
-
-Later slices cover paired state presentation, agreed timestamps/durations and
-explicit work-product offers. Public grader points, broader sensitivity checks, substantive
-chapter teaching, fresh student reconstruction and Bill's usability acceptance
-remain pending. Students can ask Cadence questions and run public graders under
+The snippet, recorded-state, pair-navigation, timing and work-product source
+increments above are verified within their stated scopes. The named public
+artifact grader remains partial. Public grader points, remaining HTTP/browser
+coverage and sensitivity checks, substantive chapter integration, fresh student
+reconstruction and broader human usability acceptance remain pending. Students can ask Cadence questions and run public graders under
 the [closeout plan](first-book-closeout-plan.md).
 
 Foundation lint follow-up: Chapters3/4/10 retain exactly the pre-existing em-dash
 lines compared with HEAD; Chapter18 passes hard checks. Advisories remain. The
 printed lint exit1 was retained even though a subsequent log-print command exited0;
 this is not recorded as a full manuscript lint pass.
+
+## Independent core grader: limits, cancellation and restored authority
+
+The grader now owns literal expectations of 64 MiB and 64 offers. Deriving a
+boundary from a candidate constant could make the oracle repeat the same defect.
+Its public consumer checks exact-size copy length and SHA256, oversized growth,
+missing files, outside-root offering, replacement symlink escape, failed offers
+consuming no slot, 64 unique grants, refusal of a 65th grant and retention of the
+first grant. Failed result/event values cannot carry offer metadata.
+
+A grader-owned blocking destination controls only external output I/O. Real
+candidate copies demonstrate independent concurrent transfer, caller cancellation,
+Agent destruction waiting for cleanup, and borrowed destination ownership. A real
+History.LoadSave restores the description into a replacement Agent but cannot
+restore permission to open it. Codec roundtrip alone would not test that loader
+boundary.
+
+Positive external runner results: job46 passed in 7.08 seconds; after adding the
+actual restore checks, job49 passed in 6.47 seconds, including core plus named and
+unnamed browser hosts. Both Go packages passed in job54. These are scoped results,
+not full chapter certification.
+
+Negative evidence is retained at
+`/private/tmp/cadence-artifact-mutants.8IGYER`. All four deliberately broken core
+candidates compiled successfully and failed the intended behavioral assertion:
+
+- 16 MiB limit: `exact-64mib-copy-hash`.
+- 65-offer cap: `offer-cap-refuses-65th`.
+- Click-time Sandbox bypass: `replacement-symlink-escape-refused`.
+- Recreating a grant from restored metadata: `restored-description-cannot-grant-read`.
+
+The first three ran in job48 before the restore assertions were added. Job53 built
+the current consumer and the fourth mutant; 32 earlier checks passed before the
+intended restored-authority failure. Only grader-created files were used. Separate
+temporary output directories preserved the good runtime and working source;
+package sources were disabled. No application installation or restart occurred.
+
+All five rubric rows remain UNGRADED, zero points. Public HTTP/browser size,
+cancellation and replay coverage is still incomplete; internal application tests
+do not fill those public grading gaps. Actions, snippets, recorded-time and
+interaction drivers also remain unfinished.

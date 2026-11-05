@@ -15,6 +15,10 @@ if (args is not ["work-product-core"])
     Console.Error.WriteLine("Expected work-product-core mode.");
     return 2;
 }
+// The oracle owns policy expectations; never derive a test boundary from a
+// candidate constant which could contain the same defect as its implementation.
+const long transferLimit = 64L * 1024 * 1024;
+const int offerLimit = 64;
 var checks = new List<string>();
 void Require(bool condition, string name)
 {
@@ -79,18 +83,71 @@ try
     Require(JsonCodec.ReadEvent(JsonCodec.WriteEvent(canonical)).WorkProduct?.ID == offer.ID, "event-roundtrip-retains-description");
     var context = new Context([new Entry(1, Actor.Tool, [result])]);
     var savedConfig = JsonSerializer.SerializeToElement(new { vendor = "anthropic", model = "offline", system_prompt = "", tools = Array.Empty<object>() });
-    var saved = JsonCodec.ReadSave(JsonCodec.WriteSave(new SaveDocument(context, 1, savedConfig, [])));
+    string snapshotPath = Path.Combine(workspace, "snapshot.json");
+    File.WriteAllText(snapshotPath, JsonCodec.WriteSave(new SaveDocument(context, 1, savedConfig, [])));
+    var saved = JsonCodec.ReadSave(File.ReadAllText(snapshotPath));
     var frames = Gui.Project(new HistorySnapshot([], saved.Context!, 1), "candidate").Frames;
     Require(frames.Single(frame => frame["type"]!.GetValue<string>() == "tool_finished")
         ["work_product"]?["id"]?.GetValue<string>() == offer.ID, "snapshot-only-gui-retains-description");
-    using (var stream = File.OpenWrite(file)) stream.SetLength(Agent.MaximumWorkProductBytes + 1);
+    using (var stream = File.OpenWrite(file)) stream.SetLength(transferLimit + 1);
     Refuse(() => agent.OpenWorkProduct(offer.ID).Dispose(), "grown-file-over-limit-refused");
     File.WriteAllBytes(file, current);
+    using (var stream = File.OpenWrite(file)) stream.SetLength(transferLimit);
+    byte[] expectedHash;
+    using (var input = File.OpenRead(file)) expectedHash = SHA256.HashData(input);
+    try
+    {
+        using var hash = SHA256.Create();
+        using var sink = new CryptoStream(Stream.Null, hash, CryptoStreamMode.Write);
+        long bytes = await agent.CopyWorkProductAsync(offer.ID, sink, deadline.Token);
+        sink.FlushFinalBlock();
+        Require(bytes == transferLimit && hash.Hash!.SequenceEqual(expectedHash), "exact-64mib-copy-hash");
+    }
+    catch (Exception error) when (error is IOException or ArgumentException)
+    {
+        throw new InvalidOperationException("exact-64mib-copy-hash: candidate refused the allowed boundary", error);
+    }
+    File.Delete(file);
+    Refuse(() => agent.OpenWorkProduct(offer.ID).Dispose(), "missing-offered-file-refused");
+    string outside = Path.Combine(Directory.GetCurrentDirectory(), "outside-" + Guid.NewGuid().ToString("N"));
+    File.WriteAllBytes(outside, RandomNumberGenerator.GetBytes(17));
+    try
+    {
+        Refuse(() => agent.OfferWorkProduct(outside), "outside-root-offer-refused");
+        File.CreateSymbolicLink(file, outside);
+        Refuse(() => agent.OpenWorkProduct(offer.ID).Dispose(), "replacement-symlink-escape-refused");
+    }
+    finally
+    {
+        File.Delete(file);
+        File.Delete(outside);
+        File.WriteAllBytes(file, current);
+    }
+    var capped = new Agent(app, config, name: "offer-limit");
+    Refuse(() => capped.OfferWorkProduct(file + ".missing"), "failed-offer-refused-before-cap");
+    var offers = new List<WorkProductInfo>();
+    for (int index = 0; index < offerLimit; index++)
+    {
+        try { offers.Add(capped.OfferWorkProduct(file)); }
+        catch (Exception error) { throw new InvalidOperationException("offer-cap-admits-64: rejected offer " + (index + 1), error); }
+    }
+    Require(offers.Select(item => item.ID).Distinct().Count() == offerLimit, "offer-cap-admits-64-unique-grants");
+    Refuse(() => capped.OfferWorkProduct(file), "offer-cap-refuses-65th");
+    using (var first = capped.OpenWorkProduct(offers[0].ID))
+        Require(first.ReadByte() == current[0], "offer-cap-preserves-earliest-grant");
+    Refuse(() => new ToolResultPart("failure", [], isError: true, workProduct: offer), "failed-result-cannot-offer");
+    Refuse(() => new Event(EventKind.ToolObserved, callID: "failure", isError: true, workProduct: offer), "failed-event-cannot-offer");
+    var transferOwner = new Agent(app, config, name: "transfer-owner");
+    await TransferChecks.RunAsync(transferOwner, transferOwner.OfferWorkProduct(file), current, Require, deadline.Token);
     Require(!(await Call("unload_skill", new { name = "products" })).IsError, "grant-unloaded");
     Require((await Call("offer_work_product", new { path = file })).IsError, "revoked-new-offer-refused");
     agent.Destroy();
     var replacement = new Agent(app, config, name: "candidate");
     Refuse(() => replacement.OpenWorkProduct(offer.ID).Dispose(), "same-name-replacement-does-not-revive-offer");
+    Require(replacement.History().LoadSave(snapshotPath), "snapshot-file-restored");
+    Require(replacement.History().View().Dialogue.SelectMany(entry => entry.Parts).OfType<ToolResultPart>()
+        .Single().WorkProduct?.ID == offer.ID, "restored-history-retains-description");
+    Refuse(() => replacement.OpenWorkProduct(offer.ID).Dispose(), "restored-description-cannot-grant-read");
     Console.WriteLine(JsonSerializer.Serialize(new { contract = "artifact-work-product-core-v1", passed = true, checks,
         ungraded = "HTTP/browser, timing, snippets, interaction, and chapter points remain separate." }));
     return 0;
