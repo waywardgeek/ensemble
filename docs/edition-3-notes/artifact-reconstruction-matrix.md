@@ -46,10 +46,13 @@ Chapter2 starting-point export below is not yet admitted for a student.
 
 The public artifact consumer expects current Agent and GUI APIs and integrates
 skills, persistence and Sandbox behavior. Running it against an early chapter
-would import later requirements. The public CLI's supported numeric chapter list
-also does not advertise Chapter2 or Chapter3 scopes. Focused external acceptance
-for those revised early contracts must be prepared before their student runs;
-internal tests and the current70-point integration grade cannot substitute.
+would import later requirements. The Edition3 CLI does not advertise numeric2/3,
+but Chapter2 already uses the language-neutral `grade-edition2 -ch 2` gate and
+Chapter1 parity. Inspection of its actual dispatch confirmed this existing route.
+The initial CLI-list inference was incomplete: preserve existing chapter grading
+and add focused acceptance for the revised early timing contract, not another
+replacement100-point grader. Internal tests and the current70-point integration
+grade cannot substitute for that supplemental coverage.
 
 ## Baseline admission checklist
 
@@ -112,3 +115,37 @@ interface and independent admission receipt remain required. The existing tests
 may inspect internal prerequisite relationships through their declared test
 assembly access; the new public grader must remain outside that boundary. No
 frozen endpoint, installed runtime or live service was changed.
+
+
+## Timing-value supplement and audit continuation
+
+The14 exported source hashes still match their pre-build receipt. The full
+Chapter1 Agent, application, Engine, CLI and README were read, together with the
+previously inspected Common and project declarations. No History, reducer or
+Chapter2 answer code appears in those runtime files. The CLI can contact a real
+provider by default; student commands must supply their loopback fake explicitly.
+The complete test-file remainder and permitted manuscript bundle still need audit.
+
+Chapter2's exercise already has a language-neutral100-point public grader in
+`internal/gradeedition2/ch02.go`, reached through `grade-edition2 -ch 2` with an
+executable. It is not absent simply because the Edition3 CLI omits numeric2.
+The added grader-owned `testdata/ch02-timing-consumer` references only a supplied
+Ensemble.dll and exercises20 pure value/codec/reducer checks. Chapter2 and its
+consumer README now describe this supplemental boundary without changing old
+scores or frozen sources. There is no public CLI scope change.
+
+Positive evidence `/private/tmp/cadence-ch2-timing-values.vOEQts`: clean build,
+exit0 and20 named checks. Negative evidence
+`/private/tmp/cadence-ch2-timing-mutant.rqnhww`: isolated core build clean, reducer
+omits only timing on retained tool results; consumer exits1 at `known-reduction`
+after `known-value` and `known-codec` pass. Good candidate and installed applications
+unchanged. This proves that specific sensitivity, not every check's sensitivity.
+No student launched; focused provider-exclusion/log-restart coverage and a complete
+allowed teaching bundle remain before admission.
+
+The new consumer/project/config/README and chapter insertion were fully reviewed.
+Supplement README and matrix hard prose checks pass with advisories. Chapter2
+full lint exits1 only for its pre-existing em-dash line, compared unchanged with
+HEAD; its advisories remain. New link target exists and whitespace checks pass.
+The unrelated swaps and perplexity files remain untouched. No deployment,
+publication, installation or live-provider calls occurred.

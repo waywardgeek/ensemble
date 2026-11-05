@@ -1432,6 +1432,28 @@ lifetime phases to the ordinary parity checks; allow at least six minutes. Tests
 loopback HTTP fakes, never mocks of internal calls. A green grade does not
 verify the architecture: inspect declarations, relationships and access paths.
 
+### Timing-value supplement for the revised chapter
+
+The original100-point CLI grader remains applicable to this C# exercise. The
+later timing addition also needs direct evidence about reduced Entry values,
+which the CLI's rendered provider JSON deliberately omits. Use the separate
+[public timing-value consumer](../internal/gradeedition3/testdata/ch02-timing-consumer/README.md)
+against the candidate core assembly. It uses the immutable declarations in this
+chapter and public `History.Reduce` and `JsonCodec`, not later Jobs or GUI APIs.
+
+Construct known offset-bearing times, explicit zero durations and unknown values.
+Round-trip them, reduce supplied tool-result facts without executing tools, and
+preserve their timing through result/tool/dialogue redaction. A summary uses its
+replacement fact's time rather than inheriting the replaced observation duration.
+Numbering preserves duration while assigning sequence and recorded time. Reject
+negative duration and duration attached to a non-result event.
+
+This supplemental check awards no new chapter points. Its current evidence is a
+passing external consumer and an isolated reducer-loss negative candidate, not a
+fresh student result or complete early-chapter timing acceptance. Provider
+exclusion and real log restart remain separate from these pure value checks.
+The preserved historical endpoint predates this addition and stays frozen.
+
 ### The checks
 
 100 points, and all of them must pass.
