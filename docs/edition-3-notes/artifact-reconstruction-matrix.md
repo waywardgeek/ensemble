@@ -8,7 +8,8 @@ the original teaching repaired. Both students have submitted and joined teardown
 Chapter3 now also has an independently accepted fresh offline reconstruction
 and repaired-teaching retest. Both Chapter3 students have submitted and joined
 teardown; the earlier assisted result remains separately recorded.
-The other seven chapter gates remain unassigned and unaccepted. The integration
+Chapter4 now has a fresh isolated student in progress; it is not accepted.
+The other six chapter gates remain unassigned and unaccepted. The integration
 draft is `f2d3499c`; the artifact grade remains70/100 at `fb3dbe3c`. Work-product
 scoring and human/live-provider acceptance remain open. Local Models is last.
 
@@ -35,7 +36,9 @@ starting points below are inspection leads, not approved student baselines.
 Chapter2 has **baseline audited**, **fresh retest submitted**, and **bounded offline
 acceptance passed**, as recorded below. Chapter3 has **baseline audited**,
 **fresh retest submitted**, and **bounded offline acceptance passed**.
-The other seven rows retain **baseline not prepared**, **student not assigned**,
+Chapter4 has **baseline audited**, **student assigned**, **submission absent**,
+and **independent acceptance pending**.
+The other six rows retain **baseline not prepared**, **student not assigned**,
 **submission absent**, and **independent acceptance pending**. Their candidate
 starting points are not approved baselines.
 
@@ -881,3 +884,33 @@ and independent review. No such student or new verification has run. Existing
 Chapter11 grades do not certify this addition. Generic MCP content does not prove
 the built-in work-product offer path, and artifact grading remains70/100 with
 workproducts30 ungraded. No historical endpoint or grader score changes here.
+
+## Chapter4 first student admitted
+
+Fresh student `ch04-reconstruction-01` is reconstructing the revised chapter from
+accepted fresh Chapter3 commit `f519d36de87d04b396e49b94f5d2b563c4fa2d53`.
+The isolated bundle is `/private/tmp/cadence-ch4-student-prep.iy489re2/bundle`;
+its sibling `evidence/bundle-receipt.json` hashes92 permitted files. All31 original
+prerequisite hashes match the independent accepted archive. The solution has one
+new baseline commit `0a88abb4dcfe27246e5d52e9faf8ad99429ad606`, no remote and no
+parent history. No completed Chapter4, previous report or candidate run output
+was supplied as teaching material.
+
+Current Chapters1–4, scoped coding guidance, public grader references and all
+published supplements are supplied. Five copied scripts were checked against the
+prior immutable manifest; the intended clean PATH addition exposes the existing
+Delve executable. Public grader binaries were rebuilt offline from `d02995a6`.
+The clean environment resolves Go, Delve and script; fresh prerequisite build
+passes with zero warnings/errors. Existing Chapter3 acceptance is reused honestly,
+not labeled another fresh full grade. All script syntax and grader/checker entry
+points pass; final assignment and immutable material were reviewed before admission.
+
+The student has explicit question and public-grader access, writable solution/run/
+report scope, owned local fake-only authority and a1GiB reserve. Chapter4 uses
+`-jobs-only`; the Go-specific extra60 points are excluded. The model consumer
+selects `Ask` and still requires execution against the student's actual candidate.
+The baseline deliberately lacks Jobs, so it cannot yet compile those consumers.
+Delayed structured completion remains a Chapter11 exercise, not a hidden early
+requirement. Task1047 is admission only: explicit submission, independent grading,
+source/readability review and joined teardown remain required. No candidate code
+has been adopted and no installed application has changed.
