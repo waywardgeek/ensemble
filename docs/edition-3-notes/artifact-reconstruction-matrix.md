@@ -41,7 +41,8 @@ Earlier endpoints remain frozen and will not be edited to manufacture baselines.
 
 Only selected README spans and directory layouts have been inspected so far.
 A combined later read was clipped; this matrix makes no full endpoint source,
-dependency, compile or answer-leakage audit claim. No baseline receipt exists yet.
+dependency or answer-leakage audit claim for the complete matrix. The preliminary
+Chapter2 starting-point export below is not yet admitted for a student.
 
 The public artifact consumer expects current Agent and GUI APIs and integrates
 skills, persistence and Sandbox behavior. Running it against an early chapter
@@ -86,3 +87,28 @@ separate the later integration test explicitly before assigning the student.
 The open work-product scoring decision does not prevent this baseline audit. It
 does prevent treating the Chapter26 public grade as complete. Record Bill's choice
 when received; this matrix is not a scoring waiver.
+
+
+## First Chapter2 starting-point export
+
+Preparation commit `373bf66f` supplied exactly the14 tracked files under
+`solutions/ch01` to a new source directory without Git history. The three project
+files reference only that local core and .NET10; no package references or parent
+project imports were found. NuGet sources are cleared. Common's public values
+are Configuration, Message and Usage; Agent owns completed message pairs, not
+Chapter2 History. This is the intended earlier construction boundary.
+
+Evidence: `/private/tmp/cadence-ch2-baseline-audit.h7fVOU` contains the pre-build
+SHA256 file manifest and source revision in `source-receipt.json`, isolated
+source/home/temp/CLI/artifacts, `build.log` and `tests.log`. The exported baseline
+builds with zero warnings/errors and its four preserved prerequisite groups pass:
+relationships, successful conversation/usage, failed-turn behavior and cancellation.
+These tests use synthetic credentials and an external loopback fake provider.
+They are baseline regression evidence, not a new public Chapter2 grade.
+
+The source export has not been assigned to a student. Full source/teaching leakage
+review, permitted manuscript bundle, focused public acceptance, external consumer
+interface and independent admission receipt remain required. The existing tests
+may inspect internal prerequisite relationships through their declared test
+assembly access; the new public grader must remain outside that boundary. No
+frozen endpoint, installed runtime or live service was changed.
