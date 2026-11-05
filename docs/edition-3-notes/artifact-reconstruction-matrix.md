@@ -752,3 +752,36 @@ results; do not silently impose later runtime APIs or claim a delayed text handl
 certifies structured metadata. Stage references to later skills, GUI and transfers
 explicitly before admission. The accepted fresh Chapter3 candidate remains the
 eligible prerequisite; Chapter4 student preparation and acceptance are still open.
+
+## Chapter 4 public observation supplement
+
+The outside-assembly `ch04-observation-consumer` now exercises the early public
+text-handler path with a real barrier, direct dispatch, and control observations.
+It checks the real parent chain, one owned Job, typed running and terminal
+snapshots in canonical History, recorded positive dispatch durations before the
+worker finishes, immutable earlier observations, exact randomized output bytes,
+no control wrapper Job, and schema refusal without admission or handler effects.
+The public README names the C# interface. Early `ToolReturned` and the later
+direct-caller `ToolObserved` spelling are accepted without requiring a mailbox.
+Chapter 4 now stages skill activation and HTTP transfer details as later work.
+
+Parent verification job 958 built cleanly and passed all 23 named checks in
+`/private/tmp/cadence-ch4-observations.r8tgnz`. Job 964 built an isolated core
+that drops dispatch duration and rejected it exactly at
+`initial-recorded-observation-duration`, after five prior checks. Evidence is
+`/private/tmp/cadence-ch4-duration-mutant.C31vEF/build-final.log` and `result.json`.
+The earlier build there failed NuGet resolution with sources cleared; it is not
+behavioral evidence. Inspection found the old temporary package cache retained
+version directories but lacked complete package metadata. The final build used
+existing complete packages in `/Users/bill/.nuget/packages`, with sources still
+cleared and no downloads or cache repair.
+
+This is no new chapter score or full external-consumer acceptance. A text callback
+cannot prove completed structured-result delivery, and this direct dispatch
+consumer makes no provider request. Process-separated observation replay and the
+model-driven external consumer remain separate gates. Current public callbacks
+return strings; structured completion methods are internal. No new production
+callback, reflection, private test access, or delayed-offer certification has
+been introduced. No Chapter 4 student is admitted and no runtime, installed
+application, or frozen endpoint changed. Other negative branches are not claimed
+independently mutation-tested by this duration-loss candidate.

@@ -474,9 +474,10 @@ A schema or permission refusal has no admitted duration. An execution error afte
 admission may have one. Cancellation that ends observation but leaves its Job
 running fixes the observation's duration at that boundary; later completion must
 not rewrite it. A control's own observation can likewise be measured without
-creating a wrapper Job. Paths without an explicit dispatch boundary, including
-the current skill-activation path, retain unknown duration rather than inventing
-one. This feature does not change their admission behavior.
+creating a wrapper Job. Paths without an explicit dispatch boundary retain
+unknown duration rather than inventing one. Later chapters apply that rule to
+skill activation; do not construct the skill system here to test this timing
+boundary. This feature does not change admission behavior.
 
 Persist the optional duration exactly as nonnegative ticks on the result event
 and retained Entry. The GUI may format seconds, but provider payloads remain
@@ -495,10 +496,12 @@ when adding a Job snapshot or one-shot-limit notice; do not flatten the result
 to its output-file text. The work-product integration in Chapter 26 exercises
 this path with a successful offer that may arrive after an initial running report.
 
-An HTTP file transfer is not another tool observation or a new background Job.
-It has its own explicit lifetime, owned by the offering Agent and joined before
-that Agent's Sandbox is destroyed. Request cancellation stops that transfer;
-it does not erase the earlier offer or cancel another transfer.
+Chapter 26 supplies the HTTP transfer integration, not this chapter. Such a
+transfer is not another tool observation or a new background Job. It has its own
+explicit lifetime, owned by the offering Agent and joined before that Agent's
+Sandbox is destroyed. Request cancellation stops that transfer; it does not erase
+the earlier offer or cancel another transfer. Do not build the later Sandbox or
+HTTP route as a prerequisite for this chapter's observation exercise.
 
 ## 4.7 The terminal
 
@@ -851,6 +854,22 @@ logs which omitted a control's returned Job snapshot, while checking any supplie
 snapshot against the observed Job. Such a legacy pass does not certify the revised
 preservation rule above; test that rule explicitly through actual result recording
 and replay, alongside the C# consumer and ownership review.
+
+The [public observation supplement](../internal/gradeedition3/testdata/ch04-observation-consumer/README.md)
+adds 23 named outside-assembly checks for real running and terminal observations,
+recorded fixed durations, typed control snapshots, no wrapper Jobs, and refusal
+without admission. Its README specifies the C# constructor and public member
+signatures required by this executable, using the text-returning custom handler
+and actual parent relationships above. Provide those members on the real owners,
+not in a parallel test adapter. It accepts the early paired `ToolReturned` fact;
+a later runtime's direct `ToolObserved` spelling is also supported, without
+requiring a mailbox at this construction point.
+
+A pass is observation evidence, not the whole external-consumer exercise: this
+supplement makes no provider request and cannot certify structured completion
+metadata using its text-only handler. Keep that boundary and process-separated
+replay checks explicit rather than awarding them from these 23 checks. The
+historical 100-point score and separate consumer/topology review are unchanged.
 
 From the repository root, using the approved .NET 10 SDK and controlled offline
 environment:
