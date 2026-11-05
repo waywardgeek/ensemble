@@ -797,3 +797,19 @@ The lesson is that asynchronous clipboard completion belongs to the original
 control, not the conversation currently displayed. Public rubric rows remain
 ungraded. Separate manual-selection-loss sensitivity and remaining Actions and
 interaction coverage are still open.
+
+### Separate manual-selection sensitivity
+
+Job 228 built an isolated GUI that retains snippet nodes and restores focus but
+then collapses a focused textarea selection to position zero. The public Actions
+probe passed its earlier Copy-button focus check and failed specifically at
+`real streaming preserves actual manual selection and focus`. The other four
+probes passed and the Actions host stopped cleanly. Build and JSON receipts are
+in `/private/tmp/cadence-selection-mutant.EZEM6H`. The unchanged good candidate
+passed this same assertion in job 220; no repeat broad run was needed for this
+negative-only evidence. No runtime or grader source changed for this experiment.
+
+Retaining focus does not establish selection preservation. This separate failure
+closes the sensitivity limit recorded for the earlier no-reuse mutant, which
+stopped at button focus before reaching the manual textarea assertion. Rubric
+rows remain ungraded pending the explicit coverage review.
