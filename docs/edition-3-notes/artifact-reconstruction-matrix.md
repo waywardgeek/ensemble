@@ -1537,3 +1537,46 @@ repeated/admission-racing hints, remaining calls, fresh-next-batch reset and exp
 interrupt distinct. Do not blindly preserve historical tests or add later public
 APIs merely for a fixture. This newly identified requirement is part of making an
 honest prerequisite, not permission to modify frozen endpoints or the installed app.
+
+### Current hint semantics carried into the isolated prerequisite
+
+Current Chapters5/6 were fully reviewed, along with the actual Edition3 Chapter5
+CLI dispatch, complete hint driver and retained replay/media helpers. The current
+contract preserves finalized calls on a hint and caps each ordinary observation
+from its original start; interrupts still refuse the undispatched tail. Existing
+single-owner, reliable-reply, media and streaming boundaries remain in force.
+No new public adapter interface or later GUI machinery was introduced.
+
+Isolated commit `b43fcb900e98fad7a4c96c17fdb9ba5d40bd3029` adds an Agent-owned volatile
+pending-hint read and a replaceable, content-free Job wake pulse. Observers capture
+the pulse after acquiring their slot, then read pending state. A cap is latched
+once against the original monotonic start; shorter waits and ready results remain
+fast. The actor no longer cancels observation or skips the tail merely for a hint.
+The existing actor test now requires the real tail effect for hints while retaining
+no-tail-effect assertions for both interrupt modes. Other assertions stay intact.
+
+Fresh offline CLI/grader builds completed. The actual public Edition3 Chapter5
+report passes65/65: replay15, media10, early/aged hints and both interrupts10 each.
+The revised component suite passes33/0; CLI and suite core DLL hashes are identical.
+A separate outside-assembly public-API probe holds a real HTTP response and uses
+managed and PTY Jobs. Its20 checks pass for an active wait, a new wait admitted
+with a pending hint, send_input, unchanged one-shot settings, no wrapper Jobs,
+frozen-request/hint delivery, prior snapshots and an uncapped fresh control.
+
+A compiled isolated variant ignoring pending state at observer admission fails
+exactly `pending-hint-new-control-ceiling` after the existing-wait checks pass.
+The probe releases its external gates and joins server, model, callback and PTY
+cleanup on rejection as well as success. The loaded negative DLL hash matches
+its build. Full runtime/test diff and probe review completed. Evidence resides in
+export evidence/hint-grade.json, hint-controls.json, hint-state-mutant.json and
+hint-suite.log; hint-source-receipt.json is labelled post-execution, with source
+unchanged since the tested build. No live providers or installed apps were used.
+
+This is the published executable scope, not the remaining35 workflow/architecture
+points or a full Chapter5/6 certificate. No mandatory-completion host adapter exists
+in this pre-GUI baseline; later adapter integration is not certified by these
+ordinary-observation tests. Receiver/cleanup, parser/accounting/result-order,
+Chapter6 executable/workflow checks and early GUI acceptance remain open. Reconcile
+the current workflow's optional history-directory contract during that application
+verification. The baseline is still not student-ready. Frozen endpoints, the main
+runtime, artifact70-point report and Local Models-last ordering remain unchanged.
