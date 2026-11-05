@@ -198,7 +198,7 @@ and configuration are explicitly value-like and need no holder back-pointers.
 That is enough architecture for today's loop. Do not build a GUI, actor system,
 history log or provider framework yet. A later front end will use the same core.
 
-Before coding, genuinely load the `ensemble-csharp` skill; merely reading its
+Before coding, genuinely load the `ensemble-coding` skill; merely reading its
 file is not activation. Explain vocabulary, contracts, ownership, important
 ordering and failure paths beside the code. Use named intermediate steps,
 expanded control flow and one substantive operation per line. A student should

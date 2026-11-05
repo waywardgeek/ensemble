@@ -175,3 +175,43 @@ as a negative for these render comparisons. Positive full-JSON equality on all
 three early routes is recorded; a new route-specific negative remains available
 future work, not claimed evidence. Baseline teaching/test-tail audit and honest
 student assignment remain open. No frozen endpoint or production source changed.
+
+
+## Chapter2 permitted-material audit
+
+The remaining Chapter1 test file has now been read through its end: cancellation
+and the external loopback provider fake add no History/reducer answer. Together
+with the earlier source/project reads, this completes inspection of the14-file
+prerequisite export. Its prior clean build and four passing prerequisite groups
+remain the health evidence; they were not repeated merely for this audit.
+
+Both Chapter1 and Chapter2 manuscripts have now been read in full in bounded
+sections. Chapter2 explicitly places tool-result values before tool execution,
+so optional timing data and the supplement do not require Chapter4 Jobs. Its
+printed Event/Entry constructors, pure reducer, codec, log and renderer boundaries
+support the assigned supplement. No later snapshot, GUI or structured delivery
+implementation should enter the student workspace.
+
+Chapter1 names a coding skill that no longer exists under that name. Both current
+repository skill declarations use ensemble-coding; the chapter reference is now
+corrected. This is a guidance-name repair, not a new Chapter1 capability exercise.
+The isolated assignment must explicitly activate available guidance and apply the
+early chapter boundary: no scheduler, tool execution, skills subsystem or later
+runtime requirements imported from general current-runtime guidance.
+
+Permitted teaching will be the two audited manuscript files, the declared coding
+guidance and the public graders, with the audited Chapter1 source as writable
+starting material. References to completed solutions or future chapters are not
+permission to follow them. Chapter1 contains live discovery/chat examples and a
+separate live-completion requirement; Chapter2 also describes live sessions but
+allows owned local fakes when access is unauthorized. This reconstruction has no
+live-provider authority and will report that human/live gate separately, not
+claim it was repeated. No credentials, downloads, host services or native capture
+are needed. All commands must pin the existing SDK and isolated environment.
+
+Still required before student admission: assemble a fresh isolated repository
+without parent Git history, export/hash the permitted teaching and grader bundle,
+build the public graders from approved source, supply exact candidate commands
+and writable scope, and verify that the guidance does not direct the student to
+unavailable root-only paths. No student has been launched. The artifact score and
+open work-product scoring decision are unchanged.
