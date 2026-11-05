@@ -70,7 +70,7 @@ func TestArtifactExternalCandidate(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if r.ExitCode() != 3 || len(r.Probes) != 4 {
+	if r.ExitCode() != 3 || len(r.Probes) != 5 {
 		t.Fatalf("unexpected partial report: %+v", r)
 	}
 	for _, p := range r.Probes {
@@ -131,6 +131,31 @@ func TestActionsReceiptsRequireEveryFact(t *testing.T) {
 		checks = append(checks, actionsBrowserChecks[index+1:]...)
 		if checkActionsBrowserReceipt(encode(checks)) == nil {
 			t.Fatalf("missing %s accepted", name)
+		}
+	}
+}
+
+func TestTimingCoreReceiptRequiresEveryCheck(t *testing.T) {
+	encode := func(checks []string) []byte {
+		data, err := json.Marshal(map[string]any{"contract": "artifact-timing-core-v1", "passed": true, "checks": checks})
+		if err != nil {
+			t.Fatal(err)
+		}
+		return data
+	}
+	if err := checkTimingCoreReceipt(encode(timingCoreChecks)); err != nil {
+		t.Fatal(err)
+	}
+	for i, name := range timingCoreChecks {
+		checks := append([]string{}, timingCoreChecks[:i]...)
+		checks = append(checks, timingCoreChecks[i+1:]...)
+		if checkTimingCoreReceipt(encode(checks)) == nil {
+			t.Fatalf("accepted missing %s", name)
+		}
+	}
+	for _, data := range []string{`{}`, `{"contract":"artifact-timing-core-v1","passed":true}`, `{"contract":"wrong","passed":true}`, `{"contract":"artifact-timing-core-v1","passed":false}`} {
+		if checkTimingCoreReceipt([]byte(data)) == nil {
+			t.Fatalf("accepted incomplete receipt: %s", data)
 		}
 	}
 }

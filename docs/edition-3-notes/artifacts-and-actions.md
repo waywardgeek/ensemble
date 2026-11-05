@@ -666,3 +666,27 @@ unknown-duration assertion is not evidence that this fixture exercised an unknow
 value. Explicit legacy unknown values and snapshot-only restoration remain open,
 as do the other unfinished rubric cases. All rows remain UNGRADED and no runtime
 or installed application changed.
+
+### Public snapshot-only timing probe
+
+A separate fifth probe, timing-core, constructs grader-owned historical results
+with a fixed offset timestamp and tick-precise duration, an explicit zero, and
+missing timing. It exercises the Event codec, writes a real SaveDocument, calls
+History.LoadSave, checks the restored Context, then projects with an empty event
+tail. Known values and offsets must survive; measured zero and unknown remain
+distinct. The runner requires all ten named receipts; unit tests reject each
+omission and incomplete contract. No model request is made.
+
+Job179 passes both Go packages with all five external probes. Full helper and
+runner diff review completed in job181. The isolated dropped-timing projection
+candidate built successfully; codec and loader checks passed before it failed
+`timing-known-snapshot-only-projection`. The invented-defaults candidate also built
+successfully and failed exactly `timing-unknown-snapshot-only-projection`, after
+known and zero projections passed. Job180 completed both negative runs. Saved
+browser failure reports retain STOPPED with no joined-shutdown error. Evidence
+remains under `/private/tmp/cadence-actions-mutants.pp1uvZ`.
+
+This probe tests the public snapshot-only projection, not legacy unknown values
+rendered in a browser. It does not complete the timing rubric or any other row;
+all five rows remain UNGRADED. No runtime source, installed binaries, services or
+publication outputs changed.

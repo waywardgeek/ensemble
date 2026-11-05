@@ -180,7 +180,7 @@ func GradeArtifacts(c ArtifactGradeConfig) (report ArtifactReport, result error)
 	if err := artifactBrowserPreflight(c, root); err != nil {
 		return report, err
 	}
-	for _, name := range []string{"Program.cs", "ArtifactHost.cs", "ActionsHost.cs", "TransferChecks.cs", "ResponseBarrier.cs", "ArtifactsConsumer.csproj"} {
+	for _, name := range []string{"Program.cs", "ArtifactHost.cs", "ActionsHost.cs", "TimingChecks.cs", "TransferChecks.cs", "ResponseBarrier.cs", "ArtifactsConsumer.csproj"} {
 		data, err := artifactGradeFiles.ReadFile("testdata/artifacts-consumer/" + name)
 		if err != nil {
 			return report, err
@@ -248,6 +248,22 @@ func GradeArtifacts(c ArtifactGradeConfig) (report ArtifactReport, result error)
 		report.Status = "failed"
 	}
 	report.Probes = append(report.Probes, actionsProbe)
+	timing, err := os.MkdirTemp(root, "timing-")
+	if err != nil {
+		return report, err
+	}
+	timingCtx, timingCancel := context.WithTimeout(context.Background(), 30*time.Second)
+	output, err = runArtifactCommand(timingCtx, timing, artifactEnvironment(timing), c.Dotnet, binary, "timing-core")
+	timingCancel()
+	if err == nil {
+		err = checkTimingCoreReceipt([]byte(output))
+	}
+	timingProbe := ArtifactProbe{ID: "timing-core", Passed: err == nil, Detail: "Public snapshot load and projection of known, zero and unknown timing; no points yet."}
+	if err != nil {
+		timingProbe.Detail = err.Error() + ": " + output
+		report.Status = "failed"
+	}
+	report.Probes = append(report.Probes, timingProbe)
 	return report, nil
 }
 func checkArtifactCoreReceipt(data []byte) error {
@@ -465,6 +481,34 @@ func checkActionsBrowserReceipt(data []byte) error {
 		}
 		if !found {
 			return fmt.Errorf("missing Actions receipt: %s", want)
+		}
+	}
+	return nil
+}
+
+var timingCoreChecks = []string{"timing-event-codec-preserves-exact-values", "timing-snapshot-actually-loaded", "timing-snapshot-retains-three-results", "timing-known-retained-after-load", "timing-zero-retained-after-load", "timing-unknown-remains-unknown-after-load", "timing-snapshot-only-projects-three-results", "timing-known-snapshot-only-projection", "timing-zero-snapshot-only-projection", "timing-unknown-snapshot-only-projection"}
+
+func checkTimingCoreReceipt(data []byte) error {
+	var r struct {
+		Contract string
+		Passed   bool
+		Checks   []string
+	}
+	if err := json.Unmarshal(data, &r); err != nil {
+		return err
+	}
+	if r.Contract != "artifact-timing-core-v1" || !r.Passed {
+		return fmt.Errorf("timing core receipt did not pass")
+	}
+	for _, want := range timingCoreChecks {
+		found := false
+		for _, got := range r.Checks {
+			if got == want {
+				found = true
+			}
+		}
+		if !found {
+			return fmt.Errorf("missing timing receipt: %s", want)
 		}
 	}
 	return nil
