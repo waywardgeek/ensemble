@@ -813,3 +813,24 @@ Retaining focus does not establish selection preservation. This separate failure
 closes the sensitivity limit recorded for the earlier no-reuse mutant, which
 stopped at button focus before reaching the manual textarea assertion. Rubric
 rows remain ungraded pending the explicit coverage review.
+
+### Provider timing exclusion in real tool turns
+
+The Actions provider oracle now recursively checks JSON property names on every
+buffered request, refusing recorded-time and observation-duration metadata. It
+still positively checks that the actual tool result reaches the subsequent
+request. Ordinary result text is not searched for forbidden substrings. This
+covers the exercised Anthropic tool-result wire path, not every provider format.
+
+Job 232 passed both Go packages with all five external probes enabled. Job 237
+built an isolated core whose Anthropic result renderer looks up the retained
+History entry and attaches its observation duration as `observation_ms`. That
+candidate failed specifically at `provider-request-excludes-recorded-timing`;
+the other four probes passed and the Actions host stopped cleanly. Evidence is
+in `/private/tmp/cadence-timing-wire-mutant.lonnbr`. The good runtime and installed
+applications were unchanged. Full diff review and whitespace checks passed.
+
+Inspection metadata belongs to recorded facts without automatically becoming
+model input. This check certifies the named protocol fields on the exercised
+route, not absence of every conceivable prose encoding. Rubric rows remain
+ungraded while the remaining Actions and interaction cases are reviewed.

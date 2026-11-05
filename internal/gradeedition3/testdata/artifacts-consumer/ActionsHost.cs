@@ -148,6 +148,7 @@ internal static class ActionsHost
                 using var body = await JsonDocument.ParseAsync(context.Request.Body, cancellationToken: context.RequestAborted);
                 Require(context.Request.Headers["x-api-key"] == "artifact-grader-only", "Unexpected provider credentials");
                 Require(!body.RootElement.TryGetProperty("stream", out var streaming) || !streaming.GetBoolean(), "Expected buffered request");
+                Require(!ContainsTimingProperty(body.RootElement), "provider-request-excludes-recorded-timing");
                 int turn = Interlocked.Increment(ref requests);
                 object[] parts;
                 string reason;
@@ -221,4 +222,13 @@ internal static class ActionsHost
             Console.WriteLine("STOPPED Actions consumer");
         }
     }
+    private static bool ContainsTimingProperty(JsonElement value)
+    {
+        if (value.ValueKind == JsonValueKind.Object)
+            return value.EnumerateObject().Any(property =>
+                property.Name is "recorded_at" or "observation_ms" or "observation_duration" or "observation_ticks"
+                || ContainsTimingProperty(property.Value));
+        return value.ValueKind == JsonValueKind.Array && value.EnumerateArray().Any(ContainsTimingProperty);
+    }
+
 }
