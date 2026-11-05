@@ -3,6 +3,13 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using Ensemble;
 
+if (args.Length == 1 && args[0] == "library") return LibraryChecks.Run();
+if (args.Length != 0)
+{
+    Console.Error.WriteLine("Expected no arguments (metadata) or library.");
+    return 2;
+}
+
 var checks = new List<string>();
 void Require(bool condition, string name)
 {

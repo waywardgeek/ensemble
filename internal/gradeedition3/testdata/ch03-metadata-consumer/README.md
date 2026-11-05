@@ -38,3 +38,27 @@ alone does not certify an effectful tool loop.
 
 No live-provider compatibility, running-offer behavior, browser download,
 restart-expiry, student reconstruction, or full Chapter 3 acceptance is implied.
+
+## Library registry and ownership mode
+
+Use the same build and fresh owned environment, adding `library`:
+
+```sh
+/path/to/dotnet /your/owned/metadata-build/bin/Chapter3Metadata/debug/Chapter3Metadata.dll library
+```
+
+Require exit0, `contract: chapter3-library-v1`, `passed: true`, and all48 named
+checks. The default metadata mode retains its separate41-check contract.
+Unsupported arguments exit2. For each early provider route, this mode constructs
+two Agents, registers a concrete `ReadFile` Tool with only one, and verifies the
+actual declaration and the empty peer's omission. It mutates returned JSON trees,
+then requires fresh projections to remain unchanged. Destroying the last Tool
+must restore the original empty request; destroying its owner must detach its
+child without changing the peer's independent Tool.
+
+Only `Tool(Agent, ToolKind)`, `Parent`, `Name`, `Declaration`, `Destroy`,
+`Agent.Tools`, and the existing renderer/owner APIs are required. There is no
+custom callback, Job, live skill, command execution, private access, or network.
+These checks supplement the CLI grader, whose installed registry is never empty.
+They do not certify all schemas, nested-schema projection, effectful dispatch,
+thread safety, or the historical chapter score.

@@ -800,9 +800,12 @@ new checks passing. Correcting the grader does not rewrite that result.
 Run the [outside-assembly metadata consumer](../internal/gradeedition3/testdata/ch03-metadata-consumer/README.md)
 against your candidate `Ensemble.dll`, using the existing offline .NET SDK and
 fresh owned output directories. It checks the early contract above without
-requiring Jobs, Sandbox, GUI, or live offers. Keep its named receipt separately
-from the historical 100-point report. Add focused tests and source review that
-show synchronous result recording preserves the optional metadata; the value
+requiring Jobs, Sandbox, GUI, or live offers. Its separate `library` mode checks
+empty-registry omission, independent Agent ownership, fresh declaration trees,
+and destruction through the public Tool API. Run both modes and keep their named
+receipts separately from the historical 100-point report. Add focused tests and
+source review that show synchronous result recording preserves the optional
+metadata; the value
 consumer alone does not execute your tool loop. No points are added to the
 historical grader by this supplement.
 

@@ -462,3 +462,31 @@ The accepted Chapter2 candidate is eligible prerequisite material, not a complet
 Chapter3 answer. No new student has launched. Chapter3 prose lint still fails only
 on its three unchanged em dashes; the supplement README passes hard checks with
 advisories. Artifact scoring remains70/100.
+
+## Chapter3 public library registry supplement
+
+The same outside-assembly project now offers a separate `library` mode with
+contract `chapter3-library-v1`. Its48 named checks cover all three early provider
+routes: empty registries omit declarations; a concrete read Tool registers both
+ownership links; the other Agent stays empty; caller mutation of declaration or
+request JSON does not change later projections; cross-vendor projection is stable;
+Tool destruction restores the original empty request; owner destruction detaches
+its child without disturbing a peer's Tool. It uses only the early constructor,
+Tool accessors/destruction, Agent collection and renderer. No tool effect, custom
+Job callback, private access, skill, or HTTP request is involved.
+
+Clean build, default41 metadata checks and48 library checks pass in
+`/private/tmp/cadence-ch3-library.5kHres`. A fresh isolated core changes only the
+renderer condition so it emits declarations even for an empty registry. It builds
+cleanly, then the library mode fails `Messages-empty-declarations-omitted` after
+the route and empty-collection preconditions pass. Receipts are in
+`/private/tmp/cadence-ch3-empty-registry-mutant.2C7CnD`. The test stops at that
+first failure; this is not separate negative sensitivity for the other routes,
+isolation, mutation or lifetime checks.
+
+The original CLI grader explicitly cannot observe the empty registry because its
+binary always installs tools. This supplement tests that public library boundary
+without adding a secret CLI mode or importing later Job APIs. Historical points
+and artifact scoring remain unchanged. Synchronous metadata recording, actual
+log-process replay and final prerequisite admission still remain open. No student
+is launched by this increment, and no runtime or frozen endpoint is changed.
