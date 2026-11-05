@@ -1704,3 +1704,26 @@ probe were reviewed; explicitly post-execution hashes and actual receipts are in
 the pre-GUI `evidence/unknown-usage-*` files. This is not provider integration or
 the separately queued AI Settings token-threshold correction. No main runtime,
 frozen endpoint, installation, artifact score or student admission changed.
+
+### Isolated empty OpenAI response boundary
+
+Isolated commit `a52fd2d` checks the buffered OpenAI choices array before indexing.
+The existing safe FormatException path records a canonical provider error instead
+of allowing IndexOutOfRangeException to escape. Gemini's existing nonempty-array
+check and streaming code were unchanged.
+
+The published Chapter2 provider-error checker ran against fresh pre-fix and fixed
+CLI builds with explicit `-no-stream`, owned loopback fixtures and inherited
+synthetic provider settings. Pre-fix OpenAI-empty aborted with exit -6 and failed
+`controlled-failure-exit-not-crash`; both valid controls and Gemini-empty passed.
+The fixed CLI passes all four cases with exits 0/1/0/1, one request each, no retry,
+no malformed raw canary, and one error fact rather than a success fact for each
+empty response. Components pass 33/0. Both builds are clean, the full guard diff
+was reviewed, and CLI/Tests core DLL hashes match. Actual receipts and explicitly
+post-execution source hashes are in the pre-GUI `evidence/parser-*` files.
+The surrounding collection shell's exit0 did not turn the pre-fix checker exit1
+into a pass. This is bounded buffered-envelope compatibility, not universal
+malformed-response handling or live-provider certification. No main runtime,
+frozen endpoint, installation, grader contract or student admission changed.
+Result-arrival order, remaining declaration compatibility, current Chapter6
+executable/workflow checks and early GUI acceptance remain open.
