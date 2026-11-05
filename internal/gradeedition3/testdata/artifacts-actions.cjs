@@ -180,10 +180,51 @@ assert(!['8088', '8089', '8090'].includes(new URL(base).port));
     const afterLegacy = await statusUntil(() => true);
     assert.equal(afterLegacy.requests, 3, 'legacy snapshot selection and reload issue no model requests');
     assert.equal(afterLegacy.executions, 1, 'legacy snapshot selection and reload execute no tools');
+    await page.locator('.pane-tab[data-pane="agents"]').click();
+    await page.locator('#agent-tree [data-agent="snippet-stream"]').click();
+    await page.getByRole('button', {name: 'Chat', exact: true}).click();
+    await page.locator('#prompt').fill('stream the snippet ' + initial.nonce);
+    await page.locator('#send').click();
+    const streamed = page.locator('#transcript [data-role="assistant"][data-kind="text"]').filter({hasText: 'stream-' + initial.nonce});
+    await streamed.waitFor();
+    assert.equal(await streamed.locator('[data-action="copy-code"]').count(), 0,
+      'unfinished actual provider stream has no copy control');
+    await page.request.post(origin + '/grade/stream-step/1');
+    const streamCopy = streamed.locator('[data-action="copy-code"]');
+    await streamCopy.waitFor();
+    await streamed.locator('summary').click();
+    await streamCopy.click();
+    const streamPayload = ('  streaming 界 ' + initial.nonce + '\n').repeat(40);
+    assert.equal(await page.evaluate(() => window.gradeClipboard.writes.at(-1)), streamPayload);
+    await streamCopy.focus();
+    const copyNode = await streamCopy.elementHandle();
+    await page.request.post(origin + '/grade/stream-step/2');
+    await streamed.getByText('later-' + initial.nonce, {exact: true}).waitFor();
+    assert(await copyNode.evaluate(node => node.isConnected && document.activeElement === node),
+      'real streaming preserves actual focused copy button');
+    assert.equal(await streamed.locator('details').getAttribute('open'), '', 'real streaming preserves expanded snippet');
+    assert.equal(await streamed.locator('[role="status"]').innerText(), 'Copied', 'real streaming preserves copy feedback');
+    await copyNode.dispose();
+    await page.evaluate(() => Object.defineProperty(navigator, 'clipboard', {configurable: true, value: undefined}));
+    await streamCopy.click();
+    const streamManual = streamed.locator('textarea');
+    assert.equal(await streamManual.inputValue(), streamPayload, 'missing API gives exact manual payload');
+    const manualNode = await streamManual.elementHandle();
+    await page.request.post(origin + '/grade/stream-step/3');
+    await streamed.getByText('finished-' + initial.nonce, {exact: true}).waitFor();
+    assert(await manualNode.evaluate(node => node.isConnected && node.readOnly && document.activeElement === node &&
+      node.selectionStart === 0 && node.selectionEnd === node.value.length),
+      'real streaming preserves actual manual selection and focus');
+    await manualNode.dispose();
+    const streamDone = await statusUntil(state => state.streamCompleted === 1);
+    assert.equal(streamDone.streamRequests, 1, 'streaming controls issue no extra provider request');
+    assert.equal(streamDone.streamFailure, null, 'streaming provider finishes cleanly');
+    assert.equal(streamDone.requests, 3);
+    assert.equal(streamDone.executions, 1);
     assert.deepEqual(errors, []);
     console.log(JSON.stringify({contract:'artifact-actions-v1', passed:true, checks:[
       'real-running-observation', 'call-result-navigation', 'historical-running-preserved',
-      'terminal-pathname-not-grant', 'replay-no-execution', 'focused-expanded-reader-preserved', 'canonical-recorded-time-and-duration', 'timing-survives-replay', 'legacy-unknown-and-zero-browser', 'provider-snippets-exact-and-fallback'
+      'terminal-pathname-not-grant', 'replay-no-execution', 'focused-expanded-reader-preserved', 'canonical-recorded-time-and-duration', 'timing-survives-replay', 'legacy-unknown-and-zero-browser', 'provider-snippets-exact-and-fallback', 'real-streaming-snippet-stability'
     ]}));
   } finally { await browser.close(); }
 })().catch(error => { console.error(error.stack); process.exitCode = 1; });

@@ -744,3 +744,29 @@ All rows remain ungraded. These buffered checks do not certify streaming focus
 or selection, missing-clipboard-API behavior, delayed completion replacement,
 native clipboard permissions, or human usability. No runtime source, installed
 application, settings, credentials or historical endpoints changed.
+
+### Public streaming snippet continuity
+
+A separate Agent now receives a real Anthropic SSE response from the grader.
+Three external provider barriers make the browser observe an unfinished fence,
+its closure, and later prose updates without injecting renderer frames. Before
+closure there is no Copy control. After closure, copying returns the exact
+payload; an expanded snippet, its original focused Copy button and its success
+feedback survive the next delta. Removing the clipboard API gives an exact
+read-only manual payload whose actual node, focus and complete selection survive
+the final delta. The receipt requires one streaming request and completion,
+no streaming oracle failure, and the unchanged buffered Actions counts. Teardown
+releases all provider barriers before joining the host.
+
+Job 212 passed both Go packages and all five external probes. Job 215 reviewed
+the full four-file diff and whitespace checks passed. An initially broad edit
+also changed the download receipt validator; inspection caught and corrected it
+before tests, leaving that contract unchanged. Job 214 built an isolated GUI
+with unchanged-snippet reuse disabled. It failed specifically at the original
+focused Copy node assertion, with the other probes passing and clean host stop.
+Evidence is `/private/tmp/cadence-streaming-snippet-mutant.WKz3KN`. This negative
+control fails before the manual-selection assertion, so separate selection-loss
+sensitivity remains open. All rubric rows remain ungraded. Delayed clipboard
+completion after replacement, full prose selection/scroll coverage and native
+human acceptance remain separate gates. No production code or installed files
+changed.

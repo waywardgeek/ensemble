@@ -70,11 +70,61 @@ internal static class ActionsHost
         builder.Logging.ClearProviders();
         builder.WebHost.UseUrls(local);
         await using var host = builder.Build();
+        var streamSteps = Enumerable.Range(0, 3).Select(_ =>
+            new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously)).ToArray();
+        int streamRequests = 0, streamCompleted = 0;
+        string? streamFailure = null;
+        _ = new Agent(root, new Configuration(Vendor.Anthropic, config.Model, local + "/stream",
+            "artifact-grader-only", sandboxRoot: workspace), name: "snippet-stream");
+        host.MapPost("/grade/stream-step/{step:int}", (int step) =>
+        {
+            Require(step >= 1 && step <= streamSteps.Length, "Invalid streaming step");
+            streamSteps[step - 1].TrySetResult();
+            return Results.Ok();
+        });
+        host.MapPost("/stream/v1/messages", async (HttpContext context) =>
+        {
+            using var linked = CancellationTokenSource.CreateLinkedTokenSource(context.RequestAborted, deadline.Token);
+            try
+            {
+                using var body = await JsonDocument.ParseAsync(context.Request.Body, cancellationToken: linked.Token);
+                Require(context.Request.Headers["x-api-key"] == "artifact-grader-only", "Unexpected streaming credentials");
+                Require(body.RootElement.GetProperty("stream").GetBoolean(), "Expected real streaming request");
+                Require(Interlocked.Increment(ref streamRequests) == 1, "Unexpected extra streaming request");
+                context.Response.ContentType = "text/event-stream";
+                async Task Frame(object frame)
+                {
+                    await context.Response.WriteAsync("data: " + JsonSerializer.Serialize(frame) + "\n\n", linked.Token);
+                    await context.Response.Body.FlushAsync(linked.Token);
+                }
+                async Task Text(string text) => await Frame(new { type = "content_block_delta", index = 0,
+                    delta = new { type = "text_delta", text } });
+                await Frame(new { type = "message_start", message = new { model = config.Model,
+                    usage = new { input_tokens = 1, output_tokens = 0 } } });
+                await Frame(new { type = "content_block_start", index = 0, content_block = new { type = "text", text = "" } });
+                await Text("stream-" + nonce + "\n\n```text\n" + string.Concat(Enumerable.Repeat("  streaming 界 " + nonce + "\n", 40)));
+                await streamSteps[0].Task.WaitAsync(linked.Token);
+                await Text("```\n\nclosed-" + nonce);
+                await streamSteps[1].Task.WaitAsync(linked.Token);
+                await Text("\n\nlater-" + nonce);
+                await streamSteps[2].Task.WaitAsync(linked.Token);
+                await Text("\n\nfinished-" + nonce);
+                await Frame(new { type = "content_block_stop", index = 0 });
+                await Frame(new { type = "message_delta", delta = new { stop_reason = "end_turn" }, usage = new { output_tokens = 7 } });
+                await Frame(new { type = "message_stop" });
+                Interlocked.Increment(ref streamCompleted);
+            }
+            catch (Exception error)
+            {
+                streamFailure = error.Message;
+                context.Abort();
+            }
+        });
         int requests = 0;
         string? failure = null;
         object Status() => new
         {
-            nonce, final, output, requests, failure, executions,
+            nonce, final, output, requests, failure, executions, streamRequests, streamCompleted, streamFailure,
             observations = owner.History().Snapshot().Events
                 .Where(fact => fact.Kind == EventKind.ToolReturned)
                 .Select(fact => new { seq = fact.Seq, state = fact.Job?.Status,
@@ -156,6 +206,7 @@ internal static class ActionsHost
         finally
         {
             release.TrySetResult();
+            foreach (var step in streamSteps) step.TrySetResult();
             stop.Cancel();
             try { await serving; }
             finally

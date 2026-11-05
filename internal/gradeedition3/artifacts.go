@@ -446,19 +446,19 @@ func checkActionsHostReceipt(data []byte) error {
 	if err := json.Unmarshal(data, &r); err != nil {
 		return err
 	}
-	for key, want := range map[string]int{"requests": 3, "executions": 1, "returned": 2, "running": 1, "done": 1} {
+	for key, want := range map[string]int{"requests": 3, "executions": 1, "returned": 2, "running": 1, "done": 1, "streamRequests": 1, "streamCompleted": 1} {
 		var got int
 		if err := json.Unmarshal(r[key], &got); err != nil || got != want {
 			return fmt.Errorf("Actions host %s count mismatch", key)
 		}
 	}
-	if string(r["failure"]) != "null" {
+	if string(r["failure"]) != "null" || string(r["streamFailure"]) != "null" {
 		return fmt.Errorf("Actions host oracle failure or missing field")
 	}
 	return nil
 }
 
-var actionsBrowserChecks = []string{"real-running-observation", "call-result-navigation", "historical-running-preserved", "terminal-pathname-not-grant", "replay-no-execution", "focused-expanded-reader-preserved", "canonical-recorded-time-and-duration", "timing-survives-replay", "legacy-unknown-and-zero-browser", "provider-snippets-exact-and-fallback"}
+var actionsBrowserChecks = []string{"real-running-observation", "call-result-navigation", "historical-running-preserved", "terminal-pathname-not-grant", "replay-no-execution", "focused-expanded-reader-preserved", "canonical-recorded-time-and-duration", "timing-survives-replay", "legacy-unknown-and-zero-browser", "provider-snippets-exact-and-fallback", "real-streaming-snippet-stability"}
 
 func checkActionsBrowserReceipt(data []byte) error {
 	var r struct {
