@@ -1479,3 +1479,61 @@ mailbox completion paths, one-shot wrapping and progress publication are still
 pending. Receiver/cleanup, accounting/parser/result-order compatibility and early
 GUI public acceptance also remain open. No baseline approval, student admission,
 installation or historical-point claim follows from these passes.
+
+### Isolated admission and immutable observation transfer
+
+Isolated commit `f08d945c2d6a40cdc5724840be999028c00c2714` carries admission and
+measured outcomes through the existing mailbox. Schema/policy/output-admission
+refusals record a paired result without a Job, ToolStarted or duration. Successful
+admission records ToolCalled and ToolStarted before effects; a monotonic clock
+starts after ToolStarted and stops at foreground observation return, before queueing
+its immutable ToolObservation. Both direct-control and ordinary/model completion
+paths record Job snapshots and duration. One-shot wrapping and progress publication
+forward the description field too. No worker becomes a second History writer.
+The obsolete worker admission-error path was removed; public dispatch shape stays.
+
+Only contradictory preserved assertions were updated: bad arguments, unknown tools
+and invalid observation options now require no Job/started fact/duration, while
+one-shot consumption remains required. Existing real-effect tests are retained.
+Clean builds and actual receipts pass observations23/27/21, model38 and the preserved
+suite33/0. A new outside-assembly client plus owned loopback provider requests a
+real file write, then tool_limits and wait_for_job. Fourteen checks pass for actual
+canonical/model control snapshots, durations, admission order, one-shot consumption,
+no wrapper Jobs and metadata exclusion from the next Anthropic request. The client
+and provider join before successful command exit.
+
+Two isolated core mutants build successfully: dropping outcome duration fails
+`initial-recorded-observation-duration`; dropping only model wait_for_job snapshot
+recording fails `model-control-preserves-job-snapshot` after the real write and
+three-request guards. Loaded DLL hashes match the respective mutant builds. The
+probe client was changed to controlled failure before the final positive/negative
+runs, avoiding an unhandled exception merely because the fake rejects a mutant.
+Evidence: export evidence/dispatch-*.json, control-probe-good-final.json, build logs
+and dispatch-source-receipt.json (post-execution, labelled honestly). The complete
+runtime/test diff and probe were reviewed; a clipped dispatch diff was recovered
+from the exact final method. No frozen endpoint or main runtime changed.
+
+This is executed Job/timing evidence, not live offer or delayed structured-delivery
+certification. Non-null description transfer through future producers remains the
+later MCP/integration boundary; no test hook or new structured-handler API was added.
+Receiver, cleanup, parser/accounting/result-order and current Chapter5/6 parity
+remain open before baseline approval. No student or historical points awarded.
+
+### Current Chapter5 parity must supersede frozen hint behavior
+
+A targeted read of current Chapter5 found an additional mandatory compatibility
+boundary: hints cap each ordinary observation at three seconds from its original
+start, preserve every finalized pending call, and affect the next request. The
+frozen actor instead cancels immediately and skips the tail; its preserved tests
+assert that historical behavior. The33-case health pass is therefore explicitly
+not current Chapter5 parity. Current teaching names the Edition3 executable-only
+65-point route (replay/media plus early/aged hints and both interrupt modes); the
+Edition2 executable route retains only25 historical replay/media points. No such
+new grade was run in this increment.
+
+Inspect the actual current grader and finish current Chapter5/6 teaching-parity
+review before changing hint behavior in the isolated copy. Keep hint deadlines,
+repeated/admission-racing hints, remaining calls, fresh-next-batch reset and explicit
+interrupt distinct. Do not blindly preserve historical tests or add later public
+APIs merely for a fixture. This newly identified requirement is part of making an
+honest prerequisite, not permission to modify frozen endpoints or the installed app.
