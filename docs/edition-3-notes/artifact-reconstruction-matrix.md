@@ -5,7 +5,9 @@
 Chapter2 now has an independently accepted bounded offline reconstruction from
 fresh student `ch02-reconstruction-02`, after the first candidate was withheld and
 the original teaching repaired. Both students have submitted and joined teardown.
-The other seven chapter gates remain unassigned and unaccepted. The integration
+Chapter3 has an independently verified assisted offline candidate; its fresh
+teaching retest remains open. That student has also submitted and joined teardown.
+The other six chapter gates remain unassigned and unaccepted. The integration
 draft is `f2d3499c`; the artifact grade remains70/100 at `fb3dbe3c`. Work-product
 scoring and human/live-provider acceptance remain open. Local Models is last.
 
@@ -28,9 +30,11 @@ starting points below are inspection leads, not approved student baselines.
 | 26 | Integrate all revised foundations and work-product ownership with the actual browser | No ready preserved endpoint; assemble an explicit prerequisite export | Four chapter exercises, named artifact grader, architecture review and human usability as distinct gates |
 
 Chapter2 has **baseline audited**, **fresh retest submitted**, and **bounded offline
-acceptance passed**, as recorded below. The other seven rows retain **baseline not
-prepared**, **student not assigned**, **submission absent**, and **independent
-acceptance pending**. Their candidate starting points are not approved baselines.
+acceptance passed**, as recorded below. Chapter3 has **baseline audited**,
+**assisted submission independently verified**, and **fresh teaching retest pending**.
+The other six rows retain **baseline not prepared**, **student not assigned**,
+**submission absent**, and **independent acceptance pending**. Their candidate
+starting points are not approved baselines.
 
 ## What the first inspection established (historical preparation)
 
@@ -82,14 +86,13 @@ unassisted. Retest substantive teaching repairs with a fresh student.
 
 ## Next bounded preparation
 
-Prepare the Chapter3 gate next: audit its current teaching and public grader,
-then explicitly assemble a prerequisite bundle from the accepted Chapter2
-reconstruction without completed Chapter3 answers. The accepted student commit
-is eligible prerequisite evidence, not automatic adoption into the main runtime.
-Keep the later work-product declaration and transfer integration in Chapter26
-rather than backporting a completed download subsystem into that starting point.
-If an earlier exercise truly requires a later owner, repair teaching order or
-separate the later integration test explicitly before assigning the student.
+Before a fresh Chapter3 retest, review the public Gemini schema-case compatibility
+ambiguity and use the repaired explicit single-part codec teaching. Assemble the
+next isolated bundle from the same accepted Chapter2 prerequisite, not the assisted
+Chapter3 solution. Keep questions and public graders available; record any further
+assistance rather than treating it as unassisted teaching evidence. The assisted
+candidate is preserved review evidence, not automatically adopted runtime source.
+Keep later work-product declaration and transfer integration in Chapter26.
 
 The open work-product scoring decision does not prevent this baseline audit. It
 does prevent treating the Chapter26 public grade as complete. Record Bill's choice
@@ -568,3 +571,37 @@ retest. After this run's independent review, a fresh bounded student must retest
 the repaired teaching. The student also reported a missing trailing search-output
 newline and is correcting it through the existing public case. No parent-provided
 implementation or acceptance follows from these clarifications.
+
+## First Chapter3 independent review completed
+
+Student `ch03-reconstruction-01` explicitly submitted commit
+`a311216925a6e7ec6e18d24fe52e407cf9664f3b`. The retained join completed, the durable
+submission was read, and graceful shutdown returned stopped. No student remains
+active. All43 read-only bundle files match admission; the submitted tree is clean.
+
+Parent-owned archive `/private/tmp/cadence-ch3-independent.xaBWyq` contains the
+exact31-file source with pre-build hashes. Fresh isolated build and independent
+public Chapters1/2/3 each report100/100 and passed:true, including all9/13/10
+checks. Timing modes pass20/5/8/10; metadata modes pass41/48/4/7; all four provider
+error cases pass with candidate exits0/1/0/1. Separate build/run passes all14
+focused groups. `independent-audit.json` records actual inspected reports and
+post-run source-hash equality, not merely successful shell commands.
+
+Review covered the new ownership declarations, concrete tools and failure paths,
+serial loop, real result conversion, capture/pairing changes, reducer, codec and
+value changes, CLI setup, focused tests, and submitted report. The real loop uses
+the tested conversion before the next exchange; current-response selection cannot
+redispatch a prior success after failure. Relationships are two-ended, metadata
+is immutable retained data, and no later Job/offer subsystem was imported. The
+code uses expanded control flow and documents nontrivial boundaries. No blocker
+was found within the assigned early serial-use scope. Previously accepted
+unchanged Chapter2 code is prerequisite evidence, not a new universal audit.
+
+This is an independently verified **assisted offline Chapter3 reconstruction**.
+It does not close the repaired-teaching retest: the codec signature omission and
+schema-case clarification were answered during this run. A fresh student must
+start from Chapter2 after the remaining grader compatibility review, without
+seeing this completed candidate. No patches are adopted automatically. Live
+provider behavior, general shell confinement, concurrent lifetime guarantees,
+crash recovery and full-book acceptance remain outside this result. Artifact
+scoring remains70/100; work-product scoring and human acceptance are still open.
