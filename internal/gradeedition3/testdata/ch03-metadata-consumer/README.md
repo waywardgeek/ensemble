@@ -62,3 +62,26 @@ custom callback, Job, live skill, command execution, private access, or network.
 These checks supplement the CLI grader, whose installed registry is never empty.
 They do not certify all schemas, nested-schema projection, effectful dispatch,
 thread safety, or the historical chapter score.
+
+## Separate-process metadata log replay
+
+After building, enter a fresh owned workspace and run these commands sequentially:
+
+```sh
+/path/to/dotnet /your/owned/metadata-build/bin/Chapter3Metadata/debug/Chapter3Metadata.dll log-write
+/path/to/dotnet /your/owned/metadata-build/bin/Chapter3Metadata/debug/Chapter3Metadata.dll log-read
+```
+
+Require the writer to exit0 before starting the reader. Both receipts use
+`contract: chapter3-metadata-log-v1`, their exact `mode`, and `passed: true`.
+The writer has4 named checks; the reader has7. Keep both receipts. The reader
+has no input-generation fallback: missing writer files must fail.
+
+The writer uses public `History.StartLog`, `Append`, and `Dump`, then destroys
+its owner before exit. It compares log and dump at the same lifecycle boundary,
+since destruction may append a shutdown fact. An independent manifest records
+random call identity, ordinary payload, and expected description fields. The
+reader uses public `History.Load` and checks canonical events, restored Context,
+and redumped descriptions for both actual log files. No later snapshot API is
+required. This tests clean process exit and replay of data, not crash recovery,
+restored file authority, or synchronous tool execution.

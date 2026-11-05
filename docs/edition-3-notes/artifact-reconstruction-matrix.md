@@ -490,3 +490,24 @@ without adding a secret CLI mode or importing later Job APIs. Historical points
 and artifact scoring remain unchanged. Synchronous metadata recording, actual
 log-process replay and final prerequisite admission still remain open. No student
 is launched by this increment, and no runtime or frozen endpoint is changed.
+
+## Chapter3 separate-process metadata log supplement
+
+The consumer now adds `log-write` and `log-read`, using only the early public
+StartLog/Append/Load/Dump APIs. The writer closes before a separate reader starts;
+the reader cannot generate its input. Independent randomized expected fields
+check canonical log metadata, restored Context, and subsequent dumps. This is
+retained description evidence, not live permission or effectful dispatch.
+
+Clean build, default41 and library48 checks, writer4 and reader7 checks pass in
+`/private/tmp/cadence-ch3-log.5cmeCj`. The previously compiled reducer-loss core
+from `cadence-ch3-metadata-mutant.kwc4pE/run-final` was reused with the new consumer
+and good writer files. Its reader passes `events.jsonl-canonical-description`,
+then fails exactly `events.jsonl-restored-description`; the receipt is
+`negative-reader.json` in the new directory. This demonstrates replay reduction
+sensitivity without claiming a new mutation campaign or codec-loss sensitivity.
+
+Full helper review and documentation distinguish clean exit/replay from crash
+recovery and restored authority. Synchronous dispatch propagation review and
+Chapter3 prerequisite admission remain open. No new student, runtime edit,
+historical score change, or artifact points follow from this increment.

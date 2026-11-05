@@ -802,12 +802,14 @@ against your candidate `Ensemble.dll`, using the existing offline .NET SDK and
 fresh owned output directories. It checks the early contract above without
 requiring Jobs, Sandbox, GUI, or live offers. Its separate `library` mode checks
 empty-registry omission, independent Agent ownership, fresh declaration trees,
-and destruction through the public Tool API. Run both modes and keep their named
+and destruction through the public Tool API. Run those modes, then `log-write`
+and `log-read` as separate processes in the same fresh workspace. The reader must
+load the completed writer's actual files, preserving the description through
+canonical events, restored Context, and a subsequent dump. Keep all named
 receipts separately from the historical 100-point report. Add focused tests and
 source review that show synchronous result recording preserves the optional
-metadata; the value
-consumer alone does not execute your tool loop. No points are added to the
-historical grader by this supplement.
+metadata; the consumer alone does not execute your tool loop. No points are added
+to the historical grader by this supplement.
 
 ### What would still pass if I deleted this?
 
