@@ -540,7 +540,7 @@ func checkActionsBrowserReceipt(data []byte) error {
 	return nil
 }
 
-var timingCoreChecks = []string{"timing-event-codec-preserves-exact-values", "timing-snapshot-actually-loaded", "timing-snapshot-retains-three-results", "timing-known-retained-after-load", "timing-zero-retained-after-load", "timing-unknown-remains-unknown-after-load", "timing-snapshot-only-projects-three-results", "timing-known-snapshot-only-projection", "timing-zero-snapshot-only-projection", "timing-unknown-snapshot-only-projection"}
+var timingCoreChecks = []string{"timing-event-codec-preserves-exact-values", "timing-snapshot-actually-loaded", "timing-snapshot-retains-three-results", "timing-known-retained-after-load", "timing-zero-retained-after-load", "timing-unknown-remains-unknown-after-load", "timing-snapshot-only-projects-three-results", "timing-known-snapshot-only-projection", "timing-zero-snapshot-only-projection", "timing-unknown-snapshot-only-projection", "timing-render-payload-present-Messages", "timing-render-independent-Messages", "timing-render-payload-present-ChatCompletions", "timing-render-independent-ChatCompletions", "timing-render-payload-present-Responses", "timing-render-independent-Responses", "timing-render-payload-present-GenerateContent", "timing-render-independent-GenerateContent"}
 
 func checkTimingCoreReceipt(data []byte, phase string) error {
 	var r struct {

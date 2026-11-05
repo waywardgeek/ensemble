@@ -1,5 +1,6 @@
 using System.Globalization;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using Ensemble;
 using EnsembleGui;
 
@@ -65,6 +66,33 @@ internal static class TimingChecks
                 "timing-zero-snapshot-only-projection");
             Require(frames[2]["recorded_at"] is null && frames[2]["observation_ms"] is null,
                 "timing-unknown-snapshot-only-projection");
+            foreach (var (vendor, surface, model) in new[]
+            {
+                (Vendor.Anthropic, Surface.Messages, "claude-3-haiku-20240307"),
+                (Vendor.OpenAI, Surface.ChatCompletions, "gpt-4o-mini"),
+                (Vendor.OpenAI, Surface.Responses, "gpt-4o-mini"),
+                (Vendor.Gemini, Surface.GenerateContent, "gemini-2.0-flash")
+            })
+            {
+                var route = new Configuration(vendor, model, "http://127.0.0.1:1", "grader-unused",
+                    disableStreaming: true, surface: surface, sandboxRoot: workspace);
+                var renderer = new Agent(app, route, name: "render-" + surface);
+                string nonce = Guid.NewGuid().ToString("N");
+                var call = new ToolCallPart("call-" + nonce, route.Target(), "timing_probe",
+                    JsonSerializer.SerializeToElement(new { value = nonce }));
+                var result = new ToolResultPart(call.CallID, [new TextPart("result-" + nonce)]);
+                Entry[] plain = [new Entry(1, Actor.Agent, [call]), new Entry(2, Actor.Tool, [result])];
+                Entry[] timed = [new Entry(1, Actor.Agent, [call], time: time),
+                    new Entry(2, Actor.Tool, [result], time: time.AddSeconds(1), observationDuration: duration)];
+                var baseline = renderer.Engine().Render(new Context(plain));
+                var withTiming = renderer.Engine().Render(new Context(timed));
+                string json = withTiming.ToJsonString();
+                Require(json.Contains("timing_probe", StringComparison.Ordinal) &&
+                    json.Contains("result-" + nonce, StringComparison.Ordinal),
+                    "timing-render-payload-present-" + surface);
+                Require(JsonNode.DeepEquals(baseline, withTiming), "timing-render-independent-" + surface);
+                renderer.Destroy();
+            }
             if (writer)
                 owner.History().Save(new PersistenceOptions(persistedPath, RetainLog: 0));
             Console.WriteLine(JsonSerializer.Serialize(new { contract = "artifact-timing-core-v1",

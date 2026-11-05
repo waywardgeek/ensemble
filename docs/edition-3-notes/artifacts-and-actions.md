@@ -1224,3 +1224,26 @@ Lesson: a hand-authored snapshot proves loader behavior but cannot prove the
 application save path retains timing. The separate reader makes save-time loss
 observable without sharing in-memory state with the writer. Remaining timing
 review includes the provider-exclusion scope; this increment awards no new points.
+
+### Timing independence across public provider renderers
+
+The public timing consumer now compares otherwise identical timed and untimed
+Contexts through `Engine.Render` for Anthropic Messages, OpenAI Chat Completions,
+OpenAI Responses and Gemini GenerateContent. Each contains a grader-owned random
+call/result pair. Both the tool name and random result must appear in the rendered
+request before complete JSON equality is tested. This prevents an empty renderer
+from satisfying exclusion. Eight new required receipts are checked in each
+process phase, including omission tests through the existing receipt matrix.
+
+Job374 passes both Go packages and all five external probes. Job376 builds an
+isolated core that adds the retained timestamp to Responses under the unrelated
+name `inspection_hint`. It fails exactly at `timing-render-independent-Responses`,
+after the Responses payload-presence assertion and both preceding surfaces pass.
+Other probes pass. The clean build and report are retained at
+`/private/tmp/cadence-timing-render-mutant.lAaL6e`. This broadens the prior actual
+Anthropic request exclusion test with offline public-renderer evidence; it is not
+four live provider calls or a test of every credential, media or streaming policy.
+
+Lesson: whole-request equality tests independence from timing without guessing
+all possible field names. Known payload presence guards against vacuous equality.
+The reviewed score remains55 pending the explicit timing-row acceptance review.
