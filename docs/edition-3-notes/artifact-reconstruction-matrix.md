@@ -1654,3 +1654,33 @@ post-execution source receipts. The final runtime diff and full probe were read;
 README policy prose was added after execution. Earlier output-write/disposal
 failure paths remain open. No main runtime, frozen endpoint, installed application,
 artifact points or student admission changed.
+
+### Isolated output failure cleanup
+
+Isolated commit `fb2368b` preserves termination-notice and buffered-close failures
+while still attempting cancellation, joining, resource cleanup and detachment.
+Single exceptions retain their type/stack; multiple failures remain observable.
+No new public interface or test-only production hook was added.
+
+The outside-assembly probe runs only its owned process with POSIX `RLIMIT_FSIZE`
+zero and ignored `SIGXFSZ`; the host limit is unchanged and no disk is filled.
+A one-byte FileStream write first proves the limit is active. Owner destruction
+then exercises a failed termination notice. A separate direct-Job case first
+leaves buffered output after a failed public AppendOutput, exercising close failure.
+The final probe with the untouched pre-fix DLL fails cancellation delivery after
+three and four setup checks respectively. The repaired DLL passes 11 owner and
+12 direct-Job checks, including held cleanup, preserved error, detachment and peer
+survival. All four probe processes joined with expected exits and no timeout.
+Loaded good/negative DLL hashes match their respective builds.
+
+The first guard used File.WriteAllBytes and incorrectly expected IOException;
+the actual OS failure surfaced as ArgumentOutOfRangeException. That zero-check
+setup failure earned no behavioral credit. The final guard uses the same public
+FileStream write/flush path as the candidate and records the actual exception
+class. Final runtime, full C# probe and Python process wrapper were reviewed.
+The modified candidate also passes managed-grace10, cancellation-callback5 and
+components33/0. Evidence and explicitly post-execution hashes are in the pre-GUI
+`evidence/output-*` files. This covers the exercised file-size failures, not every
+storage or process-disposal failure. Frozen endpoints, main runtime, installation,
+artifact score and student admission remain unchanged. Next are the remaining
+usage/parser/result-arrival compatibility repairs and current Chapter6 checks.
