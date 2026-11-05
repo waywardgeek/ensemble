@@ -1224,3 +1224,40 @@ MCP structured-result, work-product authority or full-book certification follows
 Earlier withheld candidates remain withheld. No automatic adoption, frozen
 endpoint edit, installation or restart occurred. Six other chapter gates remain
 open; the next task is Chapter7 prerequisite and public-acceptance auditing.
+
+## Chapter7 initial teaching and grader audit
+
+The full645-line Chapter7 manuscript has now been read, together with the complete
+349-line ch07.go scorer and374-line ch07_driver.go. The actual early executable
+route is `grade-edition2 -ch 7 -executable-only -gui STATIC -gui-model MODEL GUI`:
+80 points for wire/replay/trace/pause, excluding inherited Chapter6 and Go topology.
+The Edition3 CLI's numeric7 route uses the full historical wrapper; its executable
+flag does not select this80-point route. Preserve those distinctions in admission.
+The manuscript's stale forthcoming-Artifacts wording is corrected: that named
+integration grader exists, but later runtime APIs are not early Chapter7 inputs.
+
+The historical driver checks actual tool inputs, effects, provider-returned output,
+completed replay identity, trace shape and cross-tab pause/resume. It does not
+inspect real DOM/clipboard/speech, causally gated active-partial replay, the revised
+reading controls or all ownership boundaries. Its stop helper joins process exit
+but does not grade that exit status; it cannot certify successful joined shutdown
+by itself. Browser behavior, core snapshot/display contracts and shutdown success
+need independent early-API acceptance rather than credit from later artifact tests.
+No historical scoring or driver behavior changed during this audit.
+
+Preserved ch06 is still only a candidate. Its selected Common declarations retain
+Event.Time but Entry has no Time/duration; result/event declarations have no new
+WorkProduct description or observation duration. Accepted foundations must be
+carried forward through the mailbox/streaming boundary in an isolated prerequisite
+without adding the completed GUI. Common Owners does have optional Agent.Name and
+root FindAgent; an initial method-only search was insufficient to establish naming
+support. Later qualified-address APIs must not be silently imposed. Inspect real
+mount ownership and early root identity before choosing the public test interface.
+
+Only selected prerequisite declarations and README spans are audited so far, not
+its whole source/dependency surface. Examples include Observer, Workflow and
+Consumer; the shallow project inventory did not imply their absence. No new
+baseline export, build, student admission or Chapter7 acceptance is claimed.
+Next audit the preserved core and required Chapter5/6 carry-forward, and design
+focused public core/browser checks without a completed-GUI answer leak. Download
+transfer/live grants remain Chapter26 integration, not a new early prerequisite.

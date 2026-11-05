@@ -629,8 +629,10 @@ pause semantics. It excludes inherited Chapter 6 scoring and Go topology
 checks. The full historical Go route remains available and unchanged in scope.
 Neither route establishes accessible speech quality or real provider acceptance.
 These historical points do not certify the added snippet-copy obligations.
-Focused browser tests and the forthcoming named Artifacts grader cover that
-contract separately; student reconstruction and human usability remain distinct.
+Use focused browser tests for that contract here. The named Artifacts grader
+covers snippet copying in the later integrated runtime; its later Agent and GUI
+APIs are not prerequisites for this early chapter. Student reconstruction and
+human usability remain distinct from either set of checks.
 
 For a human exercise, use a bounded task in the owned workspace. Watch a
 response stream, inspect thinking and tool details, send a hint, pause and
