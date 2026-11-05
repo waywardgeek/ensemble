@@ -9,7 +9,7 @@ assert(!['8088', '8089', '8090'].includes(new URL(base).port));
 (async () => {
   const browser = await chromium.launch({headless: true, channel: 'chrome'});
   try {
-    const page = await browser.newPage({viewport: {width: 390, height: 844}, locale: 'en-US', timezoneId: 'Pacific/Honolulu'});
+    const page = await browser.newPage({viewport: {width: 390, height: 844}, hasTouch: true, locale: 'en-US', timezoneId: 'Pacific/Honolulu'});
     page.setDefaultTimeout(20000);
     const errors = [], transfers = [];
     page.on('pageerror', error => errors.push(error.message));
@@ -22,6 +22,11 @@ assert(!['8088', '8089', '8090'].includes(new URL(base).port));
         await new Promise(resolve => setTimeout(resolve, 100));
       }
       throw new Error('Actions state did not reach expected boundary');
+    }
+    async function touchTarget(control, label) {
+      const bounds = await control.boundingBox();
+      assert(bounds && bounds.width >= 44 && bounds.height >= 44,
+        label + ' has a visible 44-pixel touch target: ' + JSON.stringify(bounds));
     }
     async function checkRecordedTiming(card, fact) {
       assert(fact && typeof fact.recorded === 'string', 'canonical result has recorded time');
@@ -74,6 +79,18 @@ assert(!['8088', '8089', '8090'].includes(new URL(base).port));
     await call.getByRole('button', {name: 'View latest result', exact: true}).click();
     assert.equal(await page.locator('[data-kind="tool_result"]:focus').getAttribute('data-part-id'), resultID,
       'call navigation returns to its actual observation');
+    const keyboardCall = page.locator(`[data-part-id="${resultID}"]`).getByRole('button', {name: 'View call', exact: true});
+    const keyboardResult = page.locator(`[data-part-id="${callID}"]`).getByRole('button', {name: 'View latest result', exact: true});
+    await touchTarget(keyboardCall, 'View call');
+    await touchTarget(keyboardResult, 'View latest result');
+    await keyboardCall.focus();
+    await keyboardCall.press('Enter');
+    assert.equal(await page.locator('[data-kind="tool_call"]:focus').getAttribute('data-part-id'), callID,
+      'Enter activates call navigation');
+    await keyboardResult.focus();
+    await keyboardResult.press('Space');
+    assert.equal(await page.locator('[data-kind="tool_result"]:focus').getAttribute('data-part-id'), resultID,
+      'Space activates result navigation');
     assert.equal(await page.locator('.work-product-links').count(), 0, 'running result has no offer control');
     const observed = (await statusUntil(state => state.running === 1)).observations[0];
     assert(observed.milliseconds > 0, 'admitted real observation has measured duration');
@@ -167,9 +184,17 @@ assert(!['8088', '8089', '8090'].includes(new URL(base).port));
     assert.equal(await page.locator('#transcript [data-role="human"] [data-action="copy-code"]').count(), 0,
       'human fenced prompt has no assistant copy control');
     assert.deepEqual(await page.evaluate(() => window.gradeClipboard.writes), [], 'copy requires deliberate click');
+    const draft = 'Unsent draft 界 ' + initial.nonce;
+    await page.locator('#prompt').fill(draft);
     for (let index = 0; index < expected.length; index++) {
       const snippet = snippets.nth(index);
-      await snippet.locator('[data-action="copy-code"]').click();
+      const copy = snippet.locator('[data-action="copy-code"]');
+      await touchTarget(copy, 'Copy');
+      if (index < 2) {
+        await copy.focus();
+        await copy.press(index === 0 ? 'Enter' : 'Space');
+      } else if (index === 2) await copy.tap();
+      else await copy.click();
       assert.equal(await page.evaluate(() => window.gradeClipboard.writes.at(-1)), expected[index],
         'snippet logical payload exact at index ' + index);
       assert.equal(await snippet.locator('[role="status"]').innerText(), 'Copied');
@@ -183,10 +208,11 @@ assert(!['8088', '8089', '8090'].includes(new URL(base).port));
     assert(await manual.evaluate(node => node.readOnly && document.activeElement === node &&
       node.selectionStart === 0 && node.selectionEnd === node.value.length), 'manual payload is readonly and selected');
     assert.match(await snippets.nth(4).locator('[role="status"]').innerText(), /Clipboard unavailable/);
-    assert.equal(await page.locator('#prompt').inputValue(), '', 'copy does not fill prompt');
+    assert.equal(await page.locator('#prompt').inputValue(), draft, 'copy and fallback preserve the unsent draft');
     const afterCopy = await statusUntil(() => true);
     assert.equal(afterCopy.requests, 3, 'copy does not send a model request');
     assert.equal(afterCopy.executions, 1, 'copy does not execute tools');
+    await page.locator('#prompt').fill('');
     await page.reload();
     await page.locator('.pane-tab[data-pane="tools"]').click();
     await page.locator(`[data-part-id="${callID}"]`).waitFor();
@@ -339,7 +365,7 @@ assert(!['8088', '8089', '8090'].includes(new URL(base).port));
     assert.deepEqual(errors, []);
     console.log(JSON.stringify({contract:'artifact-actions-v1', passed:true, checks:[
       'real-running-observation', 'call-result-navigation', 'historical-running-preserved',
-      'terminal-pathname-not-grant', 'replay-no-execution', 'focused-expanded-reader-preserved', 'canonical-recorded-time-and-duration', 'timing-survives-replay', 'legacy-unknown-and-zero-browser', 'provider-snippets-exact-and-fallback', 'real-streaming-snippet-stability', 'delayed-clipboard-replay-fenced', 'raw-selection-and-scroll-preserved', 'job-output-owner-and-running-guards', 'requested-and-dispatched-batch-states'
+      'terminal-pathname-not-grant', 'replay-no-execution', 'focused-expanded-reader-preserved', 'canonical-recorded-time-and-duration', 'timing-survives-replay', 'legacy-unknown-and-zero-browser', 'provider-snippets-exact-and-fallback', 'real-streaming-snippet-stability', 'delayed-clipboard-replay-fenced', 'raw-selection-and-scroll-preserved', 'job-output-owner-and-running-guards', 'requested-and-dispatched-batch-states', 'keyboard-touch-and-draft-preserved'
     ]}));
   } finally { await browser.close(); }
 })().catch(error => { console.error(error.stack); process.exitCode = 1; });

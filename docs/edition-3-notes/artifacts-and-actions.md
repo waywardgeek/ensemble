@@ -975,3 +975,26 @@ assertion, reports zero points and exit1, and joins the Actions host. Reports
 are `/private/tmp/cadence-snippet-score.AGnQE0/good.json` and `preview.json`.
 Unit tests cover missing evidence, unrelated success, failed Actions evidence,
 independent probe failure and repeated score computation without double counting.
+
+### Public keyboard, touch and unsent-draft preservation
+
+The real Actions browser now activates paired navigation through Enter and Space,
+checks the actual focused target identities, and measures visible44-pixel minimum
+control bounds. Snippet copies exercise Enter, Space, a browser touch tap and
+ordinary clicks. A real randomized Unicode draft remains in the composer during
+all copies and clipboard-denial fallback; prompt contents, provider requests and
+tool executions confirm preservation without submission. The draft is deliberately
+cleared before the later reload, so this test makes no draft-across-reload claim.
+The required browser receipt includes these interaction assertions.
+
+Job286 passes both Go packages and all five public probes (12.600seconds grading
+package). Job289 builds an isolated GUI that wrongly clears the composer at the
+Copy click boundary. It fails specifically at `copy and fallback preserve the
+unsent draft`, after copying the payloads, with other probes passing and the
+Actions host stopped cleanly. Evidence is
+`/private/tmp/cadence-copy-draft-mutant.GU0moi`, including build.log and result.json.
+The empty-composer assertion used previously could miss precisely this defect.
+Complete two-file grader diff reviewed; whitespace checks pass. No production or
+installed application changed. Touch is browser automation, not phone usability
+acceptance. Speech duplication remains open before the interaction row earns
+points; the reviewed snippet row remains20points when the complete probe passes.
