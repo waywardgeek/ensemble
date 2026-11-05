@@ -294,13 +294,24 @@ func GradeArtifacts(c ArtifactGradeConfig) (report ArtifactReport, result error)
 	if err != nil {
 		return report, err
 	}
-	timingCtx, timingCancel := context.WithTimeout(context.Background(), 30*time.Second)
-	output, err = runArtifactCommand(timingCtx, timing, artifactEnvironment(timing), c.Dotnet, binary, "timing-core")
-	timingCancel()
-	if err == nil {
-		err = checkTimingCoreReceipt([]byte(output))
+	// A joined writer exit precedes the reader launch; the reader cannot recreate its input.
+	for _, phase := range []string{"writer", "reader"} {
+		mode := "timing-write"
+		if phase == "reader" {
+			mode = "timing-read"
+		}
+		timingCtx, timingCancel := context.WithTimeout(context.Background(), 30*time.Second)
+		output, err = runArtifactCommand(timingCtx, timing, artifactEnvironment(timing), c.Dotnet, binary, mode)
+		timingCancel()
+		if err == nil {
+			err = checkTimingCoreReceipt([]byte(output), phase)
+		}
+		if err != nil {
+			err = fmt.Errorf("timing %s: %w", phase, err)
+			break
+		}
 	}
-	timingProbe := ArtifactProbe{ID: "timing-core", Passed: err == nil, Detail: "Public snapshot load and projection of known, zero and unknown timing; no points yet."}
+	timingProbe := ArtifactProbe{ID: "timing-core", Passed: err == nil, Detail: "Public History save, joined writer exit, separate-process restore and projection of known, zero and unknown timing; no points yet."}
 	if err != nil {
 		timingProbe.Detail = err.Error() + ": " + output
 		report.Status = "failed"
@@ -531,16 +542,17 @@ func checkActionsBrowserReceipt(data []byte) error {
 
 var timingCoreChecks = []string{"timing-event-codec-preserves-exact-values", "timing-snapshot-actually-loaded", "timing-snapshot-retains-three-results", "timing-known-retained-after-load", "timing-zero-retained-after-load", "timing-unknown-remains-unknown-after-load", "timing-snapshot-only-projects-three-results", "timing-known-snapshot-only-projection", "timing-zero-snapshot-only-projection", "timing-unknown-snapshot-only-projection"}
 
-func checkTimingCoreReceipt(data []byte) error {
+func checkTimingCoreReceipt(data []byte, phase string) error {
 	var r struct {
 		Contract string
+		Phase    string
 		Passed   bool
 		Checks   []string
 	}
 	if err := json.Unmarshal(data, &r); err != nil {
 		return err
 	}
-	if r.Contract != "artifact-timing-core-v1" || !r.Passed {
+	if r.Contract != "artifact-timing-core-v1" || !r.Passed || r.Phase != phase {
 		return fmt.Errorf("timing core receipt did not pass")
 	}
 	for _, want := range timingCoreChecks {

@@ -1196,3 +1196,31 @@ at `/private/tmp/cadence-actions-score.zY9KIl`. Unit tests cover either viewer
 missing or failing, viewers without Actions, independent failure, exact row totals
 and repeated recomputation. All scoped diffs were reviewed and hard prose checks
 pass with advisories. No runtime or installed application changed.
+
+### Public timing across a joined process restart
+
+The timing probe now runs two separate consumer processes. The writer loads the
+fixed known, measured-zero and unknown facts, checks their projection, and calls
+public `History.Save` with `RetainLog: 0`. The runner waits for successful process
+exit and its writer receipt before launching the reader. The reader loads only
+the saved output, with no seed-file creation or fallback, and checks exact offset,
+ticks, explicit zero, missing values and snapshot-only GUI projection. Both phase
+receipts require every named check; missing or mismatched phases refuse success.
+This is a clean save/exit/restore boundary, not crash recovery or a live GUI host
+restart. The five-probe report and55-point reviewed score remain unchanged.
+
+Job362 passes both Go packages and all five external probes in15.142seconds.
+After strengthening phase-specific omission tests, job368 passes both packages.
+Job367 builds an isolated core that drops timing only when constructing the
+saved Context, preserving entry identity, payload and other Context fields. Its
+writer succeeds and exits; the reader fails exactly at
+`timing-known-retained-after-load`, after successful file load and three-result
+checks. The other four probes pass, leaving55 reviewed points with failed status
+and exit1. Evidence is retained at
+`/private/tmp/cadence-timing-restart-mutant.VHzLAe`, including source, clean build
+log and final JSON report. No good runtime or installed application changed.
+
+Lesson: a hand-authored snapshot proves loader behavior but cannot prove the
+application save path retains timing. The separate reader makes save-time loss
+observable without sharing in-memory state with the writer. Remaining timing
+review includes the provider-exclusion scope; this increment awards no new points.

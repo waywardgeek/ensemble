@@ -5,7 +5,8 @@ using System.Text.Json;
 using Ensemble;
 using EnsembleGui;
 
-if (args is ["timing-core"]) return TimingChecks.Run();
+if (args is ["timing-write"]) return TimingChecks.Run(writer: true);
+if (args is ["timing-read"]) return TimingChecks.Run(writer: false);
 if (args is ["actions-host"])
 {
     await ActionsHost.RunAsync();

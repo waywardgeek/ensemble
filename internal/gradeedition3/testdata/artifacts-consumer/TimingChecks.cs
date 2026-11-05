@@ -6,7 +6,7 @@ using EnsembleGui;
 // Public persistence and projection boundaries, with grader-owned historical facts.
 internal static class TimingChecks
 {
-    internal static int Run()
+    internal static int Run(bool writer)
     {
         var checks = new List<string>();
         void Require(bool condition, string name)
@@ -39,11 +39,13 @@ internal static class TimingChecks
                 vendor = "anthropic", model = "offline", system_prompt = "", tools = Array.Empty<object>()
             });
             string path = Path.Combine(workspace, "timing-snapshot.json");
-            File.WriteAllText(path, JsonCodec.WriteSave(new SaveDocument(new Context(entries), 3, savedConfig, [])));
+            if (writer)
+                File.WriteAllText(path, JsonCodec.WriteSave(new SaveDocument(new Context(entries), 3, savedConfig, [])));
+            string persistedPath = Path.Combine(workspace, "timing-persisted.json");
             var config = new Configuration(Vendor.Anthropic, "claude-3-haiku-20240307", "http://127.0.0.1:1",
                 "grader-unused", disableStreaming: true, sandboxRoot: workspace);
             var owner = new Agent(app, config, name: "timing");
-            Require(owner.History().LoadSave(path), "timing-snapshot-actually-loaded");
+            Require(owner.History().LoadSave(writer ? path : persistedPath), "timing-snapshot-actually-loaded");
             var context = owner.History().View();
             Require(context.Dialogue.Length == 3, "timing-snapshot-retains-three-results");
             Require(context.Dialogue[0].Time?.EqualsExact(time) == true &&
@@ -63,7 +65,10 @@ internal static class TimingChecks
                 "timing-zero-snapshot-only-projection");
             Require(frames[2]["recorded_at"] is null && frames[2]["observation_ms"] is null,
                 "timing-unknown-snapshot-only-projection");
-            Console.WriteLine(JsonSerializer.Serialize(new { contract = "artifact-timing-core-v1", passed = true, checks }));
+            if (writer)
+                owner.History().Save(new PersistenceOptions(persistedPath, RetainLog: 0));
+            Console.WriteLine(JsonSerializer.Serialize(new { contract = "artifact-timing-core-v1",
+                phase = writer ? "writer" : "reader", passed = true, checks }));
             return 0;
         }
         catch (Exception error)

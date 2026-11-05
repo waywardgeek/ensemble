@@ -189,26 +189,33 @@ func TestActionsReceiptsRequireEveryFact(t *testing.T) {
 }
 
 func TestTimingCoreReceiptRequiresEveryCheck(t *testing.T) {
-	encode := func(checks []string) []byte {
-		data, err := json.Marshal(map[string]any{"contract": "artifact-timing-core-v1", "passed": true, "checks": checks})
+	encode := func(phase string, checks []string) []byte {
+		data, err := json.Marshal(map[string]any{"contract": "artifact-timing-core-v1", "phase": phase, "passed": true, "checks": checks})
 		if err != nil {
 			t.Fatal(err)
 		}
 		return data
 	}
-	if err := checkTimingCoreReceipt(encode(timingCoreChecks)); err != nil {
-		t.Fatal(err)
-	}
-	for i, name := range timingCoreChecks {
-		checks := append([]string{}, timingCoreChecks[:i]...)
-		checks = append(checks, timingCoreChecks[i+1:]...)
-		if checkTimingCoreReceipt(encode(checks)) == nil {
-			t.Fatalf("accepted missing %s", name)
+	for _, phase := range []string{"writer", "reader"} {
+		if err := checkTimingCoreReceipt(encode(phase, timingCoreChecks), phase); err != nil {
+			t.Fatal(err)
 		}
-	}
-	for _, data := range []string{`{}`, `{"contract":"artifact-timing-core-v1","passed":true}`, `{"contract":"wrong","passed":true}`, `{"contract":"artifact-timing-core-v1","passed":false}`} {
-		if checkTimingCoreReceipt([]byte(data)) == nil {
-			t.Fatalf("accepted incomplete receipt: %s", data)
+		for _, wrong := range []string{"", "wrong", "writer", "reader"} {
+			if wrong != phase && checkTimingCoreReceipt(encode(wrong, timingCoreChecks), phase) == nil {
+				t.Fatalf("%s accepted phase %q", phase, wrong)
+			}
+		}
+		for i, name := range timingCoreChecks {
+			checks := append([]string{}, timingCoreChecks[:i]...)
+			checks = append(checks, timingCoreChecks[i+1:]...)
+			if checkTimingCoreReceipt(encode(phase, checks), phase) == nil {
+				t.Fatalf("%s accepted missing %s", phase, name)
+			}
+		}
+		for _, data := range []string{`{}`, `{"contract":"artifact-timing-core-v1","passed":true}`, `{"contract":"wrong","passed":true}`, `{"contract":"artifact-timing-core-v1","passed":false}`} {
+			if checkTimingCoreReceipt([]byte(data), phase) == nil {
+				t.Fatalf("accepted incomplete receipt: %s", data)
+			}
 		}
 	}
 }
