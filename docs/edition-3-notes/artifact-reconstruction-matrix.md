@@ -1727,3 +1727,39 @@ malformed-response handling or live-provider certification. No main runtime,
 frozen endpoint, installation, grader contract or student admission changed.
 Result-arrival order, remaining declaration compatibility, current Chapter6
 executable/workflow checks and early GUI acceptance remain open.
+
+### Isolated provider result ordering and advertised read cap
+
+Isolated commit `f5755dd` preserves real result-arrival order within Anthropic's
+required grouping, then appends honest missing-result placeholders in call order.
+OpenAI/Gemini retain entry order without Anthropic-only recovery. This follows the
+original Chapter2 teaching and selected accepted Chapter3 renderer paths, not the
+old preserved test's all-provider grouping expectation. Pair validation remains
+shared, including occurrence-based reused IDs and ambiguity refusal; media checks
+and frozen requests remain intact. The old test was narrowly strengthened with
+reversed arrivals and provider-specific assertions, not deleted.
+
+An outside-assembly public renderer probe checks unique randomized payloads,
+provider fields, human order, adjacency, partial batches, deterministic projection,
+unchanged Context and reused IDs. Before repair, Anthropic fails
+`real-result-arrival-order`; OpenAI/Gemini fail
+`non-anthropic-entry-order-preserved`. The fixed build passes 12/10/10 checks and
+components33/0. The full final diff and probe were reviewed. This is offline wire
+projection evidence, not live-provider acceptance or complete Chapter6 parity.
+
+Isolated commit `404b3e9` restores the advertised 32,768-byte read_file default for
+omitted/zero max_bytes. The teaching allows an implementation choice, but this
+prerequisite's declaration and accepted Chapter3 baseline already choose 32 KiB;
+rewriting the declaration to justify unlimited execution would not carry that
+contract forward. Two public real-Job cases independently fail before repair at
+omitted/zero default assertions. After the two-line repair, seven checks pass:
+declaration/default consistency, explicit larger cap, UTF-8 boundary after line
+selection, preserved CRLF and unchanged source. Components pass33/0. No truncation
+algorithm or explicit-cap semantics changed.
+
+Actual receipts/build logs and explicitly post-execution hashes remain under the
+pre-GUI `evidence/result-order-*` and `read-cap-*` names. Loaded DLL hashes match
+the respective builds. No frozen endpoint, main runtime, installed application,
+artifact score or student admission changed. Current Chapter6 executable/workflow
+verification and early GUI public acceptance are next; the prerequisite is still
+not student-ready.
