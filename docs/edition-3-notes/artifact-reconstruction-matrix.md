@@ -8,7 +8,8 @@ the original teaching repaired. Both students have submitted and joined teardown
 Chapter3 now also has an independently accepted fresh offline reconstruction
 and repaired-teaching retest. Both Chapter3 students have submitted and joined
 teardown; the earlier assisted result remains separately recorded.
-Chapter4 now has a fresh isolated student in progress; it is not accepted.
+Chapter4 first student has submitted and joined teardown; independent assigned
+gates pass, but acceptance is withheld after an additional public-API review probe.
 The other six chapter gates remain unassigned and unaccepted. The integration
 draft is `f2d3499c`; the artifact grade remains70/100 at `fb3dbe3c`. Work-product
 scoring and human/live-provider acceptance remain open. Local Models is last.
@@ -36,8 +37,8 @@ starting points below are inspection leads, not approved student baselines.
 Chapter2 has **baseline audited**, **fresh retest submitted**, and **bounded offline
 acceptance passed**, as recorded below. Chapter3 has **baseline audited**,
 **fresh retest submitted**, and **bounded offline acceptance passed**.
-Chapter4 has **baseline audited**, **student assigned**, **submission absent**,
-and **independent acceptance pending**.
+Chapter4 has **baseline audited**, **student submitted**, **teardown joined**,
+and **independent acceptance withheld**, with repaired-teaching retest still required.
 The other six rows retain **baseline not prepared**, **student not assigned**,
 **submission absent**, and **independent acceptance pending**. Their candidate
 starting points are not approved baselines.
@@ -950,3 +951,40 @@ reported historical100 scores and exact supplement counts are not independent
 acceptance or evidence for later edits. No public grader or candidate code was
 changed by the parent. The fresh repaired-teaching retest remains required after
 this assisted candidate's independent review. Task1047/join1056 remain active.
+
+## Chapter4 first independent review: assigned gates pass, acceptance withheld
+
+Student submitted `bbd52f53df5c935054fcb1e31673715f2821481d`; join1056 completed
+and graceful shutdown confirmed stopped. All61 read-only bundle hashes match.
+Parent archived43 exact source files under
+`/private/tmp/cadence-ch4-independent.h6w1f66l`, hashed before building and checked
+unchanged afterward. Independent job1124 exited0: Chapters1–4 each100/100 with
+9/13/10/9 checks; timing20/5/8/10, metadata41/48/4/7, observations23/27/21 and
+model38 using the actual Ask branch pass. Four provider cases pass with candidate
+exits0/1/0/1. Separate job1129 independently builds/runs26 focused groups and the
+student consumer's12 checks with joined exit. Actual fields and source hashes
+were checked in1140 and saved in `independent-audit.json`.
+
+Additional review found a public API regression not covered by those grades.
+The prerequisite's `Tool.ExecuteAsync` refused a call naming a different Tool.
+The Chapter4 candidate instead forwards directly to Agent dispatch. The independent
+outside-assembly `receiver-probe` builds cleanly and calls the first of two harmless
+custom Tools with the second name: `receiver-result.json` reports first0, second1,
+IsError:false and second's output. Acceptance is withheld pending a focused public
+regression and original-teaching clarification. This is receiver/API correctness,
+not a demonstrated cross-Agent permission bypass. The submitted source is untouched.
+
+Review read the complete Job owner/dispatch/worker/observation/PTY implementations,
+Agent loop and tool integration, custom validation, changed value/codec/reduction
+paths and focused tests. Some combined reads clipped; relevant custom-validator,
+execution and test spans were recovered. Remaining report/consumer review is not
+claimed universally complete. Managed callback cleanup uses bounded containment
+as the early chapter explicitly permits; passing a short cooperative test is not
+proof of unconditional joined termination. PTY cleanup has separate actual evidence.
+
+The original durable submission is generation1, fully read in1116. A record-only
+follow-up produced generation2: the student had not read the parent answer to
+question5 before submitting; no files or tests changed. Parent acknowledgment
+was not child receipt. Preserve both records, and do not claim that answer guided
+the frozen implementation. API assistance on question4 still requires a fresh
+teaching retest. No candidate adoption or runtime/frozen/installed changes occurred.
