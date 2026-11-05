@@ -412,11 +412,14 @@ body that would not parse. A tool that ran and failed is ordinary tool
 that retries a compile error as if it were a network outage, which happens in
 practice and is less funny than it sounds.
 
-Thinking text is log-only. The reasoning can be recorded, and the *context*
-carries only opaque replay material, a signature or a redacted block, tagged
-with the exact model that produced it. The renderer decides whether that model
-wants it back. What you never do is reconstruct reasoning as prose and feed it
-to a different model as though it had thought it.
+Reasoning is not portable dialogue text. Record provider-issued replay material
+as opaque JSON tagged with its exact vendor, model and surface. Depending on the
+provider, that value may be a signature, a redacted block, or a complete thinking
+block containing both text and a signature. Preserve the complete replay value;
+do not strip fields or reconstruct its contents as ordinary `TextPart` prose.
+`JsonCodec.Text` excludes opaque material. A renderer returns it only to the
+matching producer when that surface supports replay; it never forwards it to a
+different producer as though that model had thought it.
 
 `ResponseEnded.Parts` holds everything the assistant produced in one reply,
 text and tool calls together, in the order it produced them; `ToolCalled` is

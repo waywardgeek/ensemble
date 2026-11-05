@@ -249,3 +249,24 @@ Task admission handle485 is not a completion receipt. Independent grading,
 source/ownership review, assistance record and joined teardown remain pending.
 No candidate patches have been adopted. Work-product scoring and the overall
 artifact70-point boundary are unchanged.
+
+## First student question: opaque thinking replay
+
+Student ch02-reconstruction-01 asked pending question1 after reporting passing
+Chapter1, Chapter2 and all timing supplement modes. These were student reports,
+not independent acceptance. The question identified a real wording conflict:
+Section2.4 called thinking text log-only, while Section2.6 required opaque replay
+material to be carried without interpretation to its exact producer.
+
+Cadence clarified that complete provider-issued thinking/redacted replay blocks
+remain opaque JSON, even when they contain text and a signature. Do not strip
+fields, promote reasoning into TextPart, include it in JsonCodec.Text or replay
+to another vendor/model/surface. The student was asked to retain same-producer
+exact-JSON and cross-producer/text-extraction regressions, and to record this
+assistance. No implementation or completed answer source was supplied.
+
+The original Chapter2 paragraph now states that distinction explicitly. The
+student's hashed teaching bundle remains unchanged. This assisted reconstruction
+cannot certify a fresh unassisted reading of the repaired paragraph; the revised
+teaching needs a fresh bounded student retest after this run's independent review.
+The active task485 and join492 remain owned; no second student was launched.
