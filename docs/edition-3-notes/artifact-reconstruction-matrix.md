@@ -988,3 +988,22 @@ question5 before submitting; no files or tests changed. Parent acknowledgment
 was not child receipt. Preserve both records, and do not claim that answer guided
 the frozen implementation. API assistance on question4 still requires a fresh
 teaching retest. No candidate adoption or runtime/frozen/installed changes occurred.
+
+## Receiver-contract follow-up: current source shares the forwarding behavior
+
+After the initial review, parent inspected current `agent/Common/Tools.cs` and
+`agent/Tools/Tool.cs`: the public ExecuteAsync member still exists, and its body
+also delegates to Parent().DispatchAsync by the supplied call name. This is source
+inspection, not a new installed-runtime test. The earlier accepted Chapter3
+prerequisite rejects mismatches, but the manuscript declares the member without
+explicitly stating whether receiver binding must survive the Job refactor.
+
+Therefore the probe establishes a behavior change from that prerequisite, not a
+student-only defect or an already-published explicit acceptance requirement. The
+initial withholding remains a pending API-contract decision, not a claim that the
+student failed its assigned public grades. Parent recommends retaining receiver
+binding and refusing mismatches without effects, but is asking Bill to distinguish
+that choice from an intentional Agent-dispatch alias before adding a mandatory
+public regression. No new receiver mode, positive-control patch, runtime fix or
+student retest has been created. Current-runtime compatibility must not be claimed
+from the previously passing observation consumer, which does not test this case.
