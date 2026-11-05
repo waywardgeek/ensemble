@@ -1098,3 +1098,39 @@ source, runtime, installed application or frozen bundle changed. Evidence and
 independent-audit.json retain both passing assigned gates and this additional
 failure. Complete the remaining review before choosing a bounded original-teaching
 repair and public regression; do not silently adopt a patched candidate.
+
+## Chapter4 cleanup supplement and completed review
+
+Remaining candidate review covered Tool execution/definitions, custom registration,
+recording conversion, changed owner/value/codec/reducer/CLI/test declarations,
+consumer, README and report. Independent supporting builds and runs passed22 own
+checks and six consumer checks (job1264). Provider case exits were verified0/1/0/1.
+No additional blocker was established in this assigned early scope; the reproduced
+cleanup failure still withholds acceptance. Normal cooperative-shutdown tests do
+not exercise a writer failing during shutdown. Clipped combined prose reads were
+recovered in bounded sections; this is not a universal rereview of unchanged
+Chapter3 provider code.
+
+Current runtime source already preserves kill-event recording failures while
+cancelling/joining and continuing child cleanup. That is source review only, not
+an installed-binary probe or a claim of universal cleanup correctness. No current
+runtime patch is required by this student finding.
+
+The public observation consumer now adds a separate cleanup mode with ten checks,
+and Chapter4 teaches failure ordering at the shutdown construction point. The
+unmodified student candidate builds cleanly, passes the running/diagnostic setup
+guards, then fails `cleanup-cancellation-despite-diagnostic-failure`. A disposable
+candidate copy defers the recording exception and finishes ownership cleanup;
+it builds cleanly and passes all ten. Evidence:
+`/private/tmp/cadence-ch4-cleanup-public.MLPEGD`, negative.json, positive.json and
+build logs. Original submission/bundle unchanged; the positive copy is a checker
+control, not accepted student work or source for a future student.
+
+During checker review, the first draft's teardown could itself strand a candidate
+that never cancelled. Before execution it gained a separate emergency cancellation
+source used only in finally, never to satisfy the tested cancellation assertion.
+The callback's externally held finally block tests joined cleanup before return.
+This does not certify uncooperative termination, every cleanup exception, or crash
+recovery. Existing modes and historical point totals remain unchanged. Fresh
+reconstruction from the same accepted Chapter3 baseline remains required after
+this original-teaching repair; no new student is admitted by this note.

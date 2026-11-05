@@ -487,6 +487,23 @@ its input loop. Returning a final model answer alone does not end the CLI
 session; EOF does. A library application has the same responsibility when it
 finishes using its Agent.
 
+Recording a shutdown failure must not prevent shutdown itself. A History append
+or borrowed diagnostic writer can throw while recording `job_killed`. Preserve
+that exception, but still request cancellation, terminate and drain owned
+processes, and join cooperative callback cleanup before reporting the failure.
+Continue cleaning the other owned children and detach their relationships even
+when one child reports a recording error. Do not mark an owner destroyed and then
+leave its children running behind an early return or an exception. A killed
+snapshot alone does not prove cancellation was delivered.
+
+Exercise this through the public observation supplement's `cleanup` mode. A
+borrowed writer fails during destruction while a real cooperative callback holds
+its cleanup behind an external barrier. Destruction must signal cancellation,
+wait for that cleanup, preserve the error, and leave an unrelated Agent alive.
+The test's synthetic unknown-usage History setup activates the early diagnostic
+path; it is not a provider request. This does not require new callback interfaces,
+crash-safe logging, or forced termination of arbitrary managed code.
+
 ### Measure the observation, not the worker
 
 Immediately after successfully recording dispatch admission, capture a monotonic

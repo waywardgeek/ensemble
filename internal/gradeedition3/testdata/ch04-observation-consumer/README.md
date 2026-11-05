@@ -131,3 +131,30 @@ It has a 20-second deadline and destroys its owner before reporting success.
 Default and replay modes retain their existing counts. This adds no historical
 chapter points and does not test detached receivers or arbitrary concurrent
 registry replacement.
+
+## Cleanup despite diagnostic failure
+
+Run a separate fresh workspace with the same consumer build:
+
+```sh
+"$DOTNET" "$BUILD/bin/Chapter4Observations/debug/Chapter4Observations.dll" cleanup
+```
+
+Require exit zero, `passed: true`, and all ten named checks. The existing public
+composition root accepts a borrowed TextWriter. The test appends an explicitly
+synthetic ResponseEnded with unknown usage, checks that the early diagnostic path
+actually writes, and admits a real custom callback. The writer then throws during
+Agent destruction. Cancellation must reach the callback despite that exception;
+destruction must remain pending while its cooperative cleanup is held, and finish
+only after the grader releases it. The recording error remains visible, owned
+Jobs detach, the unrelated Agent survives, and the borrowed writer is not disposed.
+
+There are no candidate-test calls, private fields, reflection, model requests or
+real processes. A separate grader-owned emergency cancellation source is used
+only during final teardown so a rejected candidate cannot strand the callback;
+it cannot satisfy the assertion on the Job's own cancellation token. A 20-second
+observation deadline bounds the test. This proves the exercised cooperative
+failure path, not crash recovery, all possible cleanup failures or forced stopping
+of an uncooperative handler. Default/replay/receiver counts and historical scores
+are unchanged. Do not suppress diagnostic exceptions merely to make destruction
+look successful.
