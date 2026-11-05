@@ -1370,3 +1370,38 @@ owned helper lifetimes, then export a hash-receipted isolated baseline and imple
 the bounded accepted-foundation carry-forward. Existing historical scores do not
 certify these newly identified compatibility boundaries. No live provider, GUI,
 installation, restart, publication or artifact-point change is claimed.
+
+### CLI/examples and prerequisite test audit in progress
+
+The complete491-line CLI, construction-only GuiStub, Consumer49, Observer155 plus
+its README, and Workflow274 plus both Draft partials were inspected. No completed
+GUI or second Agent scheduler is present. Examples require loopback endpoints;
+future harnesses must still supply owned ports and synthetic credentials. CLI has
+provider defaults, so clear inherited settings and configure owned fakes explicitly.
+Observer/workflow progress is display-only; reliable replies govern sequencing.
+No examples or tests were executed during this source audit.
+
+The complete463-line test runner, JobTests221, AdmissionTests125 and FlushTests97
+were read. Existing tests exercise real files/PTYs, loopback providers, input
+admission, pause, reliable flushing, cancelled waiters and actual output ownership.
+Some fixtures join servers on success but only stop/cancel them in failure cleanup;
+review and contain those helper lifetimes in the isolated copy before execution.
+Passing a normal scenario is not proof of joined failure cleanup.
+
+JobTests explicitly expects malformed/unknown ordinary calls to allocate Jobs.
+Those assertions conflict with the revised earlier admission contract and need
+narrow, documented updates in the isolated prerequisite, not blanket weakening
+of the surrounding real-effect/ownership tests. The canonical-part codec also
+feeds CLI tool_result/progress output, so its metadata repair has an actual public
+consumer path beyond standalone serialization tests.
+
+The runner's dialogue-redaction expectation retains tool exchanges. The actual
+Chapter2 redaction-family passage was checked: it removes prose/reasoning by
+category. Preserve that rule rather than copying an earlier implementation
+wholesale while adding timing. Acceptance evidence is bounded; the manuscript
+contract and actual public behavior still govern compatibility decisions.
+
+Remaining test-source audit: ActorTests, ToolTests, NamedAgentTests, MediaTests,
+StreamingTests and StreamingActorTests. Then finish helper containment and export
+the hash-receipted pre-GUI baseline. No frozen source, runtime, dependency, student
+admission or historical score changed in this increment.
