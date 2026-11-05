@@ -78,6 +78,12 @@ assert(!['8088', '8089', '8090'].includes(new URL(base).port));
     const observed = (await statusUntil(state => state.running === 1)).observations[0];
     assert(observed.milliseconds > 0, 'admitted real observation has measured duration');
     await checkRecordedTiming(running, observed);
+    assert(Number.isSafeInteger(observed.handle) && observed.handle > 0, 'canonical observation has a Job handle');
+    const outputURL = new URL('jobs/output', base);
+    outputURL.search = new URLSearchParams({agent: '', handle: String(observed.handle), download: '1'});
+    const outputHeaders = {'X-Ensemble-Output': '1', Origin: origin};
+    const runningOutput = await page.request.get(outputURL.href, {headers: outputHeaders});
+    assert.equal(runningOutput.status(), 409, 'running Job output is not a completed download');
     const details = page.locator(`[data-part-id="${resultID}"]`).locator(':scope > details');
     const summary = details.locator(':scope > summary');
     await page.setViewportSize({width: 390, height: 480});
@@ -134,6 +140,14 @@ assert(!['8088', '8089', '8090'].includes(new URL(base).port));
     assert((await terminal.textContent()).includes(completed.output), 'full pathname result is retained');
     assert.equal(await page.locator('.work-product-links').count(), 0, 'pathname prose grants no work-product control');
     assert.equal(transfers.length, 0, 'rendering pathname output transfers nothing');
+    const ownedOutput = await page.request.get(outputURL.href, {headers: outputHeaders});
+    assert.equal(ownedOutput.status(), 200, 'actual owning Agent can read completed Job output');
+    assert((await ownedOutput.text()).includes(completed.output), 'owned Job download contains the actual result');
+    outputURL.searchParams.set('agent', 'legacy-timing');
+    const foreignOutput = await page.request.get(outputURL.href, {headers: outputHeaders});
+    assert.equal(foreignOutput.status(), 404, 'foreign Agent cannot read another Agent Job by its handle');
+    assert.equal(foreignOutput.headers()['content-disposition'], undefined,
+      'foreign Job refusal is not an attachment');
     await page.getByRole('button', {name: 'Chat', exact: true}).click();
     const answer = page.locator('#transcript [data-role="assistant"][data-kind="text"]').filter({hasText: initial.final});
     await answer.waitFor();
@@ -295,7 +309,7 @@ assert(!['8088', '8089', '8090'].includes(new URL(base).port));
     assert.deepEqual(errors, []);
     console.log(JSON.stringify({contract:'artifact-actions-v1', passed:true, checks:[
       'real-running-observation', 'call-result-navigation', 'historical-running-preserved',
-      'terminal-pathname-not-grant', 'replay-no-execution', 'focused-expanded-reader-preserved', 'canonical-recorded-time-and-duration', 'timing-survives-replay', 'legacy-unknown-and-zero-browser', 'provider-snippets-exact-and-fallback', 'real-streaming-snippet-stability', 'delayed-clipboard-replay-fenced', 'raw-selection-and-scroll-preserved'
+      'terminal-pathname-not-grant', 'replay-no-execution', 'focused-expanded-reader-preserved', 'canonical-recorded-time-and-duration', 'timing-survives-replay', 'legacy-unknown-and-zero-browser', 'provider-snippets-exact-and-fallback', 'real-streaming-snippet-stability', 'delayed-clipboard-replay-fenced', 'raw-selection-and-scroll-preserved', 'job-output-owner-and-running-guards'
     ]}));
   } finally { await browser.close(); }
 })().catch(error => { console.error(error.stack); process.exitCode = 1; });

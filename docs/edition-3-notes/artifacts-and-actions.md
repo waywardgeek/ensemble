@@ -862,3 +862,24 @@ This checks actual selection and scroll with a focused reader, not selection-onl
 protection or every browser layout. All rubric rows remain UNGRADED pending row
 review and remaining coverage. The lesson is to require genuine overflow and
 nonempty selection before treating a stationary pane as preservation evidence.
+
+### Public Job-output ownership boundary
+
+The Actions fixture now exposes the synthetic canonical observation's Job handle.
+The public browser driver requests the real Job-output route while the callback
+is blocked and requires 409. After completion, the mounted owner must return 200
+with the actual randomized pathname result in its output. Reusing that handle
+under the existing legacy-timing Agent must return 404 without an attachment.
+The runner requires `job-output-owner-and-running-guards` explicitly.
+
+Run 257 passes both Go packages and all five public probes. Isolated GUI mutant
+258 deliberately resolves every Job-output Agent query to the mounted owner.
+It builds successfully and fails the foreign-Job assertion with 200 instead of
+404, after the legitimate owner check passes. Other probes pass; the Actions host
+reports STOPPED without a joined-shutdown error. Evidence is retained in
+`/private/tmp/cadence-foreign-job-mutant.B1YoRj`. No runtime or installed file changed.
+
+A globally unique Job handle identifies work but does not authorize reading it
+under another Agent. This is the HTTP diagnostic-output boundary, not proof of
+all cross-Agent model controls or human authentication. All rows remain UNGRADED;
+requested/dispatched visibility and remaining row review are still open.

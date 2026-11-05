@@ -127,7 +127,7 @@ internal static class ActionsHost
             nonce, final, output, requests, failure, executions, streamRequests, streamCompleted, streamFailure,
             observations = owner.History().Snapshot().Events
                 .Where(fact => fact.Kind == EventKind.ToolReturned)
-                .Select(fact => new { seq = fact.Seq, state = fact.Job?.Status,
+                .Select(fact => new { seq = fact.Seq, state = fact.Job?.Status, handle = fact.Job?.Handle,
                     recorded = fact.Time?.ToString("O"), milliseconds = fact.ObservationDuration?.TotalMilliseconds }).ToArray(),
             entered = entered.Task.IsCompleted, released = release.Task.IsCompleted,
             returned = owner.History().Snapshot().Events.Count(fact => fact.Kind == EventKind.ToolReturned),
