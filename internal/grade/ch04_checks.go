@@ -194,9 +194,21 @@ func checkJobModel(res *Ch4Result) Check {
 		}
 	}
 
-	// The wait is not a job, and it must still answer.
-	if rj := returned["toolu_jm_wait"]; rj.Present {
-		c.failf("wait_for_job was given a job record of its own (handle %d); the job verbs supervise jobs, they are not jobs", rj.Handle)
+	// The control allocates no Job. Its result may observe the existing read
+	// Job, which was already completed before this wait. Legacy logs omitted
+	// that snapshot; preserving it is an additional revised-chapter obligation.
+	if cj := called["toolu_jm_wait"]; cj.Present {
+		c.failf("wait_for_job allocated a wrapper Job on its call (handle %d)", cj.Handle)
+	}
+	if observed := returned["toolu_jm_wait"]; observed.Present {
+		original := returned["toolu_jm_read"]
+		sameExit := observed.ExitCode == nil && original.ExitCode == nil ||
+			observed.ExitCode != nil && original.ExitCode != nil && *observed.ExitCode == *original.ExitCode
+		if !original.Present || observed.Handle != original.Handle ||
+			observed.Status != original.Status || observed.Locator != original.Locator ||
+			observed.Bytes != original.Bytes || observed.Cwd != original.Cwd || !sameExit {
+			c.failf("wait_for_job observation does not match the existing completed read Job")
+		}
 	}
 	if r, ok := wire(&c, s, "toolu_jm_wait"); ok && r.IsError {
 		c.failf("wait_for_job on handle 1, which had finished, came back as an error: %.200q", r.Text)

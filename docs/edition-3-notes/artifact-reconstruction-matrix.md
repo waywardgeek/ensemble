@@ -708,3 +708,47 @@ Artifact grading remains70/100; work-product scoring and human acceptance are op
 Next is the Chapter4 teaching, public-grader and prerequisite audit. This accepted
 Chapter3 candidate is an eligible prerequisite, not permission to expose a completed
 Chapter4 endpoint or launch another student before admission review.
+
+## Chapter4 teaching audit and control-observation compatibility
+
+The full Chapter4 manuscript was read in bounded sections before admission.
+The executable gate is `grade-edition2 -ch 4 -jobs-only`; its wrapper retains
+Chapter3 parity and100 Jobs points. The separate60-point consumer/topology adapter
+is Go-specific and cannot certify a C# assembly. The example command now selects
+the executable gate explicitly, without awarding the consumer points.
+
+Existing dependencies are present: `/usr/local/go/bin/go` reports1.25.4,
+`/Users/bill/go/bin/dlv` reports1.27.2, and `/usr/bin/script` is executable.
+This establishes availability, not debugger/PTY scenario success. The isolated
+assignment must include the actual debugger directory on PATH: changing HOME
+changes Go's default GOPATH, so the grader's fallback lookup alone is insufficient.
+No installation, download or host change occurred.
+
+Audit found a contradiction: the opening preserves returned Job observations from
+controls, but the later log rule and historical `jobmodel` assertion rejected any
+control result metadata. Ownership and observation are different. The repair
+checks that the wait call allocates no wrapper Job; a supplied returned snapshot
+must match the existing completed read Job. Legacy absent snapshots remain accepted
+by the historical score. New positive preservation checks remain required for the
+revised teaching; compatibility is not a waiver or claimed public coverage.
+`tool_limits` still has no observed Job and remains metadata-free.
+
+Nine focused cases exercise the real `checkJobModel` scoring function with a
+complete synthetic evidence fixture: existing observation and legacy absence pass;
+wrapper allocation, wrong handle/status/output/bytes and invented exit refuse with
+the intended diagnostic. Before repair, the valid observation failed while the
+legacy fixture passed. The final ninth wrapper case also removes returned metadata
+so it cannot be rejected for the wrong reason. Shared grade and Edition3 package
+tests pass; Edition2 wrappers compile only. Evidence is retained at
+`/private/tmp/cadence-ch4-observation.jYfhSQ`. The first test command omitted the
+explicit module cache and failed setup with GOPROXY=off; no behavioral checks ran
+and no dependency download succeeded. The corrected run uses the existing cache.
+
+No runtime, frozen endpoint or student bundle changes accompany this repair.
+Next is the early public acceptance contract for timing, typed Job observations
+and structured completed results, plus a separately exercised C# consumer. The
+custom-tool prose permits different API spellings and currently demonstrates text
+results; do not silently impose later runtime APIs or claim a delayed text handler
+certifies structured metadata. Stage references to later skills, GUI and transfers
+explicitly before admission. The accepted fresh Chapter3 candidate remains the
+eligible prerequisite; Chapter4 student preparation and acceptance are still open.

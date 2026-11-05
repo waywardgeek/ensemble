@@ -276,9 +276,13 @@ needs its stated diagnostic. Do not hide those facts to imitate the old bytes.
 The log contract, so you do not guess it. Both `tool_called` and
 `tool_returned` carry `tool.job = {handle, status, output, bytes, exit_code?}`,
 with `status` one of `running`, `done`, `killed`, and `output` a
-`Ref{RefHandle, "cr/io/N"}`. The `job` field is absent on the four supervision
-tools; they are the only calls that are not jobs. One new event, `job_killed`,
-carries the job and a `reason` of `kill_job` or `shutdown`.
+`Ref{RefHandle, "cr/io/N"}`. The four controls allocate no wrapper Job, so their
+call records carry no newly allocated Job snapshot. A control's returned result
+can instead carry a snapshot of the existing Job it observed. Preserve that
+snapshot through result recording and replay; it does not give the control
+ownership of another Job. `tool_limits` has no observed Job and remains without
+Job metadata. One new event, `job_killed`, carries the job and a `reason` of
+`kill_job` or `shutdown`.
 
 On disk the killed event uses a top-level `job` payload, with the reason inside
 that object. This is an illustrative event, not a live receipt:
@@ -810,7 +814,7 @@ has something real to talk to. A command that emits more than a megabyte
 | id | points | what it grades |
 |---|---|---|
 | `ch3parity` | 10 | Chapter 3's corrected grader passes fully against the Chapter 4 binary |
-| `jobmodel` | 25 | handle on `tool_called` before the tool ran, for `read_file` and `list_directory` as well as the shell; `cr/io/N` bytes equal the result the model saw; `wait_for_job`'s own record carries no job |
+| `jobmodel` | 25 | handle on `tool_called` before the tool ran, for `read_file` and `list_directory` as well as the shell; `cr/io/N` bytes equal the result the model saw; `wait_for_job` allocates no wrapper Job; a returned snapshot describes the existing observed Job |
 | `waitjob` | 10 | delay honored (`running` at 0.2 s); wait returns the result; works on an already-finished job; file ends with marker and exit code |
 | `sendinput` | 10 | pattern wakes on the prompt and not the echo; input reaches the process; its reply comes back; clean exit recorded |
 | `debugger` | 5 | the fake drives `dlv` to a breakpoint and reads `42` |
@@ -841,6 +845,12 @@ visible instead of inventing a 160/160 result. Independently build and exercise
 the C# consumer through a local protocol fake and inspect the partial declarations
 and actual parent access paths. A failed overall grade is still a failed grade,
 with its executable and language-specific portions reported separately.
+Use `-jobs-only` for the executable100-point gate; it does not award the separate
+consumer/topology points. For historical compatibility, that gate permits older
+logs which omitted a control's returned Job snapshot, while checking any supplied
+snapshot against the observed Job. Such a legacy pass does not certify the revised
+preservation rule above; test that rule explicitly through actual result recording
+and replay, alongside the C# consumer and ownership review.
 
 From the repository root, using the approved .NET 10 SDK and controlled offline
 environment:
@@ -848,7 +858,7 @@ environment:
 ```sh
 dotnet run --project agent/Tests/Tests.csproj
 dotnet publish agent/Cli/Ch04.csproj -c Release -o /tmp/ch04-cli
-go run ./cmd/grade-edition2 -ch 4 -json /tmp/ch04-cli/ch04
+go run ./cmd/grade-edition2 -ch 4 -jobs-only -json /tmp/ch04-cli/ch04
 dotnet build agent/Examples/Consumer/Consumer.csproj
 ```
 
