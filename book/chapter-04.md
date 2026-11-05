@@ -218,6 +218,23 @@ return await job.ObserveAsync(call.CallID, delay, pattern, maxBytes,
     callerCancellation, wakeOnOutput: false);
 ```
 
+The complete finalized model response, including every requested call and its
+normalized identity, is already in canonical History before any batch effect.
+The handle-bearing `ToolCalled` above records admission of one Job, not capture
+of that whole response. In this early serial loop, each call may therefore follow
+`ToolCalled`, `ToolStarted`, and `ToolReturned` before the next call is admitted.
+Record that call with its Job before releasing its worker, and record results
+before the next provider request. A failed call-record append must release no
+worker. Refusal must cause no tool effect.
+
+Chapter 3's implementation may have recorded all separate call events before
+executing the first call. Do not duplicate those events or invent batch
+pre-admission merely to preserve an implementation-specific test. Update that
+test to verify complete response capture before effects, each Job's own
+record-before-effect boundary, correlation, and result-before-next-request
+ordering. The later scheduler may separate planned calls from dispatch again;
+that is not required here.
+
 Three things follow from putting it there and nowhere else.
 
 In C#, `Task.WhenAny` can similarly end a wait without ending the task.

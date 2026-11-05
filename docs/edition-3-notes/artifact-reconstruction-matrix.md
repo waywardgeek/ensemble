@@ -931,3 +931,22 @@ and running historical grades remain provisional. Independent candidate review
 can still establish correctness, but the repaired teaching requires a fresh
 student retest after this assisted run. Task1047 and join1056 remain active;
 no second student has been launched. The Chapter11 deferral remains unchanged.
+
+## Chapter4 batch-capture and admission clarification
+
+Student question5 identified an inherited Chapter3 test requiring every separate
+ToolCalled before the first result, while Chapter4's dispatch outline records each
+handle-bearing call at individual Job admission. Parent checked both teaching
+stages and the accepted prerequisite loop. The early serial Chapter4 sequence is
+permitted provided the full finalized ResponseEnded with all normalized calls is
+recorded before any effect, each admitted Job's call is recorded before its worker
+starts, and results precede the next provider request. No duplicate call events or
+untaught batch pre-admission mechanism is required. Original Chapter4 now states
+these boundaries next to its dispatch outline.
+
+The student was asked to preserve correlation/reused-ID, refusal and log-failure
+coverage, record the assistance, and reverify final lifecycle changes. Its initial
+reported historical100 scores and exact supplement counts are not independent
+acceptance or evidence for later edits. No public grader or candidate code was
+changed by the parent. The fresh repaired-teaching retest remains required after
+this assisted candidate's independent review. Task1047/join1056 remain active.
