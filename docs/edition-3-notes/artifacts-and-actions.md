@@ -1025,3 +1025,59 @@ duplicate; completion callbacks expose the entire tested queue without reading
 application internals. The report still awards only the reviewed snippet row:
 20/100 with four rows ungraded on a good run. No runtime or installed application
 changed. Automatic narration and the remaining row reviews stay explicit work.
+
+### Streamed narration and interaction-row review
+
+The public Actions driver now enables automatic narration through the visible
+speech toggle before a real SSE turn. The synthetic engine completes utterances
+through queued `onend` callbacks. Each of the four randomized prose markers must
+be spoken once, and fenced code contents must remain unspoken. The two subsequent
+Agent selection/replay cycles and delayed clipboard completions must leave the
+utterance list unchanged. Narration is explicitly disabled before the separate
+dispatch-state scenario. This tests incremental and final delivery together,
+without reading the application's speech queue or calling narration functions.
+
+Job308 passes both Go packages and all five external probes. Job310 builds an
+isolated GUI that resets the narration cursor to zero after each fragment. The
+public assertion reports five copies of the first marker instead of one, with
+all other probes passing and the Actions host stopped cleanly. Evidence is at
+`/private/tmp/cadence-stream-speech-mutant.5fp5hC`. This mutation establishes
+stream-duplication sensitivity; it is not a separate replay-only negative control.
+
+The interaction row now earns10points only after the complete Actions browser
+receipt and joined host pass. Its rubric mapping is:
+
+- Keyboard and touch: real Enter/Space activation for pair navigation and Copy,
+  touch tapping, measured44-pixel targets and the narrow390-pixel viewport.
+- Reading stability: expanded original raw detail and actual focused control
+  survive later output; real text ranges and scroll positions remain unchanged
+  while the transcript grows. Reused snippet and manual-selection nodes survive
+  real streaming. Focus-stealing, forced-scroll and selection-collapse candidates
+  fail their intended assertions.
+- Non-color state: explicit visible Requested, Dispatched, Result returned and
+  recorded running/finished labels are checked against real boundaries. The
+  wrong-requested-label and wrong-running-label candidates fail those checks.
+- Draft preservation: a real unsent Unicode draft survives copying and fallback.
+  The composer-clearing candidate fails the exact preservation assertion.
+- Speech: manual playback is nonempty and unaffected by copy/pair navigation;
+  its fully drained utterance list detects a queued duplicate. Real streamed
+  narration speaks each prose marker once, excludes code contents and stays
+  silent during selection replay. Copy-duplicate and lost-cursor candidates
+  fail the corresponding assertions.
+
+Human usability and native phone/audio quality remain separate gates. Browser
+speech and clipboard are controlled external boundaries, not real-device claims.
+As with snippets, failure anywhere in the combined Actions probe conservatively
+withholds both reviewed rows. The remaining Actions25, timing15 and work-products30
+rows stay ungraded; their previously named closure gaps are unchanged. A passing
+partial scope earns30/100 and still returns exit3, never full chapter acceptance.
+
+Final scoring verification: job314 passes both Go packages and all five public
+probes with the30-point expectation. Job315 runs the current CLI against the good
+runtime and retained cursor-loss GUI: respectively30/ungraded/exit3 with two
+passed rows, and0/failed/exit1 at the intended narration assertion with clean
+Actions shutdown. Reports are retained under
+`/private/tmp/cadence-interaction-score.pzjSrj`. Unit tests require exact20-point
+snippet and10-point interaction awards, preserve unrelated failures, and recompute
+without double counting. Source, test and rubric diffs were reviewed; hard prose
+checks pass with advisories. No application source or installed files changed.

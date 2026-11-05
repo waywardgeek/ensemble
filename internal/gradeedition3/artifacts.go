@@ -57,7 +57,7 @@ func newArtifactReport() ArtifactReport {
 
 // Only reviewed, independently exercised rows earn points. The shared Actions
 // probe must finish all browser assertions and joined host checks: an early
-// snippet success followed by a failed probe is insufficient evidence.
+// snippet or interaction success followed by a failed probe is insufficient evidence.
 func (r *ArtifactReport) applyReviewedRows() {
 	complete := false
 	for _, probe := range r.Probes {
@@ -68,12 +68,16 @@ func (r *ArtifactReport) applyReviewedRows() {
 	r.Score = 0
 	for i := range r.Rows {
 		row := &r.Rows[i]
-		if row.ID == "snippets" {
+		if row.ID == "snippets" || row.ID == "interaction" {
 			row.Earned, row.Status = 0, "ungraded"
-			row.Details = "Reviewed snippet contract; complete Actions browser/host evidence unavailable."
+			row.Details = "Reviewed " + row.ID + " contract; complete Actions browser/host evidence unavailable."
 			if complete {
 				row.Earned, row.Status = row.Points, "passed"
-				row.Details = "Real buffered/streaming payloads, exact copy, clipboard fallback, retained focus/selection and stale completion; clipboard boundary substituted."
+				if row.ID == "snippets" {
+					row.Details = "Real buffered/streaming payloads, exact copy, clipboard fallback, retained focus/selection and stale completion; clipboard boundary substituted."
+				} else {
+					row.Details = "Keyboard/touch targets, narrow-layout reading stability, textual states, draft preservation and speech noninterference; synthetic speech boundary, human usability separate."
+				}
 			}
 		}
 		r.Score += row.Earned
@@ -486,7 +490,7 @@ func checkActionsHostReceipt(data []byte) error {
 	return nil
 }
 
-var actionsBrowserChecks = []string{"real-running-observation", "call-result-navigation", "historical-running-preserved", "terminal-pathname-not-grant", "replay-no-execution", "focused-expanded-reader-preserved", "canonical-recorded-time-and-duration", "timing-survives-replay", "legacy-unknown-and-zero-browser", "provider-snippets-exact-and-fallback", "real-streaming-snippet-stability", "delayed-clipboard-replay-fenced", "raw-selection-and-scroll-preserved", "job-output-owner-and-running-guards", "requested-and-dispatched-batch-states", "keyboard-touch-and-draft-preserved", "speech-copy-and-pair-noninterference"}
+var actionsBrowserChecks = []string{"real-running-observation", "call-result-navigation", "historical-running-preserved", "terminal-pathname-not-grant", "replay-no-execution", "focused-expanded-reader-preserved", "canonical-recorded-time-and-duration", "timing-survives-replay", "legacy-unknown-and-zero-browser", "provider-snippets-exact-and-fallback", "real-streaming-snippet-stability", "delayed-clipboard-replay-fenced", "raw-selection-and-scroll-preserved", "job-output-owner-and-running-guards", "requested-and-dispatched-batch-states", "keyboard-touch-and-draft-preserved", "speech-copy-and-pair-noninterference", "streamed-narration-once-and-replay-silent"}
 
 func checkActionsBrowserReceipt(data []byte) error {
 	var r struct {

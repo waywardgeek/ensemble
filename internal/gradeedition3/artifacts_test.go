@@ -27,7 +27,7 @@ func TestArtifactIncompleteReportDoesNotPass(t *testing.T) {
 		t.Fatal("failed probe exit")
 	}
 }
-func TestArtifactReviewedSnippetRowIsConservative(t *testing.T) {
+func TestArtifactReviewedRowsAreConservative(t *testing.T) {
 	for _, tc := range []struct {
 		name   string
 		probes []ArtifactProbe
@@ -37,8 +37,8 @@ func TestArtifactReviewedSnippetRowIsConservative(t *testing.T) {
 		{"missing evidence", nil, false, 0},
 		{"unrelated pass", []ArtifactProbe{{ID: "work-product-core", Passed: true}}, false, 0},
 		{"incomplete Actions", []ArtifactProbe{{ID: "actions-browser", Passed: false}}, true, 0},
-		{"complete Actions", []ArtifactProbe{{ID: "actions-browser", Passed: true}}, false, 20},
-		{"independent failure", []ArtifactProbe{{ID: "actions-browser", Passed: true}, {ID: "timing-core", Passed: false}}, true, 20},
+		{"complete Actions", []ArtifactProbe{{ID: "actions-browser", Passed: true}}, false, 30},
+		{"independent failure", []ArtifactProbe{{ID: "actions-browser", Passed: true}, {ID: "timing-core", Passed: false}}, true, 30},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			r := newArtifactReport()
@@ -56,8 +56,9 @@ func TestArtifactReviewedSnippetRowIsConservative(t *testing.T) {
 				t.Fatalf("unexpected report: %+v", r)
 			}
 			for _, row := range r.Rows {
-				if row.ID == "snippets" && tc.want == 20 {
-					if row.Earned != 20 || row.Status != "passed" {
+				if (row.ID == "snippets" || row.ID == "interaction") && tc.want == 30 {
+					wantPoints := map[string]int{"snippets": 20, "interaction": 10}[row.ID]
+					if row.Earned != wantPoints || row.Status != "passed" {
 						t.Fatal(row)
 					}
 				} else if row.Earned != 0 || row.Status != "ungraded" {
@@ -111,7 +112,7 @@ func TestArtifactExternalCandidate(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if r.ExitCode() != 3 || len(r.Probes) != 5 || r.Score != 20 {
+	if r.ExitCode() != 3 || len(r.Probes) != 5 || r.Score != 30 {
 		t.Fatalf("unexpected partial report: %+v", r)
 	}
 	for _, p := range r.Probes {

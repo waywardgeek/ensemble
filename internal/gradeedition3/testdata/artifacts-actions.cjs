@@ -57,6 +57,7 @@ assert(!['8088', '8089', '8090'].includes(new URL(base).port));
         speak(item) {
           if (!item.text) return; // Chrome's silent activation is not narration.
           this.utterances.push(item.text); this.current = item; this.speaking = true;
+          if (this.automaticCompletion) queueMicrotask(() => { if (this.current === item) this.finish(); });
         },
         cancel() { this.cancellations++; this.current = null; this.speaking = false; },
         finish() {
@@ -301,6 +302,9 @@ assert(!['8088', '8089', '8090'].includes(new URL(base).port));
     await page.locator('.pane-tab[data-pane="agents"]').click();
     await page.locator('#agent-tree [data-agent="snippet-stream"]').click();
     await page.getByRole('button', {name: 'Chat', exact: true}).click();
+    await page.evaluate(() => { window.gradeSpeech.automaticCompletion = true; });
+    await page.locator('.speech-toggle').click();
+    assert(await page.locator('#narrate').isChecked(), 'automatic narration enabled through visible control');
     await page.locator('#prompt').fill('stream the snippet ' + initial.nonce);
     await page.locator('#send').click();
     const streamed = page.locator('#transcript [data-role="assistant"][data-kind="text"]').filter({hasText: 'stream-' + initial.nonce});
@@ -339,6 +343,15 @@ assert(!['8088', '8089', '8090'].includes(new URL(base).port));
     assert.equal(streamDone.streamFailure, null, 'streaming provider finishes cleanly');
     assert.equal(streamDone.requests, 3);
     assert.equal(streamDone.executions, 1);
+    await page.waitForFunction(marker => window.gradeSpeech.utterances.some(text => text.includes(marker)),
+      'finished-' + initial.nonce);
+    const narratedStream = await page.evaluate(() => [...window.gradeSpeech.utterances]);
+    const spokenStream = narratedStream.join(' ');
+    for (const marker of ['stream-', 'closed-', 'later-', 'finished-']) {
+      assert.equal(spokenStream.split(marker + initial.nonce).length - 1, 1,
+        'real streaming automatically narrates each prose marker once: ' + marker);
+    }
+    assert(!spokenStream.includes('streaming 界'), 'automatic narration does not read fenced code payload');
     for (const deny of [false, true]) {
       await page.evaluate(() => {
         window.gradeClipboard.pending = null;
@@ -382,6 +395,10 @@ assert(!['8088', '8089', '8090'].includes(new URL(base).port));
     const afterClipboard = await statusUntil(() => true);
     assert.equal(afterClipboard.streamRequests, 1, 'clipboard replay issues no provider request');
     assert.equal(afterClipboard.executions, 1, 'clipboard replay executes no tool');
+    assert.deepEqual(await page.evaluate(() => window.gradeSpeech.utterances), narratedStream,
+      'selection replay and clipboard completion do not repeat automatic narration');
+    await page.locator('.speech-toggle').click();
+    assert(!(await page.locator('#narrate').isChecked()), 'narration explicitly disabled after stream check');
     await page.locator('.pane-tab[data-pane="agents"]').click();
     await page.locator('#agent-tree [data-agent="dispatch-states"]').click();
     await page.getByRole('button', {name: 'Chat', exact: true}).click();
@@ -415,7 +432,7 @@ assert(!['8088', '8089', '8090'].includes(new URL(base).port));
     assert.deepEqual(errors, []);
     console.log(JSON.stringify({contract:'artifact-actions-v1', passed:true, checks:[
       'real-running-observation', 'call-result-navigation', 'historical-running-preserved',
-      'terminal-pathname-not-grant', 'replay-no-execution', 'focused-expanded-reader-preserved', 'canonical-recorded-time-and-duration', 'timing-survives-replay', 'legacy-unknown-and-zero-browser', 'provider-snippets-exact-and-fallback', 'real-streaming-snippet-stability', 'delayed-clipboard-replay-fenced', 'raw-selection-and-scroll-preserved', 'job-output-owner-and-running-guards', 'requested-and-dispatched-batch-states', 'keyboard-touch-and-draft-preserved', 'speech-copy-and-pair-noninterference'
+      'terminal-pathname-not-grant', 'replay-no-execution', 'focused-expanded-reader-preserved', 'canonical-recorded-time-and-duration', 'timing-survives-replay', 'legacy-unknown-and-zero-browser', 'provider-snippets-exact-and-fallback', 'real-streaming-snippet-stability', 'delayed-clipboard-replay-fenced', 'raw-selection-and-scroll-preserved', 'job-output-owner-and-running-guards', 'requested-and-dispatched-batch-states', 'keyboard-touch-and-draft-preserved', 'speech-copy-and-pair-noninterference', 'streamed-narration-once-and-replay-silent'
     ]}));
   } finally { await browser.close(); }
 })().catch(error => { console.error(error.stack); process.exitCode = 1; });
