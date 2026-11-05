@@ -5,8 +5,9 @@
 Chapter2 now has an independently accepted bounded offline reconstruction from
 fresh student `ch02-reconstruction-02`, after the first candidate was withheld and
 the original teaching repaired. Both students have submitted and joined teardown.
-Chapter3 has an independently verified assisted offline candidate; its fresh
-teaching retest remains open. That student has also submitted and joined teardown.
+Chapter3 now also has an independently accepted fresh offline reconstruction
+and repaired-teaching retest. Both Chapter3 students have submitted and joined
+teardown; the earlier assisted result remains separately recorded.
 The other six chapter gates remain unassigned and unaccepted. The integration
 draft is `f2d3499c`; the artifact grade remains70/100 at `fb3dbe3c`. Work-product
 scoring and human/live-provider acceptance remain open. Local Models is last.
@@ -31,7 +32,7 @@ starting points below are inspection leads, not approved student baselines.
 
 Chapter2 has **baseline audited**, **fresh retest submitted**, and **bounded offline
 acceptance passed**, as recorded below. Chapter3 has **baseline audited**,
-**assisted submission independently verified**, and **fresh teaching retest pending**.
+**fresh retest submitted**, and **bounded offline acceptance passed**.
 The other six rows retain **baseline not prepared**, **student not assigned**,
 **submission absent**, and **independent acceptance pending**. Their candidate
 starting points are not approved baselines.
@@ -666,3 +667,44 @@ outputs and the final report are writable; offline resource and no-later-API
 boundaries remain explicit. Admission is not completion or acceptance. Cadence
 must collect explicit submission, independently grade the exact candidate,
 review ownership/readability and join teardown. No automatic adoption is allowed.
+
+## Fresh Chapter3 retest independently accepted
+
+Student `ch03-reconstruction-02` explicitly submitted
+`f519d36de87d04b396e49b94f5d2b563c4fa2d53`. The retained join completed, the durable
+submission was read, and graceful teardown returned stopped. No student remains
+active. The submitted tree is clean and all44 read-only bundle hashes match
+admission. No clarification questions or parent implementation assistance occurred.
+
+Parent archive `/private/tmp/cadence-ch3-retest-independent.9Xdpqr` contains the
+exact31 source files and their pre-build hash receipt. A fresh isolated build
+and public Chapters1/2/3 each pass100/100 with all9/13/10 checks. Timing modes
+pass20/5/8/10; metadata modes pass41/48/4/7. Separate writer/read processes use
+actual persisted fixtures. All four provider-error cases pass with candidate
+exits0/1/0/1. A separate independent test build passes all15 focused groups.
+`independent-audit.json` records parsed contracts/counts/results and post-run
+source-hash equality. These are parent runs, not copied student receipts.
+
+Review covered Tool declarations and two-ended ownership, concrete operations,
+serial loop, result recording, capture and occurrence-based pairing/phase changes,
+metadata validation/codecs/reduction, changed renderers and CLI, focused tests,
+and the submitted report. The real loop calls the tested `RecordResult` method
+before the next exchange. Its latest-response lookup was inspected with the
+inherited exchange contract: failed exchanges record an error and throw before
+returning, so the serial loop does not redispatch a stale response after failure.
+The reused-ID phase test distinguishes old observations from a new pending call.
+Schemas are fresh recursive projections and metadata remains retained data only.
+Expanded control flow and local reasons support readability. No blocker was found
+within the assigned early serial scope. Unchanged accepted Chapter2 code remains
+prerequisite evidence, not a claim of a new universal audit.
+
+This accepts the **bounded offline Chapter3 reconstruction and repaired-teaching
+retest**. The first assisted candidate remains separately recorded. No candidate
+patches are adopted into the runtime or frozen endpoints. Live provider behavior,
+concurrent lifetime guarantees, general shell confinement, crash recovery, actual
+live offers/downloads, and full-book acceptance remain outside this result.
+Artifact grading remains70/100; work-product scoring and human acceptance are open.
+
+Next is the Chapter4 teaching, public-grader and prerequisite audit. This accepted
+Chapter3 candidate is an eligible prerequisite, not permission to expose a completed
+Chapter4 endpoint or launch another student before admission review.
