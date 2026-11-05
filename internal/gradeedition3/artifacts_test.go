@@ -35,6 +35,12 @@ func TestArtifactReviewedRowsAreConservative(t *testing.T) {
 		want   int
 	}{
 		{"missing evidence", nil, false, 0},
+		{"timing without Actions", []ArtifactProbe{{ID: "timing-core", Passed: true}}, false, 0},
+		{"timing with failed Actions", []ArtifactProbe{{ID: "timing-core", Passed: true}, {ID: "actions-browser", Passed: false}}, true, 0},
+		{"timing and Actions", []ArtifactProbe{{ID: "timing-core", Passed: true}, {ID: "actions-browser", Passed: true}}, false, 45},
+		{"all reviewed evidence", []ArtifactProbe{{ID: "timing-core", Passed: true}, {ID: "actions-browser", Passed: true}, {ID: "work-product-browser-unnamed=false", Passed: true}, {ID: "work-product-browser-unnamed=true", Passed: true}}, false, 70},
+		{"all reviewed with independent failure", []ArtifactProbe{{ID: "work-product-core", Passed: false}, {ID: "timing-core", Passed: true}, {ID: "actions-browser", Passed: true}, {ID: "work-product-browser-unnamed=false", Passed: true}, {ID: "work-product-browser-unnamed=true", Passed: true}}, true, 70},
+
 		{"unrelated pass", []ArtifactProbe{{ID: "work-product-core", Passed: true}}, false, 0},
 		{"incomplete Actions", []ArtifactProbe{{ID: "actions-browser", Passed: false}}, true, 0},
 		{"complete Actions", []ArtifactProbe{{ID: "actions-browser", Passed: true}}, false, 30},
@@ -68,8 +74,12 @@ func TestArtifactReviewedRowsAreConservative(t *testing.T) {
 					if row.Earned != wantPoints || row.Status != "passed" {
 						t.Fatal(row)
 					}
-				} else if row.ID == "actions" && tc.want == 55 {
+				} else if row.ID == "actions" && (tc.want == 55 || tc.want == 70) {
 					if row.Earned != 25 || row.Status != "passed" {
+						t.Fatal(row)
+					}
+				} else if row.ID == "recorded-time" && (tc.want == 45 || tc.want == 70) {
+					if row.Earned != 15 || row.Status != "passed" {
 						t.Fatal(row)
 					}
 				} else if row.Earned != 0 || row.Status != "ungraded" {
@@ -123,7 +133,7 @@ func TestArtifactExternalCandidate(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if r.ExitCode() != 3 || len(r.Probes) != 5 || r.Score != 55 {
+	if r.ExitCode() != 3 || len(r.Probes) != 5 || r.Score != 70 {
 		t.Fatalf("unexpected partial report: %+v", r)
 	}
 	for _, p := range r.Probes {

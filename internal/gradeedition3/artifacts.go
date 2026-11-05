@@ -79,6 +79,14 @@ func (r *ArtifactReport) applyReviewedRows() {
 				row.Details = "Real successful, failed and delayed calls; exact pairing, factual states, raw detail, selected-Agent and Job-owner boundaries, and page-reconnect consistency."
 			}
 		}
+		if row.ID == "recorded-time" {
+			row.Earned, row.Status = 0, "ungraded"
+			row.Details = "Reviewed timing contract; complete Actions browser/host and two-process timing receipts required."
+			if complete && passed["timing-core"] {
+				row.Earned, row.Status = row.Points, "passed"
+				row.Details = "Canonical display and fixed observation duration, legacy unknowns, separate-process persistence, and timing-independent rendering on four provider surfaces."
+			}
+		}
 		if row.ID == "snippets" || row.ID == "interaction" {
 			row.Earned, row.Status = 0, "ungraded"
 			row.Details = "Reviewed " + row.ID + " contract; complete Actions browser/host evidence unavailable."
@@ -311,7 +319,7 @@ func GradeArtifacts(c ArtifactGradeConfig) (report ArtifactReport, result error)
 			break
 		}
 	}
-	timingProbe := ArtifactProbe{ID: "timing-core", Passed: err == nil, Detail: "Public History save, joined writer exit, separate-process restore and projection of known, zero and unknown timing; no points yet."}
+	timingProbe := ArtifactProbe{ID: "timing-core", Passed: err == nil, Detail: "Public History save, joined writer exit, separate-process restore/projection and four-surface rendering; timing credit also requires the Actions browser."}
 	if err != nil {
 		timingProbe.Detail = err.Error() + ": " + output
 		report.Status = "failed"

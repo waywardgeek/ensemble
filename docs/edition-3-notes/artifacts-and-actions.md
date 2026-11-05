@@ -1247,3 +1247,42 @@ four live provider calls or a test of every credential, media or streaming polic
 Lesson: whole-request equality tests independence from timing without guessing
 all possible field names. Known payload presence guards against vacuous equality.
 The reviewed score remains55 pending the explicit timing-row acceptance review.
+
+### Reviewed recorded-time row: fifteen points behind two probes
+
+The timing row requires both complete Actions browser/host evidence and the
+complete two-process timing probe. The reviewed requirement mapping is:
+
+- Retained facts: exact event codec and loaded Context offset/ticks, measured zero
+  and unknown values; snapshot-only projection with an empty diagnostic tail;
+  public History save followed by a joined writer exit and separate reader.
+  Save-time timing removal and projection loss fail distinct assertions.
+- Presentation: actual local display and exact timestamp detail match canonical
+  live observations, including reload. Legacy unknowns have no invented timing;
+  known zero remains visible. Clock-now and duration-zero display mutants fail.
+- Elapsed boundary: the real held callback has an already returned, measured
+  observation before the browser releases completion. Its canonical time and
+  duration remain exactly unchanged after terminal observation and reload. The
+  UI explicitly describes dispatch-to-observation, not background Job runtime.
+- Provider input: real Anthropic requests exclude recorded timing properties;
+  four public renderer surfaces produce identical requests when only entry
+  timing changes, with positive random payload checks. Actual Anthropic leakage
+  and Responses leakage under an unexpected property name both fail.
+
+These points certify the bounded observation contract, not clock accuracy under
+all operating-system conditions, full-turn profiling, crash recovery, native
+usability or four live-provider integrations. A failed combined Actions probe
+withholds timing credit conservatively even if its earlier timing checks passed.
+A failed or missing timing probe likewise withholds the row; unrelated failure
+still produces exit1 while preserving independently supported rows. Successful
+partial reporting becomes70/100 with work products UNGRADED and exit3.
+
+Verification: job381 passes both Go packages and all five external probes with
+the70-point expectation. Job382 builds the current CLI: good candidate70/ungraded/
+exit3 with four passed rows; retained save-loss candidate55/failed/exit1 with timing
+withheld at the intended reader assertion and other probes passing. Reports are
+at `/private/tmp/cadence-timing-score.1YZ5yv`. Unit tests cover timing without
+Actions, failed Actions, missing/failed timing, complete evidence, unrelated
+failure, exact row totals and repeated recomputation. The complete scoring/test
+and prose diffs were reviewed; hard prose checks pass with advisories. Runtime,
+installed applications, credentials and unrelated work remain unchanged.
