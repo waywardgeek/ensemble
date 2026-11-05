@@ -890,6 +890,18 @@ boundary. The consumer exercise additionally verifies successful, correlated
 custom output—not merely the presence of a result marker—and the timestamped
 root diagnostic. No real-provider acceptance follows from either fake.
 
+The [public model-driven consumer](../internal/gradeedition3/testdata/ch04-model-consumer/README.md)
+provides that offline boundary through an owned loopback fake. Require all 38
+named checks and joined process exit. Its compile-time `AgentEntryPoint=Ask`
+uses the early prerequisite's actual Agent loop; `Send` selects the current
+runtime's public spelling. Neither adapter contains an exchange or dispatch
+loop. The fake withholds its final answer until three real correlated results,
+output files, callback execution and the timestamped root diagnostic are
+verified. Correct-looking output without executing the registered handler is
+not a pass. This does not award the historical Go-only topology points or
+replace ownership/source review, live-provider acceptance, or the separate
+structured-completion boundary.
+
 The numeric result has limits. Independent source review still checks actual
 parent relationships, Ensemble-owned logging, behavior in the correct package
 and absence of mutable global application state. The original logger check

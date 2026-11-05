@@ -820,3 +820,46 @@ follows from the text handler. Next are the actual model-driven external consume
 ownership review, and the unresolved structured-completion public boundary before
 Chapter 4 student admission. No chapter score, runtime, frozen endpoint, installed
 application, or unrelated work changed.
+
+## Chapter 4 model-driven public consumer
+
+The new outside-assembly `ch04-model-consumer` references the candidate core and
+existing ASP.NET shared framework, not the candidate GUI or test assembly.
+Its owned ephemeral loopback fake requests `shout`, `read_file`, and `run_command`
+through the real Agent loop. Before the fake returns its final answer it checks
+actual correlated canonical facts, three distinct Job handles, expected random
+output in each result/file/provider payload, file byte counts, shell exit zero,
+exactly one callback invocation, and a timestamped root diagnostic. The callback
+itself checks actual parent identity and the recorded call before its effect.
+The first request must retain all six built-in declarations alongside `shout`.
+This is 38 named checks, not a new chapter score.
+
+The compile-time `Ask` adapter calls the accepted early prerequisite's public
+`AskAsync` with its ordinary Configuration. Default `Send` calls the current
+runtime's real `SendAsync` and explicitly disables later streaming. Neither
+adapter contains a replacement loop or uses private access. The current positive
+and negative runs exercise `Send`; the early `Ask` branch still needs an actual
+Chapter 4 candidate build/run and is not declared tested by these receipts.
+Chapter 4 and the consumer README state that distinction and exact commands.
+
+Job 1003 first built and passed 38 checks. Full source review found root creation
+outside protected setup; root construction was moved inside the protected block
+and destruction made conditional, without changing assertions. Final job 1011
+built cleanly and passed all 38 checks, with joined process exit zero, in
+`/private/tmp/cadence-ch4-model.lJebZ3` (`build-final.log`, `result-final.json`).
+Both isolated cores compiled successfully: one returns success text without the
+custom handler; another fabricates the correct uppercase output but still skips
+the handler. Final consumer job 1012 rejects them respectively at
+`canonical-real-output-shout` and `custom-executed-once-before-answer`. The latter
+passes all three output/file/wire checks and shell exit before refusal. Final
+receipts are `result-final-bypass.json` and `result-final-fabricated.json` in
+`/private/tmp/cadence-ch4-model-mutant.g5Yvb8`; earlier receipts remain preserved.
+
+Every run used a cleared environment, synthetic key, owned workspace and
+loopback listener, existing SDK/framework/packages, and cleared NuGet sources.
+The real shell only prints a random marker. No download, live provider, installed
+application, frozen endpoint, or working runtime was changed. This is buffered
+Anthropic-protocol integration on macOS, not general provider/OS/debugger proof.
+Source topology, cancellation/lifetime gates, structured completion metadata and
+Chapter 4 student reconstruction remain separately accountable. Correct output
+alone is insufficient evidence that the registered callback executed.
