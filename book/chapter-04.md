@@ -235,6 +235,14 @@ record-before-effect boundary, correlation, and result-before-next-request
 ordering. The later scheduler may separate planned calls from dispatch again;
 that is not required here.
 
+Preserve the receiver-bound `Tool.ExecuteAsync` contract from Chapter3 when
+routing it through this funnel. Reject a different call name before dispatch:
+return a correlated `IsError` result without Job metadata, a new Job, handler
+effects, or History dispatch facts. A matching name uses ordinary Agent dispatch;
+`Agent.DispatchAsync` itself still selects by name. This guard is not a second
+execution path. Run the public observation supplement's `receiver` mode to check
+both refusal and the two legitimate execution routes.
+
 Three things follow from putting it there and nowhere else.
 
 In C#, `Task.WhenAny` can similarly end a wait without ending the task.

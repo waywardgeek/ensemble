@@ -21,10 +21,11 @@ internal static class Program
 
     public static async Task<int> Main(string[] args)
     {
+        if (args.Length == 1 && args[0] == "receiver") return await ReceiverChecks.Run();
         if (args.Length == 1 && args[0] == "log-read") return LogReplay.Read();
         if (args.Length > 1 || (args.Length == 1 && args[0] != "log-write"))
         {
-            Console.Error.WriteLine("Expected no arguments, log-write, or log-read.");
+            Console.Error.WriteLine("Expected no arguments, log-write, log-read, or receiver.");
             return 2;
         }
         try

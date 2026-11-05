@@ -111,3 +111,23 @@ model dialogue. This consumer checks canonical replay rather than requiring
 such facts in retained Context. Model-driven `ToolReturned` reduction and the
 external provider-consumer exercise remain separate obligations. The text
 callback still cannot certify structured completion metadata.
+
+## Receiver-bound execution
+
+The Chapter3 public `Tool.ExecuteAsync(ToolCallPart, CancellationToken)` member
+must retain its receiver binding after the Job refactor. In a fresh workspace run:
+
+```sh
+"$DOTNET" "$BUILD/bin/Chapter4Observations/debug/Chapter4Observations.dll" receiver
+```
+
+Require exit zero, `passed: true`, and all ten named checks. Two harmless custom
+callbacks distinguish execution from a plausible result. A call naming the other
+Tool returns a correlated error with no Job metadata, callback effects, new Job,
+or History dispatch facts. A matching receiver executes its own callback;
+`Agent.DispatchAsync` still selects the other Tool by name. Comparison is ordinal.
+The check uses existing public APIs, no model requests or candidate test assembly.
+It has a 20-second deadline and destroys its owner before reporting success.
+Default and replay modes retain their existing counts. This adds no historical
+chapter points and does not test detached receivers or arbitrary concurrent
+registry replacement.

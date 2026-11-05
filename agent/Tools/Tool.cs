@@ -473,7 +473,15 @@ public sealed partial class Tool
 
     public partial Task<ToolResultPart> ExecuteAsync(ToolCallPart call, CancellationToken cancellation)
     {
-        return Parent().DispatchAsync(call, cancellation);
+        var owner = Parent();
+        // This member executes its receiver, not another registered Tool. Refuse
+        // before dispatch so a mismatched call cannot admit a Job or cause effects.
+        if (!string.Equals(call.Name, name, StringComparison.Ordinal))
+        {
+            return Task.FromResult(new ToolResultPart(call.CallID,
+                [new TextPart("Tool call name does not match the receiver.")], isError: true));
+        }
+        return owner.DispatchAsync(call, cancellation);
     }
 
     internal partial async Task<ToolResultPart> ExecuteJobAsync(Job job, ToolCallPart call, CancellationToken cancellation)

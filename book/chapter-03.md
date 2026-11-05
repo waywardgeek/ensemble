@@ -185,6 +185,12 @@ method. An ordered list is sufficient. There is no mutable global registry,
 service interface, or delegate field linking these partial declarations to their
 bodies. The C# compiler does that linking.
 
+`Tool.ExecuteAsync(call)` is receiver-bound. Compare the call name with that
+Tool's name using ordinal equality before executing or dispatching it. A mismatch
+returns an `IsError` result with the original call ID and no effects; do not
+invoke a different registered Tool. `Agent.DispatchAsync(call)` is the distinct
+name-based selector. Keeping that distinction matters when Jobs arrive next.
+
 Declaration is a projection, not another authoritative schema. Anthropic uses
 `input_schema`, OpenAI uses `function.parameters`, and Gemini uses
 `functionDeclarations[].parameters`. Build a fresh tree for each request.

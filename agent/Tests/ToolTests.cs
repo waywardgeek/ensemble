@@ -51,6 +51,22 @@ internal static class ToolTests
                 var report = JsonCodec.Text(result.Parts);
                 return report.StartsWith("job ", StringComparison.Ordinal) ? report[(report.IndexOf('\n') + 1)..] : report;
             }
+            var receiverPath = Path.Combine(directory, "receiver-only.txt");
+            var receiverCall = new ToolCallPart("receiver-check", agent.Configuration().Target(),
+                "write_file", Args(new { path = receiverPath, content = "receiver output" }));
+            int receiverFacts = agent.History().Events().Length;
+            int receiverJobs = agent.Jobs().Children().Length;
+            var wrongReceiver = agent.Tools().Single(value => value.Name() == "read_file");
+            var refused = await wrongReceiver.ExecuteAsync(receiverCall);
+            Check(refused.IsError && refused.CallID == receiverCall.CallID && refused.Job is null,
+                "wrong receiver returns correlated error without Job metadata");
+            Check(!File.Exists(receiverPath) && agent.Jobs().Children().Length == receiverJobs
+                && agent.History().Events().Length == receiverFacts,
+                "wrong receiver refuses before file effect, Job admission or History dispatch");
+            var writeReceiver = agent.Tools().Single(value => value.Name() == "write_file");
+            Check(!(await writeReceiver.ExecuteAsync(receiverCall)).IsError
+                && File.ReadAllText(receiverPath) == "receiver output", "matching receiver executes normally");
+
             var file = Path.Combine(directory, "tool.txt");
             Check(!(await Call("write_file", new
             {

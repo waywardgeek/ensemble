@@ -1007,3 +1007,35 @@ that choice from an intentional Agent-dispatch alias before adding a mandatory
 public regression. No new receiver mode, positive-control patch, runtime fix or
 student retest has been created. Current-runtime compatibility must not be claimed
 from the previously passing observation consumer, which does not test this case.
+
+## Approved receiver contract and public regression
+
+Bill approved receiver-bound Tool.ExecuteAsync: refuse a different name without
+execution; Agent.DispatchAsync remains the name-based selector. This resolves the
+preceding design wait. Chapters3/4 now teach the distinction explicitly. The
+current runtime checks ordinal name equality before dispatch while preserving
+its existing detached-parent check. A mismatch returns the original call ID and
+an error, with no Job metadata, admission, callback effects or History facts.
+
+The public observation consumer adds a separate `receiver` mode with ten checks;
+default/replay counts and historical chapter scores are unchanged. An unchanged
+copy of the submitted Chapter4 candidate builds successfully and fails exactly
+`receiver-mismatch-is-error`. A disposable source copy with only the guard added
+builds and passes all ten checks. The fixed current runtime independently passes
+all ten, plus its focused tool suite and a real file-effect refusal regression.
+Evidence: `/private/tmp/cadence-receiver-contract.BfoUJq`, including negative.json,
+positive.json, current.json, build logs and tool-tests.log. The disposable positive
+copy is a test control, not a new student submission or an adopted candidate.
+
+The original candidate and frozen bundle remain unchanged. Its assigned scores
+remain passing; they did not test this newly explicit boundary. Fresh Chapter4
+reconstruction must use the accepted Chapter3 prerequisite and repaired teaching,
+not the first Chapter4 candidate or positive control. This probe does not certify
+concurrent registry replacement, detached receivers or a cross-Agent security
+boundary. No installed application, frozen endpoint or artifact points changed.
+
+The newly built current runtime's shared suite subsequently completed with
+350 passed, zero failed, exit0 (`shared.log`). Focused and shared evidence is for
+the source build, not the installed application. All receiver implementation,
+consumer and teaching diffs were reviewed. New documentation passes hard prose
+checks with advisories; Chapters3/4 retain only their unchanged em-dash failures.

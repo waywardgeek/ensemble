@@ -96,6 +96,8 @@ public sealed partial class Tool
     public partial string Name();
     public partial JsonObject Declaration(Vendor vendor);
 
+    // Receiver-bound: a different call name returns IsError without dispatch,
+    // Job admission or History changes. Agent.DispatchAsync selects by name.
     // Expected argument and operating-system failures become IsError results.
     // Cancellation is not a fabricated tool failure; it propagates to the caller.
     public partial Task<ToolResultPart> ExecuteAsync(ToolCallPart call, CancellationToken cancellation = default);
