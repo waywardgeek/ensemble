@@ -1,3 +1,16 @@
+# Current boundary: artifact integration draft and partial public grade
+
+The named artifact grader now verifies70/100: Actions25, snippets20, recorded
+time15 and interaction10. Work products30 remains UNGRADED; successful partial
+runs exit3. Its deterministic running built-in offer coverage remains unresolved,
+with the scoring decision raised to Bill. No test hook or scoring waiver added.
+Chapter26 now has an integration draft, foundation links, four draft exercise
+contracts and the actual named-grader invocation. Honest reconstruction baselines,
+fresh students and human usability acceptance remain open. Local Models stays last.
+This prose increment changes no runtime, installed application or release output.
+Earlier headers below record prior boundaries, not current grader availability.
+See [evidence](edition-3-notes/artifacts-and-actions.md).
+
 # Current boundary: work-product download source candidate
 
 Explicitly granted work-product offers carry typed retained descriptions, not

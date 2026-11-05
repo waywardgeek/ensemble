@@ -1286,3 +1286,36 @@ Actions, failed Actions, missing/failed timing, complete evidence, unrelated
 failure, exact row totals and repeated recomputation. The complete scoring/test
 and prose diffs were reviewed; hard prose checks pass with advisories. Runtime,
 installed applications, credentials and unrelated work remain unchanged.
+
+
+## Chapter26 integration draft and remaining offer gate
+
+Replaced the chapter's increment diary with an integration draft: existing owners,
+recorded observation versus execution, stable reading, logical snippet copying,
+recorded time, live offer authority and joined transfer cleanup. Four draft
+exercise contracts name observable outcomes and the actual public grader command.
+The chapter credits Junien's PRs6/7/9 and links foundational construction points.
+It explicitly reports70/100, leaves work products UNGRADED and requires an honest
+isolated prerequisite baseline before student reconstruction. No student launched.
+
+Fresh source review confirms the built-in offer is synchronous and the Job only
+attaches its structured metadata on completed observations. The public core loop
+checks running metadata only if scheduling produces a running result. That does
+not establish deterministic delayed built-in coverage. Public result constructors
+reject errors with offers but do not independently reject running Job metadata
+with an offer. No runtime defect is inferred from that representational possibility.
+Thread-pool starvation was rejected as an oracle: Agent dispatch also uses its
+mailbox scheduling, so starvation obstructs the observer as well as work. Bill
+was asked whether to accept explicitly bounded compositional evidence or require
+a separately justified API change. No answer or waiver is assumed; grade stays70.
+Teaching can proceed while that decision remains open.
+
+Chapter hard prose checks pass with negation/person-gap advisories. All local
+chapter links and explicit heading anchors resolve; no references to removed
+increment anchors were found in book/docs/README. Full chapter reviewed in two
+bounded reads. Review narrowed symlink refusal to Sandbox escape and corrected
+baseline wording: it still needs assembly/audit, not a claimed active baseline.
+The first diff command accidentally opened Git's pager; it was closed and review
+continued with bounded nonpaged reads. No runtime or external suites rerun for
+this prose-only change, and no publication outputs regenerated. This is a draft,
+not reconstruction certification or final first-book closeout.
