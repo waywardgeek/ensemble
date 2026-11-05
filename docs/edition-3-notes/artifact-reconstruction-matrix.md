@@ -1156,3 +1156,24 @@ report only. No descendants, downloads or live services. Disk remained above the
 1GiB reserve. Explicit submission, independent tests, ownership/readability review
 and joined teardown remain required. No current runtime or installed application
 changed; earlier candidate acceptance remains withheld.
+
+### Student03 clarification: managed cleanup grace
+
+Student03 asked whether a bounded managed-callback cleanup grace (proposed five
+seconds) reconciles the cleanup barrier with the existing instruction not to wait
+forever on arbitrary managed code. Parent reread the original shutdown/managed
+limit and public barrier, then answered pending question6: a documented bound is
+permitted; the chapter specifies no exact value. Cancellation must still be
+requested despite logging failure. Completed cooperative cleanup is joined;
+expiry must report incomplete work rather than forced termination or success.
+Continue other owned cleanup, preserve errors, and keep resources used by surviving
+work safe. Process termination/reader draining remains a separate obligation.
+The public test releases its barrier after observing cancellation and pending
+destruction; it does not require an indefinite wait or a test-specific path.
+
+No implementation, new interface, grader change or mandatory five-second policy
+was supplied. The student was asked to record this clarification, its selected
+bound and limits, and exercise both cooperative and bounded non-completing cases
+with safe test-owned teardown. Parent acknowledgment records the answer, not proof
+that the student has read it. This run must not be described as question-free;
+acceptance and teaching sufficiency remain pending submission and review.
