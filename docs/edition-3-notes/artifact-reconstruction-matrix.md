@@ -215,3 +215,37 @@ build the public graders from approved source, supply exact candidate commands
 and writable scope, and verify that the guidance does not direct the student to
 unavailable root-only paths. No student has been launched. The artifact score and
 open work-product scoring decision are unchanged.
+
+## First Chapter2 student admitted
+
+Student `ch02-reconstruction-01` was admitted after preparation at `1b1cc12f`.
+Its only permitted bundle is `/private/tmp/cadence-ch2-student-prep.lnZ009/bundle`.
+The solution has independent baseline commit
+`1768042ff9d30b63a11722dac60088e638ff589f`, one commit and no remote. All14 source
+hashes match the previously audited prerequisite export. No parent Git history,
+completed Chapter2 implementation or future manuscript was supplied.
+
+The sibling evidence directory contains the initial export receipt, final44-file
+bundle receipt, both offline Go grader build logs and binary hashes, clean bundle
+build log and actual public Chapter1 report. The build has zero warnings/errors;
+the public grade is100/100, passed:true and exit0, including both62-second delayed
+header/body checks. This validates the supplied launcher and clean environment,
+not Chapter2 reconstruction or live-provider behavior. All four runner scripts
+pass shell syntax checks. They preserve grader-supplied fake-provider variables
+at candidate launch rather than clearing those variables a second time.
+
+The assignment and scripts were reviewed before admission. Writable solution,
+run outputs and student report are explicit; graders, scripts and teaching are
+read-only. The supplied public source references include only selected Chapter1/2
+checks and fake-provider support, not a standalone grader build or candidate
+answers. Available grader binaries were built from the recorded full source with
+GOPROXY/GOSUMDB disabled. General coding guidance is explicitly scoped to early
+Chapter2; root-only links and later runtime requirements grant no access outside
+the bundle. The student may ask questions and run public graders throughout.
+No live provider, installation, deployment, native capture or descendant is
+permitted. Disk reserve is1GiB; live exercise remains an unperformed human gate.
+
+Task admission handle485 is not a completion receipt. Independent grading,
+source/ownership review, assistance record and joined teardown remain pending.
+No candidate patches have been adopted. Work-product scoring and the overall
+artifact70-point boundary are unchanged.
