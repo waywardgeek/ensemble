@@ -1598,3 +1598,28 @@ Evidence remains under `/private/tmp/cadence-pre-gui-baseline.rc7ci9s_/evidence`
 `receiver-source-receipt.json`. The two-file diff and exact receipts were reviewed;
 no completed hint campaign was repeated for freshness. Cleanup-on-error and
 bounded managed-worker lifetime are the next isolated repair boundary.
+
+### Isolated cancellation-callback failure and joining
+
+Isolated commit `3fe8612` repairs a narrow shutdown failure: an exception from a
+cancellation registration previously bypassed the worker join. An outside-assembly
+public-API probe starts a real custom Job, signals cancellation through that Job,
+holds its cleanup, and requires shutdown to remain pending until release. The
+pre-fix candidate fails `cancellation-callback-failure-does-not-skip-join` after two
+setup checks. The repaired candidate passes all five checks, including preserving
+the callback error after joining. The probe releases and joins its owned callback
+on failure; it uses no provider request, private API, or diagnostic logging hook.
+
+The first probe build omitted required call provenance and failed compilation;
+that was setup evidence only. The first repair aggregated a lone worker error and
+broke the existing exception-type test (32 passed, one failed). The final repair
+preserves a lone exception's type/stack and aggregates only multiple failures.
+The final clean build and all 33 component checks pass. Evidence is in the same
+pre-GUI directory's `evidence/cleanup-join-*` files, including both failures,
+final receipts, and an explicitly post-execution source hash receipt. The final
+code and probe were reviewed. No component assertions were weakened.
+
+This is not complete lifecycle acceptance: bounded managed cleanup, resources
+needed by surviving workers, and failures before the cancellation section remain
+open. PTY draining remains separate. No frozen endpoint, main runtime, installed
+application, artifact score, or student admission changed.
