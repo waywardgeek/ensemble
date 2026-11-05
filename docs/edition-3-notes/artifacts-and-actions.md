@@ -1111,3 +1111,33 @@ The complete scoped diff was reviewed. Live relationships and replayed
 relationships need separate evidence; identical state labels alone do not prove
 navigation survives restoration. Actions failure presentation and its remaining
 row review are still open. The report remains30/100 with three rows ungraded.
+
+### Real failure labels, raw detail and replay pairing
+
+The existing public failed-offer scenario now checks failure presentation in both
+named and unnamed viewer modes. The real error result and its paired call must
+say `Error reported`. Expanding the result reveals nonempty raw text; after reload,
+that text must remain unchanged. The pair link must focus the call whose raw input
+names the actual randomized missing file, and its return link must focus the exact
+error result. Reload preserves both captured IDs. These checks reuse the existing
+canonical failed-offer oracle and make no extra provider requests or offers.
+The new receipt is mandatory in both browser modes. Raw-text comparison establishes
+nonempty visible detail and replay fidelity, not an independent canonical-byte
+comparison for arbitrary error encodings.
+
+Job340 initially failed because a focus-based call locator stopped matching after
+opening the summary moved focus. This was a grader error, not a product defect;
+both hosts stopped cleanly. The corrected helper captures the call ID immediately
+and uses that stable identity for subsequent interaction. Job343 passes both Go
+packages and all five external probes. This repeats an earlier locator lesson:
+selectors for transient focus are observations, not retained object references.
+
+Job342 builds an isolated GUI that labels errors as ordinary returned results.
+Both viewer probes fail exactly at `real failed offer is explicitly reported as
+an error`; the other three probes pass and both hosts stop cleanly. Its test version
+predates the locator correction, but fails at the unchanged earlier label assertion.
+Evidence is retained at `/private/tmp/cadence-error-label-mutant.RpKdRZ`. This is
+label sensitivity, not a separate mutation of failure payload or pairing.
+The final scoped source and receipt changes were reviewed; whitespace checks pass.
+No runtime, good candidate or installed files changed. The public score remains
+30/100; Actions row review, timing and work-product closure remain unfinished.

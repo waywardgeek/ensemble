@@ -443,7 +443,7 @@ func runArtifactBrowser(c ArtifactGradeConfig, root, binary, driver string, unna
 var artifactBrowserChecks = []string{
 	"real-model-tool-sequence", "click-only", "exact-current-bytes", "filename",
 	"origin-header", "no-path-query", "foreign-owner", "exact-64mib-browser-hash",
-	"oversize-http-refused", "oversize-browser-refused", "replacement-expiry", "replay-no-effects", "cancel-joins-http", "selection-replay-cancels-http", "failed-offer-no-download",
+	"oversize-http-refused", "oversize-browser-refused", "replacement-expiry", "replay-no-effects", "cancel-joins-http", "selection-replay-cancels-http", "failed-offer-no-download", "failed-offer-label-payload-and-pair-replay",
 }
 
 func checkArtifactBrowserReceipt(data []byte) error {

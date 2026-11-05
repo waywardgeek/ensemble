@@ -50,6 +50,38 @@ assert(!['8088', '8089', '8090'].includes(new URL(base).port));
     assert.equal(await failedCard.locator('.work-product-links').count(), 0,
       'failed offer must not have a download control');
     assert.equal(await page.locator('.work-product-links').count(), 1, 'only successful offer creates control');
+    const failedResultID = await failedCard.getAttribute('data-part-id');
+    let failedCallID, failureText;
+    async function checkFailedPair() {
+      const result = page.locator(`[data-part-id="${failedResultID}"]`);
+      assert.equal(await result.locator(':scope > .tool-state:not(.job-state)').innerText(), 'Error reported',
+        'real failed offer is explicitly reported as an error');
+      const details = result.locator(':scope > details');
+      if (!(await details.evaluate(node => node.open))) await details.locator('summary').click();
+      const raw = await details.locator('pre').innerText();
+      assert(raw.trim().length > 0, 'failed result exposes nonempty complete received payload');
+      if (failureText === undefined) failureText = raw;
+      else assert.equal(raw, failureText, 'replay preserves complete failure payload');
+      const link = result.getByRole('button', {name: 'View call', exact: true});
+      assert.equal(await link.count(), 1, 'failed result retains its actual call relationship');
+      await link.click();
+      const id = await page.locator('[data-kind="tool_call"]:focus').getAttribute('data-part-id');
+      assert(id, 'failed-result navigation focuses an identified call');
+      const call = page.locator(`[data-part-id="${id}"]`);
+      if (failedCallID === undefined) failedCallID = id;
+      else assert.equal(id, failedCallID, 'replay failure navigation preserves exact call identity');
+      assert.equal(await call.locator(':scope > .tool-state:not(.job-state)').innerText(), 'Error reported',
+        'failed call is explicitly reported as an error');
+      const callDetails = call.locator(':scope > details');
+      if (!(await callDetails.evaluate(node => node.open))) await callDetails.locator('summary').click();
+      const input = await callDetails.locator('pre').innerText();
+      assert(input.includes('offer_work_product') && input.includes(status.filename + '.missing'),
+        'failed result pairs with actual missing-file request, not successful offer');
+      await call.getByRole('button', {name: 'View latest result', exact: true}).click();
+      assert.equal(await page.locator('[data-kind="tool_result"]:focus').getAttribute('data-part-id'), failedResultID,
+        'failed call navigation returns to its exact error result');
+    }
+    await checkFailedPair();
     // Change grader-owned file after offering; click must read the new bytes.
     status = await (await page.request.post(origin + '/grade/change-file')).json();
     const awaited = page.waitForEvent('download');
@@ -74,6 +106,7 @@ assert(!['8088', '8089', '8090'].includes(new URL(base).port));
     await button.waitFor();
     status = await (await page.request.get(origin + '/grade/status')).json();
     assert.equal(status.requests, 4, 'replay must not rerun model or tools');
+    await checkFailedPair();
     assert.equal(transfers.length, beforeReplay, 'replay must not transfer a retained offer');
     status = await (await page.request.post(origin + '/grade/boundary-file')).json();
     assert.equal(status.bytes, 64 * 1024 * 1024, 'grader-owned size boundary');
@@ -136,7 +169,7 @@ assert(!['8088', '8089', '8090'].includes(new URL(base).port));
     assert.equal((await page.request.get(route, {headers})).status(), 404, 'replacement Agent must not revive offer');
     assert.deepEqual(errors, []);
     console.log(JSON.stringify({contract:'artifact-browser-work-product-v1', passed:true,
-      checks:['real-model-tool-sequence','click-only','exact-current-bytes','filename','origin-header','no-path-query','foreign-owner','exact-64mib-browser-hash','oversize-http-refused','oversize-browser-refused','replacement-expiry','replay-no-effects','cancel-joins-http','selection-replay-cancels-http','failed-offer-no-download'],
+      checks:['real-model-tool-sequence','click-only','exact-current-bytes','filename','origin-header','no-path-query','foreign-owner','exact-64mib-browser-hash','oversize-http-refused','oversize-browser-refused','replacement-expiry','replay-no-effects','cancel-joins-http','selection-replay-cancels-http','failed-offer-no-download','failed-offer-label-payload-and-pair-replay'],
       ungraded:'Full artifact rubric and chapter points are not implied.'}));
   } finally { await browser.close(); }
 })().catch(error => { console.error(error); process.exitCode = 1; });
