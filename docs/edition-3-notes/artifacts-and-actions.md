@@ -1,3 +1,42 @@
+## Named public artifact runner: partial coverage
+
+`cmd/grade-edition3 --scope artifacts` now runs grader-owned public consumers
+against an explicit runtime assembly directory. It preserves historical `-ch26`
+media grading and refuses an explicit `-ch` or unrelated flags in the named scope
+before launching tools. The runtime directory must contain Ensemble.dll and
+Ensemble.Gui.dll. Supply existing absolute SDK, Node and Playwright paths:
+
+```sh
+grade-edition3 --scope artifacts -executable-only -json \
+  -dotnet /absolute/path/to/dotnet \
+  -browser-node /absolute/path/to/node \
+  -playwright-module /absolute/path/to/playwright \
+  /absolute/path/to/candidate-runtime
+```
+
+The current runner uses macOS/Linux with an existing Chrome installation. No
+package installation or real provider credentials are used. The runner creates
+isolated homes/workspaces, clears NuGet package sources, builds only grader-owned
+consumer sources against candidate assemblies, bounds output, and owns subprocess
+groups. Browser hosts stop through their stop file and must join successfully;
+terminal receipts independently require three requests, two tool returns, one
+offer and no oracle failure. Both named and unnamed viewer modes run.
+
+The report distinguishes scored rubric rows from partial probes. Currently the
+core probe and two browser probes can pass, but all five rubric rows remain
+explicitly UNGRADED and award zero points. Exit0 is reserved for a full pass,
+exit1 reports a failed probe, exit2 is argument/environment setup failure, and
+exit3 means coverage is unfinished. A passing probe is not a complete row or
+chapter certification. Historical report formats and exit behavior are unchanged.
+
+Verification: both Go packages pass; the opt-in external candidate runner test
+passes. The actual CLI check in `/private/tmp/cadence-artifact-cli.xeYGxV` confirms
+three passing probes, five ungraded rows,0/100 and exit3. Argument tests use a
+sentinel executable and require invalid mixed-scope/missing-candidate invocations
+to refuse without launching it. Receipt tests reject missing terminal facts and
+bare success without required core checks. Independent behavioral coverage and
+negative candidates for the remaining rows are still required before scoring.
+
 ## Independent browser consumer and discovered identity defect
 
 The public grader's work-product browser driver now uses only the public page,
@@ -43,9 +82,8 @@ The public artifact grader is now under construction. Its first grader-owned
 outside-assembly consumer is in internal/gradeedition3/testdata/artifacts-consumer.
 It references candidate assemblies, creates independent randomized files and
 skills, and uses public APIs. It does not invoke candidate test suites. This
-initial contract receipt awards no chapter points; HTTP/browser and the other
-rubric rows still need independent drivers and sensitivity checks. The named
-CLI scope remains unavailable until its driver and argument contract are tested.
+initial core-only receipt awards no chapter points. Subsequent browser and CLI
+work is described above; complete rubric coverage and sensitivity remain open.
 
 ## Work products: integrated source candidate
 

@@ -352,8 +352,9 @@ verified, without blocking the core local-model chapter.
 
 Do not reuse numeric -ch 26: it already names the retained media grader. Add
 named scopes to cmd/grade-edition3, proposed --scope artifacts and --scope
-local-models, mutually exclusive with explicit --ch. Names/flags below are a
-planned interface, not available commands. Preserve all existing invocations.
+local-models, mutually exclusive with explicit --ch. The artifact scope now exposes partial
+public probes with explicit UNGRADED rows and exit3; it does not yet award chapter
+points. The local-model scope and remaining flags below are still planned. Preserve all existing invocations.
 Implement the new drivers in internal/gradeedition3 with descriptive filenames
 (artifacts*.go and local_models*.go), reusing existing browser/process helpers
 where their contracts actually match. Extend CLI validation and driver tests.

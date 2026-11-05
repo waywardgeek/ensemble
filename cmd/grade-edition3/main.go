@@ -21,16 +21,17 @@ func main() {
 // Returning the status lets temporary build cleanup finish before os.Exit.
 func run(args []string) int {
 	flags := flag.NewFlagSet("grade-edition3", flag.ContinueOnError)
+	scope := flags.String("scope", "", "Named public scope: artifacts (in development; exit 3 for ungraded rows)")
 	chapter := flags.Int("ch", 1, "Edition 3 chapter to grade (1, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 18, 19, 20, 21 or scoped 26)")
 	asJSON := flags.Bool("json", false, "emit the report as JSON")
-	executableOnly := flags.Bool("executable-only", false, "public runtime checks (Chapter 5 or a declared Chapter 26 media scope)")
+	executableOnly := flags.Bool("executable-only", false, "public runtime checks (Chapter 5, Chapter 26 media, or named artifacts)")
 	mediaScope := flags.String("media-scope", "", "Chapter 26 scope: image-files (20), attachments (25), voice (30), or host-screen (25)")
 	allowNative := flags.Bool("allow-native-host-screen", false, "confirm fresh human authorization and fully synthetic primary display for two native captures")
 	hostFailureImage := flags.String("host-failure-image", "", "host-screen: optionally retain the first mismatching PNG at a new absolute path")
 	hostPattern := flags.String("host-pattern", "", "host-screen: prepared dimensions and colors manifest")
-	dotnet := flags.String("dotnet", "", "Chapter 26 voice: absolute .NET 10 SDK executable path")
-	browserNode := flags.String("browser-node", "", "Chapter 26 attachments/voice: absolute Node executable path")
-	playwrightModule := flags.String("playwright-module", "", "Chapter 26 attachments/voice: absolute installed Playwright module path")
+	dotnet := flags.String("dotnet", "", "Voice/artifact consumer: absolute .NET 10 SDK executable path")
+	browserNode := flags.String("browser-node", "", "Media/artifacts: absolute Node executable path")
+	playwrightModule := flags.String("playwright-module", "", "Media/artifacts: absolute installed Playwright module path")
 	core := flags.String("core", "", "Chapter 4/5/6/7/8/9/10/11/12/13 core source module directory")
 	consumer := flags.String("consumer", "", "Chapter 4/5/6/7/8/9/10/11/12/13 external consumer module directory")
 	consumerCase := flags.String("consumer-case", "", "Chapter 4/5/6/7/8/9/10/11/12/13 JSON case file (default: shout example)")
@@ -50,6 +51,44 @@ func run(args []string) int {
 			return 0
 		}
 		return 2
+	}
+	scopeSet := false
+	flags.Visit(func(f *flag.Flag) {
+		if f.Name == "scope" {
+			scopeSet = true
+		}
+	})
+	if scopeSet {
+		allowed := map[string]bool{"scope": true, "json": true, "executable-only": true, "dotnet": true, "browser-node": true, "playwright-module": true}
+		badFlag := false
+		flags.Visit(func(f *flag.Flag) {
+			if !allowed[f.Name] {
+				badFlag = true
+			}
+		})
+		if *scope != "artifacts" || badFlag || !*executableOnly || flags.NArg() != 1 || strings.TrimSpace(flags.Arg(0)) == "" {
+			fmt.Fprintln(os.Stderr, "Artifacts requires --scope artifacts -executable-only, one runtime directory, explicit -dotnet/-browser-node/-playwright-module; do not combine with -ch or media flags")
+			return 2
+		}
+		candidate, err := filepath.Abs(flags.Arg(0))
+		if err != nil {
+			fmt.Fprintln(os.Stderr, err)
+			return 2
+		}
+		report, err := gradeedition3.GradeArtifacts(gradeedition3.ArtifactGradeConfig{RuntimeDirectory: candidate, Dotnet: *dotnet, Node: *browserNode, PlaywrightModule: *playwrightModule})
+		if err != nil {
+			fmt.Fprintln(os.Stderr, "Artifact setup:", err)
+			return 2
+		}
+		if *asJSON {
+			if err := report.WriteJSON(os.Stdout); err != nil {
+				fmt.Fprintln(os.Stderr, err)
+				return 2
+			}
+		} else {
+			report.WriteText(os.Stdout)
+		}
+		return report.ExitCode()
 	}
 	mediaScopeSet := false
 	flags.Visit(func(f *flag.Flag) {
