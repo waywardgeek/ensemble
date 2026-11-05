@@ -1039,3 +1039,31 @@ The newly built current runtime's shared suite subsequently completed with
 the source build, not the installed application. All receiver implementation,
 consumer and teaching diffs were reviewed. New documentation passes hard prose
 checks with advisories; Chapters3/4 retain only their unchanged em-dash failures.
+
+## Fresh Chapter4 retest admitted
+
+Bill requested renewed three-minute reminders and continuation. Goal control
+confirmed enabled180 with no error. Parent completed the remaining first-candidate
+README, report spans and student fake-provider review. Its successful fake is
+supporting evidence, not a general process-tree timeout cleanup guarantee; the
+independent model consumer remains the stronger boundary. No candidate adoption.
+
+Fresh student `ch04-reconstruction-02` receives only the same accepted Chapter3
+prerequisite in `/private/tmp/cadence-ch4-retest-prep.47ifw84_/bundle`. All31 source
+hashes match the accepted archive. All61 prior support files were hash-verified
+before copying; Chapters1–4 and the public supplements were refreshed from
+f2f79628. The new receiver mode is an explicit ten-check gate. No first Chapter4
+solution, report, run outputs, positive-control source or parent Git history was
+supplied. The independent baseline commit is
+`00d450b198018db7e2ef6a586293b2d8e1f77b52`, one commit, no remote, clean.
+
+The sibling evidence/bundle-receipt.json hashes93 permitted files. Parent reviewed
+the complete assignment, validated script syntax and clean-environment grader and
+provider-checker help, and reverified current teaching/consumer bytes. Existing
+prerequisite build and acceptance evidence is reused, not represented as a fresh
+Chapter4 grade. Existing repaired public binaries were hash-verified; no relevant
+historical grader change required rebuilding them. Disk remained above1GiB reserve.
+Questions and public graders remain available throughout. Only solution/run/report
+are writable; no descendants, live providers, installs or application changes.
+Task1181 is admitted, not accepted; explicit submission, independent grading,
+ownership/readability review and joined teardown remain required.
