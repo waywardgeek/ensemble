@@ -537,3 +537,34 @@ real synchronous recording conversion and later independent source review, not
 an invented callback API or claimed external coverage of metadata-producing tools.
 Explicit submission, independent grading/readability review and joined teardown
 remain pending. Nothing is adopted automatically. Artifact grade remains70/100.
+
+## First Chapter3 student clarifications
+
+The student asked about testing synchronous forwarding through a small internal
+result-to-event conversion used by the real serial loop. Cadence approved that
+boundary with focused friend-assembly tests and independent source review, not
+public execution credit for a metadata-producing tool. Keeping the prior exchange
+API is permissible only if the loop identifies a response from the current
+exchange; failure or cancellation must never dispatch a stale earlier response.
+
+A later question reported Chapter3 score91, Chapter2 score100, fourteen focused
+checks passing and the Chapter1 grader still running. These remain student reports,
+not independent acceptance. The student found Gemini uppercase schema types failed
+the historical grader's lowercase `object` assertion. Inspection confirms that
+assertion is applied to both Gemini parameter forms. Cadence allowed lowercase
+recursive types for this assigned offline contract while preserving filtering and
+fresh trees; no claim was made that uppercase Schema enums are invalid on the
+live provider. That compatibility limitation needs review separately from this
+student's score. No grader was changed, and no live provider was exercised.
+
+The metadata consumer also failed to build because the accepted Chapter2 baseline
+exposes array codecs, while the consumer calls public `ReadPart` and `WritePart`.
+The Chapter3 prose had not explicitly named those method signatures. Cadence
+confirmed the exact public signatures and approved factoring shared single-part
+behavior rather than duplicating codecs. The original chapter now teaches those
+signatures at the construction point; the frozen student bundle is unchanged.
+This is recorded assistance and a teaching repair, not evidence of an unassisted
+retest. After this run's independent review, a fresh bounded student must retest
+the repaired teaching. The student also reported a missing trailing search-output
+newline and is correcting it through the existing public case. No parent-provided
+implementation or acceptance follows from these clarifications.

@@ -311,6 +311,21 @@ Keep existing constructor calls valid. In this chapter, only a successful
 error event carrying an offer must refuse construction. The six built-in tools
 continue to return null metadata; use synthetic values to test this seam.
 
+Expose single-part conversion on the public `JsonCodec` partial alongside the
+existing event and array codecs. Declare these methods in Common and implement
+them in the matching serialization partial:
+
+```csharp
+public static partial JsonObject WritePart(Part part);
+public static partial Part ReadPart(JsonElement value);
+```
+
+`JsonObject` comes from `System.Text.Json.Nodes`; `JsonElement` comes from
+`System.Text.Json`. If the prerequisite only exposes array codecs, factor their
+single-part behavior into these methods and reuse it from the array methods.
+Keep existing array and event callers valid; do not create two competing part
+codecs. The outside-assembly supplement calls these public methods directly.
+
 The public JSON vocabulary adds `work_product` to a tool-result part and to the
 `tool` object of a returned event. Its value is an object with `id`, `name`, and
 `offered_bytes`. Missing or null metadata reads as null for older logs. Preserve
