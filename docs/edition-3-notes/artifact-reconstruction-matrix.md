@@ -1580,3 +1580,21 @@ Chapter6 executable/workflow checks and early GUI acceptance remain open. Reconc
 the current workflow's optional history-directory contract during that application
 verification. The baseline is still not student-ready. Frozen endpoints, the main
 runtime, artifact70-point report and Local Models-last ordering remain unchanged.
+
+### Isolated pre-GUI receiver contract
+
+The isolated prerequisite now preserves the approved receiver-bound contract at
+commit `922c1c5`. Only `Common/Tools.cs` and `Tools/Tool.cs` changed: the parent
+check remains first, an ordinal name mismatch returns a correlated error before
+dispatch, and matching calls still use the Agent's existing dispatch path.
+The untouched pre-fix build failed `receiver-mismatch-is-error`. The fresh fixed
+build has zero warnings/errors, passes all ten public receiver checks, and passes
+the 33-check component suite. This does not establish cleanup or baseline
+acceptance, and no frozen endpoint or installed application changed.
+
+Evidence remains under `/private/tmp/cadence-pre-gui-baseline.rc7ci9s_/evidence`:
+`receiver-before.json`, `receiver-after.json`, `receiver-suite.log`, build logs,
+`receiver-summary.json`, and the explicitly post-execution
+`receiver-source-receipt.json`. The two-file diff and exact receipts were reviewed;
+no completed hint campaign was repeated for freshness. Cleanup-on-error and
+bounded managed-worker lifetime are the next isolated repair boundary.
