@@ -5,6 +5,11 @@ using System.Text.Json;
 using Ensemble;
 using EnsembleGui;
 
+if (args is ["actions-host"])
+{
+    await ActionsHost.RunAsync();
+    return 0;
+}
 if (args is ["browser-host"])
 {
     await ArtifactHost.RunAsync();

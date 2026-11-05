@@ -205,6 +205,9 @@ Unknown metadata stays unknown; prose that resembles a Job report must not creat
 status facts. A live Job monitor would be a separate feature, not an inference
 from this retained result. Error reported likewise does not by itself distinguish
 a failed observation from unsuccessful execution; retain the exact result detail.
+This also applies to `wait_for_job`, `send_input`, and `kill_job`: their results
+can describe the existing Job. Preserve those typed observations through Agent
+recording and replay, even though the controls create no new Jobs.
 
 ### Display recorded time and observation duration
 

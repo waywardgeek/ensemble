@@ -19,7 +19,7 @@ import (
 	"time"
 )
 
-//go:embed testdata/artifacts-consumer/*.cs testdata/artifacts-consumer/*.csproj testdata/artifacts-browser.cjs
+//go:embed testdata/artifacts-consumer/*.cs testdata/artifacts-consumer/*.csproj testdata/artifacts-browser.cjs testdata/artifacts-actions.cjs
 var artifactGradeFiles embed.FS
 
 type ArtifactGradeConfig struct{ RuntimeDirectory, Dotnet, Node, PlaywrightModule string }
@@ -180,7 +180,7 @@ func GradeArtifacts(c ArtifactGradeConfig) (report ArtifactReport, result error)
 	if err := artifactBrowserPreflight(c, root); err != nil {
 		return report, err
 	}
-	for _, name := range []string{"Program.cs", "ArtifactHost.cs", "TransferChecks.cs", "ResponseBarrier.cs", "ArtifactsConsumer.csproj"} {
+	for _, name := range []string{"Program.cs", "ArtifactHost.cs", "ActionsHost.cs", "TransferChecks.cs", "ResponseBarrier.cs", "ArtifactsConsumer.csproj"} {
 		data, err := artifactGradeFiles.ReadFile("testdata/artifacts-consumer/" + name)
 		if err != nil {
 			return report, err
@@ -225,7 +225,7 @@ func GradeArtifacts(c ArtifactGradeConfig) (report ArtifactReport, result error)
 	}
 	report.Probes = append(report.Probes, p)
 	for _, unnamed := range []bool{false, true} {
-		err := runArtifactBrowser(c, root, binary, driver, unnamed)
+		err := runArtifactBrowser(c, root, binary, driver, unnamed, false)
 		p := ArtifactProbe{ID: fmt.Sprintf("work-product-browser-unnamed=%t", unnamed), Passed: err == nil, Detail: "Real model/tool sequence, exact download, guards, replacement expiry and joined host; no points yet."}
 		if err != nil {
 			p.Detail = err.Error()
@@ -233,6 +233,21 @@ func GradeArtifacts(c ArtifactGradeConfig) (report ArtifactReport, result error)
 		}
 		report.Probes = append(report.Probes, p)
 	}
+	actionsData, err := artifactGradeFiles.ReadFile("testdata/artifacts-actions.cjs")
+	if err != nil {
+		return report, err
+	}
+	actionsDriver := filepath.Join(root, "actions.cjs")
+	if err = os.WriteFile(actionsDriver, actionsData, 0600); err != nil {
+		return report, err
+	}
+	err = runArtifactBrowser(c, root, binary, actionsDriver, false, true)
+	actionsProbe := ArtifactProbe{ID: "actions-browser", Passed: err == nil, Detail: "Real barrier-held Job observations and public pairing; partial coverage, no points."}
+	if err != nil {
+		actionsProbe.Detail = err.Error()
+		report.Status = "failed"
+	}
+	report.Probes = append(report.Probes, actionsProbe)
 	return report, nil
 }
 func checkArtifactCoreReceipt(data []byte) error {
@@ -276,7 +291,7 @@ func checkArtifactHostReceipt(data []byte) error {
 	}
 	return nil
 }
-func runArtifactBrowser(c ArtifactGradeConfig, root, binary, driver string, unnamed bool) (result error) {
+func runArtifactBrowser(c ArtifactGradeConfig, root, binary, driver string, unnamed, actions bool) (result error) {
 	work, err := os.MkdirTemp(root, "browser-")
 	if err != nil {
 		return err
@@ -296,7 +311,11 @@ func runArtifactBrowser(c ArtifactGradeConfig, root, binary, driver string, unna
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), 110*time.Second)
 	defer cancel()
-	host, out := artifactCommand(ctx, work, env, c.Dotnet, binary, "browser-host")
+	mode := "browser-host"
+	if actions {
+		mode = "actions-host"
+	}
+	host, out := artifactCommand(ctx, work, env, c.Dotnet, binary, mode)
 	if err = host.Start(); err != nil {
 		return err
 	}
@@ -338,7 +357,11 @@ func runArtifactBrowser(c ArtifactGradeConfig, root, binary, driver string, unna
 			result = err
 			return
 		}
-		result = checkArtifactHostReceipt(data)
+		if actions {
+			result = checkActionsHostReceipt(data)
+		} else {
+			result = checkArtifactHostReceipt(data)
+		}
 	}()
 	client := &http.Client{Timeout: time.Second}
 	for {
@@ -362,6 +385,9 @@ func runArtifactBrowser(c ArtifactGradeConfig, root, binary, driver string, unna
 	output, err := runArtifactCommand(ctx, work, env, c.Node, driver)
 	if err != nil {
 		return fmt.Errorf("browser failed: %w; %s", err, output)
+	}
+	if actions {
+		return checkActionsBrowserReceipt([]byte(output))
 	}
 	return checkArtifactBrowserReceipt([]byte(output))
 }
@@ -394,6 +420,51 @@ func checkArtifactBrowserReceipt(data []byte) error {
 		}
 		if !found {
 			return fmt.Errorf("missing browser receipt: %s", want)
+		}
+	}
+	return nil
+}
+
+func checkActionsHostReceipt(data []byte) error {
+	var r map[string]json.RawMessage
+	if err := json.Unmarshal(data, &r); err != nil {
+		return err
+	}
+	for key, want := range map[string]int{"requests": 3, "executions": 1, "returned": 2, "running": 1, "done": 1} {
+		var got int
+		if err := json.Unmarshal(r[key], &got); err != nil || got != want {
+			return fmt.Errorf("Actions host %s count mismatch", key)
+		}
+	}
+	if string(r["failure"]) != "null" {
+		return fmt.Errorf("Actions host oracle failure or missing field")
+	}
+	return nil
+}
+
+var actionsBrowserChecks = []string{"real-running-observation", "call-result-navigation", "historical-running-preserved", "terminal-pathname-not-grant", "replay-no-execution"}
+
+func checkActionsBrowserReceipt(data []byte) error {
+	var r struct {
+		Contract string
+		Passed   bool
+		Checks   []string
+	}
+	if err := json.Unmarshal(data, &r); err != nil {
+		return err
+	}
+	if r.Contract != "artifact-actions-v1" || !r.Passed {
+		return fmt.Errorf("Actions browser receipt did not pass")
+	}
+	for _, want := range actionsBrowserChecks {
+		found := false
+		for _, got := range r.Checks {
+			if got == want {
+				found = true
+			}
+		}
+		if !found {
+			return fmt.Errorf("missing Actions receipt: %s", want)
 		}
 	}
 	return nil

@@ -555,3 +555,46 @@ running observations it encounters, but scheduling does not guarantee that it
 encounters one. This is not claimed as deterministic running-state certification.
 All five rubric rows remain UNGRADED with zero points; next work covers that gap
 and the remaining public Actions/snippet/time/interaction contracts.
+
+## Independent running Actions probe and control-observation repair
+
+The public artifact runner now includes a fourth partial probe, using a separate
+outside-assembly Actions host. A public custom callback remains behind a barrier
+while its real zero-delay observation is recorded. The fake provider waits for
+browser release, then observes the same terminal Job through `wait_for_job`.
+The browser checks actual call/result navigation, returned-versus-running labels,
+retained historical running state, pathname output without work-product controls,
+and reload without callback or provider reexecution. No injected application
+frames, internal card maps, candidate test assembly or real provider is used.
+This tests ordinary Job observations, not deterministic delayed built-in offer
+metadata; that narrower public seam remains unavailable.
+
+The probe exposed a real recording defect: Agent discarded `result.Job` for all
+control calls. `wait_for_job` supplied typed metadata, but canonical History lost
+it before GUI projection. Controls allocate no wrapper Jobs; their observations
+can still describe existing Jobs. Recording now preserves the result metadata.
+Focused Job assertions compare both running and terminal returned observations
+with their recorded History facts. Chapters4 and7 clarify the distinction.
+
+Evidence in `/private/tmp/cadence-actions-public.iTpa8D` includes clean GUI/test
+build logs, retained pre-fix core assembly, runtime diff, shared350/0, Go package
+results and final external four-probe pass (8.99seconds). Job124, before the
+recording repair, failed specifically with terminal status missing and error
+false; host shutdown completed. Job138 passes after the repair, including the
+actual provider-to-History-to-browser path. No installation or restart occurred.
+The good candidate runtime in temporary build outputs now contains the repair.
+
+Earlier setup job116 failed before readiness because the primary skill named a
+custom tool before its constructor registered it. The fixture now registers only
+its two required public tools directly, independent of the separate skill-based
+download host. Job120 reached the running pair but failed the terminal oracle.
+Waiting on public terminal state before requesting the final observation removed
+a timing ambiguity, but job124 proved the actual problem was missing metadata,
+not scheduling. The oracle was retained rather than replaced with prose parsing.
+
+Both Go packages pass. Receipt omission tests require every Actions browser check
+and terminal count. Chapter7 passes hard lint with advisories; Chapter4 fails only
+four pre-existing em-dash lines verified identical to HEAD. All five rubric rows
+remain ungraded with zero points. Requested/dispatched transitions, additional
+Actions interaction and negative candidates, snippets and timing public coverage,
+chapter reconstruction and human acceptance remain separate unfinished gates.

@@ -68,6 +68,12 @@ that path without becoming jobs themselves. `tool_limits` sets one-shot
 observation options for the very next call, even a control or failed call; its
 consumption must be visible. Interactive commands require a real PTY.
 
+A control can return an observation of an existing Job without owning a new one.
+Preserve that observation's typed handle and status when the Agent records its
+result in History. Stripping them merely because the call is a control loses the
+facts needed by replay and the GUI. A handle-free `tool_limits` result still has
+no Job metadata; never manufacture a wrapper Job to fill that absence.
+
 ## In plain words
 
 Chapter 3 made the Agent wait inside each tool. Chapter 4 gives the work its

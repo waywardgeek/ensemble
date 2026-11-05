@@ -70,7 +70,7 @@ func TestArtifactExternalCandidate(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if r.ExitCode() != 3 || len(r.Probes) != 3 {
+	if r.ExitCode() != 3 || len(r.Probes) != 4 {
 		t.Fatalf("unexpected partial report: %+v", r)
 	}
 	for _, p := range r.Probes {
@@ -100,6 +100,36 @@ func TestArtifactBrowserReceiptRequiresEveryCheck(t *testing.T) {
 		checks := append([]string{}, artifactBrowserChecks[:index]...)
 		checks = append(checks, artifactBrowserChecks[index+1:]...)
 		if checkArtifactBrowserReceipt(encode(checks)) == nil {
+			t.Fatalf("missing %s accepted", name)
+		}
+	}
+}
+
+func TestActionsReceiptsRequireEveryFact(t *testing.T) {
+	good := map[string]any{"requests": 3, "executions": 1, "returned": 2, "running": 1, "done": 1, "failure": nil}
+	data, _ := json.Marshal(good)
+	if err := checkActionsHostReceipt(data); err != nil {
+		t.Fatal(err)
+	}
+	for key, value := range good {
+		delete(good, key)
+		data, _ = json.Marshal(good)
+		if checkActionsHostReceipt(data) == nil {
+			t.Fatalf("missing %s accepted", key)
+		}
+		good[key] = value
+	}
+	encode := func(checks []string) []byte {
+		data, _ := json.Marshal(map[string]any{"contract": "artifact-actions-v1", "passed": true, "checks": checks})
+		return data
+	}
+	if err := checkActionsBrowserReceipt(encode(actionsBrowserChecks)); err != nil {
+		t.Fatal(err)
+	}
+	for index, name := range actionsBrowserChecks {
+		checks := append([]string{}, actionsBrowserChecks[:index]...)
+		checks = append(checks, actionsBrowserChecks[index+1:]...)
+		if checkActionsBrowserReceipt(encode(checks)) == nil {
 			t.Fatalf("missing %s accepted", name)
 		}
 	}

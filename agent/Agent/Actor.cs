@@ -858,13 +858,13 @@ public sealed partial class Agent
             }
             var result = AdmitToolImages(message.Result!);
             var completedCall = active?.Call ?? calls[nextCall - 1];
-            var isControl = Tools().Any(tool => tool.Name() == completedCall.Name && tool.IsControl());
             // A host-invoked tool has no preceding assistant call. Preserve its
             // audit outcome without inventing a call or poisoning model dialogue.
             var resultKind = active?.Kind == MailKind.DirectTool
                 ? EventKind.ToolObserved : EventKind.ToolReturned;
+            // Controls allocate no wrapper Job, but may observe an existing one.
             Record(new Event(resultKind, callID: result.CallID, parts: result.Parts,
-                isError: result.IsError, job: isControl ? null : result.Job, toolReferences: result.ToolReferences,
+                isError: result.IsError, job: result.Job, toolReferences: result.ToolReferences,
                 observationDuration: message.ObservationDuration, workProduct: result.WorkProduct));
             StageHandoff(completedCall, result);
             if (active?.Kind != MailKind.DirectTool)

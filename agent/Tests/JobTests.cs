@@ -48,6 +48,8 @@ internal static class JobTests
             var wait = Stopwatch.StartNew();
             var empty = await pending;
             Check(wait.ElapsedMilliseconds >= 40 && !Text(empty).Contains("first"), "no old output on next wait");
+            Check(agent.History().Events().Single(e => e.Kind == EventKind.ToolObserved && e.CallID == empty.CallID).Job == empty.Job,
+                "running control observation retains typed Job in History");
             released.SetResult();
             var final = await Call("wait_for_job", new { handle = 1, ai_callback_pattern = "last", ai_callback_delay = 2 });
             Check(Text(final).Contains("last"), "fresh pattern result");
@@ -56,6 +58,8 @@ internal static class JobTests
             {
                 final = await Call("wait_for_job", new { handle = 1, ai_callback_delay = 0.05 });
             }
+            Check(agent.History().Events().Single(e => e.Kind == EventKind.ToolObserved && e.CallID == final.CallID).Job == final.Job,
+                "terminal control observation retains typed Job in History");
             Check(File.ReadAllText(final.Job.OutputPath) == "first\nlast\n", "disk contains complete custom output");
             using (var exclusive = new FileStream(final.Job.OutputPath, FileMode.Open, FileAccess.Read, FileShare.None))
             {
