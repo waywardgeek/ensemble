@@ -1081,3 +1081,33 @@ Actions shutdown. Reports are retained under
 snippet and10-point interaction awards, preserve unrelated failures, and recompute
 without double counting. Source, test and rubric diffs were reviewed; hard prose
 checks pass with advisories. No application source or installed files changed.
+
+### Exact replay pairing and selected-Agent presentation
+
+The public Actions driver now activates both pair controls after a real page
+reload and requires the exact original call and result IDs as focused targets.
+The existing canonical observations and provider/callback counts remain unchanged.
+After selecting the snapshot-loaded legacy Agent, the driver first waits for its
+actual results, then requires the previous Agent's call/result cards and pair
+controls to be absent. The same checks run after the legacy selection is restored
+following another reload. This is visible selection isolation, not a general
+cross-Agent authorization or server-process restart claim.
+
+Job331 passes both Go packages and all five public probes. The new named browser
+receipt is required by the existing omission checks. An initial absence selector
+used a nonexistent CSS class; source inspection caught it before testing, and the
+final assertion uses the same visible button roles as positive navigation checks.
+
+Job330 builds an isolated GUI that skips establishing pair relationships only
+while replaying. Live navigation passes, but the original driver then times out
+at the missing replay control. That report is retained. The final driver adds an
+explicit presence assertion; job333 reuses the compiled mutant and fails exactly
+at `replay preserves the actual result-to-call relationship`, with the other four
+probes passing and the Actions host stopped cleanly. Evidence is retained under
+`/private/tmp/cadence-replay-pair-mutant.blXFID`, including both reports and the
+successful build log. No installed or good candidate assemblies changed.
+
+The complete scoped diff was reviewed. Live relationships and replayed
+relationships need separate evidence; identical state labels alone do not prove
+navigation survives restoration. Actions failure presentation and its remaining
+row review are still open. The report remains30/100 with three rows ungraded.

@@ -269,6 +269,14 @@ assert(!['8088', '8089', '8090'].includes(new URL(base).port));
     await page.locator(`[data-part-id="${callID}"]`).waitFor();
     assert((await page.locator(`[data-part-id="${resultID}"] .job-state`).innerText()).includes('state when observed: running'),
       'replay preserves running snapshot');
+    const replayCallLink = page.locator(`[data-part-id="${resultID}"]`).getByRole('button', {name: 'View call', exact: true});
+    assert.equal(await replayCallLink.count(), 1, 'replay preserves the actual result-to-call relationship');
+    await replayCallLink.click();
+    assert.equal(await page.locator('[data-kind="tool_call"]:focus').getAttribute('data-part-id'), callID,
+      'replay result navigation preserves exact original call identity');
+    await page.locator(`[data-part-id="${callID}"]`).getByRole('button', {name: 'View latest result', exact: true}).click();
+    assert.equal(await page.locator('[data-kind="tool_result"]:focus').getAttribute('data-part-id'), resultID,
+      'replay call navigation preserves exact original result identity');
     const replay = await statusUntil(() => true);
     assert.equal(replay.executions, 1, 'replay cannot reexecute the callback');
     assert.equal(replay.requests, 3, 'replay cannot issue model requests');
@@ -284,6 +292,10 @@ assert(!['8088', '8089', '8090'].includes(new URL(base).port));
       const zero = page.locator('[data-kind="tool_result"]').filter({hasText: 'legacy-zero-' + initial.nonce});
       await unknown.waitFor();
       await zero.waitFor();
+      assert.equal(await page.locator(`[data-part-id="${callID}"], [data-part-id="${resultID}"]`).count(), 0,
+        'selected legacy Agent cannot display previous Agent call or result');
+      assert.equal(await page.locator('#tool-transcript').getByRole('button', {name: /^View (call|latest result)$/}).count(), 0,
+        'unpaired legacy results cannot inherit previous Agent pair controls');
       assert.equal(await unknown.locator(':scope > time.recorded-time').count(), 0,
         'legacy browser must not invent recorded time');
       assert.equal(await unknown.locator(':scope > .observation-duration').count(), 0,
@@ -432,7 +444,7 @@ assert(!['8088', '8089', '8090'].includes(new URL(base).port));
     assert.deepEqual(errors, []);
     console.log(JSON.stringify({contract:'artifact-actions-v1', passed:true, checks:[
       'real-running-observation', 'call-result-navigation', 'historical-running-preserved',
-      'terminal-pathname-not-grant', 'replay-no-execution', 'focused-expanded-reader-preserved', 'canonical-recorded-time-and-duration', 'timing-survives-replay', 'legacy-unknown-and-zero-browser', 'provider-snippets-exact-and-fallback', 'real-streaming-snippet-stability', 'delayed-clipboard-replay-fenced', 'raw-selection-and-scroll-preserved', 'job-output-owner-and-running-guards', 'requested-and-dispatched-batch-states', 'keyboard-touch-and-draft-preserved', 'speech-copy-and-pair-noninterference', 'streamed-narration-once-and-replay-silent'
+      'terminal-pathname-not-grant', 'replay-no-execution', 'replay-exact-pair-and-agent-isolation', 'focused-expanded-reader-preserved', 'canonical-recorded-time-and-duration', 'timing-survives-replay', 'legacy-unknown-and-zero-browser', 'provider-snippets-exact-and-fallback', 'real-streaming-snippet-stability', 'delayed-clipboard-replay-fenced', 'raw-selection-and-scroll-preserved', 'job-output-owner-and-running-guards', 'requested-and-dispatched-batch-states', 'keyboard-touch-and-draft-preserved', 'speech-copy-and-pair-noninterference', 'streamed-narration-once-and-replay-silent'
     ]}));
   } finally { await browser.close(); }
 })().catch(error => { console.error(error.stack); process.exitCode = 1; });
