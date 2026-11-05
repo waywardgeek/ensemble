@@ -1134,3 +1134,25 @@ This does not certify uncooperative termination, every cleanup exception, or cra
 recovery. Existing modes and historical point totals remain unchanged. Fresh
 reconstruction from the same accepted Chapter3 baseline remains required after
 this original-teaching repair; no new student is admitted by this note.
+
+## Fresh Chapter4 cleanup retest admitted
+
+Student `ch04-reconstruction-03` is admitted as task1281 in
+`/private/tmp/cadence-ch4-cleanup-retest-prep.pxwzja6x/bundle`. Its94-file manifest
+is in sibling evidence/bundle-receipt.json. The same31 accepted Chapter3 source
+hashes match; independent baseline `25ffefdfa3940f1edfd2023cdbb7b4dcb4315510` has
+one commit, no remote and a clean tree. All62 reused read-only support files were
+verified before copying; current Chapters1–4 and public supplements were refreshed
+from518ee15b. Neither prior Chapter4 solution/report/output nor the disposable
+positive control was supplied. Existing verified grader binaries and prerequisite
+health evidence were reused honestly, not represented as fresh grading.
+
+Parent reviewed the entire final assignment, checked script syntax and both
+historical grader/provider-checker entry points in the clean environment, and
+verified teaching/consumer bytes before admission. The cleanup10 command is a
+separate fresh-workspace gate alongside receiver10 and existing modes. Questions
+and public graders remain available throughout; writable scope is solution/run/
+report only. No descendants, downloads or live services. Disk remained above the
+1GiB reserve. Explicit submission, independent tests, ownership/readability review
+and joined teardown remain required. No current runtime or installed application
+changed; earlier candidate acceptance remains withheld.
