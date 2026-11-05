@@ -1445,3 +1445,37 @@ mailbox observations, receiver and cleanup guarantees. Preserve Chapter5/6
 scheduling and streaming; keep Chapter7 GUI/snapshot/display answers absent.
 The export is not yet an approved student baseline, no historical chapter grader
 was run this increment, and no student has been admitted.
+
+### First isolated foundation slice: retained values and codecs
+
+In the audited pre-GUI copy, parent added immutable WorkProductInfo descriptions,
+optional Event/Entry timing, validation, exact codecs and pure reduction handling.
+Existing positional Job arguments remain compatible; new description arguments
+are optional/named. Successful ToolObserved audit facts can retain the same data
+without entering model dialogue. Result redaction drops the offer description
+while preserving original timing; summaries use replacement-fact time. There is
+no live offer store, file authority, GUI snapshot or finalized display-ID feature.
+
+Clean builds passed. Actual independent early-consumer receipts pass timing
+20/5/8/10 and metadata41/4/7/48 (default/write/read/library); the preserved suite
+remains33 passed, zero failed. A separate outside-assembly ten-check value probe
+covers nested Job/description round trips, host-only observation fields, legacy
+absence/null and refusal cases. A successfully compiled isolated codec mutant
+omitting only nested Job serialization fails exactly
+`nested-result-retains-job-snapshot`. The loaded negative DLL hash matches that
+mutant build. No candidate-private test APIs, reflection or provider calls were
+used for this probe.
+
+Evidence is under the pre-GUI export's evidence directory: foundation-*.json,
+foundation-suite.log, value-probe-{good,negative}.json and build logs. The complete
+six-file runtime diff and probe were reviewed. foundation-source-receipt.json was
+captured after execution, honestly labelled as such; source had not changed since
+the tested build. Isolated commit `7d610a9816911f6298a038808d74a71cb3bc3c85`
+records this slice. The frozen endpoint and main runtime remain unchanged.
+
+This slice proves retained value/codec/reduction behavior only. Actual monotonic
+dispatch timing, admission/refusal changes and metadata propagation through both
+mailbox completion paths, one-shot wrapping and progress publication are still
+pending. Receiver/cleanup, accounting/parser/result-order compatibility and early
+GUI public acceptance also remain open. No baseline approval, student admission,
+installation or historical-point claim follows from these passes.
