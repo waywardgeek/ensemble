@@ -1684,3 +1684,23 @@ components33/0. Evidence and explicitly post-execution hashes are in the pre-GUI
 storage or process-disposal failure. Frozen endpoints, main runtime, installation,
 artifact score and student admission remain unchanged. Next are the remaining
 usage/parser/result-arrival compatibility repairs and current Chapter6 checks.
+
+### Isolated unknown-usage compatibility
+
+Isolated commit `ae6cec5` preserves unknown canonical usage through decoding and
+reduction. Missing canonical count fields decode to null, as do explicit null
+counts; an absent or null response usage object remains absent. A response with
+no accounting contributes unknown values in all four categories. The empty
+Context still starts at zero, explicit reported zero stays zero, and provider-
+specific optional cache normalization is unchanged.
+
+An outside-assembly public value/codec/reducer probe rejects the pre-fix candidate
+separately at `missing-canonical-counts-unknown` and
+`unreported-response-makes-total-unknown`, after known-value setup checks. The
+fixed candidate passes all 14 checks, including partial-category preservation,
+roundtrip, prior-context immutability and unknown-total propagation. The clean
+build has zero warnings/errors and components pass 33/0. Final diff and complete
+probe were reviewed; explicitly post-execution hashes and actual receipts are in
+the pre-GUI `evidence/unknown-usage-*` files. This is not provider integration or
+the separately queued AI Settings token-threshold correction. No main runtime,
+frozen endpoint, installation, artifact score or student admission changed.
