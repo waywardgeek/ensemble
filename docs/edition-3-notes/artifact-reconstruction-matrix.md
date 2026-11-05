@@ -1067,3 +1067,34 @@ Questions and public graders remain available throughout. Only solution/run/repo
 are writable; no descendants, live providers, installs or application changes.
 Task1181 is admitted, not accepted; explicit submission, independent grading,
 ownership/readability review and joined teardown remain required.
+
+## Fresh Chapter4 submission: independent cleanup failure
+
+Student02 submitted `2476115604dc2b6d5cd2c9df4813c1b8407e7195` without clarification
+questions or parent implementation assistance. The durable submission was read,
+join1190 completed, and graceful teardown confirmed stopped. All62 immutable
+admission files match and the submitted tree is clean. Parent archived41 files
+before a fresh independent build under
+`/private/tmp/cadence-ch4-retest-independent.hc9k0vw7`; post-run hashes match.
+Independent job1245 completed exit0: Chapters1–4 each100, timing20/5/8/10,
+metadata41/48/4/7, observations23/27/21, receiver10, model38, and provider-envelope
+supplement passed. Source and student-test review are not yet complete.
+
+Review found that Job.KillAsync appends JobKilled before signaling cancellation.
+An outside-assembly probe uses only a borrowed throwing diagnostic TextWriter,
+public synthetic History with unknown usage, and a harmless callback held on an
+external release barrier. After real admission and confirmed diagnostic writes,
+Agent.Destroy throws IOException, the Job says killed and the Agent is detached,
+but the callback has never received cancellation. The probe releases and joins
+its callback during its own cleanup; no process or private runtime hook is used.
+Clean build and `cleanup-result-final.json` report the exact failure
+`destroy-diagnostic-failure-skips-worker-cancellation`, process exit1. The initial
+probe setup lacked unknown usage and refused before testing the failure path;
+its setup stderr is retained, not credited as behavioral evidence.
+
+Acceptance is withheld despite the assigned public passes. This is not the
+uncooperative-handler limitation: cancellation was never delivered. No submitted
+source, runtime, installed application or frozen bundle changed. Evidence and
+independent-audit.json retain both passing assigned gates and this additional
+failure. Complete the remaining review before choosing a bounded original-teaching
+repair and public regression; do not silently adopt a patched candidate.
