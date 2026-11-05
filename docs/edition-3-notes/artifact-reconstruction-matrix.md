@@ -351,3 +351,26 @@ joined cleanup; receipt public-provider-timeout-cleanup.json. Checker syntax and
 new link targets pass; README/matrix hard prose checks pass with advisories.
 Chapter2 lint still fails only its unchanged pre-existing em dash. These results
 establish this bounded checker, not arbitrary hostile-executable containment.
+
+## Fresh Chapter2 retest admitted
+
+Fresh student `ch02-reconstruction-02` uses
+`/private/tmp/cadence-ch2-retest-prep.7um2wm/bundle`, prepared from source53db1b10.
+Its independent prerequisite commit is75d64cdd46cb74d4b7433be73bc768f351586c71:
+one commit, no remote, and all14 original Chapter1 files hash-match the audited
+baseline. No first-student solution, review copy or parent Git history is supplied.
+The46-file receipt is outside the student bundle in `evidence/bundle-receipt.json`.
+
+The bundle includes current repaired teaching, hash-verified existing public
+Chapter1/2 grader binaries and reference sources, timing checks, and the public
+provider-error checker. Four unchanged scripts pass shell syntax checks; the new
+checker CLI runs with existing Python3.14.8 in the cleared environment. Prior
+exact-baseline build/public-grade evidence is reused, not reported as a fresh run.
+No Chapter2 acceptance is implied by admission.
+
+The reviewed assignment gives exact commands, offline resources, read/write limits,
+explicit multi-line readability guidance, question access and public-grader access.
+Only solution, run evidence and final student report are writable. No descendants,
+live-provider activity or later-source access is permitted. Parent task566 is
+active; explicit submission, independent grading/source review and joined teardown
+remain required. No student patches are adopted automatically.
