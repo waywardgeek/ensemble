@@ -442,7 +442,7 @@ func checkActionsHostReceipt(data []byte) error {
 	return nil
 }
 
-var actionsBrowserChecks = []string{"real-running-observation", "call-result-navigation", "historical-running-preserved", "terminal-pathname-not-grant", "replay-no-execution"}
+var actionsBrowserChecks = []string{"real-running-observation", "call-result-navigation", "historical-running-preserved", "terminal-pathname-not-grant", "replay-no-execution", "focused-expanded-reader-preserved"}
 
 func checkActionsBrowserReceipt(data []byte) error {
 	var r struct {

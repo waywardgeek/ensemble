@@ -618,3 +618,26 @@ These checks establish sensitivity for the exercised running label and real pair
 navigation. Requested/dispatched transitions, broader interaction behavior,
 snippet and timing public drivers remain open. All five rows remain UNGRADED;
 there is no new chapter score, student acceptance, installation or restart.
+
+### Public focused-reader continuity
+
+The real Actions scenario now expands the running result's raw payload and
+focuses its actual summary node before releasing the callback. After the later
+terminal observation arrives, the same node must remain connected and focused,
+its details expanded, and its complete raw text unchanged. A required named
+browser receipt prevents silently omitting this check.
+
+Initial job162 failed because a broad result locator matched both observations
+after completion. The retained-node focus assertion passed; the subsequent
+expansion query was ambiguous. Binding that query to the recorded result ID
+corrected the fixture. Job165 passes both Go packages with the external candidate
+enabled. An isolated focus-stealing GUI built successfully and failed exactly
+`later-observation preserves the actual focused reader control`; its host stopped
+cleanly. Evidence is `result-steal-reader-focus.json` and the corresponding build
+log in `/private/tmp/cadence-actions-mutants.pp1uvZ`. This negative run used the
+preceding locator version but failed before that query, at the unchanged focus
+assertion. No product change was needed.
+
+This is focused-node, expansion and payload continuity evidence, not complete
+scroll, selection, streaming or interaction-row certification. Rows remain
+UNGRADED. Installed applications and live services remain untouched.

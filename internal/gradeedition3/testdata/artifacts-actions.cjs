@@ -45,6 +45,13 @@ assert(!['8088', '8089', '8090'].includes(new URL(base).port));
     assert.equal(await page.locator('[data-kind="tool_result"]:focus').getAttribute('data-part-id'), resultID,
       'call navigation returns to its actual observation');
     assert.equal(await page.locator('.work-product-links').count(), 0, 'running result has no offer control');
+    const details = page.locator(`[data-part-id="${resultID}"]`).locator(':scope > details');
+    const summary = details.locator(':scope > summary');
+    await summary.click();
+    await summary.focus();
+    const readerNode = await summary.elementHandle();
+    const receivedText = await details.locator('pre').textContent();
+    assert(await details.evaluate(node => node.open), 'reader opens actual received payload');
     await page.request.post(origin + '/grade/release-action');
     const completed = await statusUntil(state => state.requests === 3 && state.done === 1);
     assert.equal(completed.executions, 1);
@@ -53,6 +60,12 @@ assert(!['8088', '8089', '8090'].includes(new URL(base).port));
       'later completion must not rewrite the earlier observation');
     const terminal = page.locator('[data-kind="tool_result"]').filter({has: page.locator('.job-state', {hasText: 'state when observed: finished'})});
     await terminal.waitFor();
+    assert(await readerNode.evaluate(node => node.isConnected && document.activeElement === node),
+      'later-observation preserves the actual focused reader control');
+    assert(await details.evaluate(node => node.open), 'later-observation preserves expanded payload');
+    assert.equal(await details.locator('pre').textContent(), receivedText,
+      'later-observation preserves complete original payload');
+    await readerNode.dispose();
     assert.equal(await terminal.locator('.tool-state:not(.job-state)').innerText(), 'Result returned');
     assert((await terminal.textContent()).includes(completed.output), 'full pathname result is retained');
     assert.equal(await page.locator('.work-product-links').count(), 0, 'pathname prose grants no work-product control');
@@ -68,7 +81,7 @@ assert(!['8088', '8089', '8090'].includes(new URL(base).port));
     assert.deepEqual(errors, []);
     console.log(JSON.stringify({contract:'artifact-actions-v1', passed:true, checks:[
       'real-running-observation', 'call-result-navigation', 'historical-running-preserved',
-      'terminal-pathname-not-grant', 'replay-no-execution'
+      'terminal-pathname-not-grant', 'replay-no-execution', 'focused-expanded-reader-preserved'
     ]}));
   } finally { await browser.close(); }
 })().catch(error => { console.error(error.stack); process.exitCode = 1; });
