@@ -313,3 +313,41 @@ pass waived the failure. Next: explicit original teaching for malformed successf
 responses, public failure-path coverage, positive control and retained failing
 candidate evidence, then a fresh isolated student on repaired teaching. The
 artifact70-point score and pending work-product decision are unchanged.
+
+## Public response-envelope failure gate
+
+The original Chapter2 parsing section now explicitly distinguishes HTTP success,
+a present candidate with empty text, and an empty candidate array. The new
+standalone public ch02-provider-errors.py uses only Python3's standard library,
+real CLI processes and owned loopback servers. Its four cases cover OpenAI and
+Gemini valid-response controls plus empty arrays; it requires safe exit1, no
+fabricated answer, no retry, and one recorded error after the request with no
+success fact or raw-response canary leak. It awards no historical chapter points.
+The source and invocation README are included for future isolated assignments.
+
+Evidence remains under `/private/tmp/cadence-ch2-independent.D9xtAG`. The untouched
+student commit passes valid controls and fails both empty-array cases at
+controlled-failure-exit-not-crash. A disposable copy adds explicit array presence/
+length checks before indexing; it compiles cleanly and passes all four cases.
+That copy is not a revised student submission or an adopted runtime. A separate
+exit-only launcher around the untouched candidate fails both cases specifically
+at one-error-fact-no-success-fact, demonstrating that suppressing the crash
+status without recording failure cannot pass. No frozen endpoint, main runtime,
+installed application, original chapter grader or student bundle was modified.
+
+The checker source was reviewed in full. The final socket deadline uses a local
+server subclass rather than replacing an instance method. The next fresh student
+must receive the repaired opaque-replay and envelope-validation teaching, this
+additional public gate, and the same honest Chapter1 prerequisite; this first
+assisted run remains refused. Readability review should also discourage compressed
+multi-operation lines even where the behavioral grade passes.
+
+Final checker execution receipts are public-provider-positive-final.json,
+public-provider-negative-final.json and public-provider-exit-only-final.json.
+Their scores, four case identities and exact failure assertions were validated.
+public-checker-sha256.txt matches the final source. The separate20-second deadline
+case reports bounded-process-exit and confirms the owned process is gone after
+joined cleanup; receipt public-provider-timeout-cleanup.json. Checker syntax and
+new link targets pass; README/matrix hard prose checks pass with advisories.
+Chapter2 lint still fails only its unchanged pre-existing em dash. These results
+establish this bounded checker, not arbitrary hostile-executable containment.

@@ -1116,6 +1116,22 @@ removed. Canonicalization is not permission to change what the model asked.
 Also normalized here: usage, per the table in §2.5, and errors. An HTTP 429 is
 an `ErrorOccurred`, not a response.
 
+HTTP200 does not establish a valid response envelope. Check the selected vendor's
+required arrays and objects before indexing or reading their contents. For example,
+OpenAI `choices: []` and Gemini `candidates: []` contain no assistant candidate;
+normalize that failure to a safe `ErrorOccurred`, not an unchecked indexing
+exception or an invented `ResponseEnded`. An explicit empty text string inside
+a real candidate is a different case and must remain an empty string.
+
+Exercise this boundary through both parsing and an owned loopback HTTP server.
+The CLI should stop with a controlled nonzero exit, keep the human/request facts,
+and record exactly one error after the request. It must not fabricate an answer,
+retry the request, or echo the raw provider body into diagnostics or History.
+The first revised C# student passed the assigned grades but aborted on both empty
+arrays without recording an error. That independent failure added the public
+supplement below; a good-response control prevents rejecting every reply from
+masquerading as correct validation.
+
 ### Rules the seam has to hold
 
 **Decline vendor stateful conversation APIs.** Server-side threads and
@@ -1434,6 +1450,19 @@ The Edition 3 Chapter 1 gate adds real delayed-header and delayed-body
 lifetime phases to the ordinary parity checks; allow at least six minutes. Tests use real components and working
 loopback HTTP fakes, never mocks of internal calls. A green grade does not
 verify the architecture: inspect declarations, relationships and access paths.
+
+### Provider failure supplement
+
+Run the grader-owned
+[`ch02-provider-errors.py`](../internal/gradeedition3/testdata/ch02-provider-errors.py)
+with an existing Python3 interpreter, an absolute candidate executable and an
+owned writable workspace. Exact invocation and evidence requirements are in its
+[README](../internal/gradeedition3/testdata/ch02-provider-errors.md). No packages,
+credentials or live providers are needed. The checker uses real CLI processes and
+loopback HTTP for valid controls and empty candidate arrays. Require exit0 and
+`passed:true` for all four named cases, including the recorded error checks.
+This supplement awards no points and does not replace the historical100-point
+grade or ownership/readability review. Frozen endpoints remain unchanged.
 
 ### Timing-value supplement for the revised chapter
 
