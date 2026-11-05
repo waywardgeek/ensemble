@@ -511,3 +511,29 @@ Full helper review and documentation distinguish clean exit/replay from crash
 recovery and restored authority. Synchronous dispatch propagation review and
 Chapter3 prerequisite admission remain open. No new student, runtime edit,
 historical score change, or artifact points follow from this increment.
+
+## First Chapter3 reconstruction admitted
+
+Fresh student `ch03-reconstruction-01` is assigned only
+`/private/tmp/cadence-ch3-student-prep.pw6f_0m5/bundle`. Its69 permitted files are
+hashed in the sibling `evidence/bundle-receipt.json`. All26 prerequisite source
+files match the independently accepted Chapter2 archive, commit `97c3a5ad`.
+The writable solution has independent baseline commit
+`02d3909b85f911120038aa2975aacc5c000aeb16`, one commit and no remote; no parent
+history or completed Chapter3 implementation is supplied.
+
+The bundle includes current Chapters1–3, scoped coding guidance, hash-verified
+public grader binaries and reference sources, timing/provider-error supplements,
+and the new Chapter3 metadata/library/log consumer. Its clean environment adds
+the existing Go toolchain for shell fixtures, with downloads disabled. A fresh
+prerequisite build and owned Go fixture pass; prior independent Chapter2 grades
+are reused honestly, not described as new Chapter3 acceptance. The full assignment
+and scripts were reviewed, including correction of two inherited scope labels.
+
+The student may ask questions and run public graders throughout. Writable scope
+is solution/run/report only; local fakes are permitted, live providers and later
+owners are excluded. The assignment explicitly requires a synthetic test of the
+real synchronous recording conversion and later independent source review, not
+an invented callback API or claimed external coverage of metadata-producing tools.
+Explicit submission, independent grading/readability review and joined teardown
+remain pending. Nothing is adopted automatically. Artifact grade remains70/100.
