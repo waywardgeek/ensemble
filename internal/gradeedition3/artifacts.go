@@ -54,6 +54,33 @@ func newArtifactReport() ArtifactReport {
 	}
 	return r
 }
+
+// Only reviewed, independently exercised rows earn points. The shared Actions
+// probe must finish all browser assertions and joined host checks: an early
+// snippet success followed by a failed probe is insufficient evidence.
+func (r *ArtifactReport) applyReviewedRows() {
+	complete := false
+	for _, probe := range r.Probes {
+		if probe.ID == "actions-browser" {
+			complete = probe.Passed
+		}
+	}
+	r.Score = 0
+	for i := range r.Rows {
+		row := &r.Rows[i]
+		if row.ID == "snippets" {
+			row.Earned, row.Status = 0, "ungraded"
+			row.Details = "Reviewed snippet contract; complete Actions browser/host evidence unavailable."
+			if complete {
+				row.Earned, row.Status = row.Points, "passed"
+				row.Details = "Real buffered/streaming payloads, exact copy, clipboard fallback, retained focus/selection and stale completion; clipboard boundary substituted."
+			}
+		}
+		r.Score += row.Earned
+	}
+	// Other rows remain unfinished. Never infer full acceptance from probe count.
+}
+
 func (r ArtifactReport) ExitCode() int {
 	if r.Status == "passed" {
 		return 0
@@ -242,7 +269,7 @@ func GradeArtifacts(c ArtifactGradeConfig) (report ArtifactReport, result error)
 		return report, err
 	}
 	err = runArtifactBrowser(c, root, binary, actionsDriver, false, true)
-	actionsProbe := ArtifactProbe{ID: "actions-browser", Passed: err == nil, Detail: "Real barrier-held Job observations and public pairing; partial coverage, no points."}
+	actionsProbe := ArtifactProbe{ID: "actions-browser", Passed: err == nil, Detail: "Real Actions and snippet browser checks with joined host; reviewed snippet row eligible, other rows incomplete."}
 	if err != nil {
 		actionsProbe.Detail = err.Error()
 		report.Status = "failed"
@@ -264,6 +291,7 @@ func GradeArtifacts(c ArtifactGradeConfig) (report ArtifactReport, result error)
 		report.Status = "failed"
 	}
 	report.Probes = append(report.Probes, timingProbe)
+	report.applyReviewedRows()
 	return report, nil
 }
 func checkArtifactCoreReceipt(data []byte) error {

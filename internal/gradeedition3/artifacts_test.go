@@ -27,6 +27,47 @@ func TestArtifactIncompleteReportDoesNotPass(t *testing.T) {
 		t.Fatal("failed probe exit")
 	}
 }
+func TestArtifactReviewedSnippetRowIsConservative(t *testing.T) {
+	for _, tc := range []struct {
+		name   string
+		probes []ArtifactProbe
+		failed bool
+		want   int
+	}{
+		{"missing evidence", nil, false, 0},
+		{"unrelated pass", []ArtifactProbe{{ID: "work-product-core", Passed: true}}, false, 0},
+		{"incomplete Actions", []ArtifactProbe{{ID: "actions-browser", Passed: false}}, true, 0},
+		{"complete Actions", []ArtifactProbe{{ID: "actions-browser", Passed: true}}, false, 20},
+		{"independent failure", []ArtifactProbe{{ID: "actions-browser", Passed: true}, {ID: "timing-core", Passed: false}}, true, 20},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			r := newArtifactReport()
+			r.Probes = tc.probes
+			if tc.failed {
+				r.Status = "failed"
+			}
+			r.applyReviewedRows()
+			r.applyReviewedRows() // Recomputing cannot double-count points.
+			wantExit := 3
+			if tc.failed {
+				wantExit = 1
+			}
+			if r.Score != tc.want || r.ExitCode() != wantExit {
+				t.Fatalf("unexpected report: %+v", r)
+			}
+			for _, row := range r.Rows {
+				if row.ID == "snippets" && tc.want == 20 {
+					if row.Earned != 20 || row.Status != "passed" {
+						t.Fatal(row)
+					}
+				} else if row.Earned != 0 || row.Status != "ungraded" {
+					t.Fatal(row)
+				}
+			}
+		})
+	}
+}
+
 func TestArtifactHostReceiptRequiresAllTerminalFacts(t *testing.T) {
 	good := `{"requests":4,"returned":3,"offers":1,"failedOffers":1,"failure":null}`
 	if err := checkArtifactHostReceipt([]byte(good)); err != nil {
@@ -70,7 +111,7 @@ func TestArtifactExternalCandidate(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if r.ExitCode() != 3 || len(r.Probes) != 5 {
+	if r.ExitCode() != 3 || len(r.Probes) != 5 || r.Score != 20 {
 		t.Fatalf("unexpected partial report: %+v", r)
 	}
 	for _, p := range r.Probes {

@@ -910,3 +910,68 @@ calls in one finalized batch provide the actual requested/dispatched boundary.
 The test uses real provider/tool/History/GUI paths, without injected frames or
 production hooks. This covers ordinary batch presentation, not every admission
 race. All rubric rows remain UNGRADED pending explicit row-coverage review.
+
+
+### Rubric review: enable exact snippets only
+
+The row review now enables the20-point exact-snippet row after a complete public
+Actions browser receipt and joined host success. The other80points remain
+UNGRADED. A successful partial report remains exit3; a failed probe remains
+exit1. A failed combined Actions probe awards no snippet points, even if its
+failure occurred after some snippet assertions. This conservative coupling avoids
+claiming a partial console trace as complete evidence. No full chapter, student,
+installed-application or native-clipboard acceptance follows from this score.
+
+The snippet row maps to independently exercised checks:
+
+- Logical payloads: independent expected strings preserve Unicode, indentation,
+  blank lines, terminal newline and trailing spaces; quote/list CRLF input is
+  normalized to the agreed LF payload. Empty and nested fences are exercised.
+- Complete rather than preview content: the long snippet begins collapsed and
+  exceeds both preview limits. Unfinished buffered and streamed fences expose
+  no Copy control. A rendered human fence has no assistant-only copy control.
+- Literal hostile markup: the copied payload remains exact, with no script node
+  or executed marker. Clipboard writes require deliberate clicks.
+- Clipboard denial and missing API: exact read-only fallback, focused full
+  selection, and explicit failure feedback are observed. No system clipboard is
+  read or written; only this external API boundary is substituted.
+- Streaming continuity: actual provider SSE barriers prove the original Copy
+  button, expansion, feedback and selected manual textarea survive later text.
+  Agent switching replaces the original card; delayed success and denial cannot
+  change its replacement, recopy content or create a new fallback.
+- No prompt/tool side effect: actual prompt contents and provider/callback counts
+  remain unchanged by copy controls and replay.
+
+Sensitivity evidence is retained in the buffered snippet, streaming reuse,
+manual selection and delayed clipboard sections above. Preview-only, unfinished
+fence, lost-node-reuse, collapsed-selection and unfenced stale-success candidates
+all compiled and failed their intended assertions. Delayed denial has a positive
+check, not an independently failing denial-only mutant. The stated row requires
+these observable contracts, not a separate mutant for every assertion.
+
+The remaining rows have substantial evidence but still need bounded closure:
+
+- Actions25: success/failure/running, requested/dispatched, real pairing and Job
+  output ownership are exercised. Review exact one-to-one pairing across failure
+  and reconnect, plus wrong-Agent presentation rather than only HTTP refusal.
+- Recorded time15: live/replay, snapshot load, unknown/zero and Anthropic timing
+  exclusion pass. Clarify the restart and all-provider scope against the exercise;
+  do not equate same-process LoadSave with a process restart.
+- Work products30: real bytes, guarded downloads, lifetime, limits, cancellation
+  and failed offers pass. Deterministic early-offer exclusion during the built-in
+  delayed path remains unproven; a generic held text callback is not that proof.
+- Interaction10: narrow-layout focus, expansion, text selection and scrolling
+  pass. Explicit keyboard activation/touch sizing and speech/draft interference
+  still need public assertions. Human usability is a separate acceptance gate.
+
+This review replaces the generic claim that every row merely lacks more tests.
+We should close these named gaps, then stop expanding the rubric without cause.
+
+Scoring verification: job279 passes both Go packages and all five external
+probes, including the20-point partial-score assertion. Job282 runs the actual
+current CLI: the good candidate reports20/100, snippet PASSED, four UNGRADED
+rows and exit3. The retained preview-only GUI fails the exact long-payload
+assertion, reports zero points and exit1, and joins the Actions host. Reports
+are `/private/tmp/cadence-snippet-score.AGnQE0/good.json` and `preview.json`.
+Unit tests cover missing evidence, unrelated success, failed Actions evidence,
+independent probe failure and repeated score computation without double counting.
