@@ -2,10 +2,12 @@
 
 ## Status and evidence boundary
 
-This is a preparation matrix, not a reconstruction result. No closeout student
-has been launched. The integration draft is `f2d3499c`; the reviewed public
-artifact grade is70/100 at `fb3dbe3c`. The work-product row and human acceptance
-remain open. Local Models is last.
+Chapter2 now has an independently accepted bounded offline reconstruction from
+fresh student `ch02-reconstruction-02`, after the first candidate was withheld and
+the original teaching repaired. Both students have submitted and joined teardown.
+The other seven chapter gates remain unassigned and unaccepted. The integration
+draft is `f2d3499c`; the artifact grade remains70/100 at `fb3dbe3c`. Work-product
+scoring and human/live-provider acceptance remain open. Local Models is last.
 
 The changed-section inventory comes from the actual manuscript diff between
 closeout navigation `9d057020` and `f2d3499c`. It identifies substantive changes in
@@ -25,12 +27,12 @@ starting points below are inspection leads, not approved student baselines.
 | 18 | Reopen click-time files through the existing Sandbox; ownership and joined transfer boundary | Preserved ch18, which precedes current manuscript Sandbox18 / endpoint19, plus accepted prerequisite changes | Allowed regular reads alongside escape/missing/growth refusals; ownership review; later Chapter26 validates complete transfer integration |
 | 26 | Integrate all revised foundations and work-product ownership with the actual browser | No ready preserved endpoint; assemble an explicit prerequisite export | Four chapter exercises, named artifact grader, architecture review and human usability as distinct gates |
 
-All eight rows currently have **baseline not prepared**, **student not assigned**,
-**submission absent**, **independent acceptance pending** and **clarification
-retest pending where needed**. Do not interpret a candidate starting point as a
-claim that it contains all prerequisites or excludes all later capabilities.
+Chapter2 has **baseline audited**, **fresh retest submitted**, and **bounded offline
+acceptance passed**, as recorded below. The other seven rows retain **baseline not
+prepared**, **student not assigned**, **submission absent**, and **independent
+acceptance pending**. Their candidate starting points are not approved baselines.
 
-## What the first inspection established
+## What the first inspection established (historical preparation)
 
 The preserved ch01/ch02/ch03 READMEs describe successive conversation, History
 and tool foundations. The ch06 directory contains the mailbox/streaming core,
@@ -80,8 +82,10 @@ unassisted. Retest substantive teaching repairs with a fresh student.
 
 ## Next bounded preparation
 
-Audit the Chapter1 export for the revised Chapter2 exercise first: exact permitted
-files, public API inventory, offline build and focused acceptance interface.
+Prepare the Chapter3 gate next: audit its current teaching and public grader,
+then explicitly assemble a prerequisite bundle from the accepted Chapter2
+reconstruction without completed Chapter3 answers. The accepted student commit
+is eligible prerequisite evidence, not automatic adoption into the main runtime.
 Keep the later work-product declaration and transfer integration in Chapter26
 rather than backporting a completed download subsystem into that starting point.
 If an earlier exercise truly requires a later owner, repair teaching order or
@@ -374,3 +378,43 @@ Only solution, run evidence and final student report are writable. No descendant
 live-provider activity or later-source access is permitted. Parent task566 is
 active; explicit submission, independent grading/source review and joined teardown
 remain required. No student patches are adopted automatically.
+
+
+## Fresh Chapter2 retest independently accepted, offline scope
+
+Student `ch02-reconstruction-02` explicitly submitted solution commit
+`97c3a5ad3461c320cf18df8b6372b4e3dc765208`. Join580 completed and graceful shutdown
+returned stopped:true before parent verification. No clarification question or
+parent implementation assistance was needed in this retest. The submitted tree
+was clean and all32 read-only bundle files matched admission hashes.
+
+Parent evidence `/private/tmp/cadence-ch2-retest-independent.CNqY6C` contains an
+exact archive, pre-build SHA256 receipt for26 source files, isolated environments,
+fresh build outputs and `independent-audit.json`. Job623 built the candidate and
+ran both public chapters, the timing supplement and provider-error checker; exit0.
+Actual Chapter1 and Chapter2 JSON reports each show100/100 and passed:true, with
+all9/13 checks including both lifetime checks and the zero-point session gate.
+Timing values20, writer5, reader8 and render10 named checks all pass. Separate
+writer exit precedes reader invocation. All four provider-error cases pass, with
+actual candidate exits0/1/0/1, one recorded safe error on malformed envelopes,
+no fabricated success or leaked response canary, and one request per case.
+
+Job632 independently built and ran all eight own test groups and the construction
+consumer, exit0. Source review covered owner declarations/implementations, immutable
+values, reducer, codec, provider parsing/rendering/transport, CLI and focused tests.
+History remains the sole transcript/usage authority; links are two-sided, load is
+staged, results are recorded before publication, opaque replay is producer-fenced,
+and timing survives filtering without entering provider requests. Real-result
+arrival ordering has an explicit reversed-order regression. Expanded control flow
+and comments make the nontrivial validation and ordering decisions readable.
+Clipped combined reads were recovered in bounded spans before review completion.
+Post-run hashes still match the pre-build receipt.
+
+This accepts the assigned offline Chapter2 reconstruction and fresh repaired-teaching
+retest. It does not certify live providers, all malformed response variants, crash
+recovery, later runtime capabilities or the whole book. Internal own tests are
+separate from the outside-assembly public supplements. The first candidate remains
+withheld; neither candidate is adopted into the main application or frozen endpoints.
+Artifact scoring stays70/100. No students or parent jobs from this retest remain
+running after collection. Next is Chapter3 teaching/grader/prerequisite admission
+preparation, not automatic launch or use of a completed Chapter3 endpoint.
