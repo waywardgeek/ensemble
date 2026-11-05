@@ -190,7 +190,16 @@ Declaration is a projection, not another authoritative schema. Anthropic uses
 `functionDeclarations[].parameters`. Build a fresh tree for each request.
 Recursively project Gemini's schema vocabulary, including nested `properties`
 and `items`; never mutate the stored JSON Schema or assume copying it verbatim
-will satisfy every provider. Test unsupported-key removal and repeat rendering
+will satisfy every provider. Gemini's `parameters` field is its `Schema` form:
+its documented type enum uses names such as `OBJECT`, `STRING`, and `ARRAY`.
+This differs from `parametersJsonSchema`, the mutually exclusive JSON Schema
+form, whose type strings stay lowercase (`"object"`, `"string"`, `"array"`).
+Do not uppercase a JSON Schema document or send both parameter fields. The
+public grader accepts documented `OBJECT` for Gemini `parameters`, retaining
+lowercase `object` there for historical compatibility; that compatibility is
+not a claim that every casing is valid on the live API. See Google's
+[FunctionDeclaration and Schema reference](https://ai.google.dev/api/caching#FunctionDeclaration).
+Test unsupported-key removal and repeat rendering
 for another vendor to catch accidental mutation.
 
 The loop itself:

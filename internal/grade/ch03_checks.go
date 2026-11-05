@@ -50,6 +50,8 @@ type declaredTool struct {
 	Name        string
 	Description string
 	Schema      map[string]any
+	// Gemini parameters uses Schema enum names; JSON Schema fields do not.
+	GeminiSchema bool
 }
 
 // vendorToolDecls finds the tool declarations in a request body for the
@@ -127,7 +129,9 @@ func vendorToolDecls(vendor string, body []byte) (decls []declaredTool, ok bool,
 				if present > 1 {
 					return nil, false, fmt.Sprintf("tools[%d].functionDeclarations[%d] supplies conflicting parameter fields", i, j)
 				}
-				decls = append(decls, lift(fm, schemaKey))
+				declaration := lift(fm, schemaKey)
+				declaration.GeminiSchema = schemaKey == "parameters"
+				decls = append(decls, declaration)
 			}
 		}
 	}
@@ -187,8 +191,12 @@ func checkToolsDecl(res *Ch3Result) Check {
 					problems = append(problems, name+" has no description")
 				case d.Schema == nil:
 					problems = append(problems, name+" has no argument schema object")
-				case d.Schema["type"] != "object":
-					problems = append(problems, fmt.Sprintf("%s schema type is %v, want \"object\"", name, d.Schema["type"]))
+				case d.Schema["type"] != "object" && !(d.GeminiSchema && d.Schema["type"] == "OBJECT"):
+					want := `"object"`
+					if d.GeminiSchema {
+						want = `"OBJECT" (or legacy "object")`
+					}
+					problems = append(problems, fmt.Sprintf("%s schema type is %v, want %s", name, d.Schema["type"], want))
 				default:
 					props, _ := d.Schema["properties"].(map[string]any)
 					if len(props) == 0 {

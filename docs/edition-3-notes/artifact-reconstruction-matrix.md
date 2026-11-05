@@ -605,3 +605,38 @@ seeing this completed candidate. No patches are adopted automatically. Live
 provider behavior, general shell confinement, concurrent lifetime guarantees,
 crash recovery and full-book acceptance remain outside this result. Artifact
 scoring remains70/100; work-product scoring and human acceptance are still open.
+
+## Gemini schema-form compatibility repaired before retest
+
+The official [FunctionDeclaration reference](https://ai.google.dev/api/caching#FunctionDeclaration)
+distinguishes `parameters` (`Schema`, whose type enum includes `OBJECT`) from
+`parametersJsonSchema` (JSON Schema, with lowercase `"object"`). They are mutually
+exclusive. The documentation fetch returned HTTP200 from a cached page redirected
+to Google AI Studio; this is reference evidence, not a live inference experiment.
+
+The shared Chapter3 grader previously discarded this field distinction and
+required lowercase for both. It now retains the Gemini Schema-form flag and
+accepts exact `OBJECT` only for that form, preserving historical lowercase
+compatibility. JSON Schema forms, Anthropic and OpenAI still require lowercase;
+conflicting fields and arbitrary mixed case still refuse. The original chapter
+now explains this distinction. No frozen endpoint, runtime or point total changes.
+
+`TestCh3ToolDeclarationSchemaForms` exercises the real scoring function with
+complete six-tool requests across13 cases. Before the fix, only the documented
+uppercase Gemini Schema case failed. Afterward all13 pass. Final shared-grader
+package tests pass, and Edition2 wrappers compile. Evidence is retained in
+`/private/tmp/cadence-ch3-schema.U4wb4b`. The positive Schema fixture uses nested
+`STRING`; the grader still checks root object compatibility and property presence,
+not complete recursive schema validity. No live provider acceptance is claimed.
+
+The wider package run was not clean: historical Edition2 suites failed for
+missing archived command paths and skill/context/invoice expectations; its full
+`packages.log` and exit1 are retained. Shared grade and Edition3 packages passed
+in that run. No historical source was rewritten to hide these failures. The
+final narrowed shared test run and wrapper compile-only result are distinct
+from a passing full historical regression. Chapter3 prose lint still reports
+only the same three em dashes on unchanged lines; whitespace checks pass.
+
+Next admission must rebuild the supplied public grader binary from this repair
+and use the same accepted Chapter2 prerequisite, not the assisted Chapter3
+candidate. The repaired teaching still needs its fresh reconstruction retest.
