@@ -5,6 +5,8 @@ using System.Security.Cryptography;
 using System.Text.Json;
 using Ensemble;
 
+if (args.Length != 0) return BoundaryChecks.Run(args);
+
 var checks = new List<string>();
 void Require(bool condition, string name)
 {

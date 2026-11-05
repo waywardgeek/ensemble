@@ -149,3 +149,29 @@ full lint exits1 only for its pre-existing em-dash line, compared unchanged with
 HEAD; its advisories remain. New link target exists and whitespace checks pass.
 The unrelated swaps and perplexity files remain untouched. No deployment,
 publication, installation or live-provider calls occurred.
+
+
+## Early log-process and renderer boundaries
+
+The supplement now has log-write, log-read and render modes using only Chapter2
+public APIs. Evidence `/private/tmp/cadence-ch2-boundaries.KxWDrc` contains a clean
+build and successful separate writer/reader invocations, followed by three-route
+rendering comparisons. The earlier default20 value checks passed in
+`/private/tmp/cadence-ch2-boundaries.hHTMhR`. Writer5, reader8 and render10 named
+checks include their mode validation. These are supplementary checks, not points.
+
+The first writer run failed dump/log equality because destruction appended an
+agent_shutdown fact after the dump. The corrected check compares matching live
+boundaries, then closes the owner before admitting the reader. The reader locates
+synthetic result identities rather than assuming no lifecycle facts exist.
+It loads only writer output, plus the explicit headerless legacy fixture; it has
+no input recreation fallback. No snapshot, GUI, Job or real provider API is used.
+
+`/private/tmp/cadence-ch2-reader-negative.Azr4D7` reuses the previously compiled
+reducer-loss core with the new consumer and good writer files. It exits1 at
+`events.jsonl-retains-12345678` after manifest validation. The old Anthropic wire
+mutant consults live History rather than supplied Context, so it was not credited
+as a negative for these render comparisons. Positive full-JSON equality on all
+three early routes is recorded; a new route-specific negative remains available
+future work, not claimed evidence. Baseline teaching/test-tail audit and honest
+student assignment remain open. No frozen endpoint or production source changed.

@@ -1448,10 +1448,17 @@ replacement fact's time rather than inheriting the replaced observation duration
 Numbering preserves duration while assigning sequence and recorded time. Reject
 negative duration and duration attached to a non-result event.
 
-This supplemental check awards no new chapter points. Its current evidence is a
-passing external consumer and an isolated reducer-loss negative candidate, not a
-fresh student result or complete early-chapter timing acceptance. Provider
-exclusion and real log restart remain separate from these pure value checks.
+Run the separate log-write and log-read modes as successive processes in one
+fresh workspace. They exercise StartLog, Append, Load and Dump without later
+snapshot APIs. The writer records the returned UTC timestamp; the reader checks
+that exact fact after the writer exits. Unknown legacy timing remains unknown.
+The render mode compares otherwise identical timed and untimed Contexts through
+the three Chapter2 vendor routes, requiring unchanged complete provider JSON.
+
+These supplemental checks award no new chapter points. Their evidence includes
+passing external consumers and a reducer-loss negative candidate, not a fresh
+student result or complete early-chapter acceptance. Rendering checks here are
+offline public API checks, not three live-provider integrations.
 The preserved historical endpoint predates this addition and stays frozen.
 
 ### The checks

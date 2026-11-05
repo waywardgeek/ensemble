@@ -1,7 +1,7 @@
 # Chapter2 timing-value supplement
 
 This grader-owned outside-assembly consumer checks the revised Chapter2 data
-contract using only Event, Entry/Context, History.Reduce and JsonCodec. It uses no
+contract using Event, Entry/Context, History, JsonCodec and Engine.Render. It uses no
 candidate test assembly, reflection, Jobs, GUI, provider requests or credentials.
 It does not replace the existing language-neutral `grade-edition2 -ch 2` exercise
 or award chapter points. It is a focused supplement, not a student acceptance
@@ -41,5 +41,42 @@ after its value and codec checks passed. This is not yet a fresh Chapter2 studen
 result. The frozen historical Chapter2 endpoint predates the added timing fields;
 do not modify that archive or claim it passed this supplement. Separate public
 CLI tests retain responsibility for the original three-vendor and log workflows.
-Provider timing exclusion, real log restart and the complete permitted teaching
-bundle still need early-chapter-specific acceptance work before student launch.
+The complete permitted teaching bundle still needs audit before student launch.
+
+
+## Log-process and rendering supplement
+
+The same executable accepts three explicit modes. Run these from one fresh,
+writable grader workspace, using the isolated environment described above. Wait
+for each command to exit successfully before launching the next. The reader
+requires the writer's files; it never creates replacement input.
+
+```sh
+/absolute/dotnet /absolute/owned/artifacts/bin/Chapter2Timing/debug/Chapter2Timing.dll log-write
+/absolute/dotnet /absolute/owned/artifacts/bin/Chapter2Timing/debug/Chapter2Timing.dll log-read
+/absolute/dotnet /absolute/owned/artifacts/bin/Chapter2Timing/debug/Chapter2Timing.dll render
+```
+
+Each command must exit0 and return `passed:true`, contract
+`chapter2-timing-boundaries-v1`, and its exact mode. Writer has5 named checks,
+reader8, and render10. Retain every receipt, not only the last command's exit.
+The writer refuses existing fixture files. It uses public StartLog/Append/Dump,
+records the returned UTC timestamp in an independent expected-values manifest,
+and destroys the owner before returning. Dump/log equality is checked before
+shutdown, since shutdown may append a lifecycle fact. The reader checks both
+actual files after the writer exits, including positive and zero durations and
+exact recorded timestamps. A headerless legacy fixture separately exercises
+unknown time and duration through Load and Dump. This is clean log-process
+continuity, not crash recovery or the later snapshot API.
+
+The render mode uses the three Chapter2 default routes: Messages,
+ChatCompletions and GenerateContent. It checks positive random payload presence
+and full JSON equality between otherwise identical timed and untimed Contexts.
+No surface override or later Responses route is required; no HTTP request is
+made. Synthetic unused keys and a loopback-only endpoint are configuration, not
+access to real credentials. Run only in the disposable workspace and environment.
+
+The new reader rejects the previously compiled reducer-loss candidate at
+`events.jsonl-retains-12345678`. The three rendering comparisons have positive
+execution evidence; no new early-route leak mutant is claimed in this increment.
+These supplements still award no points and do not constitute student acceptance.
