@@ -914,3 +914,20 @@ Delayed structured completion remains a Chapter11 exercise, not a hidden early
 requirement. Task1047 is admission only: explicit submission, independent grading,
 source/readability review and joined teardown remain required. No candidate code
 has been adopted and no installed application has changed.
+
+## Chapter4 first-run API clarification
+
+Student `ch04-reconstruction-01` asked through pending question4 after the public
+replay consumer failed compilation: the README omitted `JobInfo.Truncated` and
+the non-null `Cwd` contract. Parent inspected the actual declaration, replay
+manifest and original cwd teaching, then confirmed Boolean report truncation and
+empty non-null Cwd for no override, not an empty execution workspace. The API
+list now includes Bytes and nullable ExitCode as well. Original Chapter4 and the
+public README are repaired; the admitted student's immutable bundle is unchanged.
+
+No candidate implementation or grader change was supplied. The student was asked
+to record assistance and test the snapshot/codec semantics. Reported initial build
+and running historical grades remain provisional. Independent candidate review
+can still establish correctness, but the repaired teaching requires a fresh
+student retest after this assisted run. Task1047 and join1056 remain active;
+no second student has been launched. The Chapter11 deferral remains unchanged.

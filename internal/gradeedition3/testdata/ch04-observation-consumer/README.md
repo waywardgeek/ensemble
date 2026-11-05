@@ -19,8 +19,13 @@ The C# adapter contract additionally uses these Chapter 4 members:
   `Task<ToolResultPart>` through the ordinary dispatch path.
 - `Job.Handle`, `Job.Parent()`, and `Job.Snapshot()` returning immutable `JobInfo`.
 - `Jobs.Parent()` and `Jobs.Children()` returning an immutable collection.
-- `JobInfo.Handle`, `Status`, and `OutputPath`; `ToolResultPart.Job` and
-  `Event.Job`; `Event.ObservationDuration` and `Event.Seq`.
+- Immutable `JobInfo` with `int Handle`, non-null `string Status` and
+  `string OutputPath`, `long Bytes`, `bool Truncated` (default `false`),
+  `int? ExitCode` (default `null`), and non-null `string Cwd` (default `""`).
+  `Truncated` describes the bounded observation, not truncation of durable output.
+  Empty `Cwd` means no per-call override; execution still uses the Agent workspace.
+  The optional wire `cwd` may be absent or empty for that case.
+- `ToolResultPart.Job`, `Event.Job`, `Event.ObservationDuration`, and `Event.Seq`.
 - `EventKind.ToolCalled` and `ToolStarted`, plus the early paired `ToolReturned`.
 
 Later runtimes may record a direct caller's result as `ToolObserved`. The consumer

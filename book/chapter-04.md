@@ -870,6 +870,14 @@ not in a parallel test adapter. It accepts the early paired `ToolReturned` fact;
 a later runtime's direct `ToolObserved` spelling is also supported, without
 requiring a mailbox at this construction point.
 
+The immutable `JobInfo` value exposes `int Handle`, non-null `string Status` and
+`string OutputPath`, `long Bytes`, `bool Truncated = false`,
+`int? ExitCode = null`, and non-null `string Cwd = ""`. Truncation describes the
+bounded observation, never permission to shorten its durable output file.
+Empty `Cwd` represents no per-call override, while execution still uses the
+Agent workspace; the optional wire field may be absent or empty. Preserve all
+snapshot fields through result recording, codec round trips and log replay.
+
 A pass is observation evidence, not the whole external-consumer exercise: this
 supplement makes no provider request and cannot certify structured completion
 metadata using its text-only handler. Its separate `log-write` and `log-read`
