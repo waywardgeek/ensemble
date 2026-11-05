@@ -221,10 +221,53 @@ assert(!['8088', '8089', '8090'].includes(new URL(base).port));
     assert.equal(streamDone.streamFailure, null, 'streaming provider finishes cleanly');
     assert.equal(streamDone.requests, 3);
     assert.equal(streamDone.executions, 1);
+    for (const deny of [false, true]) {
+      await page.evaluate(() => {
+        window.gradeClipboard.pending = null;
+        Object.defineProperty(navigator, 'clipboard', {configurable: true, value: {
+          writeText: text => {
+            window.gradeClipboard.writes.push(text);
+            return new Promise((resolve, reject) => { window.gradeClipboard.pending = {resolve, reject}; });
+          }
+        }});
+      });
+      const writesBefore = await page.evaluate(() => window.gradeClipboard.writes.length);
+      const oldSnippet = await streamed.locator('.code-snippet').elementHandle();
+      await streamCopy.click();
+      assert.equal(await streamed.locator('[role="status"]').innerText(), 'Copying…');
+      await page.locator('.pane-tab[data-pane="agents"]').click();
+      await page.locator('#agent-tree [data-agent="legacy-timing"]').click();
+      await page.locator('#agent-tree [data-agent="snippet-stream"]').click();
+      await page.getByRole('button', {name: 'Chat', exact: true}).click();
+      await streamed.waitFor();
+      assert(await oldSnippet.evaluate(node => !node.isConnected), 'Agent switch detaches original snippet');
+      const freshStatus = await streamed.locator('[role="status"]').innerText();
+      assert.equal(freshStatus, '', 'replayed snippet starts without old copy feedback');
+      await page.evaluate(async deny => {
+        const pending = window.gradeClipboard.pending;
+        if (deny) pending.reject(new DOMException('Denied', 'NotAllowedError'));
+        else pending.resolve();
+        await new Promise(resolve => setTimeout(resolve, 0));
+      }, deny);
+      assert.equal(await streamed.locator('[role="status"]').innerText(), freshStatus,
+        'delayed clipboard completion cannot change replayed feedback');
+      assert.equal(await streamed.locator('textarea').count(), 0,
+        'delayed clipboard denial cannot create replacement fallback');
+      assert.equal(await oldSnippet.evaluate(node => node.querySelector('[role="status"]').textContent), 'Copying…',
+        'detached clipboard completion does not update obsolete feedback');
+      assert.equal(await page.evaluate(() => window.gradeClipboard.writes.length), writesBefore + 1,
+        'delayed clipboard completion cannot recopy');
+      assert.equal(await page.evaluate(() => window.gradeClipboard.writes.at(-1)), streamPayload,
+        'delayed clipboard owns the original payload');
+      await oldSnippet.dispose();
+    }
+    const afterClipboard = await statusUntil(() => true);
+    assert.equal(afterClipboard.streamRequests, 1, 'clipboard replay issues no provider request');
+    assert.equal(afterClipboard.executions, 1, 'clipboard replay executes no tool');
     assert.deepEqual(errors, []);
     console.log(JSON.stringify({contract:'artifact-actions-v1', passed:true, checks:[
       'real-running-observation', 'call-result-navigation', 'historical-running-preserved',
-      'terminal-pathname-not-grant', 'replay-no-execution', 'focused-expanded-reader-preserved', 'canonical-recorded-time-and-duration', 'timing-survives-replay', 'legacy-unknown-and-zero-browser', 'provider-snippets-exact-and-fallback', 'real-streaming-snippet-stability'
+      'terminal-pathname-not-grant', 'replay-no-execution', 'focused-expanded-reader-preserved', 'canonical-recorded-time-and-duration', 'timing-survives-replay', 'legacy-unknown-and-zero-browser', 'provider-snippets-exact-and-fallback', 'real-streaming-snippet-stability', 'delayed-clipboard-replay-fenced'
     ]}));
   } finally { await browser.close(); }
 })().catch(error => { console.error(error.stack); process.exitCode = 1; });

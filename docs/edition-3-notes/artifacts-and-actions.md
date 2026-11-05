@@ -770,3 +770,30 @@ sensitivity remains open. All rubric rows remain ungraded. Delayed clipboard
 completion after replacement, full prose selection/scroll coverage and native
 human acceptance remain separate gates. No production code or installed files
 changed.
+
+### Public delayed clipboard completion across replay
+
+The independent Actions browser now holds the clipboard promise after a real
+click, selects another Agent through the tree, then returns to the original
+streamed answer. It proves the original snippet is detached and the replayed
+snippet exists with fresh feedback before resolving or rejecting the promise.
+Both outcomes preserve replacement feedback, create no replacement manual
+fallback, leave obsolete feedback untouched, and issue exactly one write of the
+click-time payload. Agent replay issues no additional provider request or tool
+execution. Only the clipboard API boundary is substituted; there is no native
+clipboard access or injected application frame. The runner requires the named
+`delayed-clipboard-replay-fenced` receipt.
+
+Job 220 passed both Go packages with all five external probes enabled (exit 0).
+Job 222 built an isolated GUI with both detached-snippet completion guards
+removed. It failed specifically at `detached clipboard completion does not update
+obsolete feedback`: the obsolete status changed from Copying to Copied. Other
+four probes passed and the Actions host stopped cleanly. Evidence is retained in
+`/private/tmp/cadence-clipboard-mutant.Od2EX9`. The mutant stops at delayed success;
+this is not separate denial-path sensitivity. The good runtime and installed
+applications were unchanged. Full diff review and whitespace checks passed.
+
+The lesson is that asynchronous clipboard completion belongs to the original
+control, not the conversation currently displayed. Public rubric rows remain
+ungraded. Separate manual-selection-loss sensitivity and remaining Actions and
+interaction coverage are still open.

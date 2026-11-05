@@ -458,7 +458,7 @@ func checkActionsHostReceipt(data []byte) error {
 	return nil
 }
 
-var actionsBrowserChecks = []string{"real-running-observation", "call-result-navigation", "historical-running-preserved", "terminal-pathname-not-grant", "replay-no-execution", "focused-expanded-reader-preserved", "canonical-recorded-time-and-duration", "timing-survives-replay", "legacy-unknown-and-zero-browser", "provider-snippets-exact-and-fallback", "real-streaming-snippet-stability"}
+var actionsBrowserChecks = []string{"real-running-observation", "call-result-navigation", "historical-running-preserved", "terminal-pathname-not-grant", "replay-no-execution", "focused-expanded-reader-preserved", "canonical-recorded-time-and-duration", "timing-survives-replay", "legacy-unknown-and-zero-browser", "provider-snippets-exact-and-fallback", "real-streaming-snippet-stability", "delayed-clipboard-replay-fenced"}
 
 func checkActionsBrowserReceipt(data []byte) error {
 	var r struct {
