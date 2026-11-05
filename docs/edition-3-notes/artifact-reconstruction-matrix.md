@@ -1623,3 +1623,34 @@ This is not complete lifecycle acceptance: bounded managed cleanup, resources
 needed by surviving workers, and failures before the cancellation section remain
 open. PTY draining remains separate. No frozen endpoint, main runtime, installed
 application, artifact score, or student admission changed.
+
+### Isolated bounded managed shutdown and surviving token lifetime
+
+Isolated commit `631ce13` documents and implements a five-second managed-worker
+join grace, shared across repeated shutdown attempts. Expiry reports incomplete
+work rather than forced termination. Destruction detaches the Job but retains its
+cancellation source until the surviving callback and worker cleanup exit. PTY
+termination and draining remain separate. The grace does not forcibly interrupt
+synchronous cancellation registrations that never return.
+
+An outside-assembly public probe holds a callback past the grace, checks delivered
+cancellation, explicit timeout, detached ownership and an unaffected peer, then
+releases it and checks actual joining, usable token resources and suppressed late
+output. The pre-fix candidate failed `managed-grace-bounded-destruction` after two
+setup checks. Final positive evidence is ten checks; the prior callback-exception
+probe also passes five checks, and the component suite passes 33/0. A disposable
+compiled candidate that prematurely disposes the token source fails precisely
+`managed-grace-worker-token-remains-usable` after eight preceding checks. Its
+loaded DLL hash matches the built mutant.
+
+The first probe build reused top-level `args` and failed compilation, not behavior.
+The first behavioral run passed ten assertions but its teardown counted the
+already-checked destruction error again; the probe now distinguishes consumed
+expected failure from unexpected teardown failure. A reviewed lock-order fix kept
+owner detachment outside the Job gate before final verification. Earlier negative
+bounded-destruction evidence predates only post-success probe bookkeeping changes.
+Evidence is under the pre-GUI directory's `evidence/managed-grace-*`, with explicit
+post-execution source receipts. The final runtime diff and full probe were read;
+README policy prose was added after execution. Earlier output-write/disposal
+failure paths remain open. No main runtime, frozen endpoint, installed application,
+artifact points or student admission changed.
