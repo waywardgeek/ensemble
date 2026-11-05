@@ -306,10 +306,40 @@ assert(!['8088', '8089', '8090'].includes(new URL(base).port));
     const afterClipboard = await statusUntil(() => true);
     assert.equal(afterClipboard.streamRequests, 1, 'clipboard replay issues no provider request');
     assert.equal(afterClipboard.executions, 1, 'clipboard replay executes no tool');
+    await page.locator('.pane-tab[data-pane="agents"]').click();
+    await page.locator('#agent-tree [data-agent="dispatch-states"]').click();
+    await page.getByRole('button', {name: 'Chat', exact: true}).click();
+    await page.locator('#prompt').fill('Run the two state steps.');
+    await page.locator('#send').click();
+    await page.getByRole('button', {name: 'Tools', exact: true}).click();
+    const stateCalls = page.locator('#tool-transcript [data-kind="tool_call"]');
+    await stateCalls.nth(1).waitFor();
+    await statusUntil(state => state.stateExecutions === 1);
+    assert.equal(await stateCalls.count(), 2, 'both finalized requests are visible');
+    assert.equal(await stateCalls.nth(0).locator('.tool-state').innerText(), 'Dispatched · awaiting result',
+      'first real batch call is dispatched, not merely requested or complete');
+    assert.equal(await stateCalls.nth(1).locator('.tool-state').innerText(), 'Requested',
+      'undispatched second batch call is only requested');
+    assert.equal(await page.locator('#tool-transcript [data-kind="tool_result"]').count(), 0,
+      'dispatch is not a returned observation');
+    const stateIDs = await stateCalls.evaluateAll(nodes => nodes.map(node => node.dataset.partId));
+    const stateRelease = await page.request.post(origin + '/grade/release-state');
+    assert.equal(stateRelease.status(), 200, 'canonical held batch boundary agrees with visible states');
+    await page.getByRole('button', {name: 'Chat', exact: true}).click();
+    await page.getByText('states-complete-' + initial.nonce, {exact: true}).waitFor();
+    await page.getByRole('button', {name: 'Tools', exact: true}).click();
+    assert.deepEqual(await stateCalls.evaluateAll(nodes => nodes.map(node => node.dataset.partId)), stateIDs,
+      'dispatch and results preserve original call identities');
+    for (const call of await stateCalls.all())
+      assert.equal(await call.locator('.tool-state').innerText(), 'Result returned');
+    assert.equal(await page.locator('#tool-transcript [data-kind="tool_result"]').count(), 2);
+    const statesDone = await statusUntil(state => state.stateRequests === 2);
+    assert.equal(statesDone.stateExecutions, 2);
+    assert.equal(statesDone.stateFailure, null);
     assert.deepEqual(errors, []);
     console.log(JSON.stringify({contract:'artifact-actions-v1', passed:true, checks:[
       'real-running-observation', 'call-result-navigation', 'historical-running-preserved',
-      'terminal-pathname-not-grant', 'replay-no-execution', 'focused-expanded-reader-preserved', 'canonical-recorded-time-and-duration', 'timing-survives-replay', 'legacy-unknown-and-zero-browser', 'provider-snippets-exact-and-fallback', 'real-streaming-snippet-stability', 'delayed-clipboard-replay-fenced', 'raw-selection-and-scroll-preserved', 'job-output-owner-and-running-guards'
+      'terminal-pathname-not-grant', 'replay-no-execution', 'focused-expanded-reader-preserved', 'canonical-recorded-time-and-duration', 'timing-survives-replay', 'legacy-unknown-and-zero-browser', 'provider-snippets-exact-and-fallback', 'real-streaming-snippet-stability', 'delayed-clipboard-replay-fenced', 'raw-selection-and-scroll-preserved', 'job-output-owner-and-running-guards', 'requested-and-dispatched-batch-states'
     ]}));
   } finally { await browser.close(); }
 })().catch(error => { console.error(error.stack); process.exitCode = 1; });

@@ -883,3 +883,30 @@ A globally unique Job handle identifies work but does not authorize reading it
 under another Agent. This is the HTTP diagnostic-output boundary, not proof of
 all cross-Agent model controls or human authentication. All rows remain UNGRADED;
 requested/dispatched visibility and remaining row review are still open.
+
+### Public requested/dispatched batch boundary
+
+The independent Actions host now returns a real finalized two-call batch to a
+separate Agent. Its first custom callback waits behind a grader-owned barrier;
+a public60-second foreground observation keeps that call dispatched while the
+second remains requested. Before release the browser requires both visible calls,
+the distinct labels, and no result. The release endpoint independently checks
+one canonical ToolStarted and no ToolReturned. After release, two executions and
+two recorded successful results precede the second provider request; the browser
+checks unchanged call identities and returned-result labels. Strict terminal and
+browser receipts require this additional scenario. Teardown releases the barrier.
+
+Both Go packages and all five external probes passed in job270 (12.760seconds
+for the grading package). No runtime change or installation occurred. A fresh
+isolated GUI changed only the planned label to Dispatched. It built successfully
+and the public grader rejected it specifically at the second-call Requested
+assertion; other probes passed and the Actions host stopped cleanly. Evidence:
+`/private/tmp/cadence-requested-state-mutant.rsdfKB`, including build.log and
+result.json. Complete four-file source diff reviewed; whitespace check passed.
+
+An initial proposed streaming-block barrier was rejected during source inspection:
+Anthropic block stop does not publish a finalized tool part by itself. Sequential
+calls in one finalized batch provide the actual requested/dispatched boundary.
+The test uses real provider/tool/History/GUI paths, without injected frames or
+production hooks. This covers ordinary batch presentation, not every admission
+race. All rubric rows remain UNGRADED pending explicit row-coverage review.

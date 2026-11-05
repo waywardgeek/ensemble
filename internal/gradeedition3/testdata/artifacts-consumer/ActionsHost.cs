@@ -120,11 +120,69 @@ internal static class ActionsHost
                 context.Abort();
             }
         });
+        // A finalized two-call batch exposes two distinct real states: the first
+        // is observing an admitted operation; the second has not dispatched yet.
+        var states = new Agent(root, new Configuration(Vendor.Anthropic, config.Model, local + "/states",
+            "artifact-grader-only", disableStreaming: true, sandboxRoot: workspace), name: "dispatch-states");
+        var stateRelease = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        int stateRequests = 0, stateExecutions = 0;
+        string? stateFailure = null;
+        _ = new Tool(states, "state_action", "Return the supplied step after an external operation.",
+            JsonSerializer.SerializeToElement(new { type = "object", properties = new { step = new { type = "integer" } },
+                required = new[] { "step" }, additionalProperties = false }),
+            async (_, args, cancellation) =>
+            {
+                int step = args.GetProperty("step").GetInt32();
+                Require(Interlocked.Increment(ref stateExecutions) == step, "state-call-execution-order");
+                if (step == 1) await stateRelease.Task.WaitAsync(cancellation);
+                return "state-result-" + step + "-" + nonce;
+            });
+        states.Jobs().SetLimits(new JobLimits(Delay: 60));
+        host.MapPost("/grade/release-state", () =>
+        {
+            var facts = states.History().Snapshot().Events;
+            Require(stateExecutions == 1 && facts.Count(f => f.Kind == EventKind.ToolStarted) == 1
+                && !facts.Any(f => f.Kind == EventKind.ToolReturned), "requested-versus-dispatched-canonical-boundary");
+            stateRelease.TrySetResult();
+            return Results.Ok();
+        });
+        host.MapPost("/states/v1/messages", async (HttpContext context) =>
+        {
+            try
+            {
+                using var body = await JsonDocument.ParseAsync(context.Request.Body, cancellationToken: context.RequestAborted);
+                Require(context.Request.Headers["x-api-key"] == "artifact-grader-only", "Unexpected state credentials");
+                Require(!body.RootElement.TryGetProperty("stream", out var streamed) || !streamed.GetBoolean(), "Expected buffered state request");
+                int turn = Interlocked.Increment(ref stateRequests);
+                object[] parts;
+                if (turn == 1)
+                    parts = Enumerable.Range(1, 2).Select(step => (object)new { type = "tool_use", id = "state-" + step + "-" + nonce,
+                        name = "state_action", input = new { step } }).ToArray();
+                else
+                {
+                    var facts = states.History().Snapshot().Events;
+                    Require(turn == 2 && stateExecutions == 2 && facts.Count(f => f.Kind == EventKind.ToolStarted) == 2
+                        && facts.Count(f => f.Kind == EventKind.ToolReturned && !f.IsError) == 2,
+                        "state-batch-recorded-once");
+                    parts = [new { type = "text", text = "states-complete-" + nonce }];
+                }
+                await context.Response.WriteAsJsonAsync(new { id = "states-" + turn, type = "message", role = "assistant",
+                    model = config.Model, content = parts, stop_reason = turn == 1 ? "tool_use" : "end_turn",
+                    usage = new { input_tokens = 1, output_tokens = 1 } });
+            }
+            catch (Exception error)
+            {
+                stateFailure = error.Message;
+                context.Response.StatusCode = 500;
+                await context.Response.WriteAsJsonAsync(new { error = "State oracle failed" });
+            }
+        });
         int requests = 0;
         string? failure = null;
         object Status() => new
         {
             nonce, final, output, requests, failure, executions, streamRequests, streamCompleted, streamFailure,
+            stateRequests, stateExecutions, stateFailure,
             observations = owner.History().Snapshot().Events
                 .Where(fact => fact.Kind == EventKind.ToolReturned)
                 .Select(fact => new { seq = fact.Seq, state = fact.Job?.Status, handle = fact.Job?.Handle,
@@ -208,6 +266,7 @@ internal static class ActionsHost
         {
             release.TrySetResult();
             foreach (var step in streamSteps) step.TrySetResult();
+            stateRelease.TrySetResult();
             stop.Cancel();
             try { await serving; }
             finally

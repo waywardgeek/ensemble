@@ -106,7 +106,7 @@ func TestArtifactBrowserReceiptRequiresEveryCheck(t *testing.T) {
 }
 
 func TestActionsReceiptsRequireEveryFact(t *testing.T) {
-	good := map[string]any{"requests": 3, "executions": 1, "returned": 2, "running": 1, "done": 1, "streamRequests": 1, "streamCompleted": 1, "failure": nil, "streamFailure": nil}
+	good := map[string]any{"requests": 3, "executions": 1, "returned": 2, "running": 1, "done": 1, "streamRequests": 1, "streamCompleted": 1, "failure": nil, "streamFailure": nil, "stateRequests": 2, "stateExecutions": 2, "stateFailure": nil}
 	data, _ := json.Marshal(good)
 	if err := checkActionsHostReceipt(data); err != nil {
 		t.Fatal(err)
