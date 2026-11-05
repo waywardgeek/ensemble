@@ -1763,3 +1763,36 @@ the respective builds. No frozen endpoint, main runtime, installed application,
 artifact score or student admission changed. Current Chapter6 executable/workflow
 verification and early GUI public acceptance are next; the prerequisite is still
 not student-ready.
+
+### Current Chapter6 executable grade and workflow storage
+
+The isolated prerequisite at `404b3e9` passes the actual Edition2
+`-ch 6 -executable-only` route: 80/80 across all five checks, using the freshly
+built CLI and separate Observer with the declared Haiku streaming fixture. This
+covers streamed parts, exact reconstruction, final-only delivery, measured usage,
+real tool results and the aggregate observer. It excludes inherited Go checks,
+Chapter5 parity, the three-role workflow and GUI/student acceptance. The Edition3
+executable-only flag is not a Chapter6 route. All 61 pre-build source hashes match
+at collection, and the graded CLI/Observer core DLLs are byte-identical. Builds
+used existing offline tools and cleared package sources. Receipts are under the
+pre-GUI `evidence/ch6-*` names.
+
+Isolated example commit `85226ef` reconciles current Chapter6 teaching:
+CH06_LOG stores application output, while CH06_HISTORY_DIR explicitly opts into
+three canonical role files. The earlier example always created history side files
+and ignored the directory. An owned loopback EOF probe makes zero model requests:
+the old example fails both omitted/enabled storage cases after setup guards; the
+new example passes five/eight checks with clean process and server joins. This is
+configuration/storage evidence, not a completed workflow or streamed-turn proof.
+README wording also reconciles the already-verified hint cap and managed grace.
+
+A proposed binary-equality check failed after rebuilding the core into a different
+artifact directory. Library source hashes and generated assembly-version metadata
+match; the build-byte difference's cause was not isolated. It was not reported as
+binary equality. Both old and new workflow assemblies were instead tested in
+separate copied runtimes containing the exact graded core DLL, with hashes checked;
+the same negative/positive results hold. Full example/probe/README review and
+`evidence/workflow-history-*` receipts preserve that distinction. No main runtime,
+frozen endpoint, installation, artifact score or student admission changed.
+The real three-role gated streaming/hint/EOF workflow remains next, followed by
+early GUI acceptance; the prerequisite remains unapproved for student admission.
