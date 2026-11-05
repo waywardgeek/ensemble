@@ -38,6 +38,13 @@ func TestArtifactReviewedRowsAreConservative(t *testing.T) {
 		{"unrelated pass", []ArtifactProbe{{ID: "work-product-core", Passed: true}}, false, 0},
 		{"incomplete Actions", []ArtifactProbe{{ID: "actions-browser", Passed: false}}, true, 0},
 		{"complete Actions", []ArtifactProbe{{ID: "actions-browser", Passed: true}}, false, 30},
+		{"only named viewer", []ArtifactProbe{{ID: "actions-browser", Passed: true}, {ID: "work-product-browser-unnamed=false", Passed: true}}, false, 30},
+		{"only unnamed viewer", []ArtifactProbe{{ID: "actions-browser", Passed: true}, {ID: "work-product-browser-unnamed=true", Passed: true}}, false, 30},
+		{"failed named viewer", []ArtifactProbe{{ID: "actions-browser", Passed: true}, {ID: "work-product-browser-unnamed=false", Passed: false}, {ID: "work-product-browser-unnamed=true", Passed: true}}, true, 30},
+		{"failed unnamed viewer", []ArtifactProbe{{ID: "actions-browser", Passed: true}, {ID: "work-product-browser-unnamed=false", Passed: true}, {ID: "work-product-browser-unnamed=true", Passed: false}}, true, 30},
+		{"complete reviewed rows", []ArtifactProbe{{ID: "actions-browser", Passed: true}, {ID: "work-product-browser-unnamed=false", Passed: true}, {ID: "work-product-browser-unnamed=true", Passed: true}}, false, 55},
+		{"complete with independent failure", []ArtifactProbe{{ID: "actions-browser", Passed: true}, {ID: "work-product-browser-unnamed=false", Passed: true}, {ID: "work-product-browser-unnamed=true", Passed: true}, {ID: "timing-core", Passed: false}}, true, 55},
+		{"viewers without Actions", []ArtifactProbe{{ID: "work-product-browser-unnamed=false", Passed: true}, {ID: "work-product-browser-unnamed=true", Passed: true}}, false, 0},
 		{"independent failure", []ArtifactProbe{{ID: "actions-browser", Passed: true}, {ID: "timing-core", Passed: false}}, true, 30},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
@@ -56,9 +63,13 @@ func TestArtifactReviewedRowsAreConservative(t *testing.T) {
 				t.Fatalf("unexpected report: %+v", r)
 			}
 			for _, row := range r.Rows {
-				if (row.ID == "snippets" || row.ID == "interaction") && tc.want == 30 {
+				if (row.ID == "snippets" || row.ID == "interaction") && tc.want >= 30 {
 					wantPoints := map[string]int{"snippets": 20, "interaction": 10}[row.ID]
 					if row.Earned != wantPoints || row.Status != "passed" {
+						t.Fatal(row)
+					}
+				} else if row.ID == "actions" && tc.want == 55 {
+					if row.Earned != 25 || row.Status != "passed" {
 						t.Fatal(row)
 					}
 				} else if row.Earned != 0 || row.Status != "ungraded" {
@@ -112,7 +123,7 @@ func TestArtifactExternalCandidate(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if r.ExitCode() != 3 || len(r.Probes) != 5 || r.Score != 30 {
+	if r.ExitCode() != 3 || len(r.Probes) != 5 || r.Score != 55 {
 		t.Fatalf("unexpected partial report: %+v", r)
 	}
 	for _, p := range r.Probes {

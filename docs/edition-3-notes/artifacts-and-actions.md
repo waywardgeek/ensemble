@@ -1141,3 +1141,58 @@ label sensitivity, not a separate mutation of failure payload or pairing.
 The final scoped source and receipt changes were reviewed; whitespace checks pass.
 No runtime, good candidate or installed files changed. The public score remains
 30/100; Actions row review, timing and work-product closure remain unfinished.
+
+### Actions identity/state row review
+
+The Actions row now requires the complete Actions browser/host probe plus both
+named and unnamed download-browser/host probes. Failure presentation lives in the
+latter scenarios; a passing Actions scenario alone cannot establish the row.
+All three require their strict named assertions, terminal facts and joined host
+shutdown. Missing or failed viewer evidence withholds the25Actions points while
+preserving independently supported snippet and interaction points. An unrelated
+probe failure still makes the overall report fail. Recomputing scores remains
+idempotent. Timing15 and work-products30 remain ungraded.
+
+The reviewed25-point contract maps to public evidence as follows:
+
+- Real successful, failed and delayed calls: the two-call batch executes actual
+  callbacks with randomized results, the offer scenario records a real missing-file
+  failure, and the held Job returns a running observation before terminal work.
+- Exact identity and pairing: original batch call IDs survive dispatch and return;
+  two distinct results carry their independent step/nonce payloads, each call's raw
+  input retains its step, and both directions focus the exact counterpart. Counts
+  and unique IDs prevent duplicate presentation. Failed and delayed results have
+  their own exact pair checks. Wrong-pair navigation fails the public driver.
+- Observation versus execution: Requested and Dispatched are inspected at a real
+  held two-call boundary with canonical1started/0returned; a returned observation
+  can still report running, and later completion leaves it unchanged. Error labels
+  are checked on both real failed call and result. Requested, running and error
+  mislabel candidates fail their intended assertions.
+- Owner boundaries: switching to a different Agent waits for its actual content
+  and removes former call/result cards and pair controls. Running Job output
+  refuses transfer, terminal owner access succeeds with the real payload, and a
+  foreign Agent cannot read the handle. The owner-resolution mutant fails.
+- Raw detail and reconnect: actual inputs/results remain expandable, the original
+  running payload survives later output, and error detail remains nonempty and
+  unchanged after reload. Reload preserves exact pairs and observed state without
+  reexecuting callbacks or model requests. The replay-only missing-pair candidate
+  passes live navigation and fails the restored relationship check.
+
+This is bounded page reconnect and selected-Agent presentation evidence, not a
+server-process restart, hostile-local-process audit or universal error-encoding
+proof. Raw failure text has replay-fidelity evidence rather than an independent
+canonical-byte oracle. Existing shared tests are supporting evidence, not points.
+The added successful-batch pair loop closes the last explicit gap found during
+this review rather than relying on nearby card-count assertions.
+
+Verification for this review: job351 passes both Go packages and all five external
+probes, including the new successful-batch pair loop and55-point expectation.
+Only explanatory probe strings and prose changed after that run. Job354 builds
+the final CLI and checks the good runtime and retained error-label mutant:
+55/ungraded/exit3 with three passed rows, and30/failed/exit1 with Actions withheld
+but snippets and interaction retained. Both faulty viewer probes fail the exact
+error-label assertion and join cleanly; other probes pass. Reports are retained
+at `/private/tmp/cadence-actions-score.zY9KIl`. Unit tests cover either viewer
+missing or failing, viewers without Actions, independent failure, exact row totals
+and repeated recomputation. All scoped diffs were reviewed and hard prose checks
+pass with advisories. No runtime or installed application changed.

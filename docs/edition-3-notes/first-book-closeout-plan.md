@@ -353,7 +353,7 @@ verified, without blocking the core local-model chapter.
 Do not reuse numeric -ch 26: it already names the retained media grader. Add
 named scopes to cmd/grade-edition3, proposed --scope artifacts and --scope
 local-models, mutually exclusive with explicit --ch. The artifact scope now exposes partial
-public probes with reviewed snippet and interaction scoring (30 points) and three
+public probes with reviewed Actions, snippet and interaction scoring (55 points) and two
 explicit UNGRADED rows. A successful partial run remains exit3, not full chapter acceptance.
 The local-model scope and remaining flags below are still planned. Preserve all existing invocations.
 Implement the new drivers in internal/gradeedition3 with descriptive filenames

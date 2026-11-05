@@ -59,15 +59,26 @@ func newArtifactReport() ArtifactReport {
 // probe must finish all browser assertions and joined host checks: an early
 // snippet or interaction success followed by a failed probe is insufficient evidence.
 func (r *ArtifactReport) applyReviewedRows() {
-	complete := false
+	passed := make(map[string]bool)
 	for _, probe := range r.Probes {
-		if probe.ID == "actions-browser" {
-			complete = probe.Passed
-		}
+		passed[probe.ID] = probe.Passed
 	}
+	complete := passed["actions-browser"]
+	// Failure presentation is exercised in both download viewer modes, not in
+	// the Actions scenario. All three complete, joined probes are required.
+	actionsComplete := complete && passed["work-product-browser-unnamed=false"] &&
+		passed["work-product-browser-unnamed=true"]
 	r.Score = 0
 	for i := range r.Rows {
 		row := &r.Rows[i]
+		if row.ID == "actions" {
+			row.Earned, row.Status = 0, "ungraded"
+			row.Details = "Reviewed Actions contract; complete Actions and both failure-browser/host receipts required."
+			if actionsComplete {
+				row.Earned, row.Status = row.Points, "passed"
+				row.Details = "Real successful, failed and delayed calls; exact pairing, factual states, raw detail, selected-Agent and Job-owner boundaries, and page-reconnect consistency."
+			}
+		}
 		if row.ID == "snippets" || row.ID == "interaction" {
 			row.Earned, row.Status = 0, "ungraded"
 			row.Details = "Reviewed " + row.ID + " contract; complete Actions browser/host evidence unavailable."
@@ -257,7 +268,7 @@ func GradeArtifacts(c ArtifactGradeConfig) (report ArtifactReport, result error)
 	report.Probes = append(report.Probes, p)
 	for _, unnamed := range []bool{false, true} {
 		err := runArtifactBrowser(c, root, binary, driver, unnamed, false)
-		p := ArtifactProbe{ID: fmt.Sprintf("work-product-browser-unnamed=%t", unnamed), Passed: err == nil, Detail: "Real model/tool sequence, exact download, guards, replacement expiry and joined host; no points yet."}
+		p := ArtifactProbe{ID: fmt.Sprintf("work-product-browser-unnamed=%t", unnamed), Passed: err == nil, Detail: "Real model/tool sequence, failure presentation, download guards and joined host; contributes to the reviewed Actions row, work-product row incomplete."}
 		if err != nil {
 			p.Detail = err.Error()
 			report.Status = "failed"
@@ -273,7 +284,7 @@ func GradeArtifacts(c ArtifactGradeConfig) (report ArtifactReport, result error)
 		return report, err
 	}
 	err = runArtifactBrowser(c, root, binary, actionsDriver, false, true)
-	actionsProbe := ArtifactProbe{ID: "actions-browser", Passed: err == nil, Detail: "Real Actions and snippet browser checks with joined host; reviewed snippet row eligible, other rows incomplete."}
+	actionsProbe := ArtifactProbe{ID: "actions-browser", Passed: err == nil, Detail: "Real Actions, snippet and interaction browser checks with joined host; Actions credit also requires both failure-browser probes."}
 	if err != nil {
 		actionsProbe.Detail = err.Error()
 		report.Status = "failed"
@@ -490,7 +501,7 @@ func checkActionsHostReceipt(data []byte) error {
 	return nil
 }
 
-var actionsBrowserChecks = []string{"real-running-observation", "call-result-navigation", "historical-running-preserved", "terminal-pathname-not-grant", "replay-no-execution", "replay-exact-pair-and-agent-isolation", "focused-expanded-reader-preserved", "canonical-recorded-time-and-duration", "timing-survives-replay", "legacy-unknown-and-zero-browser", "provider-snippets-exact-and-fallback", "real-streaming-snippet-stability", "delayed-clipboard-replay-fenced", "raw-selection-and-scroll-preserved", "job-output-owner-and-running-guards", "requested-and-dispatched-batch-states", "keyboard-touch-and-draft-preserved", "speech-copy-and-pair-noninterference", "streamed-narration-once-and-replay-silent"}
+var actionsBrowserChecks = []string{"real-running-observation", "call-result-navigation", "historical-running-preserved", "terminal-pathname-not-grant", "replay-no-execution", "replay-exact-pair-and-agent-isolation", "focused-expanded-reader-preserved", "canonical-recorded-time-and-duration", "timing-survives-replay", "legacy-unknown-and-zero-browser", "provider-snippets-exact-and-fallback", "real-streaming-snippet-stability", "delayed-clipboard-replay-fenced", "raw-selection-and-scroll-preserved", "job-output-owner-and-running-guards", "requested-and-dispatched-batch-states", "successful-batch-exact-pairs", "keyboard-touch-and-draft-preserved", "speech-copy-and-pair-noninterference", "streamed-narration-once-and-replay-silent"}
 
 func checkActionsBrowserReceipt(data []byte) error {
 	var r struct {

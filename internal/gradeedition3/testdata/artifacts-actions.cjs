@@ -438,13 +438,35 @@ assert(!['8088', '8089', '8090'].includes(new URL(base).port));
     for (const call of await stateCalls.all())
       assert.equal(await call.locator('.tool-state').innerText(), 'Result returned');
     assert.equal(await page.locator('#tool-transcript [data-kind="tool_result"]').count(), 2);
+    const pairedResults = new Set();
+    for (let index = 0; index < stateIDs.length; index++) {
+      const call = page.locator(`[data-part-id="${stateIDs[index]}"]`);
+      assert.equal(await call.count(), 1, 'one presentation for each successful batch call');
+      const callDetails = call.locator(':scope > details');
+      if (!(await callDetails.evaluate(node => node.open))) await callDetails.locator('summary').click();
+      assert((await callDetails.locator('pre').innerText()).includes(`"step": ${index + 1}`),
+        'successful call retains its actual input');
+      await call.getByRole('button', {name: 'View latest result', exact: true}).click();
+      const resultID = await page.locator('[data-kind="tool_result"]:focus').getAttribute('data-part-id');
+      assert(resultID && !pairedResults.has(resultID), 'successful calls have distinct paired results');
+      pairedResults.add(resultID);
+      const result = page.locator(`[data-part-id="${resultID}"]`);
+      assert.equal(await result.count(), 1, 'one presentation for each successful batch result');
+      const details = result.locator(':scope > details');
+      if (!(await details.evaluate(node => node.open))) await details.locator('summary').click();
+      assert((await details.locator('pre').innerText()).includes(`state-result-${index + 1}-${initial.nonce}`),
+        'successful call navigates to its own real result payload');
+      await result.getByRole('button', {name: 'View call', exact: true}).click();
+      assert.equal(await page.locator('[data-kind="tool_call"]:focus').getAttribute('data-part-id'), stateIDs[index],
+        'successful result returns to its exact original call');
+    }
     const statesDone = await statusUntil(state => state.stateRequests === 2);
     assert.equal(statesDone.stateExecutions, 2);
     assert.equal(statesDone.stateFailure, null);
     assert.deepEqual(errors, []);
     console.log(JSON.stringify({contract:'artifact-actions-v1', passed:true, checks:[
       'real-running-observation', 'call-result-navigation', 'historical-running-preserved',
-      'terminal-pathname-not-grant', 'replay-no-execution', 'replay-exact-pair-and-agent-isolation', 'focused-expanded-reader-preserved', 'canonical-recorded-time-and-duration', 'timing-survives-replay', 'legacy-unknown-and-zero-browser', 'provider-snippets-exact-and-fallback', 'real-streaming-snippet-stability', 'delayed-clipboard-replay-fenced', 'raw-selection-and-scroll-preserved', 'job-output-owner-and-running-guards', 'requested-and-dispatched-batch-states', 'keyboard-touch-and-draft-preserved', 'speech-copy-and-pair-noninterference', 'streamed-narration-once-and-replay-silent'
+      'terminal-pathname-not-grant', 'replay-no-execution', 'replay-exact-pair-and-agent-isolation', 'focused-expanded-reader-preserved', 'canonical-recorded-time-and-duration', 'timing-survives-replay', 'legacy-unknown-and-zero-browser', 'provider-snippets-exact-and-fallback', 'real-streaming-snippet-stability', 'delayed-clipboard-replay-fenced', 'raw-selection-and-scroll-preserved', 'job-output-owner-and-running-guards', 'requested-and-dispatched-batch-states', 'successful-batch-exact-pairs', 'keyboard-touch-and-draft-preserved', 'speech-copy-and-pair-noninterference', 'streamed-narration-once-and-replay-silent'
     ]}));
   } finally { await browser.close(); }
 })().catch(error => { console.error(error.stack); process.exitCode = 1; });
