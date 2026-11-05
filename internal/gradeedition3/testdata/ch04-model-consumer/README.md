@@ -77,5 +77,7 @@ This is offline buffered Anthropic-protocol integration evidence. It does not
 award the historical Go-specific consumer/topology points or a new chapter
 score. Review Common declarations and ownership/readability independently. Live
 providers, debugger behavior, uncooperative callbacks, persistence, streaming,
-and completed structured-result delivery remain separate gates. The text-only
-custom handler does not certify a delayed work-product offer.
+and completed structured-result delivery remain separate gates. The latter is
+now a Chapter11 MCP/browser exercise, not a Chapter4 admission blocker. The
+text-only custom handler does not certify a delayed work-product offer; that
+specific integration remains in Chapter26.

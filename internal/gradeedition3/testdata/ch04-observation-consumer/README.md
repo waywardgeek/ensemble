@@ -69,8 +69,9 @@ invocation or crash recovery, or award the separate consumer/topology score.
 
 The callback returns text. These checks therefore do **not** certify completed
 structured-result metadata, first-terminal delivery semantics, or a delayed
-built-in work-product offer. Those require their own justified public boundary
-and remain open. No production test hook is introduced by this supplement.
+built-in work-product offer. The integrated MCP structured-result exercise is
+deferred to Chapter11, not a Chapter4 admission blocker. Chapter26 retains the
+specific offer checks. No production test hook is introduced by this supplement.
 
 ## Separate-process observation replay
 

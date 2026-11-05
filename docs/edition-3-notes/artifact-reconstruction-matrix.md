@@ -8,13 +8,14 @@ the original teaching repaired. Both students have submitted and joined teardown
 Chapter3 now also has an independently accepted fresh offline reconstruction
 and repaired-teaching retest. Both Chapter3 students have submitted and joined
 teardown; the earlier assisted result remains separately recorded.
-The other six chapter gates remain unassigned and unaccepted. The integration
+The other seven chapter gates remain unassigned and unaccepted. The integration
 draft is `f2d3499c`; the artifact grade remains70/100 at `fb3dbe3c`. Work-product
 scoring and human/live-provider acceptance remain open. Local Models is last.
 
 The changed-section inventory comes from the actual manuscript diff between
 closeout navigation `9d057020` and `f2d3499c`. It identifies substantive changes in
-Chapters2/3/4/7/9/10/18/26. Historical endpoint numbers remain unchanged. Candidate
+Chapters2/3/4/7/9/10/18/26. Chapter11 is now added for the deferred MCP
+structured-completion exercise. Historical endpoint numbers remain unchanged. Candidate
 starting points below are inspection leads, not approved student baselines.
 
 ## Chapter gates
@@ -23,17 +24,18 @@ starting points below are inspection leads, not approved student baselines.
 | --- | --- | --- | --- |
 | 2 | Optional recorded time and observation duration in immutable facts and retained entries; unknown versus zero | Export preserved ch01, then apply only previously accepted prerequisite teaching | Exact event/reduction/codec values, filtering preservation and provider independence at the APIs actually present here |
 | 3 | Typed successful result metadata; error refusal; ordinary provider content distinct from delivery description | Accepted revised Chapter2 candidate, not completed ch03 | Real tool recording and result wrapping retain metadata; prose alone grants nothing; provider rendering excludes opaque delivery data |
-| 4 | Local monotonic observation boundary; immutable recorded durations; control results preserve Job metadata; completed structured delivery | Accepted revised Chapter3 candidate | Real held callback, running versus completed observations, canonical recorded equality, refusal timing and joined cleanup |
+| 4 | Local monotonic observation boundary; immutable recorded durations; control results preserve Job metadata; structured integration deferred to Chapter11 | Accepted revised Chapter3 candidate | Real held callback, running versus completed observations, canonical recorded equality, refusal timing and joined cleanup |
 | 7 | Mount-local identity; truthful states; exact pairing; stable reading; logical copy; timing and offer projection | Preserved ch06 plus accepted revised foundations, excluding the completed GUI | Real-page rendering and replay; streamed focus/selection; exact clipboard payload; stable controls; provider and transcript identities |
 | 9 | Installed/discoverable/granted distinction for offers and explicit revocation | Preserved ch08 plus accepted prerequisite changes | Actual declaration and dispatch agreement, ungranted refusal, load/unload; separate later offer lifetime integration |
 | 10 | Exact retained timing; descriptions survive without live grants | Preserved ch09 plus accepted prerequisite changes | Save/exit/restore, unknown legacy data and snapshot-only projection; later Chapter26 validates actual expired grants |
+| 11 | Delayed structured completion through real MCP Jobs, canonical History and browser inspection | Accepted revised Chapter10 prerequisite, not completed Chapter11 | Barrier-held remote reply, running/terminal distinction, ordered parts/error/one-time delivery, real GUI pairing/replay, explicit cancellation and joined cleanup |
 | 18 | Reopen click-time files through the existing Sandbox; ownership and joined transfer boundary | Preserved ch18, which precedes current manuscript Sandbox18 / endpoint19, plus accepted prerequisite changes | Allowed regular reads alongside escape/missing/growth refusals; ownership review; later Chapter26 validates complete transfer integration |
 | 26 | Integrate all revised foundations and work-product ownership with the actual browser | No ready preserved endpoint; assemble an explicit prerequisite export | Four chapter exercises, named artifact grader, architecture review and human usability as distinct gates |
 
 Chapter2 has **baseline audited**, **fresh retest submitted**, and **bounded offline
 acceptance passed**, as recorded below. Chapter3 has **baseline audited**,
 **fresh retest submitted**, and **bounded offline acceptance passed**.
-The other six rows retain **baseline not prepared**, **student not assigned**,
+The other seven rows retain **baseline not prepared**, **student not assigned**,
 **submission absent**, and **independent acceptance pending**. Their candidate
 starting points are not approved baselines.
 
@@ -863,3 +865,19 @@ Anthropic-protocol integration on macOS, not general provider/OS/debugger proof.
 Source topology, cancellation/lifetime gates, structured completion metadata and
 Chapter 4 student reconstruction remain separately accountable. Correct output
 alone is insufficient evidence that the registered callback executed.
+
+## Exercise placement decision: Chapter11, not a Chapter4 admission blocker
+
+Bill directed moving the difficult delayed structured-result proof to the chapter
+where MCP and internal browser inspection are available. Chapter4 keeps its
+public text-handler observation/replay and real model-loop exercises. It does
+not require a new structured callback API or compositional substitutes to clear
+this deferred gate. Earlier notes describing that decision as blocking Chapter4
+admission are superseded; baseline assembly and normal admission review remain.
+
+Chapter11 now owns a substantive integrated exercise and therefore requires its
+own honest prerequisite audit, public acceptance work, fresh student reconstruction
+and independent review. No such student or new verification has run. Existing
+Chapter11 grades do not certify this addition. Generic MCP content does not prove
+the built-in work-product offer path, and artifact grading remains70/100 with
+workproducts30 ungraded. No historical endpoint or grader score changes here.

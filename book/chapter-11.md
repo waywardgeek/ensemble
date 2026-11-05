@@ -241,6 +241,42 @@ A useful verification sequence is:
 
 Use small working fakes for external boundaries, not mocks of the components under test. Preserve failed runs and distinguish fixture mistakes from product defects. A timeout that reveals an incorrect fixture selector is not evidence that a protocol is broken; a green CLI grade is not evidence that a hidden browser tab worked.
 
+### Exercise: delayed structured results through MCP
+
+This exercise takes over the integrated structured-completion proof deferred
+from Chapter 4. Use an isolated real GUI and an owned local MCP peer with a
+release barrier. Keep the candidate's actual MCP transport, Job supervision,
+History, and browser rendering in the path; do not inject application frames,
+substitute a grader-side execution loop, or add a production test-only hook.
+
+1. Activate the explicitly granted remote tool. Hold its reply at the peer and
+   require an ordinary observation to return a running Job with an actual handle.
+   Confirm that the peer remains pending and no terminal content has been
+   delivered. Use a barrier, not a race against a fast tool.
+2. Inspect the connected page through the browser skill. Correlate the real call
+   and running observation with canonical History. The display must distinguish
+   a returned observation from completion of the underlying Job.
+3. Release a result containing distinct supported ordered parts. Wait using the
+   original handle, and verify exact part order, payloads, and error status in
+   the first completed ordinary observation and its canonical recorded result.
+   A separate error run must preserve `isError`; a later observation must not
+   redeliver the same structured result. Diagnostic output is not a substitute
+   for the typed result.
+4. Inspect the completed call/result pairing through the browser, then reload
+   and inspect replay. Compare visible states and relationships with the recorded
+   facts; replay must not invoke the remote tool again. The earlier running
+   observation must remain an honest snapshot, not be rewritten as terminal.
+5. Separately cancel a held call explicitly and verify remote cancellation and
+   joined cleanup. An observation timeout alone must not cancel it. Close the
+   owned peer, Jobs, and GUI even after a failed assertion.
+
+Use only supported MCP content blocks; this does not require a newer
+`structuredContent` field. DOM inspection is not pixel or audible evidence.
+Do not treat remote content as a work-product grant: Chapter 26 retains the
+specific offer, lifetime, file-transfer, and human-usability gates. Record actual
+results and negative controls separately from the existing CLI score. The new
+exercise is not certified merely because earlier Chapter 11 tests passed.
+
 ### What this endpoint establishes
 
 The C# chapter has offline component, executable, separate-consumer, and isolated real-browser evidence. Its scoped CLI grader covers incoming pipe behavior, MCP discovery and calls, reverse calls, model-directed skill use against local peers, and automatic context. The optional GUI is exercised separately; the scoped grade does not certify Go package topology or browser appearance.

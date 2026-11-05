@@ -486,15 +486,20 @@ returns a running Job before the barrier opens, and its recorded duration remain
 unchanged after joined completion. Test refusal separately. Avoid a fragile test
 that assumes a loaded machine must finish within a tiny wall-clock threshold.
 
-### Completed structured results carry delivery metadata
+### Looking ahead: completed structured results
 
-When a tool returns a structured result, keep its typed metadata with the owned
-Job until the completed observation delivers it. A timed running report is not
-that result. Later `wait_for_job` uses the original handle and delivers the
-completed metadata under the observing call's normal correlation. Preserve it
-when adding a Job snapshot or one-shot-limit notice; do not flatten the result
-to its output-file text. The work-product integration in Chapter 26 exercises
-this path with a successful offer that may arrive after an initial running report.
+A running report is an observation, not the eventual structured result. Keep
+that distinction in the Job design, but do not invent a public structured custom
+handler or build MCP merely to prove it in this chapter. Here, implement and test
+the text-handler, timing, control-observation, and ownership exercises.
+
+The end-to-end delayed structured-result exercise belongs in
+[Chapter 11](chapter-11.md#exercise-delayed-structured-results-through-mcp), after
+MCP and browser inspection are available. There, a controlled remote peer supplies
+a real delayed result and the browser exposes its presentation. Preserve ordered
+parts and error status through completed observation without flattening them to
+diagnostic output. Chapter 26 separately tests work-product delivery descriptions
+and live download authority; generic MCP content does not establish either.
 
 Chapter 26 supplies the HTTP transfer integration, not this chapter. Such a
 transfer is not another tool observation or a new background Job. It has its own
