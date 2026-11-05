@@ -641,3 +641,28 @@ assertion. No product change was needed.
 This is focused-node, expansion and payload continuity evidence, not complete
 scroll, selection, streaming or interaction-row certification. Rows remain
 UNGRADED. Installed applications and live services remain untouched.
+
+### Public canonical timing in the real Actions page
+
+The independent Actions host now exposes synthetic canonical ToolReturned timing
+facts through its grader-owned status endpoint. The browser compares displayed
+result timestamps, exact details and observation durations with those facts,
+before and after completion and after page reload. A Honolulu browser timezone
+checks local presentation separately from the retained exact timestamp. Later
+completion must leave the earlier observation unchanged. Required named receipts
+cover this live/replay boundary; no application globals or injected frames are
+used.
+
+Job170 passes both Go packages with the external candidate enabled. Job171 built
+two isolated GUI candidates: replacing recorded time with the browser clock
+failed `display time equals canonical recorded fact, not browser arrival`;
+replacing duration with zero failed `display duration equals recorded observation`.
+Both Actions hosts stopped cleanly. Logs and JSON reports are under
+`/private/tmp/cadence-actions-mutants.pp1uvZ`, with suffixes timing-now and
+duration-zero. The full three-file diff was reviewed in job172.
+
+These checks cover real measured observations and ordinary replay. The conditional
+unknown-duration assertion is not evidence that this fixture exercised an unknown
+value. Explicit legacy unknown values and snapshot-only restoration remain open,
+as do the other unfinished rubric cases. All rows remain UNGRADED and no runtime
+or installed application changed.
