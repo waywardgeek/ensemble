@@ -62,3 +62,28 @@ func TestArtifactExternalCandidate(t *testing.T) {
 		}
 	}
 }
+
+func TestArtifactBrowserReceiptRequiresEveryCheck(t *testing.T) {
+	encode := func(checks []string) []byte {
+		data, err := json.Marshal(map[string]any{
+			"contract": "artifact-browser-work-product-v1", "passed": true, "checks": checks,
+		})
+		if err != nil {
+			t.Fatal(err)
+		}
+		return data
+	}
+	if err := checkArtifactBrowserReceipt(encode(artifactBrowserChecks)); err != nil {
+		t.Fatal(err)
+	}
+	if checkArtifactBrowserReceipt(encode(nil)) == nil {
+		t.Fatal("bare success accepted")
+	}
+	for index, name := range artifactBrowserChecks {
+		checks := append([]string{}, artifactBrowserChecks[:index]...)
+		checks = append(checks, artifactBrowserChecks[index+1:]...)
+		if checkArtifactBrowserReceipt(encode(checks)) == nil {
+			t.Fatalf("missing %s accepted", name)
+		}
+	}
+}

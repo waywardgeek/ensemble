@@ -47,6 +47,24 @@ internal static class ArtifactHost
         builder.Logging.ClearProviders();
         builder.WebHost.UseUrls(local);
         await using var host = builder.Build();
+        ResponseBarrier? barrier = null;
+        host.Use(async (HttpContext context, RequestDelegate next) =>
+        {
+            var active = Volatile.Read(ref barrier);
+            if (context.Request.Path != "/assistant/work-products/download" || active is null || !active.Claim())
+            {
+                await next(context);
+                return;
+            }
+            var borrowed = context.Response.Body;
+            context.Response.Body = active.Wrap(borrowed);
+            try { await next(context); }
+            finally
+            {
+                context.Response.Body = borrowed;
+                active.Done.TrySetResult();
+            }
+        });
         int requests = 0;
         string? failure = null;
         HistorySnapshot? closedHistory = null;
@@ -67,6 +85,32 @@ internal static class ArtifactHost
             expected = RandomNumberGenerator.GetBytes(32771);
             File.WriteAllBytes(file, expected);
             return Results.Json(Status());
+        });
+        host.MapPost("/grade/boundary-file", () =>
+        {
+            Require(Offer() is not null, "File changed before successful offer");
+            expected = RandomNumberGenerator.GetBytes(64 * 1024 * 1024);
+            File.WriteAllBytes(file, expected);
+            return Results.Json(Status());
+        });
+        host.MapPost("/grade/oversize-file", () =>
+        {
+            Require(Offer() is not null, "File changed before successful offer");
+            using var output = File.OpenWrite(file);
+            output.SetLength(64L * 1024 * 1024 + 1);
+            return Results.Ok();
+        });
+        host.MapPost("/grade/hold-next-transfer", () =>
+        {
+            Require(barrier is null || barrier.Done.Task.IsCompleted, "Previous barrier still owns a request");
+            Volatile.Write(ref barrier, new ResponseBarrier());
+            return Results.Ok();
+        });
+        host.MapGet("/grade/transfer-state", () => Results.Json(barrier?.Status()));
+        host.MapPost("/grade/release-transfer", () =>
+        {
+            barrier?.Release.TrySetResult();
+            return Results.Ok();
         });
         host.MapPost("/grade/replace-owner", () =>
         {
@@ -131,6 +175,7 @@ internal static class ArtifactHost
         }
         finally
         {
+            barrier?.Release.TrySetResult();
             stop.Cancel();
             try { await serving; }
             finally

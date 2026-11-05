@@ -478,3 +478,47 @@ All five rubric rows remain UNGRADED, zero points. Public HTTP/browser size,
 cancellation and replay coverage is still incomplete; internal application tests
 do not fill those public grading gaps. Actions, snippets, recorded-time and
 interaction drivers also remain unfinished.
+
+## Public browser bounds, replay and HTTP cancellation
+
+The external host now supplies a grader-owned random 64 MiB file after the real
+model/tool offer. The public browser downloads it through the candidate route and
+checks length and SHA256. Growing the same file to 64 MiB plus one byte must refuse
+both direct HTTP access and browser saving. The refusal carries no attachment
+header; the browser shows a failure beside the offer. The oracle owns its numeric
+boundary, rather than reading a candidate limit.
+
+A page reload replays the retained offer without another provider request, tool
+effect or automatic transfer. An explicit click still reads from its live owner.
+For cancellation, grader-owned middleware slows only the external response stream
+and exposes barrier status. Browser Cancel download and selection of the other
+Agent each reach the real server copy's cancellation token. The request remains
+pending until cleanup is released, then joins without saving partial bytes. No
+application globals, injected wire frames or candidate test assembly are used.
+The barrier borrows the actual response stream; host cleanup releases it even
+when a browser assertion fails. These fixture endpoints are outside the candidate.
+
+Browser receipts now require every named check. Unit checks remove each required
+name in turn and verify rejection; bare passed:true is insufficient. All scoring
+rows remain UNGRADED and award zero points.
+
+Job67 initially failed because the new oracle guessed HTTP413. The actual route
+intentionally groups expired, unavailable and oversized offers as HTTP404 before
+response bytes start. The corrected check requires that refusal, no attachment
+header and no browser download. This changed the grader, not the product. Job70
+passed the corrected bounds; job73 passed reload and receipt checks; job76 passed
+the added real cancellation paths. Final job81 passed both Go packages and the
+full external runner in 8.16 seconds, including named and unnamed viewer modes
+and joined host cleanup. These are public-boundary results, not a full rubric.
+
+Mutation evidence lives at `/private/tmp/cadence-artifact-browser-mutants.YLDmIg`.
+The 16 MiB browser-cap candidate built and was rejected in both viewer modes at
+`exact-64mib-browser-hash`. The no-replay-abort mutant also built and failed in
+both modes because the HTTP transfer never reached cancellation after selection
+changed. Job79 completed successfully as a sensitivity campaign; both mutants'
+hosts reported STOPPED without joined-shutdown errors. These intentional candidate
+failures are preserved in the result JSON, distinct from setup failures.
+Both are isolated embedded-asset builds; good runtime, installed applications and
+live services remain unchanged. Real failed/running-offer coverage and additional
+sensitivity checks remain before awarding the work-product row. Actions, snippets,
+recorded-time and interaction rows still require independent drivers.

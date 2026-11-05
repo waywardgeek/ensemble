@@ -14,7 +14,8 @@ assert(!['8088', '8089', '8090'].includes(new URL(base).port));
   try {
     const page = await browser.newPage({viewport: {width: 390, height: 844}});
     page.setDefaultTimeout(20000);
-    const errors = [], transfers = [];
+    const errors = [], transfers = [], downloads = [];
+    page.on('download', download => downloads.push(download));
     page.on('pageerror', error => errors.push(error.message));
     page.on('request', request => { if (request.url().includes('/work-products/download?')) transfers.push(request); });
     await page.goto(base);
@@ -52,11 +53,77 @@ assert(!['8088', '8089', '8090'].includes(new URL(base).port));
     assert.equal((await page.request.get(route, {headers:{...headers, Origin:'https://foreign.invalid'}})).status(), 403);
     assert.equal((await page.request.get(route + '&path=anything', {headers})).status(), 400);
     assert.equal((await page.request.get(route.replace('agent=candidate', 'agent=viewer'), {headers})).status(), 404);
+    const beforeReplay = transfers.length;
+    await page.reload();
+    await page.locator('.pane-tab[data-pane="agents"]').click();
+    await page.locator('#agent-tree [data-agent="candidate"]').click();
+    await page.locator('.pane-tab[data-pane="tools"]').click();
+    await button.waitFor();
+    status = await (await page.request.get(origin + '/grade/status')).json();
+    assert.equal(status.requests, 3, 'replay must not rerun model or tools');
+    assert.equal(transfers.length, beforeReplay, 'replay must not transfer a retained offer');
+    status = await (await page.request.post(origin + '/grade/boundary-file')).json();
+    assert.equal(status.bytes, 64 * 1024 * 1024, 'grader-owned size boundary');
+    const boundaryAwaited = page.waitForEvent('download').catch(error => {
+      throw new Error('exact-64mib-browser-hash: allowed boundary download did not complete', {cause:error});
+    });
+    await button.click();
+    const boundaryDownload = await boundaryAwaited;
+    const boundaryBytes = fs.readFileSync(await boundaryDownload.path());
+    assert.equal(boundaryBytes.length, 64 * 1024 * 1024, 'browser accepts exact 64 MiB');
+    assert.equal(crypto.createHash('sha256').update(boundaryBytes).digest('hex'), status.hash,
+      'exact 64 MiB browser download hash');
+    await page.request.post(origin + '/grade/oversize-file');
+    const oversized = await page.request.get(route, {headers});
+    assert.equal(oversized.status(), 404, 'HTTP refuses click-time growth above 64 MiB');
+    assert.equal(oversized.headers()['content-disposition'], undefined,
+      'refusal must not masquerade as an attachment');
+    const beforeRefusal = downloads.length;
+    await button.click();
+    await page.locator('.work-product-links [role="status"]').filter({hasText: 'Download failed:'}).waitFor();
+    await button.waitFor();
+    assert.equal(downloads.length, beforeRefusal, 'oversized refusal must not save a file');
+    await page.request.post(origin + '/grade/change-file');
+    async function waitTransfer(field) {
+      for (let attempt = 0; attempt < 200; attempt++) {
+        const state = await (await page.request.get(origin + '/grade/transfer-state')).json();
+        if (state?.[field]) return state;
+        await new Promise(resolve => setTimeout(resolve, 50));
+      }
+      assert.fail('HTTP transfer did not reach ' + field);
+    }
+    for (const action of ['cancel', 'selection-replay']) {
+      assert.equal((await page.request.post(origin + '/grade/hold-next-transfer')).status(), 200);
+      const beforeCancel = downloads.length;
+      await button.click();
+      await waitTransfer('entered');
+      if (action === 'cancel') {
+        await page.getByRole('button', {name:'Cancel download', exact:true}).click();
+        await page.getByText('Download cancelled.', {exact:true}).waitFor();
+      } else {
+        await page.locator('.pane-tab[data-pane="agents"]').click();
+        // The viewer can be unnamed; use its actual public tree address.
+        const address = await page.locator('#agent-tree [data-agent]').evaluateAll(nodes =>
+          nodes.map(node => node.dataset.agent).find(value => value !== 'candidate'));
+        assert.notEqual(address, undefined, 'viewer tree entry exists');
+        await page.locator('#agent-tree [data-agent=' + JSON.stringify(address) + ']').click();
+      }
+      const cancelled = await waitTransfer('cancelled');
+      assert.equal(cancelled.done, false, action + ': request must wait for copy cleanup');
+      await page.request.post(origin + '/grade/release-transfer');
+      await waitTransfer('done');
+      assert.equal(downloads.length, beforeCancel, action + ': partial bytes must not save');
+      if (action === 'selection-replay') {
+        await page.locator('#agent-tree [data-agent="candidate"]').click();
+        await page.locator('.pane-tab[data-pane="tools"]').click();
+        await button.waitFor();
+      }
+    }
     await page.request.post(origin + '/grade/replace-owner');
     assert.equal((await page.request.get(route, {headers})).status(), 404, 'replacement Agent must not revive offer');
     assert.deepEqual(errors, []);
     console.log(JSON.stringify({contract:'artifact-browser-work-product-v1', passed:true,
-      checks:['real-model-tool-sequence','click-only','exact-current-bytes','filename','origin-header','no-path-query','foreign-owner','replacement-expiry'],
+      checks:['real-model-tool-sequence','click-only','exact-current-bytes','filename','origin-header','no-path-query','foreign-owner','exact-64mib-browser-hash','oversize-http-refused','oversize-browser-refused','replacement-expiry','replay-no-effects','cancel-joins-http','selection-replay-cancels-http'],
       ungraded:'Full artifact rubric and chapter points are not implied.'}));
   } finally { await browser.close(); }
 })().catch(error => { console.error(error); process.exitCode = 1; });

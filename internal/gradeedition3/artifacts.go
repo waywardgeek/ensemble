@@ -180,7 +180,7 @@ func GradeArtifacts(c ArtifactGradeConfig) (report ArtifactReport, result error)
 	if err := artifactBrowserPreflight(c, root); err != nil {
 		return report, err
 	}
-	for _, name := range []string{"Program.cs", "ArtifactHost.cs", "TransferChecks.cs", "ArtifactsConsumer.csproj"} {
+	for _, name := range []string{"Program.cs", "ArtifactHost.cs", "TransferChecks.cs", "ResponseBarrier.cs", "ArtifactsConsumer.csproj"} {
 		data, err := artifactGradeFiles.ReadFile("testdata/artifacts-consumer/" + name)
 		if err != nil {
 			return report, err
@@ -363,15 +363,38 @@ func runArtifactBrowser(c ArtifactGradeConfig, root, binary, driver string, unna
 	if err != nil {
 		return fmt.Errorf("browser failed: %w; %s", err, output)
 	}
+	return checkArtifactBrowserReceipt([]byte(output))
+}
+
+var artifactBrowserChecks = []string{
+	"real-model-tool-sequence", "click-only", "exact-current-bytes", "filename",
+	"origin-header", "no-path-query", "foreign-owner", "exact-64mib-browser-hash",
+	"oversize-http-refused", "oversize-browser-refused", "replacement-expiry", "replay-no-effects", "cancel-joins-http", "selection-replay-cancels-http",
+}
+
+func checkArtifactBrowserReceipt(data []byte) error {
 	var receipt struct {
-		Contract string `json:"contract"`
-		Passed   bool   `json:"passed"`
+		Contract string   `json:"contract"`
+		Passed   bool     `json:"passed"`
+		Checks   []string `json:"checks"`
 	}
-	if err = json.Unmarshal([]byte(output), &receipt); err != nil {
+	if err := json.Unmarshal(data, &receipt); err != nil {
 		return err
 	}
 	if receipt.Contract != "artifact-browser-work-product-v1" || !receipt.Passed {
 		return fmt.Errorf("browser receipt did not pass")
+	}
+	for _, want := range artifactBrowserChecks {
+		found := false
+		for _, got := range receipt.Checks {
+			if got == want {
+				found = true
+				break
+			}
+		}
+		if !found {
+			return fmt.Errorf("missing browser receipt: %s", want)
+		}
 	}
 	return nil
 }
