@@ -19,11 +19,17 @@ internal static class Program
             && (fact.Kind == EventKind.ToolReturned || fact.Kind.ToString() == "ToolObserved"));
     }
 
-    public static async Task<int> Main()
+    public static async Task<int> Main(string[] args)
     {
+        if (args.Length == 1 && args[0] == "log-read") return LogReplay.Read();
+        if (args.Length > 1 || (args.Length == 1 && args[0] != "log-write"))
+        {
+            Console.Error.WriteLine("Expected no arguments, log-write, or log-read.");
+            return 2;
+        }
         try
         {
-            await Run();
+            await Run(args.Length == 1);
             Console.WriteLine(JsonSerializer.Serialize(new { passed = true, checks }));
             return 0;
         }
@@ -34,7 +40,7 @@ internal static class Program
         }
     }
 
-    private static async Task Run()
+    private static async Task Run(bool persist)
     {
         using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(30));
         using var diagnostics = new StringWriter();
@@ -48,6 +54,7 @@ internal static class Program
         int executions = 0;
         try
         {
+            if (persist) LogReplay.Begin(agent.History(), Check);
             _ = new Tool(agent, ToolKind.WaitForJob);
             _ = new Tool(agent, "held_observation", "External barrier operation",
                 JsonSerializer.SerializeToElement(new { type = "object", properties = new { }, additionalProperties = false }),
@@ -114,6 +121,8 @@ internal static class Program
             Check(!agent.History().Events().Any(fact => fact.CallID == invalid.CallID
                 && fact.Kind == EventKind.ToolStarted), "schema-refusal-not-dispatched");
             Check(executions == 1, "schema-refusal-no-handler-effect");
+            if (persist)
+                LogReplay.Write(agent.History(), [firstFact, runningFact, completedFact, invalidFact], Check);
         }
         finally
         {

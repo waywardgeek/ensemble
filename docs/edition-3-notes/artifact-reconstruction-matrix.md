@@ -785,3 +785,38 @@ callback, reflection, private test access, or delayed-offer certification has
 been introduced. No Chapter 4 student is admitted and no runtime, installed
 application, or frozen endpoint changed. Other negative branches are not claimed
 independently mutation-tested by this duration-loss candidate.
+
+## Chapter 4 actual-observation process replay
+
+The public observation consumer now has `log-write` and `log-read` modes. The
+writer uses the same real dispatch/barrier/control/refusal path as the default
+checks, with `History.StartLog` active before dispatch. It captures four actual
+canonical observations in a plain independent manifest, compares `Dump` with
+the live log before destruction, and closes owners before successful exit.
+The separate reader has no seed fallback: it checks raw decoded facts, published
+`History.Load` events, and a subsequent `Dump`, for both writer files. Exact
+recorded timestamps, duration ticks, typed Job snapshot fields, error flags,
+call IDs, event kinds and result text must survive. The unadmitted refusal keeps
+unknown duration. The reader registers no tools or callback.
+
+Job 979 built cleanly and independently ran default 23, writer 27, and reader 21
+checks successfully in `/private/tmp/cadence-ch4-replay.CZGNpP`. Job 985 verified
+those actual JSON counts and showed that a reader in an empty workspace exits 1
+before any check without creating the manifest/log/dump files. Job 982 built a
+fresh isolated core which removes only observation duration while publishing
+loaded History events. Against the good writer's files, it passed manifest and
+all four raw canonical comparisons, then failed exactly
+`events.jsonl-loaded-observation-0`. Evidence is in
+`/private/tmp/cadence-ch4-replay-mutant.W1fU6K`. Offline build used existing complete
+packages and cleared sources; the working runtime and good writer files were
+not changed.
+
+Direct `ToolObserved` audit facts intentionally do not enter model dialogue in
+the current runtime. This is canonical JSON-lines replay evidence, not proof of
+retained model Context or snapshot-only GUI projection. The early `ToolReturned`
+spelling remains supported without requiring a mailbox. Clean writer exit and
+reader restore are not crash recovery; no structured-result or live-offer claim
+follows from the text handler. Next are the actual model-driven external consumer,
+ownership review, and the unresolved structured-completion public boundary before
+Chapter 4 student admission. No chapter score, runtime, frozen endpoint, installed
+application, or unrelated work changed.

@@ -1,8 +1,9 @@
 # Chapter 4 public observation supplement
 
 This is a separate .NET 10 / C# 14 executable referencing only the candidate
-`Ensemble.dll`. It runs 23 named checks through public APIs. It uses no reflection,
-candidate test assembly, model request, GUI, shell command, or native capture.
+`Ensemble.dll`. Its default mode runs 23 named checks through public APIs. It uses
+no reflection, candidate test assembly, model request, GUI, shell command, or
+native capture.
 It does not change the historical 100-point `-jobs-only` grade.
 
 ## Public interface
@@ -64,9 +65,43 @@ The test has a 30-second overall observation deadline, not a tiny timing-accurac
 threshold. It releases its external barrier before owner destruction even on
 failure. It does not prove forced termination of an arbitrary uncooperative
 handler. It does not measure worker runtime, exercise process PTYs, test provider
-invocation or restart persistence, or award the separate consumer/topology score.
+invocation or crash recovery, or award the separate consumer/topology score.
 
 The callback returns text. These checks therefore do **not** certify completed
 structured-result metadata, first-terminal delivery semantics, or a delayed
 built-in work-product offer. Those require their own justified public boundary
 and remain open. No production test hook is introduced by this supplement.
+
+## Separate-process observation replay
+
+Run the writer in a fresh workspace and require its successful process exit before
+starting the reader in that same workspace:
+
+```sh
+cd "$REPLAY_WORK"
+"$DOTNET" "$BUILD/bin/Chapter4Observations/debug/Chapter4Observations.dll" log-write
+"$DOTNET" "$BUILD/bin/Chapter4Observations/debug/Chapter4Observations.dll" log-read
+```
+
+The writer performs all 23 real dispatch checks plus four persistence checks
+(27 total). It starts `History.StartLog` before dispatch, saves a grader-owned
+manifest of the actual running, running-control, terminal-control, and refused
+observations, and compares `History.Dump` with the live JSON-lines log before
+destruction. Owner destruction completes before the writer reports success.
+The manifest uses independent plain records rather than the candidate's event
+codec as its expected-value representation.
+
+The separate reader requires all 21 named checks. It does not seed missing files
+or invoke tools. It first compares raw canonical facts with the manifest, then
+calls public `History.Load` and checks the actual published events, then checks
+`Dump` again. Exact timestamp offsets, duration ticks (including the refused
+observation's unknown duration), all Job snapshot fields, error flags, kinds,
+call IDs, and result text must survive both writer files. The reader registers
+no tools. These are clean process-separated JSON-lines persistence checks, not
+crash recovery or restored work execution.
+
+Direct `ToolObserved` audit facts in later runtimes deliberately do not enter
+model dialogue. This consumer checks canonical replay rather than requiring
+such facts in retained Context. Model-driven `ToolReturned` reduction and the
+external provider-consumer exercise remain separate obligations. The text
+callback still cannot certify structured completion metadata.

@@ -867,9 +867,13 @@ requiring a mailbox at this construction point.
 
 A pass is observation evidence, not the whole external-consumer exercise: this
 supplement makes no provider request and cannot certify structured completion
-metadata using its text-only handler. Keep that boundary and process-separated
-replay checks explicit rather than awarding them from these 23 checks. The
-historical 100-point score and separate consumer/topology review are unchanged.
+metadata using its text-only handler. Its separate `log-write` and `log-read`
+modes persist actual dispatched observations and verify canonical facts after a
+writer exit and public `History.Load` in another process. Require all 27 writer
+and 21 reader checks, as documented in the README. This is canonical log replay,
+not model-dialogue inclusion, crash recovery, or execution of restored Jobs.
+The historical 100-point score and separate consumer/topology review are
+unchanged.
 
 From the repository root, using the approved .NET 10 SDK and controlled offline
 environment:
