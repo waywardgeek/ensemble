@@ -1261,3 +1261,39 @@ baseline export, build, student admission or Chapter7 acceptance is claimed.
 Next audit the preserved core and required Chapter5/6 carry-forward, and design
 focused public core/browser checks without a completed-GUI answer leak. Download
 transfer/live grants remain Chapter26 integration, not a new early prerequisite.
+
+### Chapter6 prerequisite carry-forward seams
+
+Tracked endpoint inventory and all seven project files were inspected. Projects
+reference only the local core; its explicit source globs exclude example/test
+assemblies, no package references appear, and NuGet sources are cleared. This is
+dependency-source inspection, not a fresh build or full source acceptance. Common
+mailbox/Job/Tool/stream declarations and the complete693-line Agent actor were
+read; clipped declaration spans were recovered separately.
+
+The preserved actor has distinct DirectTool/ControlDone and ToolDone paths. The
+first records only result parts/error, omitting Job metadata; the second strips
+Job snapshots for controls. Record also reconstructs result observations, and
+one-shot dispatch diagnostics reconstruct result values. Each is a carry-forward
+site for the accepted timing/description/snapshot semantics. These are source
+findings in the frozen prerequisite candidate, not new installed-runtime defects.
+The dispatcher currently records ToolCalled but has no ToolStarted admission
+boundary and returns some validation failures through workers. Its Tool receiver
+also delegates without the now-approved name guard. Adding value fields alone
+would therefore not preserve the revised Chapter4 prerequisite contract.
+
+The isolated prerequisite needs the accepted immutable timing/description codec
+and reduction semantics, explicit admitted-versus-refused execution, receiver
+binding, and typed completion propagation through both mailbox paths and progress
+publication. Observation timing must cross workers as immutable result data;
+workers must not become a second History writer or scheduler. Review and preserve
+the accepted cleanup-on-error boundary as well; lifecycle audit is not yet complete.
+No patch or new public interface has been selected or applied during this audit.
+
+Keep Chapter7 answers out of that prerequisite: no implemented GUI, atomic
+History.Snapshot API, finalized display-ID metadata, browser rendering or assets.
+Those are the assigned chapter construction, unlike the earlier retained timing
+and tool-result vocabulary. The remaining core/serializer/Engine/lifecycle/example
+and prerequisite-test audit is still open, followed by isolated export and focused
+carry-forward verification. No frozen endpoint changes, build, student admission
+or Chapter7 acceptance occurred in this increment.
