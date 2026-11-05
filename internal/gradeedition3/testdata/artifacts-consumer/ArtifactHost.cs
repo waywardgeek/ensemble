@@ -76,7 +76,9 @@ internal static class ArtifactHost
             hash = Convert.ToHexString(SHA256.HashData(expected)).ToLowerInvariant(), bytes = expected.Length,
             offer = Offer() is { } offer ? new { id = offer.ID, name = offer.Name, offered_bytes = offer.OfferedBytes } : null,
             returned = Snapshot().Events.Count(fact => fact.Kind == EventKind.ToolReturned),
-            offers = Snapshot().Events.Count(fact => fact.WorkProduct is not null)
+            offers = Snapshot().Events.Count(fact => fact.WorkProduct is not null),
+            failedOffers = Snapshot().Events.Count(fact => fact.Kind == EventKind.ToolReturned
+                && fact.CallID == "failed-offer-" + nonce && fact.IsError && fact.WorkProduct is null)
         };
         host.MapGet("/grade/status", () => Results.Json(Status()));
         host.MapPost("/grade/change-file", () =>
@@ -141,12 +143,25 @@ internal static class ArtifactHost
                     parts = [new { type = "tool_use", id = "offer-" + nonce, name = "offer_work_product", input = new { path = file } }];
                     reason = "tool_use";
                 }
+                else if (turn == 3)
+                {
+                    var offer = Offer();
+                    Require(offer is not null, "Offer metadata missing before next provider request");
+                    Require(!body.RootElement.GetRawText().Contains(offer!.ID), "Opaque offer ID leaked into provider request");
+                    parts = [new { type = "tool_use", id = "failed-offer-" + nonce,
+                        name = "offer_work_product", input = new { path = file + ".missing" } }];
+                    reason = "tool_use";
+                }
                 else
                 {
-                    Require(turn == 3, "Unexpected extra provider request");
-                    var offer = Offer();
-                    Require(offer is not null, "Offer metadata missing before final provider request");
-                    Require(!body.RootElement.GetRawText().Contains(offer!.ID), "Opaque offer ID leaked into provider request");
+                    Require(turn == 4, "Unexpected extra provider request");
+                    var refused = Snapshot().Events.Single(fact => fact.Kind == EventKind.ToolReturned
+                        && fact.CallID == "failed-offer-" + nonce);
+                    Require(refused.IsError && refused.WorkProduct is null, "failed-offer-must-not-create-download");
+                    Require(Snapshot().Events.Count(fact => fact.WorkProduct is not null) == 1,
+                        "failed-offer-created-extra-grant-description");
+                    Require(!File.Exists(file + ".missing"), "Failed offer created a file");
+                    Require(!body.RootElement.GetRawText().Contains(Offer()!.ID), "Opaque offer ID leaked into final request");
                     parts = [new { type = "text", text = final }];
                     reason = "end_turn";
                 }

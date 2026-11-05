@@ -265,7 +265,7 @@ func checkArtifactHostReceipt(data []byte) error {
 	if err := json.Unmarshal(data, &r); err != nil {
 		return err
 	}
-	for key, want := range map[string]int{"requests": 3, "returned": 2, "offers": 1} {
+	for key, want := range map[string]int{"requests": 4, "returned": 3, "offers": 1, "failedOffers": 1} {
 		var got int
 		if err := json.Unmarshal(r[key], &got); err != nil || got != want {
 			return fmt.Errorf("joined host %s count mismatch", key)
@@ -369,7 +369,7 @@ func runArtifactBrowser(c ArtifactGradeConfig, root, binary, driver string, unna
 var artifactBrowserChecks = []string{
 	"real-model-tool-sequence", "click-only", "exact-current-bytes", "filename",
 	"origin-header", "no-path-query", "foreign-owner", "exact-64mib-browser-hash",
-	"oversize-http-refused", "oversize-browser-refused", "replacement-expiry", "replay-no-effects", "cancel-joins-http", "selection-replay-cancels-http",
+	"oversize-http-refused", "oversize-browser-refused", "replacement-expiry", "replay-no-effects", "cancel-joins-http", "selection-replay-cancels-http", "failed-offer-no-download",
 }
 
 func checkArtifactBrowserReceipt(data []byte) error {

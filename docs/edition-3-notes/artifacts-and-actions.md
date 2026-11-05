@@ -522,3 +522,36 @@ Both are isolated embedded-asset builds; good runtime, installed applications an
 live services remain unchanged. Real failed/running-offer coverage and additional
 sensitivity checks remain before awarding the work-product row. Actions, snippets,
 recorded-time and interaction rows still require independent drivers.
+
+## Real failed offers in the public provider/browser path
+
+The external host now requests write_file, a successful offer, then an offer for
+a nonexistent grader-owned file. Before sending the final answer it requires the
+failed ToolReturned fact to be recorded with IsError and no WorkProduct metadata,
+only one successful offer description overall, and no created missing file. The
+browser requires the real error card to have no work-product controls. Terminal
+receipts now require four provider requests, three returns, one successful offer
+and one failed offer. Unit tests remove or corrupt each receipt field independently.
+The browser monitors the grader-owned provider failure status while awaiting the
+answer so negative candidates report the actual oracle failure instead of only a
+missing-answer timeout.
+
+Job88 initially rejected the good candidate because the assertion matched every
+Download button on an error card. A failed Job legitimately has Download complete
+output for diagnostics; that is not a work-product grant. The corrected assertion
+checks work-product controls specifically and preserves the diagnostic feature.
+Job91 then passed. Final job93 passed both Go packages and the external runner in
+7.02 seconds; named and unnamed hosts joined cleanly.
+
+Job92 built an isolated core mutant that caught a file-open IOException and
+incorrectly returned successful offer metadata. Both browser modes rejected it at
+`failed-offer-must-not-create-download`; the core probe still passed and hosts
+reported STOPPED without joined-shutdown errors. Evidence is retained in
+`/private/tmp/cadence-artifact-failed-offer.RJhMZp`, including build log and JSON
+report. No installed application or good candidate binary changed.
+
+Running-offer coverage remains a distinct gap: the current core loop checks any
+running observations it encounters, but scheduling does not guarantee that it
+encounters one. This is not claimed as deterministic running-state certification.
+All five rubric rows remain UNGRADED with zero points; next work covers that gap
+and the remaining public Actions/snippet/time/interaction contracts.

@@ -28,13 +28,30 @@ func TestArtifactIncompleteReportDoesNotPass(t *testing.T) {
 	}
 }
 func TestArtifactHostReceiptRequiresAllTerminalFacts(t *testing.T) {
-	good := `{"requests":3,"returned":2,"offers":1,"failure":null}`
+	good := `{"requests":4,"returned":3,"offers":1,"failedOffers":1,"failure":null}`
 	if err := checkArtifactHostReceipt([]byte(good)); err != nil {
 		t.Fatal(err)
 	}
-	for _, bad := range []string{`{}`, `{"requests":3,"returned":2,"offers":1}`, `{"requests":4,"returned":2,"offers":1,"failure":null}`, `{"requests":3,"returned":2,"offers":0,"failure":null}`, `{"requests":3,"returned":2,"offers":1,"failure":"fault"}`} {
-		if checkArtifactHostReceipt([]byte(bad)) == nil {
-			t.Fatalf("accepted incomplete terminal facts: %s", bad)
+	for _, field := range []string{"requests", "returned", "offers", "failedOffers", "failure"} {
+		for _, remove := range []bool{false, true} {
+			var values map[string]any
+			if err := json.Unmarshal([]byte(good), &values); err != nil {
+				t.Fatal(err)
+			}
+			if remove {
+				delete(values, field)
+			} else if field == "failure" {
+				values[field] = "fault"
+			} else {
+				values[field] = 0
+			}
+			bad, err := json.Marshal(values)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if checkArtifactHostReceipt(bad) == nil {
+				t.Fatalf("accepted incomplete terminal facts: %s", bad)
+			}
 		}
 	}
 }

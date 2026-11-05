@@ -27,16 +27,29 @@ assert(!['8088', '8089', '8090'].includes(new URL(base).port));
     let status = await (await page.request.get(origin + '/grade/status')).json();
     await page.locator('#prompt').fill('prepare ' + status.nonce.slice(0, 16));
     await page.locator('#send').click();
-    await page.getByText(status.final, {exact: true}).waitFor();
+    const finalAnswer = page.getByText(status.final, {exact: true});
+    for (let attempt = 0; attempt < 200; attempt++) {
+      status = await (await page.request.get(origin + '/grade/status')).json();
+      assert.equal(status.failure, null, 'provider oracle must succeed');
+      if (await finalAnswer.isVisible()) break;
+      await new Promise(resolve => setTimeout(resolve, 100));
+    }
+    await finalAnswer.waitFor();
     status = await (await page.request.get(origin + '/grade/status')).json();
     assert.equal(status.failure, null, 'provider oracle must succeed');
-    assert.equal(status.requests, 3, 'real write/offer/result sequence must finish once');
-    assert.equal(status.returned, 2, 'two tool results must be recorded');
+    assert.equal(status.requests, 4, 'real write/offer/result sequence must finish once');
+    assert.equal(status.returned, 3, 'three tool results must be recorded');
     assert.equal(status.offers, 1, 'exactly one successful offer must be retained');
     assert.equal(transfers.length, 0, 'rendering an offer must not transfer it');
     await page.locator('.pane-tab[data-pane="tools"]').click();
     const button = page.getByRole('button', {name: 'Download ' + status.filename, exact: true});
     await button.waitFor();
+    assert.equal(status.failedOffers, 1, 'one failed offer must be recorded without metadata');
+    const failedCard = page.locator('[data-kind="tool_result"][data-status="error"]');
+    assert.equal(await failedCard.count(), 1, 'one real failed tool result is visible');
+    assert.equal(await failedCard.locator('.work-product-links').count(), 0,
+      'failed offer must not have a download control');
+    assert.equal(await page.locator('.work-product-links').count(), 1, 'only successful offer creates control');
     // Change grader-owned file after offering; click must read the new bytes.
     status = await (await page.request.post(origin + '/grade/change-file')).json();
     const awaited = page.waitForEvent('download');
@@ -60,7 +73,7 @@ assert(!['8088', '8089', '8090'].includes(new URL(base).port));
     await page.locator('.pane-tab[data-pane="tools"]').click();
     await button.waitFor();
     status = await (await page.request.get(origin + '/grade/status')).json();
-    assert.equal(status.requests, 3, 'replay must not rerun model or tools');
+    assert.equal(status.requests, 4, 'replay must not rerun model or tools');
     assert.equal(transfers.length, beforeReplay, 'replay must not transfer a retained offer');
     status = await (await page.request.post(origin + '/grade/boundary-file')).json();
     assert.equal(status.bytes, 64 * 1024 * 1024, 'grader-owned size boundary');
@@ -123,7 +136,7 @@ assert(!['8088', '8089', '8090'].includes(new URL(base).port));
     assert.equal((await page.request.get(route, {headers})).status(), 404, 'replacement Agent must not revive offer');
     assert.deepEqual(errors, []);
     console.log(JSON.stringify({contract:'artifact-browser-work-product-v1', passed:true,
-      checks:['real-model-tool-sequence','click-only','exact-current-bytes','filename','origin-header','no-path-query','foreign-owner','exact-64mib-browser-hash','oversize-http-refused','oversize-browser-refused','replacement-expiry','replay-no-effects','cancel-joins-http','selection-replay-cancels-http'],
+      checks:['real-model-tool-sequence','click-only','exact-current-bytes','filename','origin-header','no-path-query','foreign-owner','exact-64mib-browser-hash','oversize-http-refused','oversize-browser-refused','replacement-expiry','replay-no-effects','cancel-joins-http','selection-replay-cancels-http','failed-offer-no-download'],
       ungraded:'Full artifact rubric and chapter points are not implied.'}));
   } finally { await browser.close(); }
 })().catch(error => { console.error(error); process.exitCode = 1; });
