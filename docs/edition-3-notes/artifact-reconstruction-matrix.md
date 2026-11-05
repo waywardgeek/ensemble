@@ -8,8 +8,11 @@ the original teaching repaired. Both students have submitted and joined teardown
 Chapter3 now also has an independently accepted fresh offline reconstruction
 and repaired-teaching retest. Both Chapter3 students have submitted and joined
 teardown; the earlier assisted result remains separately recorded.
-Chapter4 first student has submitted and joined teardown; independent assigned
-gates pass, but acceptance is withheld after an additional public-API review probe.
+Chapter4 now has an independently accepted bounded offline reconstruction from
+student03 after two withheld candidates and original teaching repairs. All three
+students submitted and joined teardown. Student03 received one policy clarification
+about bounded managed cleanup; no implementation was supplied. Earlier candidates
+remain withheld, and this result is not described as unassisted.
 The other six chapter gates remain unassigned and unaccepted. The integration
 draft is `f2d3499c`; the artifact grade remains70/100 at `fb3dbe3c`. Work-product
 scoring and human/live-provider acceptance remain open. Local Models is last.
@@ -37,8 +40,8 @@ starting points below are inspection leads, not approved student baselines.
 Chapter2 has **baseline audited**, **fresh retest submitted**, and **bounded offline
 acceptance passed**, as recorded below. Chapter3 has **baseline audited**,
 **fresh retest submitted**, and **bounded offline acceptance passed**.
-Chapter4 has **baseline audited**, **student submitted**, **teardown joined**,
-and **independent acceptance withheld**, with repaired-teaching retest still required.
+Chapter4 has **baseline audited**, **fresh retest submitted**, **teardown joined**,
+and **bounded offline acceptance passed**, with the recorded policy clarification.
 The other six rows retain **baseline not prepared**, **student not assigned**,
 **submission absent**, and **independent acceptance pending**. Their candidate
 starting points are not approved baselines.
@@ -93,13 +96,14 @@ unassisted. Retest substantive teaching repairs with a fresh student.
 
 ## Next bounded preparation
 
-Before a fresh Chapter3 retest, review the public Gemini schema-case compatibility
-ambiguity and use the repaired explicit single-part codec teaching. Assemble the
-next isolated bundle from the same accepted Chapter2 prerequisite, not the assisted
-Chapter3 solution. Keep questions and public graders available; record any further
-assistance rather than treating it as unassisted teaching evidence. The assisted
-candidate is preserved review evidence, not automatically adopted runtime source.
-Keep later work-product declaration and transfer integration in Chapter26.
+Audit Chapter7 teaching, public graders and an honest pre-GUI prerequisite bundle.
+The preserved ch06 endpoint is only a starting-point lead: verify how accepted
+revised foundations carry through Chapters5/6 without supplying the completed GUI.
+Do not launch a student until source/dependency/leakage review, focused public
+acceptance interfaces and exact offline commands are ready. Keep questions and
+public graders available, and record assistance. Accepted candidate archives are
+eligible prerequisite evidence, not automatically adopted runtime source. Keep
+MCP structured integration in Chapter11 and work-product authority in Chapter26.
 
 The open work-product scoring decision does not prevent this baseline audit. It
 does prevent treating the Chapter26 public grade as complete. Record Bill's choice
@@ -1177,3 +1181,46 @@ bound and limits, and exercise both cooperative and bounded non-completing cases
 with safe test-owned teardown. Parent acknowledgment records the answer, not proof
 that the student has read it. This run must not be described as question-free;
 acceptance and teaching sufficiency remain pending submission and review.
+
+
+## Chapter4 student03 independently accepted in bounded offline scope
+
+Student `ch04-reconstruction-03` submitted
+`986fda55e69a0a1d74c73519c2a782e5326fc837`. Join1288 completed, its durable submission
+was read fully, and graceful teardown returned stopped before parent builds.
+All63 read-only admission files match; submitted tree was clean. The exact
+41-file archive and pre/post hashes are in
+`/private/tmp/cadence-ch4-cleanup-independent.tf0ath0r`, with independent-audit.json.
+
+Parent job1355 freshly built and ran Chapters1–4: each100/100 with all9/13/10/9
+checks true. Timing20/5/8/10, metadata41/48/4/7, observations23/27/21, receiver10,
+cleanup10, model38 and all four provider cases pass. Candidate provider exits
+are0/1/0/1 as intended. Independent job1364 separately built and ran the student's
+30 focused checks and eight-check external consumer; exit0. Actual JSON counts,
+checks and post-run source hashes were inspected, not inferred from exit alone.
+
+Review covered all new Job ownership/dispatch/observation/PTY implementations,
+Agent loop/destruction/result conversion, root cleanup, History, custom Tool
+registration and receiver execution, changed Common/codec/reducer/builtin/CLI
+paths, new tests/consumer, inherited-test changes, complete README and report.
+No remaining blocker was established in the assigned early serial scope. Recording
+and cancellation failures are retained independently; cleanup still joins and
+continues siblings. Managed grace expiry is explicit incomplete work, with safe
+retained token lifetime and late-output refusal; PTY kill/drain is separate.
+The public cleanup barrier passes on the real submitted code, not a parent patch.
+
+One policy clarification was provided and acknowledged: bounded managed grace is
+allowed, with no chapter-mandated duration. No implementation or grader changes
+were supplied to this student. This is accepted reconstruction with that recorded
+assistance, not an unassisted claim. Unlike the earlier omissions, the question
+clarified an existing documented limit rather than requiring another substantive
+teaching change. A minor README nit remains: its initial heading says Chapter3,
+while later sections accurately describe Chapters3–4. The frozen candidate was
+not edited to hide it.
+
+Acceptance is only for the assigned offline reconstruction and repaired Chapter4
+scope. No live provider, universal concurrency/cleanup/crash/portability, GUI,
+MCP structured-result, work-product authority or full-book certification follows.
+Earlier withheld candidates remain withheld. No automatic adoption, frozen
+endpoint edit, installation or restart occurred. Six other chapter gates remain
+open; the next task is Chapter7 prerequisite and public-acceptance auditing.
