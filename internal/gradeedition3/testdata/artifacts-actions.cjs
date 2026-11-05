@@ -48,8 +48,31 @@ assert(!['8088', '8089', '8090'].includes(new URL(base).port));
           fact.milliseconds + ' ms; not background Job runtime', 'exact observation duration remains inspectable');
       }
     }
-    // Replace only the browser clipboard boundary, never renderer or protocol state.
+    // Replace only browser clipboard and speech boundaries, never renderer or protocol state.
     await page.addInitScript(() => {
+      class Utterance { constructor(text) { this.text = text; } }
+      const speech = {
+        speaking: false, pending: false, current: null, utterances: [], cancellations: 0,
+        getVoices() { return []; }, addEventListener() {},
+        speak(item) {
+          if (!item.text) return; // Chrome's silent activation is not narration.
+          this.utterances.push(item.text); this.current = item; this.speaking = true;
+        },
+        cancel() { this.cancellations++; this.current = null; this.speaking = false; },
+        finish() {
+          const item = this.current; this.current = null; this.speaking = false;
+          item?.onend?.();
+        },
+        drain() {
+          for (let count = 0; this.current; count++) {
+            if (count >= 1000) throw new Error('Synthetic speech queue did not drain');
+            this.finish();
+          }
+        }
+      };
+      Object.defineProperty(window, 'speechSynthesis', {value: speech});
+      Object.defineProperty(window, 'SpeechSynthesisUtterance', {value: Utterance});
+      window.gradeSpeech = speech;
       window.gradeClipboard = {writes: [], denied: false};
       Object.defineProperty(navigator, 'clipboard', {configurable: true, value: {
         writeText: async text => {
@@ -213,6 +236,33 @@ assert(!['8088', '8089', '8090'].includes(new URL(base).port));
     assert.equal(afterCopy.requests, 3, 'copy does not send a model request');
     assert.equal(afterCopy.executions, 1, 'copy does not execute tools');
     await page.locator('#prompt').fill('');
+    await page.locator('.pane-tab[data-pane="tools"]').click();
+    assert.deepEqual(await page.evaluate(() => window.gradeSpeech.utterances), [],
+      'ordinary rendering and copying do not start speech with narration off');
+    await terminal.locator('[data-action="speak"]').click();
+    const baselineSpeech = await page.evaluate(() => {
+      window.gradeSpeech.drain(); return [...window.gradeSpeech.utterances];
+    });
+    assert(baselineSpeech.length > 0, 'manual speaker actually reaches browser speech engine');
+    await page.evaluate(() => { window.gradeSpeech.utterances = []; });
+    await terminal.locator('[data-action="speak"]').click();
+    const activeSpeech = await page.evaluate(() => ({
+      text: window.gradeSpeech.current?.text, cancellations: window.gradeSpeech.cancellations
+    }));
+    assert(activeSpeech.text, 'speech is active during reader operations');
+    await terminal.getByRole('button', {name: 'View call', exact: true}).click();
+    await page.locator('[data-kind="tool_call"]:focus').getByRole('button',
+      {name: 'View latest result', exact: true}).click();
+    await page.getByRole('button', {name: 'Chat', exact: true}).click();
+    await page.evaluate(() => { window.gradeClipboard.denied = false; });
+    await snippets.nth(0).locator('[data-action="copy-code"]').click();
+    assert.deepEqual(await page.evaluate(() => ({
+      text: window.gradeSpeech.current?.text, cancellations: window.gradeSpeech.cancellations
+    })), activeSpeech, 'copy and pair navigation do not cancel or replace active speech');
+    const afterSpeech = await page.evaluate(() => {
+      window.gradeSpeech.drain(); return [...window.gradeSpeech.utterances];
+    });
+    assert.deepEqual(afterSpeech, baselineSpeech, 'copy and pair navigation do not duplicate queued speech');
     await page.reload();
     await page.locator('.pane-tab[data-pane="tools"]').click();
     await page.locator(`[data-part-id="${callID}"]`).waitFor();
@@ -365,7 +415,7 @@ assert(!['8088', '8089', '8090'].includes(new URL(base).port));
     assert.deepEqual(errors, []);
     console.log(JSON.stringify({contract:'artifact-actions-v1', passed:true, checks:[
       'real-running-observation', 'call-result-navigation', 'historical-running-preserved',
-      'terminal-pathname-not-grant', 'replay-no-execution', 'focused-expanded-reader-preserved', 'canonical-recorded-time-and-duration', 'timing-survives-replay', 'legacy-unknown-and-zero-browser', 'provider-snippets-exact-and-fallback', 'real-streaming-snippet-stability', 'delayed-clipboard-replay-fenced', 'raw-selection-and-scroll-preserved', 'job-output-owner-and-running-guards', 'requested-and-dispatched-batch-states', 'keyboard-touch-and-draft-preserved'
+      'terminal-pathname-not-grant', 'replay-no-execution', 'focused-expanded-reader-preserved', 'canonical-recorded-time-and-duration', 'timing-survives-replay', 'legacy-unknown-and-zero-browser', 'provider-snippets-exact-and-fallback', 'real-streaming-snippet-stability', 'delayed-clipboard-replay-fenced', 'raw-selection-and-scroll-preserved', 'job-output-owner-and-running-guards', 'requested-and-dispatched-batch-states', 'keyboard-touch-and-draft-preserved', 'speech-copy-and-pair-noninterference'
     ]}));
   } finally { await browser.close(); }
 })().catch(error => { console.error(error.stack); process.exitCode = 1; });

@@ -998,3 +998,30 @@ Complete two-file grader diff reviewed; whitespace checks pass. No production or
 installed application changed. Touch is browser automation, not phone usability
 acceptance. Speech duplication remains open before the interaction row earns
 points; the reviewed snippet row remains20points when the complete probe passes.
+
+### Public speech noninterference boundary
+
+The Actions driver now substitutes the browser speech engine, alongside its
+clipboard boundary. It invokes the visible speaker on a real terminal result,
+drains the synthetic engine through native-style completion callbacks, and
+requires a nonempty baseline. A second playback stays active while the reader
+navigates to the call and back and copies a snippet. These operations preserve
+the active utterance and cancellation count. Draining afterward must produce
+exactly the baseline utterance list, including any queued phrases. Ordinary
+rendering and copying with narration off must produce no utterances.
+
+Job 298 passed both Go packages and all five external probes against the good
+candidate. Job 300 built an isolated GUI whose Copy handler wrongly queues the
+active phrase again. It failed specifically at `copy and pair navigation do not
+duplicate queued speech`; the other four probes passed and the Actions host
+reported `STOPPED` without joined-shutdown failure. Evidence is retained at
+`/private/tmp/cadence-speech-copy-mutant.rbN3NM`, including build log and report.
+The final source differs from the tested source only in a boundary-description
+comment. The complete grader diff was reviewed and whitespace checks passed.
+
+This checks manual playback noninterference, not audible device quality or every
+automatic narration path. Looking only at current speech would miss a queued
+duplicate; completion callbacks expose the entire tested queue without reading
+application internals. The report still awards only the reviewed snippet row:
+20/100 with four rows ungraded on a good run. No runtime or installed application
+changed. Automatic narration and the remaining row reviews stay explicit work.
