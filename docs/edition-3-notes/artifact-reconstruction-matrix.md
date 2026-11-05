@@ -1335,3 +1335,38 @@ browser answer was exported. Remaining audit: JSON codec/media serialization,
 Engine parsing/rendering/streaming, Tool implementation, CLI/examples and
 prerequisite tests; then an isolated export, bounded compatibility repairs and
 focused verification. No Chapter7 student is ready for admission yet.
+
+### Serializer, Engine and Tool audit completed
+
+The remaining JSON/media serializers, all five Engine files and both Tool files
+are now fully read. Together with prior bounded reads this completes the preserved
+core implementation inspection; CLI, examples and prerequisite tests remain open.
+No candidate export, build, student admission or frozen-source edit occurred.
+
+The canonical Event codec includes Job snapshots, but the standalone ToolResultPart
+codec omits them. Carry-forward must cover both, alongside typed offer descriptions
+and timing. Missing canonical usage fields also default to zero in the old codec;
+legacy absence needs checking against the accepted unknown-accounting contract.
+Do not infer nested-part fidelity from an event-only round trip.
+
+OpenAI's plain parser indexes choices[0] without a nonempty guard and does not
+normalize IndexOutOfRangeException. Gemini already checks for an empty candidate
+array. Preserve the accepted provider-envelope failure contract without falsely
+claiming both branches have the same defect or that a new behavioral probe ran.
+The renderer correlates call occurrences but groups results in call order; accepted
+result-arrival ordering is another focused carry-forward obligation. Its provider
+projections are explicit, so retained internal metadata need not enter requests.
+
+Transport consumes frozen request bytes; SSE assembly emits transient chunks and
+only returns finalized immutable facts after its completion checks. Keep that
+Chapter6 machinery and its parser IDs, not an earlier serial Engine or a completed
+Chapter7 display implementation. The Tool read implementation already retains full
+output absent an explicit cap, while its declaration still describes the old32768
+implicit cap; reconcile that wording in the isolated prerequisite, not the frozen
+endpoint. Other accepted guarantees still require actual regression verification.
+
+Next inspect CLI/examples and their dependencies, prerequisite-test behavior and
+owned helper lifetimes, then export a hash-receipted isolated baseline and implement
+the bounded accepted-foundation carry-forward. Existing historical scores do not
+certify these newly identified compatibility boundaries. No live provider, GUI,
+installation, restart, publication or artifact-point change is claimed.
