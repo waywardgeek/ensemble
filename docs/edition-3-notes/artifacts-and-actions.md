@@ -834,3 +834,31 @@ Inspection metadata belongs to recorded facts without automatically becoming
 model input. This check certifies the named protocol fields on the exercised
 route, not absence of every conceivable prose encoding. Rubric rows remain
 ungraded while the remaining Actions and interaction cases are reviewed.
+
+### Public raw selection and reader scroll
+
+The Actions browser now selects actual raw running-result text with a DOM Range,
+while retaining the focused summary and expanded detail. In a 390-by-480 viewport,
+it requires real scroll overflow, scrolls to the current bottom, and allows two
+animation frames before measuring. After the real terminal observation arrives,
+the selected text and prior scroll position must remain unchanged even though the
+transcript has grown. The viewport is restored for subsequent checks. The runner
+requires the new `raw-selection-and-scroll-preserved` receipt.
+
+Initial run 246 failed scroll preservation; diagnostic run 247 instead exposed
+that the larger viewport could have no overflow. The smaller settled viewport
+passes runs 249 and 252. This corrects fixture instability; it does not establish
+the exact cause of the first scroll movement. Run 252 passes both Go packages and
+all five external probes. No runtime change was made.
+
+Isolated GUI mutant 251 always follows new output. It builds successfully and
+fails the intended scroll assertion: the pane moves from 341 to 1041 pixels while
+the selected raw text remains intact. Other probes pass and the Actions host
+reports STOPPED without a joined-shutdown error. Build and JSON evidence are in
+`/private/tmp/cadence-reader-scroll-mutant.lwrCqC`. The tested good runtime and
+installed applications remain unchanged.
+
+This checks actual selection and scroll with a focused reader, not selection-only
+protection or every browser layout. All rubric rows remain UNGRADED pending row
+review and remaining coverage. The lesson is to require genuine overflow and
+nonempty selection before treating a stationary pane as preservation evidence.

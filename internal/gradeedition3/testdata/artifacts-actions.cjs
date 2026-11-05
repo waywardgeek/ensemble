@@ -80,11 +80,26 @@ assert(!['8088', '8089', '8090'].includes(new URL(base).port));
     await checkRecordedTiming(running, observed);
     const details = page.locator(`[data-part-id="${resultID}"]`).locator(':scope > details');
     const summary = details.locator(':scope > summary');
+    await page.setViewportSize({width: 390, height: 480});
     await summary.click();
     await summary.focus();
     const readerNode = await summary.elementHandle();
     const receivedText = await details.locator('pre').textContent();
     assert(await details.evaluate(node => node.open), 'reader opens actual received payload');
+    const readingPosition = await details.locator('pre').evaluate(async node => {
+      const range = document.createRange();
+      range.selectNodeContents(node);
+      const selection = window.getSelection();
+      selection.removeAllRanges();
+      selection.addRange(range);
+      const pane = document.querySelector('#tool-transcript');
+      pane.scrollTop = pane.scrollHeight;
+      await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+      return {text: selection.toString(), top: pane.scrollTop,
+        overflow: pane.scrollHeight - pane.clientHeight};
+    });
+    assert(readingPosition.text.length > 0, 'reader selects actual raw result text');
+    assert(readingPosition.overflow > 0, 'reader fixture has genuine scroll overflow');
     await page.request.post(origin + '/grade/release-action');
     const completed = await statusUntil(state => state.requests === 3 && state.done === 1);
     assert.equal(completed.executions, 1);
@@ -98,7 +113,20 @@ assert(!['8088', '8089', '8090'].includes(new URL(base).port));
     assert(await details.evaluate(node => node.open), 'later-observation preserves expanded payload');
     assert.equal(await details.locator('pre').textContent(), receivedText,
       'later-observation preserves complete original payload');
+    const afterReading = await page.locator('#tool-transcript').evaluate(pane => ({
+      text: window.getSelection().toString(), top: pane.scrollTop,
+      overflow: pane.scrollHeight - pane.clientHeight
+    }));
+    assert.equal(afterReading.text, readingPosition.text,
+      'later-observation preserves actual raw text selection');
+    assert(afterReading.overflow > readingPosition.overflow,
+      'new observations extend the scrollable transcript');
+    assert(Math.abs(afterReading.top - readingPosition.top) <= 1,
+      'later-observation preserves reader scroll instead of following output: ' +
+      JSON.stringify({before: readingPosition, after: afterReading}));
+    await page.evaluate(() => window.getSelection().removeAllRanges());
     await readerNode.dispose();
+    await page.setViewportSize({width: 390, height: 844});
     assert.deepEqual(completed.observations[0], observed, 'later completion does not rewrite recorded timing');
     await checkRecordedTiming(oldResult, observed);
     await checkRecordedTiming(terminal, completed.observations[1]);
@@ -267,7 +295,7 @@ assert(!['8088', '8089', '8090'].includes(new URL(base).port));
     assert.deepEqual(errors, []);
     console.log(JSON.stringify({contract:'artifact-actions-v1', passed:true, checks:[
       'real-running-observation', 'call-result-navigation', 'historical-running-preserved',
-      'terminal-pathname-not-grant', 'replay-no-execution', 'focused-expanded-reader-preserved', 'canonical-recorded-time-and-duration', 'timing-survives-replay', 'legacy-unknown-and-zero-browser', 'provider-snippets-exact-and-fallback', 'real-streaming-snippet-stability', 'delayed-clipboard-replay-fenced'
+      'terminal-pathname-not-grant', 'replay-no-execution', 'focused-expanded-reader-preserved', 'canonical-recorded-time-and-duration', 'timing-survives-replay', 'legacy-unknown-and-zero-browser', 'provider-snippets-exact-and-fallback', 'real-streaming-snippet-stability', 'delayed-clipboard-replay-fenced', 'raw-selection-and-scroll-preserved'
     ]}));
   } finally { await browser.close(); }
 })().catch(error => { console.error(error.stack); process.exitCode = 1; });
