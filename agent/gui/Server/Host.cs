@@ -104,7 +104,9 @@ public static partial class Gui
         // Operation-scoped I/O state. The Agent remains owned by its Ensemble.
         // Queues and socket lifetimes end when ServeAsync ends; no socket is ever
         // stored on Agent or used to decide whether a model turn is complete.
-        static string AddressOf(Agent target) => target.Address() ?? "";
+        string AddressOf(Agent target) => target.Address()
+            ?? (ReferenceEquals(target, agent) ? ""
+                : throw new ObjectDisposedException(nameof(target), "Selected Agent no longer has a live address."));
         object gate = new();
         // Serialize memory read/patch/save/apply across tabs without holding
         // the projection lock while the actor joins an invalidated compressor.
@@ -206,7 +208,10 @@ public static partial class Gui
                 // These are server-created addresses, captured while enqueueing.
                 // Later display selection cannot reattribute an older frame.
                 string? address = frame["agent_id"]?.GetValue<string>();
-                Agent? owner = address is null ? null : agent.Parent().FindAgentAddress(address);
+                // Empty is this mount's original unnamed Agent, not a global
+                // address. A removed selection must never borrow this alias.
+                Agent? owner = address is null ? null
+                    : address.Length == 0 ? agent : agent.Parent().FindAgentAddress(address);
                 Trace(owner, "<queued", json);
             }
             return true;

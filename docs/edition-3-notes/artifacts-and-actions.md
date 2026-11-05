@@ -1,3 +1,52 @@
+## Independent browser consumer and discovered identity defect
+
+The public grader's work-product browser driver now uses only the public page,
+HTTP routes and grader-owned inspection endpoints. It never calls page internals
+or injects tool frames. A loopback provider requests real write_file and
+offer_work_product calls, checks the actual randomized file bytes and recorded
+result before each next request, and finishes after exactly three requests. The
+browser changes the file through the isolated grader host, verifies the downloaded
+hash and filename, checks click-only transfer, HTTP guarding and replacement expiry.
+This is a partial contract receipt, not the complete artifact rubric or points.
+
+Two fixture errors were corrected: GUI settings initially lived outside the
+viewer Sandbox, which correctly refused startup; the driver initially selected
+an always-hidden compatibility select rather than the visible Agent tree. The
+latter run issued zero model requests. Cleanup now attempts host and Agent teardown
+even when serving faults. Neither failure was counted against candidate behavior.
+
+The next run passed the browser assertions but exposed a real GUI observer fault
+on replacing the selected Agent. AddressOf converted a destroyed Agent's missing
+address to the empty mount-local alias, and queued diagnostics passed that empty
+value to the global address parser. Evidence:
+`/private/tmp/cadence-artifact-browser.eaKNxN/host.log`. The repair reserves the
+empty alias for the actual mounted source, treats address loss by another selected
+Agent as disposal, and resolves valid empty aliases directly to the source for
+tracing. Chapter7 teaches the distinction at the construction point.
+
+The repaired candidate passes named and unnamed viewer modes with clean joined
+exit in `/private/tmp/cadence-artifact-public.w1jTM8`. Each result records three
+provider requests, two tool returns and one successful offer; real changed-file
+hash checks pass. Diagnostic routing and five existing public GUI groups pass
+job24. No full runtime rerun or universal GUI-race claim is implied. This fix is
+source-only; Bill's running main instance was not rebuilt or restarted by Cadence.
+
+## Live usability report and public-grader work
+
+Bill reports rebuilding and restarting the main instance himself. A fresh
+list_directory call was then issued, and Bill said it seemed to work. This is
+live acceptance of that fresh call/result presentation, not independent installed
+binary identity verification or acceptance of snippet copying and downloads.
+Cadence made no installation or restart for this check.
+
+The public artifact grader is now under construction. Its first grader-owned
+outside-assembly consumer is in internal/gradeedition3/testdata/artifacts-consumer.
+It references candidate assemblies, creates independent randomized files and
+skills, and uses public APIs. It does not invoke candidate test suites. This
+initial contract receipt awards no chapter points; HTTP/browser and the other
+rubric rows still need independent drivers and sensitivity checks. The named
+CLI scope remains unavailable until its driver and argument contract are tested.
+
 ## Work products: integrated source candidate
 
 Bill approved explicit granted offers, human-click transfer without a second

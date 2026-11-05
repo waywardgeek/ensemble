@@ -153,6 +153,19 @@ text; replay reconstructs the same card, not a duplicate. Repeated final frames
 are idempotent. The server and browser both reject resurrection of completed
 content by stale chunks.
 
+### Keep the mount-local identity distinct
+
+An empty `agent_id` can identify the original unnamed Agent borrowed by a GUI
+mount. It is not a global address and must resolve directly to that actual
+mounted object. Other selections need a live qualified address. When a selected
+Agent is destroyed and loses its address, stop its observer instead of converting
+it into the empty alias. Queue tracing must follow the same distinction.
+
+Test the full lifecycle with a named selection replaced under the same name,
+and repeat with an unnamed mounted source. A successful interaction followed by
+a faulted observer during joined shutdown is a failed test, even if the browser
+already received its answer or downloaded its file.
+
 ## 7.4 Truthful tool cards
 
 There are three distinct claims:
