@@ -640,3 +640,29 @@ only the same three em dashes on unchanged lines; whitespace checks pass.
 Next admission must rebuild the supplied public grader binary from this repair
 and use the same accepted Chapter2 prerequisite, not the assisted Chapter3
 candidate. The repaired teaching still needs its fresh reconstruction retest.
+
+## Fresh Chapter3 repaired-teaching retest admitted
+
+A fresh student, `ch03-reconstruction-02`, is admitted in
+`/private/tmp/cadence-ch3-retest-prep.RXR21y/bundle`. The70-file admission receipt
+is outside the writable bundle, in `evidence/bundle-receipt.json`. All26 source
+hashes match the independently accepted Chapter2 prerequisite
+`97c3a5ad3461c320cf18df8b6372b4e3dc765208`; the independent solution repository has
+one baseline commit, `f7cb4e9d8474c77318de85e71ae209df59864e70`, and no remote.
+No assisted Chapter3 source, previous student report, or parent history is supplied.
+
+Current Chapters1–3 include the explicit single-part codec signatures and
+schema-form distinction. Both public grader binaries were rebuilt offline from
+`e6904b27`; allowlisted public references include the new schema regression.
+Verified unchanged scripts and supplements were copied, with the new absolute
+assignment path. The complete assignment was reviewed, script syntax passed,
+and rebuilt grader/Python entry points and Go toolchain ran in the clean
+environment. Prior accepted prerequisite and unchanged-script build health are
+reused evidence, not a newly run baseline chapter grade. Disk was above the1GiB
+reserve at admission, which the student must preserve before further builds.
+
+Questions and public graders remain available throughout. Only solution, run
+outputs and the final report are writable; offline resource and no-later-API
+boundaries remain explicit. Admission is not completion or acceptance. Cadence
+must collect explicit submission, independently grade the exact candidate,
+review ownership/readability and join teardown. No automatic adoption is allowed.
