@@ -598,3 +598,23 @@ four pre-existing em-dash lines verified identical to HEAD. All five rubric rows
 remain ungraded with zero points. Requested/dispatched transitions, additional
 Actions interaction and negative candidates, snippets and timing public coverage,
 chapter reconstruction and human acceptance remain separate unfinished gates.
+
+### Public Actions sensitivity checks
+
+The public Actions driver now locates the actual first result before asserting
+its recorded running label. A label-based locator would turn a wrong label into
+a timeout instead of identifying the violated observation contract.
+
+Two isolated GUI candidates built successfully from commit9a944dfd. Changing the
+running label to finished failed `real-running-observation must display running,
+not finished`. Focusing the source card instead of its counterpart failed
+`View call focuses a real call card`. The three work-product probes passed in
+both runs; each Actions host reported STOPPED without a joined-shutdown error.
+Evidence: `/private/tmp/cadence-actions-mutants.pp1uvZ`, including build logs and
+JSON reports. The good runtime was unchanged. Both Go packages passed with the
+external candidate enabled after the assertion change (job156).
+
+These checks establish sensitivity for the exercised running label and real pair
+navigation. Requested/dispatched transitions, broader interaction behavior,
+snippet and timing public drivers remain open. All five rows remain UNGRADED;
+there is no new chapter score, student acceptance, installation or restart.

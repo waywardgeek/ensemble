@@ -30,8 +30,10 @@ assert(!['8088', '8089', '8090'].includes(new URL(base).port));
     await page.locator('#send').click();
     await statusUntil(state => state.entered && state.running === 1);
     await page.locator('.pane-tab[data-pane="tools"]').click();
-    const running = page.locator('[data-kind="tool_result"]').filter({has: page.locator('.job-state', {hasText: 'state when observed: running'})});
+    const running = page.locator('[data-kind="tool_result"]');
     await running.waitFor();
+    assert((await running.locator('.job-state').innerText()).includes('state when observed: running'),
+      'real-running-observation must display running, not finished');
     assert.equal(await running.locator('.tool-state:not(.job-state)').innerText(), 'Result returned', 'returned observation is not completed work');
     const resultID = await running.getAttribute('data-part-id');
     await running.getByRole('button', {name: 'View call', exact: true}).click();
