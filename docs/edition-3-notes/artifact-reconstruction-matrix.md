@@ -270,3 +270,46 @@ student's hashed teaching bundle remains unchanged. This assisted reconstruction
 cannot certify a fresh unassisted reading of the repaired paragraph; the revised
 teaching needs a fresh bounded student retest after this run's independent review.
 The active task485 and join492 remain owned; no second student was launched.
+
+## First student submission and independent refusal
+
+Student ch02-reconstruction-01 explicitly submitted solution commit
+`c6630368bef374382a17d02d49e4ebf8d698b236`. Join492 completed; the saved submission
+was read and graceful child shutdown completed before independent verification.
+No second student or automatic adoption followed. All30 non-solution bundle
+hashes match admission, and the submitted solution worktree is clean.
+
+Independent archive and pre-build source receipt are in
+`/private/tmp/cadence-ch2-independent.D9xtAG`. Fresh parent-owned outputs build
+cleanly. Both public grades independently report100/100 and passed:true, including
+Chapter1's lifetime checks. All timing supplement modes pass their named checks
+(default20, writer5, reader8, render10). The student's own12 test groups and
+construction-only stub also build/run successfully. This is offline evidence,
+not the unperformed live human exercise. Assistance remains recorded above.
+
+Independent review nevertheless found an acceptance blocker. OpenAI choices:[]
+and Gemini candidates:[] under HTTP200 reach unchecked element-zero indexing.
+The external public Engine.Parse probe compiled cleanly and both cases threw
+IndexOutOfRangeException instead of returning an error fact. A second test used
+real CLI subprocesses and owned loopback HTTP servers: both processes aborted
+(returncode -6), and each saved log contains only message_received/request_sent,
+with no error_occurred. Both servers were shut down and joined. Exact evidence is
+review-empty-candidates.json and review-empty-candidates-cli.json, with per-case
+synthetic logs/stdout/stderr. The probe's own exit0 means it collected both
+failures, not that either candidate behavior passed.
+
+Runtime ownership, History, codec, provider rendering/parsing, value declarations
+and CLI were reviewed from the frozen archive. Complete add/remove parent links,
+immutable value copies and request-only recovery are present. Dense single-line
+branches and compressed project/test formatting are readability concerns for
+teaching code. The decisive behavioral failure is the missing provider-envelope
+validation; existing tests cover empty text but not empty candidate arrays.
+Some combined reads clipped; relevant source was recovered in bounded reads,
+not treated as inspected merely because a command exited successfully.
+
+Chapter2 acceptance is withheld despite passing assigned public scores. Preserve
+this candidate as a negative fixture; do not silently fix it or claim a grader
+pass waived the failure. Next: explicit original teaching for malformed successful
+responses, public failure-path coverage, positive control and retained failing
+candidate evidence, then a fresh isolated student on repaired teaching. The
+artifact70-point score and pending work-product decision are unchanged.
