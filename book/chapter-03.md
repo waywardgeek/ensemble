@@ -294,6 +294,39 @@ Chapter 26 constructs the owning Agent's live offer collection, the offer tool
 and download integration after the Sandbox and browser boundaries exist. None of
 those live download capabilities is part of this chapter's six-tool exercise.
 
+### The early metadata contract
+
+Add an immutable `WorkProductInfo` value with readonly `ID` and `Name` strings
+and readonly `OfferedBytes` (`long`). Its constructor is
+`WorkProductInfo(string id, string name, long offeredBytes)`. An ID contains
+exactly 32 ASCII hexadecimal characters. A name is a nonblank basename: reject
+control characters, `/`, `\`, `.` and `..`. Offered bytes must be between zero
+and 64 MiB inclusive (64 × 1024 × 1024). These checks validate a description;
+they neither check for a file nor create permission to read one.
+
+Extend `ToolResultPart` and `Event` with a readonly nullable `WorkProduct` field
+and an optional named constructor argument `workProduct`, defaulting to null.
+Keep existing constructor calls valid. In this chapter, only a successful
+`ToolReturned` event may carry that event-level metadata. An error result or
+error event carrying an offer must refuse construction. The six built-in tools
+continue to return null metadata; use synthetic values to test this seam.
+
+The public JSON vocabulary adds `work_product` to a tool-result part and to the
+`tool` object of a returned event. Its value is an object with `id`, `name`, and
+`offered_bytes`. Missing or null metadata reads as null for older logs. Preserve
+all three fields through part/event codecs, `Event.Numbered`, and reduction of
+a returned event into its `ToolResultPart`. A round-trip must not turn a
+pathname in ordinary text into metadata. Result redaction removes the offer
+description with the payload, without mutating the original Context.
+
+Render otherwise identical Contexts with and without this metadata through the
+three Chapter 2 provider routes. Their complete requests must be equal, while
+the ordinary call and result text must still be present. This is retained
+inspection data, not another provider part. Do not add an offer tool, live offer
+collection, Job API, or file-opening operation to implement this value contract.
+The historical CLI grader cannot inspect this library-only seam; its score is
+not evidence that these additional obligations passed.
+
 ## 3.3 Six tools, and three named
 
 | tool | share of corpus | shape |
@@ -761,6 +794,17 @@ library tests and source-review obligations; a CLI-only grader cannot inspect
 an unexposed library configuration. The original student's result remains
 90/100 FAIL, accepted with the inherited media-scope exception and all nine
 new checks passing. Correcting the grader does not rewrite that result.
+
+### Retained-metadata supplemental acceptance
+
+Run the [outside-assembly metadata consumer](../internal/gradeedition3/testdata/ch03-metadata-consumer/README.md)
+against your candidate `Ensemble.dll`, using the existing offline .NET SDK and
+fresh owned output directories. It checks the early contract above without
+requiring Jobs, Sandbox, GUI, or live offers. Keep its named receipt separately
+from the historical 100-point report. Add focused tests and source review that
+show synchronous result recording preserves the optional metadata; the value
+consumer alone does not execute your tool loop. No points are added to the
+historical grader by this supplement.
 
 ### What would still pass if I deleted this?
 

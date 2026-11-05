@@ -418,3 +418,47 @@ withheld; neither candidate is adopted into the main application or frozen endpo
 Artifact scoring stays70/100. No students or parent jobs from this retest remain
 running after collection. Next is Chapter3 teaching/grader/prerequisite admission
 preparation, not automatic launch or use of a completed Chapter3 endpoint.
+
+## Chapter3 early metadata contract and public value supplement
+
+The chapter now specifies the immutable `WorkProductInfo` value, optional result
+and returned-event fields, validation, JSON vocabulary, legacy absence, reduction,
+redaction and provider exclusion at the original construction seam. Jobs remain
+Chapter4 work; live offers and download authority remain Chapter26 work. The six
+Chapter3 tools do not acquire a new offer capability.
+
+The outside-assembly consumer in
+`internal/gradeedition3/testdata/ch03-metadata-consumer` references only the
+candidate core assembly. It uses early value/codec/reduction/render APIs, no
+candidate test assembly, reflection, Jobs, Sandbox, GUI or HTTP. The consumer owns
+the64 MiB limit independently. Its41 checks cover valid/invalid descriptions,
+error refusal, exact codec fields, legacy absent/null values, numbering, retained
+result metadata, redaction without mutation, prose non-authority and whole-request
+independence across the three early provider routes. Ordinary result payload and
+call arguments have distinct random markers so payload presence cannot pass by
+finding the argument instead of the result.
+
+Final clean build and41 checks pass against the existing good core in
+`/private/tmp/cadence-ch3-metadata.raVV0Y`, with `build-final.log`,
+`result-final.json` and `consumer-final-sha256.txt`. A separate compiled core drops
+only reducer forwarding of metadata; final consumer execution rejects it at
+`reduction-preserves-description` after28 prior checks, including codec and
+numbering. Its source/build/result receipts are in
+`/private/tmp/cadence-ch3-metadata-mutant.kwc4pE`. This establishes reducer-loss
+sensitivity, not independent mutation coverage for every check.
+
+The first consumer build failed because it used a nonexistent `Application`
+owner name; inspection corrected it to the actual public `Ensemble` owner with
+diagnostics. That setup failure is retained in
+`/private/tmp/cadence-ch3-metadata.ihNlaB`, not counted as candidate evidence.
+Review also caught a potentially vacuous render-payload guard before final tests:
+using the same marker in arguments and results would not prove results survived.
+The final good and negative executions use the corrected consumer.
+
+No historical grader score changes, runtime edits or student acceptance follow.
+Actual synchronous dispatch propagation, log-process replay and remaining public
+Chapter3 library obligations still need bounded acceptance/review before admission.
+The accepted Chapter2 candidate is eligible prerequisite material, not a completed
+Chapter3 answer. No new student has launched. Chapter3 prose lint still fails only
+on its three unchanged em dashes; the supplement README passes hard checks with
+advisories. Artifact scoring remains70/100.
