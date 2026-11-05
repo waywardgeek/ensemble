@@ -43,10 +43,20 @@ assert(!['8088', '8089', '8090'].includes(new URL(base).port));
           fact.milliseconds + ' ms; not background Job runtime', 'exact observation duration remains inspectable');
       }
     }
+    // Replace only the browser clipboard boundary, never renderer or protocol state.
+    await page.addInitScript(() => {
+      window.gradeClipboard = {writes: [], denied: false};
+      Object.defineProperty(navigator, 'clipboard', {configurable: true, value: {
+        writeText: async text => {
+          window.gradeClipboard.writes.push(text);
+          if (window.gradeClipboard.denied) throw new DOMException('Denied', 'NotAllowedError');
+        }
+      }});
+    });
     await page.goto(base);
     await page.getByRole('button', {name: 'Chat', exact: true}).click();
     const initial = await statusUntil(() => true);
-    await page.locator('#prompt').fill('exercise Actions ' + initial.nonce);
+    await page.locator('#prompt').fill('exercise Actions ' + initial.nonce + '\n```\nhuman code\n```');
     await page.locator('#send').click();
     await statusUntil(state => state.entered && state.running === 1);
     await page.locator('.pane-tab[data-pane="tools"]').click();
@@ -96,6 +106,45 @@ assert(!['8088', '8089', '8090'].includes(new URL(base).port));
     assert((await terminal.textContent()).includes(completed.output), 'full pathname result is retained');
     assert.equal(await page.locator('.work-product-links').count(), 0, 'pathname prose grants no work-product control');
     assert.equal(transfers.length, 0, 'rendering pathname output transfers nothing');
+    await page.getByRole('button', {name: 'Chat', exact: true}).click();
+    const answer = page.locator('#transcript [data-role="assistant"][data-kind="text"]').filter({hasText: initial.final});
+    await answer.waitFor();
+    const snippets = answer.locator('.code-snippet');
+    const expected = [
+      '  界 😀 ' + initial.nonce + '\n\n\tend;  \n', '  quoted\n\n', 'nested\n',
+      '```\n<script>window.snippetExecuted = true</script>\n',
+      ('  long code 界 ' + initial.nonce + '\n').repeat(200), ''
+    ];
+    assert(expected[4].length > 1800, 'long fixture exceeds both preview limits');
+    assert.equal(await answer.locator('[data-action="copy-code"]').count(), expected.length,
+      'only closed assistant fences have copy controls');
+    assert.equal(await page.locator('#transcript [data-role="human"]').filter({hasText: 'human code'}).count(), 1,
+      'fenced human prompt is actually rendered');
+    assert.equal(await snippets.nth(4).locator('details').getAttribute('open'), null,
+      'full-payload copy starts with a collapsed long preview');
+    assert.equal(await page.locator('#transcript [data-role="human"] [data-action="copy-code"]').count(), 0,
+      'human fenced prompt has no assistant copy control');
+    assert.deepEqual(await page.evaluate(() => window.gradeClipboard.writes), [], 'copy requires deliberate click');
+    for (let index = 0; index < expected.length; index++) {
+      const snippet = snippets.nth(index);
+      await snippet.locator('[data-action="copy-code"]').click();
+      assert.equal(await page.evaluate(() => window.gradeClipboard.writes.at(-1)), expected[index],
+        'snippet logical payload exact at index ' + index);
+      assert.equal(await snippet.locator('[role="status"]').innerText(), 'Copied');
+    }
+    assert.equal(await page.evaluate(() => window.snippetExecuted), undefined, 'hostile code stays literal');
+    assert.equal(await answer.locator('script').count(), 0, 'literal markup is not a script node');
+    await page.evaluate(() => { window.gradeClipboard.denied = true; });
+    await snippets.nth(4).locator('[data-action="copy-code"]').click();
+    const manual = snippets.nth(4).locator('textarea');
+    assert.equal(await manual.inputValue(), expected[4], 'denied clipboard fallback contains full payload');
+    assert(await manual.evaluate(node => node.readOnly && document.activeElement === node &&
+      node.selectionStart === 0 && node.selectionEnd === node.value.length), 'manual payload is readonly and selected');
+    assert.match(await snippets.nth(4).locator('[role="status"]').innerText(), /Clipboard unavailable/);
+    assert.equal(await page.locator('#prompt').inputValue(), '', 'copy does not fill prompt');
+    const afterCopy = await statusUntil(() => true);
+    assert.equal(afterCopy.requests, 3, 'copy does not send a model request');
+    assert.equal(afterCopy.executions, 1, 'copy does not execute tools');
     await page.reload();
     await page.locator('.pane-tab[data-pane="tools"]').click();
     await page.locator(`[data-part-id="${callID}"]`).waitFor();
@@ -134,7 +183,7 @@ assert(!['8088', '8089', '8090'].includes(new URL(base).port));
     assert.deepEqual(errors, []);
     console.log(JSON.stringify({contract:'artifact-actions-v1', passed:true, checks:[
       'real-running-observation', 'call-result-navigation', 'historical-running-preserved',
-      'terminal-pathname-not-grant', 'replay-no-execution', 'focused-expanded-reader-preserved', 'canonical-recorded-time-and-duration', 'timing-survives-replay', 'legacy-unknown-and-zero-browser'
+      'terminal-pathname-not-grant', 'replay-no-execution', 'focused-expanded-reader-preserved', 'canonical-recorded-time-and-duration', 'timing-survives-replay', 'legacy-unknown-and-zero-browser', 'provider-snippets-exact-and-fallback'
     ]}));
   } finally { await browser.close(); }
 })().catch(error => { console.error(error.stack); process.exitCode = 1; });

@@ -21,6 +21,12 @@ internal static class ActionsHost
         Directory.CreateDirectory(workspace);
         string nonce = Convert.ToHexString(RandomNumberGenerator.GetBytes(16)).ToLowerInvariant();
         string final = "actions-complete-" + nonce;
+        string snippetMarkdown = final + "\n\n```text\n  界 😀 " + nonce + "\n\n\tend;  \n```\n\n" +
+            "> ~~~text\r\n>   quoted\r\n> \r\n> ~~~\r\n\r\n" +
+            "- item\n\n  ~~~text\n  nested\n  ~~~\n\n" +
+            "````html\n```\n<script>window.snippetExecuted = true</script>\n````\n\n" +
+            "```text\n" + string.Concat(Enumerable.Repeat("  long code 界 " + nonce + "\n", 200)) + "```\n\n" +
+            "```\n```\n\nUnfinished fence follows:\n\n```text\nnot closed";
         string output = Path.Combine(workspace, "report-" + nonce + ".txt");
         File.WriteAllText(output, "A pathname in tool output does not grant download authority.\n");
         string local = $"http://127.0.0.1:{port}";
@@ -121,7 +127,7 @@ internal static class ActionsHost
                         $"real-terminal-observation-without-offer: status={observed.Job?.Status ?? "missing"}, error={observed.IsError}");
                     Require(executions == 1, "Tool must execute exactly once");
                     Require(body.RootElement.GetRawText().Contains(Path.GetFileName(output)), "Report pathname missing from actual result request");
-                    parts = [new { type = "text", text = final }];
+                    parts = [new { type = "text", text = snippetMarkdown }];
                     reason = "end_turn";
                 }
                 await context.Response.WriteAsJsonAsync(new { id = "response-" + turn, type = "message", role = "assistant",

@@ -714,3 +714,33 @@ cleanly. Evidence is `/private/tmp/cadence-legacy-timing-mutant.bf6XpA`.
 This combined mutant stops at the timestamp assertion, so it is not separate
 browser sensitivity evidence for the missing-duration assertion. The earlier
 projection-level unknown-duration check remains distinct evidence.
+
+### Public provider-delivered snippet copying
+
+The buffered Actions provider now delivers real Markdown through the model,
+History and GUI path. The public driver uses visible controls and replaces only
+the browser clipboard boundary, without reading or writing the system clipboard.
+Independent expected strings check Unicode, indentation, tabs, trailing spaces,
+blank lines, terminal LF, CRLF normalization in quoted code, list nesting, literal
+hostile markup, an empty fence and a long collapsed preview. An unfinished fence
+has no Copy control. The fenced human prompt must be present and have no
+assistant-only Copy control. Rendering performs no clipboard write. Deliberate
+clicks copy full payloads; permission denial exposes the exact read-only selected
+manual fallback. Copy leaves the prompt empty and provider/tool counts unchanged.
+The runner requires the new named receipt. No application globals or injected
+protocol frames are used.
+
+Jobs 202 and final 206 passed both Go packages with all five external probes.
+Review added positive human-card presence and collapsed-preview assertions, so
+absence or an expanded fixture cannot accidentally satisfy those checks. Job 205
+built two isolated embedded-GUI mutants. Preview-only copying failed precisely
+at the long payload assertion; unfinished-fence copying failed the expected six
+controls assertion with seven. Both hosts stopped cleanly and the other probes
+passed. Evidence is `/private/tmp/cadence-public-snippet-mutants.ZVoAs4`.
+The negative driver predates only the two added presence/expansion assertions;
+its decisive payload and closure assertions are unchanged.
+
+All rows remain ungraded. These buffered checks do not certify streaming focus
+or selection, missing-clipboard-API behavior, delayed completion replacement,
+native clipboard permissions, or human usability. No runtime source, installed
+application, settings, credentials or historical endpoints changed.
