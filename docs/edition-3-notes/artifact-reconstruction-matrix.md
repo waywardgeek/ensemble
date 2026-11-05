@@ -1297,3 +1297,41 @@ and tool-result vocabulary. The remaining core/serializer/Engine/lifecycle/examp
 and prerequisite-test audit is still open, followed by isolated export and focused
 carry-forward verification. No frozen endpoint changes, build, student admission
 or Chapter7 acceptance occurred in this increment.
+
+### Prerequisite lifecycle, values and History audit
+
+The remaining Job/Jobs/PTY source, all Common declarations, Application owners and
+observations, Agent ownership/tool facade, complete History and value constructors
+have now been read in bounded output. No frozen files were changed and no build
+or behavioral acceptance is claimed. Root already continues sibling cleanup; Jobs
+starts child cancellations before joining. Preserve those later ownership and
+scheduler properties rather than replacing them wholesale with the serial
+Chapter4 implementation.
+
+Job kill defers a recording error, but its cancellation call can throw before the
+subsequent join; managed shutdown also has an unbounded wait. Carry-forward must
+retain the accepted cancellation-error cleanup and truthful managed-work limit,
+while keeping PTY termination/draining separate. This is source inspection of the
+candidate prerequisite, not a newly reproduced defect in an installed application.
+The PTY pump works on bytes and normalizes CRLF across reads; do not lose that
+property while retaining accepted cleanup semantics.
+
+History reconstructs Entries and result Parts in normal reduction and every
+redaction mode. Those sites need accepted timestamp/duration preservation and
+proper removal of offer descriptions with redacted result payloads. Event permits
+missing Usage; ResponseEnded reduction currently substitutes known-zero Usage.
+That is a concrete compatibility point against the accepted earlier accounting
+contract, to verify during isolated carry-forward rather than silently inherit.
+
+The old History append does not emit the same diagnostic as the early Chapter4
+student implementation. Therefore its cleanup test cannot blindly rely on that
+implementation-specific diagnostic trigger. Exercise an actual public failure
+boundary; do not add production logging solely to activate a grader. Public
+Agent.DispatchAsync also intentionally cancels only the caller's observation,
+unlike the earlier direct serial wait. Tests must preserve that Chapter5 contract.
+
+All inspected core files remain pre-GUI: no completed snapshot/display-ID or
+browser answer was exported. Remaining audit: JSON codec/media serialization,
+Engine parsing/rendering/streaming, Tool implementation, CLI/examples and
+prerequisite tests; then an isolated export, bounded compatibility repairs and
+focused verification. No Chapter7 student is ready for admission yet.
