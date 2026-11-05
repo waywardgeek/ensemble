@@ -455,7 +455,9 @@ are complete. Navigation-only edits do not require a full student exercise.
 Track every substantively changed chapter in a matrix: prerequisite baseline,
 teaching revision, assigned exercises, public grader revision, student result,
 clarifications, rerun evidence and remaining limits. A new capstone pass does not
-automatically certify its revised prerequisite chapters.
+automatically certify its revised prerequisite chapters. The
+[reconstruction matrix](artifact-reconstruction-matrix.md) records the changed
+chapters, candidate starting points and unprepared baseline/acceptance gates.
 
 Cadence owns implementation and teaching. Launch one fresh student at a time,
 with an explicitly assigned isolated worktree, writable scope, resource bounds,

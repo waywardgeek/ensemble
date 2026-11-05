@@ -29,7 +29,8 @@ whole-book execution grade or KDP preview approval.
 with Crossing Over. Gateway, Connections, Agenda, Puffin and their active notes
 have moved to [the Puffin book](../puffin-book/README.md). The prior assembled
 Markdown/PDF/EPUB release artifacts have not been regenerated for this split or
-the closeout chapter placement. Chapters 26 and 27 are development placeholders.
+the closeout chapter placement. Chapter 26 is an integration draft with partial
+public grading; Chapter 27 remains a development placeholder.
 Local-model support and Actions-pane/artifact improvements remain closeout work;
 see the [chapter guide](chapters.md). This is not a claim that the book is finished.
 
@@ -52,7 +53,7 @@ endpoints, archived evidence, or executable grader flags to match the book.
 | 23 | Codex/cache | 24 / `ch24` |
 | 24 | Goals | 27 / `ch27` |
 | 25 | [Voice and Images](chapter-25.md) | External media grader remains `-ch 26`; scopes pass 100/100 with documented limits. |
-| 26 | [Artifacts and Actions](chapter-26.md) | In development; no completed exercise or grade |
+| 26 | [Artifacts and Actions](chapter-26.md) | Integration draft; named artifact grade70/100, work products ungraded; student gates pending |
 | 27 | [Running Local Models](chapter-27.md) | In development; no completed exercise or grade |
 | 28 | Crossover | Active source in `agent/`; no numbered snapshot |
 
