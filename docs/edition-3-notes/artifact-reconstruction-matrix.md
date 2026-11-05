@@ -1405,3 +1405,43 @@ Remaining test-source audit: ActorTests, ToolTests, NamedAgentTests, MediaTests,
 StreamingTests and StreamingActorTests. Then finish helper containment and export
 the hash-receipted pre-GUI baseline. No frozen source, runtime, dependency, student
 admission or historical score changed in this increment.
+
+### Audited pre-GUI export and prerequisite health
+
+The final six test files are fully read: NamedAgentTests100, MediaTests192,
+StreamingTests171, StreamingActorTests178, ActorTests513 and ToolTests382. Root
+README tail, editor configuration and ignore rules were also inspected. Together
+with prior reads this completes the58-file preserved endpoint audit. No completed
+GUI is present. Existing identity/stream barriers and real-effect assertions are
+retained; old invalid-call admission expectations remain pending narrow revision.
+
+Only tracked solutions/ch06 at e3b12078 was exported, without parent history, into
+`/private/tmp/cadence-pre-gui-baseline.rc7ci9s_/source`. The sibling evidence directory
+holds pristine-source.tar and pristine-source-receipt.json: all58 files matched
+Git source bytes before any change. Fresh cleared-source/offline build passed with
+zero warnings/errors. This established export health, not the revised contracts.
+
+Before executing tests, parent changed only isolated test cleanup: fake-server
+cancellation/closure is followed by awaiting its task even if Agent destruction
+fails; the deliberately non-cancelling callback has a finally release. All existing
+behavioral assertions and all non-test source remained unchanged. Full diff review
+preceded the final build and run. The contained suite passed33 cases, zero failures,
+exit0; all59 post-change hashes still match its pre-run receipt. No test was run
+against an installed application or a live provider.
+
+A separate executable compiles the actual test helper source and uses a real
+loopback read with externally held server-finally cleanup. Five checks pass,
+including preserving assertion errors. An independently compiled no-join helper
+variant fails exactly `helper-joins-server-finally` after setup/cancellation pass.
+Both processes finish and the harness releases/joins its server. This is helper
+sensitivity evidence, not candidate-runtime points. Logs and exact receipts are in
+that export's evidence directory; verification-summary.json records the limits.
+
+The isolated source is committed locally as
+`fa6146e593e2cc1286eae1f7e87b1c505156851c`, with no main-repository source or frozen
+endpoint changes. Next implement the bounded revised-foundation carry-forward
+there, beginning with values/codecs/reduction, then admission and immutable
+mailbox observations, receiver and cleanup guarantees. Preserve Chapter5/6
+scheduling and streaming; keep Chapter7 GUI/snapshot/display answers absent.
+The export is not yet an approved student baseline, no historical chapter grader
+was run this increment, and no student has been admitted.
