@@ -282,13 +282,17 @@ ID, display filename and size when offered accompany a successful result. A path
 or URL-looking string in ordinary prose cannot create that metadata or authorize
 a download. Error results cannot advertise a successful offer.
 
-Preserve the typed value when a Job returns its completed structured result and
-when one-shot observation notices wrap that result. A running report has no
-completed offer yet. Provider rendering consumes the ordinary description, not
-the opaque download identifier. Retained metadata is a description, not restored
-live authority; the owning Agent's live collection decides availability. The
-actual offer tool and download integration are constructed in Chapter 26 after
-the Sandbox and browser boundaries exist.
+At this chapter's synchronous boundary, preserve typed result metadata when
+recording a returned result and projecting it into retained Context. Do not add
+Jobs or background observation to satisfy this section. Chapter 4 extends the
+same preservation rule to completed structured Job results and one-shot
+observation notices; a running report has no completed offer yet.
+
+Provider rendering consumes the ordinary description, not the opaque download
+identifier. Retained metadata is a description, not restored live authority.
+Chapter 26 constructs the owning Agent's live offer collection, the offer tool
+and download integration after the Sandbox and browser boundaries exist. None of
+those live download capabilities is part of this chapter's six-tool exercise.
 
 ## 3.3 Six tools, and three named
 
