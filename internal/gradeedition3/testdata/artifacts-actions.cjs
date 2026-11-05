@@ -108,10 +108,33 @@ assert(!['8088', '8089', '8090'].includes(new URL(base).port));
     await checkRecordedTiming(page.locator(`[data-part-id="${resultID}"]`), observed);
     await checkRecordedTiming(page.locator('[data-kind="tool_result"]').filter({has:
       page.locator('.job-state', {hasText: 'state when observed: finished'})}), completed.observations[1]);
+    await page.locator('.pane-tab[data-pane="agents"]').click();
+    await page.locator('#agent-tree [data-agent="legacy-timing"]').click();
+    await page.locator('.pane-tab[data-pane="tools"]').click();
+    async function checkLegacyTiming() {
+      const unknown = page.locator('[data-kind="tool_result"]').filter({hasText: 'legacy-unknown-' + initial.nonce});
+      const zero = page.locator('[data-kind="tool_result"]').filter({hasText: 'legacy-zero-' + initial.nonce});
+      await unknown.waitFor();
+      await zero.waitFor();
+      assert.equal(await unknown.locator(':scope > time.recorded-time').count(), 0,
+        'legacy browser must not invent recorded time');
+      assert.equal(await unknown.locator(':scope > .observation-duration').count(), 0,
+        'legacy browser must not invent zero duration');
+      await checkRecordedTiming(zero, {recorded: '2004-03-02T01:02:03.4567890+05:30', milliseconds: 0});
+    }
+    await checkLegacyTiming();
+    await page.reload();
+    await page.locator('.pane-tab[data-pane="agents"]').click();
+    await page.locator('#agent-tree [data-agent="legacy-timing"]').click();
+    await page.locator('.pane-tab[data-pane="tools"]').click();
+    await checkLegacyTiming();
+    const afterLegacy = await statusUntil(() => true);
+    assert.equal(afterLegacy.requests, 3, 'legacy snapshot selection and reload issue no model requests');
+    assert.equal(afterLegacy.executions, 1, 'legacy snapshot selection and reload execute no tools');
     assert.deepEqual(errors, []);
     console.log(JSON.stringify({contract:'artifact-actions-v1', passed:true, checks:[
       'real-running-observation', 'call-result-navigation', 'historical-running-preserved',
-      'terminal-pathname-not-grant', 'replay-no-execution', 'focused-expanded-reader-preserved', 'canonical-recorded-time-and-duration', 'timing-survives-replay'
+      'terminal-pathname-not-grant', 'replay-no-execution', 'focused-expanded-reader-preserved', 'canonical-recorded-time-and-duration', 'timing-survives-replay', 'legacy-unknown-and-zero-browser'
     ]}));
   } finally { await browser.close(); }
 })().catch(error => { console.error(error.stack); process.exitCode = 1; });

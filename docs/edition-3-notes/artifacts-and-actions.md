@@ -690,3 +690,27 @@ This probe tests the public snapshot-only projection, not legacy unknown values
 rendered in a browser. It does not complete the timing rubric or any other row;
 all five rows remain UNGRADED. No runtime source, installed binaries, services or
 publication outputs changed.
+
+### Public legacy timing in the browser
+
+The Actions host now loads an actual snapshot into a separate Agent before the
+GUI mount. Its retained results distinguish missing timing from a known timestamp
+and measured zero duration. The public browser selects that Agent, checks absent
+unknown timing and exact known/zero display, then reloads and explicitly selects
+it again. Selection and replay leave provider and callback counts unchanged.
+The runner requires the named legacy-browser receipt; all rubric rows remain
+ungraded with zero earned points.
+
+Job 189 failed after reload because the fixture assumed peer selection survived
+reload. Initial selection passed. The driver now explicitly selects the peer
+again rather than imposing an unrelated selection-persistence contract. Job 191
+passed both Go packages with all five external probes enabled. Full three-file
+review and whitespace checks passed; no production code changed.
+
+Job 194 built an isolated GUI that invents a timestamp and zero duration for
+missing tool-result values. It failed specifically at `legacy browser must not
+invent recorded time`; the other four probes passed and the Actions host stopped
+cleanly. Evidence is `/private/tmp/cadence-legacy-timing-mutant.bf6XpA`.
+This combined mutant stops at the timestamp assertion, so it is not separate
+browser sensitivity evidence for the missing-duration assertion. The earlier
+projection-level unknown-duration check remains distinct evidence.

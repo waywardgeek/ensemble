@@ -28,6 +28,21 @@ internal static class ActionsHost
             "artifact-grader-only", disableStreaming: true, sandboxRoot: workspace);
         var root = new Ensemble.Ensemble(TextWriter.Null);
         var owner = new Agent(root, config, name: "candidate");
+        // Load retained facts through the public persistence boundary before mounting.
+        var legacy = new Agent(root, config, name: "legacy-timing");
+        var legacyTime = DateTimeOffset.Parse("2004-03-02T01:02:03.4567890+05:30",
+            System.Globalization.CultureInfo.InvariantCulture);
+        string legacyPath = Path.Combine(workspace, "legacy-timing.json");
+        var legacyConfig = JsonSerializer.SerializeToElement(new
+        {
+            vendor = "anthropic", model = "offline", system_prompt = "", tools = Array.Empty<object>()
+        });
+        File.WriteAllText(legacyPath, JsonCodec.WriteSave(new SaveDocument(new Context([
+            new Entry(1, Actor.Tool, [new ToolResultPart("unknown", [new TextPart("legacy-unknown-" + nonce)])]),
+            new Entry(2, Actor.Tool, [new ToolResultPart("zero", [new TextPart("legacy-zero-" + nonce)])],
+                time: legacyTime, observationDuration: TimeSpan.Zero)
+        ]), 2, legacyConfig, [])));
+        Require(legacy.History().LoadSave(legacyPath), "legacy browser snapshot actually loaded");
         using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(120));
         using var stop = new CancellationTokenSource();
         var entered = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
