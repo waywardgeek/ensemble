@@ -5,6 +5,17 @@ namespace EnsembleGui;
 
 public static partial class Gui
 {
+    private static partial JsonObject WorkingContextFrame(Agent agent)
+    {
+        var status = agent.WorkingContextStatus();
+        return new JsonObject
+        {
+            ["vendor"] = status.Vendor.ToString(), ["model"] = status.Model,
+            ["input_tokens"] = status.InputTokens, ["working_tokens"] = status.WorkingTokens,
+            ["capacity_tokens"] = status.CapacityTokens, ["percent"] = status.Percent
+        };
+    }
+
     public static partial JsonObject MeterFrame(Agent agent)
     {
         // One coherent snapshot supplies both latest and total values. Reading
@@ -33,6 +44,7 @@ public static partial class Gui
         return new JsonObject
         {
             ["type"] = "usage",
+            ["working_context"] = WorkingContextFrame(agent),
             ["funding"] = configuration.FundingDescription(),
             ["selected_model"] = configuration.Model,
             ["model_choices"] = choices,

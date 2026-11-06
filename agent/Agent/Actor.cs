@@ -412,6 +412,11 @@ public sealed partial class Agent
         {
             EnsureMemoryReady();
         }
+        if (message.Kind == MailKind.WorkingContextSettings)
+        {
+            ApplyWorkingContextLimit(message);
+            return;
+        }
         if (message.Kind == MailKind.GoalStatus)
         {
             message.GoalReply!.TrySetResult(CaptureGoalStatus());
@@ -911,11 +916,6 @@ public sealed partial class Agent
             ApplyHandoff();
             ApplyToolClear();
         }
-        if (memoryHeadroomError is not null && active is not null)
-        {
-            Finish(new InvalidOperationException(memoryHeadroomError));
-            return;
-        }
         if (paused || stopping)
         {
             return;
@@ -942,13 +942,6 @@ public sealed partial class Agent
             {
                 return;
             }
-        }
-        // Waiting is actor state, not an awaited child task on the mailbox.
-        // Controls, completion mail, pause and interruption remain responsive.
-        if (active.Kind != MailKind.DirectTool && nextCall >= calls.Length
-            && WaitForMemoryHeadroom())
-        {
-            return;
         }
         try
         {
@@ -1021,6 +1014,8 @@ public sealed partial class Agent
                     throw;
                 }
                 Record(new Event(EventKind.RequestSent, from: configuration.Target()));
+                // A render/record refusal must not consume the once-only hint.
+                if (pressureInstruction.Length != 0) memoryPressureReminderSent = true;
                 responseID = History().Events()[^1].Seq;
                 hintPending = false;
                 calls = [];
@@ -1110,8 +1105,6 @@ public sealed partial class Agent
         }
         ApplyToolClear();
         active = null;
-        memoryHeadroomTaskID = null;
-        memoryHeadroomError = null;
         automaticPending = false;
         turnSnapshotsCollected = false;
         roundSnapshotsCollected = false;

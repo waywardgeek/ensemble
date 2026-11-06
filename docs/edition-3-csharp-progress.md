@@ -1,3 +1,16 @@
+# Current boundary: working-context policy source upgrade
+
+Per-model whole-input-token working limits and an optional capacity ceiling now
+replace the old capacity-only 90/95 pressure policy. The Agent provides 80% once,
+90% every-request reminders and safe automatic handoff at 100%. The GUI displays
+last-reported percentage immediately after status, including Paused. Original
+Chapter21/companion and Chapter14 explain the policy and separate byte control.
+Focused final core, durable GUI settings and actual-page checks pass; broader core
+351/0 and its final-edit limits are recorded in
+[working-context evidence](edition-3-notes/working-context.md).
+No installation or restart occurred. Next is Bill's requested idle-transition goal
+reminder upgrade, then Local Models; PR grading/reconstruction campaigns stay closed.
+
 # Current boundary: adopted PR integration closed
 
 Bill approved ending further student reconstruction and grader-expansion campaigns.

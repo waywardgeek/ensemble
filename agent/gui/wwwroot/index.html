@@ -111,7 +111,14 @@
 <section class="tab-pane active show" id="settings-ai-panel" role="tabpanel" aria-labelledby="settings-ai-tab" tabindex="0">
 <section class="settings-section" aria-labelledby="ai-heading"><h2 id="ai-heading">Selected Agent’s AI settings</h2><p id="model-help">The header selects a same-provider session model between turns. Capabilities do not prove entitlement. Funding is fixed; launch configuration wins on restart.</p>
  <label>Tool batches per turn <input class="form-control" id="max-tool-rounds" type="number" min="0" step="1" value="0"> (0 = auto, 200)</label>
- <label>Context target <input class="form-control" id="context-target-bytes" type="number" min="0" step="1000" value="400000"> UTF-8 bytes (0 = default, 400,000)</label>
+ <label>Tool-result stubbing budget <input class="form-control" id="context-target-bytes" type="number" min="0" step="1000" value="400000"> UTF-8 bytes (0 = default, 400,000)</label>
+<fieldset id="working-context-settings"><legend>Per-model working context</legend>
+<p id="working-context-model"></p>
+<label>Working limit <input class="form-control" id="working-context-tokens" type="number" min="1" step="1"> input tokens</label>
+<label>Capacity ceiling <input class="form-control" id="context-capacity-tokens" type="number" min="1" step="1" placeholder="Unknown"> input tokens (blank = unknown)</label>
+<p>80%: one reminder. 90%: reminder on every model request. 100%: automatic completed handoff. Raise the working limit before a deliberate large review. These percentages use the last reported request, not a prediction; a capacity ceiling validates the setting but cannot guarantee the next request fits.</p>
+<button type="button" id="save-working-context">Save model limits</button>
+</fieldset>
 <details id="usage-details"><summary>Usage totals and estimate limits</summary>
   <p id="usage-totals">Waiting for the current process meter.</p>
   <p>Cost is an estimate for verified model and service-tier prices, not an invoice. ? means unknown, not zero. Failed or cancelled requests may incur charges not observed here. Restored conversation does not restore these process totals.</p>

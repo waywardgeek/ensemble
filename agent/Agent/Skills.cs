@@ -32,7 +32,7 @@ public sealed partial class Agent
             return GoalAvailable();
         }
         var policy = Configuration();
-        if (!AllowsMemoryTool(name) || !policy.AllowsTool(name) || IsAutomaticTool(name))
+        if (!policy.AllowsTool(name) || IsAutomaticTool(name))
         {
             return false;
         }

@@ -118,6 +118,11 @@ if (args is ["--asset-cache-tests"])
     return;
 }
 
+if (args is ["--working-context-host"])
+{
+    await CrossoverFixture.RunAsync(workingContext: true);
+    return;
+}
 if (args is ["--crossover-host"])
 {
     await CrossoverFixture.RunAsync();

@@ -25,7 +25,7 @@ public sealed partial class Agent
         // The legacy library mode permits its ordinary catalog without manuals.
         // Goals is deliberately not part of that fallback: an attached Skills
         // owner and a retained, active grant are both required.
-        return skills is not null && AllowsMemoryTool("goal_control")
+        return skills is not null
             && (context ?? History().View()).EnabledTools(Configuration()).Contains("goal_control");
     }
 

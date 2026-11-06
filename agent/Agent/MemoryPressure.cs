@@ -4,61 +4,68 @@ namespace Ensemble;
 
 public sealed partial class Agent
 {
-    internal partial bool RequiresMemoryHandoff()
+    private partial WorkingContextLimit EffectiveWorkingContextLimit()
+    {
+        // Callers hold ingress. Exact routing identity, not a billing alias.
+        var configured = workingContextLimits.FirstOrDefault(limit =>
+            limit.Vendor == configuration.Vendor && limit.Model == configuration.Model);
+        if (configured is not null) return configured;
+        global::Ensemble.Engine.LookupModel(configuration.Vendor, configuration.Model, out var features);
+        long? capacity = features.ContextWindow;
+        return new WorkingContextLimit(configuration.Vendor, configuration.Model,
+            Math.Min(250_000, capacity ?? 250_000), capacity);
+    }
+
+    public partial WorkingContextStatus WorkingContextStatus()
     {
         lock (ingress)
         {
-            return memoryHandoffRequired;
+            var limit = EffectiveWorkingContextLimit();
+            return new(configuration.Vendor, configuration.Model, mainContextInputTokens, limit.WorkingTokens,
+                limit.CapacityTokens, mainContextOccupancy);
         }
     }
 
-    internal partial bool AllowsMemoryTool(string name)
+    internal partial bool RequiresMemoryHandoff()
     {
-        return !RequiresMemoryHandoff() || name == "micro_handoff";
+        lock (ingress) { return memoryHandoffRequired; }
+    }
+
+    private partial void RecalculateMemoryPressure()
+    {
+        lock (ingress)
+        {
+            var limit = EffectiveWorkingContextLimit();
+            mainContextOccupancy = mainContextInputTokens is long input
+                ? 100m * input / limit.WorkingTokens : null;
+            memoryHandoffRequired = !memoryCompressor && mainContextOccupancy >= 100m;
+        }
     }
 
     private partial void ObserveMemoryPressure(Event response)
     {
-        mainContextOccupancy = null;
-        memoryPressureAcknowledged = false;
-        memoryHeadroomSatisfied = false;
-        // The selected routing model owns this request's documented window.
-        // Actual billing identity may be a dated provider model; it owns prices,
-        // not an inferred capability alias. Unknown windows stay unknown.
-        if (memoryCompressor || !global::Ensemble.Engine.LookupModel(configuration.Vendor,
-                configuration.Model, out var features)
-            || features.ContextWindow is not > 0
-            || response.Usage?.AllInput() is not long input)
+        lock (ingress)
         {
-            return;
-        }
-        mainContextOccupancy = 100m * input / features.ContextWindow.Value;
-        if (mainContextOccupancy >= 95m)
-        {
-            lock (ingress)
-            {
-                memoryHandoffRequired = true;
-            }
+            // Usage is already normalized into disjoint provider-aware buckets.
+            // Auxiliary sends and session totals never enter this measurement.
+            mainContextInputTokens = memoryCompressor ? null : response.Usage?.AllInput();
+            RecalculateMemoryPressure();
         }
     }
 
     private partial string MemoryPressureInstruction()
     {
-        // A later short/usage-less reply does not discharge the checkpoint.
-        // Explain the retained latch even when the latest measurement is low.
-        if (RequiresMemoryHandoff() && mainContextOccupancy is not >= 90m)
+        lock (ingress)
         {
-            return "An earlier main request requires a context checkpoint. Only micro_handoff is currently enabled. Call it before other tools.";
+            if (memoryCompressor || mainContextOccupancy is not >= 80m
+                || mainContextOccupancy < 90m && memoryPressureReminderSent)
+                return "";
+            string percent = mainContextOccupancy.Value.ToString("0.0", CultureInfo.InvariantCulture);
+            string cadence = mainContextOccupancy >= 90m
+                ? "This reminder repeats on every model request until a checkpoint or lower reported usage."
+                : "This is the once-per-checkpoint reminder.";
+            return $"Ensemble context reminder: the last reported main request used {percent}% of your configured working input-token limit. Please call micro_handoff at the next good handoff point. {cadence} This is reported usage, not a prediction of the next request.";
         }
-        if (memoryPressureAcknowledged || mainContextOccupancy is not >= 90m)
-        {
-            return "";
-        }
-        string percent = mainContextOccupancy.Value.ToString("0.0", CultureInfo.InvariantCulture);
-        string action = RequiresMemoryHandoff()
-            ? "Only micro_handoff is currently enabled. Call it before other tools."
-            : "Call micro_handoff soon to preserve a continuation and free context headroom.";
-        return $"Context window warning: the last main request used {percent}% of its known window. {action}";
     }
 
     private partial void AcknowledgeMemoryPressure()
@@ -66,46 +73,13 @@ public sealed partial class Agent
         lock (ingress)
         {
             memoryHandoffRequired = false;
+            memoryPressureReminderSent = false;
+            // The measured request predates the cut. Unknown is honest; zero
+            // would falsely claim that retained visible dialogue has no cost.
+            mainContextInputTokens = null;
+            mainContextOccupancy = null;
         }
-        memoryPressureAcknowledged = true;
-        // A handoff strips tools/private replay, but does not prove that the
-        // pending compressor has replaced its retained source. Keep that wait.
     }
 
-    private partial void ResetMemoryPressure()
-    {
-        AcknowledgeMemoryPressure();
-        mainContextOccupancy = null;
-        memoryHeadroomTaskID = null;
-        memoryHeadroomError = null;
-        memoryHeadroomSatisfied = false;
-    }
-
-    private partial bool WaitForMemoryHeadroom()
-    {
-        if (memoryCompressor || memoryCapture is null || memoryHeadroomSatisfied
-            || mainContextOccupancy is not >= 95m)
-        {
-            return false;
-        }
-        memoryHeadroomTaskID = memoryCapture.Launch.TaskID;
-        return true;
-    }
-
-    private partial void ResolveMemoryHeadroom(string taskID, bool committed)
-    {
-        if (memoryHeadroomTaskID != taskID)
-        {
-            return;
-        }
-        memoryHeadroomTaskID = null;
-        if (committed)
-        {
-            memoryHeadroomSatisfied = true;
-        }
-        else
-        {
-            memoryHeadroomError = "Memory headroom unavailable: compression did not commit. Source was retained; no main request was sent.";
-        }
-    }
+    private partial void ResetMemoryPressure() => AcknowledgeMemoryPressure();
 }

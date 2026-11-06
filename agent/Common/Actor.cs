@@ -117,7 +117,7 @@ public sealed partial class Agent
     // Transient immutable transfer envelope. Completion sources belong to the
     // caller's request, not the persistent object graph. Exactly one terminal
     // result is published; cancelling a caller's wait never cancels its work.
-    private enum MailKind { Submit, Input, DirectTool, ReverseTool, RegisterMcpTools, CommitSkill, InitializeSkills, Delta, HttpDone, ToolDone, AutomaticDone, ControlDone, Flush, Shutdown, Wake, SelectModel, WorkStatus, IncomingQuestion, MemorySettings, MemoryDone, RecallDone, RecallSettings, GoalControl, GoalWake, GoalRefresh, GoalClear, GoalReadFailed, GoalStatus }
+    private enum MailKind { Submit, Input, DirectTool, ReverseTool, RegisterMcpTools, CommitSkill, InitializeSkills, Delta, HttpDone, ToolDone, AutomaticDone, ControlDone, Flush, Shutdown, Wake, SelectModel, WorkStatus, IncomingQuestion, MemorySettings, MemoryDone, RecallDone, RecallSettings, GoalControl, GoalWake, GoalRefresh, GoalClear, GoalReadFailed, GoalStatus, WorkingContextSettings }
     private sealed record Mail(MailKind Kind, ImmutableArray<Part> Parts = default,
         AgentInput? Input = null, ToolCallPart? Call = null, string? Model = null,
         TaskCompletionSource<string>? Reply = null,
@@ -127,7 +127,8 @@ public sealed partial class Agent
         long WorkGeneration = 0, TaskCompletionSource<AgentWorkStatus>? StatusReply = null, QuestionInfo? Question = null, MemorySettings? MemorySettings = null, MemoryCompletion? MemoryCompletion = null, bool PersistMemorySettings = false,
         string? RecallQuery = null, Mail? RecallTurn = null, RecallCompletion? RecallCompletion = null, RecallSettings? RecallSettings = null, GoalUpdate? GoalUpdate = null,
         TaskCompletionSource<GoalStatus>? GoalReply = null, long GoalGeneration = 0,
-        GoalReadFailure? GoalFailure = null, bool AutomaticGoal = false, TimeSpan? ObservationDuration = null);
+        GoalReadFailure? GoalFailure = null, bool AutomaticGoal = false, TimeSpan? ObservationDuration = null,
+        WorkingContextLimit? WorkingContextLimit = null, bool PersistWorkingContext = false);
 
     // Human session control, not a model tool. Reject busy/queued work; retain
     // conversation, Engine, meter, lens, provider, surface and funding route.

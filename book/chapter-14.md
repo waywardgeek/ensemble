@@ -280,6 +280,8 @@ The public `History.Load` log path can replay this archive. It recovers the redu
 
 The library Agent owns the live byte target. The GUI's settings snapshot reads it rather than keeping a second mutable copy in presentation preferences. Validate a proposed patch and save it before publishing either preferences or policy. A failed save must leave the old file, live policy and both clients' acknowledged values unchanged.
 
+The GUI labels this control **Tool-result stubbing budget**. It is not a handoff threshold. Per-model working-context limits are separate whole input-token settings, described in Chapter 21; never reinterpret a legacy byte value such as `250` as 250,000 tokens.
+
 The GUI field is `context_target_bytes`. Its convention is intentionally different from the library setter: zero or a negative value selects the 400,000-byte default, positive values round to thousands, and a rounded zero also selects the default. Large values are bounded safely. A wrong-typed optional field is ignored like the existing preference fields. The control shows acknowledged values, retains a proposed edit while saving, and restores acknowledgement on failure.
 
 The CLI takes `--context-budget-bytes N` or `EN_CONTEXT_BUDGET_BYTES`; an explicit flag wins. Here zero disables opt-in immediate result stubbing, and negative values refuse. Document this difference instead of hiding it behind a shared parser with contradictory semantics.

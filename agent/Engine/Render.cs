@@ -195,8 +195,7 @@ public sealed partial class Engine
         IReadOnlySet<string> declared = deferred
             ? Parent().SkillManager()!.CatalogTools(context).ToHashSet(StringComparer.Ordinal)
             : enabled;
-        return Parent().Tools().Where(tool => Parent().AllowsMemoryTool(tool.Name())
-            && (tool.Name() != "goal_control" || Parent().GoalAvailable(context))
+        return Parent().Tools().Where(tool => (tool.Name() != "goal_control" || Parent().GoalAvailable(context))
             && config.AllowsTool(tool.Name())
             && (tool.Name() is not ("list_displays" or "screenshot" or "offer_work_product") || enabled.Contains(tool.Name()))
             && !Parent().IsAutomaticTool(tool.Name())
@@ -236,7 +235,7 @@ public sealed partial class Engine
                     // capability. Filter only the disposable request projection.
                     var projectedResult = new ToolResultPart(result.CallID, result.Parts,
                         result.IsError, result.Job, result.ToolReferences.Where(name =>
-                            Parent().AllowsMemoryTool(name) && config.AllowsTool(name)
+                            config.AllowsTool(name)
                             && (name != "goal_control" || Parent().GoalAvailable(context))
                             && !revoked.Contains(name)));
                     results.Add((match.Index, result.CallID), projectedResult);

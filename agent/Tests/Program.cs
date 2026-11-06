@@ -81,6 +81,13 @@ static string Wire(Vendor vendor, Context context, string model = "model-a")
 }
 try
 {
+    if (args.Length == 0 || args is ["--working-context-tests"])
+    {
+        CheckCase("Working-context token limits and strict codec", WorkingContextTests.Values);
+        await AsyncCase("Working-context durable per-model settings", () => WorkingContextTests.Persistence(temp));
+        if (args.Length != 0) await AsyncCase("Working-context real request reminders and automatic handoff", MeterTests.WorkingContextPressure);
+        if (args.Length != 0) return failures == 0 ? 0 : 1;
+    }
     if (args is ["--work-product-tests"])
     {
         CheckCase("Work-product ownership, click-time bytes, lifetime and bounds", WorkProductTests.OwnershipAndBounds);
@@ -234,10 +241,9 @@ try
     {
         await AsyncCase("memory pressure thresholds", MeterTests.MemoryPressureThresholds);
         await AsyncCase("memory pressure deferred", MeterTests.MemoryPressureDeferred);
+        await AsyncCase("working-context independent Job survives", MeterTests.WorkingContextIndependentJob);
         await AsyncCase("memory cache boundary", () => { MeterTests.MemoryCacheBoundary(); return Task.CompletedTask; });
         await AsyncCase("memory pressure unknown", () => MeterTests.MemoryPressureUnknown(temp));
-        await AsyncCase("memory pressure headroom", () => MeterTests.MemoryPressureHeadroom(temp));
-        await AsyncCase("memory pressure headroom exit", () => MeterTests.MemoryPressureHeadroomExit(temp));
         if (args is ["--memory-pressure-tests"])
         {
             Console.WriteLine($"{passed} passed, {failures} failed");

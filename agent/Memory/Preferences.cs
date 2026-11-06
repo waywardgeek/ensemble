@@ -44,14 +44,16 @@ public sealed partial class Memory
                 // Supplied recall is strict; null/malformed never means defaults.
                 bool legacy = names.SequenceEqual(new[] { "memory", "version" });
                 bool complete = names.SequenceEqual(new[] { "memory", "recall", "version" });
-                if ((!legacy && !complete) || root.GetProperty("version").GetInt32() != 1)
+                bool withContext = names.SequenceEqual(new[] { "memory", "recall", "version", "working_context" });
+                if ((!legacy && !complete && !withContext) || root.GetProperty("version").GetInt32() != 1)
                 {
                     throw new InvalidDataException("Invalid Agent settings document");
                 }
                 var memory = JsonCodec.ReadMemorySettings(root.GetProperty("memory"));
                 var recall = legacy ? new RecallSettings()
                     : JsonCodec.ReadRecallSettings(root.GetProperty("recall"));
-                return new AgentSettings(memory, recall);
+                var limits = withContext ? JsonCodec.ReadWorkingContextLimits(root.GetProperty("working_context")) : [];
+                return new AgentSettings(memory, recall, limits);
             }
         }
     }
@@ -64,7 +66,8 @@ public sealed partial class Memory
             {
                 ["version"] = 1,
                 ["memory"] = JsonCodec.WriteMemorySettings(settings.Memory),
-                ["recall"] = JsonCodec.WriteRecallSettings(settings.Recall)
+                ["recall"] = JsonCodec.WriteRecallSettings(settings.Recall),
+                ["working_context"] = JsonCodec.WriteWorkingContextLimits(settings.WorkingContext.IsDefault ? [] : settings.WorkingContext)
             };
             byte[] bytes = Encoding.UTF8.GetBytes(document.ToJsonString());
             if (bytes.Length > 16 * 1024)

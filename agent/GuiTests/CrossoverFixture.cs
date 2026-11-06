@@ -7,7 +7,7 @@ using EnsembleGui;
 // boundary is fake. The History, actors, Jobs, host, sockets and assets are real.
 internal static class CrossoverFixture
 {
-    internal static async Task RunAsync()
+    internal static async Task RunAsync(bool workingContext = false)
     {
         string originalDirectory = Directory.GetCurrentDirectory();
         string directory = Path.Combine(originalDirectory, ".crossover", "runtime");
@@ -68,7 +68,7 @@ internal static class CrossoverFixture
             await provider.StartAsync(token);
             // The browser first switches this launch model to the catalogued
             // Haiku model, exercising an actual selection before inference.
-            var configuration = new Configuration(Vendor.Anthropic, "crossover-initial",
+            var configuration = new Configuration(Vendor.Anthropic, workingContext ? "claude-3-haiku-20240307" : "crossover-initial",
                 "http://127.0.0.1:18203", key);
             var selected = new Agent(root, configuration, name: "captain", outputDirectory: Path.Combine(directory, "jobs"));
             selected.InstallTools();

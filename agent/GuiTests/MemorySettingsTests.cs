@@ -103,6 +103,20 @@ static class MemorySettingsTests
             var other = await Frame(second, "current_settings", token, rejectUpdates: true);
             Check(!other.GetProperty("settings").GetProperty("memory").GetProperty("soul")
                 .GetProperty("disabled").GetBoolean(), "Peer policy changed");
+            await Send(first, new { type = "update_settings", agent_id = "initial",
+                settings = new { working_context = new { vendor = "OpenAI", model = "offline",
+                    working_tokens = 250000, capacity_tokens = 1000000 } } }, token);
+            var contextAck = (await Frame(first, "settings_updated", token)).GetProperty("settings").GetProperty("working_context");
+            Check(contextAck.GetProperty("working_tokens").GetInt64() == 250000
+                && contextAck.GetProperty("percent").ValueKind == JsonValueKind.Null,
+                "Context acknowledgment invented usage or lost limit");
+            using (var saved = JsonDocument.Parse(File.ReadAllText(settingsPath)))
+                Check(JsonCodec.ReadWorkingContextLimits(saved.RootElement.GetProperty("working_context")).Single().WorkingTokens == 250000,
+                    "Context acknowledgment preceded durable save");
+            Check(peer.WorkingContextLimits().IsEmpty, "Context limit leaked to peer");
+            var contextMeter = Gui.MeterFrame(initial)["working_context"]!;
+            Check(contextMeter["input_tokens"] is null && contextMeter["percent"] is null,
+                "Meter frame invented zero usage");
             File.WriteAllText(soul, "FRESH_GUI_SOUL");
             await Send(first, new { type = "update_settings", agent_id = "initial",
                 settings = new { memory = new { soul = new { disabled = false } } } }, token);
@@ -133,8 +147,13 @@ static class MemorySettingsTests
             using (var saved = JsonDocument.Parse(File.ReadAllText(settingsPath)))
                 Check(JsonCodec.ReadRecallSettings(saved.RootElement.GetProperty("recall")).Disabled,
                     "Memory patch erased recall settings");
+            using (var saved = JsonDocument.Parse(File.ReadAllText(settingsPath)))
+                Check(JsonCodec.ReadWorkingContextLimits(saved.RootElement.GetProperty("working_context")).Single().CapacityTokens == 1000000,
+                    "Sibling policy save erased model context limit");
             string before = File.ReadAllText(settingsPath);
             foreach (string patch in new[] {
+                "{\"working_context\":{\"vendor\":\"OpenAI\",\"model\":\"offline\",\"working_tokens\":1000001,\"capacity_tokens\":1000000}}",
+                "{\"working_context\":{\"vendor\":\"OpenAI\",\"model\":\"offline\",\"working_tokens\":250.5,\"capacity_tokens\":null}}",
                 "{\"recall\":{\"max_snippets\":-1}}",
                 "{\"recall\":{\"candidates\":1.5}}",
                 "{\"recall\":{\"judge_model\":null}}",
@@ -164,6 +183,12 @@ static class MemorySettingsTests
                 settings = new { memory = new { soul = new { disabled = true } } } }, token);
             await Frame(first, "error", token, rejectUpdates: true);
             Check(!initial.MemorySettings().Soul.Disabled, "Failed save changed live policy");
+            await Send(first, new { type = "update_settings", agent_id = "initial",
+                settings = new { working_context = new { vendor = "OpenAI", model = "offline",
+                    working_tokens = 750000, capacity_tokens = 1000000 } } }, token);
+            await Frame(first, "error", token, rejectUpdates: true);
+            Check(initial.WorkingContextLimits().Single().WorkingTokens == 250000,
+                "Failed context save changed live policy");
             Directory.Delete(settingsPath);
             Check(!initial.History().Events().Any(e => e.Kind == EventKind.RequestSent)
                 && !peer.History().Events().Any(e => e.Kind == EventKind.RequestSent), "Settings caused inference");

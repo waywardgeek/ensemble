@@ -50,7 +50,7 @@ public sealed partial class Agent
             ReadMemoryChanges(message.MemorySettings!, startup: !memoryReady);
             var saved = Memory().ReadSettings();
             Memory().WriteSettings(new AgentSettings(message.MemorySettings!,
-                saved?.Recall ?? RecallSettings()));
+                saved?.Recall ?? RecallSettings(), saved?.WorkingContext ?? WorkingContextLimits()));
             return true;
         }
         catch (Exception error) when (error is IOException or InvalidDataException or UnauthorizedAccessException
@@ -99,13 +99,14 @@ public sealed partial class Agent
         if (saved is not null)
         {
             SetRecallSettings(saved.Recall);
+            RestoreWorkingContextLimits(saved.WorkingContext);
         }
     }
 
     private partial void ApplyMemorySettings(Mail message)
     {
         ImmutableArray<Event> changes;
-        RecallSettings? startupRecall = null;
+        AgentSettings? startupSettings = null;
         var desired = message.MemorySettings!;
         if (!memoryReady)
         {
@@ -119,7 +120,7 @@ public sealed partial class Agent
             // or unreadable newly enabled band must not partly apply policy.
             if (!memoryReady && dataDirectory is not null && !memoryCompressor)
             {
-                startupRecall = Memory().ReadSettings()?.Recall;
+                startupSettings = Memory().ReadSettings();
             }
             changes = ReadMemoryChanges(desired, startup: !memoryReady);
         }
@@ -131,9 +132,10 @@ public sealed partial class Agent
         // Recording failures are fatal to the actor, not a successful settings
         // update. The loop settles this reply and drains other admitted work.
         PublishMemorySettings(desired, changes);
-        if (startupRecall is not null)
+        if (startupSettings is not null)
         {
-            SetRecallSettings(startupRecall);
+            SetRecallSettings(startupSettings.Recall);
+            RestoreWorkingContextLimits(startupSettings.WorkingContext);
         }
         message.Reply!.TrySetResult("");
     }

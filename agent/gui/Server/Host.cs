@@ -727,7 +727,8 @@ public static partial class Gui
                                 var patch = command.GetProperty("settings");
                                 bool memoryUpdate = patch.TryGetProperty("memory", out var memoryPatch);
                                 bool recallUpdate = patch.TryGetProperty("recall", out var recallPatch);
-                                if (memoryUpdate || recallUpdate)
+                                bool contextUpdate = patch.TryGetProperty("working_context", out var contextPatch);
+                                if (memoryUpdate || recallUpdate || contextUpdate)
                                 {
                                     // Policy and appearance have different owners/stores.
                                     // A patch updates one policy section; never imply an
@@ -747,6 +748,13 @@ public static partial class Gui
                                         {
                                             var desired = MergeMemorySettings(memoryPatch, selected.MemorySettings());
                                             await selected.SaveMemorySettingsAsync(desired);
+                                        }
+                                        else if (contextUpdate)
+                                        {
+                                            // Reuse the strict value codec; no unit conversion or rounding.
+                                            using var contextDocument = JsonDocument.Parse("[" + contextPatch.GetRawText() + "]");
+                                            var desired = JsonCodec.ReadWorkingContextLimits(contextDocument.RootElement).Single();
+                                            await selected.SetWorkingContextLimitAsync(desired, persist: true);
                                         }
                                         else
                                         {
@@ -778,7 +786,7 @@ public static partial class Gui
                                             Queue(socket, queue, new JsonObject
                                             {
                                                 ["type"] = "error",
-                                                ["message"] = (memoryUpdate ? "Memory" : "Recall") + " settings were not acknowledged. Reload settings to inspect the current policy; a saved change may apply on restart."
+                                                ["message"] = (memoryUpdate ? "Memory" : contextUpdate ? "Working context" : "Recall") + " settings were not acknowledged. Reload settings to inspect the current policy; a saved change may apply on restart."
                                             });
                                         }
                                     }

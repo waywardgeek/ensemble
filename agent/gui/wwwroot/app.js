@@ -5,6 +5,8 @@ const transcript = document.querySelector("#transcript");
 const cards = new Map();
 const toolTranscript = document.querySelector("#tool-transcript");
 let acknowledgedState = null;
+let workingContext = null;
+let workingContextForm = null;
 let selectionPending = true;
 const collapsedAgents = new Set();
 let socket;
@@ -709,8 +711,14 @@ function renderControls() {
         || imageComposer.hasImages || imageComposer.blocked || !!pageCapture?.busy || !!captureDraft || !!captureConsent?.busy);
     const busy = ["inflight", "toolspending"].includes(acknowledgedState);
     const paused = acknowledgedState === "paused";
-    document.querySelector("#state").textContent = !connected ? "disconnected"
-        : selectionPending ? "selecting" : acknowledgedState || "unknown";
+    const status = document.querySelector("#state");
+    const label = !connected ? "disconnected" : selectionPending ? "selecting" : acknowledgedState || "unknown";
+    const context = connected && !selectionPending ? workingContext : null;
+    const percent = Number.isFinite(context?.percent) ? `${Math.floor(context.percent)}% context` : "context unknown";
+    status.textContent = `${label} · ${percent}`;
+    status.title = context?.input_tokens != null
+        ? `Last reported main request: ${context.input_tokens.toLocaleString()} input tokens / ${context.working_tokens.toLocaleString()} working limit. Not a prediction of the next request.`
+        : "Working context: no current provider-reported input measurement. Unknown is not zero.";
     document.querySelector("#interrupt").disabled = !ready || !(busy || paused);
     // The actor classifies ordinary input when dequeued, even during a turn.
     document.querySelector("#send").disabled = !ready || !!voiceControl?.blocked || imageComposer.blocked || !!pageCapture?.busy || !!captureDraft || !!captureConsent?.busy;
@@ -813,11 +821,13 @@ function handle(frame) {
         return;
     }
     if (frame.type === "usage") {
+        showWorkingContext(frame.working_context);
         showUsage(frame);
         return;
     }
     if (frame.type === "replay") {
         if (agentID !== frame.agent_id) {
+            workingContext = null;
             voiceControl?.cancel();
             cancelPageCapture("Page capture cancelled on Agent change.");
             cancelSpeech(false);
@@ -1128,6 +1138,32 @@ document.addEventListener("keydown", event => {
         stopSpeechAndResume();
     }
 });
+function showWorkingContext(value) {
+    const modelChanged = workingContext?.model !== value?.model || workingContext?.vendor !== value?.vendor;
+    workingContext = value || null;
+    if (value && modelChanged) fillWorkingContextSettings(value);
+    renderControls();
+}
+function fillWorkingContextSettings(value) {
+    workingContextForm = { vendor: value.vendor, model: value.model };
+    document.querySelector("#working-context-model").textContent = `${value.vendor} / ${value.model}`;
+    document.querySelector("#working-context-tokens").value = value.working_tokens ?? "";
+    document.querySelector("#context-capacity-tokens").value = value.capacity_tokens ?? "";
+}
+document.querySelector("#save-working-context").onclick = () => {
+    if (!workingContextForm) return;
+    const working = Number(document.querySelector("#working-context-tokens").value);
+    const capacityText = document.querySelector("#context-capacity-tokens").value;
+    const capacity = capacityText === "" ? null : Number(capacityText);
+    if (!Number.isSafeInteger(working) || working <= 0 || (capacity !== null
+        && (!Number.isSafeInteger(capacity) || capacity <= 0 || working > capacity))) {
+        notice("Enter positive whole input tokens; the working limit must not exceed the capacity ceiling.");
+        return;
+    }
+    patchSettings({ working_context: { vendor: workingContextForm.vendor, model: workingContextForm.model,
+        working_tokens: working, capacity_tokens: capacity } });
+};
+
 function applySettings() {
     if (!settings) return;
     document.querySelector("#human-name").value = settings.human_name || "";
@@ -1138,6 +1174,13 @@ function applySettings() {
     renderControls();
     document.querySelector("#max-tool-rounds").value = settings.max_tool_rounds;
     document.querySelector("#context-target-bytes").value = settings.context_target_bytes;
+    // Settings acknowledgment/rollback restores form values, not the live usage
+    // measurement. The usage stream may already be newer than this snapshot.
+    const savedContext = settings.working_context;
+    const currentModel = workingContext && (workingContext.vendor !== savedContext?.vendor
+        || workingContext.model !== savedContext?.model);
+    if (currentModel) fillWorkingContextSettings(workingContext);
+    else if (savedContext) fillWorkingContextSettings(savedContext);
     if (settings.recall) {
         const recall = settings.recall;
         document.querySelector("#recall-enabled").checked = !recall.disabled;

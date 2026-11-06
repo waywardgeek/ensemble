@@ -200,7 +200,6 @@ public sealed partial class Agent
             result.Meter.Rows);
         Record(new Event(EventKind.CompressionFinished, outcome: receipt));
         Memory().Recover(History().View());
-        ResolveMemoryHeadroom(launch.TaskID, committed: true);
         ReleaseMemoryCompression();
         StartMemoryCompression(includeConversation: false);
     }
@@ -248,7 +247,6 @@ public sealed partial class Agent
         // Discard a staged but uncommitted candidate only after its terminal fact
         // is durable. It must never become an active scan input.
         Memory().Recover(History().View());
-        ResolveMemoryHeadroom(memoryCapture!.Launch.TaskID, committed: false);
         ReleaseMemoryCompression();
     }
 

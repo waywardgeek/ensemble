@@ -68,11 +68,11 @@ The compressor's work costs money even when its result is unusable. After joinin
 
 Those rows must not replace the parent's latest direct-response observation or cache lens. Cumulative spending and the main conversation's current occupancy answer different questions.
 
-Context pressure uses the latest actor-accepted main response and a known window for the selected model. Provider accounting differs: OpenAI cached input is included in its total input, while Anthropic exposes separate categories. A child's response or a session-wide token sum is not evidence about the main request's occupancy. Unknown limits remain unknown rather than being guessed from a model name.
+Context pressure uses the latest actor-accepted main response and the selected model's working input-token limit. Provider accounting differs: OpenAI cached input is included in its total input, while Anthropic exposes separate categories. A child's response or a session-wide token sum is not evidence about the main request's occupancy. Unknown capacity and missing usage remain unknown rather than being guessed from a model name. A working limit does not require known capacity.
 
-At 90% occupancy, a request-only instruction asks for a handoff. At 95%, the runtime latches a checkpoint requirement: both declarations and dispatch admit only an already-authorized `micro_handoff`. It does not grant that tool merely because it would be useful. A later short or usage-less response does not silently clear the outstanding requirement.
+Use a durable per-model working input-token limit, separate from capacity and byte stubbing. At 80%, give one system reminder to hand off at the next good point; at 90%, repeat on each model request; at 100%, the Agent records an automatic completed checkpoint after companion results are paired. No model tool call is fabricated and no tool authority changes. An honest fallback says no model-authored continuation was supplied. Invalidate pre-checkpoint usage, preserve independent Jobs, and continue normally. Show last reported input divided by this working limit immediately after status, including Paused; missing usage is unknown. A user may raise the limit for a deliberate whole-book review. Reported counts cannot guarantee the size of the next request.
 
-If a compressor already owns the source needed to regain headroom, the actor waits for that exact attempt before another main request, while continuing to process controls. A matching committed replacement releases the wait. Failed or invalidated work produces an explicit headroom error, not another hopeful request into an already pressured context.
+Independent compression keeps its own capture, commit and lifetime rules. A context checkpoint does not cancel that work or require a pressure-specific foreground wait before normal continuation.
 
 ## Keep one owner for each fact
 
