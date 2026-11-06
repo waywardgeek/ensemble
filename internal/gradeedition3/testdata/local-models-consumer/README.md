@@ -5,10 +5,9 @@ It uses public Agent, Model, Tool and History APIs with grader-owned loopback HT
 random payloads and real buffered/SSE replies. It never references candidate tests,
 reflects private fields, accesses an installed credential store, or calls ET.
 
-Current coverage is 56 named checks across buffered tools, streamed tools,
-ordinary tool-shaped prose and configured child restoration. Checks cover exact
-local routing, explicit no-auth
-headers, configured capabilities, real callback/result correlation, recording
+Current coverage is 62 named checks across buffered tools, streamed tools,
+ordinary tool-shaped prose, configured child restoration and executing-tool
+shutdown. Checks cover exact local routing, explicit no-auth headers, configured capabilities, real callback/result correlation, recording
 before the next request, partial-stream non-execution, offering provenance, serving
 context and cached-input accounting. The final fixture answer is released only
 after checking the actual result request; this is protocol evidence, not a claim
@@ -32,6 +31,15 @@ not process-restart or crash-recovery evidence. The restoration phases make no
 provider request. An isolated compiled resolver mutant that picks the first
 endpoint fails child-missing-route-no-wire-name-fallback.
 
+The lifecycle probe delivers a real tool call over owned HTTP. Its callback
+acknowledges candidate cancellation and holds cleanup behind a fixture gate.
+Agent destruction must stay pending until release, then remove Model membership
+without destroying a sibling. The fixture retains and joins the actual callback
+Task even after failure; emergency cancellation is used only during cleanup and
+cannot satisfy the candidate-token assertion. A compiled no-join candidate fails
+lifecycle-destruction-joins-held-cleanup. This proves cooperative shutdown, not
+forced termination of arbitrary managed callbacks.
+
 ## Public runner
 
 From the repository root, with an existing candidate assembly and .NET 10 SDK:
@@ -53,7 +61,7 @@ Setup has a two-minute limit; execution has a separate 75-second limit. Both
 stdout and stderr are capped at 64 KiB. The runner cancels its owned process group,
 waits for the direct child and bounds inherited output-pipe waits. It does not
 provide a network sandbox or containment of deliberately detached descendants.
-Success requires exactly the 56 named checks once each and a null failure field;
+Success requires exactly the 62 named checks once each and a null failure field;
 missing, duplicated, unknown or trailing receipt data refuse. Temporary files are
 removed after execution; capture the JSON report for retained evidence.
 
@@ -88,7 +96,7 @@ public runner supplies that outer bound. A cleared environment is not a network
 sandbox. The loopback port is reserved then rebound;
 a competing bind causes a setup failure, not a silently chosen remote endpoint.
 
-Calibration: the current candidate passes 56 checks. An isolated, successfully
+Calibration: the current candidate passes 62 checks. An isolated, successfully
 compiled candidate that emits a synthetic bearer for explicit no-auth fails at
 buffered-no-borrowed-credentials-0. That proves this wire oracle's sensitivity,
 not mutation coverage for every assertion. No candidate or installed source is

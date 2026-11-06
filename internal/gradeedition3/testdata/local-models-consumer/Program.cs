@@ -26,6 +26,7 @@ internal static partial class Probe
             foreach (string mode in new[] { "buffered", "streamed", "prose" })
                 await Conversation(mode);
             await ConfigurationChecks();
+            await LifecycleChecks();
         }
         catch (Exception error) { failure = error.Message; }
         Console.WriteLine(JsonSerializer.Serialize(new { passed = failure is null, checks, failure }));

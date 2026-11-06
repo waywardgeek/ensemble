@@ -616,3 +616,28 @@ Final public-configuration-final.log records both Go packages passing with the
 real consumer integration enabled. public-configuration-cli.json/exit records
 56 checks passing, ungraded status and exit 3. Only documentation changed after
 that run. No new shared C# runtime result or installed acceptance is claimed.
+
+
+## Public executing-tool shutdown boundary
+
+The independent consumer adds six checks through an actual configured no-auth
+request and a real custom Tool callback. Candidate cancellation reaches the
+executing callback, whose cleanup remains held by the grader. Agent.Destroy must
+remain pending until release, then return after worker exit, detach Model weak
+membership and preserve an independent sibling. The fixture retains the actual
+callback Task and joins it on failure too; a separate emergency token is used
+only in final cleanup and cannot satisfy the earlier candidate-token assertion.
+
+The public scope now requires 62 checks exactly once. An isolated core mutation
+removes the Job worker join only for shutdown while retaining cancellation.
+It builds cleanly and fails lifecycle-destruction-joins-held-cleanup after the
+real-request, real-effect and cancellation assertions pass. The good runtime
+is unchanged. This is cooperative shutdown evidence, not forcible termination,
+every cleanup-failure path, unfinished-stream interruption or endpoint outage.
+
+Final public-lifecycle-verified.log records both Go packages passing with the
+real candidate integration enabled. public-lifecycle-mutant-path identifies the
+isolated candidate and its verified-result.json/verified-exit (intended failure,
+exit 1). Both good and negative runs use the final callback-Task cleanup helper;
+only documentation changed afterward. No C# runtime or installed changes, new
+chapter points or shared runtime regression claim follows from this increment.

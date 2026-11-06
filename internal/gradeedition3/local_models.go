@@ -114,7 +114,7 @@ func GradeLocalModels(c LocalModelGradeConfig) (report LocalModelReport, result 
 	if !found {
 		return report, fmt.Errorf("an installed .NET 10 SDK is required")
 	}
-	for _, name := range []string{"Program.cs", "ConfigurationChecks.cs", "LocalModelsConsumer.csproj", "NuGet.Config"} {
+	for _, name := range []string{"Program.cs", "ConfigurationChecks.cs", "LifecycleChecks.cs", "LocalModelsConsumer.csproj", "NuGet.Config"} {
 		data, err := localModelFiles.ReadFile("testdata/local-models-consumer/" + name)
 		if err != nil {
 			return report, err
@@ -144,7 +144,7 @@ func GradeLocalModels(c LocalModelGradeConfig) (report LocalModelReport, result 
 		report.Status, report.Detail = "failed", fmt.Sprintf("%v; stdout: %s; stderr: %s", err, output, diagnostic)
 	} else {
 		report.ProbePassed = true
-		report.Detail = "56 named public conversation/configuration/restoration checks passed. Broader lifecycle/refusal coverage and real-model usefulness remain incomplete."
+		report.Detail = "62 named public conversation/configuration/restoration/lifecycle checks passed. Broader lifecycle/refusal coverage and real-model usefulness remain incomplete."
 	}
 	return report, nil
 }
@@ -173,7 +173,10 @@ func localModelCheckNames() []string {
 		"configuration-late-refusal-rolls-back", "child-inherits-real-offering",
 		"child-registration-identity-not-secret", "child-restores-exact-offering",
 		"child-restores-conversation-without-request", "model-loss-refuses-without-agent-destruction",
-		"child-missing-route-no-wire-name-fallback", "child-refusal-preserves-registration-no-request")
+		"child-missing-route-no-wire-name-fallback", "child-refusal-preserves-registration-no-request",
+		"lifecycle-real-configured-request", "lifecycle-real-tool-started",
+		"lifecycle-cancellation-reaches-executing-tool", "lifecycle-destruction-joins-held-cleanup",
+		"lifecycle-worker-exited-before-destruction-return", "lifecycle-detaches-without-destroying-sibling")
 }
 
 func checkLocalModelReceipt(data []byte) error {
