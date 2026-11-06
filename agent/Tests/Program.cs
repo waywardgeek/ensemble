@@ -860,6 +860,7 @@ try
         await AsyncCase("Codex ownership and fresh paired reads", () => CodexTests.Credentials(temp));
         await AsyncCase("Codex strict bounded credential refusal", () => CodexTests.InvalidFiles(temp));
         await AsyncCase("Codex actual Engine protocol and accounting", () => CodexTests.Transport(temp));
+        await AsyncCase("Configured Codex binding and explicit recovery", () => CodexTests.ConfiguredTransport(temp));
         await AsyncCase("Codex no retry or fallback after failure", () => CodexTests.Refusals(temp));
         await AsyncCase("Codex actor records safe terminal refusal", () => CodexTests.ActorFailure(temp));
         if (args.Length != 0)

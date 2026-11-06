@@ -461,3 +461,21 @@ remains prior evidence. Replies are buffered JSON even when streaming is request
 this is not SSE proof. Messages-only deferred/block-cache options, configured
 OAuth/Codex renewal, real ET usefulness and installed configuration remain open.
 No live service, credentials, installation, restart or publication was changed.
+
+## Configured Codex credential-owner transport
+
+A new configured-model case uses the existing synthetic Codex grant-file writer
+and HTTP-handler fixture. It selects through the public Model overload, sends real
+Engine requests through the Responses SSE parser, and observes paired grant A then
+B without changing body/session policy. Removing the bound owner and constructing
+a replacement leaves the old binding unavailable: admission refuses before a third
+transport request. Explicitly selecting a new binding then sends paired grant C.
+The Engine disposes its owned handler. No live Codex endpoint or private store is read.
+
+configured-codex-final-build.log and configured-codex-tests.log under the existing
+local-models evidence root record a clean build and all seven Codex groups passing.
+The first build failed because the test guessed a two-argument LookupModel overload;
+the actual out-parameter API was used before any behavioral run. Full test and
+registration diff reviewed. Production code is unchanged. This is configured grant
+rereading/source-loss/recovery coverage with an injected HTTP handler, not public
+OAuth renewal, real-network Codex acceptance, or a new full shared regression.

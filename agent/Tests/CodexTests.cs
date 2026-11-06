@@ -234,6 +234,74 @@ internal static class CodexTests
         Check(provider.Disposed, "Engine did not own handler lifetime");
     }
 
+    public static async Task ConfiguredTransport(string root)
+    {
+        string path = FilePath(root);
+        WriteGrant(path, "A");
+        var app = new Application(TextWriter.Null);
+        var provider = new Provider();
+        using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(15));
+        try
+        {
+            var source = new CodexCredentials(app, path);
+            var binding = new ModelAuthentication(app, "codex-original", source);
+            Check(Engine.LookupModel(Vendor.OpenAI, "gpt-6-astra", out var features), "Known Astra features missing");
+            var vendor = new ModelVendor(app, "configured", "Configured Codex");
+            var endpoint = new ModelEndpoint(vendor, "original", CodexCredentials.ServiceBase,
+                Surface.Responses, binding);
+            var model = new Model(endpoint, "astra", "gpt-6-astra", "Astra",
+                features,
+                requestPolicy: new ModelRequestPolicy(promptCacheKey: "configured-cache"));
+            var agent = new Agent(app, new Configuration(Vendor.OpenAI, "gpt-4o-mini",
+                "http://127.0.0.1:1", apiKey: "unused-legacy-key"));
+            await agent.SetModelAsync(model).WaitAsync(deadline.Token);
+            agent.Engine().Destroy();
+            var engine = new Engine(agent, provider);
+            var context = new Context([new Entry(1, Actor.Human, [new TextPart("reply OK")])]);
+            string body = engine.Render(context).ToJsonString();
+            for (int i = 0; i < 2; i++)
+            {
+                if (i == 1) WriteGrant(path, "B");
+                var response = await engine.SendAsync(body, deadline.Token);
+                Check(response.Events.Any(item => item.Kind == EventKind.ResponseEnded),
+                    "Configured Codex SSE response did not complete");
+            }
+            Check(provider.Requests.Count == 2
+                && provider.Requests[0].Bearer == "fake-bearer-A"
+                && provider.Requests[1].Bearer == "fake-bearer-B"
+                && provider.Requests.All(item => item.Session == "configured-cache" && item.Body == body),
+                "Configured binding did not reread paired grants without changing request policy");
+            Check(agent.Configuration().Offering == model.Identity() && agent.Configuration().ApiKey.Length == 0,
+                "Configured selection lost identity or copied a key");
+
+            source.Destroy();
+            WriteGrant(path, "C");
+            var replacement = new CodexCredentials(app, path);
+            Check(binding.CodexCredentials() is null, "Removed source silently rebound");
+            bool refused = false;
+            try { await engine.SendAsync(body, deadline.Token); }
+            catch (InvalidOperationException) { refused = true; }
+            Check(refused && provider.Requests.Count == 2,
+                "Unavailable configured source must refuse before transport, not discover replacement");
+
+            // Recovery is a new explicit relationship and selection, not repair
+            // of the detached binding merely because the root has another store.
+            var nextBinding = new ModelAuthentication(app, "codex-replacement", replacement);
+            var nextEndpoint = new ModelEndpoint(vendor, "replacement", CodexCredentials.ServiceBase,
+                Surface.Responses, nextBinding);
+            var next = new Model(nextEndpoint, "astra", "gpt-6-astra", "Replacement",
+                features,
+                requestPolicy: new ModelRequestPolicy(promptCacheKey: "configured-cache"));
+            await agent.SetModelAsync(next).WaitAsync(deadline.Token);
+            var recovered = await engine.SendAsync(engine.Render(context).ToJsonString(), deadline.Token);
+            Check(recovered.Events.Any(item => item.Kind == EventKind.ResponseEnded)
+                && provider.Requests.Count == 3 && provider.Requests[2].Account == "fake-account-C",
+                "Explicit replacement selection did not recover through its own paired grant");
+        }
+        finally { app.Destroy(); }
+        Check(provider.Disposed, "Configured Engine did not dispose its transport");
+    }
+
     public static async Task ActorFailure(string root)
     {
         using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(15));
