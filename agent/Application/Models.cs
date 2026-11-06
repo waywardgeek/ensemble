@@ -313,7 +313,51 @@ public sealed partial class Model
         {
             if (destroyed) return;
             destroyed = true;
+            foreach (Agent agent in agents.ToArray())
+            {
+                RemoveAgent(agent);
+            }
             parent?.RemoveModel(this);
+        }
+    }
+}
+
+public sealed partial class Model
+{
+    public partial ImmutableArray<Agent> Agents()
+    {
+        lock (graphGate)
+        {
+            return agents.ToImmutableArray();
+        }
+    }
+
+    internal partial void AddAgent(Agent agent)
+    {
+        lock (graphGate)
+        {
+            ObjectDisposedException.ThrowIf(destroyed, this);
+            Ensemble root = Vendor().Parent();
+            if (root.ModelGraphClosed || agent.destroyed || agent.selectedModel is not null
+                || !ReferenceEquals(agent.parent, root) || agents.Contains(agent))
+            {
+                throw new InvalidOperationException("Invalid Model selection relationship.");
+            }
+            agents.Add(agent);
+            agent.selectedModel = this;
+        }
+    }
+
+    internal partial void RemoveAgent(Agent agent)
+    {
+        lock (graphGate)
+        {
+            if (!ReferenceEquals(agent.selectedModel, this) || !agents.Contains(agent))
+            {
+                throw new InvalidOperationException("Agent does not select this Model.");
+            }
+            agents.Remove(agent);
+            agent.selectedModel = null;
         }
     }
 }

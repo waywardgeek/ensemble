@@ -6,9 +6,14 @@ round-trip and Mac reachability are established by Bill's outputs. Common now ha
 configured vendor/endpoint/model ownership and explicit authentication bindings.
 Focused domain4/OAuth20/Codex6/existing model-selection3 groups pass. The shared
 Engine now refuses automatic inference redirects and retained cookies; causal
-before/after HTTP checks and shared358/0 pass. Agent selection, configured-model
-transport binding, restoration, GUI configuration and public graders remain
-pending; no local dropdown or integrated inference acceptance is claimed yet.
+before/after HTTP checks and shared358/0 pass. Configured-model
+public switching, peer restoration, GUI configuration and public graders remain
+pending. Internal configured request binding, qualified child restoration and
+weak Agent/Model membership are implemented. Model loss refuses inference while
+retaining documentary saves. Latest shared run is360/1: an existing Sandbox race
+fixture fails its recovery rename; unchanged focused Sandbox recheck passes4/0.
+This is not a full shared pass. No local dropdown or integrated inference
+acceptance is claimed yet.
 Chapter27 now contains TL;DR, plain-words teaching and four draft exercises.
 See [Local Models](edition-3-notes/local-models.md) for evidence and limits.
 No installation or restart performed by Cadence; Bill reports rebuilding/restarting

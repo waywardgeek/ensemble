@@ -199,6 +199,8 @@ public sealed partial class Engine
     // Build a disposable request. Refuse unsupported media or ambiguous calls
     // locally; do not consume ephemera or alter recorded events.
     public partial JsonObject Render(Context context, string requestInstruction = "");
+    private partial JsonObject RenderConfigured(Context context, Configuration config,
+        string requestInstruction, bool automaticGoalReminder);
     // The exact primary/manual/tool guidance used by Render, before request-only
     // pressure instructions. Recall uses it without rendering or sending a request.
     internal partial string ProjectInstructions(Context context);

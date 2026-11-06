@@ -9,8 +9,10 @@ public sealed partial class Engine
         // Reuse the actual request projection, but include only skill entries.
         // No media is read, ephemera consumed, or dialogue copied into config.
         var instructions = context.Dialogue.Where(entry => entry.Parts.Any(part => part is SkillPart));
-        var wire = Render(new Context(instructions));
-        var config = Parent().Configuration();
+        // A lost Model disables inference, not saving the retained conversation.
+        // Use one documentary snapshot without resolving replacement credentials.
+        var config = Parent().DocumentaryConfiguration();
+        var wire = RenderConfigured(new Context(instructions), config, "", false);
         string system = config.Vendor switch
         {
             Vendor.Anthropic => wire["system"] is JsonArray systemBlocks

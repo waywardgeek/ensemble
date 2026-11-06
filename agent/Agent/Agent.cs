@@ -29,6 +29,7 @@ public sealed partial class Agent
         try
         {
             owner?.AddChild(this);
+            AttachConfiguredModel();
             _ = new Sandbox(this);
             if (dataDirectory is not null)
             {
@@ -91,7 +92,7 @@ public sealed partial class Agent
         lock (ingress)
         {
             ObjectDisposedException.ThrowIf(destroyed, this);
-            return configuration;
+            return ValidatedConfiguration();
         }
     }
 
@@ -210,6 +211,7 @@ public sealed partial class Agent
             Attempt(() => sandbox?.Destroy());
             observations.Writer.TryComplete();
             Attempt(() => agentParent?.RemoveChild(this));
+            Attempt(DetachConfiguredModel);
             Attempt(() => parent?.RemoveAgent(this));
         }
         finally

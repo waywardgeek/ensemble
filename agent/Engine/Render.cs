@@ -11,7 +11,12 @@ public sealed partial class Engine
 
     internal partial JsonObject Render(Context context, string requestInstruction, bool automaticGoalReminder)
     {
-        var config = Parent().Configuration();
+        return RenderConfigured(context, Parent().Configuration(), requestInstruction, automaticGoalReminder);
+    }
+
+    private partial JsonObject RenderConfigured(Context context, Configuration config,
+        string requestInstruction, bool automaticGoalReminder)
+    {
         var entries = Project(context, config, out var cacheBoundary, out var ephemeral);
         var imageBudget = new ImageRequestBudget();
         var request = config.Vendor switch

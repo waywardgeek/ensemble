@@ -121,7 +121,8 @@ opaque material from a different offering must not match merely because both
 servers use the same model name. Legacy provenance remains readable but cannot
 match an explicitly configured offering. Invalid present identities refuse rather
 than silently becoming legacy data. Request projection and response capture carry
-this value; selecting and restoring the live Model relationship remain pending.
+this value; configured construction and child restoration attach the live Model
+relationship. Public switching is still under construction.
 Endpoint addresses exclude embedded credentials, query strings and fragments.
 New credential-bearing endpoints require HTTPS except literal loopback fixtures;
 public OAuth and Codex retain their additional existing endpoint restrictions.
@@ -168,12 +169,25 @@ against the resolved offering. It preserves conversation and pause state, not
 credentials or interrupted effects. A legacy child record under a configured
 parent refuses because that record cannot identify the original route safely.
 
+A configured Agent holds a weak selection link to its actual Model, and the
+Model maintains the reverse membership. Agent construction attaches both ends
+before creating Engine; partial construction rolls them back. Destroying a Model
+clears these weak links without destroying Agents or their conversations. A lost
+selection refuses new rendering and inference, never reverting to a legacy route.
+Engine admission validates the graph before incrementing its active-send guard.
+
+Documentary persistence has a different purpose from inference admission. It can
+save the last frozen configuration and retained conversation after a Model is
+removed, without acquiring credentials or granting another request. During root
+shutdown, closing admission must not block the Agents' final History saves.
+
 **Integration boundary:** synthetic HTTP checks exercise the internal projection,
 including the exact headers and captured provenance. Configured child registration
-and restoration have focused coverage, but live Agent selection membership, peer
-restoration, per-offering working-context persistence and GUI configuration remain
-open. Configured OAuth/Codex renewal and streaming conversations still need their
-own real-path coverage. Do not infer a working local dropdown or MiMo acceptance
+and restoration, weak selection membership and saving after Model loss have
+focused coverage. Public Model switching, peer restoration, per-offering
+working-context persistence and GUI configuration remain open. Configured
+OAuth/Codex renewal and streaming conversations still need their own real-path
+coverage. Do not infer a working local dropdown or MiMo acceptance
 from these internal tests.
 
 The construction-point changes belong alongside configuration and transport,

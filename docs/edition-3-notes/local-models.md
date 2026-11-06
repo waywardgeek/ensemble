@@ -186,3 +186,37 @@ restart groups, and `configured-child-final-domain.log` records four passing
 domain groups. `configured-child-shared.log` records360 passed, zero failed,
 exit0 against the final executable source. No installed application or live
 target was changed.
+
+## Live configured selection relationship
+
+Configured Agent construction now resolves and attaches its actual Model before
+creating Engine. Model maintains reverse weak Agent membership; Agent teardown
+detaches after owned work, and Model destruction clears selections without
+cascading into Agent destruction. Reads validate the selected root, offering,
+endpoint, binding and capabilities. Engine admission takes ingress then the graph
+gate, validates before incrementing its send guard, and checks credential
+availability separately. Graph destruction never calls into Agent ingress.
+
+The focused membership test covers both-ended construction, same-ID foreign-root
+refusal with rollback, sibling survival, detach/reattach, non-stranded send guards,
+Model loss without Agent destruction, refused rendering/inference, and a real
+History save after loss. Documentary persistence uses the last immutable
+configuration through a private renderer path; it does not resolve a substitute
+Model or grant inference. Configured child and transport tests remain exercised.
+
+Two intermediate runs correctly caught shutdown regressions: configuration reads
+first rejected the root's closed-admission flag, then authentication admission
+validation rejected the same shutdown. Both happened during History saving, not
+child restoration. The correction separates relationship validation, new-request
+admission and documentary persistence rather than weakening the restart tests.
+Logs remain under `/private/tmp/cadence-local-models.co2hSe` with the
+`model-membership-` prefix. The final pre-review focused build passed five domain,
+three restart and three transport groups. A subsequent atomic-admission correction
+has a clean final build. The final shared run reports360 passed and one failed,
+exit1: the existing rooted symlink-swap fixture throws DirectoryNotFoundException
+in its recovery rename after checking directory existence. Its unchanged focused
+Sandbox group subsequently passes4/0, exit0. This is non-reproduction, not a fixed
+race or a full shared pass. No Sandbox code or assertions were changed.
+`model-membership-shared.log` and `model-membership-sandbox-recheck.log` retain both
+results. No public Model setter, GUI choice, peer/working-policy migration or
+independent grader points are claimed.

@@ -70,6 +70,7 @@ public sealed partial class Model
     internal bool destroyed;
     internal readonly object graphGate;
     public readonly string ID;
+    private readonly List<Agent> agents = [];
     public readonly string Name;
     public readonly string Label;
     public readonly ModelFeatures Features;
@@ -82,6 +83,10 @@ public sealed partial class Model
     public partial ModelEndpoint Parent();
     public partial ModelVendor Vendor();
     public partial ModelIdentity Identity();
+    /// <summary>Weak selections; destroying a Model does not destroy these Agents.</summary>
+    public partial ImmutableArray<Agent> Agents();
+    internal partial void AddAgent(Agent agent);
+    internal partial void RemoveAgent(Agent agent);
     public partial void Destroy();
 }
 
@@ -93,4 +98,16 @@ public sealed partial record ModelIdentity
     public readonly string EndpointID;
     public readonly string ModelID;
     public partial ModelIdentity(string vendorID, string endpointID, string modelID);
+}
+
+public sealed partial class Agent
+{
+    // Only Model relationship operations write this weak link under the root
+    // graph gate. A configured projection with no link is unavailable, not legacy.
+    internal Model? selectedModel;
+    public partial Model? SelectedModel();
+    private partial void AttachConfiguredModel();
+    private partial void DetachConfiguredModel();
+    private partial Configuration ValidatedConfiguration();
+    internal partial Configuration DocumentaryConfiguration();
 }

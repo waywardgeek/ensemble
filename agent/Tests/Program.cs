@@ -97,6 +97,7 @@ try
         CheckCase("Configured vendor/endpoint/model ownership", ModelDomainTests.Ownership);
         CheckCase("Configured model admission and identity refusal", ModelDomainTests.Refusals);
         CheckCase("Configured model detach and destruction", ModelDomainTests.Detach);
+        CheckCase("Configured Agent weak selection membership", () => ModelAgentTests.Membership(temp));
         CheckCase("Model authentication bindings and credential lifetime", ModelAuthenticationTests.Bindings);
         if (args.Length != 0)
         {
