@@ -819,3 +819,24 @@ files and verification.json. Pre-execution source/runtime hashes still match.
 Offline primary preparation remains under the first trial's directory as
 primary-offline-final.json. No installed skill, server setting, context capacity,
 credentials, candidate runtime, or grader score changed.
+
+## Recall-isolated fixture correction (offline only)
+
+A fresh temporary copy explicitly sets RecallSettings(disabled:true) before the
+turn, and records RecallAdded counts. The relay now saves bounded credential-free
+incoming bodies before validating tool declarations, with separate rejected-body
+receipts and forwarding counts. Earlier live sources and receipts are unchanged.
+
+The corrected driver builds cleanly. An owned fake supplies one structured call
+and answers only after the matching real callback result. The actual Agent path
+produces exactly two requests, one callback/result and zero recall attachments;
+no auxiliary request or recalled-text message reaches the relay. A separate
+synthetic tool-free request is captured and refused without reaching the fake.
+Driver exit is 0, no force is needed, and both servers and process join. This is
+fixture validation, not another live-model success or new public-grader credit.
+
+The evidence pointer mimo-isolated-path identifies the fresh copy, build.log,
+offline-source-before.json, offline-result.json, offline-wire and
+offline-verification.json. All pre-run hashes match after execution, as do the
+previous live trial's hashes. No third ET trial or server configuration change
+was made. Further live experimentation is a human decision, not an idle retry.
