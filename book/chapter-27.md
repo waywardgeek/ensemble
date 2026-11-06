@@ -351,7 +351,9 @@ restoration through fresh owners, missing-route refusal and Model-loss behavior.
 Real conversation meters keep no-auth dollar cost unknown while preserving usage.
 A real executing-tool barrier additionally checks cancellation and joined Agent
 shutdown while preserving an independent sibling. A buffered response without
-usage must retain unknown input counts and cost. The 73 named checks do not
+usage must retain unknown input counts and cost. Incomplete streamed calls remain
+non-executable after interruption or provider error; the same Agent must support
+a fresh turn without replaying orphan tool messages. The 111 named checks do not
 certify all four exercises: separate-process restart, broader lifecycle/refusal
 behavior and live usefulness remain open.
 

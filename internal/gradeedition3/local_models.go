@@ -171,6 +171,16 @@ func localModelCheckNames() []string {
 	for _, suffix := range []string{"selection-membership", "serving-not-advertised-context", "final-answer", "exact-effects-and-requests", "qualified-response-provenance", "input-remains-unknown", "meter-remains-unknown", "route-0", "no-borrowed-credentials-0", "wire-name-0", "declared-stream-policy-0"} {
 		names = append(names, "missing-usage-"+suffix)
 	}
+	for _, mode := range []string{"interrupt", "provider-error"} {
+		for _, suffix := range []string{"selection-membership", "serving-not-advertised-context", "final-answer", "exact-effects-and-requests", "qualified-response-provenance", "cached-input-counted-once", "known-usage-unknown-cost", "partial-has-no-execution-authority", "controlled-failure", "failed-fragments-have-no-effects", "fresh-request-has-no-orphan-tools"} {
+			names = append(names, mode+"-"+suffix)
+		}
+		for index := 0; index < 2; index++ {
+			for _, suffix := range []string{"route", "no-borrowed-credentials", "wire-name", "declared-stream-policy"} {
+				names = append(names, fmt.Sprintf("%s-%s-%d", mode, suffix, index))
+			}
+		}
+	}
 	return append(names, "streamed-partial-has-no-execution-authority",
 		"configuration-load-preserves-launch", "configuration-real-binding-and-capacity",
 		"configuration-late-refusal-rolls-back", "child-inherits-real-offering",

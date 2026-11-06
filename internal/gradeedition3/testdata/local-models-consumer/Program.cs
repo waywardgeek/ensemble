@@ -23,7 +23,7 @@ internal static partial class Probe
         string? failure = null;
         try
         {
-            foreach (string mode in new[] { "buffered", "streamed", "prose", "missing-usage" })
+            foreach (string mode in new[] { "buffered", "streamed", "prose", "missing-usage", "interrupt", "provider-error" })
                 await Conversation(mode);
             await ConfigurationChecks();
             await LifecycleChecks();
@@ -42,6 +42,8 @@ internal static partial class Probe
         string resultText = "result-" + nonce;
         string finalText = "answer-" + nonce;
         string modelName = "local-" + nonce;
+        bool failedStream = mode is "interrupt" or "provider-error";
+        bool streaming = mode == "streamed" || failedStream;
         var portReservation = new TcpListener(IPAddress.Loopback, 0);
         portReservation.Start();
         int port = ((IPEndPoint)portReservation.LocalEndpoint).Port;
@@ -64,7 +66,7 @@ internal static partial class Probe
             var endpoint = new ModelEndpoint(vendor, "chat", address + "local",
                 Surface.ChatCompletions, auth);
             var model = new Model(endpoint, "small", modelName, "Small",
-                new ModelFeatures(Media.None, Stream: mode == "streamed", ContextWindow: 262144), 4096);
+                new ModelFeatures(Media.None, Stream: streaming, ContextWindow: 262144), 4096);
             var agent = new Agent(app, new Configuration(Vendor.Anthropic, "legacy",
                 address + "forbidden", "synthetic-old-key", disableStreaming: true));
             await agent.SetModelAsync(model);
@@ -80,7 +82,7 @@ internal static partial class Probe
                     return Task.FromResult(resultText);
                 });
             bool toolConversation = mode is "buffered" or "streamed";
-            int expectedRequests = toolConversation ? 2 : 1;
+            int expectedRequests = toolConversation || failedStream ? 2 : 1;
             server = Task.Run(async () =>
             {
                 for (int index = 0; index < expectedRequests; index++)
@@ -98,8 +100,8 @@ internal static partial class Probe
                         var root = request.RootElement;
                         Require(root.GetProperty("model").GetString() == modelName, mode + "-wire-name-" + index);
                         bool streams = root.TryGetProperty("stream", out var stream) && stream.GetBoolean();
-                        Require(streams == (mode == "streamed"), mode + "-declared-stream-policy-" + index);
-                        if (index == 1)
+                        Require(streams == streaming, mode + "-declared-stream-policy-" + index);
+                        if (index == 1 && toolConversation)
                         {
                             var messages = root.GetProperty("messages").EnumerateArray().ToArray();
                             var result = messages.Single(message => message.GetProperty("role").GetString() == "tool");
@@ -108,7 +110,13 @@ internal static partial class Probe
                             Require(agent.History().Events().Count(fact => fact.Kind == EventKind.ToolReturned) == 1,
                                 mode + "-result-recorded-before-next-request");
                         }
-                        if (mode == "streamed")
+                        if (index == 1 && failedStream)
+                        {
+                            Require(!root.GetProperty("messages").EnumerateArray().Any(message =>
+                                message.GetProperty("role").GetString() == "tool" || message.TryGetProperty("tool_calls", out _)),
+                                mode + "-fresh-request-has-no-orphan-tools");
+                        }
+                        if (streaming)
                         {
                             incoming.Response.ContentType = "text/event-stream";
                             incoming.Response.SendChunked = true;
@@ -125,9 +133,17 @@ internal static partial class Probe
                                 } } } });
                                 await release.Task.WaitAsync(deadline.Token);
                                 string arguments = JsonSerializer.Serialize(new { nonce });
-                                await Frame(new { choices = new[] { new { index = 0, delta = new {
-                                    tool_calls = new[] { new { index = 0, function = new { arguments = arguments[1..] } } }
-                                }, finish_reason = "tool_calls" } } });
+                                try
+                                {
+                                    if (mode == "provider-error")
+                                        await Frame(new { error = new { message = "synthetic stream rejection" } });
+                                    else
+                                        await Frame(new { choices = new[] { new { index = 0, delta = new {
+                                            tool_calls = new[] { new { index = 0, function = new { arguments = arguments[1..] } } }
+                                        }, finish_reason = "tool_calls" } } });
+                                }
+                                catch (Exception error) when (mode == "interrupt"
+                                    && error is IOException or HttpListenerException) { }
                             }
                             else
                             {
@@ -136,7 +152,12 @@ internal static partial class Probe
                                 await Frame(new { choices = Array.Empty<object>(), usage = new { prompt_tokens = 37,
                                     completion_tokens = 3, prompt_tokens_details = new { cached_tokens = 11 } } });
                             }
-                            await incoming.Response.OutputStream.WriteAsync(Encoding.UTF8.GetBytes("data: [DONE]\n\n"), deadline.Token);
+                            try
+                            {
+                                await incoming.Response.OutputStream.WriteAsync(Encoding.UTF8.GetBytes("data: [DONE]\n\n"), deadline.Token);
+                            }
+                            catch (Exception error) when (mode == "interrupt" && index == 0
+                                && error is IOException or HttpListenerException) { }
                         }
                         else
                         {
@@ -170,20 +191,41 @@ internal static partial class Probe
                 }
             });
             turn = agent.SendAsync("Use echo_nonce for " + nonce);
-            if (mode == "streamed")
+            if (streaming)
             {
                 await agent.WaitAsync(observation => observation.Delta?.Kind == ChunkKind.ToolCall, deadline.Token);
                 Require(effects == 0 && !turn.IsCompleted
                     && !agent.History().Events().Any(fact => fact.Kind is EventKind.ToolCalled or EventKind.ResponseEnded),
-                    "streamed-partial-has-no-execution-authority");
+                    mode + "-partial-has-no-execution-authority");
+                if (mode == "interrupt")
+                    await agent.PostAsync(new AgentInput(InputKind.InterruptNow)).WaitAsync(deadline.Token);
                 release.TrySetResult();
+            }
+            if (failedStream)
+            {
+                Exception? failure = null;
+                try { await turn.WaitAsync(deadline.Token); }
+                catch (Exception error) { failure = error; }
+                // A completed task has been observed. Do not rethrow its expected
+                // fault during cleanup; a timed-out task must still be retained/joined.
+                if (turn.IsCompleted) turn = null;
+                bool controlled = mode == "interrupt"
+                    ? failure is OperationCanceledException
+                    : failure is InvalidOperationException
+                        && agent.History().Events().Count(fact => fact.Kind == EventKind.ErrorOccurred
+                            && fact.Error == "Invalid provider stream: FormatException") == 1;
+                Require(controlled && !deadline.IsCancellationRequested, mode + "-controlled-failure");
+                Require(effects == 0 && !agent.History().Events().Any(fact =>
+                    fact.Kind is EventKind.ToolCalled or EventKind.ResponseEnded), mode + "-failed-fragments-have-no-effects");
+                // Reuse the same Agent and offering; no fixture-side conversation reset.
+                turn = agent.SendAsync("Fresh turn after the failed stream.");
             }
             string answer = await turn.WaitAsync(deadline.Token);
             await server.WaitAsync(deadline.Token);
             Require(mode == "prose" ? answer.Contains(nonce, StringComparison.Ordinal) : answer == finalText, mode + "-final-answer");
             Require(effects == (toolConversation ? 1 : 0) && requests == expectedRequests, mode + "-exact-effects-and-requests");
             var responses = agent.History().Events().Where(fact => fact.Kind == EventKind.ResponseEnded).ToArray();
-            Require(responses.Length == expectedRequests && responses.All(fact => fact.From!.Offering == model.Identity()), mode + "-qualified-response-provenance");
+            Require(responses.Length == (failedStream ? 1 : expectedRequests) && responses.All(fact => fact.From!.Offering == model.Identity()), mode + "-qualified-response-provenance");
             bool missingUsage = mode == "missing-usage";
             long? expectedInput = missingUsage ? null : 37;
             Require(agent.WorkingContextStatus().InputTokens == expectedInput,

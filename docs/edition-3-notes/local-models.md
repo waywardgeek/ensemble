@@ -667,3 +667,32 @@ public-missing-usage-final.log records both Go packages passing; final-result.js
 and final-exit under the same prefix record 73 checks, ungraded status and exit 3.
 The earlier mismatched report is retained. Source hashes are post-execution,
 not a claimed pre-run receipt.
+
+
+## Public stream interruption and failure reuse
+
+The independent consumer adds two configured SSE conversations and now requires
+111 names. Each holds incomplete tool arguments until the driver observes the
+actual public ToolCall delta. Immediate public interruption must cancel the turn;
+a provider error must produce exactly one controlled canonical stream error.
+Both paths require zero callback effects and no finalized call/response before
+starting a fresh turn on the same Agent and offering. That real second request
+must contain no orphan tool calls/results. Its answer, route, no-auth headers,
+qualified provenance, request count and cache-once usage are checked normally.
+
+The fixture releases its gate, cancels/stops its provider and joins retained turn
+and server tasks. An already completed failed turn is not rethrown in cleanup to
+hide a later named assertion; a merely timed-out task is retained for joining.
+The final outer process deadline remains the boundary for a defective candidate.
+An isolated compiled parser converts malformed streams to ResponseEnded instead
+of ErrorOccurred. It fails exactly provider-error-controlled-failure after prior
+conversation checks, including immediate interruption, pass. This is sensitivity
+to false success, not separate mutation coverage of every interruption assertion.
+No candidate runtime source, installed application or live provider was changed.
+
+Final public-stream-failure-verified.log records both Go packages passing with
+real candidate integration. public-stream-failure-result.json/exit records 111
+strict checks, ungraded status and exit 3. public-stream-error-mutant-path points
+to the isolated clean build and verified-result.json/verified-exit (exact intended
+failure, exit 1). Both runs use the final completed-task-only cleanup correction.
+The source receipt is captured after execution; only prose changed afterward.

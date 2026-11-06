@@ -5,7 +5,7 @@ It uses public Agent, Model, Tool and History APIs with grader-owned loopback HT
 random payloads and real buffered/SSE replies. It never references candidate tests,
 reflects private fields, accesses an installed credential store, or calls ET.
 
-Current coverage is 73 named checks across buffered tools, streamed tools,
+Current coverage is 111 named checks across buffered tools, streamed tools,
 ordinary tool-shaped prose, configured child restoration and executing-tool
 shutdown. Checks cover exact local routing, explicit no-auth headers, configured capabilities, real callback/result correlation, recording
 before the next request, partial-stream non-execution, offering provenance, serving
@@ -45,6 +45,14 @@ cannot satisfy the candidate-token assertion. A compiled no-join candidate fails
 lifecycle-destruction-joins-held-cleanup. This proves cooperative shutdown, not
 forced termination of arbitrary managed callbacks.
 
+Two additional real-SSE cases hold incomplete tool arguments, then either submit
+public InterruptNow or return a provider error. Neither may authorize a call or
+effect. A fresh turn on the same Agent and offering must finish with qualified
+provenance and known usage, without orphan tool messages in its actual request.
+The provider error must be a controlled canonical failure, not successful empty
+completion. A compiled false-success parser fails provider-error-controlled-failure.
+This does not certify every disconnect, malformed frame or interruption mode.
+
 ## Public runner
 
 From the repository root, with an existing candidate assembly and .NET 10 SDK:
@@ -66,7 +74,7 @@ Setup has a two-minute limit; execution has a separate 75-second limit. Both
 stdout and stderr are capped at 64 KiB. The runner cancels its owned process group,
 waits for the direct child and bounds inherited output-pipe waits. It does not
 provide a network sandbox or containment of deliberately detached descendants.
-Success requires exactly the 73 named checks once each and a null failure field;
+Success requires exactly the 111 named checks once each and a null failure field;
 missing, duplicated, unknown or trailing receipt data refuse. Temporary files are
 removed after execution; capture the JSON report for retained evidence.
 
@@ -101,7 +109,7 @@ public runner supplies that outer bound. A cleared environment is not a network
 sandbox. The loopback port is reserved then rebound;
 a competing bind causes a setup failure, not a silently chosen remote endpoint.
 
-Calibration: the current candidate passes 73 checks. An isolated, successfully
+Calibration: the current candidate passes 111 checks. An isolated, successfully
 compiled candidate that emits a synthetic bearer for explicit no-auth fails at
 buffered-no-borrowed-credentials-0. That proves this wire oracle's sensitivity,
 not mutation coverage for every assertion. No candidate or installed source is
