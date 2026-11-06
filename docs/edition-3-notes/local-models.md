@@ -243,3 +243,28 @@ passing run does not establish that the fixture race was repaired.
 
 Evidence is under `/private/tmp/cadence-local-models.co2hSe`, with the
 `offering-context-` prefix. No live provider, installation or restart occurred.
+
+## Qualified peer launch identity
+
+PeerLaunch now carries an optional ModelIdentity. Legacy registry rows retain
+exactly their original four fields; configured rows add the shared strict offering
+encoding. Creation inherits the configured offering, and restoration resolves all
+launch identities and checks wire names before constructing any peer. It resolves
+again for construction rather than treating the preflight as lifetime authority.
+Legacy records under a configured host refuse route ambiguity. The registry still
+records launch choices, not subsequent mutable Model selections or credentials.
+
+The new real-file test constructs and restores a configured peer under a legacy
+host with different routing and funding, checks actual Model membership and retained
+conversation, and verifies no registry rewrite. Missing configuration, wrong wire
+name, null/incomplete/duplicate identities, and ambiguous legacy records refuse.
+A valid first row followed by a missing route uses two new peer names: neither
+Agent directory may be created. This distinguishes prevalidation from rollback
+that merely removes live membership after startup effects.
+
+Initial and final strengthened-test builds are clean with zero warnings/errors;
+all six peer groups pass. The final shared regression passes362/0, exit0 against
+the final executable bytes. Evidence is under
+`/private/tmp/cadence-local-models.co2hSe`, with the `configured-peer-` prefix.
+No inference is requested by the new test. No new dropdown, independent grader
+points, installation or live-target acceptance is claimed.

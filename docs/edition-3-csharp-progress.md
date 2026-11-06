@@ -7,12 +7,14 @@ configured vendor/endpoint/model ownership and explicit authentication bindings.
 Focused domain4/OAuth20/Codex6/existing model-selection3 groups pass. The shared
 Engine now refuses automatic inference redirects and retained cookies; causal
 before/after HTTP checks and shared358/0 pass. Configured-model
-public switching, peer restoration, GUI configuration and public graders remain
-pending. Internal configured request binding, qualified child restoration and
+public switching, GUI configuration and public graders remain pending.
+Qualified peer launch records now preserve offering identity; restoration validates
+the entire launch set before startup effects, without a host-route fallback.
+Internal configured request binding, qualified child restoration and
 weak Agent/Model membership are implemented. Model loss refuses inference while
 retaining documentary saves. Working-context persistence now distinguishes
 configured offerings from each other and from legacy wire-name policies. Final
-shared regression passes361/0. The previous360/1 Sandbox fixture race and its
+shared regression passes362/0. The previous360/1 Sandbox fixture race and its
 passing focused recheck remain recorded, not claimed repaired. Actual-page
 offering switching, a local dropdown and integrated inference acceptance remain
 open.

@@ -42,7 +42,8 @@ public sealed partial class Ensemble
             var bootstrap = source.SkillManager()?.CaptureBootstrap();
             string selectedModel = string.IsNullOrEmpty(model) ? configuration.Model : model;
             string selectedSkill = string.IsNullOrEmpty(skill) ? bootstrap?.Primary ?? "" : skill;
-            var entry = new PeerLaunch(name, selectedModel, selectedSkill, DateTimeOffset.UtcNow);
+            var selection = configuration.WithModel(selectedModel);
+            var entry = new PeerLaunch(name, selectedModel, selectedSkill, DateTimeOffset.UtcNow, selection.Offering);
             peer = await ConstructPeerAsync(entry, configuration, bootstrap, operation.Token, waitForBrowser).ConfigureAwait(false);
             operation.Token.ThrowIfCancellationRequested();
             // This replacement is the commit point. Do not throw cancellation
@@ -89,6 +90,11 @@ public sealed partial class Ensemble
                 }
             }
             var configuration = source.Configuration();
+            // Resolve the entire launch set before any peer startup or file writes.
+            foreach (var entry in entries)
+            {
+                _ = PeerConfiguration(entry, configuration);
+            }
             var bootstrap = source.SkillManager()?.CaptureBootstrap();
             foreach (var entry in entries)
             {
@@ -151,6 +157,24 @@ public sealed partial class Ensemble
         }
     }
 
+    private partial Configuration PeerConfiguration(PeerLaunch entry, Configuration policy)
+    {
+        if (entry.Offering is { } identity)
+        {
+            Model model = ResolveModel(identity);
+            if (!string.Equals(model.Name, entry.Model, StringComparison.Ordinal))
+            {
+                throw new InvalidDataException("Peer offering does not match its saved model name.");
+            }
+            return new Configuration(policy, model);
+        }
+        if (policy.Offering is not null)
+        {
+            throw new InvalidDataException("A legacy peer launch cannot identify a configured offering.");
+        }
+        return policy.WithModel(entry.Model);
+    }
+
     private partial async Task<Agent> ConstructPeerAsync(PeerLaunch entry, Configuration configuration,
         SkillBootstrap? bootstrap, CancellationToken cancellation, bool waitForBrowser)
     {
@@ -170,7 +194,7 @@ public sealed partial class Ensemble
         {
             bootstrap = null;
         }
-        var peer = new Agent(this, configuration.WithModel(entry.Model), name: entry.Name);
+        var peer = new Agent(this, PeerConfiguration(entry, configuration), name: entry.Name);
         try
         {
             peer.InstallTools();
@@ -245,13 +269,17 @@ public sealed partial class Ensemble
                 var fields = new HashSet<string>(StringComparer.Ordinal);
                 foreach (var property in row.EnumerateObject())
                 {
-                    if (property.Name is not ("name" or "model" or "skill" or "created")
-                        || property.Value.ValueKind != JsonValueKind.String || !fields.Add(property.Name))
+                    bool known = property.Name is "name" or "model" or "skill" or "created" or "offering";
+                    bool validKind = property.Name == "offering"
+                        ? property.Value.ValueKind == JsonValueKind.Object
+                        : property.Value.ValueKind == JsonValueKind.String;
+                    if (!known || !validKind || !fields.Add(property.Name))
                     {
                         throw new InvalidDataException("Invalid or duplicate peer registry field.");
                     }
                 }
-                if (fields.Count != 4)
+                if (!fields.Contains("name") || !fields.Contains("model")
+                    || !fields.Contains("skill") || !fields.Contains("created"))
                 {
                     throw new InvalidDataException("A peer registry entry requires name, model, skill and created.");
                 }
@@ -264,11 +292,13 @@ public sealed partial class Ensemble
                 {
                     throw new InvalidDataException("Invalid or duplicate peer launch identity.");
                 }
-                entries.Add(new PeerLaunch(name, model, skill, created));
+                ModelIdentity? offering = row.TryGetProperty("offering", out var savedOffering)
+                    ? JsonCodec.ReadModelIdentity(savedOffering) : null;
+                entries.Add(new PeerLaunch(name, model, skill, created, offering));
             }
             return entries.ToImmutable();
         }
-        catch (Exception error) when (error is JsonException or ArgumentException)
+        catch (Exception error) when (error is JsonException or ArgumentException or FormatException)
         {
             throw new InvalidDataException("Invalid peer registry.", error);
         }
@@ -279,13 +309,18 @@ public sealed partial class Ensemble
         var rows = new JsonArray();
         foreach (var entry in entries)
         {
-            rows.Add(new JsonObject
+            var row = new JsonObject
             {
                 ["name"] = entry.Name,
                 ["model"] = entry.Model,
                 ["skill"] = entry.Skill,
                 ["created"] = entry.Created
-            });
+            };
+            if (entry.Offering is { } offering)
+            {
+                row["offering"] = JsonCodec.WriteModelIdentity(offering);
+            }
+            rows.Add(row);
         }
         // The supplied owner's Sandbox enforces the same host policy as its
         // History. No unconfined fallback or new filesystem service is needed.

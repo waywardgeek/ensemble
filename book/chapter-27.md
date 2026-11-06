@@ -175,6 +175,14 @@ against the resolved offering. It preserves conversation and pause state, not
 credentials or interrupted effects. A legacy child record under a configured
 parent refuses because that record cannot identify the original route safely.
 
+Peer launch records follow the same identity rule. A configured peer saves its
+qualified offering alongside the launch model name; a legacy peer keeps the
+original four-field record. These are launch choices, not a second store of the
+running Agent's mutable selection. Restoration resolves the entire launch set
+before starting any peer, checks each wire name, and refuses missing offerings
+without substituting the host's route or funding. Invalid present identities do
+not become legacy records.
+
 A configured Agent holds a weak selection link to its actual Model, and the
 Model maintains the reverse membership. Agent construction attaches both ends
 before creating Engine; partial construction rolls them back. Destroying a Model
@@ -191,9 +199,9 @@ shutdown, closing admission must not block the Agents' final History saves.
 including the exact headers and captured provenance. Configured child registration
 and restoration, weak selection membership and saving after Model loss have
 focused coverage. Per-offering working-context persistence and effective-policy
-isolation have focused coverage too. Public Model switching, peer restoration,
-GUI configuration and actual-page offering-switch checks remain open. Configured
-OAuth/Codex renewal and streaming conversations still need their own real-path
+isolation and qualified peer launch/restoration have focused coverage too.
+Public Model switching, GUI configuration and actual-page offering-switch checks
+remain open. Configured OAuth/Codex renewal and streaming conversations still need their own real-path
 coverage. Do not infer a working local dropdown or MiMo acceptance
 from these internal tests.
 

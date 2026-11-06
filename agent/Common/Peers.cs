@@ -4,7 +4,8 @@ namespace Ensemble;
 
 /// <summary>Value-like durable launch choices. These are not the running Agent's
 /// mutable model selection, credentials, authority, or conversation.</summary>
-public sealed record PeerLaunch(string Name, string Model, string Skill, DateTimeOffset Created);
+public sealed record PeerLaunch(string Name, string Model, string Skill, DateTimeOffset Created,
+    ModelIdentity? Offering = null);
 
 public sealed partial class Ensemble
 {
@@ -40,6 +41,7 @@ public sealed partial class Ensemble
     private partial CancellationTokenSource BeginPeerOperation(Agent source, CancellationToken cancellation);
     private partial ImmutableArray<PeerLaunch> ReadPeerLaunches(Agent source);
     private partial void SavePeerLaunches(Agent source, ImmutableArray<PeerLaunch> entries);
+    private partial Configuration PeerConfiguration(PeerLaunch entry, Configuration policy);
     private partial Task<Agent> ConstructPeerAsync(PeerLaunch entry, Configuration configuration,
         SkillBootstrap? bootstrap, CancellationToken cancellation, bool waitForBrowser);
 }

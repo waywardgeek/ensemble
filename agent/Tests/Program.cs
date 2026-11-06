@@ -474,6 +474,7 @@ try
     if (args is ["--peer-tests"] || args.Length == 0)
     {
         await AsyncCase("Chapter 21 durable peer launch and restoration", () => PeerTests.Persistence(temp));
+        await AsyncCase("Chapter 27 configured peer launch and restoration", () => ConfiguredPeerTests.Persistence(temp));
         await AsyncCase("Chapter 21 ordinary peer chat across restart", () => ActorTests.PeerChat(temp));
         await AsyncCase("Chapter 21 peer registry refusals and rollback", () => PeerTests.Refusals(temp));
         await AsyncCase("Chapter 21 explicit peer deletion and retained data", () => PeerTests.Deletion(temp));
