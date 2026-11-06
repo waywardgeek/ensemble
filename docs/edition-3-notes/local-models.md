@@ -530,3 +530,29 @@ failure cleanup. No production code changed and no new shared-suite result is
 claimed. These are owned HTTP/SSE tests, not ET inference, coding usefulness,
 independent public grader points, disconnect/malformed-stream coverage in every
 shape, or cancellation of an already executing tool.
+
+
+## Independent Local Models consumer foundation
+
+The new testdata/local-models-consumer project references only Ensemble.dll, not
+candidate tests or source projects. It drives actual Agent turns against owned
+HTTP with randomized names, call IDs and payloads. Buffered and streamed structured
+tools require a real callback, correlated result and canonical recording before
+the next request. Ordinary tool-shaped content must remain text with zero effects.
+Route, no-auth headers, configured stream policy, serving capacity, provenance and
+cached input are checked independently of the candidate's test results.
+
+public-model-final-build.log and public-model-result.json under the local evidence
+root record a clean build and 43 named checks passing. An isolated archived core
+changes only the no-auth transport branch to emit a synthetic bearer. It builds
+cleanly and fails exactly buffered-no-borrowed-credentials-0 after three setup
+checks; the loaded DLL hash matches the mutated build. Its path is recorded in
+public-model-mutant-path. Good and negative executables exit0/1 respectively after
+owned cleanup; the collector exits0 only because the intended negative was verified.
+
+Full consumer source reviewed in bounded reads. Receipt collection is locked across
+provider and driver tasks. The README documents the exact offline build/run inputs
+and cooperative deadlines. This is a public component, not a scored Chapter27 CLI:
+outer process timeout/containment, remaining lifecycle/configuration coverage and
+report integration are next. No GUI/live Ollama/student/full-chapter acceptance or
+new artifact score is claimed. Main runtime and installed application are unchanged.

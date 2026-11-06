@@ -21,7 +21,10 @@ host builds cleanly. The reserved launch-return offering now has twelve startup
 cases and a three-request public-GUI wire test covering Responses to local Chat
 and back with restored launch policy and retained conversation. Configured Codex
 grant/source-loss checks and public OAuth loopback renewal/refusal checks pass.
-Local SSE tool conversations and public graders remain pending.
+Configured Chat SSE tool success/interruption/provider-error checks now pass in
+five focused transport groups. An outside-assembly Local Models consumer passes
+43 public buffered/SSE/prose checks and rejects a compiled no-auth header-leak
+candidate. The public runner and remaining grader coverage are still pending.
 Qualified peer launch records now preserve offering identity; restoration validates
 the entire launch set before startup effects, without a host-route fallback.
 Internal configured request binding, qualified child restoration and
