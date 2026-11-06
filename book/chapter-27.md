@@ -61,6 +61,12 @@ returned a real `tool_calls` array, accepted a result with the matching call ID,
 and answered the question. Only the second exchange demonstrated the structured
 protocol we need. Neither exchange alone demonstrated reliable agentic coding.
 
+A later integrated Ensemble trial returned a correct small Python function but
+made no tool call despite an explicit request to use its one declared tool. It
+used short primary instructions, not the normal primary skill. The function
+passed six reviewed local cases; requested tool use did not pass. Record both
+outcomes rather than treating successful generation as successful tool use.
+
 ## 27.1 Start with a verified server
 
 The initial target is Windows-native Ollama on a separate laptop, not an assumed

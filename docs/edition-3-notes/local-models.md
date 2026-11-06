@@ -725,3 +725,46 @@ chapter points, installed application or live-model acceptance is claimed.
 The final built CLI report in public-restart-final-result.json records 119 checks,
 ungraded status and public-restart-final-exit records 3. The source hash receipt
 is captured after execution; only documentation changed after the final tests.
+
+
+## First integrated MiMo coding trial: mixed outcome
+
+One announced real trial used an isolated public-API Agent, explicit no-auth
+configured MiMo offering and streaming Chat Completions at ET. It loaded no
+primary skill, no memory, and no built-in tools. Primary instructions were a short
+coding role; the only custom tool, get_test_cases, returned fixed examples without
+executing generated code. The prompt requested exactly one call before returning
+a Python first_repeated implementation. A 90-second cooperative deadline and
+110-second outer process bound prevented an unbounded local campaign; no retry
+or cloud fallback occurred.
+
+The process exited 0, joined without forced cleanup, in about 21.3 seconds.
+However, task acceptance did not pass: History recorded one request and zero tool
+results, and the callback count was zero. The answer contained a correct set-based
+function. After exact source review, a separate isolated Python invocation passed
+all six cases and preserved inputs. Reported usage was 418 input and 423 output
+tokens; estimated dollar cost remained unknown. Correct code and clean process
+exit do not establish requested tool use or general coding-agent competence.
+
+The live driver did not capture the outbound body. A subsequent offline-only
+render of the same setup includes exactly get_test_cases with a normal function
+schema and stream:true, with zero requests. This verifies rendering, not a
+retrospective live wire capture. Its first build failed because a second artifact
+directory caused recursive source globs to include old generated assembly files;
+explicit Program.cs inclusion corrected setup, and the final offline build/run
+passed. No production code was changed to obtain that result.
+
+A version query returned Ollama 0.40.15. Before inference api/ps reported no loaded
+models; during the trial it reported mimo-v2.6:9b, Q4_K_M, context_length 4096,
+size and size_vram both 5606337412 bytes, and llamacpp. This freshly confirms the
+serving allocation, not the advertised 262144-token maximum or spare GPU capacity.
+The ordinary ensemble primary skill was not tested: its source is 4804 bytes
+before template expansion and declares 20 tools; bytes are not model tokens.
+
+Evidence: mimo-trial-path under the existing evidence root identifies the isolated
+build, original Program.live.cs.txt, result.json, process.json, loaded-models.json,
+code-check.json and offline-work/rendered-request.json. live-source-receipt.json
+is explicitly post-execution and predates the offline-only driver edit. No
+installation, server configuration, context increase or credential change occurred.
+The next trial needs an explicit small primary-skill contract and wire evidence;
+this result does not close live tool acceptance or human usability acceptance.

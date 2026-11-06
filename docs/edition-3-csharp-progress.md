@@ -39,7 +39,10 @@ configured offerings from each other and from legacy wire-name policies. Final
 shared regression passes364/0. The previous360/1 Sandbox fixture race and its
 passing focused recheck remain recorded, not claimed repaired. Final GUI regression
 groups also pass. Configuring an installed local offering and integrated inference
-acceptance remain open.
+acceptance remain open. One isolated live MiMo trial returned correct code but
+made no requested tool call; it used minimal instructions and no primary skill.
+Current ET status confirmed a 4096-token serving context. This mixed result does
+not close live tool or human usability acceptance.
 Chapter27 now contains TL;DR, plain-words teaching and four draft exercises.
 See [Local Models](edition-3-notes/local-models.md) for evidence and limits.
 No installation or restart performed by Cadence; Bill reports rebuilding/restarting
