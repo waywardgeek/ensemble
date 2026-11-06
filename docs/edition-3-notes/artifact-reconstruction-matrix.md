@@ -1910,3 +1910,41 @@ adapter changes were reviewed. Streaming focus/selection, delayed completion,
 timing, pairing and student-facing selector/launcher contracts remain open.
 The old card renderer still recreates DOM, so buffered success does not certify
 streaming retention. No main runtime, frozen source, installation or score changed.
+
+### Real streaming retention and delayed-copy ownership calibration
+
+The parent-only early GUI reference now has a separate stable-text-body adapter.
+It retains the existing body/header/control objects instead of clearing a text
+card before calling the existing Markdown renderer. No student candidate, frozen
+endpoint or main runtime source changed. A real owned SSE provider gates unfinished code,
+fence closure, later prose and final prose. Nine final checks pass, including
+actual focused button identity, expansion/feedback, original readonly textarea
+identity and full selection after the typed final and completed turn. The earlier
+whole-card adapter fails at the focused-control assertion; a separate variant that
+retains nodes but collapses selection fails at the manual-selection assertion.
+All final runs use one provider request. Browser, server and host cleanup joins;
+each host exits0, including runs with an intentionally failing browser assertion.
+
+A second real-stream case extends an EOF closing-fence line with letters, turning
+it into code and creating a genuinely different logical payload. The pinned
+parser fixture check and actual page agree. A pending clipboard write retains its
+old bytes while the page creates a new control. Success and denial each pass eight
+checks: no retargeted feedback/fallback, no draft/focus interference or retry, and
+a fresh click copies the new payload. A syntax-checked variant that looks up the
+replacement by reused code index fails the success and denial assertions
+independently. No private application state, later Agent API or injected display
+frame is used; only clipboard/speech browser boundaries are substituted.
+
+Final streaming source hashes were captured before execution and match afterward.
+Delayed-case hashes are explicitly post-execution; the reviewed files were
+unchanged between execution and hashing. Full helper/driver/adapter diffs were
+reviewed, and all 68 preserved reference source hashes still match. Evidence remains under the parent-only
+reference directory's `evidence/stream-*` and `delayed-*` names. Initial eight-check
+stream receipts precede the added typed-final/completed-turn barrier; final
+streaming acceptance is the nine-check receipt. Chapter7 adds the demonstrated
+fence-line example to explain its existing changed-payload ownership rule.
+
+This is calibration, not a published supplemental grader or student acceptance.
+Selector/launcher contracts, broader Markdown/interaction coverage, recorded-time
+and pairing/reading checks remain open. No native clipboard, audible output,
+installation, publication or additional artifact points are claimed.

@@ -400,6 +400,12 @@ payload gets a new control. Late clipboard completion belongs to the old snippet
 and must not update a replacement card or redirect its copied bytes. These are
 browser interaction lifetimes, not additional persistent artifact ownership.
 
+Even append-only model text can change a parsed snippet. A closing fence at the
+end of the current prefix stops being a closer if later text appends letters to
+that same line. A gated provider stream can exercise this payload change while
+a clipboard write is pending. Check both success and denial: neither may update
+the replacement's feedback or move focus into it.
+
 ### Stream Markdown, render the accumulated text
 
 Keep the complete original Markdown in the backing card. Send text deltas over
