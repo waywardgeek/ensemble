@@ -140,8 +140,14 @@ def run_case(root, dotnet, gui, name, content, binding="none", billing="api", ke
                 if omitted:
                     require(choices == [], "no implicit configured graph")
                 else:
-                    require(len(choices) == 1, "one configured offering")
-                    choice = choices[0]
+                    has_launch = billing == "none" or bool(key)
+                    require(len(choices) == (2 if has_launch else 1), "document and available launch offerings")
+                    choice = next(item for item in choices if item["offering"]["vendor"] == "local")
+                    if has_launch:
+                        launch = next(item for item in choices if item["offering"]["vendor"] == "host-launch")
+                        require(launch["offering"] == {"vendor": "host-launch", "endpoint": "launch", "model": "launch"}
+                                and launch["enabled"] and launch["funding"] == frame["funding"],
+                                "explicit launch return identity and funding")
                     require(choice["offering"] == {"vendor": "local", "endpoint": "test", "model": "small"},
                             "qualified configured identity")
                     require(choice["enabled"] and choice["serving_context_tokens"] == 4096
@@ -186,6 +192,9 @@ def main():
             {"binding": "launch", "billing": "none", "via_environment": True}),
         ("flag-precedence", json.dumps(document()).encode(), {"override": True}),
         ("unknown-binding", json.dumps(document("unknown")).encode(), {"expected": False}),
+        ("keyless-local-only", json.dumps(document()).encode(), {"key": ""}),
+        ("reserved-launch-vendor", json.dumps(document()).replace('"id": "local"', '"id": "host-launch"').encode(),
+            {"expected": False}),
         ("missing-launch-key", json.dumps(document("launch")).encode(), {"key": "", "expected": False}),
         ("invalid-utf8", b"\xff", {"expected": False}),
         ("oversize", b" " * (1024 * 1024 + 1), {"expected": False}),

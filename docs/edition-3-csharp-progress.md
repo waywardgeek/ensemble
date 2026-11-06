@@ -17,8 +17,10 @@ using explicit existing-payer bindings without changing initial launch policy.
 Ten isolated host process/socket cases pass. Models now own immutable request
 policy, including reasoning and delivery options, with strict document loading
 and projection isolation. Seven domain groups and final shared366/0 pass; the GUI
-host builds cleanly. Host-created exact return-to-launch selection, configured
-renewal and public graders remain pending.
+host builds cleanly. The reserved launch-return offering now has twelve startup
+cases and a three-request public-GUI wire test covering Responses to local Chat
+and back with restored launch policy and retained conversation. Configured renewal,
+SSE tool conversations and public graders remain pending.
 Qualified peer launch records now preserve offering identity; restoration validates
 the entire launch set before startup effects, without a host-route fallback.
 Internal configured request binding, qualified child restoration and

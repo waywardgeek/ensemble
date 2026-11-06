@@ -171,20 +171,33 @@ try
         // can reference these bindings, never credential locations or secrets.
         byte[] modelDocument = ReadModelConfiguration(modelConfigurationPath);
         _ = new ModelAuthentication(app, "none");
-        switch (billing)
+        ModelAuthentication? launchBinding = billing switch
         {
-            case BillingMode.None:
-                _ = new ModelAuthentication(app, "launch");
-                break;
-            case BillingMode.ApiKey when !string.IsNullOrWhiteSpace(key):
-                _ = new ModelAuthentication(app, "launch", key);
-                break;
-            case BillingMode.ChatGptPlan:
-                _ = new ModelAuthentication(app, "launch", launchCredentials!, accountSelection);
-                break;
-            case BillingMode.Codex:
-                _ = new ModelAuthentication(app, "launch", launchCodex!);
-                break;
+            BillingMode.None => new ModelAuthentication(app, "launch"),
+            BillingMode.ApiKey when !string.IsNullOrWhiteSpace(key) => new ModelAuthentication(app, "launch", key),
+            BillingMode.ChatGptPlan => new ModelAuthentication(app, "launch", launchCredentials!, accountSelection),
+            BillingMode.Codex => new ModelAuthentication(app, "launch", launchCodex!),
+            _ => null
+        };
+        if (launchBinding is not null)
+        {
+            // A normal configured offering is the explicit return choice. It
+            // owns request policy, not a hidden backup Configuration or secrets.
+            // Reserve its vendor before loading: the file cannot replace it.
+            var launchVendor = new ModelVendor(app, "host-launch", "Launch configuration");
+            var launchEndpoint = new ModelEndpoint(launchVendor, "launch", config.BaseUrl,
+                config.Surface, launchBinding);
+            string summary = config.ReasoningSummary;
+            if (summary.Length == 0 && config.Surface == Surface.Responses
+                && !config.Features.ReasoningEfforts.IsDefaultOrEmpty)
+            {
+                summary = "off";
+            }
+            var launchPolicy = new ModelRequestPolicy(config.DisableStreaming, config.RequireToolExplanation,
+                config.DeferredTools, config.StubsToolResults, config.CacheBreakpoints,
+                config.PromptCacheKey, config.ReasoningEffort, summary);
+            _ = new Model(launchEndpoint, "launch", config.Model, "Return to launch",
+                config.Features, config.ServingContextTokens, launchPolicy);
         }
         // Complete loading before any Agent, persisted conversation, or fleet
         // restoration. This is additive; it does not rewrite launch policy.

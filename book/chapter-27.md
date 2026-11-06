@@ -237,8 +237,9 @@ focused coverage. Per-offering working-context persistence and effective-policy
 isolation and qualified peer launch/restoration have focused coverage too.
 Public Model switching has focused loopback routing and failed-save coverage.
 The ordinary dropdown has real-socket and actual-page offering-switch/recovery
-coverage. Host configuration remains open. Configured OAuth/Codex renewal and
-streaming conversations still need their own real-path coverage. Do not infer an
+coverage. Host file loading and explicit launch-return routing have process/socket
+coverage. Configured OAuth/Codex renewal and streaming conversations still need
+their own real-path coverage. Do not infer an
 installed MiMo offering or live-model acceptance from these owned fixtures.
 
 ### Host-owned model configuration
@@ -296,9 +297,16 @@ The host supplies two binding names when loading a document:
 The document cannot name another token file or discover another account. Loading
 also does not select an offering or reconstruct the initial Configuration: launch
 reasoning, caching, funding and other policy remain unchanged. Choosing a configured
-offering subsequently uses the normal configured-model projection. An exact
-return-to-launch choice is still an open integration task; do not assume that a
-same-name configured cloud offering restores all legacy launch policy.
+offering subsequently uses the normal configured-model projection.
+
+When the launch binding exists, the host reserves vendor `host-launch`, endpoint
+`launch` and model `launch` for the explicit **Return to launch** choice. It uses
+the actual launch endpoint, binding, features and immutable request policy. A file
+cannot replace that reserved vendor. A keyless API launch has no return offering;
+it does not acquire an unauthenticated substitute. Initial selection is still
+legacy. Explicit return uses the new qualified identity, so old opaque legacy
+provenance does not automatically become eligible for replay. Conversation remains,
+but identical routing alone is not permission to migrate opaque provenance.
 
 The library boundary has strict-decoding and rollback tests. The actual host has
 process/socket checks for loaded choices, retained initial selection and funding,
@@ -307,15 +315,18 @@ Agent construction. Run the scoped check against an already-built GUI executable
 
 ```sh
 python3 agent/GuiTests/model-host.py ABS_DOTNET ABS_GUI_DLL NEW_EVIDENCE_DIRECTORY
+python3 agent/GuiTests/model-launch-wire.py ABS_DOTNET ABS_GUI_DLL ANOTHER_NEW_DIRECTORY
 ```
 
-This POSIX check uses isolated homes and synthetic keys, makes no inference request,
-and joins its host processes. It does not certify subscription renewal, restored
-fleet execution, live Ollama behavior or installation.
+These POSIX checks use isolated homes and synthetic keys and join their hosts.
+The startup check makes no inference request. The wire check makes exactly three
+requests to its owned loopback provider and deliberately returns buffered JSON.
+Neither certifies subscription renewal, SSE replies, restored fleet execution,
+live Ollama behavior or installation.
 
 The construction-point changes belong alongside configuration and transport,
 model selection, child ownership, persistence and accounting. This capstone joins
-those contracts. The user-facing configuration interface and executable grader
+those contracts. The independent scored grader
 commands will be documented here after implementation and review; no unimplemented
 command or public grader is promised by this draft.
 

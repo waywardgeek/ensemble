@@ -429,3 +429,35 @@ model-policy-shared.log; the GUI host build is clean in model-policy-gui-build.l
 Full policy/runtime/test and changed-prose review completed. Only prose changed
 after the final executable build; no standalone pre-execution hash receipt is claimed.
 No installed settings, provider request to ET, credential change or restart occurred.
+
+
+## Explicit host launch return
+
+The host reserves host-launch/launch/launch before loading the document, using the
+actual selected binding and normalized ModelRequestPolicy. Initial legacy selection
+is unchanged. A reserved-vendor collision refuses before Agent construction, and
+keyless API launches expose no launch binding or substitute return offering.
+No backup Configuration becomes a second routing authority. Explicit return has a
+qualified identity; legacy opaque provenance is not automatically migrated.
+
+Evidence under /private/tmp/cadence-local-models.co2hSe:
+model-launch-build.log is the clean host build; model-launch-startup/result.json
+records twelve actual startup/socket cases, all with expected exits and joined
+cleanup, including keyless local-only startup and reserved-vendor collision.
+model-launch-wire-final/result.json records seven assertions over three actual
+public-websocket prompt turns. The owned provider observes launch Responses with
+synthetic bearer, high reasoning, summary omitted and launch cache key; local Chat
+with streaming requested, no credential and no old reasoning/cache key; and return
+Responses with the original route/authentication/options restored. Earlier human
+prompts and assistant answers remain in later provider requests. All turns complete,
+exactly three requests occur, host exits0, provider thread joins, no forced cleanup.
+
+The initial wire run passed. Review then replaced ineffective HTTPServer.timeout
+with accepted-socket timeout and closed failed websocket handshakes; the final run
+passes with those corrections. The full helper and host/test diffs were reviewed.
+A post-execution source receipt records final bytes, not a claimed pre-run receipt.
+No fresh shared-core run is needed for this host-only slice; policy shared366/0
+remains prior evidence. Replies are buffered JSON even when streaming is requested:
+this is not SSE proof. Messages-only deferred/block-cache options, configured
+OAuth/Codex renewal, real ET usefulness and installed configuration remain open.
+No live service, credentials, installation, restart or publication was changed.
