@@ -257,9 +257,40 @@ without destroying the borrowed authentication owners. Existing vendors and Agen
 selections cannot be overwritten by a load. This is additive startup configuration,
 not a live graph editor or an implicit model switch.
 
-The library loading boundary has focused strict-decoding and rollback tests. The
-GUI host's file-reading option and launch-binding setup are the next integration
-step; no installed configuration is changed by these library tests.
+The GUI host accepts `--model-config PATH` or `EN_MODEL_CONFIG`; the command-line
+option wins. Relative paths resolve after the host's explicit workspace option.
+It opens one file handle, bounds both initial size and subsequent reads to 1 MiB,
+and loads the graph before constructing the initial Agent or restoring the fleet.
+Missing, malformed or unresolved configuration refuses startup; there is no empty
+configuration fallback. Omitting the option preserves the legacy launch path.
+
+The host supplies two binding names when loading a document:
+
+- `none` is explicitly unauthenticated, suitable for a restricted local endpoint.
+- `launch` uses the payer selected by the existing launch options: the supplied
+  API key, the actual public OAuth owner and account, or the actual Codex owner.
+  An API launch without a key does not create this binding. `--billing none`
+  makes it explicitly unauthenticated instead; an ambient API key is ignored.
+
+The document cannot name another token file or discover another account. Loading
+also does not select an offering or reconstruct the initial Configuration: launch
+reasoning, caching, funding and other policy remain unchanged. Choosing a configured
+offering subsequently uses the normal configured-model projection. An exact
+return-to-launch choice is still an open integration task; do not assume that a
+same-name configured cloud offering restores all legacy launch policy.
+
+The library boundary has strict-decoding and rollback tests. The actual host has
+process/socket checks for loaded choices, retained initial selection and funding,
+flag precedence, explicit no-auth, missing funding and invalid-file refusals before
+Agent construction. Run the scoped check against an already-built GUI executable:
+
+```sh
+python3 agent/GuiTests/model-host.py ABS_DOTNET ABS_GUI_DLL NEW_EVIDENCE_DIRECTORY
+```
+
+This POSIX check uses isolated homes and synthetic keys, makes no inference request,
+and joins its host processes. It does not certify subscription renewal, restored
+fleet execution, live Ollama behavior or installation.
 
 The construction-point changes belong alongside configuration and transport,
 model selection, child ownership, persistence and accounting. This capstone joins

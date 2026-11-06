@@ -35,12 +35,12 @@ try
             flags[flag] = "1";
             continue;
         }
-        if (flag is not ("--data-dir" or "--agent-name" or "--sandbox" or "--port" or "--public-origin" or "--gui-dir" or "--vendor" or "--model" or "--base-url" or "--workspace" or "--event-log" or "--settings" or "--skills-dir" or "--primary-skill" or "--startup-skills" or "--save" or "--save-log" or "--archive-log" or "--cache-lens" or "--prompt-cache-key" or "--surface" or "--billing" or "--transcription" or "--transcription-key-file" or "--account" or "--credentials-dir" or "--codex-auth-file" or "--reasoning-effort" or "--reasoning-summary" or "--safe-mode" or "--enable-web-search") || i + 1 >= args.Length)
+        if (flag is not ("--model-config" or "--data-dir" or "--agent-name" or "--sandbox" or "--port" or "--public-origin" or "--gui-dir" or "--vendor" or "--model" or "--base-url" or "--workspace" or "--event-log" or "--settings" or "--skills-dir" or "--primary-skill" or "--startup-skills" or "--save" or "--save-log" or "--archive-log" or "--cache-lens" or "--prompt-cache-key" or "--surface" or "--billing" or "--transcription" or "--transcription-key-file" or "--account" or "--credentials-dir" or "--codex-auth-file" or "--reasoning-effort" or "--reasoning-summary" or "--safe-mode" or "--enable-web-search") || i + 1 >= args.Length)
         {
             throw new ArgumentException("Unknown or incomplete GUI flag");
         }
         string value = args[++i];
-        if (flag is "--data-dir" or "--agent-name" or "--sandbox" or "--surface" or "--billing" or "--transcription" or "--transcription-key-file" or "--account" or "--credentials-dir" or "--codex-auth-file" or "--reasoning-effort" or "--reasoning-summary" or "--safe-mode" or "--enable-web-search")
+        if (flag is "--model-config" or "--data-dir" or "--agent-name" or "--sandbox" or "--surface" or "--billing" or "--transcription" or "--transcription-key-file" or "--account" or "--credentials-dir" or "--codex-auth-file" or "--reasoning-effort" or "--reasoning-summary" or "--safe-mode" or "--enable-web-search")
         {
             if ((flag != "--sandbox" && string.IsNullOrWhiteSpace(value)) || value.StartsWith("--"))
             {
@@ -115,7 +115,8 @@ try
         "" or "api" => BillingMode.ApiKey,
         "chatgpt" => BillingMode.ChatGptPlan,
         "codex" => BillingMode.Codex,
-        _ => throw new ArgumentException("Unknown billing mode; use api, chatgpt or codex")
+        "none" => BillingMode.None,
+        _ => throw new ArgumentException("Unknown billing mode; use api, chatgpt, codex or none")
     };
     var vendor = Selected("--vendor", "LLM_VENDOR") switch
     {
@@ -154,13 +155,40 @@ try
     {
         throw new ArgumentException("Plan billing requires --credentials-dir or EN_CREDENTIALS_DIR");
     }
+    CodexCredentials? launchCodex = null;
     if (billing == BillingMode.Codex)
     {
         if (string.IsNullOrWhiteSpace(codexAuthFile))
         {
             throw new ArgumentException("Codex billing requires --codex-auth-file or EN_CODEX_AUTH_FILE");
         }
-        _ = new CodexCredentials(app, codexAuthFile);
+        launchCodex = new CodexCredentials(app, codexAuthFile);
+    }
+    string modelConfigurationPath = Selected("--model-config", "EN_MODEL_CONFIG");
+    if (modelConfigurationPath.Length != 0)
+    {
+        // Host authority supplies the file and the existing payer. The document
+        // can reference these bindings, never credential locations or secrets.
+        byte[] modelDocument = ReadModelConfiguration(modelConfigurationPath);
+        _ = new ModelAuthentication(app, "none");
+        switch (billing)
+        {
+            case BillingMode.None:
+                _ = new ModelAuthentication(app, "launch");
+                break;
+            case BillingMode.ApiKey when !string.IsNullOrWhiteSpace(key):
+                _ = new ModelAuthentication(app, "launch", key);
+                break;
+            case BillingMode.ChatGptPlan:
+                _ = new ModelAuthentication(app, "launch", launchCredentials!, accountSelection);
+                break;
+            case BillingMode.Codex:
+                _ = new ModelAuthentication(app, "launch", launchCodex!);
+                break;
+        }
+        // Complete loading before any Agent, persisted conversation, or fleet
+        // restoration. This is additive; it does not rewrite launch policy.
+        app.LoadModelConfiguration(modelDocument);
     }
     // Account management changes the saved next-launch default, not this
     // immutable Configuration. No implicit credential location is searched.
@@ -357,4 +385,26 @@ static string ReadTranscriptionKey(string path)
         || string.IsNullOrWhiteSpace(value.GetString()))
         throw new InvalidDataException("Transcription key file has no OpenAI API key");
     return value.GetString()!;
+}
+
+// The host explicitly names this file; an Agent never supplies this pathname.
+// Bound both the initial file size and growth through the same opened handle.
+static byte[] ReadModelConfiguration(string path)
+{
+    const int maximumBytes = 1024 * 1024;
+    using var input = new FileStream(Path.GetFullPath(path), FileMode.Open, FileAccess.Read,
+        FileShare.ReadWrite | FileShare.Delete);
+    if (input.Length > maximumBytes)
+        throw new InvalidDataException("Model configuration exceeds 1 MiB.");
+    byte[] bytes = new byte[maximumBytes + 1];
+    int used = 0;
+    while (used < bytes.Length)
+    {
+        int count = input.Read(bytes.AsSpan(used));
+        if (count == 0) break;
+        used += count;
+    }
+    if (used > maximumBytes)
+        throw new InvalidDataException("Model configuration exceeds 1 MiB.");
+    return bytes.AsSpan(0, used).ToArray();
 }

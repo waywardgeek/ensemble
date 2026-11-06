@@ -373,3 +373,36 @@ No fresh shared regression is claimed for this isolated new loader; prior364/0
 belongs to the completed GUI slice. Startup file I/O, host binding construction,
 public grader and real-target acceptance remain pending. No installed settings,
 credentials, application restart or live provider changed.
+
+
+## Host file startup integration
+
+The GUI executable now accepts --model-config / EN_MODEL_CONFIG with command-line
+precedence, a one-handle limit-plus-one bounded read, and graph loading before Agent
+construction or fleet restoration. Only explicit host bindings are supplied: none,
+and launch backed by the already selected payer. Missing API funding leaves launch
+unavailable; --billing none ignores ambient API keys. The legacy initial
+Configuration is not reconstructed or implicitly selected into the graph.
+
+Evidence: /private/tmp/cadence-local-models.co2hSe/model-host-build.log is a clean
+GUI-host build. model-host-verified/result.json records ten actual process/socket
+cases: omitted option, none binding, API launch binding, no-auth environment option,
+flag precedence, unknown binding, missing launch key, invalid UTF-8, oversize and
+missing file. Valid hosts exit0, refused hosts exit1, all are joined without forced
+kill. Refusals leave no Agent directory/event log. Valid logs contain no inference
+request. Status retains the launch wire name, legacy identity and exact funding;
+configured choices expose 4096 serving versus 262144 advertised context.
+
+The initial run reached the socket but failed a test's invented funding enum-label
+expectation. Actual funding is descriptive prose; the oracle was corrected and raw
+frames retained before assertions. The next nine-case run passed, followed by the
+final ten-case run adding the omitted-option control and initial funding check.
+No product change was made for that fixture failure. Tests use only the actual host
+and public websocket, not a host substitute or private API. No shared-core rerun
+is claimed for this composition-root-only change; prior364/0 remains prior evidence.
+
+Limits: no exact return-to-launch choice yet, no configured OAuth/Codex renewal
+acceptance, no restored-fleet process test, no live ET call or installed changes.
+The bounded read checks growth in code; these tests cover an initially oversized
+file, not a concurrent-growth race or hostile special-file behavior. Next address
+the explicit launch-return policy without making a second mutable route registry.
