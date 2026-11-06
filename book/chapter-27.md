@@ -345,9 +345,12 @@ The compiled grader exits 3 when these probes pass but chapter coverage remains
 incomplete, 1 for probe failure, and 2 for setup/API-build failure. A `go run`
 wrapper may translate the nonzero process status. See the
 [consumer contract](../internal/gradeedition3/testdata/local-models-consumer/README.md)
-for exact inputs, deadlines and containment limits. Lifecycle, configuration and
-restoration, unknown-price behavior and live usefulness are still separate gates;
-these 43 checks do not certify all four exercises.
+for exact inputs, deadlines and containment limits. Current coverage also includes
+atomic configuration-load refusal, inherited child identity, paused conversation
+restoration through fresh owners, missing-route refusal and Model-loss behavior.
+Real conversation meters keep no-auth dollar cost unknown while preserving usage.
+The 56 named checks do not certify all four exercises: separate-process restart,
+broader lifecycle/refusal behavior and live usefulness remain open.
 
 ## Exercises (draft acceptance contracts)
 

@@ -585,3 +585,34 @@ leak candidate and fail exactly buffered-no-borrowed-credentials-0 with exit 1.
 No mutant rebuild or new production change was needed. Full runner, tests and CLI
 diff reviewed. Remaining independent lifecycle, configuration/restoration,
 unknown-price and live usefulness checks remain open; no whole-chapter acceptance.
+
+
+## Independent configuration, restoration and unknown cost
+
+The public consumer now requires 56 named checks. Ten new checks use the strict
+public document loader, actual binding memberships, public Model selection and
+real child registration/History files. A later unknown binding rolls back an
+earlier valid vendor without changing launch selection or existing membership.
+A paused configured child is restored under a differently routed legacy parent,
+using a fresh root and exact offering identity. Its conversation remains and no
+request is replayed. Destroying the selected Model preserves Agent/conversation
+while refusing live Configuration. A same-wire decoy endpoint cannot substitute
+for the absent saved route; refusal leaves registration bytes unchanged.
+
+Three additional checks inspect actual post-conversation Engine meters: response
+identity, explicit no-auth billing and 37 input tokens are known, while dollar
+cost remains null. No zero-cost estimate or guessed price is accepted. These are
+fresh-root, same-process restoration checks, not process restart or crash recovery.
+No private APIs, candidate test assemblies or inference in restoration phases.
+
+The initial public runner integration passed all 56 strict receipts. An isolated
+archived core then replaced exact endpoint lookup with first-endpoint selection.
+Its build succeeded and the public CLI failed exactly at
+child-missing-route-no-wire-name-fallback after positive restoration checks passed.
+The working runtime was unchanged. Evidence is under public-restore-mutant-path
+in the local evidence directory; the referenced directory retains build.log,
+result.json and exit 1. Full new helper and runner/consumer diff reviewed.
+Final public-configuration-final.log records both Go packages passing with the
+real consumer integration enabled. public-configuration-cli.json/exit records
+56 checks passing, ungraded status and exit 3. Only documentation changed after
+that run. No new shared C# runtime result or installed acceptance is claimed.

@@ -15,7 +15,7 @@ import (
 
 func TestLocalModelReceipt(t *testing.T) {
 	names := localModelCheckNames()
-	if len(names) != 43 {
+	if len(names) != 56 {
 		t.Fatal(len(names))
 	}
 	encode := func(checks []string) []byte {

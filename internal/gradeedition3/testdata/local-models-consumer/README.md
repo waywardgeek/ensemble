@@ -5,8 +5,9 @@ It uses public Agent, Model, Tool and History APIs with grader-owned loopback HT
 random payloads and real buffered/SSE replies. It never references candidate tests,
 reflects private fields, accesses an installed credential store, or calls ET.
 
-Current coverage is 43 named checks across buffered tools, streamed tools and
-ordinary tool-shaped prose. Checks cover exact local routing, explicit no-auth
+Current coverage is 56 named checks across buffered tools, streamed tools,
+ordinary tool-shaped prose and configured child restoration. Checks cover exact
+local routing, explicit no-auth
 headers, configured capabilities, real callback/result correlation, recording
 before the next request, partial-stream non-execution, offering provenance, serving
 context and cached-input accounting. The final fixture answer is released only
@@ -16,8 +17,20 @@ custom tool. This does not certify every packaged skill's permission checks.
 
 This component awards no chapter points. The named CLI runner now supplies an
 outer process deadline and strict receipt validation. Lifecycle, configuration
-loading, restoration, unavailable endpoint and unknown-price coverage remain incomplete.
+loading and restoration now have bounded public checks; broader lifecycle/refusal
+and unavailable-endpoint coverage remain incomplete.
 No live-model usefulness or installed-GUI acceptance follows from these checks.
+
+Real conversation meters preserve known token counts while no-auth dollar cost
+remains unknown. Configuration checks use the public document loader and selector,
+assert late-error rollback, save a paused child, destroy the root, and restore
+through fresh owners from actual files. A same-wire offering on a different
+endpoint must not substitute for the missing identity. Refusal preserves the
+registration; Model destruction leaves the Agent and conversation alive but
+refuses inference configuration. This is fresh-root restoration in one process,
+not process-restart or crash-recovery evidence. The restoration phases make no
+provider request. An isolated compiled resolver mutant that picks the first
+endpoint fails child-missing-route-no-wire-name-fallback.
 
 ## Public runner
 
@@ -40,7 +53,7 @@ Setup has a two-minute limit; execution has a separate 75-second limit. Both
 stdout and stderr are capped at 64 KiB. The runner cancels its owned process group,
 waits for the direct child and bounds inherited output-pipe waits. It does not
 provide a network sandbox or containment of deliberately detached descendants.
-Success requires exactly the 43 named checks once each and a null failure field;
+Success requires exactly the 56 named checks once each and a null failure field;
 missing, duplicated, unknown or trailing receipt data refuse. Temporary files are
 removed after execution; capture the JSON report for retained evidence.
 
@@ -75,7 +88,7 @@ public runner supplies that outer bound. A cleared environment is not a network
 sandbox. The loopback port is reserved then rebound;
 a competing bind causes a setup failure, not a silently chosen remote endpoint.
 
-Calibration: the current candidate passes43 checks. An isolated, successfully
+Calibration: the current candidate passes 56 checks. An isolated, successfully
 compiled candidate that emits a synthetic bearer for explicit no-auth fails at
 buffered-no-borrowed-credentials-0. That proves this wire oracle's sensitivity,
 not mutation coverage for every assertion. No candidate or installed source is

@@ -8,7 +8,7 @@ using Application = Ensemble.Ensemble;
 
 return await Probe.Run();
 
-internal static class Probe
+internal static partial class Probe
 {
     private static readonly List<string> checks = [];
 
@@ -25,6 +25,7 @@ internal static class Probe
         {
             foreach (string mode in new[] { "buffered", "streamed", "prose" })
                 await Conversation(mode);
+            await ConfigurationChecks();
         }
         catch (Exception error) { failure = error.Message; }
         Console.WriteLine(JsonSerializer.Serialize(new { passed = failure is null, checks, failure }));
@@ -181,6 +182,11 @@ internal static class Probe
             var responses = agent.History().Events().Where(fact => fact.Kind == EventKind.ResponseEnded).ToArray();
             Require(responses.Length == expectedRequests && responses.All(fact => fact.From!.Offering == model.Identity()), mode + "-qualified-response-provenance");
             Require(agent.WorkingContextStatus().InputTokens == 37, mode + "-cached-input-counted-once");
+            var meter = agent.Engine().Meter();
+            Require(meter.Latest is not null && meter.Latest.Identity.Model == modelName
+                && meter.Latest.Identity.Billing == BillingMode.None
+                && meter.Latest.Counts.AllInput() == 37 && meter.EstimatedUsd() is null,
+                mode + "-known-usage-unknown-cost");
         }
         finally
         {

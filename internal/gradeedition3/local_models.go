@@ -114,7 +114,7 @@ func GradeLocalModels(c LocalModelGradeConfig) (report LocalModelReport, result 
 	if !found {
 		return report, fmt.Errorf("an installed .NET 10 SDK is required")
 	}
-	for _, name := range []string{"Program.cs", "LocalModelsConsumer.csproj", "NuGet.Config"} {
+	for _, name := range []string{"Program.cs", "ConfigurationChecks.cs", "LocalModelsConsumer.csproj", "NuGet.Config"} {
 		data, err := localModelFiles.ReadFile("testdata/local-models-consumer/" + name)
 		if err != nil {
 			return report, err
@@ -144,7 +144,7 @@ func GradeLocalModels(c LocalModelGradeConfig) (report LocalModelReport, result 
 		report.Status, report.Detail = "failed", fmt.Sprintf("%v; stdout: %s; stderr: %s", err, output, diagnostic)
 	} else {
 		report.ProbePassed = true
-		report.Detail = "43 named public buffered/SSE/prose checks passed. Lifecycle, configuration/restoration, unknown pricing and real-model usefulness remain incomplete."
+		report.Detail = "56 named public conversation/configuration/restoration checks passed. Broader lifecycle/refusal coverage and real-model usefulness remain incomplete."
 	}
 	return report, nil
 }
@@ -152,7 +152,7 @@ func GradeLocalModels(c LocalModelGradeConfig) (report LocalModelReport, result 
 func localModelCheckNames() []string {
 	var names []string
 	for _, mode := range []string{"buffered", "streamed", "prose"} {
-		for _, suffix := range []string{"selection-membership", "serving-not-advertised-context", "final-answer", "exact-effects-and-requests", "qualified-response-provenance", "cached-input-counted-once"} {
+		for _, suffix := range []string{"selection-membership", "serving-not-advertised-context", "final-answer", "exact-effects-and-requests", "qualified-response-provenance", "cached-input-counted-once", "known-usage-unknown-cost"} {
 			names = append(names, mode+"-"+suffix)
 		}
 		count := 2
@@ -168,7 +168,12 @@ func localModelCheckNames() []string {
 			names = append(names, mode+"-real-correlated-result", mode+"-result-recorded-before-next-request")
 		}
 	}
-	return append(names, "streamed-partial-has-no-execution-authority")
+	return append(names, "streamed-partial-has-no-execution-authority",
+		"configuration-load-preserves-launch", "configuration-real-binding-and-capacity",
+		"configuration-late-refusal-rolls-back", "child-inherits-real-offering",
+		"child-registration-identity-not-secret", "child-restores-exact-offering",
+		"child-restores-conversation-without-request", "model-loss-refuses-without-agent-destruction",
+		"child-missing-route-no-wire-name-fallback", "child-refusal-preserves-registration-no-request")
 }
 
 func checkLocalModelReceipt(data []byte) error {
