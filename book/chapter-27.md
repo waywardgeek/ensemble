@@ -239,9 +239,12 @@ Public Model switching has focused loopback routing and failed-save coverage.
 The ordinary dropdown has real-socket and actual-page offering-switch/recovery
 coverage. Host file loading and explicit launch-return routing have process/socket
 coverage. Configured public OAuth has loopback 401-renewal/refusal coverage;
-configured Codex has synthetic grant-reread and owner-loss coverage. Local Chat
-streaming tool conversations still need their own real-path coverage. Do not infer an
-installed MiMo offering or live-model acceptance from these owned fixtures.
+configured Codex has synthetic grant-reread and owner-loss coverage. Configured
+Chat Completions has real-loopback SSE tool-round-trip coverage, including partial
+argument barriers, immediate interruption, provider-stream failure and fresh-turn
+recovery. These use an explicitly streaming, uncatalogued no-auth offering. They
+are not independent grader credit or live MiMo acceptance; do not infer an
+installed MiMo offering from these owned fixtures.
 
 ### Host-owned model configuration
 

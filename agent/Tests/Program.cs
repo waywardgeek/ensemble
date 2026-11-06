@@ -86,6 +86,8 @@ try
         await AsyncCase("Configured endpoint refuses inference redirects", MeterTests.ModelEndpointRedirects);
         await AsyncCase("Configured endpoint has no retained cookie authority", MeterTests.ModelEndpointCookies);
         await AsyncCase("Configured request projection and explicit authentication", MeterTests.ConfiguredProjection);
+        await AsyncCase("Configured Chat SSE tool round trip", MeterTests.ConfiguredStreamingTools);
+        await AsyncCase("Configured Chat SSE interruption and failure", MeterTests.ConfiguredStreamingFailures);
         if (args.Length != 0)
         {
             Console.WriteLine($"{passed} passed, {failures} failed");

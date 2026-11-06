@@ -499,3 +499,34 @@ the existing delayed-401 check. Full changed-method/registration review complete
 production code is unchanged. This does not prove live entitlement, configured
 owner loss during an in-flight refresh, or Chat-Completions tool streaming. No new
 shared-suite pass is claimed; prior policy366/0 remains the shared evidence.
+
+
+## Configured Chat Completions SSE boundaries
+
+ConfiguredStreamingTests uses an explicitly selected, uncatalogued Model with
+streaming capability, explicit no-auth binding and a 4096-token serving limit.
+The legacy starting configuration has a synthetic key and disables streaming;
+actual loopback requests prove neither setting leaks into the selected offering.
+A provider barrier holds incomplete tool arguments. No ToolCalled, ResponseEnded
+or effect exists until completion. The successful path executes one real custom
+Tool, records its result before the second request, and sends the exact call ID
+and result text. Both canonical responses retain offering provenance. Final usage
+reports 31 input tokens including seven cached tokens; working-context status is
+31, not 38. Exactly two requests and one effect are required.
+
+The same fixture exercises immediate interruption and an explicit provider error
+while the first call is incomplete. Neither permits effects or a final response.
+Provider failure yields one controlled canonical FormatException stream error.
+Both cases reuse the actual Agent for a fresh SSE turn, with no orphan tool call
+or result in its request. Cleanup releases the barrier, stops the listener and
+awaits both server and turn tasks before final root destruction.
+
+Evidence in /private/tmp/cadence-local-models.co2hSe:
+configured-stream-verified-build.log and configured-stream-verified-tests.log show
+a clean build and all five model-transport groups passing against final source.
+Earlier successful runs are retained; final review strengthened exact error and
+orphan-replay oracles before the verified run. Full new fixture reviewed, including
+failure cleanup. No production code changed and no new shared-suite result is
+claimed. These are owned HTTP/SSE tests, not ET inference, coding usefulness,
+independent public grader points, disconnect/malformed-stream coverage in every
+shape, or cancellation of an already executing tool.
