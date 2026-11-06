@@ -641,3 +641,29 @@ isolated candidate and its verified-result.json/verified-exit (intended failure,
 exit 1). Both good and negative runs use the final callback-Task cleanup helper;
 only documentation changed afterward. No C# runtime or installed changes, new
 chapter points or shared runtime regression claim follows from this increment.
+
+
+## Public missing-usage boundary
+
+The independent consumer now requires 73 named checks. A fourth configured
+conversation returns valid buffered text without a usage object. Actual routing,
+no-auth headers, response identity, zero tool effects and completion are checked
+before requiring unknown working-context input and unknown Engine meter input
+and cost. Known-usage conversation checks remain unchanged. This covers a fresh
+Agent, not stale-count replacement after known usage or streamed missing usage.
+
+Both Go packages pass with real consumer integration enabled in
+public-missing-usage.log. A separately archived core changes only absent usage
+to explicit zero counts; its offline build succeeds without warnings and the
+public CLI rejects it at missing-usage-input-remains-unknown, exit 1. Evidence
+public-usage-mutant-path identifies its build.log, result.json and exit receipt.
+The good runtime and current runtime source are unchanged. No new chapter points,
+shared C# regression, live provider or installed acceptance is claimed.
+
+The first successful CLI report retained a stale literal count of 62 despite
+strictly validating all 73 names. The report now derives its count from that list,
+and the integration test asserts the displayed prefix. Final
+public-missing-usage-final.log records both Go packages passing; final-result.json
+and final-exit under the same prefix record 73 checks, ungraded status and exit 3.
+The earlier mismatched report is retained. Source hashes are post-execution,
+not a claimed pre-run receipt.

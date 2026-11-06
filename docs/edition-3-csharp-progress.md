@@ -23,8 +23,8 @@ and back with restored launch policy and retained conversation. Configured Codex
 grant/source-loss checks and public OAuth loopback renewal/refusal checks pass.
 Configured Chat SSE tool success/interruption/provider-error checks now pass in
 five focused transport groups. An outside-assembly Local Models consumer passes
-62 public conversation/configuration/restoration/lifecycle checks and rejects
-compiled no-auth header-leak, wrong-endpoint restoration and unjoined-shutdown
+73 public conversation/configuration/restoration/lifecycle/accounting checks and
+rejects compiled no-auth header-leak, wrong-endpoint restoration and unjoined-shutdown
 candidates. The named local-models runner now supplies strict receipt validation
 and bounded process execution; passing current coverage exits 3, with no points.
 Broader lifecycle/refusal coverage and real-model acceptance are pending.

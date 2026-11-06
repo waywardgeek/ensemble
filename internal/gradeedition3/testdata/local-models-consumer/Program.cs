@@ -23,7 +23,7 @@ internal static partial class Probe
         string? failure = null;
         try
         {
-            foreach (string mode in new[] { "buffered", "streamed", "prose" })
+            foreach (string mode in new[] { "buffered", "streamed", "prose", "missing-usage" })
                 await Conversation(mode);
             await ConfigurationChecks();
             await LifecycleChecks();
@@ -79,7 +79,8 @@ internal static partial class Probe
                     Interlocked.Increment(ref effects);
                     return Task.FromResult(resultText);
                 });
-            int expectedRequests = mode == "prose" ? 1 : 2;
+            bool toolConversation = mode is "buffered" or "streamed";
+            int expectedRequests = toolConversation ? 2 : 1;
             server = Task.Run(async () =>
             {
                 for (int index = 0; index < expectedRequests; index++)
@@ -146,7 +147,7 @@ internal static partial class Probe
                                 message = new JsonObject { ["content"] = JsonSerializer.Serialize(new {
                                     name = "echo_nonce", arguments = new { nonce } }) };
                             }
-                            else if (index == 0)
+                            else if (toolConversation && index == 0)
                             {
                                 message = JsonSerializer.SerializeToNode(new { content = "", tool_calls = new[] {
                                     new { id = callId, type = "function", function = new { name = "echo_nonce",
@@ -157,6 +158,7 @@ internal static partial class Probe
                                 ["choices"] = new JsonArray(new JsonObject { ["message"] = message }),
                                 ["usage"] = JsonSerializer.SerializeToNode(new { prompt_tokens = 37, completion_tokens = 3,
                                     prompt_tokens_details = new { cached_tokens = 11 } }) };
+                            if (mode == "missing-usage") response.Remove("usage");
                             byte[] bytes = Encoding.UTF8.GetBytes(response.ToJsonString());
                             incoming.Response.ContentType = "application/json";
                             incoming.Response.ContentLength64 = bytes.Length;
@@ -179,15 +181,18 @@ internal static partial class Probe
             string answer = await turn.WaitAsync(deadline.Token);
             await server.WaitAsync(deadline.Token);
             Require(mode == "prose" ? answer.Contains(nonce, StringComparison.Ordinal) : answer == finalText, mode + "-final-answer");
-            Require(effects == (mode == "prose" ? 0 : 1) && requests == expectedRequests, mode + "-exact-effects-and-requests");
+            Require(effects == (toolConversation ? 1 : 0) && requests == expectedRequests, mode + "-exact-effects-and-requests");
             var responses = agent.History().Events().Where(fact => fact.Kind == EventKind.ResponseEnded).ToArray();
             Require(responses.Length == expectedRequests && responses.All(fact => fact.From!.Offering == model.Identity()), mode + "-qualified-response-provenance");
-            Require(agent.WorkingContextStatus().InputTokens == 37, mode + "-cached-input-counted-once");
+            bool missingUsage = mode == "missing-usage";
+            long? expectedInput = missingUsage ? null : 37;
+            Require(agent.WorkingContextStatus().InputTokens == expectedInput,
+                mode + (missingUsage ? "-input-remains-unknown" : "-cached-input-counted-once"));
             var meter = agent.Engine().Meter();
             Require(meter.Latest is not null && meter.Latest.Identity.Model == modelName
                 && meter.Latest.Identity.Billing == BillingMode.None
-                && meter.Latest.Counts.AllInput() == 37 && meter.EstimatedUsd() is null,
-                mode + "-known-usage-unknown-cost");
+                && meter.Latest.Counts.AllInput() == expectedInput && meter.EstimatedUsd() is null,
+                mode + (missingUsage ? "-meter-remains-unknown" : "-known-usage-unknown-cost"));
         }
         finally
         {

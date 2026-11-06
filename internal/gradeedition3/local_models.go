@@ -144,7 +144,7 @@ func GradeLocalModels(c LocalModelGradeConfig) (report LocalModelReport, result 
 		report.Status, report.Detail = "failed", fmt.Sprintf("%v; stdout: %s; stderr: %s", err, output, diagnostic)
 	} else {
 		report.ProbePassed = true
-		report.Detail = "62 named public conversation/configuration/restoration/lifecycle checks passed. Broader lifecycle/refusal coverage and real-model usefulness remain incomplete."
+		report.Detail = fmt.Sprintf("%d named public conversation/configuration/restoration/lifecycle/accounting checks passed. Broader lifecycle/refusal coverage and real-model usefulness remain incomplete.", len(localModelCheckNames()))
 	}
 	return report, nil
 }
@@ -167,6 +167,9 @@ func localModelCheckNames() []string {
 		if mode != "prose" {
 			names = append(names, mode+"-real-correlated-result", mode+"-result-recorded-before-next-request")
 		}
+	}
+	for _, suffix := range []string{"selection-membership", "serving-not-advertised-context", "final-answer", "exact-effects-and-requests", "qualified-response-provenance", "input-remains-unknown", "meter-remains-unknown", "route-0", "no-borrowed-credentials-0", "wire-name-0", "declared-stream-policy-0"} {
+		names = append(names, "missing-usage-"+suffix)
 	}
 	return append(names, "streamed-partial-has-no-execution-authority",
 		"configuration-load-preserves-launch", "configuration-real-binding-and-capacity",

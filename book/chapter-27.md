@@ -350,7 +350,8 @@ atomic configuration-load refusal, inherited child identity, paused conversation
 restoration through fresh owners, missing-route refusal and Model-loss behavior.
 Real conversation meters keep no-auth dollar cost unknown while preserving usage.
 A real executing-tool barrier additionally checks cancellation and joined Agent
-shutdown while preserving an independent sibling. The 62 named checks do not
+shutdown while preserving an independent sibling. A buffered response without
+usage must retain unknown input counts and cost. The 73 named checks do not
 certify all four exercises: separate-process restart, broader lifecycle/refusal
 behavior and live usefulness remain open.
 
