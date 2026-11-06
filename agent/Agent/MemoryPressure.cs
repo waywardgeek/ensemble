@@ -10,8 +10,7 @@ public sealed partial class Agent
         var configured = workingContextLimits.FirstOrDefault(limit =>
             limit.Vendor == configuration.Vendor && limit.Model == configuration.Model);
         if (configured is not null) return configured;
-        global::Ensemble.Engine.LookupModel(configuration.Vendor, configuration.Model, out var features);
-        long? capacity = features.ContextWindow;
+        long? capacity = configuration.ServingContextTokens ?? configuration.Features.ContextWindow;
         return new WorkingContextLimit(configuration.Vendor, configuration.Model,
             Math.Min(250_000, capacity ?? 250_000), capacity);
     }

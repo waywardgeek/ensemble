@@ -120,8 +120,8 @@ Provenance can retain this identity alongside the exact wire model and surface:
 opaque material from a different offering must not match merely because both
 servers use the same model name. Legacy provenance remains readable but cannot
 match an explicitly configured offering. Invalid present identities refuse rather
-than silently becoming legacy data. Connecting this value to selected requests
-and child restoration remains part of the pending integration.
+than silently becoming legacy data. Request projection and response capture carry
+this value; selecting and restoring the live Model relationship remain pending.
 Endpoint addresses exclude embedded credentials, query strings and fragments.
 New credential-bearing endpoints require HTTPS except literal loopback fixtures;
 public OAuth and Codex retain their additional existing endpoint restrictions.
@@ -148,10 +148,22 @@ membership snapshot is not an editable collection. Removing a relationship clear
 the back-reference without destroying the detached object; destruction recursively
 removes strong children. These operations are tested separately from transport.
 
-**Integration boundary:** the graph and authentication relationships are the first
-implementation slice. Agent selection, credential acquisition through the graph,
-child restoration and GUI configuration are not connected yet. Do not infer a
-working local dropdown from these declarations or their focused ownership tests.
+The internal request projection freezes the offering's wire name, surface,
+capabilities and serving context while preserving Agent instructions and security
+policy. It references the selected authentication binding instead of copying its
+API key. Explicit unauthenticated funding emits no credential headers; it is not
+an empty-key attempt or permission to discover cloud credentials. Streaming and
+media checks use the frozen capabilities rather than guessing from a model name.
+Default working-context limits use the configured serving allocation when known.
+Recall and compression preserve the binding; an unresolved judge-model override
+refuses rather than silently changing the route.
+
+**Integration boundary:** synthetic HTTP checks exercise this internal projection,
+including the exact headers and captured provenance. Agent selection membership,
+child restoration and GUI configuration are not connected yet. Configured
+OAuth/Codex renewal and streaming conversations still need their own real-path
+coverage. Do not infer a working local dropdown or MiMo acceptance from these
+internal tests.
 
 The construction-point changes belong alongside configuration and transport,
 model selection, child ownership, persistence and accounting. This capstone joins

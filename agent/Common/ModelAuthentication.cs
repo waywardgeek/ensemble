@@ -55,6 +55,7 @@ public sealed partial class ModelAuthentication
     internal partial void AddEndpoint(ModelEndpoint endpoint);
     internal partial void RemoveEndpoint(ModelEndpoint endpoint);
     internal partial void ValidateEndpoint(Uri address, Surface surface);
+    internal partial string RequestKey(Uri address, Surface surface);
     internal partial string DiagnosticKey();
     public partial void Destroy();
 }

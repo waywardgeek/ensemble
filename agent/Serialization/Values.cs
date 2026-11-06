@@ -73,6 +73,7 @@ public sealed partial class Configuration
         ArgumentNullException.ThrowIfNull(reasoningEffort);
         ArgumentNullException.ThrowIfNull(reasoningSummary);
         Engine.LookupModel(vendor, model, out var features);
+        Features = features;
         Surface = surface ?? (features.ResponsesOnly ? Surface.Responses : vendor switch
         {
             Vendor.Anthropic => Surface.Messages,
@@ -130,6 +131,10 @@ public sealed partial class Configuration
         {
             throw new ArgumentException("Account labels require public plan billing");
         }
+        if (billing == BillingMode.None && apiKey.Length != 0)
+        {
+            throw new ArgumentException("Unauthenticated funding cannot contain an API key");
+        }
         Billing = billing;
         Account = account;
         BaseUrl = baseUrl.TrimEnd('/');
@@ -146,6 +151,10 @@ public sealed partial class Configuration
     {
         // These are immutable values, not a second mutable credential/policy
         // owner. Keep validated transport choices unchanged during narrowing.
+        Features = source.Features;
+        ServingContextTokens = source.ServingContextTokens;
+        Offering = source.Offering;
+        Authentication = source.Authentication;
         Vendor = source.Vendor;
         Model = source.Model;
         BaseUrl = source.BaseUrl;
@@ -171,6 +180,11 @@ public sealed partial class Configuration
 
     public partial Configuration WithModel(string model)
     {
+        if (Offering is not null)
+        {
+            if (model == Model) return this;
+            throw new ArgumentException("Select a configured model offering; a wire name cannot change its route.");
+        }
         // Route and funding are launch decisions. Model-specific reasoning
         // defaults are validated anew; an old model's resolved identity and
         // capability options must not leak into its replacement. Explicit
@@ -198,7 +212,7 @@ public sealed partial class Configuration
             && (!SafeMode || name != "host-screen");
     }
 
-    public partial Provenance Target() => new(Vendor, ResolvedModel, Surface);
+    public partial Provenance Target() => new(Vendor, ResolvedModel, Surface, Offering);
 }
 public sealed partial class Provenance
 {

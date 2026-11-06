@@ -21,7 +21,7 @@ public sealed partial class PlanAuthorizationException : InvalidOperationExcepti
 }
 
 // Payment authority is independent of the wire surface; there is no fallback.
-public enum BillingMode { ApiKey = 1, ChatGptPlan, Codex }
+public enum BillingMode { ApiKey = 1, ChatGptPlan, Codex, None }
 public enum Actor
 {
     Human = 1, Agent, System, Tool
@@ -43,10 +43,19 @@ public enum RefKind
     Path = 1, Uri, Handle
 }
 
-/// <summary>Value-like configuration. The Agent holds the authoritative instance;
-/// transports reach it through their parent, never copy it. Credentials are not logged.</summary>
+/// <summary>Immutable request settings. The Agent publishes the current value;
+/// each send freezes it before transport. Configured projections reference the
+/// credential owner rather than copying its secrets. Credentials are not logged.</summary>
 public sealed partial class Configuration
 {
+    // Frozen request facts. Configured offerings supply their own capabilities;
+    // legacy construction resolves the catalog once, not separately per consumer.
+    public readonly ModelFeatures Features;
+    public readonly long? ServingContextTokens;
+    public readonly ModelIdentity? Offering;
+    internal readonly ModelAuthentication? Authentication;
+    internal partial Configuration(Configuration policy, Model model);
+    private partial Configuration(Configuration source, string instructions, bool compressor);
     // Explicit provider capability assertion; default full-declaration mode is portable.
     public readonly bool DeferredTools;
     // Explicit selected-model policy, not guessed from a provider/name prefix.

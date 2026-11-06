@@ -42,7 +42,7 @@ public sealed partial class Engine
     {
         if (!config.DisableStreaming && config.Vendor != Vendor.Gemini
             && (config.Surface == Surface.Responses
-                || (LookupModel(config.Vendor, config.Model, out var features) && features.Stream)))
+                || config.Features.Stream))
         {
             request["stream"] = true;
             if (config.Surface == Surface.ChatCompletions)

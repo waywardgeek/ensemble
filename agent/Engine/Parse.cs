@@ -25,7 +25,7 @@ public sealed partial class Engine
             // A reply's model identity is more precise than a routing alias.
             var modelField = config.Vendor == Vendor.Gemini ? "modelVersion" : "model";
             var model = GetString(root, modelField, config.ResolvedModel);
-            var from = new Provenance(config.Vendor, model, config.Target().Surface);
+            var from = new Provenance(config.Vendor, model, config.Surface, config.Offering);
             var parts = config.Vendor switch
             {
                 Vendor.Anthropic => ParseAnthropic(root, from),

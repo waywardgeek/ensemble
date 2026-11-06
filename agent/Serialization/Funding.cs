@@ -8,6 +8,7 @@ public sealed partial class Configuration
         // reports immutable launch policy, not remaining quota or a price quote.
         string funding = Billing switch
         {
+            BillingMode.None => "Unauthenticated endpoint; no credential or cloud fallback.",
             BillingMode.ChatGptPlan => $"ChatGPT plan (account: {Account}); no API-key fallback.",
             BillingMode.Codex => "ChatGPT via Codex (read-only credentials; renewal belongs to Codex); no fallback.",
             _ => "API key (metered usage)."

@@ -202,6 +202,15 @@ public sealed partial class ModelAuthentication
         }
     }
 
+    internal partial string RequestKey(Uri address, Surface surface)
+    {
+        lock (graphGate)
+        {
+            ValidateEndpoint(address, surface);
+            return Kind == ModelAuthenticationKind.ApiKey ? apiKey : "";
+        }
+    }
+
     internal partial string DiagnosticKey() => apiKey;
 
     public partial void Destroy()

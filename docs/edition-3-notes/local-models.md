@@ -124,3 +124,31 @@ reports358 passed/0 failed, exit0, against the final executable changes. The ful
 source diff and new constructor were reviewed; subsequent edits were prose only.
 This is value/codec and existing regression evidence, not an integrated renderer
 route-switch test, independent grader score or installed-application acceptance.
+
+
+## Internal configured request projection (selection still pending)
+
+Configuration now freezes capability facts, optional offering identity and serving
+allocation. An internal Model projection follows actual parents under the graph
+lock, validates the bound source, keeps Agent instructions/security boundaries,
+and replaces route-specific settings. It contains no copied API key. Explicit
+BillingMode.None omits credential headers and is identified as unauthenticated;
+GUI account status labels it none and does not offer cloud-account controls.
+Engine resolves configured keys/plan/Codex owners only through that binding. Legacy
+configurations keep their original resolution path. Parsers capture offering
+identity; streaming/media/default context policy use frozen capabilities. Recall,
+compressor and security copies preserve the binding; unconfigured name overrides
+refuse. No public selection API is exposed by this intermediate projection.
+
+`projection-final-build.log` and `projection-gui-build.log` are clean. The three
+focused groups in `projection-final-tests.log` pass. The new real-loopback group
+checks no-auth versus a separate synthetic API key, absence of the old provider's
+headers, configured stream request flag for an uncatalogued model, exact wire
+name, response provenance, auxiliary copy identity, serving-context defaults,
+detached vendor/name-override refusal and removed-binding refusal. Responses are
+buffered JSON: this does not certify SSE conversations or configured OAuth/Codex
+renewal. Those paths, selection membership, restart and per-offering persisted
+context policies remain open. `projection-shared.log` reports359 passed/0 failed,
+exit0 against the final executable source. GUI verification here is a clean build,
+not an actual-page account-status test. Full projection, Engine diff and new test
+source were reviewed. No ET/cloud requests, installation or new grader points.

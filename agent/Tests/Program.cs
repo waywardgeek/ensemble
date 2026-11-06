@@ -85,6 +85,7 @@ try
     {
         await AsyncCase("Configured endpoint refuses inference redirects", MeterTests.ModelEndpointRedirects);
         await AsyncCase("Configured endpoint has no retained cookie authority", MeterTests.ModelEndpointCookies);
+        await AsyncCase("Configured request projection and explicit authentication", MeterTests.ConfiguredProjection);
         if (args.Length != 0)
         {
             Console.WriteLine($"{passed} passed, {failures} failed");

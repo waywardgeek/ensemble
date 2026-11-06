@@ -58,7 +58,7 @@ public static partial class Gui
                 var config = agent.Configuration();
                 // Public account controls must not borrow or renew another
                 // grant while this mounted Agent uses Codex funding.
-                var credentials = config.Billing == BillingMode.Codex ? null : agent.Parent().Credentials();
+                var credentials = config.Billing is BillingMode.Codex or BillingMode.None ? null : agent.Parent().Credentials();
                 if (operation == "status")
                 {
                     var accounts = credentials is null ? [] : await credentials.AccountsAsync(cancellation);
@@ -68,6 +68,7 @@ public static partial class Gui
                         enabled = credentials is not null,
                         billing = config.Billing switch
                         {
+                            BillingMode.None => "none",
                             BillingMode.ChatGptPlan => "chatgpt",
                             BillingMode.Codex => "codex",
                             _ => "api"

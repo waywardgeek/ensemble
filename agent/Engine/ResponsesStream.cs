@@ -65,7 +65,7 @@ public sealed partial class Engine
             var parts = facts.Single(fact => fact.Kind == EventKind.ResponseEnded).Parts;
             var ids = ImmutableArray.CreateBuilder<int>();
             int cursor = 0;
-            var origin = new Provenance(config.Vendor, terminal["model"]?.GetValue<string>() ?? config.ResolvedModel, Surface.Responses);
+            var origin = new Provenance(config.Vendor, terminal["model"]?.GetValue<string>() ?? config.ResolvedModel, Surface.Responses, config.Offering);
             for (int itemIndex = 0; itemIndex < output.Count; itemIndex++)
             {
                 using var document = JsonDocument.Parse(output[itemIndex]!.ToJsonString());
