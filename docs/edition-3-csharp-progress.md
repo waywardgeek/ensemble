@@ -42,7 +42,9 @@ groups also pass. Configuring an installed local offering and integrated inferen
 acceptance remain open. One isolated live MiMo trial returned correct code but
 made no requested tool call; it used minimal instructions and no primary skill.
 Current ET status confirmed a 4096-token serving context. This mixed result does
-not close live tool or human usability acceptance.
+not close live tool or human usability acceptance. A second small-primary-skill
+trial captured a real tool call and correlated result, but default recall and a
+relay error confounded the experiment; it is not clean full acceptance.
 Chapter27 now contains TL;DR, plain-words teaching and four draft exercises.
 See [Local Models](edition-3-notes/local-models.md) for evidence and limits.
 No installation or restart performed by Cadence; Bill reports rebuilding/restarting

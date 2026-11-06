@@ -67,6 +67,12 @@ used short primary instructions, not the normal primary skill. The function
 passed six reviewed local cases; requested tool use did not pass. Record both
 outcomes rather than treating successful generation as successful tool use.
 
+A subsequent small-primary-skill trial captured a real structured call and its
+correlated result, but also exposed default recall overhead and a capture-fixture
+error. A fresh Agent is not automatically an auxiliary-inference-free Agent:
+explicitly configure recall when isolating prompt and tool overhead. Keep observed
+protocol success separate from an error-free experiment or a causal skill claim.
+
 ## 27.1 Start with a verified server
 
 The initial target is Windows-native Ollama on a separate laptop, not an assumed

@@ -734,9 +734,9 @@ configured MiMo offering and streaming Chat Completions at ET. It loaded no
 primary skill, no memory, and no built-in tools. Primary instructions were a short
 coding role; the only custom tool, get_test_cases, returned fixed examples without
 executing generated code. The prompt requested exactly one call before returning
-a Python first_repeated implementation. A 90-second cooperative deadline and
-110-second outer process bound prevented an unbounded local campaign; no retry
-or cloud fallback occurred.
+a Python first_repeated implementation. A 90-second caller wait followed by owner
+destruction and a 110-second outer process bound prevented an unbounded local
+campaign; no retry or cloud fallback occurred.
 
 The process exited 0, joined without forced cleanup, in about 21.3 seconds.
 However, task acceptance did not pass: History recorded one request and zero tool
@@ -768,3 +768,54 @@ is explicitly post-execution and predates the offline-only driver edit. No
 installation, server configuration, context increase or credential change occurred.
 The next trial needs an explicit small primary-skill contract and wire evidence;
 this result does not close live tool acceptance or human usability acceptance.
+
+
+## Small-primary-skill trial: tool protocol observed, experiment confounded
+
+A second, separately announced trial used an experiment-only local-coding-trial
+primary skill through public Skills/SkillSpec activation. It was not the normal
+ensemble skill and was not installed or added to the repository skill catalog.
+Offline inspection found that the templated tool inventory included a universal
+micro_handoff grant without a corresponding registered Tool in this minimal
+fixture. The manual was corrected to describe its task tool directly, rather than
+registering more capabilities to satisfy prose. The final expanded manual was
+600 UTF-8 bytes and the offline request 2988 bytes, with get_test_cases and normal
+load_skill/unload_skill controls. These measurements are not token counts.
+
+An owned loopback relay recorded actual request/response bytes and forwarded only
+to ET's Chat Completions endpoint, rejecting credential headers, redirects and
+unexpected requests. A prior owned-fake check verified exact request/response
+forwarding and joined servers; an accepted-socket timeout was added before the
+live run. No candidate transport internals or production changes were used.
+The configured endpoint for this experiment was the instrumented relay, not a
+claim that the installed GUI or direct ET offering had been retested.
+
+The live capture contains the primary manual, three expected declarations,
+stream:true and no authorization header. MiMo returned get_test_cases with call
+ID call_56u7pzdm; callback count was one, and the second captured request contained
+the exact fixed result with that ID. The final response ended normally and used
+the examples, but omitted the requested verification tag. Its reviewed Python
+function passed six local cases without input mutation. Main request usage was
+894 input/12 output then 995 input/217 output (890 cached input counted once in
+the latter). The driver process and relay thread joined without force in about
+18.3 seconds.
+Dollar cost remained unknown. This is observed structured protocol, not broad
+model reliability or proof that skill instructions alone changed behavior.
+
+The experiment was confounded: default automatic recall inserted the skill file
+as an additional user message. The relay also rejected a request lacking tools,
+with KeyError: 'tools', before recording that body. Current source permits a
+tool-free recall judge and mechanical fallback, making that a plausible cause,
+not a fully captured attribution of the rejected request. Do not count this as a
+clean error-free trial. Future isolated trials must explicitly disable recall
+through public settings and capture bounded rejected bodies before validation.
+The 90-second SendAsync cancellation bounds the caller's wait; it does not itself
+cancel Agent work. Finally destroys the owner; the outer process bound remains
+separate. No third live trial was started.
+
+Evidence: mimo-primary-trial-path identifies Program.cs, the temporary primary
+manual, relay.py, source-before.json, result.json, process.json, wire request/SSE
+files and verification.json. Pre-execution source/runtime hashes still match.
+Offline primary preparation remains under the first trial's directory as
+primary-offline-final.json. No installed skill, server setting, context capacity,
+credentials, candidate runtime, or grader score changed.
