@@ -1,11 +1,12 @@
 # Chapter 26: Artifacts and Actions
 
-> **Integration draft; reconstruction pending.** The named public artifact grader
-> currently verifies 70/100 points: Actions25, snippets20, recorded time15 and
-> interaction10. Work products30 remains UNGRADED. The source implementation has
-> broader tests, but those tests do not replace independent grading, fresh student
-> reconstruction or human usability acceptance. Historical `-ch 26` still selects
-> the multimedia grader, not this chapter.
+> **Implemented integration; verification limits retained.** The named public
+> artifact grader verifies70/100: Actions25, snippets20, recorded time15 and
+> interaction10. Work products30 remains UNGRADED. Broader implementation tests
+> and explanatory teaching are recorded, but do not establish full independent
+> certification or human usability acceptance. Further student/grader campaigns
+> are deferred for closeout. Historical `-ch 26` still selects the multimedia
+> grader, not this chapter.
 
 ## TL;DR: Specification Brief
 

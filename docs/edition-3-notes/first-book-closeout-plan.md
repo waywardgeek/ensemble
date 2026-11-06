@@ -1,9 +1,14 @@
 # First-book closeout: Artifacts, Actions, and Local Models
 
-Status: Bill authorized pursuing this closeout, with Local Models last and
-fresh student reconstruction after substantive chapter upgrades. This is a
-working execution plan, not implementation evidence; open design decisions remain
-explicit.
+Status: Bill approved closing the adopted PR-integration work and proceeding
+personally to Local Models. Further student campaigns and expanded artifact/GUI
+grading are deferred; their unverified coverage remains unverified. The existing
+artifact score remains70/100, not a newly awarded full pass. No more students
+without a new explicit request. Finish Local Models on the agreed real target,
+then perform a bounded manuscript/publication check and human usability acceptance.
+The earlier detailed student and exhaustive grading gates below are retained as
+historical planning, not mandatory steps or current launch authority.
+
 Prepared by Cadence after reviewing all nine open GitHub PRs from madbrain76
 (Junien), their implementation and chapter changes, and selected substantive
 tests. No PR was executed, merged, commented on, or closed during that review.
@@ -18,15 +23,13 @@ write the executable teaching that the implementation has earned. This is
 Development-Driven Specs. The detailed contracts below are proposed starting
 points; observations can change them, with the reasons recorded visibly.
 
-For each slice: inspect current declarations; state the intended behavior and
-ownership; implement a small candidate; test real components at their public
-boundaries; check a deliberate broken candidate; demonstrate it to Bill; finish
-its chapter/exercise/grader contract; perform the student reconstruction gate
-below; make scoped local commits. Cadence implements personally. Bill explicitly
-authorized fresh student sub-agents for chapter reconstruction, not general
-implementation delegation. Do not push, replace installed applications, restart
-services, download models, install dependencies, or run paid providers without
-separate authority.
+For remaining development, Cadence inspects, implements, tests and writes the
+teaching personally. Use focused behavioral checks and broader regressions only
+where a shared contract changes; do not expand the acceptance program merely to
+fill an uncertified row. Preserve completed evidence and record actual limits.
+Scoped local commits are permitted. Do not push, replace installed applications,
+restart services, download models, install dependencies, or run paid providers
+without separate authority.
 
 Protect unrelated work, existing Measure X ownership, private credentials, and
 live services on 8088/8089/8090. Use isolated homes, ports and browser profiles.
@@ -448,7 +451,10 @@ and human acceptance. Distinguish source, build, installed application, served
 assets, browser refresh and Bill's observed behavior. No stale checkpoint results
 are presented as new tests.
 
-## 8A. Fresh student reconstruction gate
+## 8A. Historical student reconstruction gate (deferred)
+
+Superseded by the current status above. No new student launch or repeated
+reconstruction is required for this closeout; preserve the recorded results.
 
 Bill requested this gate when each chapter's substantive changes and upgrades
 are complete. Navigation-only edits do not require a full student exercise.

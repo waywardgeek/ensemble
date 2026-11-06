@@ -1,29 +1,24 @@
-# Current boundary: first-book closeout navigation
+# Current boundary: PR integration closed; Local Models next
 
-The working manuscript now contains Chapters 00–28: Voice and Images25,
-Artifacts and Actions26, Running Local Models27, and Crossing Over28.
-Chapters26–27 are explicitly in-development placeholders, not implemented or
-student-verified chapters. Historical endpoints and grader flags are unchanged;
-media grading remains `-ch 26`. Local Models is the last development slice.
-The [closeout plan](edition-3-notes/first-book-closeout-plan.md) governs the work
-and bounded student reconstruction. Prior release outputs remain unchanged.
-Earlier boundary entries below retain historical chapter numbers.
+The manuscript contains Chapters00–28. Adopted Artifacts/Actions changes and their
+construction-point teaching are implemented. Chapter26 is an integration chapter,
+not an empty placeholder. Its public score remains70/100, with work-products30
+UNGRADED; that coverage limit is not a known failure of the implemented feature.
+Chapter27 Local Models remains in development and is the final development slice.
 
-## Current increment: first-book closeout and student reconstruction
+Bill directed Cadence to finish personally, with no further student campaigns or
+expanded grading program. No new students without an explicit request. Preserve
+existing reconstruction results and clearly label the unverified scopes. Next:
+verify the agreed real local target, complete its implementation/teaching, then a
+bounded manuscript/publication check and Bill's usability acceptance. The current
+[closeout plan](edition-3-notes/first-book-closeout-plan.md) supersedes historical
+gates below. No universal/full-book certification is implied.
 
-Bill authorized completion of the Artifacts/Actions and Local Models closeout,
-with Local Models the last development slice. Cadence implements personally;
-after each substantive chapter upgrade, Bill authorizes a fresh student sub-agent
-in an explicitly scoped isolated worktree to reconstruct that chapter from honest
-prerequisites. No completed-solution leakage or automatic student patch adoption.
-Collect questions, explicit submissions and independent grading; revise original
-teaching and retest substantive gaps. One closeout student at a time; preserve the
-existing Measure X ownership. This supersedes earlier no-worker wording only for
-these bounded chapter-student exercises. See
-[the execution plan](edition-3-notes/first-book-closeout-plan.md).
-Deployment, restarts, installs, model downloads, paid probes and laptop/network
-changes require separate authority. Local-model target: existing Ollama launched
-inside WSL on Bill's Alienware laptop; hardware and versions await verification.
+No installation, restart, deployment, model download, remote-machine command,
+listener/firewall change, paid inference or publication upload follows from this
+status. Ask Bill for target access and local inference authorization. Preserve
+private data, unrelated work and services8088/8089/8090. Prior release outputs
+remain unchanged. Historical entries below are records, not resumption authority.
 
 ## Current increment: two books, Development-Driven Specs
 

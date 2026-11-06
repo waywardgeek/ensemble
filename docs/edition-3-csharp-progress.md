@@ -1,3 +1,19 @@
+# Current boundary: adopted PR integration closed
+
+Bill approved ending further student reconstruction and grader-expansion campaigns.
+The adopted timing, snippet-copy, Actions and work-product source changes work in
+their recorded tested scopes and are explained in the construction chapters and
+Chapter26. Existing grading remains70/100; no ungraded scope was awarded points.
+Completed evidence is retained. This is source/teaching closure, not a claim that
+all nine PRs were merged or that the installed binary matches the source.
+
+The unfinished delayed-copy public port was removed from the working tree after
+retaining a separate draft receipt; committed buffered/streaming checks and earlier
+delayed-copy browser evidence remain. No new student campaign is authorized.
+Next is Local Models with the agreed real target, followed by bounded manuscript
+and local publication verification and human usability acceptance. Target access,
+inference, installation and deployment remain separate permissions.
+
 # Current boundary: artifact integration draft and partial public grade
 
 The named artifact grader now verifies70/100: Actions25, snippets20, recorded

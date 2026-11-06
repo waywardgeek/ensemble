@@ -1,6 +1,17 @@
 # Artifact closeout reconstruction matrix
 
-## Status and evidence boundary
+## Current disposition: further reconstruction deferred
+
+Bill approved closing adopted PR integration and proceeding personally to Local
+Models. The completed Chapter2/3/4 evidence below stands. The remaining six student
+gates and additional grader expansion are deferred, not passed; they no longer
+block first-book closeout. No fresh student without a new explicit request.
+Committed public checks remain available, and the artifact score stays70/100.
+The uncommitted delayed-copy port was archived outside the worktree and removed;
+earlier delayed-copy calibration and all committed checks remain unchanged.
+This matrix preserves historical preparation rather than authorizing its resumption.
+
+## Status and evidence boundary (recorded before deferral)
 
 Chapter2 now has an independently accepted bounded offline reconstruction from
 fresh student `ch02-reconstruction-02`, after the first candidate was withheld and
