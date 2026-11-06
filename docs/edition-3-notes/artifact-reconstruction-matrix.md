@@ -1982,3 +1982,38 @@ The owned runner must enforce its launch boundary before these components become
 student commands. Broader Markdown/interaction, timing, pairing and stable-reading
 gates remain open, as do reconstruction and human acceptance. No native clipboard,
 audio, installation, publication or additional artifact points are claimed.
+
+
+### Runnable owned buffered-copy supplement
+
+`ch07-browser-copy/run_buffered.py` now owns the buffered fake provider, fresh
+random fixture, GUI launcher and browser process. Explicit absolute existing
+launcher/assets/Node/Playwright paths replace parent-only paths. The launcher
+must exec the GUI and forward its documented flags. A new work directory holds
+isolated homes and logs; child credentials/proxy variables are not inherited.
+This is a loopback fixture contract, not OS network confinement. No package or
+browser installation is performed. Streaming/delayed ports remain pending.
+
+Four Python tests pass: independent fixture values, dependency refusal, exact
+named receipt fields/checks and interruption during host startup. A deliberately
+SIGTERM-ignoring owned process is killed and reaped before result publication;
+its observed environment excludes a synthetic private sentinel and replaces the
+synthetic outer key. Direct process/server joins are explicit; arbitrary detached
+descendant containment is not certified. Provider sockets have bounded inactivity
+waits, not a claim to defeat indefinitely trickling hostile clients.
+
+The new runner's final real-page positive passes eleven browser checks, exact
+canonical human/assistant payloads, one provider exchange and joined clean host
+shutdown. Legacy and preview-only pages fail their intended missing-control and
+logical-payload assertions, respectively, with host exit0 and clean teardown.
+Evidence is `/private/tmp/cadence-ch7-public-runner-current`'s referenced directory:
+`final-*/result.json`, `unit-final.log`, pre-real-run `runner-source-receipt.json`
+and post-run `verification.json`. All tested executable source hashes match.
+
+The new omission test initially caught `get('failure')` accepting absent metadata
+as explicit null. The validator now requires presence as well as value, and all
+field/check omissions refuse. Initial three-test and intermediate four-test
+failure results remain in tool1708/1711; final four-test success is independently
+saved. Full runner/fixture/test and final receipt/cleanup changes were reviewed.
+No runtime, frozen endpoint, student admission or artifact score changed. Remaining
+GUI coverage and student-facing teaching integration precede any Chapter7 launch.
