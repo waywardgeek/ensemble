@@ -41,12 +41,7 @@ public static partial class JsonCodec
         };
         if (value.Offering is { } offering)
         {
-            result["offering"] = new JsonObject
-            {
-                ["vendor"] = offering.VendorID,
-                ["endpoint"] = offering.EndpointID,
-                ["model"] = offering.ModelID
-            };
+            result["offering"] = WriteModelIdentity(offering);
         }
         return result;
     }
@@ -63,20 +58,29 @@ public static partial class JsonCodec
         ModelIdentity? offering = null;
         if (value.TryGetProperty("offering", out var identity))
         {
-            // Absence is the legacy representation. A present but incomplete
-            // identity must refuse, not silently lose its routing boundary.
-            if (identity.ValueKind != JsonValueKind.Object
-                || identity.EnumerateObject().Count() != 3
-                || !identity.TryGetProperty("vendor", out _)
-                || !identity.TryGetProperty("endpoint", out _)
-                || !identity.TryGetProperty("model", out _))
-            {
-                throw new FormatException("Invalid configured model identity.");
-            }
-            offering = new ModelIdentity(String(identity, "vendor"),
-                String(identity, "endpoint"), String(identity, "model"));
+            offering = ReadModelIdentity(identity);
         }
         return new Provenance(vendor, model, EnumValue<Surface>(surface), offering);
+    }
+
+    public static partial JsonObject WriteModelIdentity(ModelIdentity value) => new()
+    {
+        ["vendor"] = value.VendorID,
+        ["endpoint"] = value.EndpointID,
+        ["model"] = value.ModelID
+    };
+
+    public static partial ModelIdentity ReadModelIdentity(JsonElement value)
+    {
+        // Absence belongs to the containing legacy format. Present malformed
+        // identities must never become an implicit legacy route.
+        if (value.ValueKind != JsonValueKind.Object
+            || !value.EnumerateObject().Select(field => field.Name).Order(StringComparer.Ordinal)
+                .SequenceEqual(new[] { "endpoint", "model", "vendor" }))
+        {
+            throw new FormatException("Invalid configured model identity.");
+        }
+        return new ModelIdentity(String(value, "vendor"), String(value, "endpoint"), String(value, "model"));
     }
 
     private static JsonObject WriteRef(BlobRef value) => new()

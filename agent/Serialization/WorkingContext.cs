@@ -7,7 +7,7 @@ namespace Ensemble;
 public sealed partial class WorkingContextLimit
 {
     public partial WorkingContextLimit(Vendor vendor, string model, long workingTokens,
-        long? capacityTokens)
+        long? capacityTokens, ModelIdentity? offering)
     {
         if (!Enum.IsDefined(vendor)) throw new ArgumentOutOfRangeException(nameof(vendor));
         if (string.IsNullOrWhiteSpace(model) || model.Length > 256 || model.Any(char.IsControl))
@@ -15,6 +15,7 @@ public sealed partial class WorkingContextLimit
         if (workingTokens <= 0) throw new ArgumentOutOfRangeException(nameof(workingTokens));
         if (capacityTokens is <= 0 || capacityTokens is long capacity && workingTokens > capacity)
             throw new ArgumentOutOfRangeException(nameof(capacityTokens), "Working tokens must not exceed capacity tokens");
+        Offering = offering;
         Vendor = vendor;
         Model = model;
         WorkingTokens = workingTokens;
@@ -29,13 +30,15 @@ public static partial class JsonCodec
         var result = new JsonArray();
         foreach (var limit in limits)
         {
-            result.Add(new JsonObject
+            var row = new JsonObject
             {
                 ["vendor"] = limit.Vendor.ToString(),
                 ["model"] = limit.Model,
                 ["working_tokens"] = limit.WorkingTokens,
                 ["capacity_tokens"] = limit.CapacityTokens
-            });
+            };
+            if (limit.Offering is { } offering) row["offering"] = WriteModelIdentity(offering);
+            result.Add(row);
         }
         return result;
     }
@@ -45,12 +48,18 @@ public static partial class JsonCodec
         if (value.ValueKind != JsonValueKind.Array || value.GetArrayLength() > 64)
             throw new InvalidDataException("Expected at most 64 model context limits");
         var result = ImmutableArray.CreateBuilder<WorkingContextLimit>();
-        var identities = new HashSet<(Vendor, string)>();
+        var identities = new HashSet<(Vendor, string, ModelIdentity?)>();
         foreach (var row in value.EnumerateArray())
         {
-            if (row.ValueKind != JsonValueKind.Object || !row.EnumerateObject().Select(field => field.Name)
-                    .Order(StringComparer.Ordinal).SequenceEqual(new[] { "capacity_tokens", "model", "vendor", "working_tokens" }))
+            if (row.ValueKind != JsonValueKind.Object)
                 throw new InvalidDataException("Invalid model context limit fields");
+            bool hasOffering = row.TryGetProperty("offering", out var identity);
+            string[] expected = hasOffering
+                ? ["capacity_tokens", "model", "offering", "vendor", "working_tokens"]
+                : ["capacity_tokens", "model", "vendor", "working_tokens"];
+            if (!row.EnumerateObject().Select(field => field.Name).Order(StringComparer.Ordinal).SequenceEqual(expected))
+                throw new InvalidDataException("Invalid model context limit fields");
+            ModelIdentity? offering = hasOffering ? ReadModelIdentity(identity) : null;
             if (row.GetProperty("vendor").ValueKind != JsonValueKind.String
                 || !Enum.TryParse<Vendor>(row.GetProperty("vendor").GetString(), out var vendor)
                 || !Enum.IsDefined(vendor)
@@ -67,8 +76,8 @@ public static partial class JsonCodec
                     throw new InvalidDataException("Capacity must be whole input tokens or null");
                 capacity = parsed;
             }
-            var limit = new WorkingContextLimit(vendor, row.GetProperty("model").GetString()!, working, capacity);
-            if (!identities.Add((limit.Vendor, limit.Model)))
+            var limit = new WorkingContextLimit(vendor, row.GetProperty("model").GetString()!, working, capacity, offering);
+            if (!identities.Add((limit.Vendor, limit.Model, limit.Offering)))
                 throw new InvalidDataException("Duplicate model context limit");
             result.Add(limit);
         }

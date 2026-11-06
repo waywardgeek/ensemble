@@ -8,12 +8,14 @@ public static partial class Gui
     private static partial JsonObject WorkingContextFrame(Agent agent)
     {
         var status = agent.WorkingContextStatus();
-        return new JsonObject
+        var result = new JsonObject
         {
             ["vendor"] = status.Vendor.ToString(), ["model"] = status.Model,
             ["input_tokens"] = status.InputTokens, ["working_tokens"] = status.WorkingTokens,
             ["capacity_tokens"] = status.CapacityTokens, ["percent"] = status.Percent
         };
+        if (status.Offering is { } offering) result["offering"] = JsonCodec.WriteModelIdentity(offering);
+        return result;
     }
 
     public static partial JsonObject MeterFrame(Agent agent)

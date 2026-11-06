@@ -220,3 +220,26 @@ race or a full shared pass. No Sandbox code or assertions were changed.
 `model-membership-shared.log` and `model-membership-sandbox-recheck.log` retain both
 results. No public Model setter, GUI choice, peer/working-policy migration or
 independent grader points are claimed.
+
+## Per-offering working-context policies
+
+Working-context values, status and saved rows now carry an optional qualified
+offering identity. Legacy rows retain their four-field encoding; configured rows
+require a strict identity when that field is present. Duplicate checks, replacement
+and effective-policy lookup all include the identity. No legacy wire-name policy
+is silently migrated onto a configured offering. A shared public value codec now
+serves provenance and these settings, with absent versus malformed kept distinct.
+
+Focused tests exercise real Agent mailbox updates, same-wire offerings on different
+endpoints, selected status, targeted replacement, legacy-policy isolation and real
+settings restart followed by sibling memory/recall saves. Codec cases reject null,
+incomplete and duplicate-field identities and repeated qualified rows. The three
+working-context groups and five model-domain groups pass; core and GUI builds are
+clean. The GUI frame/form/rollback carry qualified identity, but actual-page
+configured-offering switching is not yet tested. No dropdown or public Model
+selector is exposed by this change. Final shared regression passes361/0, exit0.
+The previous membership run's Sandbox failure remains recorded above; this later
+passing run does not establish that the fixture race was repaired.
+
+Evidence is under `/private/tmp/cadence-local-models.co2hSe`, with the
+`offering-context-` prefix. No live provider, installation or restart occurred.

@@ -16,6 +16,8 @@ public static partial class JsonCodec
     public static partial JsonObject WriteUsage(Usage value);
     public static partial JsonObject WriteProvenance(Provenance value);
     public static partial Provenance ReadProvenance(JsonElement value);
+    public static partial JsonObject WriteModelIdentity(ModelIdentity value);
+    public static partial ModelIdentity ReadModelIdentity(JsonElement value);
     // Sort object keys recursively for stable output; preserve arrays and exact
     // numeric tokens. Returned nodes do not borrow a JsonDocument lifetime.
     public static partial JsonNode? Canonical(JsonElement value);

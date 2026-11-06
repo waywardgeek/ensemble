@@ -10,10 +10,12 @@ before/after HTTP checks and shared358/0 pass. Configured-model
 public switching, peer restoration, GUI configuration and public graders remain
 pending. Internal configured request binding, qualified child restoration and
 weak Agent/Model membership are implemented. Model loss refuses inference while
-retaining documentary saves. Latest shared run is360/1: an existing Sandbox race
-fixture fails its recovery rename; unchanged focused Sandbox recheck passes4/0.
-This is not a full shared pass. No local dropdown or integrated inference
-acceptance is claimed yet.
+retaining documentary saves. Working-context persistence now distinguishes
+configured offerings from each other and from legacy wire-name policies. Final
+shared regression passes361/0. The previous360/1 Sandbox fixture race and its
+passing focused recheck remain recorded, not claimed repaired. Actual-page
+offering switching, a local dropdown and integrated inference acceptance remain
+open.
 Chapter27 now contains TL;DR, plain-words teaching and four draft exercises.
 See [Local Models](edition-3-notes/local-models.md) for evidence and limits.
 No installation or restart performed by Cadence; Bill reports rebuilding/restarting

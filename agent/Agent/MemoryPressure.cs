@@ -8,11 +8,12 @@ public sealed partial class Agent
     {
         // Callers hold ingress. Exact routing identity, not a billing alias.
         var configured = workingContextLimits.FirstOrDefault(limit =>
-            limit.Vendor == configuration.Vendor && limit.Model == configuration.Model);
+            limit.Vendor == configuration.Vendor && limit.Model == configuration.Model
+            && limit.Offering == configuration.Offering);
         if (configured is not null) return configured;
         long? capacity = configuration.ServingContextTokens ?? configuration.Features.ContextWindow;
         return new WorkingContextLimit(configuration.Vendor, configuration.Model,
-            Math.Min(250_000, capacity ?? 250_000), capacity);
+            Math.Min(250_000, capacity ?? 250_000), capacity, configuration.Offering);
     }
 
     public partial WorkingContextStatus WorkingContextStatus()
@@ -21,7 +22,7 @@ public sealed partial class Agent
         {
             var limit = EffectiveWorkingContextLimit();
             return new(configuration.Vendor, configuration.Model, mainContextInputTokens, limit.WorkingTokens,
-                limit.CapacityTokens, mainContextOccupancy);
+                limit.CapacityTokens, mainContextOccupancy, configuration.Offering);
         }
     }
 

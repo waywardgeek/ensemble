@@ -1138,14 +1138,21 @@ document.addEventListener("keydown", event => {
         stopSpeechAndResume();
     }
 });
+function sameWorkingContextModel(first, second) {
+    return first?.vendor === second?.vendor && first?.model === second?.model
+        && first?.offering?.vendor === second?.offering?.vendor
+        && first?.offering?.endpoint === second?.offering?.endpoint
+        && first?.offering?.model === second?.offering?.model;
+}
 function showWorkingContext(value) {
-    const modelChanged = workingContext?.model !== value?.model || workingContext?.vendor !== value?.vendor;
+    const modelChanged = !sameWorkingContextModel(workingContext, value);
     workingContext = value || null;
     if (value && modelChanged) fillWorkingContextSettings(value);
     renderControls();
 }
 function fillWorkingContextSettings(value) {
-    workingContextForm = { vendor: value.vendor, model: value.model };
+    workingContextForm = { vendor: value.vendor, model: value.model,
+        ...(value.offering ? { offering: { ...value.offering } } : {}) };
     document.querySelector("#working-context-model").textContent = `${value.vendor} / ${value.model}`;
     document.querySelector("#working-context-tokens").value = value.working_tokens ?? "";
     document.querySelector("#context-capacity-tokens").value = value.capacity_tokens ?? "";
@@ -1160,7 +1167,7 @@ document.querySelector("#save-working-context").onclick = () => {
         notice("Enter positive whole input tokens; the working limit must not exceed the capacity ceiling.");
         return;
     }
-    patchSettings({ working_context: { vendor: workingContextForm.vendor, model: workingContextForm.model,
+    patchSettings({ working_context: { ...workingContextForm,
         working_tokens: working, capacity_tokens: capacity } });
 };
 
@@ -1177,8 +1184,7 @@ function applySettings() {
     // Settings acknowledgment/rollback restores form values, not the live usage
     // measurement. The usage stream may already be newer than this snapshot.
     const savedContext = settings.working_context;
-    const currentModel = workingContext && (workingContext.vendor !== savedContext?.vendor
-        || workingContext.model !== savedContext?.model);
+    const currentModel = workingContext && !sameWorkingContextModel(workingContext, savedContext);
     if (currentModel) fillWorkingContextSettings(workingContext);
     else if (savedContext) fillWorkingContextSettings(savedContext);
     if (settings.recall) {

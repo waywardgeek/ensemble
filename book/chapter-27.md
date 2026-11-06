@@ -156,6 +156,12 @@ API key. Explicit unauthenticated funding emits no credential headers; it is not
 an empty-key attempt or permission to discover cloud credentials. Streaming and
 media checks use the frozen capabilities rather than guessing from a model name.
 Default working-context limits use the configured serving allocation when known.
+An explicit policy also includes the qualified offering identity. Two endpoints
+serving the same wire model may have different allocations, so their policies
+must not overwrite each other. Legacy policies keep their original wire-name
+identity and do not silently apply to newly configured offerings. Settings
+round trips preserve that distinction; malformed identities refuse rather than
+becoming legacy rows.
 Recall and compression preserve the binding; an unresolved judge-model override
 refuses rather than silently changing the route.
 
@@ -184,8 +190,9 @@ shutdown, closing admission must not block the Agents' final History saves.
 **Integration boundary:** synthetic HTTP checks exercise the internal projection,
 including the exact headers and captured provenance. Configured child registration
 and restoration, weak selection membership and saving after Model loss have
-focused coverage. Public Model switching, peer restoration, per-offering
-working-context persistence and GUI configuration remain open. Configured
+focused coverage. Per-offering working-context persistence and effective-policy
+isolation have focused coverage too. Public Model switching, peer restoration,
+GUI configuration and actual-page offering-switch checks remain open. Configured
 OAuth/Codex renewal and streaming conversations still need their own real-path
 coverage. Do not infer a working local dropdown or MiMo acceptance
 from these internal tests.

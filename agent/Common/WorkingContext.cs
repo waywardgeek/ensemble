@@ -10,16 +10,17 @@ public sealed partial class WorkingContextLimit
 {
     public readonly Vendor Vendor;
     public readonly string Model;
+    public readonly ModelIdentity? Offering;
     public readonly long WorkingTokens;
     public readonly long? CapacityTokens;
     public partial WorkingContextLimit(Vendor vendor, string model, long workingTokens,
-        long? capacityTokens = null);
+        long? capacityTokens = null, ModelIdentity? offering = null);
 }
 
 /// <summary>Latest actor-accepted request, not a next-request prediction.
 /// A completed checkpoint invalidates the old input measurement.</summary>
 public sealed record WorkingContextStatus(Vendor Vendor, string Model, long? InputTokens,
-    long? WorkingTokens, long? CapacityTokens, decimal? Percent);
+    long? WorkingTokens, long? CapacityTokens, decimal? Percent, ModelIdentity? Offering = null);
 
 public static partial class JsonCodec
 {

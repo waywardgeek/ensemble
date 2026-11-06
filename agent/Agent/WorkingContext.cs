@@ -32,7 +32,8 @@ public sealed partial class Agent
         {
             var limit = message.WorkingContextLimit!;
             var current = WorkingContextLimits();
-            var next = current.Where(item => item.Vendor != limit.Vendor || item.Model != limit.Model)
+            var next = current.Where(item => item.Vendor != limit.Vendor || item.Model != limit.Model
+                || item.Offering != limit.Offering)
                 .Append(limit).ToImmutableArray();
             if (next.Length > 64) throw new InvalidDataException("At most 64 model context limits are supported");
             if (message.PersistWorkingContext)
