@@ -339,3 +339,37 @@ regression passes364/0, exit0. The final page run uses that GUI build; only pros
 changes follow execution.
 No host model-configuration interface, configured subscription-renewal acceptance,
 independent grader points, installation, restart or live inference is claimed.
+
+## Host configuration decision and strict loading foundation
+
+Bill approved a host-owned strict configuration file loaded before Agent/fleet
+restoration. GUI editing of endpoints/authentication is not part of that decision.
+Reminders were explicitly re-enabled and confirmed; existing launch policy and
+Astra funding must remain unchanged unless explicitly selected otherwise.
+
+New Common immutable document definitions and Ensemble.LoadModelConfiguration
+provide the bounded library boundary. Strict UTF-8 JSON has a 1 MiB limit, version 1,
+exact required/optional fields, duplicate refusal and bounded collections. Endpoint
+authentication fields resolve actual existing root-owned bindings; no credential
+value, token path, store creation, renewal or network action is accepted from the
+document. Capabilities are explicit; unknown optional capacity remains unknown.
+The loader holds the root graph gate across construction and rollback. It never
+replaces existing vendors or changes an Agent selection. Late failures destroy
+only the new subtrees and detach their borrowed authentication memberships.
+
+The final clean build and six domain groups pass, exit0. New tests exercise actual
+relationships, separate 4096 serving/262144 advertised capacities, untouched launch
+configuration, repeated identity refusal, malformed/duplicate/unknown fields,
+invalid UTF-8 and byte limits. Valid-first/invalid-later documents test unknown
+bindings, credential-bearing URLs, excessive serving capacity and duplicate models
+or vendors. Existing objects, Agent selection and reverse binding counts survive.
+No inference is requested. During review, malformed cases were changed to use fresh
+vendor IDs so duplicate-existing-vendor refusal could not mask a parser defect.
+
+Evidence uses model-config-{build,tests,final-build,final-tests}.log under
+/private/tmp/cadence-local-models.co2hSe. The final strengthened tests are job290;
+job288 is the earlier version. Full parser/loader/Common review is job291.
+No fresh shared regression is claimed for this isolated new loader; prior364/0
+belongs to the completed GUI slice. Startup file I/O, host binding construction,
+public grader and real-target acceptance remain pending. No installed settings,
+credentials, application restart or live provider changed.

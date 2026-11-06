@@ -232,6 +232,35 @@ coverage. Host configuration remains open. Configured OAuth/Codex renewal and
 streaming conversations still need their own real-path coverage. Do not infer an
 installed MiMo offering or live-model acceptance from these owned fixtures.
 
+### Host-owned model configuration
+
+The host, not the model picker, controls endpoint and authentication configuration.
+Load its strict document before constructing Agents or restoring the fleet. GUI
+selection uses only the resulting approved graph. Do not put credential values or
+token-file paths in this document: each endpoint names an authentication binding
+already constructed by the host under the same Ensemble root.
+
+`Ensemble.LoadModelConfiguration` accepts at most 1 MiB of strict UTF-8 JSON. Version 1
+has `version` and `vendors`; each vendor has `id`, `label` and `endpoints`. An endpoint
+has `id`, `address`, `surface`, `authentication` and `models`. Surface spellings are
+`messages`, `chat_completions`, `responses` and `generate_content`. Each model has
+`id`, `name`, `label` and `features`, with optional `serving_context_tokens`.
+Features require an explicit `stream` boolean. Optional media and reasoning lists,
+context capacity and policy flags default conservatively, not from name guesses.
+Advertised `context_window` and serving capacity remain separate token values.
+
+Unknown or duplicate fields, invalid types and unresolved bindings refuse. The
+whole document is bounded to 32 vendors, 64 endpoints and 256 models. Parsing precedes
+graph publication; construction and rollback hold the existing graph gate. A late
+failure removes every newly created subtree and detaches its binding memberships,
+without destroying the borrowed authentication owners. Existing vendors and Agent
+selections cannot be overwritten by a load. This is additive startup configuration,
+not a live graph editor or an implicit model switch.
+
+The library loading boundary has focused strict-decoding and rollback tests. The
+GUI host's file-reading option and launch-binding setup are the next integration
+step; no installed configuration is changed by these library tests.
+
 The construction-point changes belong alongside configuration and transport,
 model selection, child ownership, persistence and accounting. This capstone joins
 those contracts. The user-facing configuration interface and executable grader
