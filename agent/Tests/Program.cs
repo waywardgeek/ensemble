@@ -81,6 +81,18 @@ static string Wire(Vendor vendor, Context context, string model = "model-a")
 }
 try
 {
+    if (args.Length == 0 || args is ["--model-domain-tests"])
+    {
+        CheckCase("Configured vendor/endpoint/model ownership", ModelDomainTests.Ownership);
+        CheckCase("Configured model admission and identity refusal", ModelDomainTests.Refusals);
+        CheckCase("Configured model detach and destruction", ModelDomainTests.Detach);
+        CheckCase("Model authentication bindings and credential lifetime", ModelAuthenticationTests.Bindings);
+        if (args.Length != 0)
+        {
+            Console.WriteLine($"{passed} passed, {failures} failed");
+            return failures == 0 ? 0 : 1;
+        }
+    }
     if (args.Length == 0 || args is ["--working-context-tests"])
     {
         CheckCase("Working-context token limits and strict codec", WorkingContextTests.Values);

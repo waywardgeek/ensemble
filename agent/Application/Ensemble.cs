@@ -79,6 +79,7 @@ public sealed partial class Ensemble
         // This is exact known-value masking, not an arbitrary encoding detector.
         var tokens = Agents()
             .Select(agent => agent.DiagnosticKey())
+            .Concat(ModelAuthentications().Select(binding => binding.DiagnosticKey()))
             .Concat(Transcriber()?.DiagnosticKeys() ?? Array.Empty<string>())
             .Concat(exchangeSecrets ?? Array.Empty<string>())
             .Where(key => key.Length > 0)
@@ -240,6 +241,32 @@ public sealed partial class Ensemble
             {
                 failures ??= [];
                 failures.Add(ex);
+            }
+        }
+        // Configured models outlive all admitted Agent work. Their graph is
+        // removed before credential owners, which will supply endpoint bindings.
+        foreach (ModelVendor vendor in ModelVendors())
+        {
+            try
+            {
+                vendor.Destroy();
+            }
+            catch (Exception error)
+            {
+                failures ??= [];
+                failures.Add(error);
+            }
+        }
+        foreach (ModelAuthentication binding in ModelAuthentications())
+        {
+            try
+            {
+                binding.Destroy();
+            }
+            catch (Exception error)
+            {
+                failures ??= [];
+                failures.Add(error);
             }
         }
         // Agents finish first so their final transport/cleanup still has access

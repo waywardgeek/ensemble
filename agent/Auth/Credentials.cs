@@ -39,6 +39,9 @@ public sealed partial class Ensemble
             credentials = null;
             child.parent = null;
         }
+        // Never hold credentialsGate while acquiring the model graph gate.
+        // The credential owner has already joined its work before removal.
+        DetachModelBindings(child);
     }
 }
 
