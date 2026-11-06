@@ -1,8 +1,8 @@
 # Chapter7 browser-copy supplement components
 
-**Development boundary:** this directory contains a runnable buffered-copy
-supplement, binding validation and component tests. Streaming/delayed-completion
-ports and other Chapter7 GUI gates remain pending. This is not complete Chapter7
+**Development boundary:** this directory contains runnable buffered and
+streaming-copy supplements, binding validation and component tests. Delayed-completion ports
+and other Chapter7 GUI gates remain pending. This is not complete Chapter7
 acceptance and awards no chapter points. The existing Chapter7 80-point wire
 grader is unchanged.
 
@@ -41,8 +41,8 @@ strings (each nonblank and at most512 UTF-16 code units):
 Selectors use Playwright's public locator syntax. Selector syntax and meaning are
 not certified by JSON validation alone. A binding cannot alter expected payloads,
 control provider gates, access application variables or omit a test. Some fields
-are reserved for the streaming/delayed components and are not exercised by the
-buffered case yet.
+apply only to particular cases. The streaming case exercises expansion and
+idle-state bindings; the delayed-completion case remains pending.
 
 The loader reads through an owned descriptor with a bounded buffer, checks a
 regular file and strict UTF-8, and returns a frozen copy. It follows explicitly
@@ -79,9 +79,9 @@ With an existing Node executable, no package install is needed for these tests:
 
 Binding tests cover required fields, rejected code/skip additions, value limits,
 strict UTF-8, regular-file/size refusal and immutable values. The lifetime test
-uses a controlled Playwright boundary: SIGTERM reaches browser cleanup, a held
-close prevents result publication, and a no-join variant is detected. That test
-is not real-browser or candidate-lifecycle certification.
+uses a controlled Playwright boundary for both browser components: SIGTERM reaches
+browser cleanup, a held close prevents result publication, and no-join variants
+are detected. That test is not real-browser or candidate-lifecycle certification.
 
 Actual-page calibration separately exercises the reference and renamed-layout
 positive pages, missing-copy controls, and an1800-character-prefix copy variant.
@@ -143,3 +143,32 @@ before the runner publishes its result:
 ```sh
 PYTHONDONTWRITEBYTECODE=1 /absolute/python3 runner_test.py -v
 ```
+
+
+## Streaming retention case
+
+Use the same runner and explicit dependencies with `--case streaming` and a fresh
+work directory. The filename `run_buffered.py` retains the original entry point;
+omitting `--case` still selects buffered behavior. The streaming mode omits
+`--no-stream` when launching the GUI and requires an actual streaming provider
+request. It generates fresh markers and four appended text phases. Three ordered
+grader-owned HTTP gates hold fence closure, later prose and final prose until
+the real browser has checked the preceding state. These gates are fixture control,
+not candidate API requirements or injected application display frames.
+
+Nine named checks verify no premature copy control, exact closed-fence copying,
+the same focused button, expansion and feedback, and the same readonly manual
+field with its full selection. The last selection check waits for the exact typed
+final, completed turn and visible idle state. A final delta alone is insufficient.
+The runner independently checks the unchanged canonical payload and one provider
+exchange. Gate releases must be exactly `[1, 2, 3]`; teardown unblocks the provider
+without adding successful browser-release receipts. Provider handlers join during
+server close, including after failed browser assertions.
+
+The browser component is `streaming.cjs`, with arguments: owned GUI URL, fixture
+JSON, owned provider URL, trusted Playwright module and optional bindings path.
+Its receipt contract is `chapter7-stream-browser-component-v1`; the runner emits
+`chapter7-streaming-runner-v1`. Expected payloads and gates remain grader-owned.
+Parent-only positive/negative calibration pages are not student dependencies.
+Delayed success/denial replacement checks still await their public port; streaming
+retention alone does not certify that distinct ownership boundary.

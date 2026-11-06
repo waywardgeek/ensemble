@@ -21,3 +21,15 @@ def buffered_fixture():
     return dict(marker=marker, human=human,
                 prompt=human + '\n\n```text\nhuman code\n```',
                 markdown=markdown, payloads=[first, '  quoted\n\n', long_code, ''])
+
+
+def streaming_fixture():
+    token = uuid.uuid4().hex
+    marker, closed = 'stream-' + token, 'closed-' + token
+    later, finished = 'later-' + token, 'finished-' + token
+    payload = ('  streaming 界 ' + token + '\n') * 40
+    phases = [marker + '\n\n```text\n' + payload,
+              '```\n\n' + closed, '\n\n' + later, '\n\n' + finished]
+    return dict(prompt='stream-request-' + token, marker=marker, closed=closed,
+                later=later, finished=finished, payload=payload, phases=phases,
+                markdown=''.join(phases))

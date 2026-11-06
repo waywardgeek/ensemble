@@ -2017,3 +2017,38 @@ failure results remain in tool1708/1711; final four-test success is independentl
 saved. Full runner/fixture/test and final receipt/cleanup changes were reviewed.
 No runtime, frozen endpoint, student admission or artifact score changed. Remaining
 GUI coverage and student-facing teaching integration precede any Chapter7 launch.
+
+
+### Public streaming-copy retention mode
+
+The existing public runner now accepts `--case streaming`, retaining buffered
+as the default. It shares dependency validation, clean environment, canonical
+checks and process cleanup rather than adding a parallel orchestration loop.
+Fresh four-phase fixtures and three ordered HTTP gates drive actual provider SSE.
+The new browser component uses data-only DOM bindings throughout, not private
+application state or injected display frames. Exact original typed final plus
+completed turn and visible idle precede the final selection assertion.
+
+Nine streaming checks pass. The whole-card replacement page fails the original
+focused-button assertion after two prior checks; the selection-only variant fails
+the original manual-selection assertion after six. Both hosts exit0 and all owned
+processes/provider threads join. The positive records releases `[1, 2, 3]`; the
+replacement failure records only `[1, 2]`. Teardown unblocks provider gates without
+pretending those releases came from the browser. The buffered regression still
+passes eleven checks against the shared runner. Every run has one provider request
+and no provider errors or forced cleanup.
+
+Five Python tests pass, including both exact receipt contracts and all omissions,
+streaming phase construction and owned startup interruption. Five Node tests pass;
+the controlled browser-close barrier/no-join sensitivity now covers both buffered
+and streaming components. This is distinct from real-page behavioral evidence.
+Full new component, fixture/test changes and runner diff were reviewed. Evidence
+is in the directory referenced by `/private/tmp/cadence-ch7-public-stream-current`,
+including the four `result.json` receipts, `unit.log` and `verification.json`.
+Hashes are explicitly captured after execution; the exercised runtime scripts
+were unchanged between their creation, execution and review. Only lifetime tests
+and documentation were extended afterward. No pre-run-hash claim is made.
+
+Delayed-completion public ports, broader GUI gates and student-facing admission
+remain open. No student has received parent-only GUI reference/adapters, and no
+runtime, frozen endpoint, installed application or artifact points changed.

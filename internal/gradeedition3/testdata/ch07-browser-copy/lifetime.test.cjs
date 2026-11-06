@@ -21,6 +21,7 @@ test('interruption joins browser cleanup before reporting; no-join variant is de
       const fixture = path.join(directory, 'fixture.json');
       fs.writeFileSync(fixture, JSON.stringify({
         prompt: 'prompt', marker: 'marker', human: 'human', markdown: 'fixture',
+        closed: 'closed', later: 'later', finished: 'finished', payload: 'code',
         payloads: ['a', 'b', 'c', '']
       }));
       const modulePath = path.join(directory, 'controlled-playwright.cjs');
@@ -60,15 +61,11 @@ module.exports = {chromium: {async launch() { return browser; }}};
       for (const filename of ['bindings.cjs', 'bindings.json']) {
         fs.copyFileSync(path.join(__dirname, filename), path.join(directory, filename));
       }
-      const original = fs.readFileSync(path.join(__dirname, 'buffered.cjs'), 'utf8');
-      const anchor = '    await browser?.close();\n    process.removeListener';
-      assert.equal(original.split(anchor).length, 2, 'one final browser join');
-      const mutant = path.join(directory, 'no-join.cjs');
-      fs.writeFileSync(mutant, original.replace(anchor,
-        '    browser?.close();\n    process.removeListener'));
-
-      async function run(script) {
-        const child = spawn(process.execPath, [script, 'http://127.0.0.1:1/', fixture, modulePath], {
+      async function run(script, streaming) {
+        const childArguments = [script, 'http://127.0.0.1:1/', fixture];
+        if (streaming) childArguments.push('http://127.0.0.1:2/');
+        childArguments.push(modulePath);
+        const child = spawn(process.execPath, childArguments, {
           stdio: ['ignore', 'pipe', 'pipe', 'ipc']
         });
         const messages = [];
@@ -101,10 +98,19 @@ module.exports = {chromium: {async launch() { return browser; }}};
           await exited;
         }
       }
-      assert.equal(await run(path.join(__dirname, 'buffered.cjs')), false,
-        'result is withheld until cleanup joins');
-      assert.equal(await run(mutant), true,
-        'removing the join publishes a premature result');
+      for (const component of ['buffered.cjs', 'streaming.cjs']) {
+        const original = fs.readFileSync(path.join(__dirname, component), 'utf8');
+        const anchor = '    await browser?.close();\n    process.removeListener';
+        assert.equal(original.split(anchor).length, 2, component + ': one final browser join');
+        const mutant = path.join(directory, 'no-join-' + component);
+        fs.writeFileSync(mutant, original.replace(anchor,
+          '    browser?.close();\n    process.removeListener'));
+        const streaming = component === 'streaming.cjs';
+        assert.equal(await run(path.join(__dirname, component), streaming), false,
+          component + ': result is withheld until cleanup joins');
+        assert.equal(await run(mutant, streaming), true,
+          component + ': removing the join publishes a premature result');
+      }
     } finally {
       fs.rmSync(directory, {recursive: true});
     }

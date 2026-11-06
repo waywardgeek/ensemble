@@ -9,8 +9,8 @@ import tempfile
 import time
 import unittest
 
-from fixtures import buffered_fixture
-from run_buffered import existing, valid_browser, BROWSER_CHECKS
+from fixtures import buffered_fixture, streaming_fixture
+from run_buffered import existing, valid_browser, BROWSER_CHECKS, STREAM_CHECKS
 
 HERE = Path(__file__).resolve().parent
 
@@ -28,17 +28,30 @@ class RunnerTests(unittest.TestCase):
         self.assertTrue(first['markdown'].endswith('unfinished ' + first['marker'][7:]))
 
     def test_receipt_requires_every_named_check_and_terminal_fields(self):
-        report = dict(contract='chapter7-copy-browser-component-v1', passed=True,
-                      failure=None, checks=list(BROWSER_CHECKS), promptFrames=1,
-                      errors=[], blocked=[])
-        self.assertTrue(valid_browser(report))
-        for key in report:
-            changed = dict(report)
-            del changed[key]
-            self.assertFalse(valid_browser(changed), key)
-        for index in range(len(BROWSER_CHECKS)):
-            changed = dict(report, checks=BROWSER_CHECKS[:index] + BROWSER_CHECKS[index + 1:])
-            self.assertFalse(valid_browser(changed), str(index))
+        for case, names, contract in [
+                ('buffered', BROWSER_CHECKS, 'chapter7-copy-browser-component-v1'),
+                ('streaming', STREAM_CHECKS, 'chapter7-stream-browser-component-v1')]:
+            report = dict(contract=contract, passed=True, failure=None,
+                          checks=list(names), promptFrames=1, errors=[], blocked=[])
+            self.assertTrue(valid_browser(report, case))
+            for key in report:
+                changed = dict(report)
+                del changed[key]
+                self.assertFalse(valid_browser(changed, case), case + ':' + key)
+            for index in range(len(names)):
+                changed = dict(report, checks=names[:index] + names[index + 1:])
+                self.assertFalse(valid_browser(changed, case), case + ':' + str(index))
+            wrong = dict(report, contract='wrong-contract')
+            self.assertFalse(valid_browser(wrong, case))
+
+    def test_streaming_phases_preserve_exact_payload_and_final_text(self):
+        fixture = streaming_fixture()
+        self.assertEqual(len(fixture['phases']), 4)
+        self.assertEqual(''.join(fixture['phases']), fixture['markdown'])
+        self.assertEqual(fixture['phases'][0], fixture['marker'] + '\n\n```text\n' + fixture['payload'])
+        self.assertGreater(len(fixture['payload']), 1800)
+        self.assertEqual(fixture['phases'][1], '```\n\n' + fixture['closed'])
+        self.assertNotEqual(fixture['marker'], streaming_fixture()['marker'])
 
     def test_paths_are_explicit_existing_dependencies(self):
         for value in ['relative', '/no-such-ch07-component']:

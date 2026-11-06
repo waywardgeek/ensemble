@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""POSIX, offline-dependency runner for the buffered Chapter7 copy component."""
+"""POSIX, offline-dependency runner for the Chapter7 copy components (buffered by default)."""
 import argparse
 import contextlib
 import http.server
@@ -14,7 +14,7 @@ import time
 import urllib.error
 import urllib.request
 
-from fixtures import buffered_fixture
+from fixtures import buffered_fixture, streaming_fixture
 
 HERE = Path(__file__).resolve().parent
 LIMIT = 1024 * 1024
@@ -32,12 +32,26 @@ BROWSER_CHECKS = [
     'no-page-errors-or-off-origin-fetches',
 ]
 
+STREAM_CHECKS = [
+    'unfinished-fence-visible-without-copy-before-release',
+    'closed-stream-fence-copies-exact-payload',
+    'stream-update-retains-original-focused-copy-control',
+    'stream-update-retains-expansion-and-feedback',
+    'manual-fallback-established-before-final-delta',
+    'canonical-final-and-completed-turn-applied-before-selection-check',
+    'stream-update-retains-original-manual-selection',
+    'stream-copy-does-not-read-or-resubmit',
+    'stream-page-has-no-errors-or-off-origin-fetches',
+]
 
-def valid_browser(report):
-    return (report.get('contract') == 'chapter7-copy-browser-component-v1'
+
+def valid_browser(report, case='buffered'):
+    checks = BROWSER_CHECKS if case == 'buffered' else STREAM_CHECKS
+    contract = 'chapter7-copy-browser-component-v1' if case == 'buffered' else 'chapter7-stream-browser-component-v1'
+    return (report.get('contract') == contract
             and report.get('passed') is True
             and 'failure' in report and report['failure'] is None
-            and report.get('checks') == BROWSER_CHECKS
+            and report.get('checks') == checks
             and report.get('promptFrames') == 1
             and report.get('errors') == [] and report.get('blocked') == [])
 
@@ -91,7 +105,7 @@ def run(args):
     work.mkdir()  # Refuse existing evidence rather than overwrite it.
     for name in ('home', 'tmp', 'cli'):
         (work / name).mkdir()
-    fixture = buffered_fixture()
+    fixture = buffered_fixture() if args.case == 'buffered' else streaming_fixture()
     write_json(work / 'fixture.json', fixture)
     env = dict(PATH='/usr/bin:/bin', HOME=str(work / 'home'), TMPDIR=str(work / 'tmp'),
                DOTNET_CLI_HOME=str(work / 'cli'), DOTNET_SKIP_FIRST_TIME_EXPERIENCE='1',
@@ -99,6 +113,9 @@ def run(args):
                LLM_API_KEY='synthetic-unused', CH06_API_LOG=str(work / 'api.log'),
                CH07_GUI_LOG=str(work / 'gui.log'))
     requests, provider_errors = [], []
+    gates = [threading.Event() for _ in range(3)]
+    releases = []
+    provider_lock = threading.Lock()
     host = browser = server = thread = None
     browser_report = None
     failure = None
@@ -109,16 +126,62 @@ def run(args):
         def log_message(self, *_):
             pass
 
+        def send_event(self, name, value):
+            self.wfile.write(('event: ' + name + '\ndata: ' + json.dumps(value) + '\n\n').encode())
+            self.wfile.flush()
+
+        def stream_response(self, request):
+            if request.get('stream') is not True:
+                raise AssertionError('actual-stream-request-required')
+            self.send_response(200)
+            self.send_header('Content-Type', 'text/event-stream')
+            self.send_header('Connection', 'close')
+            self.end_headers()
+            self.send_event('message_start', dict(type='message_start', message=dict(
+                id='stream-fixture', type='message', role='assistant',
+                model='claude-3-haiku-20240307', content=[], usage=dict(input_tokens=10,
+                output_tokens=0, cache_creation_input_tokens=0, cache_read_input_tokens=0))))
+            self.send_event('content_block_start', dict(type='content_block_start', index=7,
+                            content_block=dict(type='text', text='')))
+            for index, text in enumerate(fixture['phases']):
+                if index and not gates[index - 1].wait(20):
+                    raise AssertionError('stream-gate-timeout-' + str(index))
+                self.send_event('content_block_delta', dict(type='content_block_delta', index=7,
+                                delta=dict(type='text_delta', text=text)))
+            self.send_event('content_block_stop', dict(type='content_block_stop', index=7))
+            self.send_event('message_delta', dict(type='message_delta',
+                            delta=dict(stop_reason='end_turn'), usage=dict(output_tokens=7)))
+            self.send_event('message_stop', dict(type='message_stop'))
+
         def do_POST(self):
+            self.close_connection = True
             try:
                 self.connection.settimeout(5)
+                if args.case == 'streaming' and self.path.startswith('/fixture/step/'):
+                    step = int(self.path.rsplit('/', 1)[1])
+                    with provider_lock:
+                        if step != len(releases) + 1 or step not in (1, 2, 3):
+                            raise AssertionError('out-of-order-fixture-step')
+                        releases.append(step)
+                        gates[step - 1].set()
+                    self.send_response(200)
+                    self.send_header('Content-Length', '0')
+                    self.end_headers()
+                    return
                 count = int(self.headers.get('Content-Length', '0'))
-                if not 0 < count <= LIMIT or len(requests) >= 4:
+                if not 0 < count <= LIMIT:
                     raise ValueError('provider-request-bound')
                 data = self.rfile.read(count)
                 if len(data) != count:
                     raise ValueError('short-provider-request')
-                requests.append(json.loads(data))
+                request = json.loads(data)
+                with provider_lock:
+                    if len(requests) >= 4:
+                        raise ValueError('provider-request-bound')
+                    requests.append(request)
+                if args.case == 'streaming':
+                    self.stream_response(request)
+                    return
                 body = json.dumps(dict(
                     id='synthetic-message', type='message', role='assistant',
                     model='claude-3-haiku-20240307',
@@ -131,10 +194,13 @@ def run(args):
                 self.end_headers()
                 self.wfile.write(body)
             except Exception as error:
-                provider_errors.append(type(error).__name__ + ': ' + str(error))
+                with provider_lock:
+                    provider_errors.append(type(error).__name__ + ': ' + str(error))
                 self.close_connection = True
 
-    class Server(http.server.HTTPServer):
+    class Server(http.server.ThreadingHTTPServer):
+        daemon_threads = False
+        block_on_close = True
         def get_request(self):
             connection, address = super().get_request()
             connection.settimeout(5)
@@ -162,8 +228,10 @@ def run(args):
         command = [str(args.launcher), '--port', str(port), '--workspace', str(work),
                    '--vendor', 'anthropic', '--model', 'claude-3-haiku-20240307',
                    '--base-url', f'http://127.0.0.1:{server.server_port}',
-                   '--event-log', str(work / 'events.jsonl'), '--no-stream',
+                   '--event-log', str(work / 'events.jsonl'),
                    '--gui-dir', str(args.assets)]
+        if args.case == 'buffered':
+            command.append('--no-stream')
         with (work / 'host.stdout').open('wb') as out, (work / 'host.stderr').open('wb') as err:
             host = subprocess.Popen(command, env=env, cwd=work, stdout=out, stderr=err,
                                     stdin=subprocess.DEVNULL, start_new_session=True)
@@ -181,21 +249,26 @@ def run(args):
                 break
             except (urllib.error.URLError, TimeoutError, ConnectionError):
                 time.sleep(.05)
-        command = [str(args.node), str(HERE / 'buffered.cjs'), url,
-                   str(work / 'fixture.json'), str(args.playwright), str(args.bindings)]
+        component = 'buffered.cjs' if args.case == 'buffered' else 'streaming.cjs'
+        command = [str(args.node), str(HERE / component), url, str(work / 'fixture.json')]
+        if args.case == 'streaming':
+            command.append(f'http://127.0.0.1:{server.server_port}')
+        command.extend([str(args.playwright), str(args.bindings)])
         with (work / 'browser.stdout').open('wb') as out, (work / 'browser.stderr').open('wb') as err:
             browser = subprocess.Popen(command, env=env, cwd=work, stdout=out, stderr=err,
                                        stdin=subprocess.DEVNULL, start_new_session=True)
         browser.wait(timeout=45)
         browser_report = read_json(work / 'browser.stdout')
-        if browser.returncode != 0 or not valid_browser(browser_report):
-            raise AssertionError('buffered-browser-check-failed')
+        if browser.returncode != 0 or not valid_browser(browser_report, args.case):
+            raise AssertionError(args.case + '-browser-check-failed')
     except Exception as error:
         failure = type(error).__name__ + ': ' + str(error)
     finally:
         # Ignore repeated signals while draining our already-owned children.
         for number in old_handlers:
             signal.signal(number, signal.SIG_IGN)
+        for gate in gates:
+            gate.set()  # Release owned provider work even when a browser assertion fails.
         for name, child, grace in [('browser', browser, 5), ('host', host, 10)]:
             try:
                 cleanup[name] = stop_process(child, grace)
@@ -217,6 +290,8 @@ def run(args):
         if cleanup.get('host', {}).get('exit') != 0 or any(
                 cleanup.get(name, {}).get('forced', False) for name in ('browser', 'host')):
             raise AssertionError('host-or-browser-did-not-stop-cleanly')
+        if args.case == 'streaming' and releases != [1, 2, 3]:
+            raise AssertionError('stream-gates-not-released-in-order')
         if provider_errors:
             raise AssertionError('provider-fixture-error')
         if len(requests) != 1:
@@ -249,7 +324,8 @@ def run(args):
             raise AssertionError('unexpected-tool-or-error-fact')
     except Exception as error:
         failure = failure or type(error).__name__ + ': ' + str(error)
-    result = dict(contract='chapter7-buffered-runner-v1', passed=failure is None,
+    result = dict(contract='chapter7-' + args.case + '-runner-v1', passed=failure is None,
+                  case=args.case, releases=releases,
                   failure=failure, interrupted=interrupted, browser=browser_report,
                   requests=len(requests), provider_errors=provider_errors,
                   cleanup=cleanup, cleanup_errors=cleanup_errors)
@@ -261,6 +337,7 @@ def run(args):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--case', choices=['buffered', 'streaming'], default='buffered')
     parser.add_argument('--launcher', required=True, type=lambda v: existing(v, executable=True))
     parser.add_argument('--node', required=True, type=lambda v: existing(v, executable=True))
     parser.add_argument('--playwright', required=True, type=lambda v: existing(v, directory=True))
