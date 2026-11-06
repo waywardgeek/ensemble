@@ -890,6 +890,7 @@ try
     if (args is ["--auth-inference-tests"])
     {
         await AsyncCase("auth inference 401 bounded same-source recovery", () => AuthRenewalTests.RejectedBearerRecovery(temp));
+        await AsyncCase("configured auth inference 401 same-source recovery", () => AuthRenewalTests.RejectedBearerRecovery(temp, configured: true));
         await AsyncCase("auth delayed 401 reuses newest durable grant", () => AuthRenewalTests.RejectedOlderGeneration(temp));
         Console.WriteLine($"{passed} passed; {failures} failed");
         return failures == 0 ? 0 : 1;
@@ -911,6 +912,7 @@ try
         return failures == 0 ? 0 : 1;
     }
     await AsyncCase("auth inference 401 bounded same-source recovery", () => AuthRenewalTests.RejectedBearerRecovery(temp));
+    await AsyncCase("configured auth inference 401 same-source recovery", () => AuthRenewalTests.RejectedBearerRecovery(temp, configured: true));
     await AsyncCase("auth delayed 401 reuses newest durable grant", () => AuthRenewalTests.RejectedOlderGeneration(temp));
     await AsyncCase("auth rotating refresh across real processes", () => AuthRenewalTests.SerializedRotation(temp));
     await AsyncCase("auth refresh failure and plan-permission boundaries", () => AuthRenewalTests.FailuresAndPermission(temp));

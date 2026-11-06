@@ -341,7 +341,7 @@ internal static class AuthRenewalTests
         }
     }
 
-    internal static async Task RejectedBearerRecovery(string root)
+    internal static async Task RejectedBearerRecovery(string root, bool configured = false)
     {
         // Each scenario owns real issuer/inference sockets and its own protected
         // store. No pre-expiry refresh: only the inference 401 can trigger renewal.
@@ -358,13 +358,27 @@ internal static class AuthRenewalTests
             using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(15));
             try
             {
-                string directory = Path.Combine(root, "auth-inference-recovery-" + scenario);
+                string directory = Path.Combine(root, "auth-inference-recovery-" + (configured ? "configured-" : "legacy-") + scenario);
                 var store = new Credentials(app, directory, server.Issuer);
                 await store.StoreAsync(Seed(server, remainingMinutes: 60));
                 var agent = new Agent(app, new Configuration(Vendor.OpenAI, "local-plan-model",
                     server.Issuer.AbsoluteUri, scenario == "api-401" ? "dummy-api-key" : "", surface: Surface.Responses,
                     billing: scenario == "api-401" ? BillingMode.ApiKey : BillingMode.ChatGptPlan,
                     account: scenario == "api-401" ? "" : "main"));
+                if (configured)
+                {
+                    var binding = scenario == "api-401"
+                        ? new ModelAuthentication(app, "selected", "dummy-api-key")
+                        : new ModelAuthentication(app, "selected", store, "main");
+                    var vendor = new ModelVendor(app, "configured", "Configured plan");
+                    var endpoint = new ModelEndpoint(vendor, "issuer", server.Issuer.AbsoluteUri,
+                        Surface.Responses, binding);
+                    var model = new Model(endpoint, "plan", "local-plan-model", "Plan",
+                        new ModelFeatures(Media.None, Stream: true));
+                    await agent.SetModelAsync(model).WaitAsync(deadline.Token);
+                    Check(agent.Configuration().Offering == model.Identity()
+                        && ReferenceEquals(agent.SelectedModel(), model), "actual configured selection required");
+                }
                 const string wire = "{ \"input\": [ ], \"stream\": true }";
                 if (scenario is "terminal" or "transient")
                 {

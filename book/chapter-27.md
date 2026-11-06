@@ -238,8 +238,9 @@ isolation and qualified peer launch/restoration have focused coverage too.
 Public Model switching has focused loopback routing and failed-save coverage.
 The ordinary dropdown has real-socket and actual-page offering-switch/recovery
 coverage. Host file loading and explicit launch-return routing have process/socket
-coverage. Configured OAuth/Codex renewal and streaming conversations still need
-their own real-path coverage. Do not infer an
+coverage. Configured public OAuth has loopback 401-renewal/refusal coverage;
+configured Codex has synthetic grant-reread and owner-loss coverage. Local Chat
+streaming tool conversations still need their own real-path coverage. Do not infer an
 installed MiMo offering or live-model acceptance from these owned fixtures.
 
 ### Host-owned model configuration

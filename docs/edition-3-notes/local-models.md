@@ -479,3 +479,23 @@ the actual out-parameter API was used before any behavioral run. Full test and
 registration diff reviewed. Production code is unchanged. This is configured grant
 rereading/source-loss/recovery coverage with an injected HTTP handler, not public
 OAuth renewal, real-network Codex acceptance, or a new full shared regression.
+
+
+## Configured public OAuth inference recovery
+
+The existing real-loopback issuer/inference fixture now runs its six scenarios
+through explicit Model authentication bindings as well as the legacy route:
+success, repeated401, forbidden403, API-key401, terminal refresh failure and
+transient refresh failure. Stores use fresh synthetic signed identities outside
+any live credential directory. Selection uses the public Model overload and checks
+actual membership/qualified identity before send. Existing oracles remain intact:
+one byte-identical inference retry at most, bounded refresh count, durable rotated
+bearer, no API-key fallback, completion/error accounting once and no Engine-owned
+History writes. Fixture disposal releases barriers and joins its server task.
+
+configured-plan-final-build.log and configured-plan-tests.log record a clean build
+and three passing focused groups, including both six-scenario recovery variants and
+the existing delayed-401 check. Full changed-method/registration review completed;
+production code is unchanged. This does not prove live entitlement, configured
+owner loss during an in-flight refresh, or Chat-Completions tool streaming. No new
+shared-suite pass is claimed; prior policy366/0 remains the shared evidence.
