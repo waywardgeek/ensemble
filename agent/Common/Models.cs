@@ -78,5 +78,16 @@ public sealed partial class Model
         ModelFeatures features, long? servingContextTokens = null);
     public partial ModelEndpoint Parent();
     public partial ModelVendor Vendor();
+    public partial ModelIdentity Identity();
     public partial void Destroy();
+}
+
+/// <summary>Credential-free configuration identity. IDs are scoped through the
+/// actual vendor and endpoint, rather than confused with a provider model name.</summary>
+public sealed partial record ModelIdentity
+{
+    public readonly string VendorID;
+    public readonly string EndpointID;
+    public readonly string ModelID;
+    public partial ModelIdentity(string vendorID, string endpointID, string modelID);
 }

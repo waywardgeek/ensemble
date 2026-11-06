@@ -104,3 +104,23 @@ The source diff and full final fixture were reviewed. Shared-suite job75 complet
 with358 passed/0 failed and exit0 in `transport-shared.log`. This covers the final
 runtime/test source; subsequent changes were prose only. No new configured-model
 selection, GUI integration or independent grader points are claimed.
+
+## Qualified offering identity and replay boundary
+
+`ModelIdentity` is an immutable credential-free value of vendor, endpoint and
+model configuration IDs. `Model.Identity()` derives it through actual parents.
+The provider-facing model name stays separate. Provenance now optionally carries
+this identity; matching requires both wire identity and offering equality. Legacy
+three-field provenance retains its encoding and matches only legacy provenance.
+A present invalid offering refuses rather than silently dropping the boundary.
+This value does not resolve a route, grant credentials or restore a live object.
+Request capture, selected-Model membership and restart resolution remain pending.
+
+In the same evidence directory, `identity-build.log` is clean with zero warnings
+and errors. `identity-tests.log` reports four passing domain groups, including
+qualified endpoint-local IDs, value equality, cross-offering and legacy mismatch,
+public codec round trip, and malformed identity refusal. `identity-shared.log`
+reports358 passed/0 failed, exit0, against the final executable changes. The full
+source diff and new constructor were reviewed; subsequent edits were prose only.
+This is value/codec and existing regression evidence, not an integrated renderer
+route-switch test, independent grader score or installed-application acceptance.

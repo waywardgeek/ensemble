@@ -203,6 +203,9 @@ public sealed partial class Configuration
 public sealed partial class Provenance
 {
     public partial Provenance(Vendor vendor, string model, Surface surface)
+        : this(vendor, model, surface, null) { }
+
+    public partial Provenance(Vendor vendor, string model, Surface surface, ModelIdentity? offering)
     {
         if (!Enum.IsDefined(vendor) || !Enum.IsDefined(surface) || string.IsNullOrEmpty(model))
         {
@@ -212,9 +215,11 @@ public sealed partial class Provenance
         Vendor = vendor;
         Model = model;
         Surface = surface;
+        Offering = offering;
     }
 
-    public partial bool Matches(Provenance target) => Vendor == target.Vendor && Model == target.Model && Surface == target.Surface;
+    public partial bool Matches(Provenance target) => Vendor == target.Vendor
+        && Model == target.Model && Surface == target.Surface && Offering == target.Offering;
 }
 public sealed partial class BlobRef
 {

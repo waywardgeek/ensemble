@@ -282,6 +282,16 @@ public sealed partial class Model
         }
     }
 
+    public partial ModelIdentity Identity()
+    {
+        lock (graphGate)
+        {
+            ModelEndpoint endpoint = Parent();
+            ModelVendor vendor = endpoint.Parent();
+            return new ModelIdentity(vendor.ID, endpoint.ID, ID);
+        }
+    }
+
     public partial void Destroy()
     {
         lock (graphGate)

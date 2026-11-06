@@ -40,6 +40,36 @@ internal static class ModelDomainTests
             var other = new Model(otherEndpoint, "mimo", model.Name, "MiMo elsewhere", new ModelFeatures(Media.None));
             Check(other != model && other.Parent() != model.Parent() && other.ServingContextTokens is null,
                 "Same provider model name through another endpoint is a distinct offering; unknown capacity stays unknown.");
+            ModelIdentity identity = model.Identity();
+            Check(identity == new ModelIdentity("ollama", "laptop", "mimo")
+                && identity != other.Identity(), "Qualified identity distinguishes endpoint-local model IDs.");
+            var origin = new Provenance(Vendor.OpenAI, model.Name, Surface.ChatCompletions, identity);
+            var same = new Provenance(Vendor.OpenAI, model.Name, Surface.ChatCompletions,
+                new ModelIdentity("ollama", "laptop", "mimo"));
+            var elsewhere = new Provenance(Vendor.OpenAI, model.Name, Surface.ChatCompletions, other.Identity());
+            var legacy = new Provenance(Vendor.OpenAI, model.Name, Surface.ChatCompletions);
+            Check(origin.Matches(same) && !origin.Matches(elsewhere)
+                && !origin.Matches(legacy) && !legacy.Matches(origin),
+                "Opaque replay requires the exact configured offering in both directions.");
+            using (var encoded = System.Text.Json.JsonDocument.Parse(JsonCodec.WriteProvenance(origin).ToJsonString()))
+            {
+                Check(JsonCodec.ReadProvenance(encoded.RootElement).Matches(origin),
+                    "Configured provenance survives its public codec.");
+            }
+            Check(!JsonCodec.WriteProvenance(legacy).ContainsKey("offering"),
+                "Legacy provenance keeps its published representation.");
+            foreach (string invalid in new[] { "null", "{}",
+                "{\"vendor\":\"ollama\",\"endpoint\":\"laptop\",\"model\":\"bad/name\"}",
+                "{\"vendor\":\"ollama\",\"endpoint\":\"laptop\",\"model\":\"mimo\",\"extra\":1}" })
+            {
+                var encoded = JsonCodec.WriteProvenance(legacy);
+                encoded["offering"] = System.Text.Json.Nodes.JsonNode.Parse(invalid);
+                using var document = System.Text.Json.JsonDocument.Parse(encoded.ToJsonString());
+                bool refused = false;
+                try { JsonCodec.ReadProvenance(document.RootElement); }
+                catch (Exception error) when (error is FormatException or ArgumentException) { refused = true; }
+                Check(refused, "Present invalid offering must not downgrade to legacy provenance.");
+            }
             var snapshot = vendor.Endpoints();
             otherEndpoint.Destroy();
             Check(snapshot.Length == 2 && vendor.Endpoints().Length == 1,

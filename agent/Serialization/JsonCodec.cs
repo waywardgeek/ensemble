@@ -31,12 +31,25 @@ public static partial class JsonCodec
     private static IEnumerable<Part> Parts(JsonElement o) => o.TryGetProperty("parts", out var p) ? p.EnumerateArray().Select(ReadPart).ToArray() : [];
     private static JsonArray Parts(IEnumerable<Part> parts) => new(parts.Select(p => (JsonNode)WritePart(p)).ToArray());
     private static bool Flag(JsonElement o, string key) => o.TryGetProperty(key, out var v) && v.GetBoolean();
-    public static partial JsonObject WriteProvenance(Provenance value) => new()
+    public static partial JsonObject WriteProvenance(Provenance value)
     {
-        ["vendor"] = Label(value.Vendor),
-        ["model"] = value.Model,
-        ["surface"] = Label(value.Surface)
-    };
+        var result = new JsonObject
+        {
+            ["vendor"] = Label(value.Vendor),
+            ["model"] = value.Model,
+            ["surface"] = Label(value.Surface)
+        };
+        if (value.Offering is { } offering)
+        {
+            result["offering"] = new JsonObject
+            {
+                ["vendor"] = offering.VendorID,
+                ["endpoint"] = offering.EndpointID,
+                ["model"] = offering.ModelID
+            };
+        }
+        return result;
+    }
     public static partial Provenance ReadProvenance(JsonElement value)
     {
         var vendor = EnumValue<Vendor>(String(value, "vendor"));
@@ -47,7 +60,23 @@ public static partial class JsonCodec
         {
             surface = "generate_content";
         }
-        return new Provenance(vendor, model, EnumValue<Surface>(surface));
+        ModelIdentity? offering = null;
+        if (value.TryGetProperty("offering", out var identity))
+        {
+            // Absence is the legacy representation. A present but incomplete
+            // identity must refuse, not silently lose its routing boundary.
+            if (identity.ValueKind != JsonValueKind.Object
+                || identity.EnumerateObject().Count() != 3
+                || !identity.TryGetProperty("vendor", out _)
+                || !identity.TryGetProperty("endpoint", out _)
+                || !identity.TryGetProperty("model", out _))
+            {
+                throw new FormatException("Invalid configured model identity.");
+            }
+            offering = new ModelIdentity(String(identity, "vendor"),
+                String(identity, "endpoint"), String(identity, "model"));
+        }
+        return new Provenance(vendor, model, EnumValue<Surface>(surface), offering);
     }
 
     private static JsonObject WriteRef(BlobRef value) => new()

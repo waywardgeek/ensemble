@@ -130,8 +130,11 @@ public sealed partial class Provenance
     public readonly Vendor Vendor;
     public readonly string Model;
     public readonly Surface Surface;
+    public readonly ModelIdentity? Offering;
     public partial Provenance(Vendor vendor, string model, Surface surface);
-    // All three fields must agree; same vendor alone never authorizes opaque replay.
+    public partial Provenance(Vendor vendor, string model, Surface surface, ModelIdentity? offering);
+    // Wire identity and configured offering must agree. Legacy unknown offering
+    // matches only another legacy origin, never a newly configured destination.
     public partial bool Matches(Provenance target);
 }
 

@@ -114,6 +114,14 @@ Ollama vendor is not the OpenAI vendor merely because its endpoint uses the
 
 An offering has a local configuration ID and a separate provider-facing model
 name. The same wire model name through two endpoints denotes two offerings.
+`ModelIdentity` qualifies that local ID with its vendor and endpoint IDs. It is a
+credential-free value, not another owner or a provider-facing routing name.
+Provenance can retain this identity alongside the exact wire model and surface:
+opaque material from a different offering must not match merely because both
+servers use the same model name. Legacy provenance remains readable but cannot
+match an explicitly configured offering. Invalid present identities refuse rather
+than silently becoming legacy data. Connecting this value to selected requests
+and child restoration remains part of the pending integration.
 Endpoint addresses exclude embedded credentials, query strings and fragments.
 New credential-bearing endpoints require HTTPS except literal loopback fixtures;
 public OAuth and Codex retain their additional existing endpoint restrictions.
