@@ -1838,3 +1838,35 @@ before/after hashes and actual65/65 JSON. This is final integration, not a repea
 cleanup campaign or full Go/100-point claim. No product source changed for these
 workflow checks. Frozen endpoints, main runtime, installation and artifact70 remain
 unchanged. Early GUI browser acceptance and Chapter7 student admission are next.
+
+### Parent-only early GUI transport calibration
+
+A separate preserved Chapter7 reference was exported from `d0ec2ceb` to
+`/private/tmp/cadence-ch7-reference.Oc3yux`, with 68 file hashes captured before
+build. This completed GUI is parent-only calibration material, never a student
+prerequisite. Its entry point, protocol, complete host operation, project imports,
+and selected browser connection/submission paths were inspected. No full new
+reference-core or browser-policy audit is claimed. The offline build is clean;
+all 68 exported source hashes still match afterward. Frozen sources and the
+assembled pre-GUI prerequisite remain unchanged.
+
+A real headless Chrome page submits through the labelled form to an owned fake
+provider, then reloads. Six calibration checks pass: one visible answer, cleared
+composer, replay without duplicate display or resubmission, and no page errors or
+off-origin page requests. The actual provider request count is one; canonical
+request/response counts agree. Speech alone is replaced at the browser boundary;
+no private application state or invented WebSocket frames are used. No clipboard
+or audible-output claim is made.
+
+A syntax-checked disposable page that resubmits its remembered prompt on reconnect
+fails precisely `replay-does-not-send-another-prompt`, with two public prompt frames
+and two real provider requests. Both runs join browser, provider server and host;
+the host exits0 without forced termination. Final scripts were reviewed and
+post-execution helper/runtime hashes recorded in `evidence/smoke-verification.json`.
+The original source receipt predates build; these later hashes do not pretend to.
+
+This establishes the fixture's startup/form/replay boundary, not the existing
+80-point wire grade or any revised Markdown, copying, timing, pairing or reading
+obligation. Reference-specific selectors are not a new student UI contract.
+Next inspect reusable browser assertions and establish early-chapter positive and
+negative acceptance without later artifact-host APIs or completed-answer leakage.
