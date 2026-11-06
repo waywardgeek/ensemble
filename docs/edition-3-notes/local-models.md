@@ -268,3 +268,32 @@ the final executable bytes. Evidence is under
 `/private/tmp/cadence-local-models.co2hSe`, with the `configured-peer-` prefix.
 No inference is requested by the new test. No new dropdown, independent grader
 points, installation or live-target acceptance is claimed.
+
+## Public configured Model selection
+
+The existing selection mailbox now accepts a Model object. Between-turn and direct
+Engine-send guards remain shared with the legacy string selector. A foreign graph
+refuses before lock acquisition. Under ingress then the root graph gate, the new
+path validates the candidate, saves its whole restart configuration, and publishes
+both Model membership ends and the immutable configuration. An explicit valid
+selection can recover from an unavailable old Model without any automatic fallback.
+The string path retains its route-preserving contract.
+
+Focused tests use two owned HTTP endpoints with the same wire model name and
+separate no-auth/API-key bindings. Real requests check endpoint, exact headers,
+retained conversation, busy-turn and direct-send refusals, preserved Engine,
+context reset/default, foreign-root refusal, repeated selection, and explicit
+recovery after Model destruction. Destroyed targets and removed authentication
+bindings must leave the current membership intact. A real child-file destination
+failure verifies save-before-publication, unchanged configuration/membership and
+preserved saved bytes; repaired storage accepts the complete candidate identity.
+No real account or live model is used.
+
+The first command used the wrong focused flag (`--model-selection-tests`); this
+harness ran124 unconditional baseline groups and skipped the named selection suite.
+That exit0 is not selection coverage. The corrected `--model-tests` run has a clean
+build and five passing groups. The final strengthened-test build is clean, all
+five selection groups pass again, and the final shared suite passes364/0, exit0.
+Evidence uses the `configured-selection-` prefix under
+`/private/tmp/cadence-local-models.co2hSe`. No dropdown, actual-page switch,
+configured subscription-renewal coverage or independent grader points are claimed.

@@ -122,7 +122,8 @@ servers use the same model name. Legacy provenance remains readable but cannot
 match an explicitly configured offering. Invalid present identities refuse rather
 than silently becoming legacy data. Request projection and response capture carry
 this value; configured construction and child restoration attach the live Model
-relationship. Public switching is still under construction.
+relationship. The public Model-object selector changes that relationship through
+the existing Agent mailbox; the dropdown integration is still under construction.
 Endpoint addresses exclude embedded credentials, query strings and fragments.
 New credential-bearing endpoints require HTTPS except literal loopback fixtures;
 public OAuth and Codex retain their additional existing endpoint restrictions.
@@ -190,6 +191,16 @@ clears these weak links without destroying Agents or their conversations. A lost
 selection refuses new rendering and inference, never reverting to a legacy route.
 Engine admission validates the graph before incrementing its active-send guard.
 
+`SetModelAsync(Model)` selects a configured offering only between turns, including
+absence of direct Engine sends. It rejects a foreign root before acquiring its
+graph lock. Under ingress and the owning graph gate, it validates the candidate,
+saves the complete child restart selection when applicable, then updates both
+membership ends and the frozen configuration. Failed saving leaves the old
+selection intact. A successful switch retains Engine and conversation, and resets
+the last-request context measurement. An explicit valid choice can recover an
+Agent whose old Model was removed; no automatic substitution occurs. The legacy
+string overload still preserves its route and cannot invent a configured offering.
+
 Documentary persistence has a different purpose from inference admission. It can
 save the last frozen configuration and retained conversation after a Model is
 removed, without acquiring credentials or granting another request. During root
@@ -200,8 +211,9 @@ including the exact headers and captured provenance. Configured child registrati
 and restoration, weak selection membership and saving after Model loss have
 focused coverage. Per-offering working-context persistence and effective-policy
 isolation and qualified peer launch/restoration have focused coverage too.
-Public Model switching, GUI configuration and actual-page offering-switch checks
-remain open. Configured OAuth/Codex renewal and streaming conversations still need their own real-path
+Public Model switching has focused loopback routing and failed-save coverage.
+GUI configuration and actual-page offering-switch checks remain open. Configured
+OAuth/Codex renewal and streaming conversations still need their own real-path
 coverage. Do not infer a working local dropdown or MiMo acceptance
 from these internal tests.
 

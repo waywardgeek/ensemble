@@ -9,6 +9,14 @@ public sealed partial class Agent
         return reply.Task;
     }
 
+    public partial Task SetModelAsync(Model model)
+    {
+        ArgumentNullException.ThrowIfNull(model);
+        var reply = new TaskCompletionSource<string>(TaskCreationOptions.RunContinuationsAsynchronously);
+        Enqueue(new Mail(MailKind.SelectModel, ConfiguredModel: model, Reply: reply));
+        return reply.Task;
+    }
+
     private partial void SelectModel(Mail message)
     {
         try
@@ -32,10 +40,42 @@ public sealed partial class Agent
                 // Validation constructs a complete immutable candidate first.
                 // The meter/lens stay on the existing Engine; neither History
                 // nor saved preferences becomes a second selection authority.
-                Configuration candidate = ValidatedConfiguration().WithModel(message.Model!);
-                SaveChildRestart(selection: candidate);
-                configuration = candidate;
-                ResetMemoryPressure();
+                if (message.ConfiguredModel is { } model)
+                {
+                    Ensemble root = Parent();
+                    // Refuse a foreign graph before taking its gate. All further
+                    // operations use ingress -> this root's graph, never two roots.
+                    if (!ReferenceEquals(model.graphGate, root.ModelGraphGate))
+                    {
+                        throw new ArgumentException("The selected Model belongs to another Ensemble.");
+                    }
+                    lock (root.ModelGraphGate)
+                    {
+                        ObjectDisposedException.ThrowIf(root.ModelGraphClosed, root);
+                        if (model.destroyed || !ReferenceEquals(model.Vendor().Parent(), root))
+                        {
+                            throw new InvalidOperationException("The selected Model is unavailable.");
+                        }
+                        // An explicit choice can recover from a removed old Model.
+                        // The old snapshot supplies Agent policy, never routing.
+                        var candidate = new Configuration(configuration, model);
+                        SaveChildRestart(selection: candidate);
+                        if (!ReferenceEquals(selectedModel, model))
+                        {
+                            selectedModel?.RemoveAgent(this);
+                            model.AddAgent(this);
+                        }
+                        configuration = candidate;
+                        ResetMemoryPressure();
+                    }
+                }
+                else
+                {
+                    Configuration candidate = ValidatedConfiguration().WithModel(message.Model!);
+                    SaveChildRestart(selection: candidate);
+                    configuration = candidate;
+                    ResetMemoryPressure();
+                }
             }
             message.Reply!.TrySetResult("");
         }

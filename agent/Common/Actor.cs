@@ -128,11 +128,15 @@ public sealed partial class Agent
         string? RecallQuery = null, Mail? RecallTurn = null, RecallCompletion? RecallCompletion = null, RecallSettings? RecallSettings = null, GoalUpdate? GoalUpdate = null,
         TaskCompletionSource<GoalStatus>? GoalReply = null, long GoalGeneration = 0,
         GoalReadFailure? GoalFailure = null, bool AutomaticGoal = false, TimeSpan? ObservationDuration = null,
-        WorkingContextLimit? WorkingContextLimit = null, bool PersistWorkingContext = false);
+        WorkingContextLimit? WorkingContextLimit = null, bool PersistWorkingContext = false,
+        Model? ConfiguredModel = null);
 
     // Human session control, not a model tool. Reject busy/queued work; retain
     // conversation, Engine, meter, lens, provider, surface and funding route.
     public partial Task SetModelAsync(string model);
+    /// <summary>Select a configured offering between turns. Save the candidate
+    /// before publishing its Model relationship and frozen request configuration.</summary>
+    public partial Task SetModelAsync(Model model);
     private partial void SelectModel(Mail message);
 
     // Reliable request reply. The actor remains alive after a turn completes.
