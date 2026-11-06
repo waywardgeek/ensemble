@@ -24,7 +24,9 @@ grant/source-loss checks and public OAuth loopback renewal/refusal checks pass.
 Configured Chat SSE tool success/interruption/provider-error checks now pass in
 five focused transport groups. An outside-assembly Local Models consumer passes
 43 public buffered/SSE/prose checks and rejects a compiled no-auth header-leak
-candidate. The public runner and remaining grader coverage are still pending.
+candidate. The named local-models runner now supplies strict receipt validation
+and bounded process execution; passing current coverage exits 3, with no points.
+Remaining lifecycle/configuration coverage and real-model acceptance are pending.
 Qualified peer launch records now preserve offering identity; restoration validates
 the entire launch set before startup effects, without a host-route fallback.
 Internal configured request binding, qualified child restoration and

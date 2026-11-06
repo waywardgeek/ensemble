@@ -330,9 +330,24 @@ live Ollama behavior or installation.
 
 The construction-point changes belong alongside configuration and transport,
 model selection, child ownership, persistence and accounting. This capstone joins
-those contracts. The independent scored grader
-commands will be documented here after implementation and review; no unimplemented
-command or public grader is promised by this draft.
+those contracts. The independent public runner currently checks buffered tools,
+streamed tools and tool-shaped prose through public APIs and owned HTTP:
+
+```sh
+go run ./cmd/grade-edition3 --scope local-models -executable-only -json \
+  -dotnet "$DOTNET" "$CANDIDATE_RUNTIME_DIRECTORY"
+```
+
+Supply an existing .NET 10 SDK and a directory containing Ensemble.dll. The runner
+builds its own outside-assembly consumer offline, with isolated home/work paths,
+strict named receipts and an outer process deadline. It awards no chapter points.
+The compiled grader exits 3 when these probes pass but chapter coverage remains
+incomplete, 1 for probe failure, and 2 for setup/API-build failure. A `go run`
+wrapper may translate the nonzero process status. See the
+[consumer contract](../internal/gradeedition3/testdata/local-models-consumer/README.md)
+for exact inputs, deadlines and containment limits. Lifecycle, configuration and
+restoration, unknown-price behavior and live usefulness are still separate gates;
+these 43 checks do not certify all four exercises.
 
 ## Exercises (draft acceptance contracts)
 

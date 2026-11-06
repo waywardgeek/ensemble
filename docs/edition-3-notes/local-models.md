@@ -556,3 +556,32 @@ and cooperative deadlines. This is a public component, not a scored Chapter27 CL
 outer process timeout/containment, remaining lifecycle/configuration coverage and
 report integration are next. No GUI/live Ollama/student/full-chapter acceptance or
 new artifact score is claimed. Main runtime and installed application are unchanged.
+
+
+## Named public runner and containment boundary
+
+The public `--scope local-models -executable-only` command now builds the embedded
+outside-assembly consumer against an explicit candidate directory. It requires an
+existing .NET 10 SDK, clears inherited credential environment variables, uses fresh
+home/work directories and offline NuGet sources, and validates all 43 expected
+receipt names exactly once. Duplicate fields, missing failure/null fields,
+unknown checks and trailing JSON refuse. No artifact score or chapter points
+change. Current success remains ungraded/exit 3; behavior failure is exit 1 and
+setup/API-build failure is exit 2.
+
+The runner owns a process group, uses a two-minute setup and 75-second execution
+bound, waits for the direct child, caps each output stream at 64 KiB and limits
+inherited-pipe waits. Tests exercise a termination-ignoring child, a parent exiting
+with an open descendant pipe, cleared environment, receipt omissions and invalid
+CLI flags before any tool launch. This is not detached-descendant containment or
+a network sandbox. Temporary files are removed after cleanup; report capture is
+caller-owned.
+
+Evidence in the existing local evidence directory: public-runner-final-unit.log
+records both Go packages passing. public-runner-external.log records the actual
+candidate integration pass. public-runner-cli.json/exit show probe_passed true and
+ungraded/exit 3. public-runner-mutant.json/exit reuse the previously compiled header
+leak candidate and fail exactly buffered-no-borrowed-credentials-0 with exit 1.
+No mutant rebuild or new production change was needed. Full runner, tests and CLI
+diff reviewed. Remaining independent lifecycle, configuration/restoration,
+unknown-price and live usefulness checks remain open; no whole-chapter acceptance.

@@ -14,10 +14,35 @@ after checking the actual result request; this is protocol evidence, not a claim
 that a real model understood the result. Public registration grants one harmless
 custom tool. This does not certify every packaged skill's permission checks.
 
-This component awards no chapter points. The named CLI runner and its outer
-process deadline are not implemented yet. Lifecycle, configuration loading,
-restoration, unavailable endpoint and unknown-price coverage remain incomplete.
+This component awards no chapter points. The named CLI runner now supplies an
+outer process deadline and strict receipt validation. Lifecycle, configuration
+loading, restoration, unavailable endpoint and unknown-price coverage remain incomplete.
 No live-model usefulness or installed-GUI acceptance follows from these checks.
+
+## Public runner
+
+From the repository root, with an existing candidate assembly and .NET 10 SDK:
+
+```sh
+go run ./cmd/grade-edition3 --scope local-models -executable-only -json \
+  -dotnet "$DOTNET" "$CANDIDATE"
+```
+
+The compiled grader returns 3 for passing current probes with incomplete chapter
+coverage, 1 for a failed probe, and 2 for setup or API-build incompatibility.
+`go run` may report the program's nonzero status through its own exit wrapper;
+use a built grader when consuming exit codes directly. No chapter points are
+awarded. Do not combine this scope with chapter, browser or media flags.
+
+The macOS/Linux runner embeds this consumer, creates fresh home/work directories,
+clears inherited credentials, and builds offline with cleared package sources.
+Setup has a two-minute limit; execution has a separate 75-second limit. Both
+stdout and stderr are capped at 64 KiB. The runner cancels its owned process group,
+waits for the direct child and bounds inherited output-pipe waits. It does not
+provide a network sandbox or containment of deliberately detached descendants.
+Success requires exactly the 43 named checks once each and a null failure field;
+missing, duplicated, unknown or trailing receipt data refuse. Temporary files are
+removed after execution; capture the JSON report for retained evidence.
 
 ## Build and run against an existing candidate
 
@@ -45,8 +70,9 @@ The executable emits one JSON receipt after joining its server/turn tasks and
 root destruction. Exit0 means these named checks passed; exit1 means failure.
 A compile failure is setup/API incompatibility, not a behavioral negative control.
 Each scenario has a 20-second cooperative deadline. A broken candidate may ignore
-cancellation; callers still need an outer process-group deadline. A cleared
-environment is not a network sandbox. The loopback port is reserved then rebound;
+cancellation; direct callers still need an outer process-group deadline. The
+public runner supplies that outer bound. A cleared environment is not a network
+sandbox. The loopback port is reserved then rebound;
 a competing bind causes a setup failure, not a silently chosen remote endpoint.
 
 Calibration: the current candidate passes43 checks. An isolated, successfully
