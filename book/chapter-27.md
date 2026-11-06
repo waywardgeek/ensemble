@@ -157,6 +157,15 @@ policy. It references the selected authentication binding instead of copying its
 API key. Explicit unauthenticated funding emits no credential headers; it is not
 an empty-key attempt or permission to discover cloud credentials. Streaming and
 media checks use the frozen capabilities rather than guessing from a model name.
+A Model also owns an immutable, credential-free `ModelRequestPolicy`. Reasoning,
+streaming suppression, explanation enforcement, deferred tools, result stubbing
+and cache options come from that selected offering, not the previously selected
+route. Instructions, tool-round limits and security boundaries stay with the Agent.
+Model construction validates options against its surface and capabilities before
+adding endpoint membership. Feature-required explanations cannot be disabled by
+policy. Request projection turns an explicit reasoning summary `off` into an
+omitted provider field; returning to the offering restores its declared options.
+
 Default working-context limits use the configured serving allocation when known.
 An explicit policy also includes the qualified offering identity. Two endpoints
 serving the same wire model may have different allocations, so their policies
@@ -244,10 +253,22 @@ already constructed by the host under the same Ensemble root.
 has `version` and `vendors`; each vendor has `id`, `label` and `endpoints`. An endpoint
 has `id`, `address`, `surface`, `authentication` and `models`. Surface spellings are
 `messages`, `chat_completions`, `responses` and `generate_content`. Each model has
-`id`, `name`, `label` and `features`, with optional `serving_context_tokens`.
+`id`, `name`, `label` and `features`, with optional `serving_context_tokens`
+and `request_policy`.
 Features require an explicit `stream` boolean. Optional media and reasoning lists,
 context capacity and policy flags default conservatively, not from name guesses.
 Advertised `context_window` and serving capacity remain separate token values.
+
+The optional `request_policy` object accepts boolean `disable_streaming`,
+`require_tool_explanation`, `deferred_tools`, `stub_tool_results` and
+`cache_breakpoints`, plus string `prompt_cache_key`, `reasoning_effort` and
+`reasoning_summary`. Omitted booleans are false. Empty reasoning options choose
+validated `medium` and `auto` defaults only for a Responses offering declaring
+reasoning support; otherwise they remain absent. Summary `off` explicitly omits
+that field for a supported offering. Unsupported options refuse instead of being
+silently ignored. Deferred tools and block-cache options require Messages; prompt
+cache keys require an OpenAI-compatible surface. These are explicit host assertions,
+not provider discovery or guarantees that caching will occur.
 
 Unknown or duplicate fields, invalid types and unresolved bindings refuse. The
 whole document is bounded to 32 vendors, 64 endpoints and 256 models. Parsing precedes

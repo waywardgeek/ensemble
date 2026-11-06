@@ -74,12 +74,13 @@ public sealed partial class Model
     public readonly string Name;
     public readonly string Label;
     public readonly ModelFeatures Features;
+    public readonly ModelRequestPolicy RequestPolicy;
     // Configured serving capacity, not inferred from a model's advertised maximum
     // and not a provider-reported next-request token count. Null means unknown.
     public readonly long? ServingContextTokens;
 
     public partial Model(ModelEndpoint parent, string id, string name, string label,
-        ModelFeatures features, long? servingContextTokens = null);
+        ModelFeatures features, long? servingContextTokens = null, ModelRequestPolicy? requestPolicy = null);
     public partial ModelEndpoint Parent();
     public partial ModelVendor Vendor();
     public partial ModelIdentity Identity();

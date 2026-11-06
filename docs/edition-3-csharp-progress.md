@@ -14,8 +14,11 @@ choices, funding and serving-context descriptions. Real socket and actual-page
 checks pass for same-name offerings, unavailable selection, reload and explicit
 recovery. The host now loads a strict model file before Agent/fleet restoration,
 using explicit existing-payer bindings without changing initial launch policy.
-Ten isolated host process/socket cases pass. Exact return-to-launch selection,
-configured renewal and public graders remain pending.
+Ten isolated host process/socket cases pass. Models now own immutable request
+policy, including reasoning and delivery options, with strict document loading
+and projection isolation. Seven domain groups and final shared366/0 pass; the GUI
+host builds cleanly. Host-created exact return-to-launch selection, configured
+renewal and public graders remain pending.
 Qualified peer launch records now preserve offering identity; restoration validates
 the entire launch set before startup effects, without a host-route fallback.
 Internal configured request binding, qualified child restoration and

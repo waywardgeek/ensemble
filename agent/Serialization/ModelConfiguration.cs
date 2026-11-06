@@ -8,6 +8,7 @@ public sealed partial class Configuration
         ArgumentNullException.ThrowIfNull(model);
         // Capture all route facts under the actual graph's gate. This projection
         // neither registers a selection nor owns a credential-renewal lifetime.
+        ModelRequestPolicy requestPolicy;
         lock (model.graphGate)
         {
             ModelEndpoint endpoint = model.Parent();
@@ -20,6 +21,7 @@ public sealed partial class Configuration
             Offering = model.Identity();
             Authentication = binding;
             Features = model.Features;
+            requestPolicy = model.RequestPolicy;
             ServingContextTokens = model.ServingContextTokens;
             Surface = endpoint.Surface;
             Vendor = Surface switch
@@ -43,32 +45,21 @@ public sealed partial class Configuration
             };
             Account = binding.Account;
         }
-        // Application instructions and security boundaries belong to the Agent.
-        // Provider-specific cache/deferred settings do not travel to a new route.
+        // Instructions and security remain Agent policy. Request options come
+        // from this offering, never from the route that happened to precede it.
         PrimaryInstructions = policy.PrimaryInstructions;
         ToolRoundLimit = policy.ToolRoundLimit;
         SafeMode = policy.SafeMode;
         EnableWebSearch = policy.EnableWebSearch;
         SandboxRoot = policy.SandboxRoot;
-        DisableStreaming = policy.DisableStreaming;
-        RequireToolExplanation = policy.RequireToolExplanation || Features.RequireToolExplanation;
-        DeferredTools = false;
-        StubsToolResults = false;
-        CacheBreakpoints = false;
-        PromptCacheKey = "";
-        ReasoningEffort = "";
-        ReasoningSummary = "";
-        if (Surface == Surface.Responses && !Features.ReasoningEfforts.IsDefaultOrEmpty)
-        {
-            if (!Features.ReasoningEfforts.Contains("medium")
-                || Features.ReasoningSummaries.IsDefaultOrEmpty
-                || !Features.ReasoningSummaries.Contains("auto"))
-            {
-                throw new ArgumentException("Configured model does not support default reasoning options.");
-            }
-            ReasoningEffort = "medium";
-            ReasoningSummary = "auto";
-        }
+        DisableStreaming = requestPolicy.DisableStreaming;
+        RequireToolExplanation = requestPolicy.RequireToolExplanation;
+        DeferredTools = requestPolicy.DeferredTools;
+        StubsToolResults = requestPolicy.StubsToolResults;
+        CacheBreakpoints = requestPolicy.CacheBreakpoints;
+        PromptCacheKey = requestPolicy.PromptCacheKey;
+        ReasoningEffort = requestPolicy.ReasoningEffort;
+        ReasoningSummary = requestPolicy.ReasoningSummary == "off" ? "" : requestPolicy.ReasoningSummary;
         if (Billing is BillingMode.ChatGptPlan or BillingMode.Codex
             && (DisableStreaming || !Features.Stream))
         {

@@ -41,10 +41,11 @@ internal static partial class ModelConfigurationDocument
                     foreach (var model in Rows(endpoint.GetProperty("models"), 256))
                     {
                         if (++modelCount > 256) throw new InvalidDataException("Too many configured models.");
-                        Fields(model, ["id", "name", "label", "features"], ["serving_context_tokens"]);
+                        Fields(model, ["id", "name", "label", "features"], ["serving_context_tokens", "request_policy"]);
                         models.Add(new ModelDefinition(Text(model, "id"), Text(model, "name"),
                             Text(model, "label"), Features(model.GetProperty("features")),
-                            Tokens(model, "serving_context_tokens")));
+                            Tokens(model, "serving_context_tokens"),
+                            model.TryGetProperty("request_policy", out var requestPolicy) ? Policy(requestPolicy) : null));
                     }
                     endpoints.Add(new ModelEndpointDefinition(Text(endpoint, "id"), Text(endpoint, "address"),
                         surface, Text(endpoint, "authentication"), models.ToImmutable()));
@@ -120,6 +121,23 @@ internal static partial class ModelConfigurationDocument
                 values.Add(text);
             }
             return values.ToImmutable();
+        }
+
+        static ModelRequestPolicy Policy(JsonElement value)
+        {
+            Fields(value, [], ["disable_streaming", "require_tool_explanation", "deferred_tools",
+                "stub_tool_results", "cache_breakpoints", "prompt_cache_key", "reasoning_effort", "reasoning_summary"]);
+            return new ModelRequestPolicy(Flag(value, "disable_streaming"), Flag(value, "require_tool_explanation"),
+                Flag(value, "deferred_tools"), Flag(value, "stub_tool_results"), Flag(value, "cache_breakpoints"),
+                Option(value, "prompt_cache_key"), Option(value, "reasoning_effort"), Option(value, "reasoning_summary"));
+        }
+
+        static string Option(JsonElement value, string name)
+        {
+            if (!value.TryGetProperty(name, out var field)) return "";
+            if (field.ValueKind != JsonValueKind.String)
+                throw new InvalidDataException("Expected request policy text.");
+            return field.GetString()!;
         }
 
         static ModelFeatures Features(JsonElement value)

@@ -15,7 +15,7 @@ internal sealed record ModelVendorDefinition(string ID, string Label,
 internal sealed record ModelEndpointDefinition(string ID, string Address, Surface Surface,
     string Authentication, ImmutableArray<ModelDefinition> Models);
 internal sealed record ModelDefinition(string ID, string Name, string Label,
-    ModelFeatures Features, long? ServingContextTokens);
+    ModelFeatures Features, long? ServingContextTokens, ModelRequestPolicy? RequestPolicy);
 
 internal static partial class ModelConfigurationDocument
 {

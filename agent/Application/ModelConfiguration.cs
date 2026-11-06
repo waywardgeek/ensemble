@@ -27,7 +27,7 @@ public sealed partial class Ensemble
                         foreach (ModelDefinition model in endpointDefinition.Models)
                         {
                             _ = new Model(endpoint, model.ID, model.Name, model.Label,
-                                model.Features, model.ServingContextTokens);
+                                model.Features, model.ServingContextTokens, model.RequestPolicy);
                         }
                     }
                 }

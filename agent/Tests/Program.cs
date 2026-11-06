@@ -95,6 +95,7 @@ try
     if (args.Length == 0 || args is ["--model-domain-tests"])
     {
         CheckCase("Configured vendor/endpoint/model ownership", ModelDomainTests.Ownership);
+        CheckCase("Configured offering request policy admission", ModelRequestPolicyTests.Admission);
         CheckCase("Strict host model configuration and atomic refusal", ModelConfigurationTests.Loading);
         CheckCase("Configured model admission and identity refusal", ModelDomainTests.Refusals);
         CheckCase("Configured model detach and destruction", ModelDomainTests.Detach);

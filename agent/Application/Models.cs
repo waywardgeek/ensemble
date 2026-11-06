@@ -257,7 +257,7 @@ public sealed partial class ModelEndpoint
 public sealed partial class Model
 {
     public partial Model(ModelEndpoint parent, string id, string name, string label,
-        ModelFeatures features, long? servingContextTokens)
+        ModelFeatures features, long? servingContextTokens, ModelRequestPolicy? requestPolicy)
     {
         ArgumentNullException.ThrowIfNull(parent);
         ModelVendor.ValidateID(id);
@@ -276,6 +276,7 @@ public sealed partial class Model
         Name = name;
         Label = label;
         Features = features;
+        RequestPolicy = (requestPolicy ?? new ModelRequestPolicy()).ForModel(parent.Surface, features);
         ServingContextTokens = servingContextTokens;
         graphGate = parent.graphGate;
         parent.AddModel(this);

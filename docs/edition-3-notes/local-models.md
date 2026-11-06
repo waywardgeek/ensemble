@@ -406,3 +406,26 @@ acceptance, no restored-fleet process test, no live ET call or installed changes
 The bounded read checks growth in code; these tests cover an initially oversized
 file, not a concurrent-growth race or hostile special-file behavior. Next address
 the explicit launch-return policy without making a second mutable route registry.
+
+
+## Per-offering request policy
+
+ModelRequestPolicy is an immutable credential-free Common value owned by Model.
+Construction normalizes reasoning defaults and feature-required explanations before
+membership publication. Configured projection now takes request options from that
+Model, while Agent instructions, tool-round limits and security remain unchanged.
+The host document accepts a strict optional request_policy object; invalid late
+policies roll back newly constructed subtrees without touching existing selections.
+
+Focused evidence in /private/tmp/cadence-local-models.co2hSe: model-policy-tests.log
+and model-policy-document-tests.log each record seven passing domain groups with
+clean builds. model-policy-model-domain.log, model-policy-model-transport.log and
+model-policy-model.log record seven, three and five passing groups after projection
+integration. New tests distinguish explicit high/off reasoning, local reset, return
+projection, immutable normalization, malformed documents and late policy rollback.
+These are library/projection checks, not a host-created launch return offering or
+actual-page round-trip acceptance. Final shared regression passes 366/0 in
+model-policy-shared.log; the GUI host build is clean in model-policy-gui-build.log.
+Full policy/runtime/test and changed-prose review completed. Only prose changed
+after the final executable build; no standalone pre-execution hash receipt is claimed.
+No installed settings, provider request to ET, credential change or restart occurred.

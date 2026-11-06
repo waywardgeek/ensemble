@@ -60,6 +60,11 @@ internal static class ModelConfigurationTests
                 Document.Replace("\"stream\":true", "\"stream\":true,\"media\":[\"image\",\"image\"]"),
                 Document.Replace("\"stream\":true", "\"stream\":true,\"media\":[\"magic\"]"),
                 Document.Replace("4096", "0"),
+                Document.Replace("\"serving_context_tokens\":4096", "\"request_policy\":null"),
+                Document.Replace("\"serving_context_tokens\":4096", "\"request_policy\":{\"unknown\":true}"),
+                Document.Replace("\"serving_context_tokens\":4096", "\"request_policy\":{\"disable_streaming\":1}"),
+                Document.Replace("\"serving_context_tokens\":4096", "\"request_policy\":{\"reasoning_effort\":null}"),
+                Document.Replace("\"serving_context_tokens\":4096", "\"request_policy\":{\"disable_streaming\":true,\"disable_streaming\":false}"),
                 Document.Replace("\"version\":1", "\"version\":null"),
                 "{", new string(' ', 1024 * 1024 + 1)
             };
@@ -84,7 +89,7 @@ internal static class ModelConfigurationTests
 
             // These documents parse successfully and fail only after some new graph
             // objects have been constructed. No previously owned object may change.
-            foreach (string fault in new[] { "binding", "address", "capacity", "model-duplicate", "vendor-duplicate" })
+            foreach (string fault in new[] { "binding", "address", "capacity", "model-duplicate", "vendor-duplicate", "policy" })
             {
                 JsonObject document = JsonNode.Parse(Document)!.AsObject();
                 JsonArray vendors = document["vendors"]!.AsArray();
@@ -95,6 +100,7 @@ internal static class ModelConfigurationTests
                 var endpoint = later["endpoints"]![0]!;
                 switch (fault)
                 {
+                    case "policy": endpoint["models"]![0]!["request_policy"] = new JsonObject { ["deferred_tools"] = true }; break;
                     case "binding": endpoint["authentication"] = "missing"; break;
                     case "address": endpoint["address"] = "http://user:secret@127.0.0.1:1"; break;
                     case "capacity": endpoint["models"]![0]!["serving_context_tokens"] = 300000; break;
@@ -108,6 +114,19 @@ internal static class ModelConfigurationTests
                     && ReferenceEquals(agent.Configuration(), original),
                     "Refused load rolls back only new subtrees and retains binding memberships: " + fault);
             }
+            JsonObject configured = JsonNode.Parse(Document)!.AsObject();
+            configured["vendors"]![0]!["id"] = "policy";
+            configured["vendors"]![0]!["endpoints"]![0]!["models"]![0]!["request_policy"] = new JsonObject
+            {
+                ["disable_streaming"] = true, ["require_tool_explanation"] = true,
+                ["stub_tool_results"] = true, ["prompt_cache_key"] = "local-cache"
+            };
+            root.LoadModelConfiguration(Encoding.UTF8.GetBytes(configured.ToJsonString()));
+            Model withPolicy = root.ResolveModel(new ModelIdentity("policy", "ollama", "small"));
+            var projected = new Configuration(original, withPolicy);
+            Check(projected.DisableStreaming && projected.RequireToolExplanation && projected.StubsToolResults
+                && projected.PromptCacheKey == "local-cache",
+                "Host document policy reaches the configured request projection.");
             Check(agent.History().Events().All(item => item.Kind != EventKind.RequestSent),
                 "Configuration loading must not initiate inference.");
         }
