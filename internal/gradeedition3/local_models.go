@@ -114,7 +114,7 @@ func GradeLocalModels(c LocalModelGradeConfig) (report LocalModelReport, result 
 	if !found {
 		return report, fmt.Errorf("an installed .NET 10 SDK is required")
 	}
-	for _, name := range []string{"Program.cs", "ConfigurationChecks.cs", "LifecycleChecks.cs", "LocalModelsConsumer.csproj", "NuGet.Config"} {
+	for _, name := range []string{"Program.cs", "ConfigurationChecks.cs", "LifecycleChecks.cs", "RestartChecks.cs", "LocalModelsConsumer.csproj", "NuGet.Config"} {
 		data, err := localModelFiles.ReadFile("testdata/local-models-consumer/" + name)
 		if err != nil {
 			return report, err
@@ -140,11 +140,25 @@ func GradeLocalModels(c LocalModelGradeConfig) (report LocalModelReport, result 
 	if err == nil {
 		err = checkLocalModelReceipt([]byte(output))
 	}
+	if err == nil {
+		// Each Run returns only after the direct child exits. Never start the reader
+		// unless the writer exited successfully and supplied its exact receipt.
+		for _, phase := range []string{"restart-write", "restart-read"} {
+			output, diagnostic, err = runLocalModelCommand(execution, work, localModelEnvironment(work), c.Dotnet, binary, phase)
+			if err == nil {
+				err = checkLocalModelNamedReceipt([]byte(output), localModelRestartCheckNames(phase))
+			}
+			if err != nil {
+				err = fmt.Errorf("%s: %w", phase, err)
+				break
+			}
+		}
+	}
 	if err != nil {
 		report.Status, report.Detail = "failed", fmt.Sprintf("%v; stdout: %s; stderr: %s", err, output, diagnostic)
 	} else {
 		report.ProbePassed = true
-		report.Detail = fmt.Sprintf("%d named public conversation/configuration/restoration/lifecycle/accounting checks passed. Broader lifecycle/refusal coverage and real-model usefulness remain incomplete.", len(localModelCheckNames()))
+		report.Detail = fmt.Sprintf("%d named public conversation/configuration/restoration/lifecycle/accounting checks passed. Broader lifecycle/refusal coverage and real-model usefulness remain incomplete.", len(localModelCheckNames())+len(localModelRestartCheckNames("restart-write"))+len(localModelRestartCheckNames("restart-read")))
 	}
 	return report, nil
 }
@@ -192,7 +206,21 @@ func localModelCheckNames() []string {
 		"lifecycle-worker-exited-before-destruction-return", "lifecycle-detaches-without-destroying-sibling")
 }
 
+func localModelRestartCheckNames(phase string) []string {
+	if phase == "restart-write" {
+		return []string{"restart-write-fresh-state", "restart-write-real-child-no-request", "restart-write-saved-identity-no-secret"}
+	}
+	if phase == "restart-read" {
+		return []string{"restart-read-separate-process-manifest", "restart-read-registration-exists", "restart-read-exact-offering-no-host-fallback", "restart-read-paused-conversation", "restart-read-no-replayed-request"}
+	}
+	return nil
+}
+
 func checkLocalModelReceipt(data []byte) error {
+	return checkLocalModelNamedReceipt(data, localModelCheckNames())
+}
+
+func checkLocalModelNamedReceipt(data []byte, expected []string) error {
 	// Decode fields individually so duplicate keys cannot overwrite an earlier claim.
 	decoder := json.NewDecoder(bytes.NewReader(data))
 	token, err := decoder.Token()
@@ -232,7 +260,6 @@ func checkLocalModelReceipt(data []byte) error {
 	if err = json.Unmarshal(fields["checks"], &checks); err != nil {
 		return err
 	}
-	expected := localModelCheckNames()
 	if len(checks) != len(expected) {
 		return fmt.Errorf("receipt requires %d named checks", len(expected))
 	}

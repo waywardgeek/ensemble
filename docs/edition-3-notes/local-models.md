@@ -696,3 +696,32 @@ strict checks, ungraded status and exit 3. public-stream-error-mutant-path point
 to the isolated clean build and verified-result.json/verified-exit (exact intended
 failure, exit 1). Both runs use the final completed-task-only cleanup correction.
 The source receipt is captured after execution; only prose changed afterward.
+
+
+## Public clean-process child restoration
+
+The public runner now requires 119 checks in three ordered invocations: the
+original 111, a 3-check writer, and a 5-check reader. The writer creates a real
+configured paused child, records random conversation, destroys its owners, checks
+the saved identity and writes an expectation manifest. Only successful exit and
+an exact writer receipt permit the reader to start. Both phases use the same
+owned work directory and share the runner's existing 75-second execution budget.
+The reader requires saved files and a distinct process ID; it restores exact
+Model membership, endpoint and no-auth funding despite its legacy host policy,
+then checks pause, conversation and absence of replayed requests. No inference
+is needed. This is clean child restart, not crash recovery or GUI-host restart.
+
+Both Go packages pass with real consumer integration (public-restart-initial.log).
+Phase omission and cross-phase receipt substitution tests also pass. A separate
+clean outside-assembly build produces 3 writer and 5 reader checks. Removing only
+child save/journal files in a disposable copy fails exactly
+restart-read-paused-conversation after the identity checks; an empty reader
+refuses with zero checks and creates no seed files. This is saved-state-loss
+sensitivity, not a compiled runtime mutant. public-restart-path identifies the
+standalone build, writer/reader JSON and exit receipts. The working candidate and
+original saved writer files are unchanged. No new runtime/shared C# regression,
+chapter points, installed application or live-model acceptance is claimed.
+
+The final built CLI report in public-restart-final-result.json records 119 checks,
+ungraded status and public-restart-final-exit records 3. The source hash receipt
+is captured after execution; only documentation changed after the final tests.

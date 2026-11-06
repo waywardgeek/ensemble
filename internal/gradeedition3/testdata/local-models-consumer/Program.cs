@@ -6,7 +6,7 @@ using System.Text.Json.Nodes;
 using Ensemble;
 using Application = Ensemble.Ensemble;
 
-return await Probe.Run();
+return await Probe.Run(args);
 
 internal static partial class Probe
 {
@@ -18,15 +18,22 @@ internal static partial class Probe
         lock (checks) checks.Add(name);
     }
 
-    public static async Task<int> Run()
+    public static async Task<int> Run(string[] arguments)
     {
         string? failure = null;
         try
         {
-            foreach (string mode in new[] { "buffered", "streamed", "prose", "missing-usage", "interrupt", "provider-error" })
-                await Conversation(mode);
-            await ConfigurationChecks();
-            await LifecycleChecks();
+            if (arguments.Length == 0)
+            {
+                foreach (string mode in new[] { "buffered", "streamed", "prose", "missing-usage", "interrupt", "provider-error" })
+                    await Conversation(mode);
+                await ConfigurationChecks();
+                await LifecycleChecks();
+            }
+            else if (arguments.Length == 1 && arguments[0] is "restart-write" or "restart-read")
+                await RestartChecks(arguments[0] == "restart-write");
+            else
+                throw new ArgumentException("Expected no arguments, restart-write, or restart-read.");
         }
         catch (Exception error) { failure = error.Message; }
         Console.WriteLine(JsonSerializer.Serialize(new { passed = failure is null, checks, failure }));

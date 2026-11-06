@@ -48,6 +48,37 @@ func TestLocalModelReceipt(t *testing.T) {
 		}
 	}
 }
+func TestLocalModelRestartReceipts(t *testing.T) {
+	for _, phase := range []string{"restart-write", "restart-read"} {
+		names := localModelRestartCheckNames(phase)
+		encode := func(names []string) []byte {
+			data, err := json.Marshal(map[string]any{"passed": true, "checks": names, "failure": nil})
+			if err != nil {
+				t.Fatal(err)
+			}
+			return data
+		}
+		if err := checkLocalModelNamedReceipt(encode(names), names); err != nil {
+			t.Fatal(err)
+		}
+		for i, name := range names {
+			t.Run(name, func(t *testing.T) {
+				missing := append(append([]string{}, names[:i]...), names[i+1:]...)
+				if checkLocalModelNamedReceipt(encode(missing), names) == nil {
+					t.Fatal("phase omission accepted")
+				}
+			})
+		}
+		other := "restart-write"
+		if phase == other {
+			other = "restart-read"
+		}
+		if checkLocalModelNamedReceipt(encode(localModelRestartCheckNames(other)), names) == nil {
+			t.Fatal("another phase's receipt accepted")
+		}
+	}
+}
+
 func TestLocalModelProcessDeadline(t *testing.T) {
 	root := t.TempDir()
 	script := filepath.Join(root, "held.sh")
@@ -112,7 +143,7 @@ func TestLocalModelExternal(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !report.ProbePassed || report.ExitCode() != 3 || !strings.HasPrefix(report.Detail, strconv.Itoa(len(localModelCheckNames()))+" named public ") {
+	if !report.ProbePassed || report.ExitCode() != 3 || !strings.HasPrefix(report.Detail, strconv.Itoa(len(localModelCheckNames())+8)+" named public ") {
 		t.Fatalf("%+v", report)
 	}
 }

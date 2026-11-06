@@ -23,11 +23,13 @@ and back with restored launch policy and retained conversation. Configured Codex
 grant/source-loss checks and public OAuth loopback renewal/refusal checks pass.
 Configured Chat SSE tool success/interruption/provider-error checks now pass in
 five focused transport groups. An outside-assembly Local Models consumer passes
-111 public conversation/configuration/restoration/lifecycle/accounting checks and
+119 public conversation/configuration/restoration/lifecycle/accounting checks and
 rejects compiled no-auth header-leak, wrong-endpoint restoration and unjoined-shutdown
 candidates. The named local-models runner now supplies strict receipt validation
 and bounded process execution; passing current coverage exits 3, with no points.
-Broader lifecycle/refusal coverage and real-model acceptance are pending.
+Separate writer/reader processes now check clean child restoration without
+replayed inference; crash recovery is not certified. Broader lifecycle/refusal
+coverage and real-model acceptance are pending.
 Qualified peer launch records now preserve offering identity; restoration validates
 the entire launch set before startup effects, without a host-route fallback.
 Internal configured request binding, qualified child restoration and

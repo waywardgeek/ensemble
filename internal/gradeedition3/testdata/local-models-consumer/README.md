@@ -5,10 +5,12 @@ It uses public Agent, Model, Tool and History APIs with grader-owned loopback HT
 random payloads and real buffered/SSE replies. It never references candidate tests,
 reflects private fields, accesses an installed credential store, or calls ET.
 
-Current coverage is 111 named checks across buffered tools, streamed tools,
+Current coverage is 119 named checks across buffered tools, streamed tools,
 ordinary tool-shaped prose, configured child restoration and executing-tool
-shutdown. Checks cover exact local routing, explicit no-auth headers, configured capabilities, real callback/result correlation, recording
-before the next request, partial-stream non-execution, offering provenance, serving
+shutdown, including separate writer/reader processes. Checks cover exact local
+routing, explicit no-auth headers, configured capabilities, real callback/result
+correlation, recording before the next request, partial-stream non-execution,
+offering provenance, serving
 context and cached-input accounting. The final fixture answer is released only
 after checking the actual result request; this is protocol evidence, not a claim
 that a real model understood the result. Public registration grants one harmless
@@ -31,10 +33,19 @@ assert late-error rollback, save a paused child, destroy the root, and restore
 through fresh owners from actual files. A same-wire offering on a different
 endpoint must not substitute for the missing identity. Refusal preserves the
 registration; Model destruction leaves the Agent and conversation alive but
-refuses inference configuration. This is fresh-root restoration in one process,
-not process-restart or crash-recovery evidence. The restoration phases make no
+refuses inference configuration. This original probe is fresh-root restoration
+in one process. The restoration phases make no
 provider request. An isolated compiled resolver mutant that picks the first
 endpoint fails child-missing-route-no-wire-name-fallback.
+
+A separate restart probe writes a real paused child and random expectation
+manifest, destroys its owners, and exits before a new reader process begins.
+The reader loads only those saved files, reconstructs the configured graph, and
+checks exact offering/funding, retained conversation and no replayed request.
+The manifest is an expectation, never a source of restored dialogue. Removing
+saved child History from a disposable copy fails restart-read-paused-conversation;
+an empty reader directory refuses without creating seed files. This is clean
+process restart, not crash recovery or a full GUI-host restart.
 
 The lifecycle probe delivers a real tool call over owned HTTP. Its callback
 acknowledges candidate cancellation and holds cleanup behind a fixture gate.
@@ -70,11 +81,12 @@ awarded. Do not combine this scope with chapter, browser or media flags.
 
 The macOS/Linux runner embeds this consumer, creates fresh home/work directories,
 clears inherited credentials, and builds offline with cleared package sources.
-Setup has a two-minute limit; execution has a separate 75-second limit. Both
-stdout and stderr are capped at 64 KiB. The runner cancels its owned process group,
+Setup has a two-minute limit; all three executions share a separate 75-second
+limit. Both stdout and stderr are capped at 64 KiB. The runner cancels its owned process group,
 waits for the direct child and bounds inherited output-pipe waits. It does not
 provide a network sandbox or containment of deliberately detached descendants.
-Success requires exactly the 111 named checks once each and a null failure field;
+Success requires the 111 conversation checks, 3 writer checks and 5 reader checks
+in their respective receipts, each with a null failure field;
 missing, duplicated, unknown or trailing receipt data refuse. Temporary files are
 removed after execution; capture the JSON report for retained evidence.
 
@@ -109,7 +121,12 @@ public runner supplies that outer bound. A cleared environment is not a network
 sandbox. The loopback port is reserved then rebound;
 a competing bind causes a setup failure, not a silently chosen remote endpoint.
 
-Calibration: the current candidate passes 111 checks. An isolated, successfully
+The no-argument invocation above runs the original 111 checks. To exercise restart,
+invoke the same executable with restart-write, wait for successful exit, then
+invoke restart-read from the same work directory and cleared environment. Each
+phase emits its own receipt (3 and 5 checks); the public runner enforces this order.
+
+Calibration: the current candidate passes all 119 checks. An isolated, successfully
 compiled candidate that emits a synthetic bearer for explicit no-auth fails at
 buffered-no-borrowed-credentials-0. That proves this wire oracle's sensitivity,
 not mutation coverage for every assertion. No candidate or installed source is
