@@ -1948,3 +1948,37 @@ This is calibration, not a published supplemental grader or student acceptance.
 Selector/launcher contracts, broader Markdown/interaction coverage, recorded-time
 and pairing/reading checks remain open. No native clipboard, audible output,
 installation, publication or additional artifact points are claimed.
+
+
+### Public buffered browser component and data-only bindings
+
+The new `internal/gradeedition3/testdata/ch07-browser-copy` directory contains
+binding validation, the buffered browser component, component tests and an
+explicitly incomplete interface README. It is not a standalone public grader:
+owned-provider/GUI orchestration, fixture generation and the streaming/delayed
+ports remain pending. No score, student admission or runtime change follows.
+
+Bindings supply public DOM selectors and feedback labels, not executable code,
+expected payloads or skip flags. The bounded regular-file reader rejects unknown
+fields, invalid UTF-8 and oversized input. Its frozen values do not certify that
+a selector describes the correct human-facing control. Five Node tests passed,
+including interruption while navigation is held: result publication waits for
+browser cleanup, and a no-join variant is detected. This controlled Playwright
+boundary test is grader-lifetime evidence, not real-browser lifecycle proof.
+
+Actual-page final runs pass eleven checks on both the reference and genuinely
+renamed layout/feedback. The legacy page fails `closed-assistant-copy-controls`;
+the prefix-copy variant fails `logical-payload-2`. Each run has one provider
+request, host exit0 and joined browser/provider/host cleanup without forced exit.
+The six source hashes match the pre-run receipt. Only README clarification of the
+inclusive size bound and trusted module-path prerequisite followed execution;
+executable bytes are unchanged. Final file review covered all six components.
+Evidence is under the parent-only reference directory's
+`evidence/public-buffered-*-result.json`, `public-buffered-source-receipt.json`
+and `public-buffered-verification.json`. Unit results are in tool1690, not an
+invented standalone log. Completed GUI assets remain excluded from prerequisites.
+
+The owned runner must enforce its launch boundary before these components become
+student commands. Broader Markdown/interaction, timing, pairing and stable-reading
+gates remain open, as do reconstruction and human acceptance. No native clipboard,
+audio, installation, publication or additional artifact points are claimed.

@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "connected": "#connection:has-text(\"Connected\")",
+  "idle": "#state:text-is(\"idle\")",
+  "composer": "#prompt",
+  "send": "#send",
+  "cards": "#transcript > article",
+  "snippet": ".code-snippet",
+  "code": "code",
+  "copy": "[data-action=\"copy-code\"]",
+  "feedback": "[role=\"status\"]",
+  "manual": "textarea",
+  "expand": "summary",
+  "expanded": "details[open]",
+  "copied": "Copied",
+  "copying": "Copying…"
+}
