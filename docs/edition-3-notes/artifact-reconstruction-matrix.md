@@ -1870,3 +1870,43 @@ This establishes the fixture's startup/form/replay boundary, not the existing
 obligation. Reference-specific selectors are not a new student UI contract.
 Next inspect reusable browser assertions and establish early-chapter positive and
 negative acceptance without later artifact-host APIs or completed-answer leakage.
+
+### Parent-only buffered Markdown/copy calibration
+
+Copied assets beside the separate Chapter7 reference combine its unchanged early
+C# host with the existing 128-line Markdown renderer and pinned parser. The adapter
+removes the old regex renderer and enables copy only for assistant text. This is
+parent-only positive calibration material, not a student dependency or a complete
+Chapter7 answer. Only the raw parser and license may enter the prerequisite bundle;
+the completed renderer and reference GUI remain excluded.
+
+The actual page receives buffered Markdown from an owned provider through the
+real GUI. Eleven checks pass: four closed-fence payloads (Unicode, tabs, CRLF-to-LF,
+quoted, empty and full long code), no human-fence copy, deliberate clipboard writes,
+collapsed long preview, supplied table/literal-markup/image-no-fetch cases,
+readonly selected denied-write fallback, exact missing-API fallback and preserved
+unsent draft. Clipboard and speech are replaced only at their browser boundaries;
+fixture-owned counters are not private application state. Canonical human input
+and original Markdown, one request/response and absence of tool execution are
+checked separately. No native clipboard or audible-output claim is made.
+
+The legacy page fails `closed-assistant-copy-controls`; a syntax-checked variant
+copying only the first1800 characters fails `logical-payload-2`. Final executions
+all join browser, server and host, with one provider request and host exit0. The
+pre-run helper/asset/runtime receipt matches afterward; the 68 reference sources
+remain untouched. Evidence is in the reference directory's
+`evidence/copy-accepted-*-result.json`, `copy-source-receipt.json` and
+`copy-verification.json`. The run-name word accepted denotes fixture conditions,
+not student or chapter acceptance.
+
+Setup/oracle failures remain recorded: `copy.py` shadowed Python's standard-library
+module and left a directory before failing; renaming then required a fresh work
+directory. A raw multiline prompt cannot be found by substring search in encoded
+JSON. Finally, this early PostAsync(Message) path records HintReceived, whereas
+SubmitAsync records MessageReceived. The corrected oracle verifies the exact
+human payload across those two explicit public input paths, not an assumed name.
+No application fix was made for those fixture mistakes. Final driver, helper and
+adapter changes were reviewed. Streaming focus/selection, delayed completion,
+timing, pairing and student-facing selector/launcher contracts remain open.
+The old card renderer still recreates DOM, so buffered success does not certify
+streaming retention. No main runtime, frozen source, installation or score changed.
