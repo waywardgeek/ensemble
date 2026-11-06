@@ -42,9 +42,12 @@ acceptance passed**, as recorded below. Chapter3 has **baseline audited**,
 **fresh retest submitted**, and **bounded offline acceptance passed**.
 Chapter4 has **baseline audited**, **fresh retest submitted**, **teardown joined**,
 and **bounded offline acceptance passed**, with the recorded policy clarification.
-The other six rows retain **baseline not prepared**, **student not assigned**,
-**submission absent**, and **independent acceptance pending**. Their candidate
-starting points are not approved baselines.
+Chapter7 now has an **assembled and audited isolated pre-GUI prerequisite**,
+with the scoped Chapter5/6 and three-role workflow evidence recorded below.
+Its focused browser checks and student admission bundle are still unfinished.
+The other five rows retain **baseline not prepared**. All six retain **student
+not assigned**, **submission absent**, and **independent acceptance pending**;
+none is an approved student starting bundle yet.
 
 ## What the first inspection established (historical preparation)
 
@@ -96,12 +99,13 @@ unassisted. Retest substantive teaching repairs with a fresh student.
 
 ## Next bounded preparation
 
-Audit Chapter7 teaching, public graders and an honest pre-GUI prerequisite bundle.
-The preserved ch06 endpoint is only a starting-point lead: verify how accepted
-revised foundations carry through Chapters5/6 without supplying the completed GUI.
-Do not launch a student until source/dependency/leakage review, focused public
-acceptance interfaces and exact offline commands are ready. Keep questions and
-public graders available, and record assistance. Accepted candidate archives are
+Finish Chapter7's early public browser acceptance interfaces and driver, then
+assemble and review the student bundle from the isolated pre-GUI carry-forward.
+Its source/dependency/leakage audit and bounded Chapter5/6 verification are recorded
+below; no completed GUI, History snapshot implementation or later download
+subsystem belongs in that prerequisite. Do not launch a student until focused
+public checks, permitted dependencies and exact offline commands are ready. Keep
+questions and public graders available, and record assistance. Accepted candidate archives are
 eligible prerequisite evidence, not automatically adopted runtime source. Keep
 MCP structured integration in Chapter11 and work-product authority in Chapter26.
 
@@ -1796,3 +1800,41 @@ the same negative/positive results hold. Full example/probe/README review and
 frozen endpoint, installation, artifact score or student admission changed.
 The real three-role gated streaming/hint/EOF workflow remains next, followed by
 early GUI acceptance; the prerequisite remains unapproved for student admission.
+
+### Causal three-role workflow and final Chapter5 integration
+
+The existing isolated workflow and exact graded core now pass an independent
+owned-provider SSE fixture with 20 checks. The provider sends the first tool-name
+header, then holds the remaining response until the application displays it.
+No finalized response or tool admission precedes release. A hint is sent during the recorded slow Job;
+canonical ordering places it between admission and the first running observation.
+The finalized write/count tail executes, and an ordinary wait control observes
+the same Job done without creating a wrapper. EOF joins the application's real
+author/editor/reviewer pipeline, not a driver-side imitation of that pipeline.
+
+Exactly 3/3/2 role requests consume the actual draft, edited manuscript and review.
+Ten finalized model parts match canonical History and assembled chunks keyed by
+Agent, response and noncontiguous provider part ID. Reused indices remain distinct;
+application output and its log agree. This is one owned Anthropic SSE scenario,
+not live-provider, GUI, audible speech or additional chapter points.
+
+Two disposable example builds test sensitivity using the same core DLL. Suppressing
+the first visible tool name fails `tool-name-visible-before-provider-release`;
+returning plausible edit text without changing the manuscript fails
+`owned-fixture-error: reviewer-not-given-real-edited-draft`. Both builds succeed.
+Final receipts explicitly confirm process, reader and server joins. The first
+negative requires process-group termination during cleanup and exits -9; the good
+application exits0 without forced cleanup, and the false-edit candidate exits1.
+The primary assertion is not allowed to hide a cleanup outcome. Initial 18-check
+and strengthened 20-check receipts are retained; final helper/runtime hashes were
+captured before the final three executions and match afterward. Full helper review
+was recovered in bounded sections. Evidence: pre-GUI `workflow-causal-*` and
+`workflow-mutant-*`; the fixture remains outside the candidate source.
+
+Because parser/projection/read-cap changes followed the earlier Chapter5 run, the
+current 65-point executable route was rerun against this same final core: all six
+checks pass, including replay/media/hints/interrupts. `evidence/ch5-final-*` retains
+before/after hashes and actual65/65 JSON. This is final integration, not a repeated
+cleanup campaign or full Go/100-point claim. No product source changed for these
+workflow checks. Frozen endpoints, main runtime, installation and artifact70 remain
+unchanged. Early GUI browser acceptance and Chapter7 student admission are next.
