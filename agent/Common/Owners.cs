@@ -220,7 +220,7 @@ public sealed partial class Engine
         CancellationToken cancellation, Action<Chunk>? onChunk, bool auxiliary = false);
 
     // Keep credential failures token-free on initial acquisition and 401 renewal.
-    private partial Task<string> PlanBearerAsync(string? rejectedBearer, CancellationToken cancellation);
+    private partial Task<string> PlanBearerAsync(Configuration config, string? rejectedBearer, CancellationToken cancellation);
 
     // Dispose the owned client and detach from Agent; do not destroy the parent.
     public partial void Destroy();

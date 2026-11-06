@@ -81,3 +81,26 @@ model identity in child/peer persistence and working-context policies before exp
 choices in the GUI. A changed label must never retain the previous cloud endpoint
 or payment authority. Then test real buffered/streaming request bodies and headers
 with owned endpoints, develop the chapter grader and update the original teaching.
+
+## Transport prerequisite: no implicit redirect or cookie authority
+
+Engine previously constructed its HTTP handler with redirects/cookies enabled
+for initial API-key funding and disabled for initial plan/Codex funding. That
+launch-time choice is unsafe to retain once selection can change funding. The
+handler now disables both for every inference route. Plan bearer resolution uses
+the already-frozen configuration account, and non-success parsing uses that same
+configuration rather than rereading the Agent. Existing bounded same-source401
+renewal remains distinct from automatic redirect or generic retry.
+
+New real-loopback tests send an actual307 to another owned endpoint and set a
+cookie on an actual response before a second inference request. Pre-fix clean build
+`transport-before-build.log` and execution `transport-before.log` reject both old
+behaviors at their named assertions:0 passed/2 failed, executable exit1. The outer
+collector exit0 only preserved that expected failure; it is not a test pass.
+Post-fix `transport-after-build.log` is clean and `transport-after.log` reports
+2 passed/0 failed. Final fixture cleanup uses Task.WhenAll so one task fault cannot
+skip joining another. All endpoints/credentials are synthetic; no ET/cloud call.
+The source diff and full final fixture were reviewed. Shared-suite job75 completed
+with358 passed/0 failed and exit0 in `transport-shared.log`. This covers the final
+runtime/test source; subsequent changes were prose only. No new configured-model
+selection, GUI integration or independent grader points are claimed.

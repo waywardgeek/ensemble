@@ -118,6 +118,13 @@ Endpoint addresses exclude embedded credentials, query strings and fragments.
 New credential-bearing endpoints require HTTPS except literal loopback fixtures;
 public OAuth and Codex retain their additional existing endpoint restrictions.
 
+Inference transport does not automatically follow redirects or retain response
+cookies. Otherwise the first funding mode could leave hidden routing or cookie
+authority on an Engine later used for a different model. A redirect is an error
+at the configured endpoint, not permission to send the request elsewhere. Public
+OAuth's existing bounded401 renewal remains on the same frozen endpoint, account
+and request body; it is not a general inference retry or funding fallback.
+
 An authentication binding is an explicit choice: no credential, an owned API key,
 a reference to the public OAuth credential owner and account label, or a reference
 to the independent Codex credential owner. It does not copy a renewable token into

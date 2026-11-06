@@ -81,6 +81,16 @@ static string Wire(Vendor vendor, Context context, string model = "model-a")
 }
 try
 {
+    if (args.Length == 0 || args is ["--model-transport-tests"])
+    {
+        await AsyncCase("Configured endpoint refuses inference redirects", MeterTests.ModelEndpointRedirects);
+        await AsyncCase("Configured endpoint has no retained cookie authority", MeterTests.ModelEndpointCookies);
+        if (args.Length != 0)
+        {
+            Console.WriteLine($"{passed} passed, {failures} failed");
+            return failures == 0 ? 0 : 1;
+        }
+    }
     if (args.Length == 0 || args is ["--model-domain-tests"])
     {
         CheckCase("Configured vendor/endpoint/model ownership", ModelDomainTests.Ownership);

@@ -22,7 +22,7 @@ public sealed partial class Engine
         if (!response.IsSuccessStatusCode)
         {
             // Do not decode or retain a remote error body as a successful reply.
-            return new ParsedResponse(Parse(status, ""), []);
+            return new ParsedResponse(ParseResponse(config, status, "", out _), []);
         }
         string? mediaType = response.Content.Headers.ContentType?.MediaType;
         bool streaming = string.Equals(mediaType, "text/event-stream", StringComparison.OrdinalIgnoreCase);

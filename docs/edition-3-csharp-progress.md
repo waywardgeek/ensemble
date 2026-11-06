@@ -4,8 +4,10 @@ Bill approved Chapter27 implementation and graders personally by Cadence. The
 verified target is Windows-native Ollama with MiMo9B on an RTX4060; buffered tool
 round-trip and Mac reachability are established by Bill's outputs. Common now has
 configured vendor/endpoint/model ownership and explicit authentication bindings.
-Focused domain4/OAuth20/Codex6/existing model-selection3 groups pass. Agent selection,
-transport integration, restoration, GUI configuration and public graders remain
+Focused domain4/OAuth20/Codex6/existing model-selection3 groups pass. The shared
+Engine now refuses automatic inference redirects and retained cookies; causal
+before/after HTTP checks and shared358/0 pass. Agent selection, configured-model
+transport binding, restoration, GUI configuration and public graders remain
 pending; no local dropdown or integrated inference acceptance is claimed yet.
 Chapter27 now contains TL;DR, plain-words teaching and four draft exercises.
 See [Local Models](edition-3-notes/local-models.md) for evidence and limits.

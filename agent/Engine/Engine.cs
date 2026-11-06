@@ -16,9 +16,11 @@ public sealed partial class Engine
     public partial Engine(Agent parent)
         : this(parent, new HttpClientHandler
         {
-            // Bearer transports must not redirect or retain cookies.
-            AllowAutoRedirect = parent.Configuration().Billing == BillingMode.ApiKey,
-            UseCookies = parent.Configuration().Billing == BillingMode.ApiKey
+            // Endpoint and funding may change between turns. No initial mode
+            // may enable hidden redirects or cookie authority for later sends.
+            // A configured endpoint is the destination, not a redirect hint.
+            AllowAutoRedirect = false,
+            UseCookies = false
         })
     {
     }
@@ -117,7 +119,7 @@ public sealed partial class Engine
                 string bearer = config.ApiKey;
                 if (config.Billing == BillingMode.ChatGptPlan)
                 {
-                    bearer = await PlanBearerAsync(null, cancellation);
+                    bearer = await PlanBearerAsync(config, null, cancellation);
                 }
                 else if (config.Billing == BillingMode.Codex)
                 {
@@ -161,7 +163,7 @@ public sealed partial class Engine
                     // publish deltas, or count usage. Other errors and interrupted
                     // successful streams are not safe grounds to replay inference.
                     response.Dispose();
-                    string bearer = await PlanBearerAsync(request.Headers.Authorization!.Parameter, cancellation);
+                    string bearer = await PlanBearerAsync(config, request.Headers.Authorization!.Parameter, cancellation);
                     traceSecrets.Add(bearer);
                     using var retry = new HttpRequestMessage(request.Method, request.RequestUri);
                     retry.Content = new StringContent(requestBody, Encoding.UTF8, "application/json");
@@ -221,12 +223,12 @@ public sealed partial class Engine
         }
     }
 
-    private partial async Task<string> PlanBearerAsync(string? rejectedBearer, CancellationToken cancellation)
+    private partial async Task<string> PlanBearerAsync(Configuration config, string? rejectedBearer, CancellationToken cancellation)
     {
         try
         {
             var credentials = Parent().Parent().Credentials() ?? throw new PlanAuthorizationException();
-            return await credentials.GetBearerAfterRejectionAsync(Parent().Configuration().Account,
+            return await credentials.GetBearerAfterRejectionAsync(config.Account,
                 rejectedBearer, cancellation);
         }
         catch (Exception error) when (error is not ObjectDisposedException
