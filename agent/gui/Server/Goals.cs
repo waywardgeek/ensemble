@@ -17,6 +17,7 @@ public static partial class Gui
         string? file = null;
         bool? enabled = null;
         double? seconds = null;
+        bool retryNow = false;
         var names = new HashSet<string>(StringComparer.Ordinal);
         foreach (var field in patch.EnumerateObject())
         {
@@ -32,6 +33,9 @@ public static partial class Gui
                 case "enabled" when field.Value.ValueKind is JsonValueKind.True or JsonValueKind.False:
                     enabled = field.Value.GetBoolean();
                     break;
+                case "retry_now" when field.Value.ValueKind is JsonValueKind.True or JsonValueKind.False:
+                    retryNow = field.Value.GetBoolean();
+                    break;
                 case "idle_seconds" when field.Value.ValueKind == JsonValueKind.Number
                     && field.Value.TryGetDouble(out double value) && double.IsFinite(value):
                     seconds = value;
@@ -40,7 +44,7 @@ public static partial class Gui
                     throw new InvalidDataException("Invalid goal field");
             }
         }
-        return new GoalUpdate(file, enabled, seconds);
+        return new GoalUpdate(file, enabled, seconds, retryNow);
     }
 
     private static partial JsonObject GoalValue(GoalStatus status)
@@ -55,7 +59,9 @@ public static partial class Gui
             ["idle_seconds"] = status.IdleSeconds,
             ["phase"] = status.Phase,
             ["due_utc"] = status.DueUtc?.ToString("O"),
-            ["last_error"] = status.LastError
+            ["last_error"] = status.LastError,
+            ["failure_count"] = status.FailureCount,
+            ["retry_error"] = status.RetryError
         };
     }
 }

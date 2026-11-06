@@ -118,6 +118,11 @@ if (args is ["--asset-cache-tests"])
     return;
 }
 
+if (args is ["--goal-idle-host"])
+{
+    await GoalIdleFixture.RunAsync();
+    return;
+}
 if (args is ["--working-context-host"])
 {
     await CrossoverFixture.RunAsync(workingContext: true);

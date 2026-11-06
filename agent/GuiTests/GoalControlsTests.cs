@@ -100,12 +100,19 @@ static class GoalControlsTests
             var load = new ToolCallPart("load-goals", new Provenance(Vendor.OpenAI, "offline", Surface.ChatCompletions),
                 "load_skill", JsonSerializer.SerializeToElement(new { name = "goals" }));
             Check(!(await initial.DispatchAsync(load)).IsError, "Skill load failed");
-            await Send(first, new { type = "update_goal", agent_id = "initial", goal = new { file, enabled = true, idle_seconds = 600 } }, token);
+            await initial.PostAsync(new AgentInput(InputKind.Pause));
+            await Send(first, new { type = "update_goal", agent_id = "initial", goal = new { file, enabled = true } }, token);
             var applied = await Frame(first, "goal_updated", token);
             var status = await initial.GoalStatusAsync(token);
-            Check(status.Enabled && status.Phase == "scheduled" && status.DueUtc.HasValue,
+            Check(status.Enabled && status.Phase == "paused" && status.DueUtc is null,
                 "Acknowledgment preceded actor configuration");
             Check(!applied.GetRawText().Contains(secret), "Goal text leaked to status");
+            Check(applied.GetProperty("goal").GetProperty("failure_count").GetInt32() == 0,
+                "Fresh status invented request failures");
+            await Send(first, new { type = "update_goal", agent_id = "initial", goal = new { retry_now = true } }, token);
+            await Frame(first, "goal_updated", token);
+            Check((await initial.GoalStatusAsync(token)).Phase == "paused",
+                "Retry-now overrode pause");
             var due = status.DueUtc;
             await Send(first, new { type = "get_goal", agent_id = "initial" }, token);
             await Frame(first, "goal_status", token);
@@ -114,7 +121,7 @@ static class GoalControlsTests
             var other = await Frame(second, "goal_status", token, rejectUpdates: true);
             Check(other.GetProperty("goal").GetProperty("file").GetString() == "", "Goal leaked to peer");
             foreach (string patch in new[] { "{\"file\":null}", "{\"enabled\":true,\"enabled\":false}",
-                "{\"idle_seconds\":0}", "{\"idle_seconds\":\"1\"}", "{\"extra\":true}", "{\"file\":\"/missing/goal-file\"}" })
+                "{\"retry_now\":null}", "{\"retry_now\":\"yes\"}", "{\"idle_seconds\":0}", "{\"idle_seconds\":\"1\"}", "{\"extra\":true}", "{\"file\":\"/missing/goal-file\"}" })
             {
                 string raw = "{\"type\":\"update_goal\",\"agent_id\":\"initial\",\"goal\":" + patch + "}";
                 await first.SendAsync(Encoding.UTF8.GetBytes(raw), WebSocketMessageType.Text, true, token);

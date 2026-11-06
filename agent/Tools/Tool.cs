@@ -265,10 +265,11 @@ public sealed partial class Tool
                 break;
             case ToolKind.GoalControl:
                 name = "goal_control";
-                description = "Query or configure the session goal file and optional idle reminders. Off retains goal instructions; empty file clears. No completion or progress guarantee.";
+                description = "Query or configure goal continuation on idle. Failed model turns back off 1, 10, 100, then 1000 seconds. Off retains instructions; empty file clears. No completion guarantee.";
                 Field("file", "string", "Goal file; empty clears. Read freshly for each request.");
                 Field("enabled", "boolean", "Enable or disable idle reminders. Loading the skill does not enable them.");
-                Field("idle_seconds", "number", "Finite positive timer delay; default 480 seconds.");
+                Field("retry_now", "boolean", "Bypass a pending failure wait once; does not enable an off goal or override pause.");
+                Field("idle_seconds", "number", "Legacy compatibility only: validated but ignored by idle-transition/backoff scheduling.");
                 break;
             case ToolKind.AgentStatus:
                 name = "agent_status";

@@ -168,9 +168,8 @@ internal static partial class MeterTests
             Check(!pendingHttp.IsCompleted, "Paused timer sent a request");
             File.WriteAllText(file, "GOAL-AT-WAKE do not repeat commands blindly");
             await agent.PostAsync(new AgentInput(InputKind.Resume));
-            var scheduled = await agent.GoalControlAsync();
-            Check(scheduled.Phase == "scheduled" && scheduled.DueUtc.HasValue, "Resume did not arm timer");
-            Check((await agent.GoalControlAsync()).DueUtc == scheduled.DueUtc, "Status reset idle delay");
+            var resumed = await agent.GoalStatusAsync();
+            Check(resumed.DueUtc is null, "Normal resume armed an idle timer");
             var request = await pendingHttp.WaitAsync(TimeSpan.FromSeconds(5));
             string body = (await ReadRecallRequest(request)).ToJsonString();
             Check(body.Contains("GOAL-AT-WAKE") && !body.Contains("GOAL-BEFORE-IDLE")
@@ -186,6 +185,7 @@ internal static partial class MeterTests
             await Task.Delay(300);
             Check(!secondHttp.IsCompleted, "Off rearmed after the current reminder completed");
             Check((await agent.GoalStatusAsync()).Phase == "off", "Completed request still reported busy");
+            await agent.PostAsync(new AgentInput(InputKind.Pause));
             await agent.GoalControlAsync(new GoalUpdate(Enabled: true, IdleSeconds: 30));
             await agent.PostAsync(new AgentInput(InputKind.InterruptNow));
             Check(!(await agent.GoalControlAsync()).Enabled, "Idle interrupt did not disable reminders");
@@ -205,12 +205,14 @@ internal static partial class MeterTests
             await LoadGoals(parent);
             string file = Path.Combine(temp, "goal-submit.md");
             File.WriteAllText(file, "Finish the delegated task without repeating completed work.");
+            await parent.PostAsync(new AgentInput(InputKind.Pause));
             await parent.GoalControlAsync(new GoalUpdate(file, true, 600));
             string home = Directory.CreateDirectory(Path.Combine(temp, "goal-submit-child")).FullName;
             var child = new Agent(app, parent, "goal-child", parent.Configuration(),
                 skillSpec: new SkillSpec(skills, "base"), dataDirectory: home);
             await LoadGoals(child);
             Check((await child.GoalStatusAsync()).File == "", "Child inherited parent's goal");
+            await child.PostAsync(new AgentInput(InputKind.Pause));
             await child.GoalControlAsync(new GoalUpdate(file, true, .15));
             try
             {
@@ -225,6 +227,7 @@ internal static partial class MeterTests
             Check(!submitted.Enabled && submitted.File == file && submitted.DueUtc is null,
                 "Successful submission retained an automatic wake");
             Check((await parent.GoalStatusAsync()).Enabled, "Child submission changed parent's goal");
+            await child.PostAsync(new AgentInput(InputKind.Resume));
             await Task.Delay(350);
             Check(!request.IsCompleted && child.Submission().HasValue,
                 "Reminder invalidated a successful submission");
@@ -243,9 +246,11 @@ internal static partial class MeterTests
             await LoadGoals(agent);
             string file = Path.Combine(temp, "goal-missing.md");
             File.WriteAllText(file, "Delete before wake");
+            await agent.PostAsync(new AgentInput(InputKind.Pause));
             var pendingHttp = listener.GetContextAsync();
             await agent.GoalControlAsync(new GoalUpdate(File: file, Enabled: true, IdleSeconds: .15));
             File.Delete(file);
+            await agent.PostAsync(new AgentInput(InputKind.Resume));
             using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(5));
             GoalStatus status;
             do
@@ -273,20 +278,23 @@ internal static partial class MeterTests
             File.WriteAllText(file, "Wait for an authorized opportunity.");
             var http = listener.GetContextAsync();
             await agent.GoalControlAsync(new GoalUpdate(File: file, Enabled: true, IdleSeconds: .15));
-            await agent.GoalControlAsync(new GoalUpdate(IdleSeconds: 30));
-            await Task.Delay(300);
-            Check(!http.IsCompleted && (await agent.GoalControlAsync()).Enabled,
-                "Reconfiguration left an old wake active");
+            var first = await http.WaitAsync(TimeSpan.FromSeconds(5));
+            http = listener.GetContextAsync();
+            await Reply(first, "{\"error\":{\"message\":\"owned failure\"}}", 503);
+            using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+            while ((await agent.GoalStatusAsync(deadline.Token)).Phase != "retry_wait")
+                await Task.Delay(10, deadline.Token);
             await agent.DispatchAsync(GoalCall("unload_skill", new { name = "goals" }));
             await GoalRefuses(() => agent.GoalControlAsync());
-            await Task.Delay(300);
-            Check(!http.IsCompleted, "Unload left a live reminder");
+            await Task.Delay(1200);
+            Check(!http.IsCompleted, "Unload left a live retry timer");
             await agent.ShutdownAsync();
             var replacement = GoalAgent(app, skills, listener.Prefixes.Single());
             await LoadGoals(replacement);
             var fresh = await replacement.GoalControlAsync();
             Check(fresh.File == "" && !fresh.Enabled && fresh.IdleSeconds == 480,
                 "New Agent inherited goal configuration");
+            await replacement.PostAsync(new AgentInput(InputKind.Pause));
             await replacement.GoalControlAsync(new GoalUpdate(File: file, Enabled: true, IdleSeconds: .15));
             await replacement.ShutdownAsync();
             await Task.Delay(300);

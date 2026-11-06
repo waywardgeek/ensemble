@@ -129,14 +129,24 @@ try
         }
     }
 
+    if (args is ["--goal-idle-tests"] || args.Length == 0)
+    {
+        await AsyncCase("goals immediate idle and failure backoff", () => MeterTests.GoalsIdleBackoff(temp));
+        if (args is ["--goal-idle-tests"])
+        {
+            Console.WriteLine($"{passed} passed, {failures} failed");
+            return failures == 0 ? 0 : 1;
+        }
+    }
+
     if (args is ["--goal-tests"] || args.Length == 0)
     {
         await AsyncCase("goals opt-in configuration and tool contract", () => MeterTests.GoalsConfiguration(temp));
         await AsyncCase("goals fresh projection and unload", () => MeterTests.GoalsProjection(temp));
-        await AsyncCase("goals timer pause busy off interrupt", () => MeterTests.GoalsTimer(temp));
+        await AsyncCase("goals idle pause busy off interrupt", () => MeterTests.GoalsTimer(temp));
         await AsyncCase("goals terminal submission and independent child", () => MeterTests.GoalsSubmission(temp));
         await AsyncCase("goals unreadable automatic wake", () => MeterTests.GoalsMissingWake(temp));
-        await AsyncCase("goals stale timer unload and teardown", () => MeterTests.GoalsStaleTimer(temp));
+        await AsyncCase("goals stale retry timer unload and teardown", () => MeterTests.GoalsStaleTimer(temp));
         await AsyncCase("goals same-turn handoff freshness", () => MeterTests.GoalsHandoff(temp));
         if (args is ["--goal-tests"])
         {

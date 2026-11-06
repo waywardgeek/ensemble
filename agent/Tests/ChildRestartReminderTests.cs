@@ -35,6 +35,7 @@ internal static partial class ActorTests
             var loaded = await child.DispatchAsync(new ToolCallPart("goals", configuration.Target(),
                 "load_skill", JsonSerializer.SerializeToElement(new { name = "goals" })), deadline.Token);
             Check(!loaded.IsError, "Could not activate reminder fixture.");
+            await child.PostAsync(new AgentInput(InputKind.Pause));
             await child.GoalControlAsync(new GoalUpdate(goal, true, .5), deadline.Token);
             await parent.ShutdownAsync();
             Check(!listener.Pending(), "Original process fired before the restart fixture shut down.");
@@ -76,10 +77,11 @@ internal static partial class ActorTests
             await parent.RestoreChildrenAsync(deadline.Token);
             Agent child = parent.FindChild("worker")!;
             GoalStatus status = await child.GoalStatusAsync(deadline.Token);
-            Check(status.Enabled && status.DueUtc > DateTimeOffset.UtcNow,
-                "Restoration did not schedule a fresh future interval.");
-            await Task.Delay(100, deadline.Token);
-            Check(!firstRequest.Task.IsCompleted, "Restart immediately replayed work instead of waiting for its interval.");
+            Check(status.Enabled && status.Phase == "paused" && status.DueUtc is null,
+                "Restoration did not preserve pause without a retry timer.");
+            Check(!firstRequest.Task.IsCompleted, "Paused restored child started work.");
+            await child.PostAsync(new AgentInput(InputKind.Resume));
+            await firstRequest.Task.WaitAsync(TimeSpan.FromSeconds(3), deadline.Token);
             await child.WaitForSubmissionAsync(deadline.Token);
             await server;
             await child.FlushAsync(deadline.Token);

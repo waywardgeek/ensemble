@@ -1217,7 +1217,8 @@ function showGoal(goal) {
     if (!connected || goalSelectionPending) goal = undefined;
     const labels = {
         unloaded: "Goals skill unloaded", unconfigured: "No goal configured",
-        busy: "Working", scheduled: "Waiting for idle reminder", paused: "Paused",
+        busy: "Working", queued: "Continuation queued", idle: "Idle",
+        retry_wait: "Waiting to retry", paused: "Paused",
         off: "Reminders off — goal retained", file_error: "Goal file error — reminders off"
     };
     const header = document.querySelector("#header-goal");
@@ -1229,12 +1230,8 @@ function showGoal(goal) {
         header.textContent = "Don’t Be Evil";
         header.title = "No goal configured.";
     } else {
-        const seconds = goal.idle_seconds;
-        const interval = Number.isFinite(seconds) && seconds > 0
-            ? (seconds % 60 === 0 ? `${seconds / 60} min` : `${seconds} s`)
-            : "interval unknown";
         const configured = goal.last_error ? "Goal file error" : goal.available ? "Goal on" : "Goal unavailable";
-        const reminders = goal.enabled ? `reminders ${interval}` : "reminders off";
+        const reminders = goal.enabled ? "continue on idle" : "reminders off";
         header.textContent = `${configured} · ${reminders}`;
         header.title = `${header.textContent} — goal configuration, not Agent activity.`;
     }
@@ -1245,7 +1242,8 @@ function showGoal(goal) {
             details.push("reminders off");
         }
         if (goal.file) details.push(goal.file);
-        if (goal.due_utc) details.push(`due ${goal.due_utc}`);
+        if (goal.due_utc) details.push(`next retry ${goal.due_utc}`);
+        if (goal.retry_error) details.push(`failures ${goal.failure_count}: ${goal.retry_error}`);
         if (goal.last_error) details.push(goal.last_error);
         status.textContent = `Goal: ${details.join(" — ")}`;
     } else if (!connected) {
@@ -1256,12 +1254,12 @@ function showGoal(goal) {
         status.textContent = "Goal: waiting for Agent status";
     }
     document.querySelector("#goal-reload").disabled = !connected || goalSelectionPending;
-    for (const id of ["goal-file", "goal-delay", "goal-enabled", "goal-apply", "goal-off", "goal-clear"]) {
+    for (const id of ["goal-file", "goal-enabled", "goal-apply", "goal-off", "goal-clear"]) {
         document.querySelector(`#${id}`).disabled = !goal?.available;
     }
+    document.querySelector("#goal-retry").disabled = !goal?.available || !goal.enabled || goal.phase !== "retry_wait";
     if (!goalDirty) {
         document.querySelector("#goal-file").value = goal?.file || "";
-        document.querySelector("#goal-delay").value = goal?.idle_seconds ?? 480;
         document.querySelector("#goal-enabled").checked = goal?.enabled ?? false;
     }
 }
@@ -1276,14 +1274,10 @@ function updateGoal(goal) {
 document.querySelector("#goal-form").addEventListener("input", () => { goalDirty = true; });
 document.querySelector("#goal-form").addEventListener("submit", event => {
     event.preventDefault();
-    const seconds = Number(document.querySelector("#goal-delay").value);
-    if (!Number.isFinite(seconds) || seconds < .001 || seconds > 4294967.294) {
-        notice("Idle delay must be between .001 and 4294967.294 seconds.");
-        return;
-    }
     updateGoal({file: document.querySelector("#goal-file").value,
-        enabled: document.querySelector("#goal-enabled").checked, idle_seconds: seconds});
+        enabled: document.querySelector("#goal-enabled").checked});
 });
+document.querySelector("#goal-retry").onclick = () => updateGoal({retry_now: true});
 document.querySelector("#goal-off").onclick = () => updateGoal({enabled: false});
 document.querySelector("#goal-clear").onclick = () => updateGoal({file: ""});
 document.querySelector("#goal-reload").onclick = () => send("get_goal");

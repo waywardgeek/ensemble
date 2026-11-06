@@ -175,9 +175,10 @@
 <p>Session only. Load the goals skill first. Off retains the goal instructions; Clear removes them. Neither means completed.</p>
 <form id="goal-form">
 <label>Goal file <input class="form-control" id="goal-file" type="text" autocomplete="off"></label>
-<label>Idle delay (seconds) <input class="form-control" id="goal-delay" type="number" min="0.001" max="4294967.294" step="any" value="480"></label>
-<label><input class="form-check-input" id="goal-enabled" type="checkbox">Enable idle reminders</label>
+<p>Continue when the Agent returns to idle. Failed model turns retry after 1, 10, 100, then 1,000 seconds; success resets the backoff. Retries inspect recorded work, not blindly repeat effects.</p>
+<label><input class="form-check-input" id="goal-enabled" type="checkbox">Enable continuation on idle</label>
 <button class="btn btn-outline-primary" id="goal-apply" type="submit">Apply goal</button>
+<button class="btn btn-outline-primary" id="goal-retry" type="button">Retry now</button>
 <button class="btn btn-outline-primary" id="goal-off" type="button">Reminders off</button>
 <button class="btn btn-outline-primary" id="goal-clear" type="button">Clear goal</button>
 <button class="btn btn-outline-primary" id="goal-reload" type="button">Reload acknowledged goal</button>

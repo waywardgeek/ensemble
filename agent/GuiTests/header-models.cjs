@@ -26,9 +26,9 @@ const current=fs.readFileSync(path.join(root,'style.css'),'utf8');
  const goals=[
   [null,'Goal …'],
   [{file:null,available:true,enabled:false,phase:'unconfigured'},'Don’t Be Evil'],
-  [{file:'GOAL.md',available:true,enabled:true,idle_seconds:480,phase:'busy'},'Goal on · reminders 8 min'],
+  [{file:'GOAL.md',available:true,enabled:true,idle_seconds:480,phase:'busy'},'Goal on · continue on idle'],
   [{file:'GOAL.md',available:true,enabled:false,idle_seconds:480,phase:'paused'},'Goal on · reminders off'],
-  [{file:'GOAL.md',available:true,enabled:true,idle_seconds:90,phase:'scheduled'},'Goal on · reminders 90 s'],
+  [{file:'GOAL.md',available:true,enabled:true,idle_seconds:90,phase:'retry_wait',failure_count:2,retry_error:'Model turn failed',due_utc:'2026-01-01T00:00:00Z'},'Goal on · continue on idle'],
   [{file:'GOAL.md',available:true,enabled:false,last_error:'fixture error',phase:'file_error'},'Goal file error · reminders off']
  ];
  for(const [goal,label] of goals){

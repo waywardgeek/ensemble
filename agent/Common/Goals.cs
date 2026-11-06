@@ -1,13 +1,14 @@
 namespace Ensemble;
 
 /// <summary>Immutable value-like patch. Null leaves a setting unchanged; an
-/// empty file clears configuration. Ordinary registered children persist these settings for restart; standalone Agents remain session-local.</summary>
-public sealed record GoalUpdate(string? File = null, bool? Enabled = null, double? IdleSeconds = null);
+/// empty file clears configuration. IdleSeconds is validated legacy data, not an active delay.
+/// Ordinary registered children persist these settings for restart; standalone Agents remain session-local.</summary>
+public sealed record GoalUpdate(string? File = null, bool? Enabled = null, double? IdleSeconds = null, bool RetryNow = false);
 
-/// <summary>Observation, not a completion verdict. DueUtc exists only while an
-/// idle timer is armed. A configured file remains request instructions when off.</summary>
+/// <summary>Observation, not a completion verdict. DueUtc exists only while a
+/// failure-backoff timer is armed. A configured file remains request instructions when off.</summary>
 public sealed record GoalStatus(string File, bool Enabled, double IdleSeconds,
-    string Phase, DateTimeOffset? DueUtc, string LastError, bool Available);
+    string Phase, DateTimeOffset? DueUtc, string LastError, bool Available, int FailureCount = 0, string RetryError = "");
 
 // Immutable configuration is the one synchronized source used by renderer and
 // actor. GoalStatus is a projection; no goal text is cached or copied into History.
@@ -21,6 +22,11 @@ public sealed partial class Agent
     private Timer? goalTimer;                           // actor-owned
     private long goalGeneration;                       // actor-owned stale-mail guard
     private DateTimeOffset? goalDue;
+    private bool goalWakePending;                      // actor-owned, includes queued immediate wake
+    private int goalFailureCount;                     // actor-owned, transient across restart
+    private string goalRetryError = "";
+    private partial void ObserveGoalTurn(Exception? error);
+    private static partial TimeSpan GoalRetryDelay(int failures);
     private const string GoalReminder = "[Automatic goal reminder] Assess the current goal and actual work state. "
         + "Inspect owned jobs, children and saved results before continuing authorized unfinished work. "
         + "Do not replay commands blindly or interrupt healthy work. If finished or genuinely blocked on the human, "
@@ -31,7 +37,7 @@ public sealed partial class Agent
     public partial Task<GoalStatus> GoalControlAsync(GoalUpdate? update = null,
         CancellationToken cancellation = default);
     /// <summary>Read-only actor observation, including when the skill is unloaded.
-    /// This neither grants goal_control nor resets the idle deadline.</summary>
+    /// This neither grants goal_control nor creates a wake or resets a retry deadline.</summary>
     public partial Task<GoalStatus> GoalStatusAsync(CancellationToken cancellation = default);
     internal partial string GoalInstruction(bool automatic);
     internal partial void GoalSkillsChanged();

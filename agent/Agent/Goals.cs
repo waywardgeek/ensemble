@@ -53,12 +53,13 @@ public sealed partial class Agent
                 : paused ? "paused"
                 : !GoalIdle() ? "busy"
                 : !goalConfiguration.Enabled ? "off"
-                : goalDue.HasValue ? "scheduled" : "busy";
+                : goalDue.HasValue ? "retry_wait" : goalWakePending ? "queued" : "idle";
             // A submission can disable configuration before the actor drains its
             // refresh mail. Never expose that invalidated timer as a future wake.
-            DateTimeOffset? due = phase == "scheduled" ? goalDue : null;
+            DateTimeOffset? due = phase == "retry_wait" ? goalDue : null;
             return new GoalStatus(goalConfiguration.File, goalConfiguration.Enabled,
-                goalConfiguration.IdleSeconds, phase, due, goalConfiguration.LastError, available);
+                goalConfiguration.IdleSeconds, phase, due, goalConfiguration.LastError, available,
+                goalFailureCount, goalRetryError);
         }
     }
 
@@ -72,7 +73,7 @@ public sealed partial class Agent
                 throw new ArgumentException("Load the goals skill before using goal_control.");
             }
             GoalUpdate? update = message.GoalUpdate;
-            if (update is not null && (update.File is not null || update.Enabled.HasValue || update.IdleSeconds.HasValue))
+            if (update is not null && (update.File is not null || update.Enabled.HasValue || update.IdleSeconds.HasValue || update.RetryNow))
             {
                 GoalConfiguration previous;
                 lock (ingress)
@@ -110,6 +111,19 @@ public sealed partial class Agent
                     goalConfiguration = candidate;
                 }
                 StopGoalTimer();
+                if (update.Enabled == true || update.File is not null)
+                {
+                    goalFailureCount = 0;
+                    goalRetryError = "";
+                }
+                // Retry-now bypasses one wait, not the failure streak. It does
+                // not enable a disabled goal or override pause/authority.
+                if (update.RetryNow && GoalIdle() && enabled)
+                {
+                    goalWakePending = true;
+                    mailbox.Writer.TryWrite(new Mail(MailKind.GoalWake,
+                        GoalGeneration: goalGeneration));
+                }
             }
             RefreshGoalTimer();
             message.GoalReply!.TrySetResult(CaptureGoalStatus());
@@ -223,6 +237,7 @@ public sealed partial class Agent
         goalTimer?.Dispose();
         goalTimer = null;
         goalDue = null;
+        goalWakePending = false;
     }
 
     private partial void GoalSubmitted()
@@ -255,6 +270,8 @@ public sealed partial class Agent
     private partial void ClearGoal()
     {
         StopGoalTimer();
+        goalFailureCount = 0;
+        goalRetryError = "";
         lock (ingress)
         {
             var cleared = new GoalConfiguration();
@@ -273,27 +290,44 @@ public sealed partial class Agent
         }
     }
 
+    private static partial TimeSpan GoalRetryDelay(int failures) => TimeSpan.FromSeconds(
+        failures <= 1 ? 1 : failures == 2 ? 10 : failures == 3 ? 100 : 1000);
+
+    private partial void ObserveGoalTurn(Exception? error)
+    {
+        if (error is null)
+        {
+            goalFailureCount = 0;
+            goalRetryError = "";
+        }
+        else if (error is not OperationCanceledException && !stopping)
+        {
+            if (goalFailureCount < int.MaxValue) goalFailureCount++;
+            // Raw exception text can contain provider payloads or host paths.
+            // The normal turn error remains recorded through its existing path.
+            goalRetryError = "Model turn failed. Continuation will inspect recorded work before retrying.";
+        }
+    }
+
     private partial void RefreshGoalTimer()
     {
         GoalConfiguration configuration;
-        lock (ingress)
-        {
-            configuration = goalConfiguration;
-        }
+        lock (ingress) { configuration = goalConfiguration; }
         if (!configuration.Enabled || configuration.File.Length == 0 || !GoalAvailable() || !GoalIdle())
         {
-            if (goalTimer is not null)
-            {
-                StopGoalTimer();
-            }
+            if (goalWakePending) StopGoalTimer();
             return;
         }
-        if (goalTimer is not null)
-        {
-            return; // Status reads never reset the clock.
-        }
+        if (goalWakePending) return; // Observations cannot create another idle edge.
         long generation = ++goalGeneration;
-        TimeSpan delay = TimeSpan.FromSeconds(configuration.IdleSeconds);
+        goalWakePending = true;
+        if (goalFailureCount == 0)
+        {
+            // Ordinary idle continuation is actor mail, never a zero-delay timer.
+            mailbox.Writer.TryWrite(new Mail(MailKind.GoalWake, GoalGeneration: generation));
+            return;
+        }
+        TimeSpan delay = GoalRetryDelay(goalFailureCount);
         goalDue = DateTimeOffset.UtcNow + delay;
         goalTimer = new Timer(_ => mailbox.Writer.TryWrite(new Mail(MailKind.GoalWake,
             GoalGeneration: generation)), null, delay, Timeout.InfiniteTimeSpan);

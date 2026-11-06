@@ -1091,6 +1091,7 @@ public sealed partial class Agent
             ApplyHandoff();
             ApplyToolClear();
             Record(new Event(EventKind.TurnEnded, reason: error?.Message ?? "completed"));
+            if (active.Kind == MailKind.Submit) ObserveGoalTurn(error);
             Publish(new Observation(ObservationKind.TurnEnded, Text: error?.Message ?? responseText,
                 Succeeded: error is null, HasReply: active.Reply is not null || active.ToolReply is not null));
             if (error is null)

@@ -1,0 +1,47 @@
+'use strict';
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const { chromium } = require('../../edition-2/agent/gui/node_modules/playwright');
+const fixture = JSON.parse(fs.readFileSync(process.env.GOAL_FIXTURE, 'utf8'));
+(async () => {
+    const browser = await chromium.launch({ executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome', headless: true });
+    try {
+        const page = await browser.newPage({ viewport: { width: 1280, height: 900 } });
+        const errors = [];
+        page.on('pageerror', error => errors.push(error.message));
+        await page.goto(fixture.url);
+        await page.locator('#settings-open').click();
+        await page.locator('#settings-goals-tab').click();
+        await page.waitForFunction(() => !document.querySelector('#goal-file').disabled);
+        assert.equal(await page.locator('#goal-delay').count(), 0, 'Obsolete idle timer remains editable');
+        await page.locator('#goal-file').fill(fixture.goal);
+        await page.locator('#goal-enabled').check();
+        await page.locator('#goal-apply').click();
+        await page.waitForFunction(() => document.querySelector('#goal-status').textContent.includes('failures 2'));
+        assert.match(await page.locator('#goal-status').textContent(), /Waiting to retry.*next retry/);
+        assert.match(await page.locator('#header-goal').textContent(), /continue on idle/);
+        assert.equal(await page.locator('#goal-retry').isEnabled(), true);
+        await page.locator('#settings-close').click();
+        await page.locator('#prompt').fill('Unsent draft pauses retries');
+        await page.waitForFunction(() => document.querySelector('#state').textContent.startsWith('paused'));
+        await page.locator('#settings-open').click();
+        await page.waitForFunction(() => document.querySelector('#goal-status').textContent.includes('Paused'));
+        assert.equal(await page.locator('#goal-retry').isEnabled(), false, 'Retry now overrides pause');
+        await page.locator('#settings-close').click();
+        await page.locator('#prompt').fill('');
+        await page.locator('#settings-open').click();
+        await page.waitForFunction(() => !document.querySelector('#goal-retry').disabled);
+        await page.locator('#goal-retry').click();
+        await page.waitForFunction(() => document.querySelector('#goal-status').textContent.includes('Working'));
+        await page.locator('#goal-off').click();
+        await page.waitForFunction(() => document.querySelector('#goal-status').textContent.includes('Reminders off'));
+        assert.equal(await page.locator('#goal-retry').isEnabled(), false);
+        await page.reload();
+        await page.locator('#settings-open').click();
+        await page.locator('#settings-goals-tab').click();
+        await page.waitForFunction(() => document.querySelector('#goal-status').textContent.includes('Reminders off'));
+        assert.equal(await page.locator('#goal-file').inputValue(), fixture.goal);
+        assert.equal(errors.length, 0, errors.join('\n'));
+        console.log('PASS actual goal page: no idle timer, failure/deadline display, pause, retry-now, off and reload');
+    } finally { await browser.close(); }
+})().catch(error => { console.error(error); process.exitCode = 1; });

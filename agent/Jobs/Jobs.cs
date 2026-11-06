@@ -281,7 +281,7 @@ public sealed partial class Jobs
         var allowed = new HashSet<string>(["ai_callback_delay", "ai_callback_pattern", "max_output_bytes"]);
         if (call.Name == "goal_control")
         {
-            allowed.UnionWith(["file", "enabled", "idle_seconds"]);
+            allowed.UnionWith(["file", "enabled", "idle_seconds", "retry_now"]);
         }
         else if (call.Name == "micro_handoff")
         {
@@ -308,7 +308,8 @@ public sealed partial class Jobs
             var update = new GoalUpdate(
                 call.Args.TryGetProperty("file", out var file) ? file.GetString() : null,
                 call.Args.TryGetProperty("enabled", out var enabled) ? enabled.GetBoolean() : null,
-                call.Args.TryGetProperty("idle_seconds", out var delay) ? delay.GetDouble() : null);
+                call.Args.TryGetProperty("idle_seconds", out var delay) ? delay.GetDouble() : null,
+                call.Args.TryGetProperty("retry_now", out var retry) && retry.GetBoolean());
             GoalStatus status = await Parent().GoalControlAsync(update, cancellation);
             var options = new JsonSerializerOptions
             {

@@ -1,3 +1,15 @@
+# Current boundary: idle-transition Goals source upgrade
+
+Enabled goal continuation now queues on idle without a normal timer. Failed model
+turns back off1/10/100/1000 seconds; success resets the streak. GUI status exposes
+failure and next retry, with Retry now and preserved pause/off/interrupt boundaries.
+Original Chapter24, its Goals companion, source skill and affected tests agree.
+Shared core352/0, final focused core/restart/socket checks and actual-page evidence
+are bounded in [idle goal continuation](edition-3-notes/idle-goal-continuation.md).
+No installation or restart occurred. Both requested context/Goals upgrades are in
+source; Local Models resumes only with Bill's target access and inference decision.
+PR reconstruction/grader expansion remains closed.
+
 # Current boundary: working-context policy source upgrade
 
 Per-model whole-input-token working limits and an optional capacity ceiling now
