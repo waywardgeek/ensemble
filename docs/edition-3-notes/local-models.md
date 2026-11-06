@@ -152,3 +152,37 @@ context policies remain open. `projection-shared.log` reports359 passed/0 failed
 exit0 against the final executable source. GUI verification here is a clean build,
 not an actual-page account-status test. Full projection, Engine diff and new test
 source were reviewed. No ET/cloud requests, installation or new grader points.
+
+## Configured child identity and restoration
+
+The root now resolves `ModelIdentity` through actual vendor, endpoint and model
+membership. Same wire names do not alias; removal at any ownership level makes
+lookup refuse. Lookup does not grant credentials or substitute another offering.
+
+Child registration preserves the legacy nine-field version1 format. Configured
+children write version2 with required `Offering` identity fields, not secrets.
+The save operation accepts a complete candidate Configuration so a later selector
+can persist its identity before publishing it. Restore validates the immediate
+set's identities and wire names before child construction, resolves each offering
+again for request projection, and retains ordinary rollback. A legacy record under
+a configured parent refuses rather than guessing its former route.
+
+Focused tests use internally projected configurations; the new public model
+selector and weak Agent membership are still pending. They exercise actual child
+files, destruction and fresh-root restoration under a different legacy parent
+route; pause and conversation survive. Missing configuration, wrong wire name,
+null/missing/duplicate identity fields and ambiguous legacy restoration refuse
+without a partial child or rewritten registration. Existing legacy child and goal
+restart tests still pass. This is not peer restoration, configured credential
+renewal, live inference, GUI acceptance or independent chapter grading.
+
+Evidence remains `/private/tmp/cadence-local-models.co2hSe`. Initial lookup build
+and four domain groups pass in `resolve-build.log` and `resolve-tests.log`.
+`configured-child-build.log` and `configured-child-tests.log` record the clean
+initial implementation build and three restart groups; four domain groups pass
+in `configured-child-domain.log`. After the candidate-save signature change,
+`configured-child-final-build.log` records a clean build, `configured-child-final-tests.log` records three passing
+restart groups, and `configured-child-final-domain.log` records four passing
+domain groups. `configured-child-shared.log` records360 passed, zero failed,
+exit0 against the final executable source. No installed application or live
+target was changed.

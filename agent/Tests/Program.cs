@@ -565,6 +565,7 @@ try
     if (args is ["--child-restart-tests"] || args.Length == 0)
     {
         await AsyncCase("ordinary child restart ownership and completion", () => ActorTests.ChildRestart(temp));
+        await AsyncCase("configured child restart preserves route identity", () => ConfiguredChildTests.Restart(temp));
         await AsyncCase("restored child goal resumes through real actor", () => ActorTests.ChildRestartReminder(temp));
         if (args.Length != 0)
         {

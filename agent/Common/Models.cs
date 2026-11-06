@@ -10,6 +10,9 @@ public sealed partial class Ensemble
     internal object ModelGraphGate => agents;
     internal bool ModelGraphClosed => destroyed;
     public partial ImmutableArray<ModelVendor> ModelVendors();
+    /// <summary>Resolve an exact configured offering in this root, or refuse.
+    /// This does not substitute by wire name or grant authentication.</summary>
+    public partial Model ResolveModel(ModelIdentity identity);
     internal partial void AddModelVendor(ModelVendor child);
     internal partial void RemoveModelVendor(ModelVendor child);
 }

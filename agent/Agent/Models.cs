@@ -33,7 +33,7 @@ public sealed partial class Agent
                 // The meter/lens stay on the existing Engine; neither History
                 // nor saved preferences becomes a second selection authority.
                 Configuration candidate = configuration.WithModel(message.Model!);
-                SaveChildRestart(model: candidate.Model);
+                SaveChildRestart(selection: candidate);
                 configuration = candidate;
                 ResetMemoryPressure();
             }

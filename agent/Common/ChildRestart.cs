@@ -1,5 +1,6 @@
 using System.Collections.Immutable;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace Ensemble;
 
@@ -7,7 +8,8 @@ namespace Ensemble;
 // registry or transcript. Current host policy and credentials are never saved here.
 internal sealed record ChildRestartState(int Version, string ID, string Model,
     JsonElement Schema, long Generation, bool Submitted, string? SubmissionHash, bool Paused,
-    GoalConfiguration Goal);
+    GoalConfiguration Goal,
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] ModelIdentity? Offering = null);
 
 public sealed partial class Agent
 {
@@ -21,7 +23,7 @@ public sealed partial class Agent
     internal partial void RetireChildRestart();
     private partial void SaveChildRestart(GoalConfiguration? goal = null,
         bool? pause = null, long? generation = null, bool? submitted = null,
-        string? model = null, JsonElement? completion = null);
+        Configuration? selection = null, JsonElement? completion = null);
     private partial ChildRestartState? ReadChildRestart(string id);
     private partial Task<Agent> CreateChildCoreAsync(string childID, string? model,
         JsonElement? submitSchema, ChildRestartState? restart, CancellationToken cancellation, bool waitForBrowser = false);

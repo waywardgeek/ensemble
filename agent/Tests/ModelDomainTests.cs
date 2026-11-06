@@ -43,6 +43,13 @@ internal static class ModelDomainTests
             ModelIdentity identity = model.Identity();
             Check(identity == new ModelIdentity("ollama", "laptop", "mimo")
                 && identity != other.Identity(), "Qualified identity distinguishes endpoint-local model IDs.");
+            Check(ReferenceEquals(app.ResolveModel(identity), model)
+                && ReferenceEquals(app.ResolveModel(other.Identity()), other),
+                "Exact configured identity resolves the actual owned offering, not its shared wire name.");
+            Refuses(() => app.ResolveModel(new ModelIdentity("missing", "laptop", "mimo")));
+            Refuses(() => app.ResolveModel(new ModelIdentity("ollama", "missing", "mimo")));
+            Refuses(() => app.ResolveModel(new ModelIdentity("ollama", "laptop", "missing")));
+            ModelIdentity otherIdentity = other.Identity();
             var origin = new Provenance(Vendor.OpenAI, model.Name, Surface.ChatCompletions, identity);
             var same = new Provenance(Vendor.OpenAI, model.Name, Surface.ChatCompletions,
                 new ModelIdentity("ollama", "laptop", "mimo"));
@@ -72,6 +79,7 @@ internal static class ModelDomainTests
             }
             var snapshot = vendor.Endpoints();
             otherEndpoint.Destroy();
+            Refuses(() => app.ResolveModel(otherIdentity));
             Check(snapshot.Length == 2 && vendor.Endpoints().Length == 1,
                 "Snapshots are values, not mutable ownership collections.");
             Refuses(() => other.Parent());
@@ -142,21 +150,26 @@ internal static class ModelDomainTests
             Refuses(() => peer.RemoveEndpoint(endpoint));
             Check(endpoint.Parent() == vendor && vendor.Endpoints().Single() == endpoint,
                 "Wrong-parent removal changes neither end.");
+            ModelIdentity identity = model.Identity();
             endpoint.RemoveModel(model);
+            Refuses(() => app.ResolveModel(identity));
             Check(endpoint.Models().Length == 0 && !model.destroyed, "Remove detaches without destroying.");
             Refuses(() => model.Parent());
             endpoint.AddModel(model);
             vendor.RemoveEndpoint(endpoint);
+            Refuses(() => app.ResolveModel(identity));
             Check(vendor.Endpoints().Length == 0 && !endpoint.destroyed && endpoint.Models().Single() == model,
                 "Endpoint detach does not cascade through its children.");
             Refuses(() => endpoint.Parent());
             vendor.AddEndpoint(endpoint);
             app.RemoveModelVendor(vendor);
+            Refuses(() => app.ResolveModel(identity));
             Check(!vendor.destroyed && vendor.Endpoints().Single() == endpoint,
                 "Vendor detach does not destroy its graph.");
             Refuses(() => foreign.AddModelVendor(vendor));
             Check(foreign.ModelVendors().Length == 0, "A graph cannot silently migrate its lifetime lock to another root.");
             app.AddModelVendor(vendor);
+            Check(ReferenceEquals(app.ResolveModel(identity), model), "Reattachment restores lookup through actual ownership.");
             vendor.Destroy();
             vendor.Destroy();
             Check(app.ModelVendors().Single() == peer && peer.Parent() == app,

@@ -7,7 +7,7 @@ namespace Ensemble;
 public sealed partial class Agent
 {
     private partial void SaveChildRestart(GoalConfiguration? goal, bool? pause,
-        long? generation, bool? submitted, string? model, JsonElement? completion)
+        long? generation, bool? submitted, Configuration? selection, JsonElement? completion)
     {
         lock (ingress)
         {
@@ -19,11 +19,14 @@ public sealed partial class Agent
             string? submissionHash = isSubmitted
                 ? Convert.ToHexString(SHA256.HashData(JsonSerializer.SerializeToUtf8Bytes(
                     completion ?? submittedPayload!.Value))) : null;
-            var state = new ChildRestartState(1, childID!, model ?? configuration.Model,
+            // A selector supplies its complete candidate before publication. Never
+            // combine the new wire name with the old offering's route identity.
+            Configuration selected = selection ?? configuration;
+            var state = new ChildRestartState(selected.Offering is null ? 1 : 2, childID!, selected.Model,
                 submissionContract.Schema(), generation ?? admittedWorkGeneration,
-                isSubmitted, submissionHash, pause ?? paused, goal ?? goalConfiguration);
+                isSubmitted, submissionHash, pause ?? paused, goal ?? goalConfiguration, selected.Offering);
             Sandbox().ReplaceFile(Path.Combine(DataDirectory(), "child.json"),
-                JsonSerializer.SerializeToUtf8Bytes(state));
+                JsonSerializer.SerializeToUtf8Bytes(state, new JsonSerializerOptions { IncludeFields = true }));
         }
     }
 
@@ -65,7 +68,12 @@ public sealed partial class Agent
         {
             using var document = JsonDocument.Parse(bytes);
             JsonElement root = document.RootElement;
-            foreach (JsonElement item in new[] { root, root.GetProperty("Goal") })
+            var objects = new List<JsonElement> { root, root.GetProperty("Goal") };
+            if (root.TryGetProperty("Offering", out JsonElement offering))
+            {
+                objects.Add(offering);
+            }
+            foreach (JsonElement item in objects)
             {
                 var names = new HashSet<string>(StringComparer.Ordinal);
                 foreach (JsonProperty property in item.EnumerateObject())
@@ -77,8 +85,8 @@ public sealed partial class Agent
                 }
             }
             var state = JsonSerializer.Deserialize<ChildRestartState>(bytes,
-                new JsonSerializerOptions { UnmappedMemberHandling = JsonUnmappedMemberHandling.Disallow });
-            if (state is null || state.Version != 1 || state.ID != id
+                new JsonSerializerOptions { IncludeFields = true, UnmappedMemberHandling = JsonUnmappedMemberHandling.Disallow });
+            if (state is null || state.Version is not (1 or 2) || state.ID != id
                 || string.IsNullOrWhiteSpace(state.Model) || state.Generation < 0 || state.Goal is null
                 || state.Goal.File is null || state.Goal.LastError is null
                 || !double.IsFinite(state.Goal.IdleSeconds) || state.Goal.IdleSeconds < .001
@@ -86,7 +94,10 @@ public sealed partial class Agent
                 || (state.Goal.Enabled && state.Goal.File.Length == 0)
                 || (state.Submitted ? state.SubmissionHash is null || state.SubmissionHash.Length != 64
                     || !state.SubmissionHash.All(char.IsAsciiHexDigit) : state.SubmissionHash is not null)
-                || root.EnumerateObject().Count() != 9
+                || (state.Version == 1
+                    ? state.Offering is not null || root.EnumerateObject().Count() != 9
+                    : state.Offering is null || root.EnumerateObject().Count() != 10
+                        || root.GetProperty("Offering").EnumerateObject().Count() != 3)
                 || root.GetProperty("Goal").EnumerateObject().Count() != 4)
             {
                 throw new InvalidDataException("Invalid child restart identity or settings.");
@@ -116,7 +127,24 @@ public sealed partial class Agent
             cancellation.ThrowIfCancellationRequested();
             if (!Sandbox().IsDirectory(Path.Combine(directory, name))) { continue; }
             ChildRestartState? state = ReadChildRestart(name);
-            if (state is not null && FindChild(name) is null) { candidates.Add(state); }
+            if (state is not null && FindChild(name) is null)
+            {
+                // Resolve every configured route before any child's startup has
+                // effects. A missing offering is never a legacy wire-name hint.
+                if (state.Offering is { } identity)
+                {
+                    Model model = Parent().ResolveModel(identity);
+                    if (model.Name != state.Model)
+                    {
+                        throw new InvalidDataException("Saved model name differs from its configured offering.");
+                    }
+                }
+                else if (Configuration().Offering is not null)
+                {
+                    throw new InvalidDataException("Legacy child routing cannot be inferred from a configured parent.");
+                }
+                candidates.Add(state);
+            }
         }
         var restored = new List<Agent>();
         try

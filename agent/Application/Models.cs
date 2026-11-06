@@ -12,6 +12,21 @@ public sealed partial class Ensemble
         }
     }
 
+    public partial Model ResolveModel(ModelIdentity identity)
+    {
+        ArgumentNullException.ThrowIfNull(identity);
+        lock (ModelGraphGate)
+        {
+            ObjectDisposedException.ThrowIf(destroyed, this);
+            // Traverse current ownership, not a second identity registry. Detached
+            // subtrees must not remain discoverable through a stale cached entry.
+            ModelVendor? vendor = modelVendors.FirstOrDefault(item => item.ID == identity.VendorID);
+            ModelEndpoint? endpoint = vendor?.Endpoints().FirstOrDefault(item => item.ID == identity.EndpointID);
+            Model? model = endpoint?.Models().FirstOrDefault(item => item.ID == identity.ModelID);
+            return model ?? throw new InvalidOperationException("Configured model offering is unavailable.");
+        }
+    }
+
     internal partial void AddModelVendor(ModelVendor child)
     {
         lock (ModelGraphGate)

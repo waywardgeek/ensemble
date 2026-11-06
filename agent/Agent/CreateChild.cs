@@ -13,7 +13,15 @@ public sealed partial class Agent
         // Snapshot values before admission: no Skills -> Agent lock-order reversal.
         // The child constructor still revalidates policy and both live parents.
         var inherited = Configuration();
-        if (model is not null)
+        if (restart?.Offering is { } identity)
+        {
+            inherited = new Configuration(inherited, Parent().ResolveModel(identity));
+            if (inherited.Model != restart.Model)
+            {
+                throw new InvalidDataException("Saved model name differs from its configured offering.");
+            }
+        }
+        else if (model is not null)
         {
             inherited = inherited.WithModel(model);
         }

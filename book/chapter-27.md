@@ -158,12 +158,23 @@ Default working-context limits use the configured serving allocation when known.
 Recall and compression preserve the binding; an unresolved judge-model override
 refuses rather than silently changing the route.
 
-**Integration boundary:** synthetic HTTP checks exercise this internal projection,
-including the exact headers and captured provenance. Agent selection membership,
-child restoration and GUI configuration are not connected yet. Configured
-OAuth/Codex renewal and streaming conversations still need their own real-path
-coverage. Do not infer a working local dropdown or MiMo acceptance from these
-internal tests.
+Ensemble resolves a saved `ModelIdentity` by following its current vendor,
+endpoint and model ownership. There is no second lookup registry and no fallback
+by wire name. A detached or missing offering is unavailable. Ordinary child
+registrations retain the legacy version1 shape for legacy configurations;
+configured children use version2 with a required qualified identity. Restore
+validates identities before constructing children, and checks the saved wire name
+against the resolved offering. It preserves conversation and pause state, not
+credentials or interrupted effects. A legacy child record under a configured
+parent refuses because that record cannot identify the original route safely.
+
+**Integration boundary:** synthetic HTTP checks exercise the internal projection,
+including the exact headers and captured provenance. Configured child registration
+and restoration have focused coverage, but live Agent selection membership, peer
+restoration, per-offering working-context persistence and GUI configuration remain
+open. Configured OAuth/Codex renewal and streaming conversations still need their
+own real-path coverage. Do not infer a working local dropdown or MiMo acceptance
+from these internal tests.
 
 The construction-point changes belong alongside configuration and transport,
 model selection, child ownership, persistence and accounting. This capstone joins
