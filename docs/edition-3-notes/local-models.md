@@ -297,3 +297,45 @@ five selection groups pass again, and the final shared suite passes364/0, exit0.
 Evidence uses the `configured-selection-` prefix under
 `/private/tmp/cadence-local-models.co2hSe`. No dropdown, actual-page switch,
 configured subscription-renewal coverage or independent grader points are claimed.
+
+## Qualified GUI choices and unavailable-selection recovery
+
+Common now declares credential-free ModelSelectionStatus/ModelSelectionChoice
+values. Agent snapshots the last selected identity, local configuration availability,
+legacy compatible names, and configured choices under ingress then the root graph
+gate. It reuses request-projection validation without credential-file reads, renewal
+or network probes. Availability is neither server health nor account entitlement.
+Live Configuration and Engine admission retain their existing refusal rules.
+
+The usage frame carries qualified choices separately from wire names, with funding
+and serving-context descriptions. The normal picker submits a strict offering
+object to the existing set_model route; legacy string commands remain supported.
+An unavailable current selection has its own disabled placeholder. Recreating an
+object with the same IDs does not falsely reconnect the Agent. Explicit selection
+still resolves the actual root graph and uses save-before-publication.
+
+Focused domain checks pass5/0 with a clean build. Real socket checks cover two
+same-name offerings, malformed-identity refusal, status after Model destruction,
+reconnect and explicit recovery, without inference. Final actual-page checks use
+headless Chrome, the visible picker and real websocket commands. The fixture
+removes and recreates the selected identity; reload preserves unavailable status,
+and a deliberate replacement succeeds. Exactly four selection commands occur;
+reload does not submit another. Browser and host both exit0 after joined cleanup.
+Final page evidence is /private/tmp/cadence-model-picker-final.FVwuz7. Earlier
+page evidence /private/tmp/cadence-model-picker-page.1MgBbR predates the same-ID
+replacement strengthening. Neither is installed-application or live MiMo evidence.
+
+Initial builds caught a mistaken nullable Surface access, Engine type shadowing,
+and an omitted fixture constructor argument; those runs executed no new behavioral
+checks. Codec review also caught incorrect browser identity field spellings before
+the first actual-page run. A tool-batch refusal executed neither its proposed edit
+nor build; the subsequent explicit retry corrected the fixture. These were setup
+and implementation corrections, not weakened assertions.
+
+Core/GUI logs use model-status- and model-picker- prefixes under
+/private/tmp/cadence-local-models.co2hSe. Final core and GUI builds are clean;
+the socket test and five existing GUI regression groups pass. Final shared core
+regression passes364/0, exit0. The final page run uses that GUI build; only prose
+changes follow execution.
+No host model-configuration interface, configured subscription-renewal acceptance,
+independent grader points, installation, restart or live inference is claimed.

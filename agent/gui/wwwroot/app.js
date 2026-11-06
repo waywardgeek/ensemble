@@ -738,10 +738,10 @@ function renderControls() {
 function showUsage(frame) {
     const picker = document.querySelector("#model-choice");
     picker.replaceChildren();
-    // Display the curated list without implying a live actor can change vendor
-    // or funding. The server independently validates every actual selection.
+    // Configured offerings change the complete arrangement; legacy curated
+    // names preserve their route. The server validates every actual selection.
     const groups = new Map();
-    const add = (vendor, id, label, enabled) => {
+    const add = (vendor, id, label, enabled, offering = null) => {
         if (!groups.has(vendor)) {
             const group = document.createElement("optgroup");
             group.label = vendor === "Gemini" ? "Google" : vendor;
@@ -750,18 +750,40 @@ function showUsage(frame) {
         }
         const option = document.createElement("option");
         option.value = id;
+        if (offering) option.dataset.offering = JSON.stringify(offering);
         option.textContent = label;
         option.disabled = !enabled;
-        if (!enabled) option.title = "Unavailable for this Agent's fixed provider or API surface.";
+        if (!enabled) option.title = offering
+            ? "Configured offering unavailable under this Agent's current policy."
+            : "Unavailable legacy choice for this Agent's current route.";
         groups.get(vendor).append(option);
     };
+    const offeringKey = offering => JSON.stringify([offering.vendor, offering.endpoint, offering.model]);
+    const configured = frame.configured_models || [];
+    for (const model of configured) {
+        const serving = model.serving_context_tokens == null ? "serving context unknown"
+            : `${model.serving_context_tokens.toLocaleString("en-US")} serving tokens`;
+        add(model.vendor, offeringKey(model.offering),
+            `${model.label} — ${model.endpoint} — ${model.funding} — ${serving}`,
+            model.enabled, model.offering);
+    }
     const recommendations = frame.recommended_models || [];
     for (const model of recommendations) add(model.vendor, model.id, model.label, model.enabled);
-    if (!recommendations.some(model => model.id === frame.selected_model && model.vendor === frame.model_vendor)) {
-        add(frame.model_vendor || "Current", frame.selected_model, frame.selected_model + " (current)", true);
+    let selected = frame.selected_model;
+    if (frame.selected_offering) {
+        selected = offeringKey(frame.selected_offering);
+        if (frame.selection_available === false
+            || !configured.some(model => offeringKey(model.offering) === selected)) {
+            // A newly configured object can reuse an identity, but cannot heal
+            // the Agent's lost weak relationship without an explicit selection.
+            selected = "unavailable:" + selected;
+            add("Unavailable selection", selected, frame.selected_model + " (unavailable)", false);
+        }
+    } else if (!recommendations.some(model => model.id === selected && model.vendor === frame.model_vendor)) {
+        add(frame.model_vendor || "Current", selected, selected + " (current)", frame.selection_available !== false);
     }
-    picker.title = "Curated models by vendor. Running Agents keep their provider and funding; unavailable choices are disabled.";
-    picker.value = frame.selected_model;
+    picker.title = "Configured offerings select endpoint and funding together. Availability is local configuration, not server health.";
+    picker.value = selected;
     renderControls();
     const count = value => value == null ? "?" : value.toLocaleString("en-US");
     const latest = frame.usage;
@@ -1012,12 +1034,12 @@ function connect() {
     };
     socket.onerror = () => { notice("Connection unavailable; work may still be running."); };
 }
-function send(type, text = "") {
+function send(type, text = "", offering = null) {
     if (!socket || socket.readyState !== WebSocket.OPEN) {
         notice("Not connected; input was not sent.");
         return false;
     }
-    socket.send(JSON.stringify({ type, text, ...(agentID ? { agent_id: agentID } : {}) }));
+    socket.send(JSON.stringify({ type, text, ...(offering ? { offering } : {}), ...(agentID ? { agent_id: agentID } : {}) }));
     notice("");
     return true;
 }
@@ -1115,7 +1137,9 @@ document.querySelector("#clear-tools").onclick = () => send("clear_tools");
 document.querySelector("#model-choice").onchange = event => {
     // A choice is the action. The server's usage frame confirms it or restores
     // the unchanged model after refusal; never infer acceptance from the click.
-    if (send("set_model", event.target.value)) event.target.disabled = true;
+    const option = event.target.selectedOptions[0];
+    const offering = option?.dataset.offering ? JSON.parse(option.dataset.offering) : null;
+    if (send("set_model", offering ? "" : event.target.value, offering)) event.target.disabled = true;
 };
 document.querySelector("#prompt").oninput = event => {
     resizeComposer();

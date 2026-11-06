@@ -9,8 +9,10 @@ Engine now refuses automatic inference redirects and retained cookies; causal
 before/after HTTP checks and shared358/0 pass. Configured-model
 public Model-object switching now uses the existing mailbox, validates and saves
 before publishing the relationship and frozen request configuration. Real loopback
-routing and failed-save tests pass. GUI configuration and public graders remain
-pending.
+routing and failed-save tests pass. The ordinary GUI dropdown now carries qualified
+choices, funding and serving-context descriptions. Real socket and actual-page
+checks pass for same-name offerings, unavailable selection, reload and explicit
+recovery. Host configuration and public graders remain pending.
 Qualified peer launch records now preserve offering identity; restoration validates
 the entire launch set before startup effects, without a host-route fallback.
 Internal configured request binding, qualified child restoration and
@@ -18,9 +20,9 @@ weak Agent/Model membership are implemented. Model loss refuses inference while
 retaining documentary saves. Working-context persistence now distinguishes
 configured offerings from each other and from legacy wire-name policies. Final
 shared regression passes364/0. The previous360/1 Sandbox fixture race and its
-passing focused recheck remain recorded, not claimed repaired. Actual-page
-offering switching, a local dropdown and integrated inference acceptance remain
-open.
+passing focused recheck remain recorded, not claimed repaired. Final GUI regression
+groups also pass. Configuring an installed local offering and integrated inference
+acceptance remain open.
 Chapter27 now contains TL;DR, plain-words teaching and four draft exercises.
 See [Local Models](edition-3-notes/local-models.md) for evidence and limits.
 No installation or restart performed by Cadence; Bill reports rebuilding/restarting

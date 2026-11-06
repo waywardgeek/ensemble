@@ -41,6 +41,24 @@ internal static class ModelAgentTests
                 "Construction establishes both weak selection ends.");
             Check(ReferenceEquals(agent.Configuration(), projected),
                 "Validated reads retain the frozen policy projection.");
+            ModelSelectionStatus selection = agent.ModelSelectionStatus();
+            Check(selection.Available && selection.Offering == model.Identity()
+                && selection.LegacyChoices.IsEmpty && selection.ConfiguredChoices.Length == 1
+                && selection.ConfiguredChoices[0].Available,
+                "Selection status describes a configured choice without legacy route escape.");
+            var otherAuth = new ModelAuthentication(root, "other-none");
+            var otherEndpoint = new ModelEndpoint(model.Vendor(), "other", "http://127.0.0.1:3",
+                Surface.ChatCompletions, otherAuth);
+            var otherModel = new Model(otherEndpoint, "small", model.Name, "Other", new ModelFeatures(Media.None));
+            selection = agent.ModelSelectionStatus();
+            Check(selection.ConfiguredChoices.Length == 2
+                && selection.ConfiguredChoices.Select(choice => choice.Offering).Distinct().Count() == 2,
+                "Same wire names retain distinct configured selection identities.");
+            otherAuth.Destroy();
+            selection = agent.ModelSelectionStatus();
+            Check(selection.Available && !selection.ConfiguredChoices.Single(
+                choice => choice.Offering == otherModel.Identity()).Available,
+                "Unavailable authentication disables only its own documented choice.");
             Refuses(() => new Agent(foreign, projected));
             Check(foreign.Agents().Length == 0 && foreignModel.Agents().Length == 0,
                 "Same identity in another root cannot borrow the original binding; rollback removes memberships.");
@@ -67,6 +85,10 @@ internal static class ModelAgentTests
             Refuses(() => sibling.Configuration());
             Refuses(() => sibling.BeginEngineSend());
             Refuses(() => sibling.Engine().Render(new Context()));
+            ModelSelectionStatus unavailable = sibling.ModelSelectionStatus();
+            Check(!unavailable.Available && unavailable.Offering == projected.Offering
+                && unavailable.Model == projected.Model && unavailable.LegacyChoices.IsEmpty,
+                "Model loss remains displayable without inference or legacy fallback.");
             sibling.History().Append(new Event(EventKind.MessageReceived, actor: Actor.Human,
                 parts: [new TextPart("Conversation survives unavailable inference.")]));
             Check(sibling.History().View().Dialogue.Length != 0,

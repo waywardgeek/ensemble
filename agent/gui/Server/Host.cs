@@ -927,15 +927,23 @@ public static partial class Gui
                             case "set_model":
                                 try
                                 {
-                                    await selected.SetModelAsync(text);
+                                    if (command.TryGetProperty("offering", out var offering))
+                                    {
+                                        ModelIdentity identity = JsonCodec.ReadModelIdentity(offering);
+                                        await selected.SetModelAsync(selected.Parent().ResolveModel(identity));
+                                    }
+                                    else
+                                    {
+                                        await selected.SetModelAsync(text);
+                                    }
                                     Broadcast(selected, null);
                                 }
-                                catch (Exception error) when (error is ArgumentException or InvalidOperationException)
+                                catch (Exception error) when (error is ArgumentException or InvalidOperationException or FormatException or IOException)
                                 {
                                     lock (gate)
                                     {
                                         Queue(socket, queue, new JsonObject { ["type"] = "error",
-                                            ["message"] = "Model selection refused: Agent must be idle and the model must be compatible with this route." });
+                                            ["message"] = "Model selection refused: Agent must be idle, the configured route available, and any required save successful." });
                                     }
                                 }
                                 // Also acknowledge unchanged selection and refusals.

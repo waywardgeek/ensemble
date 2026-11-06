@@ -62,6 +62,16 @@ static async Task<JsonElement> Frame(ClientWebSocket socket, string type, Cancel
             return json.RootElement.Clone();
     }
 }
+if (args is ["--configured-model-fixture", var fixtureDirectory])
+{
+    await ConfiguredModelTests.RunAsync(fixtureDirectory);
+    return;
+}
+if (args is ["--configured-model-tests"])
+{
+    await ConfiguredModelTests.RunAsync();
+    return;
+}
 if (args is ["--work-product-tests"])
 {
     await WorkProductHttpTests.RunAsync();

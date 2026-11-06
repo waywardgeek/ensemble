@@ -123,7 +123,8 @@ match an explicitly configured offering. Invalid present identities refuse rathe
 than silently becoming legacy data. Request projection and response capture carry
 this value; configured construction and child restoration attach the live Model
 relationship. The public Model-object selector changes that relationship through
-the existing Agent mailbox; the dropdown integration is still under construction.
+the existing Agent mailbox; the ordinary dropdown submits the same qualified
+identity.
 Endpoint addresses exclude embedded credentials, query strings and fragments.
 New credential-bearing endpoints require HTTPS except literal loopback fixtures;
 public OAuth and Codex retain their additional existing endpoint restrictions.
@@ -201,6 +202,20 @@ the last-request context measurement. An explicit valid choice can recover an
 Agent whose old Model was removed; no automatic substitution occurs. The legacy
 string overload still preserves its route and cannot invent a configured offering.
 
+The GUI reads a credential-free `ModelSelectionStatus`, not the inference-validating
+configuration getter. Under the same ingress-to-graph lock order, this snapshot
+lists configured offerings and their local policy compatibility, funding description
+and serving context. Availability is not a network health check or proof of account
+entitlement. Unknown serving context remains unknown. Legacy name-only choices
+retain their fixed-route semantics; configured choices carry a separate strict
+identity object, never a renamed provider model.
+
+An unavailable selection remains visible after reconnect. Even recreating an
+offering with the same IDs does not reconnect a lost Agent link automatically.
+The picker shows a disabled current-selection placeholder and permits an explicit
+valid replacement. The server resolves the chosen identity again and calls the
+same Model selector; displayed status is never a send or selection grant.
+
 Documentary persistence has a different purpose from inference admission. It can
 save the last frozen configuration and retained conversation after a Model is
 removed, without acquiring credentials or granting another request. During root
@@ -212,10 +227,10 @@ and restoration, weak selection membership and saving after Model loss have
 focused coverage. Per-offering working-context persistence and effective-policy
 isolation and qualified peer launch/restoration have focused coverage too.
 Public Model switching has focused loopback routing and failed-save coverage.
-GUI configuration and actual-page offering-switch checks remain open. Configured
-OAuth/Codex renewal and streaming conversations still need their own real-path
-coverage. Do not infer a working local dropdown or MiMo acceptance
-from these internal tests.
+The ordinary dropdown has real-socket and actual-page offering-switch/recovery
+coverage. Host configuration remains open. Configured OAuth/Codex renewal and
+streaming conversations still need their own real-path coverage. Do not infer an
+installed MiMo offering or live-model acceptance from these owned fixtures.
 
 The construction-point changes belong alongside configuration and transport,
 model selection, child ownership, persistence and accounting. This capstone joins
