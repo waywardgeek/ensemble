@@ -29,6 +29,8 @@ assert(!['8088', '8089', '8090'].includes(new URL(base).port));
                 add('file-edit', 'edit_file', { ...evidence, operation: 'edit', content: segment('new\nvalue'), removed: segment('old') });
                 add('file-empty', 'write_file', { ...evidence, operation: 'write', content: segment('') });
                 add('file-plain', 'read_file', { ...evidence, path: '/sample.unknown' });
+                add('file-long', 'read_file', { ...evidence, path: '/long/path/to/cmd/main.go',
+                    content: segment(('import \"fmt\" // ' + 'long source '.repeat(40) + '\n').repeat(80)) });
                 add('file-legacy', 'read_file', null);
                 add('file-error', 'write_file', evidence, true);
             });
@@ -52,6 +54,32 @@ assert(!['8088', '8089', '8090'].includes(new URL(base).port));
                 render(card);
                 return card.node.querySelector('.file-preview') === preview && document.activeElement === summary;
             }));
+            const long = page.locator('[data-part-id="file-long"]');
+            assert.equal(await long.locator('.file-name').textContent(), 'main.go');
+            assert.equal(await long.locator('.file-name').getAttribute('title'), '/long/path/to/cmd/main.go');
+            assert(!((await long.locator('.file-preview').textContent()).includes('Captured content')));
+            for (const size of ['18px', '28px']) {
+                await page.evaluate(size => { document.documentElement.style.fontSize = size; }, size);
+                const toolsTab = page.locator('.pane-tab[data-pane="tools"]');
+                if (await toolsTab.isVisible()) await toolsTab.click();
+                await long.locator('.preview').waitFor({ state: 'visible' });
+                const geometry = await long.evaluate(card => {
+                    const preview = card.querySelector('.preview'), source = card.querySelector('.file-source');
+                    const style = getComputedStyle(source);
+                    preview.scrollTop = 60; preview.scrollLeft = 60;
+                    return { vertical: preview.scrollTop > 0, horizontal: preview.scrollLeft > 0,
+                        innerOverflow: style.overflowY, maximum: style.maxHeight,
+                        width: preview.clientWidth, scrollWidth: preview.scrollWidth, height: preview.clientHeight, scrollHeight: preview.scrollHeight,
+                        overflow: getComputedStyle(preview).overflow,
+                        noWrap: getComputedStyle(source.querySelector('code')).whiteSpace,
+                        sourceOffset: source.getBoundingClientRect().top - card.querySelector('.file-name').getBoundingClientRect().bottom };
+                });
+                assert(geometry.vertical && geometry.horizontal, 'One outer preview must scroll in both directions: ' + JSON.stringify(geometry));
+                assert.equal(geometry.innerOverflow, 'visible');
+                assert.equal(geometry.maximum, 'none');
+                assert.equal(geometry.noWrap, 'pre');
+                assert(geometry.sourceOffset < 20, 'Redundant header space above source');
+            }
             assert.deepEqual(errors, []);
             await page.close();
             console.log(`PASS file renderers ${width}: offsets, literal content, suffix highlighting, truncation, replacement labels, fallback, raw output and focus`);

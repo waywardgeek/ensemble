@@ -359,10 +359,11 @@ body.compact #transcript { padding: .3rem; }
 .work-product-links small, .work-product-links [role="status"] { flex-basis: 100%; overflow-wrap: anywhere; }
 
 /* Recorded file excerpts: textual labels carry meaning without color. */
-.file-source { overflow-x: auto; max-height: 24rem; }
+/* The result preview owns scrolling; excerpts must not nest scroll regions. */
+.file-source { overflow: visible; max-height: none; width: max-content; min-width: 100%; box-sizing: border-box; }
 .file-source-line { display: flex; min-width: max-content; }
 .file-line-number { display: inline-block; min-width: 4ch; padding-right: 1ch; text-align: right; user-select: none; opacity: .75; flex-shrink: 0; }
-.file-source-line code { white-space: pre; }
+.part .file-source-line code { white-space: pre; overflow-wrap: normal; }
 .file-preview > p { overflow-wrap: anywhere; }
 
 /* Continuing command output is a bounded log, not an interactive terminal. */

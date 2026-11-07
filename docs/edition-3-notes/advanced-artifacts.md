@@ -1120,3 +1120,26 @@ sharing a highlighter did not prove that the source renderer received its data.
 The candidate also contains the earlier numbered-read correction. Installation
 and Bill's next usability check remain separate gates. No highlighting library,
 publication artifact, running installation, or private browser data changed.
+
+### File-view usability: compact names and one scroll owner
+
+Bill confirmed the repaired source view works, then identified nested vertical
+scrollbars and repeated header text consuming the excerpt. At his direction,
+show only the basename above the code; retain the full path in its tooltip and
+accessible label (and the original call). Ordinary read/write excerpts no longer
+repeat the operation or starting line in a paragraph: the gutter already shows
+line numbers. Partial first-column notices, truncation, and edit Removed/Inserted
+labels remain meaningful and visible. The outer result preview owns scrolling
+in both directions; source blocks have no separate maximum height or scrollbox.
+A more specific source whitespace rule preserves the agreed no-wrap default.
+
+Actual-page synthetic-frame checks cover long Go excerpts at desktop/phone
+widths with 18px and 28px root text, basename/full-path metadata, one scroll owner,
+no-wrap, and compact source placement. Initial geometry assertions measured a
+hidden responsive pane (all zero dimensions); explicitly select Tools and require
+visibility before measuring. Final compact/pairing/state/directory/file/search
+browser checks passed, host joined, and installable GUI build passed. Logs use
+`file-layout-*` in the existing verification workspace. No font reduction, new
+library, model-result change, live installation, or publication update. Optional
+wrap and clean-copy controls remain a separate agreed follow-up, not implemented
+by this layout correction.

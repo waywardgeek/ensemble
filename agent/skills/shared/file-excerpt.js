@@ -5,13 +5,20 @@ export function fileExcerpt(document, evidence, operations) {
     const root = document.createElement("div");
     root.className = "file-preview";
     const title = document.createElement("p");
-    title.textContent = `${evidence.operation}: ${evidence.path}`;
+    title.className = "file-name";
+    title.textContent = evidence.path.split(/[\\/]/).at(-1) || evidence.path;
+    title.title = evidence.path;
+    title.setAttribute("aria-label", evidence.path);
     root.append(title);
     const source = /\.(cs|js|mjs|cjs|ts|tsx|jsx|py|go|java|c|h|cpp|hpp|rs|json|sh)$/i.test(evidence.path);
     function section(label, excerpt) {
-        const heading = document.createElement("p");
-        heading.textContent = `${label} — starts at line ${evidence.start_line}, column ${evidence.start_column} (UTF-16)`;
-        root.append(heading);
+        if (label || evidence.start_column > 1) {
+            const heading = document.createElement("p");
+            const position = evidence.start_column > 1
+                ? `Partial first line: line ${evidence.start_line}, column ${evidence.start_column} (UTF-16)` : "";
+            heading.textContent = [label, position].filter(Boolean).join(" — ");
+            root.append(heading);
+        }
         if (new TextEncoder().encode(excerpt.text).length < excerpt.total_bytes) {
             const notice = document.createElement("p");
             notice.className = "file-truncation";
@@ -48,6 +55,6 @@ export function fileExcerpt(document, evidence, operations) {
         root.append(note);
         section("Removed", evidence.removed);
         section("Inserted", evidence.content);
-    } else section("Captured content", evidence.content);
+    } else section("", evidence.content);
     return root;
 }
