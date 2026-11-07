@@ -131,7 +131,12 @@ public sealed partial class Agent
             {
                 // Resolve every configured route before any child's startup has
                 // effects. A missing offering is never a legacy wire-name hint.
-                if (state.Offering is { } identity)
+                var saved = AgentSettings.Read(Sandbox(), Path.Combine(directory, name, "settings.json"));
+                if (saved?.SelectedOffering is { } selected)
+                {
+                    _ = new Configuration(Configuration(), Parent().ResolveModel(selected));
+                }
+                else if (state.Offering is { } identity)
                 {
                     Model model = Parent().ResolveModel(identity);
                     if (model.Name != state.Model)

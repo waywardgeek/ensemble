@@ -206,7 +206,8 @@ Ensemble resolves a saved `ModelIdentity` by following its current vendor,
 endpoint and model ownership. There is no second lookup registry and no fallback
 by wire name. A detached or missing offering is unavailable. Ordinary child
 registrations retain the legacy version1 shape for legacy configurations;
-configured children use version2 with a required qualified identity. Restore
+configured children use version2 with a required qualified identity. When no explicit
+Agent preference is present, restore
 validates identities before constructing children, and checks the saved wire name
 against the resolved offering. It preserves conversation and pause state, not
 credentials or interrupted effects. A legacy child record under a configured
@@ -215,8 +216,9 @@ parent refuses because that record cannot identify the original route safely.
 Peer launch records follow the same identity rule. A configured peer saves its
 qualified offering alongside the launch model name; a legacy peer keeps the
 original four-field record. These are launch choices, not a second store of the
-running Agent's mutable selection. Restoration resolves the entire launch set
-before starting any peer, checks each wire name, and refuses missing offerings
+running Agent's mutable selection. Without an explicit Agent preference, restoration
+resolves the entire launch set before starting any peer, checks each wire name, and
+refuses missing offerings
 without substituting the host's route or funding. Invalid present identities do
 not become legacy records.
 
@@ -230,12 +232,28 @@ Engine admission validates the graph before incrementing its active-send guard.
 `SetModelAsync(Model)` selects a configured offering only between turns, including
 absence of direct Engine sends. It rejects a foreign root before acquiring its
 graph lock. Under ingress and the owning graph gate, it validates the candidate,
-saves the complete child restart selection when applicable, then updates both
-membership ends and the frozen configuration. Failed saving leaves the old
-selection intact. A successful switch retains Engine and conversation, and resets
+saves the qualified identity in the persistent Agent's own `settings.json`, then
+updates both membership ends and the frozen configuration. Transient Agents have
+no implicit settings file. Failed saving leaves the old selection intact. A successful switch retains Engine and conversation, and resets
 the last-request context measurement. An explicit valid choice can recover an
 Agent whose old Model was removed; no automatic substitution occurs. The legacy
 string overload still preserves its route and cannot invent a configured offering.
+
+An optional `selected_offering` in Agent settings is the explicit current choice.
+It contains only the strict vendor/endpoint/model identity. Memory, recall and
+working-context saves preserve it, and model saves preserve those sibling policies.
+Read the preference through the actual Sandbox before attaching the selected Model
+and constructing Engine. Sandbox creation needs the Agent's filesystem security
+policy, not permission to send inference; do not weaken route admission to break
+that construction dependency.
+
+On child and peer restoration, a present preference takes precedence over the
+legacy launch choice, even if the old offering no longer exists. Validate every
+immediate saved preference before fleet startup effects, then resolve again during
+construction. A malformed or unavailable preference refuses; it never falls back
+to the launch record. When absent, the strict legacy rules above remain in force.
+Selecting a configured model commits one Agent settings file, not a claimed atomic
+transaction across that file and the child or peer launch registry.
 
 The GUI reads a credential-free `ModelSelectionStatus`, not the inference-validating
 configuration getter. Under the same ingress-to-graph lock order, this snapshot
@@ -398,8 +416,9 @@ must leave the registry and live ownership unchanged. Listing a skill grants no
 tools; normal skill startup still owns activation and cancellation.
 
 This interface does not discover credentials or register missing offerings.
-Application-wide remembered funding defaults and durable per-Agent current
-selections are a separate integration slice, not established by a populated menu.
+Application-wide remembered funding defaults and registration of other vendor
+credentials remain separate host integration work. Durable per-Agent current
+selection is implemented as described above; a populated menu alone proves neither.
 
 ## Exercises (draft acceptance contracts)
 

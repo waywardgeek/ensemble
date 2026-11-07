@@ -9,7 +9,7 @@ internal sealed record RecallCompletion(ImmutableArray<RecallHit> Selected, int 
 // Value-like disk document. This is a transfer value, not a second live policy
 // owner: Agent remains authoritative for current settings.
 internal sealed partial record AgentSettings(MemorySettings Memory, RecallSettings Recall,
-    ImmutableArray<WorkingContextLimit> WorkingContext = default)
+    ImmutableArray<WorkingContextLimit> WorkingContext = default, ModelIdentity? SelectedOffering = null)
 {
     // Restore callers inspect the same strict document before constructing an
     // Agent. The caller supplies its actual filesystem owner, not raw file I/O.

@@ -40,7 +40,7 @@ public sealed partial class Agent
             {
                 var saved = Memory().ReadSettings();
                 Memory().WriteSettings(new AgentSettings(saved?.Memory ?? MemorySettings(),
-                    saved?.Recall ?? RecallSettings(), next));
+                    saved?.Recall ?? RecallSettings(), next, saved?.SelectedOffering));
             }
             lock (ingress)
             {

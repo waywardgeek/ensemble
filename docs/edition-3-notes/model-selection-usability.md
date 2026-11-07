@@ -33,14 +33,51 @@ actual server behavior is covered separately, not claimed as one integrated live
 browser/provider experiment. Final browser-only refinements followed the shared
 run and were rechecked with the browser script. No installation or restart.
 
+## Durable explicit Agent selection
+
+A persistent Agent now saves explicit configured selection in its own settings.json
+as selected_offering, a strict vendor/endpoint/model reference. The actor saves
+before publishing the new Model membership/configuration. No credential or endpoint
+copy is stored. Memory, recall and working-context writes preserve the selection;
+selection writes preserve those sibling policies. Transient Agents keep existing
+in-memory behavior. Legacy name-only selection retains its existing compatibility
+path; no endpoint or funding is invented from a wire name.
+
+The shared bounded reader uses an actual Sandbox before Model attachment and Engine
+construction. Sandbox initialization reads filesystem security policy independently
+of inference admission; normal Configuration/render/send validation remains strict.
+A saved explicit selection precedes old child/peer launch routes. All immediate
+restoration candidates are prevalidated before startup, then resolved again during
+construction. Invalid/missing offerings refuse without legacy fallback or file
+repair. Launch records are not a second commit point for configured model changes.
+
+Evidence remains /private/tmp/cadence-model-preferences.ERLGRh. Final focused checks
+cover25 groups: selection6, child3, peer6, domain7, working-context3. The new real-file
+scenario restores top-level/child/peer selections with the old launch offering absent,
+preserves sibling policy, and records no inference. An unavailable saved choice with
+a valid old route refuses; a valid-first/bad-later peer set leaves the fresh first
+home uncreated. Null/duplicate/unavailable top-level preferences roll back membership.
+Blocked settings replacement and corrupted live settings leave selection unchanged;
+repair permits a later successful selection on the same Agent.
+
+Initial tests failed because they still injected failure into child.json or expected
+legacy wire-name validation despite a new explicit preference. The save-failure
+oracle now targets settings.json. Legacy refusal cases explicitly omit the preference;
+separate positive/negative tests establish precedence rather than weakening those
+legacy contracts. The shared core suite passed371/0 on final runtime bytes, before
+only the additional negative test assertions. A fresh clean build and all25 focused
+groups passed afterward. The GUI rebuilt cleanly and its six existing regression
+groups passed, including real peer HTTP/lifecycle paths and joined teardown; this
+is not a fresh visual browser acceptance test. This is internal evidence, not
+public-grader or live-provider acceptance. No installed settings, credentials, service or release artifact changed.
+
 ## Remaining integration
 
 The current host registers only its launch credential binding for a model document.
-It does not automatically import other inference keys; the existing private-file
-reader is explicitly for transcription, not general inference. Choose an explicit
-inference key-store input before extending host bindings; never silently reuse the
-speech payer. Application-wide funding preferences and per-Agent selected-model
-persistence are not yet implemented by this slice. Existing Agent settings currently
-cover memory, recall and working-context policy; child restart records separately
-retain model identity. Reconcile that storage rather than writing competing live
-selection authorities. Host-approved Ollama configuration must remain explicit.
+Bill authorized ~/.en/settings.json as the global inference credential/default store;
+its three existing API-key field names/types were inspected without printing values.
+Host import and application-wide remembered funding are still pending. Keep the
+existing transcription payer separate. Global defaults guide future explicit choices,
+never silently retarget existing Agents. Host-approved Ollama configuration remains
+explicit. Extend public Local Models checks and ordinary GUI evidence for these
+contracts before claiming the full usability effort complete.

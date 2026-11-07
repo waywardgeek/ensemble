@@ -35,7 +35,13 @@ internal sealed partial record AgentSettings
             {
                 throw new InvalidDataException("Invalid Agent settings document");
             }
-            var names = root.EnumerateObject().Select(field => field.Name).Order(StringComparer.Ordinal).ToArray();
+            var fields = root.EnumerateObject().Select(field => field.Name).ToArray();
+            if (fields.Distinct(StringComparer.Ordinal).Count() != fields.Length)
+            {
+                throw new InvalidDataException("Duplicate Agent settings field");
+            }
+            bool hasSelection = root.TryGetProperty("selected_offering", out var selected);
+            var names = fields.Where(name => name != "selected_offering").Order(StringComparer.Ordinal).ToArray();
             // Chapter 22's complete memory-only document remains readable.
             // Supplied recall is strict; null/malformed never means defaults.
             bool legacy = names.SequenceEqual(new[] { "memory", "version" });
@@ -49,7 +55,8 @@ internal sealed partial record AgentSettings
             var recall = legacy ? new RecallSettings()
                 : JsonCodec.ReadRecallSettings(root.GetProperty("recall"));
             var limits = withContext ? JsonCodec.ReadWorkingContextLimits(root.GetProperty("working_context")) : [];
-            return new AgentSettings(memory, recall, limits);
+            var offering = hasSelection ? JsonCodec.ReadModelIdentity(selected) : null;
+            return new AgentSettings(memory, recall, limits, offering);
         }
     }
 }

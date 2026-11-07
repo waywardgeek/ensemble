@@ -43,9 +43,9 @@ public sealed partial class Ensemble
     private partial CancellationTokenSource BeginPeerOperation(Agent source, CancellationToken cancellation);
     private partial ImmutableArray<PeerLaunch> ReadPeerLaunches(Agent source);
     private partial void SavePeerLaunches(Agent source, ImmutableArray<PeerLaunch> entries);
-    private partial Configuration PeerConfiguration(PeerLaunch entry, Configuration policy);
+    private partial Configuration PeerConfiguration(PeerLaunch entry, Configuration policy, Sandbox sandbox);
     private partial Task<Agent> ConstructPeerAsync(PeerLaunch entry, Configuration configuration,
-        SkillBootstrap? bootstrap, CancellationToken cancellation, bool waitForBrowser);
+        SkillBootstrap? bootstrap, CancellationToken cancellation, bool waitForBrowser, Sandbox sandbox);
 }
 
 public sealed partial class Agent

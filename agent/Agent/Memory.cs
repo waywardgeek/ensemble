@@ -50,7 +50,7 @@ public sealed partial class Agent
             ReadMemoryChanges(message.MemorySettings!, startup: !memoryReady);
             var saved = Memory().ReadSettings();
             Memory().WriteSettings(new AgentSettings(message.MemorySettings!,
-                saved?.Recall ?? RecallSettings(), saved?.WorkingContext ?? WorkingContextLimits()));
+                saved?.Recall ?? RecallSettings(), saved?.WorkingContext ?? WorkingContextLimits(), saved?.SelectedOffering));
             return true;
         }
         catch (Exception error) when (error is IOException or InvalidDataException or UnauthorizedAccessException

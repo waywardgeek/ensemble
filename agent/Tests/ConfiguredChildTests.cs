@@ -63,10 +63,18 @@ internal static class ConfiguredChildTests
                     .Contains("Keep this conversation"),
                 "Restoration preserves pause and conversation without a provider request.");
             await child.SetModelAsync(model.Name);
-            Check(JsonNode.Parse(File.ReadAllText(path))!["Offering"]!["EndpointID"]!.GetValue<string>() == "test",
-                "Subsequent ordinary settings save preserves the offering identity.");
+            string settings = Path.Combine(child.DataDirectory(), "settings.json");
+            Check(JsonNode.Parse(File.ReadAllText(settings))!["selected_offering"]!["endpoint"]!.GetValue<string>() == "test",
+                "Explicit selection saves its offering in Agent settings.");
         }
         finally { app.Destroy(); }
+
+        // These are legacy-record refusal checks: no explicit preference may
+        // mask their route-name assertions. Preference precedence has its own test.
+        string settingsPath = Path.Combine(home, "children", "local", "settings.json");
+        var settingsDocument = JsonNode.Parse(File.ReadAllText(settingsPath))!.AsObject();
+        settingsDocument.Remove("selected_offering");
+        File.WriteAllText(settingsPath, settingsDocument.ToJsonString());
 
         // Each damaged registration gets a new root and no existing child that
         // could hide a refusal. No mutation is repaired by the reader.

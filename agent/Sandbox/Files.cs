@@ -12,7 +12,10 @@ public sealed partial class Sandbox
     public partial Sandbox(Agent parent)
     {
         ArgumentNullException.ThrowIfNull(parent);
-        string requested = parent.Configuration().SandboxRoot;
+        // Filesystem confinement depends on Agent security policy, not live
+        // inference admission. Construction needs this owner to read a saved
+        // offering before attaching that offering to the Agent.
+        string requested = parent.DocumentaryConfiguration().SandboxRoot;
         root = "";
         try
         {

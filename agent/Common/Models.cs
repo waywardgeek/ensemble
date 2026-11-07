@@ -108,6 +108,7 @@ public sealed partial class Agent
     internal Model? selectedModel;
     public partial Model? SelectedModel();
     private partial void AttachConfiguredModel();
+    private partial void SaveModelSelection(Configuration candidate);
     private partial void DetachConfiguredModel();
     private partial Configuration ValidatedConfiguration();
     internal partial Configuration DocumentaryConfiguration();

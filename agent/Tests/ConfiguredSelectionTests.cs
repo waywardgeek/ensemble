@@ -14,7 +14,7 @@ internal static partial class MeterTests
             await agent.SetModelAsync(model).WaitAsync(TimeSpan.FromSeconds(10));
         }
         catch (Exception error) when (error is ArgumentException or InvalidOperationException or IOException
-            or UnauthorizedAccessException)
+            or UnauthorizedAccessException or System.Text.Json.JsonException or FormatException)
         {
             Check(ReferenceEquals(previous, agent.SelectedModel())
                 && ReferenceEquals(configuration, agent.Configuration()),
@@ -143,7 +143,7 @@ internal static partial class MeterTests
                 sandboxRoot: home), dataDirectory: home);
             Agent child = await parent.CreateChildAsync("saved");
             await child.SetModelAsync(one);
-            string path = Path.Combine(child.DataDirectory(), "child.json");
+            string path = Path.Combine(child.DataDirectory(), "settings.json");
             string backup = path + ".backup";
             string original = File.ReadAllText(path);
             File.Move(path, backup);
@@ -160,8 +160,13 @@ internal static partial class MeterTests
                 Directory.Delete(path);
                 File.Move(backup, path);
             }
+            var malformed = JsonNode.Parse(original)!;
+            malformed["selected_offering"] = null;
+            File.WriteAllText(path, malformed.ToJsonString());
+            try { await RefuseConfiguredSelection(child, two); }
+            finally { File.WriteAllText(path, original); }
             await child.SetModelAsync(two);
-            Check(JsonNode.Parse(File.ReadAllText(path))!["Offering"]!["ModelID"]!.GetValue<string>() == "two"
+            Check(JsonNode.Parse(File.ReadAllText(path))!["selected_offering"]!["model"]!.GetValue<string>() == "two"
                 && ReferenceEquals(child.SelectedModel(), two) && !one.Agents().Contains(child),
                 "Successful selection saves the whole candidate and publishes both membership ends.");
         }

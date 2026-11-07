@@ -24,6 +24,10 @@ public sealed partial class Memory
                 ["recall"] = JsonCodec.WriteRecallSettings(settings.Recall),
                 ["working_context"] = JsonCodec.WriteWorkingContextLimits(settings.WorkingContext.IsDefault ? [] : settings.WorkingContext)
             };
+            if (settings.SelectedOffering is { } offering)
+            {
+                document["selected_offering"] = JsonCodec.WriteModelIdentity(offering);
+            }
             byte[] bytes = Encoding.UTF8.GetBytes(document.ToJsonString());
             if (bytes.Length > 16 * 1024)
             {

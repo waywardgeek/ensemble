@@ -800,6 +800,7 @@ try
         await AsyncCase("Chapter 18 actor-owned model selection", () => MeterTests.ModelSelection(temp));
         await AsyncCase("Chapter 27 configured Model selection and real routing", MeterTests.ConfiguredModelSelection);
         await AsyncCase("Chapter 27 configured selection save-before-publication", () => MeterTests.ConfiguredSelectionSaveFailure(temp));
+        await AsyncCase("Chapter 27 Agent settings selection and restore precedence", () => MeterTests.ConfiguredPreferenceRestart(temp));
         await AsyncCase("Chapter 18 direct-send selection guard and capabilities", MeterTests.DirectSendSelection);
         if (args.Length != 0)
         {

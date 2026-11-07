@@ -51,7 +51,7 @@ public sealed partial class Ensemble
                 : new Configuration(configuration, ResolveModel(offering));
             string selectedSkill = string.IsNullOrEmpty(skill) ? bootstrap?.Primary ?? "" : skill;
             var entry = new PeerLaunch(name, selection.Model, selectedSkill, DateTimeOffset.UtcNow, selection.Offering);
-            peer = await ConstructPeerAsync(entry, configuration, bootstrap, operation.Token, waitForBrowser).ConfigureAwait(false);
+            peer = await ConstructPeerAsync(entry, configuration, bootstrap, operation.Token, waitForBrowser, source.Sandbox()).ConfigureAwait(false);
             operation.Token.ThrowIfCancellationRequested();
             // This replacement is the commit point. Do not throw cancellation
             // afterward and tell the caller a durably committed creation failed.
@@ -100,12 +100,12 @@ public sealed partial class Ensemble
             // Resolve the entire launch set before any peer startup or file writes.
             foreach (var entry in entries)
             {
-                _ = PeerConfiguration(entry, configuration);
+                _ = PeerConfiguration(entry, configuration, source.Sandbox());
             }
             var bootstrap = source.SkillManager()?.CaptureBootstrap();
             foreach (var entry in entries)
             {
-                restored.Add(await ConstructPeerAsync(entry, configuration, bootstrap, operation.Token, waitForBrowser)
+                restored.Add(await ConstructPeerAsync(entry, configuration, bootstrap, operation.Token, waitForBrowser, source.Sandbox())
                     .ConfigureAwait(false));
             }
             operation.Token.ThrowIfCancellationRequested();
@@ -164,8 +164,13 @@ public sealed partial class Ensemble
         }
     }
 
-    private partial Configuration PeerConfiguration(PeerLaunch entry, Configuration policy)
+    private partial Configuration PeerConfiguration(PeerLaunch entry, Configuration policy, Sandbox sandbox)
     {
+        var saved = AgentSettings.Read(sandbox, Path.Combine(AgentDirectory(entry.Name)!, "settings.json"));
+        if (saved?.SelectedOffering is { } selected)
+        {
+            return new Configuration(policy, ResolveModel(selected));
+        }
         if (entry.Offering is { } identity)
         {
             Model model = ResolveModel(identity);
@@ -183,7 +188,7 @@ public sealed partial class Ensemble
     }
 
     private partial async Task<Agent> ConstructPeerAsync(PeerLaunch entry, Configuration configuration,
-        SkillBootstrap? bootstrap, CancellationToken cancellation, bool waitForBrowser)
+        SkillBootstrap? bootstrap, CancellationToken cancellation, bool waitForBrowser, Sandbox sandbox)
     {
         cancellation.ThrowIfCancellationRequested();
         // A primary override selects from immutable parsed definitions. It does
@@ -201,7 +206,7 @@ public sealed partial class Ensemble
         {
             bootstrap = null;
         }
-        var peer = new Agent(this, PeerConfiguration(entry, configuration), name: entry.Name);
+        var peer = new Agent(this, PeerConfiguration(entry, configuration, sandbox), name: entry.Name);
         try
         {
             peer.InstallTools();

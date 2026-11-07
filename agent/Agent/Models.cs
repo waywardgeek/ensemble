@@ -59,7 +59,7 @@ public sealed partial class Agent
                         // An explicit choice can recover from a removed old Model.
                         // The old snapshot supplies Agent policy, never routing.
                         var candidate = new Configuration(configuration, model);
-                        SaveChildRestart(selection: candidate);
+                        SaveModelSelection(candidate);
                         if (!ReferenceEquals(selectedModel, model))
                         {
                             selectedModel?.RemoveAgent(this);
@@ -72,16 +72,33 @@ public sealed partial class Agent
                 else
                 {
                     Configuration candidate = ValidatedConfiguration().WithModel(message.Model!);
-                    SaveChildRestart(selection: candidate);
+                    SaveModelSelection(candidate);
                     configuration = candidate;
                     ResetMemoryPressure();
                 }
             }
             message.Reply!.TrySetResult("");
         }
-        catch (Exception error) when (error is ArgumentException or InvalidOperationException or IOException or UnauthorizedAccessException)
+        catch (Exception error) when (error is ArgumentException or InvalidOperationException or IOException or UnauthorizedAccessException
+            or System.Text.Json.JsonException or FormatException)
         {
             message.Reply!.TrySetException(error);
+        }
+    }
+
+    private partial void SaveModelSelection(Configuration candidate)
+    {
+        if (dataDirectory is not null && candidate.Offering is { } offering)
+        {
+            // One durable authority for explicit configured selections. Legacy
+            // launch records remain readable; they are not a second commit point.
+            var saved = Memory().ReadSettings();
+            Memory().WriteSettings(new AgentSettings(saved?.Memory ?? MemorySettings(),
+                saved?.Recall ?? RecallSettings(), saved?.WorkingContext ?? WorkingContextLimits(), offering));
+        }
+        else
+        {
+            SaveChildRestart(selection: candidate);
         }
     }
 
