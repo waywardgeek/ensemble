@@ -281,7 +281,7 @@ public sealed partial class Tool
                 break;
             case ToolKind.MicroHandoff:
                 name = "micro_handoff";
-                description = "Record a continuation checkpoint and clear tool traffic after this batch finishes. Retains earlier checkpoints until a matching memory replacement commits; preserves dialogue and skill instructions.";
+                description = "Record a continuation checkpoint and clear tool traffic after this batch finishes. Replaces all older checkpoints in active context; preserves dialogue, skill instructions, and canonical History.";
                 Field("text", "string", "Nonempty continuation note: decisions, evidence limits, and next work.", true);
                 break;
             case ToolKind.LoadSkill:

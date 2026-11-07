@@ -81,6 +81,7 @@ internal static partial class ActorTests
         var started = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         var release = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         var app = new Application(TextWriter.Null);
+        Task? server = null;
         try
         {
             var agent = new Agent(app, new Configuration(Vendor.Anthropic, "model-a",
@@ -94,12 +95,12 @@ internal static partial class ActorTests
                     await release.Task.WaitAsync(cancellation);
                     return "companion completed";
                 }, waitForCompletion: true);
-            // Checkpoints remain active source until a memory replacement
-            // commits. A later note alone must not erase the earlier reasons.
+            // A successful replacement retires older active notes, not canonical events.
+            // Until companion results are durable, the old note remains active.
             agent.History().Append(new Event(EventKind.HintReceived, actor: Actor.System,
                 parts: [new TextPart("ordinary system instructions")]));
             agent.History().Append(new Event(EventKind.HandoffRecorded, parts: [new HandoffPart("old note")]));
-            var server = Task.Run(async () =>
+            server = Task.Run(async () =>
             {
                 for (int round = 0; round < 3; round++)
                 {
@@ -122,7 +123,9 @@ internal static partial class ActorTests
                     else
                     {
                         string expected = round == 1 ? "first replacement" : "newest replacement";
-                        Check(request.Contains(expected) && request.Contains("old note"), "Wrong active note on next request");
+                        Check(request.Contains(expected) && !request.Contains("old note"), "Older handoff survived on the wire");
+                        Check(request.Split("[Completed micro_handoff checkpoint]").Length == 2,
+                            "Provider request did not contain exactly one checkpoint");
                         using var document = JsonDocument.Parse(request);
                         string messages = document.RootElement.GetProperty("messages").GetRawText();
                         Check(!messages.Contains("\"tool_use\"") && !messages.Contains("\"tool_result\""), "Handoff retained tool traffic");
@@ -136,7 +139,7 @@ internal static partial class ActorTests
                         }
                         else
                         {
-                            Check(request.Contains("first replacement"), "Earlier checkpoint disappeared before memory commit");
+                            Check(!request.Contains("first replacement"), "Superseded checkpoint survived on the wire");
                             await Reply(stream, "handoff complete", deadline.Token);
                         }
                     }
@@ -150,8 +153,8 @@ internal static partial class ActorTests
             Check(agent.History().Events().Any(fact => fact.Kind == EventKind.ToolReturned && fact.CallID == "note-1"),
                 "Successful handoff result not recorded before holding companion");
             release.TrySetResult();
-            Check(await turn.WaitAsync(deadline.Token) == "handoff complete", "Turn did not finish");
-            await server.WaitAsync(deadline.Token);
+            await Task.WhenAll(server, turn).WaitAsync(deadline.Token);
+            Check(await turn == "handoff complete", "Turn did not finish");
             var events = agent.History().Events();
             long firstNote = events.Single(fact => fact.Kind == EventKind.HandoffRecorded
                 && fact.Parts.OfType<HandoffPart>().Any(note => note.Text == "first replacement")).Seq;
@@ -159,8 +162,8 @@ internal static partial class ActorTests
                 "Companion result recorded after reduction");
             var context = agent.History().View();
             Check(context.Dialogue.SelectMany(entry => entry.Parts).OfType<HandoffPart>().Select(note => note.Text)
-                .SequenceEqual(["old note", "first replacement", "newest replacement"]),
-                "Completed checkpoint boundaries were not retained in order");
+                .SequenceEqual(["newest replacement"]),
+                "Active context did not retain only the newest checkpoint");
             Check(JsonCodec.Text(context.Dialogue.SelectMany(entry => entry.Parts)).Contains("ordinary system instructions"),
                 "Ordinary system content lost");
             Check(events.Count(fact => fact.Kind == EventKind.HandoffRecorded) == 3, "Canonical history lost older notes");
@@ -176,14 +179,23 @@ internal static partial class ActorTests
             await agent.FlushAsync(deadline.Token);
             Check(agent.History().View().Dialogue.SelectMany(entry => entry.Parts)
                 .OfType<HandoffPart>().Select(note => note.Text)
-                .SequenceEqual(["old note", "first replacement", "newest replacement", "direct replacement"]),
-                "Direct handoff did not retain completed source");
+                .SequenceEqual(["direct replacement"]),
+                "Direct handoff did not replace all older notes");
         }
         finally
         {
             release.TrySetResult();
-            app.Destroy();
+            deadline.Cancel();
             listener.Stop();
+            try { app.Destroy(); }
+            finally
+            {
+                if (server is not null)
+                {
+                    try { await server; }
+                    catch (OperationCanceledException) when (deadline.IsCancellationRequested) { }
+                }
+            }
         }
     }
 }
@@ -209,12 +221,14 @@ internal static class HandoffTests
                     parts: [new TextPart("caption " + mime), media]));
                 history.Append(new Event(EventKind.MessageReceived, actor: Actor.Human, parts: [media]));
             }
-            history.Append(new Event(EventKind.HandoffRecorded, parts: [new HandoffPart("old")]));
-            history.Append(new Event(EventKind.HandoffRecorded, parts: [new HandoffPart("new")]));
+            history.Append(new Event(EventKind.HandoffRecorded, parts: [new HandoffPart("RETIRED_CHECKPOINT_MARKER")]));
+            history.Append(new Event(EventKind.HandoffRecorded, parts: [new HandoffPart("CURRENT_CHECKPOINT_MARKER")]));
             // Handoff reduces context, not canonical events. Save below explicitly
             // requests zero retained diagnostics, so check events before that save.
             if (history.Events().SelectMany(fact => fact.Parts).OfType<BlobPart>().Count() != 8)
                 throw new Exception("Handoff erased canonical media");
+            if (history.Events().Where(fact => fact.Kind == EventKind.HandoffRecorded).Count() != 2)
+                throw new Exception("Handoff erased canonical checkpoint events");
             var replayed = new Agent(app, agent.Configuration());
             foreach (var fact in history.Events())
                 replayed.History().Append(fact);
@@ -224,7 +238,7 @@ internal static class HandoffTests
             if (!restored.History().LoadSave(save)) throw new Exception("Handoff save absent");
             var context = restored.History().View();
             var parts = context.Dialogue.SelectMany(entry => entry.Parts).ToArray();
-            if (!parts.OfType<HandoffPart>().Select(note => note.Text).SequenceEqual(["old", "new"])
+            if (!parts.OfType<HandoffPart>().Select(note => note.Text).SequenceEqual(["CURRENT_CHECKPOINT_MARKER"])
                 || !parts.OfType<TextPart>().Select(part => part.Text).SequenceEqual(
                     new[] { "dialogue" }.Concat(mediaTypes.Select(mime => "caption " + mime)))
                 || !parts.OfType<SkillPart>().Single().Pending
@@ -238,12 +252,18 @@ internal static class HandoffTests
                 if (reduced.Dialogue.Any(entry => entry.Parts.IsEmpty)
                     || reduced.Dialogue.SelectMany(entry => entry.Parts).OfType<BlobPart>().Any())
                     throw new Exception("Handoff retained active media or empty messages");
-                foreach (Vendor vendor in Enum.GetValues<Vendor>())
+                var projections = Enum.GetValues<Vendor>()
+                    .Select(vendor => new Configuration(vendor, "model-a", "http://127.0.0.1:1"))
+                    .Append(new Configuration(Vendor.OpenAI, "gpt-6-astra", "http://127.0.0.1:1"));
+                foreach (var projection in projections)
                 {
-                    var renderer = new Agent(app, new Configuration(vendor, "model-a", "http://127.0.0.1:1"));
+                    var renderer = new Agent(app, projection);
                     string wire = renderer.Engine().Render(reduced).ToJsonString();
-                    if (!wire.Contains("[Completed micro_handoff checkpoint]"))
-                        throw new Exception("Provider projection lost checkpoint completion after replay");
+                    if (wire.Split("[Completed micro_handoff checkpoint]").Length != 2)
+                        throw new Exception("Provider projection must contain exactly one completed checkpoint after replay");
+                    if (wire.Contains("RETIRED_CHECKPOINT_MARKER")
+                        || wire.Split("CURRENT_CHECKPOINT_MARKER").Length != 2)
+                        throw new Exception("Provider projection retained old notes or duplicated the newest");
                     if (wire.Contains("absent-handoff-media") || !wire.Contains("caption image/png"))
                         throw new Exception("Provider projection lost caption or retained media locator");
                 }

@@ -379,8 +379,8 @@ try
         CheckCase("memory unsafe and incomplete selection", MemorySelectionTests.Boundaries);
         if (args.Length != 0)
         {
-            await AsyncCase("handoff actor retains checkpoints", ActorTests.HandoffBatch);
-            CheckCase("handoff retained snapshot replay", HandoffTests.Replay);
+            await AsyncCase("handoff actor replaces older checkpoints", ActorTests.HandoffBatch);
+            CheckCase("handoff newest-only snapshot replay", HandoffTests.Replay);
             await AsyncCase("handoff interrupted batch", ActorTests.InterruptedHandoff);
             Console.WriteLine($"{passed} passed; {failures} failed");
             return failures == 0 ? 0 : 1;
@@ -990,7 +990,7 @@ CheckCase("validated backup recovery and failure nonmutation", PersistenceTests.
 await AsyncCase("automatic lifecycle and current runtime reconfiguration", PersistenceTests.Runtime);
 await AsyncCase("Chapter 14 pending skill authority and frozen projections", SkillAuthorityTests.PendingAuthority);
 CheckCase("Chapter 14 total reduction and strict unknown-event refusal", ReductionTests.TotalReplay);
-await AsyncCase("handoff waits for batch and retains completed notes", ActorTests.HandoffBatch);
+await AsyncCase("handoff waits for batch and replaces older notes", ActorTests.HandoffBatch);
 CheckCase("Chapter 14 handoff snapshot-only replay", HandoffTests.Replay);
 await AsyncCase("Chapter 14 interrupted handoff pairs tail and preserves Job", ActorTests.InterruptedHandoff);
 await AsyncCase("Chapter 14 manual clear waits for outcomes and preserves context/Jobs", ActorTests.ManualToolClear);

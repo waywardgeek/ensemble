@@ -7,14 +7,13 @@ public sealed partial class History
         var retained = new List<Entry>();
         foreach (var entry in dialogue)
         {
-            // Notes close completed segments. Retain older notes until a memory
-            // replacement commits; tool clearing alone must not erase their
-            // reasons. Media payloads leave active context at this boundary too;
-            // canonical events still retain them. Preserve accompanying prose.
-            // Ordinary system text and skills also remain unchanged.
+            // The newest checkpoint replaces all older notes in active context.
+            // Canonical events retain every note for archival replay. Media and
+            // tool traffic leave active context too; accompanying prose, ordinary
+            // system text and skills remain unchanged.
             var indices = Enumerable.Range(0, entry.Parts.Length)
                 .Where(index => entry.Parts[index] is not ToolCallPart and not ToolResultPart
-                    and not OpaquePart and not BlobPart)
+                    and not OpaquePart and not BlobPart and not HandoffPart)
                 .ToArray();
             if (indices.Length == 0)
             {
