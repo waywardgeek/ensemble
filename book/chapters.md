@@ -34,25 +34,27 @@ remaining closeout work complete.
 - [Chapter 23: While the Cache Is Broken](chapter-23.md)
 - [Chapter 24: Goals](chapter-24.md)
 - [Chapter 25: Voice and Images](chapter-25.md)
-- [Chapter 26: Artifacts and Actions](chapter-26.md) (in development)
-- [Chapter 27: Running Local Models](chapter-27.md) (in development)
+- [Chapter 26: Artifacts and Actions](chapter-26.md) (integration teaching; partial grading)
+- [Chapter 27: Running Local Models](chapter-27.md) (implemented; bounded verification)
 - [Chapter 28: Crossing Over to Ensemble](chapter-28.md)
 - [Epilogue: What we can rebuild](epilogue.md)
 - [A note from Bill](note-from-bill.md)
 
 ## First-book closeout work
 
-- **Local models:** implement and teach a supported local-model path. Ollama has
-  been requested, but the actual supported contract must be earned through work.
-- **Actions pane and artifacts:** improve the actual inspection and interaction
-  experience. The detailed scope and acceptance criteria remain to be developed.
-- **Bounded closeout review:** identify remaining implementation, teaching and
-  grader gaps; verify crossover and regenerate release artifacts when ready.
+- **Local models:** configured routing, funding, selection and tool conversations
+  are implemented. Public119 checks remain ungraded; one isolated six-tool MiMo
+  task passed using read/write/run. This is not general reliability certification.
+- **Actions pane and artifacts:** adopted integration and teaching are complete
+  within recorded scopes. The public artifact grade remains70/100; work-products30
+  and deferred reconstruction coverage are not silently awarded.
+- **Bounded closeout review:** reconcile manuscript references and historical
+  grader mappings, verify isolated publication outputs, and obtain Bill's human
+  usability acceptance. Existing release files are not newly verified outputs.
 
-Chapters 26 and 27 reserve these subjects without claiming completed teaching.
-Artifacts comes first; Local Models is the last development slice. The
-[execution plan](../docs/edition-3-notes/first-book-closeout-plan.md) includes
-fresh student reconstruction with question access and public graders.
+The [execution plan](../docs/edition-3-notes/first-book-closeout-plan.md) records
+Bill's decision to close further student campaigns and expanded artifact grading.
+No new student campaign, live trial or publication upload follows from this guide.
 The following older ideas remain future possibilities, not automatic closeout
 requirements:
 

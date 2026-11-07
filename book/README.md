@@ -30,8 +30,9 @@ with Crossing Over. Gateway, Connections, Agenda, Puffin and their active notes
 have moved to [the Puffin book](../puffin-book/README.md). The prior assembled
 Markdown/PDF/EPUB release artifacts have not been regenerated for this split or
 the closeout chapter placement. Chapter 26 is an integration draft with partial
-public grading; Chapter 27 remains a development placeholder.
-Local-model support and Actions-pane/artifact improvements remain closeout work;
+public grading; Chapter 27 now teaches implemented local-model support with
+deterministic checks and one bounded live coding success. Broader acceptance and
+human usability remain closeout work;
 see the [chapter guide](chapters.md). This is not a claim that the book is finished.
 
 The companion publication is available under [companion/](companion/README.md).
@@ -53,8 +54,8 @@ endpoints, archived evidence, or executable grader flags to match the book.
 | 23 | Codex/cache | 24 / `ch24` |
 | 24 | Goals | 27 / `ch27` |
 | 25 | [Voice and Images](chapter-25.md) | External media grader remains `-ch 26`; scopes pass 100/100 with documented limits. |
-| 26 | [Artifacts and Actions](chapter-26.md) | Integration draft; named artifact grade70/100, work products ungraded; student gates pending |
-| 27 | [Running Local Models](chapter-27.md) | In development; no completed exercise or grade |
+| 26 | [Artifacts and Actions](chapter-26.md) | Integration draft; named artifact grade70/100, work products ungraded; further student campaigns deferred |
+| 27 | [Running Local Models](chapter-27.md) | Implemented with bounded evidence; public119 ungraded, human usability pending |
 | 28 | Crossover | Active source in `agent/`; no numbered snapshot |
 
 Gateway's preserved endpoint remains `solutions/ch26`; its historical graders
