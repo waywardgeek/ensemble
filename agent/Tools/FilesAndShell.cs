@@ -7,8 +7,9 @@ namespace Ensemble;
 
 public sealed partial class Tool
 {
-    private string ReadFile(JsonElement args)
+    private ToolResultPart ReadFile(ToolCallPart call)
     {
+        var args = call.Args;
         var start = Integer(args, "start_line", 1);
         var end = Integer(args, "end_line", int.MaxValue);
         var maximum = Integer(args, "max_bytes", int.MaxValue);
@@ -54,7 +55,9 @@ public sealed partial class Tool
         var bytes = Encoding.UTF8.GetBytes(result.ToString());
         if (bytes.Length <= maximum)
         {
-            return result.ToString();
+            return new ToolResultPart(call.CallID, [new TextPart(result.ToString())],
+                fileEvidence: new FileEvidence(FileOperation.Read, String(args, "path"), start, 1,
+                    FileExcerpt.Capture(result.ToString())));
         }
         // Back up to a UTF-8 boundary: a byte cap must not manufacture a broken
         // character. The report is separate from the capped file payload.
@@ -63,7 +66,11 @@ public sealed partial class Tool
         {
             boundary--;
         }
-        return Encoding.UTF8.GetString(bytes, 0, boundary) + "\n[truncated]\n";
+        var captured = Encoding.UTF8.GetString(bytes, 0, boundary);
+        var excerpt = FileExcerpt.Capture(captured);
+        return new ToolResultPart(call.CallID, [new TextPart(captured + "\n[truncated]\n")],
+            fileEvidence: new FileEvidence(FileOperation.Read, String(args, "path"), start, 1,
+                new FileExcerpt(excerpt.Text, bytes.LongLength)));
     }
 
     private ToolResultPart ListDirectory(ToolCallPart call)
@@ -226,8 +233,9 @@ public sealed partial class Tool
         return result.ToString();
     }
 
-    private string WriteFile(JsonElement args)
+    private ToolResultPart WriteFile(ToolCallPart call)
     {
+        var args = call.Args;
         var path = String(args, "path");
         var append = Boolean(args, "append");
         var overwrite = Boolean(args, "overwrite");
@@ -237,6 +245,9 @@ public sealed partial class Tool
         // CreateNew enforces no-overwrite at the actual open. A separate
         // existence/size probe would race, and must not reopen a host path.
         var content = String(args, "content");
+        var excerpt = FileExcerpt.Capture(content);
+        var evidence = new FileEvidence(append ? FileOperation.Append : FileOperation.Write,
+            path, 1, 1, excerpt);
         var mode = append ? FileMode.OpenOrCreate : overwrite ? FileMode.Create : FileMode.CreateNew;
         using var stream = files.OpenFile(path, mode, append ? FileAccess.ReadWrite : FileAccess.Write);
         long startLine = 1, startColumn = 1;
@@ -255,18 +266,23 @@ public sealed partial class Tool
             }
             stream.Seek(0, SeekOrigin.End);
         }
+        if (append) evidence = new FileEvidence(FileOperation.Append, path, startLine, startColumn, excerpt);
         // Dispose before returning success: flushing can fail too.
         using (var writer = new StreamWriter(stream, new UTF8Encoding(false), leaveOpen: true))
             writer.Write(content);
-        if (content.Length == 0) return "File written; no content written (empty input).";
+        if (content.Length == 0) return new ToolResultPart(call.CallID,
+            [new TextPart("File written; no content written (empty input).")], fileEvidence: evidence);
         long endLine = startLine;
         for (int index = 0; index < content.Length - 1; index++)
             if (content[index] == '\n') endLine++;
-        return $"File written. Lines {startLine}–{endLine}; starting column {startColumn} (UTF-16).";
+        return new ToolResultPart(call.CallID,
+            [new TextPart($"File written. Lines {startLine}–{endLine}; starting column {startColumn} (UTF-16).")],
+            fileEvidence: evidence);
     }
 
-    private string EditFile(JsonElement args)
+    private ToolResultPart EditFile(ToolCallPart call)
     {
+        var args = call.Args;
         var path = String(args, "path");
         var oldText = String(args, "old_text");
         var replacement = String(args, "new_text");
@@ -293,11 +309,17 @@ public sealed partial class Tool
             throw new ArgumentException("old_text has multiple matches in " + path + "; read the file and narrow the anchor.");
         }
         var edited = text[..first] + replacement + text[(first + oldText.Length)..];
+        long startLine = 1, startColumn = 1;
+        foreach (char character in text.AsSpan(0, first))
+            if (character == '\n') { startLine++; startColumn = 1; }
+            else startColumn++;
+        var evidence = new FileEvidence(FileOperation.Edit, path, startLine, startColumn,
+            FileExcerpt.Capture(replacement), FileExcerpt.Capture(oldText));
         stream.Position = 0;
         stream.SetLength(0);
-        using var writer = new StreamWriter(stream, new UTF8Encoding(false));
-        writer.Write(edited);
-        return "File edited.";
+        using (var writer = new StreamWriter(stream, new UTF8Encoding(false), leaveOpen: true))
+            writer.Write(edited);
+        return new ToolResultPart(call.CallID, [new TextPart("File edited.")], fileEvidence: evidence);
     }
 
 }

@@ -560,3 +560,35 @@ sandbox groups passed, including rooted tool append and the existing symlink-swa
 check. This is not a concurrent-writer guarantee or a GUI-rendering check. Evidence:
 `write-position-build.log`, `write-position-tests.log`, and
 `write-position-sandbox.log` in the renderer verification workspace.
+
+### Bounded file-operation evidence (implementation in progress)
+
+Read, write, append and exact edit now capture optional `FileEvidence` beside the
+normal text result. The immutable value records operation kind, supplied path,
+one-based start line and UTF-16 column, and bounded content. An edit also records
+removed text at the unique anchor: this is an applied replacement, not a whole-file
+diff. Each excerpt retains at most 32 KiB of UTF-8 on a scalar boundary and its
+original byte count, so omitted content is explicit. Reads respect their requested
+line range and byte cap; the display never recovers content excluded by that cap.
+
+Evidence is captured from operation-local text, not a later path lookup. Mutation
+evidence is validated before writing and attached only after the writer closes
+successfully. Written-range text remains visible to the model. Jobs retain display
+evidence separately from structured results, preserve ordinary observation clipping,
+and deliver it once on the first successful terminal observation. Result and Event
+codecs, History copies and GUI projection preserve it; it remains outside Parts.
+No renderer consumes this new evidence yet.
+
+The focused file-evidence, existing tool and directory-evidence groups passed on
+an initial clean build. They cover UTF-8 bounds, invalid metadata, codec and event
+numbering, real append offsets, capped reads, applied edit evidence, error exclusion,
+History after the underlying file changes, and once-only delivery. The first test
+fixture incorrectly attached model-response display IDs to ToolReturned; production
+validation refused it. Removing that invalid setup made the intended checks run.
+The shared suite completed with 379 passed and zero failed on the initial compiled
+snapshot. A later review moved evidence validation before file mutation; final
+focused verification passed: clean core and GUI builds (zero warnings/errors),
+file evidence, ordinary tools, all four sandbox groups, directory evidence and all
+six default GUI groups. The 379-test full-suite result is from before that final
+ordering edit, not a second full-suite run.
+No installation or live-browser behavior is established by these checks.

@@ -336,7 +336,7 @@ public sealed partial class History
 
                 break;
             case EventKind.ToolReturned:
-                dialogue.Add(new Entry(value.Seq, Actor.Tool, [new ToolResultPart(value.CallID, value.Parts, value.IsError, value.Job, value.ToolReferences, value.WorkProduct, value.DirectoryListing)], time: value.Time, observationDuration: value.ObservationDuration));
+                dialogue.Add(new Entry(value.Seq, Actor.Tool, [new ToolResultPart(value.CallID, value.Parts, value.IsError, value.Job, value.ToolReferences, value.WorkProduct, value.DirectoryListing, value.FileEvidence)], time: value.Time, observationDuration: value.ObservationDuration));
                 if (phase == Phase.ToolsPending && LastCallsComplete(dialogue))
                 {
                     phase = Phase.InputPending;

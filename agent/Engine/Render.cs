@@ -238,7 +238,7 @@ public sealed partial class Engine
 
                     // A historical discovery result is evidence, not a permanent
                     // capability. Filter only the disposable request projection.
-                    // Work-product and directory display evidence stay in History,
+                    // Work-product, directory and file display evidence stay in History,
                     // not in provider requests or their model output budget.
                     var projectedResult = new ToolResultPart(result.CallID, result.Parts,
                         result.IsError, result.Job, result.ToolReferences.Where(name =>

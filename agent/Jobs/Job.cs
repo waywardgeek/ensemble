@@ -120,6 +120,7 @@ public sealed partial class Job
                                 Notify();
                             }
                             directoryListing = result.DirectoryListing;
+                            fileEvidence = result.FileEvidence;
                             isError = result.IsError;
                         }
                     }
@@ -375,9 +376,9 @@ public sealed partial class Job
                     if (info.Status == "done" && cursor < bytes && structuredResult is { } completed)
                     {
                         cursor = bytes;
-                        directoryListingObserved = true;
+                        presentationObserved = true;
                         return new ToolResultPart(callID, completed.Parts, completed.IsError,
-                            info, completed.ToolReferences, completed.WorkProduct, completed.DirectoryListing);
+                            info, completed.ToolReferences, completed.WorkProduct, completed.DirectoryListing, completed.FileEvidence);
                     }
                 }
                 bool truncated = fresh.Length > maxBytes;
@@ -400,13 +401,15 @@ public sealed partial class Job
                         + Encoding.UTF8.GetString(fresh.AsSpan(tailStart));
                 }
                 DirectoryListing? listing = null;
+                FileEvidence? evidence = null;
                 bool firstReport;
                 lock (gate)
                 {
-                    if (info.Status == "done" && !error && !directoryListingObserved)
+                    if (info.Status == "done" && !error && !presentationObserved)
                     {
                         listing = directoryListing;
-                        directoryListingObserved = true;
+                        evidence = fileEvidence;
+                        presentationObserved = true;
                     }
                     firstReport = cursor == 0;
                     cursor += fresh.Length;
@@ -428,7 +431,7 @@ public sealed partial class Job
                 return new ToolResultPart(callID, [new TextPart(bareResult ? text : header + text)], error, info with
                 {
                     Truncated = truncated
-                }, directoryListing: listing);
+                }, directoryListing: listing, fileEvidence: evidence);
             }
             await Task.WhenAny(signal, expires, wake).WaitAsync(token);
         }

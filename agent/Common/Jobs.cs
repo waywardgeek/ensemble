@@ -84,7 +84,8 @@ public sealed partial class Job
     // later ordinary observations still return only unseen byte output.
     private ToolResultPart? structuredResult;
     private DirectoryListing? directoryListing;
-    private bool directoryListingObserved;
+    private FileEvidence? fileEvidence;
+    private bool presentationObserved;
     private long bytes;
     private long cursor;
     // End of the latest urgent progress range. The shared byte cursor consumes
