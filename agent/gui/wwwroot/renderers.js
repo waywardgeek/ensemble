@@ -17,6 +17,7 @@
     // after an await. Missing shipped code leaves the host's plain-text fallback.
     const scriptUrl = document.currentScript.src;
     const shippedPaths = {
+        tool_default: "shared/tool-default.js",
         list_directory: "file-reading/renderers/list-directory.js",
         read_file: "file-reading/renderers/read-file.js",
         search_files: "file-reading/renderers/search-files.js",

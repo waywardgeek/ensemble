@@ -661,11 +661,16 @@ function render(card) {
             const previewText = clipped + (clipped.length < card.text.length ? "\n… (bounded preview)" : "");
             const renderer = card.kind === "tool_result" && card.status !== "error"
                 ? window.EnsembleArtifactRenderers?.[card.toolName] : null;
-            if (card.previewText !== previewText || card.previewRenderer !== renderer || card.previewDirectoryListing !== card.directoryListing || card.previewFileEvidence !== card.fileEvidence || card.previewSearchEvidence !== card.searchEvidence) {
+            const defaultRenderer = window.EnsembleArtifactRenderers?.tool_default;
+            if (card.previewText !== previewText || card.previewDefaultRenderer !== defaultRenderer || card.previewRenderer !== renderer || card.previewDirectoryListing !== card.directoryListing || card.previewFileEvidence !== card.fileEvidence || card.previewSearchEvidence !== card.searchEvidence) {
                 let content = null;
                 if (typeof renderer === "function") {
                     try { content = renderer(document, previewText, card.directoryListing, card.fileEvidence, card.searchEvidence); }
                     catch { /* A presentation failure must not hide the recorded result. */ }
+                }
+                if ((!(content instanceof HTMLElement) || content.isConnected) && typeof defaultRenderer === "function") {
+                    try { content = defaultRenderer(document, previewText); }
+                    catch { /* The final literal fallback remains independent of custom code. */ }
                 }
                 if (!(content instanceof HTMLElement) || content.isConnected) {
                     content = document.createElement("pre");
@@ -674,6 +679,7 @@ function render(card) {
                 preview.replaceChildren(content);
                 card.previewText = previewText;
                 card.previewRenderer = renderer;
+                card.previewDefaultRenderer = defaultRenderer;
                 card.previewDirectoryListing = card.directoryListing;
                 card.previewFileEvidence = card.fileEvidence;
                 card.previewSearchEvidence = card.searchEvidence;

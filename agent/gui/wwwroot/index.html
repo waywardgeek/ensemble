@@ -8,7 +8,7 @@
 <script src="./vendor/bootstrap-5.3.8.bundle.min.js" defer></script>
 <script src="./speech.js" defer></script><script src="./mcp.js" defer></script>
 <script src="./vendor/markdown-it-14.1.0.min.js" defer></script>
-<script src="./markdown.js" defer></script>
+<script src="./skills/shared/markdown.js" defer></script>
 <script src="./images.js" defer></script><script src="./theme.js" defer></script><script src="./speech-preferences.js" defer></script><script src="./device-preferences.js" defer></script><script src="./app.js" defer></script><script src="./layout.js" defer></script>
 <script src="./auth.js" defer></script><script src="./peers.js" defer></script>
 <script src="./settings.js" defer></script>
@@ -160,11 +160,12 @@
 <section class="settings-section" aria-labelledby="renderer-heading">
 <h2 id="renderer-heading">Artifact renderers</h2>
 <p>Custom JavaScript runs with this page’s authority, not in a sandbox. Review the entry and helpers before trying it. An unaccepted trial ends on reload.</p>
-<label for="renderer-tool">Tool output</label>
+<label for="renderer-tool">Output renderer</label>
 <select id="renderer-tool" class="form-select">
 <option value="list_directory">Directory listing</option><option value="read_file">Read file</option>
 <option value="search_files">Search files</option><option value="write_file">Write file</option>
 <option value="edit_file">Edit file</option>
+<option value="tool_default">Default tool output</option>
 </select>
 <label for="renderer-package">Candidate package (JSON, at most 1 MiB)</label>
 <p><a id="renderer-download" href="./renderers/shipped" download="list-directory-renderer.json">Download embedded build renderer source package</a>. This is source data, not permission to execute it; disk asset overrides are not included.</p>

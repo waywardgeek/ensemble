@@ -87,7 +87,7 @@ const { chromium } = require('../../edition-2/agent/gui/node_modules/playwright'
             await page.goto(base);
             await ready('Using the shipped');
             assert.equal(await page.evaluate(() => window.trialMarker), undefined);
-            for (const tool of ['read_file', 'search_files', 'write_file', 'edit_file']) {
+            for (const tool of ['read_file', 'search_files', 'write_file', 'edit_file', 'tool_default']) {
                 await panel();
                 await page.locator('#renderer-tool').selectOption(tool);
                 await ready('Using the shipped ' + tool);
@@ -104,7 +104,7 @@ const { chromium } = require('../../edition-2/agent/gui/node_modules/playwright'
                 await ready('Trial active');
                 assert(await page.locator('#renderer-tool').isDisabled(), 'tool changed under active trial');
                 assert.equal(await page.evaluate(() => window.packageMarker), tool);
-                if (tool !== 'search_files') {
+                if (['read_file', 'write_file', 'edit_file'].includes(tool)) {
                     assert.equal(await page.evaluate(tool => {
                         const operation = { read_file: 'read', write_file: 'write', edit_file: 'edit' }[tool];
                         const segment = { text: 'const answer = 42;', total_bytes: 18 };
@@ -131,7 +131,33 @@ const { chromium } = require('../../edition-2/agent/gui/node_modules/playwright'
                 await ready('Using the shipped');
                 assert.equal(await page.evaluate(() => window.packageMarker), undefined);
             }
-            console.log(`PASS shared approval ${width}: four tool selectors, inert packages, helper imports, independent keep/reload, safe mode, rollback`);
+            console.log(`PASS shared approval ${width}: five output selectors, inert packages, helper imports, independent keep/reload, safe mode, rollback`);
+            assert.deepEqual(await page.evaluate(() => {
+                const registry = window.EnsembleArtifactRenderers;
+                const original = registry.tool_default;
+                const card = cardFor('default-preview-check');
+                Object.assign(card, { kind: 'tool_result', role: 'tool', status: 'completed',
+                    toolName: 'unfamiliar_tool', text: '<hostile> recorded output' });
+                render(card);
+                const preview = () => card.node.querySelector('.preview');
+                const literal = preview().textContent;
+                registry.tool_default = (document, text) => {
+                    const node = document.createElement('div'); node.textContent = 'Custom: ' + text; return node;
+                };
+                render(card); const custom = preview().textContent;
+                registry.unfamiliar_tool = () => { throw new Error('specialized refusal'); };
+                render(card); const specializedFailure = preview().textContent;
+                registry.tool_default = () => { throw new Error('default refusal'); };
+                render(card); const defaultFailure = preview().textContent;
+                const heading = card.node.querySelector('.card-heading');
+                registry.tool_default = () => heading;
+                render(card); const connectedRejected = heading.parentElement === card.node && preview().textContent === literal;
+                delete registry.unfamiliar_tool; registry.tool_default = original; render(card);
+                return { literal, custom, specializedFailure, defaultFailure, connectedRejected };
+            }), { literal: '<hostile> recorded output', custom: 'Custom: <hostile> recorded output',
+                specializedFailure: 'Custom: <hostile> recorded output',
+                defaultFailure: '<hostile> recorded output', connectedRejected: true });
+            console.log('PASS default preview: unknown tools, custom refresh, throwing specialized/default, connected-node refusal');
             assert.deepEqual(errors, []);
             console.log(`PASS renderer trial ${width}: inert stage, helpers, try, reload discard, keep, failed import, recovery, rollback`);
             await page.close();

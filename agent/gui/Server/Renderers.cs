@@ -16,7 +16,7 @@ public static partial class Gui
             if (values.Count == 0) return "list_directory"; // Existing clients.
             if (values.Count != 1) return null;
             return values[0] is "list_directory" or "read_file" or "search_files"
-                or "write_file" or "edit_file" ? values[0] : null;
+                or "write_file" or "edit_file" or "tool_default" ? values[0] : null;
         }
         bool Allowed(HttpContext context, bool mutation)
         {
@@ -46,6 +46,15 @@ public static partial class Gui
                 if (stream is null) return null;
                 using var reader = new StreamReader(stream);
                 return reader.ReadToEnd();
+            }
+            if (renderer == "tool_default")
+            {
+                const string defaultEntry = "shared/tool-default.js";
+                string? source = Source("EnsembleGui.Assets/skills/" + defaultEntry);
+                return source is null ? Results.NotFound() : Results.Json(new
+                {
+                    entry = defaultEntry, files = new Dictionary<string, string> { [defaultEntry] = source }
+                });
             }
             string? manual = Source("EnsembleGui.RendererSkill/" + skill);
             if (manual is null) return Results.NotFound();
@@ -99,7 +108,7 @@ public static partial class Gui
             try
             {
                 var package = store.Read(version);
-                if (package.Renderer is not ("list_directory" or "read_file" or "search_files" or "write_file" or "edit_file")
+                if (package.Renderer is not ("list_directory" or "read_file" or "search_files" or "write_file" or "edit_file" or "tool_default")
                     || !package.Files.TryGetValue(file, out string? source))
                     return Results.NotFound();
                 // Validate the snapshot on every read; a changed file must never

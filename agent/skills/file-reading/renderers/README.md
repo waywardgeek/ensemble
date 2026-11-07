@@ -64,7 +64,7 @@ remain literal text. Numbered lines are presentation, not a replacement for raw
 recorded output. Empty content has no invented written line. Removed and inserted
 sections are an applied replacement, not a whole-file diff.
 
-The trial panel selects directory, read, write, edit or search output. Accepted
+The trial panel selects directory, read, write, edit, search or default tool output. Accepted
 and previous versions are independent per tool and shared across Agent views.
 Only one trial is active through the panel at a time: Keep it or reload before
 changing tools. Package review and promotion must match the selected tool.
@@ -88,3 +88,12 @@ Recursive searches remain best effort for inaccessible files. Full display does
 not certify exhaustive access to the directory tree. Grouping never parses paths
 from grep text, and highlights never rerun the regex in the browser. Raw output
 and model observation limits remain independent.
+
+## Default tool preview
+
+`tool_default` uses the same `(document, boundedText)` entry interface. It handles
+call previews and results without a usable specialized renderer, including unknown
+tool names. A throwing or invalid specialized renderer falls back to this default;
+a throwing, invalid or already-connected default result falls back to literal GUI
+text. Neither customization changes raw observations, pairing or tool status.
+The shipped source is `skills/shared/tool-default.js`, with no helper dependencies.

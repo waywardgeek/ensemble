@@ -770,3 +770,19 @@ extra trailing blank line; review restored strict-mode directive placement after
 adding the module loader. General Artifact lifecycle, arbitrary MCP discovery,
 command-session customization and remaining built-in/chat/default relocation are
 not certified by these preview tests.
+
+### Shipped prose relocation and configurable default
+
+Moved the existing in-place Markdown renderer into `skills/shared/markdown.js`,
+retaining script order, literal startup fallback, code-copy controls, selection
+deferral, expansion and scroll behavior. This makes shipped source inspectable;
+it does not yet make prose an independently approvable package. The page-loaded
+pinned parser remains an explicit dependency to address in that next slice.
+
+Extracted `tool_default` into shared skill source and the existing exact-version
+approval lifecycle. Specialized preview refusal falls through the configurable
+default, then the GUI literal fallback. Identity, raw details, pairing and status
+remain GUI-owned. Desktop/phone tests cover unknown tools, live renderer changes,
+throwing specialized/default functions and connected-node refusal. HTTP tests
+cover the new one-file package and independent acceptance/rollback. No installed
+or human-use acceptance is claimed.

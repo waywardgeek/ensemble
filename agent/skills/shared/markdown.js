@@ -1,7 +1,7 @@
 "use strict";
 // Chat can arrive before the optional lexer. Keep literal text until it loads.
 let highlight = (code, source) => { code.textContent = source; };
-void import(new URL("./skills/shared/source-code.js", document.currentScript.src).href)
+void import(new URL("./source-code.js", document.currentScript.src).href)
     .then(module => {
         highlight = module.highlight;
         document.dispatchEvent(new Event("ensemble-renderers-changed"));
