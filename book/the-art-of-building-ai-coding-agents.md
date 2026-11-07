@@ -318,48 +318,59 @@
   - [23.3 Taking a measurement in C#](#233-taking-a-measurement-in-c)
   - [23.4 What the earlier detour taught us](#234-what-the-earlier-detour-taught-us)
   - [23.5 Where this execution stops, and where the book continues](#235-where-this-execution-stops-and-where-the-book-continues)
-- [Chapter 24: Gateway](#chapter-24-gateway)
-  - [TL;DR](#tldr-16)
-  - [24.1 Why the agent needs a router](#241-why-the-agent-needs-a-router)
-  - [24.2 Noise-KK beneath the cloud](#242-noise-kk-beneath-the-cloud)
-  - [24.3 Trust stamped at the boundary](#243-trust-stamped-at-the-boundary)
-  - [24.4 A library, not a framework](#244-a-library-not-a-framework)
-  - [24.5 Delivery and recovery](#245-delivery-and-recovery)
-  - [24.6 The interviewer proves the stack](#246-the-interviewer-proves-the-stack)
-  - [24.7 What the grader checks](#247-what-the-grader-checks)
-- [Chapter 25: Goals](#chapter-25-goals)
-  - [§25.0 TL;DR: What to Build](#250-tldr-what-to-build)
-  - [§25.1 Write an Objective, Not a Repeated Command](#251-write-an-objective-not-a-repeated-command)
-  - [§25.2 Keep the State on the Agent](#252-keep-the-state-on-the-agent)
-  - [§25.3 Preserve the Goal Across Requests, Not as Transcript Copies](#253-preserve-the-goal-across-requests-not-as-transcript-copies)
-  - [§25.4 Let the Actor Decide Whether to Wake](#254-let-the-actor-decide-whether-to-wake)
-  - [§25.5 Stop Has More Than One Meaning](#255-stop-has-more-than-one-meaning)
-  - [§25.6 One Status, Several Views](#256-one-status-several-views)
-  - [§25.7 Verify the Boundaries](#257-verify-the-boundaries)
-  - [§25.8 Taking It for a Spin](#258-taking-it-for-a-spin)
-  - [§25.9 Exercises](#259-exercises)
-  - [§25.10 What Goals Provides and Where It Stops](#2510-what-goals-provides-and-where-it-stops)
-- [Chapter 26: Voice and Images](#chapter-26-voice-and-images)
+- [Chapter 24: Goals](#chapter-24-goals)
+  - [§24.0 TL;DR: What to Build](#240-tldr-what-to-build)
+  - [§24.1 Write an Objective, Not a Repeated Command](#241-write-an-objective-not-a-repeated-command)
+  - [§24.2 Keep the State on the Agent](#242-keep-the-state-on-the-agent)
+  - [§24.3 Preserve the Goal Across Requests, Not as Transcript Copies](#243-preserve-the-goal-across-requests-not-as-transcript-copies)
+  - [§24.4 Let the Actor Decide Whether to Wake](#244-let-the-actor-decide-whether-to-wake)
+  - [§24.5 Stop Has More Than One Meaning](#245-stop-has-more-than-one-meaning)
+  - [§24.6 One Status, Several Views](#246-one-status-several-views)
+  - [§24.7 Verify the Boundaries](#247-verify-the-boundaries)
+  - [§24.8 Taking It for a Spin](#248-taking-it-for-a-spin)
+  - [§24.9 Exercises](#249-exercises)
+  - [§24.10 What Goals Provides and Where It Stops](#2410-what-goals-provides-and-where-it-stops)
+- [Chapter 25: Voice and Images](#chapter-25-voice-and-images)
   - [TL;DR: Specification Brief](#tldr-specification-brief)
-  - [In Plain Words](#in-plain-words-7)
-  - [26.1 Four inputs, one conversation](#261-four-inputs-one-conversation)
-  - [26.2 Put ownership where the lifetime lives](#262-put-ownership-where-the-lifetime-lives)
-  - [26.3 Prepare an image once, with bounded work](#263-prepare-an-image-once-with-bounded-work)
-  - [26.4 Inspecting a file must deliver the file's pixels](#264-inspecting-a-file-must-deliver-the-files-pixels)
-  - [26.5 Render the media the provider actually supports](#265-render-the-media-the-provider-actually-supports)
-  - [26.6 An attachment draft belongs to one recipient](#266-an-attachment-draft-belongs-to-one-recipient)
-  - [26.7 A screenshot of which computer?](#267-a-screenshot-of-which-computer)
-  - [26.8 Make the recording format small enough to reason about](#268-make-the-recording-format-small-enough-to-reason-about)
-  - [26.9 Keep the transcription payer explicit](#269-keep-the-transcription-payer-explicit)
-  - [26.10 Separate readiness from commitment](#2610-separate-readiness-from-commitment)
-  - [26.11 Cancellation must win before the next effect](#2611-cancellation-must-win-before-the-next-effect)
-  - [26.12 Test the boundary you intend to claim](#2612-test-the-boundary-you-intend-to-claim)
-  - [26.13 What is verified, and what remains open](#2613-what-is-verified-and-what-remains-open)
-  - [26.14 Review and operate the feature deliberately](#2614-review-and-operate-the-feature-deliberately)
+  - [In Plain Words](#in-plain-words-6)
+  - [25.1 Four inputs, one conversation](#251-four-inputs-one-conversation)
+  - [25.2 Put ownership where the lifetime lives](#252-put-ownership-where-the-lifetime-lives)
+  - [25.3 Prepare an image once, with bounded work](#253-prepare-an-image-once-with-bounded-work)
+  - [25.4 Inspecting a file must deliver the file's pixels](#254-inspecting-a-file-must-deliver-the-files-pixels)
+  - [25.5 Render the media the provider actually supports](#255-render-the-media-the-provider-actually-supports)
+  - [25.6 An attachment draft belongs to one recipient](#256-an-attachment-draft-belongs-to-one-recipient)
+  - [25.7 A screenshot of which computer?](#257-a-screenshot-of-which-computer)
+  - [25.8 Make the recording format small enough to reason about](#258-make-the-recording-format-small-enough-to-reason-about)
+  - [25.9 Keep the transcription payer explicit](#259-keep-the-transcription-payer-explicit)
+  - [25.10 Separate readiness from commitment](#2510-separate-readiness-from-commitment)
+  - [25.11 Cancellation must win before the next effect](#2511-cancellation-must-win-before-the-next-effect)
+  - [25.12 Test the boundary you intend to claim](#2512-test-the-boundary-you-intend-to-claim)
+  - [25.13 What is verified, and what remains open](#2513-what-is-verified-and-what-remains-open)
+  - [25.14 Review and operate the feature deliberately](#2514-review-and-operate-the-feature-deliberately)
   - [Exercises: implementation contract](#exercises-implementation-contract)
   - [Grading boundary](#grading-boundary)
   - [Takeaways](#takeaways)
-- [Chapter 27: Crossing Over to Ensemble](#chapter-27-crossing-over-to-ensemble)
+- [Chapter 26: Artifacts and Actions](#chapter-26-artifacts-and-actions)
+  - [TL;DR: Specification Brief](#tldr-specification-brief-1)
+  - [In plain words](#in-plain-words-7)
+  - [26.1 Start with the existing owners](#261-start-with-the-existing-owners)
+  - [26.2 A result is an observation](#262-a-result-is-an-observation)
+  - [26.3 Preserve the thing the reader is using](#263-preserve-the-thing-the-reader-is-using)
+  - [26.4 Copy the payload, not the preview](#264-copy-the-payload-not-the-preview)
+  - [26.5 Keep recorded time distinct from elapsed work](#265-keep-recorded-time-distinct-from-elapsed-work)
+  - [26.6 A work-product description is not a file grant](#266-a-work-product-description-is-not-a-file-grant)
+  - [26.7 Own the transfer through cleanup](#267-own-the-transfer-through-cleanup)
+  - [26.8 Integration exercises](#268-integration-exercises)
+  - [26.9 Run and interpret the public grader](#269-run-and-interpret-the-public-grader)
+  - [26.10 Use it for real work](#2610-use-it-for-real-work)
+- [Chapter 27: Running Local Models](#chapter-27-running-local-models)
+  - [TL;DR: Specification Brief](#tldr-specification-brief-2)
+  - [In plain words](#in-plain-words-8)
+  - [What the live GUI check accepted](#what-the-live-gui-check-accepted)
+  - [27.1 Start with a verified server](#271-start-with-a-verified-server)
+  - [27.2 Integrate the existing owners](#272-integrate-the-existing-owners)
+  - [Exercises and evidence limits](#exercises-and-evidence-limits)
+- [Chapter 28: Crossing Over to Ensemble](#chapter-28-crossing-over-to-ensemble)
   - [TL;DR: finish the replacement, not another demonstration](#tldr-finish-the-replacement-not-another-demonstration)
   - [In plain words: one system, a better place to use it](#in-plain-words-one-system-a-better-place-to-use-it)
   - [Required GUI reading](#required-gui-reading)
@@ -375,9 +386,10 @@
   - [Field notes from the first working Cadence crossover](#field-notes-from-the-first-working-cadence-crossover)
 - [Epilogue: What we can rebuild](#epilogue-what-we-can-rebuild)
   - [The expert stayed in the loop](#the-expert-stayed-in-the-loop)
-  - [A correction needs a reason](#a-correction-needs-a-reason)
-  - [Evidence has a boundary](#evidence-has-a-boundary)
-  - [The durable artifact](#the-durable-artifact)
+  - [The interface is part of the system](#the-interface-is-part-of-the-system)
+  - [Knowing when the test has succeeded](#knowing-when-the-test-has-succeeded)
+  - [What the book carries forward](#what-the-book-carries-forward)
+  - [More books, different responsibilities](#more-books-different-responsibilities)
 - [A Note from Bill](#a-note-from-bill)
 
 ---
@@ -588,7 +600,7 @@ and an AI coding agent to work with. The executable grader adapters still use
 the repository's Go harness; that does not make Go the implementation language.
 Use each chapter's actual C# command and declared grading scope. Later browser
 exercises also use Node and an isolated Chrome instance. The optional Gateway
-has its own pinned Noise/native-library dependency, explained in Chapter 24.
+has its own pinned Noise/native-library dependency, explained in Chapter 26.
 Do not install the earlier edition's Go debugger as a C# prerequisite.
 
 The AI coding agent is a real prerequisite. The course's solutions run to
@@ -651,8 +663,10 @@ not replace Bill's architectural judgment or the assembled source review. My
 are preserved from the first edition's October 2026 account. They describe that
 work, not fresh measurements of today's products or of the C# implementation.
 The third-edition foundation and working V3 crossover have been accepted for
-daily use. Chapter 26 is a new multimedia opening draft, not an implemented or
-graded increment; Chapter 27 retains the crossover acceptance requirements.*
+daily use. Chapter 25 covers multimedia with 100/100 external media points and
+explicit platform limits. Chapter 26 retains the crossover acceptance
+requirements. Gateway and the connected personal-system work now belong in
+the separate [Puffin book](../puffin-book/README.md).*
 
 ---
 
@@ -833,7 +847,7 @@ not evidence of this edition's replacement readiness.
 The earlier second edition was built with Codex under Bill's direction. The C#
 third edition was built inside Ensemble. That closes the development loop, but
 does not by itself establish that the replacement is ready for daily use. The
-current crossover exercise in Chapter 27 requires an actual usable application,
+current crossover exercise in Chapter 26 requires an actual usable application,
 a safe trial, and the human's acceptance before promotion. That exercise is
 ongoing; implementation completion is not crossover acceptance.
 
@@ -1049,7 +1063,7 @@ and configuration are explicitly value-like and need no holder back-pointers.
 That is enough architecture for today's loop. Do not build a GUI, actor system,
 history log or provider framework yet. A later front end will use the same core.
 
-Before coding, genuinely load the `ensemble-csharp` skill; merely reading its
+Before coding, genuinely load the `ensemble-coding` skill; merely reading its
 file is not activation. Explain vocabulary, contracts, ownership, important
 ordering and failure paths beside the code. Use named intermediate steps,
 expanded control flow and one substantive operation per line. A student should
@@ -1890,6 +1904,20 @@ metadata, and metadata is allowed to be wrong: the clock on the machine that
 wrote the log may have been skewed, two events may share a timestamp, and a log
 assembled from two machines may not be monotonic at all. `Seq` is.
 
+History assigns UTC recorded time when it appends a fact. Carry that nullable
+value into its reduced Entry; replay and rendering must never substitute the
+current clock. Filtering or trimming an entry preserves its time. A newly
+synthesized summary carries the summary event's recorded time even though it
+occupies an earlier conversation position. Historical missing time stays unknown.
+
+A returned tool observation can also carry a nullable, nonnegative
+`ObservationDuration`. Chapter 4 measures it with a monotonic clock after dispatch
+admission, not by subtracting event timestamps. It describes the foreground
+observation, not the independent Job's total runtime. Keep it on the event and
+retained Entry, outside the provider-facing result payload. Copy operations such
+as numbering and reduction preserve this metadata; event constructors refuse it
+on non-result event kinds. Event ordering continues to use sequence numbers.
+
 Nothing in the log is ever edited, reordered, or deleted in place. When
 something needs to be removed from what the model sees, a new event goes on the
 end saying so, and the old event stays where it was. The log is written as
@@ -1906,6 +1934,7 @@ public sealed partial class Event
     public readonly long Seq;
     public readonly EventKind Kind;
     public readonly DateTimeOffset? Time;
+    public readonly TimeSpan? ObservationDuration;
     public readonly Actor? Actor;
     public readonly ImmutableArray<Part> Parts;
     public readonly Provenance? From;
@@ -1919,7 +1948,7 @@ public sealed partial class Event
         Actor? actor = null, IEnumerable<Part>? parts = null, Provenance? from = null,
         Usage? usage = null, string callID = "", string name = "", JsonElement? args = null,
         bool isError = false, string error = "", long redactFrom = 0, long redactTo = 0,
-        Redaction? level = null, string reason = "");
+        Redaction? level = null, string reason = "", TimeSpan? observationDuration = null);
     public partial Event Numbered(long seq, DateTimeOffset time);
 }
 ```
@@ -1944,11 +1973,14 @@ body that would not parse. A tool that ran and failed is ordinary tool
 that retries a compile error as if it were a network outage, which happens in
 practice and is less funny than it sounds.
 
-Thinking text is log-only. The reasoning can be recorded, and the *context*
-carries only opaque replay material, a signature or a redacted block, tagged
-with the exact model that produced it. The renderer decides whether that model
-wants it back. What you never do is reconstruct reasoning as prose and feed it
-to a different model as though it had thought it.
+Reasoning is not portable dialogue text. Record provider-issued replay material
+as opaque JSON tagged with its exact vendor, model and surface. Depending on the
+provider, that value may be a signature, a redacted block, or a complete thinking
+block containing both text and a signature. Preserve the complete replay value;
+do not strip fields or reconstruct its contents as ordinary `TextPart` prose.
+`JsonCodec.Text` excludes opaque material. A renderer returns it only to the
+matching producer when that surface supports replay; it never forwards it to a
+different producer as though that model had thought it.
 
 `ResponseEnded.Parts` holds everything the assistant produced in one reply,
 text and tool calls together, in the order it produced them; `ToolCalled` is
@@ -2041,9 +2073,12 @@ read. The shared shape is:
 public sealed partial class Entry
 {
     public readonly long Seq;
+    public readonly DateTimeOffset? Time;
+    public readonly TimeSpan? ObservationDuration;
     public readonly Actor Actor;
     public readonly ImmutableArray<Part> Parts;
-    public partial Entry(long seq, Actor actor, IEnumerable<Part> parts);
+    public partial Entry(long seq, Actor actor, IEnumerable<Part> parts,
+        DateTimeOffset? time = null, TimeSpan? observationDuration = null);
 }
 
 public sealed partial class Context
@@ -2642,6 +2677,22 @@ removed. Canonicalization is not permission to change what the model asked.
 Also normalized here: usage, per the table in §2.5, and errors. An HTTP 429 is
 an `ErrorOccurred`, not a response.
 
+HTTP200 does not establish a valid response envelope. Check the selected vendor's
+required arrays and objects before indexing or reading their contents. For example,
+OpenAI `choices: []` and Gemini `candidates: []` contain no assistant candidate;
+normalize that failure to a safe `ErrorOccurred`, not an unchecked indexing
+exception or an invented `ResponseEnded`. An explicit empty text string inside
+a real candidate is a different case and must remain an empty string.
+
+Exercise this boundary through both parsing and an owned loopback HTTP server.
+The CLI should stop with a controlled nonzero exit, keep the human/request facts,
+and record exactly one error after the request. It must not fabricate an answer,
+retry the request, or echo the raw provider body into diagnostics or History.
+The first revised C# student passed the assigned grades but aborted on both empty
+arrays without recording an error. That independent failure added the public
+supplement below; a good-response control prevents rejecting every reply from
+masquerading as correct validation.
+
 ### Rules the seam has to hold
 
 **Decline vendor stateful conversation APIs.** Server-side threads and
@@ -2960,6 +3011,48 @@ The Edition 3 Chapter 1 gate adds real delayed-header and delayed-body
 lifetime phases to the ordinary parity checks; allow at least six minutes. Tests use real components and working
 loopback HTTP fakes, never mocks of internal calls. A green grade does not
 verify the architecture: inspect declarations, relationships and access paths.
+
+### Provider failure supplement
+
+Run the grader-owned
+[`ch02-provider-errors.py`](../internal/gradeedition3/testdata/ch02-provider-errors.py)
+with an existing Python3 interpreter, an absolute candidate executable and an
+owned writable workspace. Exact invocation and evidence requirements are in its
+[README](../internal/gradeedition3/testdata/ch02-provider-errors.md). No packages,
+credentials or live providers are needed. The checker uses real CLI processes and
+loopback HTTP for valid controls and empty candidate arrays. Require exit0 and
+`passed:true` for all four named cases, including the recorded error checks.
+This supplement awards no points and does not replace the historical100-point
+grade or ownership/readability review. Frozen endpoints remain unchanged.
+
+### Timing-value supplement for the revised chapter
+
+The original100-point CLI grader remains applicable to this C# exercise. The
+later timing addition also needs direct evidence about reduced Entry values,
+which the CLI's rendered provider JSON deliberately omits. Use the separate
+[public timing-value consumer](../internal/gradeedition3/testdata/ch02-timing-consumer/README.md)
+against the candidate core assembly. It uses the immutable declarations in this
+chapter and public `History.Reduce` and `JsonCodec`, not later Jobs or GUI APIs.
+
+Construct known offset-bearing times, explicit zero durations and unknown values.
+Round-trip them, reduce supplied tool-result facts without executing tools, and
+preserve their timing through result/tool/dialogue redaction. A summary uses its
+replacement fact's time rather than inheriting the replaced observation duration.
+Numbering preserves duration while assigning sequence and recorded time. Reject
+negative duration and duration attached to a non-result event.
+
+Run the separate log-write and log-read modes as successive processes in one
+fresh workspace. They exercise StartLog, Append, Load and Dump without later
+snapshot APIs. The writer records the returned UTC timestamp; the reader checks
+that exact fact after the writer exits. Unknown legacy timing remains unknown.
+The render mode compares otherwise identical timed and untimed Contexts through
+the three Chapter2 vendor routes, requiring unchanged complete provider JSON.
+
+These supplemental checks award no new chapter points. Their evidence includes
+passing external consumers and a reducer-loss negative candidate, not a fresh
+student result or complete early-chapter acceptance. Rendering checks here are
+offline public API checks, not three live-provider integrations.
+The preserved historical endpoint predates this addition and stays frozen.
 
 ### The checks
 
@@ -3280,12 +3373,27 @@ method. An ordered list is sufficient. There is no mutable global registry,
 service interface, or delegate field linking these partial declarations to their
 bodies. The C# compiler does that linking.
 
+`Tool.ExecuteAsync(call)` is receiver-bound. Compare the call name with that
+Tool's name using ordinal equality before executing or dispatching it. A mismatch
+returns an `IsError` result with the original call ID and no effects; do not
+invoke a different registered Tool. `Agent.DispatchAsync(call)` is the distinct
+name-based selector. Keeping that distinction matters when Jobs arrive next.
+
 Declaration is a projection, not another authoritative schema. Anthropic uses
 `input_schema`, OpenAI uses `function.parameters`, and Gemini uses
 `functionDeclarations[].parameters`. Build a fresh tree for each request.
 Recursively project Gemini's schema vocabulary, including nested `properties`
 and `items`; never mutate the stored JSON Schema or assume copying it verbatim
-will satisfy every provider. Test unsupported-key removal and repeat rendering
+will satisfy every provider. Gemini's `parameters` field is its `Schema` form:
+its documented type enum uses names such as `OBJECT`, `STRING`, and `ARRAY`.
+This differs from `parametersJsonSchema`, the mutually exclusive JSON Schema
+form, whose type strings stay lowercase (`"object"`, `"string"`, `"array"`).
+Do not uppercase a JSON Schema document or send both parameter fields. The
+public grader accepts documented `OBJECT` for Gemini `parameters`, retaining
+lowercase `object` there for historical compatibility; that compatibility is
+not a claim that every casing is valid on the live API. See Google's
+[FunctionDeclaration and Schema reference](https://ai.google.dev/api/caching#FunctionDeclaration).
+Test unsupported-key removal and repeat rendering
 for another vendor to catch accidental mutation.
 
 The loop itself:
@@ -3367,6 +3475,75 @@ The student initially returned early in that case, silently leaving the call
 unanswered. Removing the shortcut also required its inherited Chapter 2 fake
 to finish the new protocol with a final reply. Extend the fake's conversation;
 keep its existing provenance and replay assertions.
+
+### Preserve typed result metadata
+
+A tool result can carry more than readable text. Keep immutable delivery metadata
+separate from its prose, and preserve it through the Agent's recorded event and
+result projections. Chapter 26 uses this seam for work-product offers: an opaque
+ID, display filename and size when offered accompany a successful result. A path
+or URL-looking string in ordinary prose cannot create that metadata or authorize
+a download. Error results cannot advertise a successful offer.
+
+At this chapter's synchronous boundary, preserve typed result metadata when
+recording a returned result and projecting it into retained Context. Do not add
+Jobs or background observation to satisfy this section. Chapter 4 extends the
+same preservation rule to completed structured Job results and one-shot
+observation notices; a running report has no completed offer yet.
+
+Provider rendering consumes the ordinary description, not the opaque download
+identifier. Retained metadata is a description, not restored live authority.
+Chapter 26 constructs the owning Agent's live offer collection, the offer tool
+and download integration after the Sandbox and browser boundaries exist. None of
+those live download capabilities is part of this chapter's six-tool exercise.
+
+### The early metadata contract
+
+Add an immutable `WorkProductInfo` value with readonly `ID` and `Name` strings
+and readonly `OfferedBytes` (`long`). Its constructor is
+`WorkProductInfo(string id, string name, long offeredBytes)`. An ID contains
+exactly 32 ASCII hexadecimal characters. A name is a nonblank basename: reject
+control characters, `/`, `\`, `.` and `..`. Offered bytes must be between zero
+and 64 MiB inclusive (64 × 1024 × 1024). These checks validate a description;
+they neither check for a file nor create permission to read one.
+
+Extend `ToolResultPart` and `Event` with a readonly nullable `WorkProduct` field
+and an optional named constructor argument `workProduct`, defaulting to null.
+Keep existing constructor calls valid. In this chapter, only a successful
+`ToolReturned` event may carry that event-level metadata. An error result or
+error event carrying an offer must refuse construction. The six built-in tools
+continue to return null metadata; use synthetic values to test this seam.
+
+Expose single-part conversion on the public `JsonCodec` partial alongside the
+existing event and array codecs. Declare these methods in Common and implement
+them in the matching serialization partial:
+
+```csharp
+public static partial JsonObject WritePart(Part part);
+public static partial Part ReadPart(JsonElement value);
+```
+
+`JsonObject` comes from `System.Text.Json.Nodes`; `JsonElement` comes from
+`System.Text.Json`. If the prerequisite only exposes array codecs, factor their
+single-part behavior into these methods and reuse it from the array methods.
+Keep existing array and event callers valid; do not create two competing part
+codecs. The outside-assembly supplement calls these public methods directly.
+
+The public JSON vocabulary adds `work_product` to a tool-result part and to the
+`tool` object of a returned event. Its value is an object with `id`, `name`, and
+`offered_bytes`. Missing or null metadata reads as null for older logs. Preserve
+all three fields through part/event codecs, `Event.Numbered`, and reduction of
+a returned event into its `ToolResultPart`. A round-trip must not turn a
+pathname in ordinary text into metadata. Result redaction removes the offer
+description with the payload, without mutating the original Context.
+
+Render otherwise identical Contexts with and without this metadata through the
+three Chapter 2 provider routes. Their complete requests must be equal, while
+the ordinary call and result text must still be present. This is retained
+inspection data, not another provider part. Do not add an offer tool, live offer
+collection, Job API, or file-opening operation to implement this value contract.
+The historical CLI grader cannot inspect this library-only seam; its score is
+not evidence that these additional obligations passed.
 
 ## 3.3 Six tools, and three named
 
@@ -3836,6 +4013,22 @@ an unexposed library configuration. The original student's result remains
 90/100 FAIL, accepted with the inherited media-scope exception and all nine
 new checks passing. Correcting the grader does not rewrite that result.
 
+### Retained-metadata supplemental acceptance
+
+Run the [outside-assembly metadata consumer](../internal/gradeedition3/testdata/ch03-metadata-consumer/README.md)
+against your candidate `Ensemble.dll`, using the existing offline .NET SDK and
+fresh owned output directories. It checks the early contract above without
+requiring Jobs, Sandbox, GUI, or live offers. Its separate `library` mode checks
+empty-registry omission, independent Agent ownership, fresh declaration trees,
+and destruction through the public Tool API. Run those modes, then `log-write`
+and `log-read` as separate processes in the same fresh workspace. The reader must
+load the completed writer's actual files, preserving the description through
+canonical events, restored Context, and a subsequent dump. Keep all named
+receipts separately from the historical 100-point report. Add focused tests and
+source review that show synchronous result recording preserves the optional
+metadata; the consumer alone does not execute your tool loop. No points are added
+to the historical grader by this supplement.
+
 ### What would still pass if I deleted this?
 
 Chapter 2 asked this of its grader and found `Opaque` graded by nothing. The
@@ -4107,6 +4300,12 @@ that path without becoming jobs themselves. `tool_limits` sets one-shot
 observation options for the very next call, even a control or failed call; its
 consumption must be visible. Interactive commands require a real PTY.
 
+A control can return an observation of an existing Job without owning a new one.
+Preserve that observation's typed handle and status when the Agent records its
+result in History. Stripping them merely because the call is a control loses the
+facts needed by replay and the GUI. A handle-free `tool_limits` result still has
+no Job metadata; never manufacture a wrapper Job to fill that absence.
+
 ## In plain words
 
 Chapter 3 made the Agent wait inside each tool. Chapter 4 gives the work its
@@ -4251,6 +4450,31 @@ return await job.ObserveAsync(call.CallID, delay, pattern, maxBytes,
     callerCancellation, wakeOnOutput: false);
 ```
 
+The complete finalized model response, including every requested call and its
+normalized identity, is already in canonical History before any batch effect.
+The handle-bearing `ToolCalled` above records admission of one Job, not capture
+of that whole response. In this early serial loop, each call may therefore follow
+`ToolCalled`, `ToolStarted`, and `ToolReturned` before the next call is admitted.
+Record that call with its Job before releasing its worker, and record results
+before the next provider request. A failed call-record append must release no
+worker. Refusal must cause no tool effect.
+
+Chapter 3's implementation may have recorded all separate call events before
+executing the first call. Do not duplicate those events or invent batch
+pre-admission merely to preserve an implementation-specific test. Update that
+test to verify complete response capture before effects, each Job's own
+record-before-effect boundary, correlation, and result-before-next-request
+ordering. The later scheduler may separate planned calls from dispatch again;
+that is not required here.
+
+Preserve the receiver-bound `Tool.ExecuteAsync` contract from Chapter3 when
+routing it through this funnel. Reject a different call name before dispatch:
+return a correlated `IsError` result without Job metadata, a new Job, handler
+effects, or History dispatch facts. A matching name uses ordinary Agent dispatch;
+`Agent.DispatchAsync` itself still selects by name. This guard is not a second
+execution path. Run the public observation supplement's `receiver` mode to check
+both refusal and the two legitimate execution routes.
+
 Three things follow from putting it there and nowhere else.
 
 In C#, `Task.WhenAny` can similarly end a wait without ending the task.
@@ -4309,9 +4533,13 @@ needs its stated diagnostic. Do not hide those facts to imitate the old bytes.
 The log contract, so you do not guess it. Both `tool_called` and
 `tool_returned` carry `tool.job = {handle, status, output, bytes, exit_code?}`,
 with `status` one of `running`, `done`, `killed`, and `output` a
-`Ref{RefHandle, "cr/io/N"}`. The `job` field is absent on the four supervision
-tools; they are the only calls that are not jobs. One new event, `job_killed`,
-carries the job and a `reason` of `kill_job` or `shutdown`.
+`Ref{RefHandle, "cr/io/N"}`. The four controls allocate no wrapper Job, so their
+call records carry no newly allocated Job snapshot. A control's returned result
+can instead carry a snapshot of the existing Job it observed. Preserve that
+snapshot through result recording and replay; it does not give the control
+ownership of another Job. `tool_limits` has no observed Job and remains without
+Job metadata. One new event, `job_killed`, carries the job and a `reason` of
+`kill_job` or `shutdown`.
 
 On disk the killed event uses a top-level `job` payload, with the reason inside
 that object. This is an illustrative event, not a live receipt:
@@ -4490,6 +4718,69 @@ The CLI calls Shutdown before its final log save, including error exits from
 its input loop. Returning a final model answer alone does not end the CLI
 session; EOF does. A library application has the same responsibility when it
 finishes using its Agent.
+
+Recording a shutdown failure must not prevent shutdown itself. A History append
+or borrowed diagnostic writer can throw while recording `job_killed`. Preserve
+that exception, but still request cancellation, terminate and drain owned
+processes, and join cooperative callback cleanup before reporting the failure.
+Continue cleaning the other owned children and detach their relationships even
+when one child reports a recording error. Do not mark an owner destroyed and then
+leave its children running behind an early return or an exception. A killed
+snapshot alone does not prove cancellation was delivered.
+
+Exercise this through the public observation supplement's `cleanup` mode. A
+borrowed writer fails during destruction while a real cooperative callback holds
+its cleanup behind an external barrier. Destruction must signal cancellation,
+wait for that cleanup, preserve the error, and leave an unrelated Agent alive.
+The test's synthetic unknown-usage History setup activates the early diagnostic
+path; it is not a provider request. This does not require new callback interfaces,
+crash-safe logging, or forced termination of arbitrary managed code.
+
+### Measure the observation, not the worker
+
+Immediately after successfully recording dispatch admission, capture a monotonic
+clock reading. When the foreground observation produces its result, calculate the
+elapsed duration once and return it alongside that immutable result. The Agent
+records both in its paired returned event. Keep the clock local to the dispatch;
+a shared timer registry or polling loop would add another lifecycle authority.
+
+A schema or permission refusal has no admitted duration. An execution error after
+admission may have one. Cancellation that ends observation but leaves its Job
+running fixes the observation's duration at that boundary; later completion must
+not rewrite it. A control's own observation can likewise be measured without
+creating a wrapper Job. Paths without an explicit dispatch boundary retain
+unknown duration rather than inventing one. Later chapters apply that rule to
+skill activation; do not construct the skill system here to test this timing
+boundary. This feature does not change admission behavior.
+
+Persist the optional duration exactly as nonnegative ticks on the result event
+and retained Entry. The GUI may format seconds, but provider payloads remain
+unchanged. Test with a real custom tool held behind a barrier: the observation
+returns a running Job before the barrier opens, and its recorded duration remains
+unchanged after joined completion. Test refusal separately. Avoid a fragile test
+that assumes a loaded machine must finish within a tiny wall-clock threshold.
+
+### Looking ahead: completed structured results
+
+A running report is an observation, not the eventual structured result. Keep
+that distinction in the Job design, but do not invent a public structured custom
+handler or build MCP merely to prove it in this chapter. Here, implement and test
+the text-handler, timing, control-observation, and ownership exercises.
+
+The end-to-end delayed structured-result exercise belongs in
+[Chapter 11](chapter-11.md#exercise-delayed-structured-results-through-mcp), after
+MCP and browser inspection are available. There, a controlled remote peer supplies
+a real delayed result and the browser exposes its presentation. Preserve ordered
+parts and error status through completed observation without flattening them to
+diagnostic output. Chapter 26 separately tests work-product delivery descriptions
+and live download authority; generic MCP content does not establish either.
+
+Chapter 26 supplies the HTTP transfer integration, not this chapter. Such a
+transfer is not another tool observation or a new background Job. It has its own
+explicit lifetime, owned by the offering Agent and joined before that Agent's
+Sandbox is destroyed. Request cancellation stops that transfer; it does not erase
+the earlier offer or cancel another transfer. Do not build the later Sandbox or
+HTTP route as a prerequisite for this chapter's observation exercise.
 
 ## 4.7 The terminal
 
@@ -4805,7 +5096,7 @@ has something real to talk to. A command that emits more than a megabyte
 | id | points | what it grades |
 |---|---|---|
 | `ch3parity` | 10 | Chapter 3's corrected grader passes fully against the Chapter 4 binary |
-| `jobmodel` | 25 | handle on `tool_called` before the tool ran, for `read_file` and `list_directory` as well as the shell; `cr/io/N` bytes equal the result the model saw; `wait_for_job`'s own record carries no job |
+| `jobmodel` | 25 | handle on `tool_called` before the tool ran, for `read_file` and `list_directory` as well as the shell; `cr/io/N` bytes equal the result the model saw; `wait_for_job` allocates no wrapper Job; a returned snapshot describes the existing observed Job |
 | `waitjob` | 10 | delay honored (`running` at 0.2 s); wait returns the result; works on an already-finished job; file ends with marker and exit code |
 | `sendinput` | 10 | pattern wakes on the prompt and not the echo; input reaches the process; its reply comes back; clean exit recorded |
 | `debugger` | 5 | the fake drives `dlv` to a breakpoint and reads `42` |
@@ -4836,6 +5127,40 @@ visible instead of inventing a 160/160 result. Independently build and exercise
 the C# consumer through a local protocol fake and inspect the partial declarations
 and actual parent access paths. A failed overall grade is still a failed grade,
 with its executable and language-specific portions reported separately.
+Use `-jobs-only` for the executable100-point gate; it does not award the separate
+consumer/topology points. For historical compatibility, that gate permits older
+logs which omitted a control's returned Job snapshot, while checking any supplied
+snapshot against the observed Job. Such a legacy pass does not certify the revised
+preservation rule above; test that rule explicitly through actual result recording
+and replay, alongside the C# consumer and ownership review.
+
+The [public observation supplement](../internal/gradeedition3/testdata/ch04-observation-consumer/README.md)
+adds 23 named outside-assembly checks for real running and terminal observations,
+recorded fixed durations, typed control snapshots, no wrapper Jobs, and refusal
+without admission. Its README specifies the C# constructor and public member
+signatures required by this executable, using the text-returning custom handler
+and actual parent relationships above. Provide those members on the real owners,
+not in a parallel test adapter. It accepts the early paired `ToolReturned` fact;
+a later runtime's direct `ToolObserved` spelling is also supported, without
+requiring a mailbox at this construction point.
+
+The immutable `JobInfo` value exposes `int Handle`, non-null `string Status` and
+`string OutputPath`, `long Bytes`, `bool Truncated = false`,
+`int? ExitCode = null`, and non-null `string Cwd = ""`. Truncation describes the
+bounded observation, never permission to shorten its durable output file.
+Empty `Cwd` represents no per-call override, while execution still uses the
+Agent workspace; the optional wire field may be absent or empty. Preserve all
+snapshot fields through result recording, codec round trips and log replay.
+
+A pass is observation evidence, not the whole external-consumer exercise: this
+supplement makes no provider request and cannot certify structured completion
+metadata using its text-only handler. Its separate `log-write` and `log-read`
+modes persist actual dispatched observations and verify canonical facts after a
+writer exit and public `History.Load` in another process. Require all 27 writer
+and 21 reader checks, as documented in the README. This is canonical log replay,
+not model-dialogue inclusion, crash recovery, or execution of restored Jobs.
+The historical 100-point score and separate consumer/topology review are
+unchanged.
 
 From the repository root, using the approved .NET 10 SDK and controlled offline
 environment:
@@ -4843,7 +5168,7 @@ environment:
 ```sh
 dotnet run --project agent/Tests/Tests.csproj
 dotnet publish agent/Cli/Ch04.csproj -c Release -o /tmp/ch04-cli
-go run ./cmd/grade-edition2 -ch 4 -json /tmp/ch04-cli/ch04
+go run ./cmd/grade-edition2 -ch 4 -jobs-only -json /tmp/ch04-cli/ch04
 dotnet build agent/Examples/Consumer/Consumer.csproj
 ```
 
@@ -4851,6 +5176,18 @@ The component suite tests real tools and PTYs with fake HTTP at the provider
 boundary. The consumer exercise additionally verifies successful, correlated
 custom output—not merely the presence of a result marker—and the timestamped
 root diagnostic. No real-provider acceptance follows from either fake.
+
+The [public model-driven consumer](../internal/gradeedition3/testdata/ch04-model-consumer/README.md)
+provides that offline boundary through an owned loopback fake. Require all 38
+named checks and joined process exit. Its compile-time `AgentEntryPoint=Ask`
+uses the early prerequisite's actual Agent loop; `Send` selects the current
+runtime's public spelling. Neither adapter contains an exchange or dispatch
+loop. The fake withholds its final answer until three real correlated results,
+output files, callback execution and the timestamped root diagnostic are
+verified. Correct-looking output without executing the registered handler is
+not a pass. This does not award the historical Go-only topology points or
+replace ownership/source review, live-provider acceptance, or the separate
+structured-completion boundary.
 
 The numeric result has limits. Independent source review still checks actual
 parent relationships, Ensemble-owned logging, behavior in the correct package
@@ -6530,6 +6867,19 @@ text; replay reconstructs the same card, not a duplicate. Repeated final frames
 are idempotent. The server and browser both reject resurrection of completed
 content by stale chunks.
 
+### Keep the mount-local identity distinct
+
+An empty `agent_id` can identify the original unnamed Agent borrowed by a GUI
+mount. It is not a global address and must resolve directly to that actual
+mounted object. Other selections need a live qualified address. When a selected
+Agent is destroyed and loses its address, stop its observer instead of converting
+it into the empty alias. Queue tracing must follow the same distinction.
+
+Test the full lifecycle with a named selection replaced under the same name,
+and repeat with an unnamed mounted source. A successful interaction followed by
+a faulted observer during joined shutdown is a failed test, even if the browser
+already received its answer or downloaded its file.
+
 ## 7.4 Truthful tool cards
 
 There are three distinct claims:
@@ -6550,13 +6900,86 @@ Those are outcomes, not reasons to falsify the admission history.
 
 The GUI projects admitted execution as `tool_dispatched`. Refused calls have
 no such frame. They still get their paired result and visible error status.
-The browser's plan card can therefore change from **planned** to **started**
-to **finished/error**, without portraying a refusal as real execution.
+Retain the wire-level states `planned`, `started`, `finished` and `error` for
+machine behavior, but label them **Requested**, **Dispatched: awaiting result**,
+**Result returned** and **Error reported**. These labels describe admission and
+observation without portraying a refusal as real execution.
 
 `tool_finished` means the foreground observation returned. A running-job report
 can be a legitimate result: waiting stopped, while the independent job remains
 alive. Preserve the job handle and locator. Do not relabel that observation as
 process termination.
+
+When a result includes typed Job metadata, show its handle and **state when
+observed** separately: running, finished or killed, with the recorded exit code
+when available. Finished does not imply success, and an absent exit code is not
+zero. Keep earlier snapshots intact when a later observation arrives. Reopening
+an old transcript does not prove that a once-running Job is still running now.
+Unknown metadata stays unknown; prose that resembles a Job report must not create
+status facts. A live Job monitor would be a separate feature, not an inference
+from this retained result. Error reported likewise does not by itself distinguish
+a failed observation from unsuccessful execution; retain the exact result detail.
+This also applies to `wait_for_job`, `send_input`, and `kill_job`: their results
+can describe the existing Job. Preserve those typed observations through Agent
+recording and replay, even though the controls create no new Jobs.
+
+### Display recorded time and observation duration
+
+Project finalized facts with their recorded timestamp. The timestamp belongs to
+the retained Entry, not the browser's first paint or the diagnostic tail. Show a
+local date/time and expose its exact offset-bearing value in accessible detail.
+A streamed draft has no finalized timestamp yet. Keep a call's original recorded
+time when its dispatch status arrives; each result has its own recorded time.
+Missing historical values remain unknown.
+
+Show a returned tool's optional duration as **Observation**, explicitly identifying
+dispatch-to-return elapsed time rather than background Job runtime. Format the
+recorded value; never start a live counter on a retained running result. Invalid
+or absent timing metadata cannot become zero, current time or an inferred value.
+Test rerender, snapshot-only replay, exact timestamp detail and the distinction
+between an untimed draft and its finalized card.
+
+### Offer controls consume typed facts
+
+The later work-product feature renders a Download control only for a successful
+typed offer, never a pathname inferred from text. Bind the control to the actual
+card's Agent and opaque offer ID. Rendering or replaying an offer must make no
+download request. A human click starts the transfer, and the server rechecks live
+authority and the Sandbox. History can describe an expired offer without granting
+access to it.
+
+Retain the same control and feedback during ordinary rerenders. Give an active
+transfer a Cancel action. Bound both declared and streamed byte counts before
+creating a download Blob; an absent Content-Length does not remove the cap.
+Abort on transcript replacement, and check the current card object again before
+starting the browser download. A late response from an old card must not save a
+file under a replacement card's identity. Expose expired/unavailable and cancelled
+states without retrying automatically. Use download-only bytes, not inline HTML.
+
+### Preserve paired controls and reading position
+
+Use the result frame's `tool_part_id` to link a result to its actual call card.
+Names, Job handles and result prose cannot establish that relationship. Each
+result offers **View call**; its call offers **View latest result**. Earlier
+results retain their own call link. An absent or wrong-kind counterpart leaves
+an ordinary readable result without a guessed link.
+
+Keep these as relationships between the current presentation objects, not a
+second transcript. On activation, check both objects against the current card
+map and selected Agent, and require connected nodes. A detached button from an
+old replay must not target a new card merely because its ID was reused. Explicit
+navigation focuses and scrolls the counterpart; its controls have at least a
+44-pixel touch target.
+
+Preserve the actual heading, details summary and download controls when a result
+updates its call. Restoring only `details.open` after replacing the DOM loses
+keyboard focus and pending-control feedback. Update raw text only when changed,
+retain unchanged attachment and output controls, and defer repaint while selected
+text intersects the card. Selection release schedules the deferred render.
+Incoming output preserves pane position while the reader has focus or selection
+inside that pane. Otherwise, only a reader already near the bottom follows new
+output. Test both focus on the details summary and focus on the pair button when
+another result arrives; those exercise different update paths.
 
 `turn_ended` carries the completed answer when the turn completed normally, or
 an explicit terminal reason otherwise. It is not inferred from a transient
@@ -6655,6 +7078,48 @@ code highlighting. Test malicious markup, encoded unsafe links and remote image
 syntax, including the absence of network requests. Library configuration is a
 security boundary, not a substitute for these tests.
 
+### Copy the logical code, not the preview
+
+Give explicitly closed fenced code in assistant text a **Copy code** button.
+Here, exact means the parser's logical code payload: omit the fences and Markdown
+quote/list prefixes; retain code indentation, Unicode, blank lines, trailing spaces
+and the payload's terminal newline. Accept the pinned parser's normalization to
+LF line endings. The original Markdown remains unchanged in the backing card and
+History. This is code copying, not a byte-for-byte export of the Markdown source.
+Junien's [snippet contribution](https://github.com/waywardgeek/ensemble/pull/7)
+informs this requirement and its clipboard-denial and literal-content tests.
+
+An unfinished fence renders readable code but has no Copy button, even after the
+response ends. Inline code, indented code, human text and reasoning cards have no
+snippet-copy controls. Reuse the existing parser rather than add a competing
+fence grammar. In the pinned parser, a fence token's source span includes its
+opening line, every body line, and a closing line only if consumed. Container
+prefix removal preserves body-line count. Count an unterminated final body line
+too; end-of-input must not masquerade as a closer. Test this assumption against
+empty blocks, nested quotes/lists, mismatched fences and indentation whenever the
+parser changes.
+
+Use an explicit button click and the clipboard write API. Capture the complete
+logical payload at that click; neither highlighting nor a collapsed preview is
+the source. The control stays outside long-code expansion, so copying a collapsed
+snippet still copies all its code. Report success only after the write completes.
+When the API is absent or denies access, show an honest failure status and a
+labelled read-only field containing the same payload for manual selection/copy.
+Do not read the clipboard, execute the snippet or submit it as a prompt.
+
+Keep unchanged snippet controls when later prose streams. Retaining the node
+preserves pending-copy state, success feedback, expansion and manual selection;
+restore keyboard focus if reparenting blurs that same retained control. A changed
+payload gets a new control. Late clipboard completion belongs to the old snippet
+and must not update a replacement card or redirect its copied bytes. These are
+browser interaction lifetimes, not additional persistent artifact ownership.
+
+Even append-only model text can change a parsed snippet. A closing fence at the
+end of the current prefix stops being a closer if later text appends letters to
+that same line. A gated provider stream can exercise this payload change while
+a clipboard write is pending. Check both success and denial: neither may update
+the replacement's feedback or move focus into it.
+
 ### Stream Markdown, render the accumulated text
 
 Keep the complete original Markdown in the backing card. Send text deltas over
@@ -6713,7 +7178,7 @@ narration off cancels that browser's current and queued speech. A rate or voice
 change affects the next constructed utterance, not audio already speaking.
 Microphone recording and transcription funding are separate from speech output.
 The hold-to-talk shortcut is a browser-profile preference, not Agent policy;
-Chapter8 specifies its local storage and Chapter26 implements its input guards.
+Chapter8 specifies its local storage and Chapter25 implements its input guards.
 Automatic narration reads only new content for the Agent selected in that tab.
 A selected tab may be in the background; selection is not foreground visibility.
 
@@ -6861,7 +7326,12 @@ Test real components with small external fakes. Important cases include:
    origin without granting it actor input capability.
 7. Inspect actual narrow-layout controls and safe rendering of hostile-looking
    code. Exercise full-content speaker buttons through a fake speech boundary.
-8. Exercise queued speech, interrupted-utterance cleanup, automatic typing pause,
+8. Compare copied bytes for complete fences, including Unicode, CRLF input,
+   quoted/list-contained code, empty blocks and a long collapsed preview. Refuse
+   unfinished fences; test denied/missing clipboard access, manual selection,
+   focus during streaming and completion after the original card disappears.
+   A deliberately preview-only copy and an unfinished-fence copy must fail.
+9. Exercise queued speech, interrupted-utterance cleanup, automatic typing pause,
    cross-tab resume, Stop speech/Escape preserving a draft, disconnect/reconnect,
    selection cleanup, transient restart state, and silent visibility wakeup.
 
@@ -6878,6 +7348,11 @@ This route covers 80 points: wire behavior, reconnect replay, GUI trace, and
 pause semantics. It excludes inherited Chapter 6 scoring and Go topology
 checks. The full historical Go route remains available and unchanged in scope.
 Neither route establishes accessible speech quality or real provider acceptance.
+These historical points do not certify the added snippet-copy obligations.
+Use focused browser tests for that contract here. The named Artifacts grader
+covers snippet copying in the later integrated runtime; its later Agent and GUI
+APIs are not prerequisites for this early chapter. Student reconstruction and
+human usability remain distinct from either set of checks.
 
 For a human exercise, use a bounded task in the owned workspace. Watch a
 response stream, inspect thinking and tool details, send a hint, pause and
@@ -7355,6 +7830,20 @@ marks a non-primary skill pending removal and says so honestly. The manual and
 its tools remain active. Test this with a tool granted by the loaded skill, not
 one that was already granted by the primary.
 
+### Installed, discoverable and granted
+
+These are three different states. Installing a built-in handler does not grant
+its authority; listing a skill on the primary skill's loadable shelf does not
+load it. Work-product offering, like host-screen access, requires an explicit
+skill grant even in the legacy unskilled registry. Declaration filtering and
+dispatch enforcement must agree. The `work-products` skill grants
+`offer_work_product`; ordinary file editing does not silently gain that power.
+
+Unloading the skill prevents new offers. An already created offer retains its
+approved Agent-lifetime policy rather than being reconstructed from saved skill
+text. Restart does not restore live offer authority. Test installed-but-ungranted,
+loaded and unloaded states separately, including actual provider declarations.
+
 ## 9.2 Ownership and the authoritative facts
 
 Keep the existing hub-and-spoke organization:
@@ -7765,6 +8254,14 @@ There are three useful equivalent representations:
 | Snapshot plus tail | Complete through N | Includes required events > N |
 | Log-only | `null` | Complete from event 1 |
 
+Each retained Entry carries its optional recorded time and observation duration.
+Serialize the time with its offset and the duration as exact nonnegative ticks.
+Missing fields in legacy saves mean unknown, not restart time or zero. Preserve
+them through filtering, handoff and snapshot-only replay; a replacement summary
+uses its own recorded fact time. This does not extend diagnostic retention:
+discarded direct-tool or lifecycle diagnostics are still discarded, not copied
+into a second permanent timing log.
+
 A snapshot-only save is the first row with an empty log. It must restore both conversation and future numbering correctly.
 
 ## 10.4 Safe replacement and recovery
@@ -7786,6 +8283,15 @@ Temporary files are cleaned up on failure. Same-directory replacement avoids pub
 Startup tries the primary and backup independently. Missing files allow a new session only when neither candidate exists. Parse, replay, access, or shape failures are reported safely; corrupt file contents are not copied into diagnostics. Successful backup recovery reports its saved sequence. It does not claim to recover events that were never durably saved.
 
 If both candidates fail, construction/startup is refused and saving is not armed. Do not “repair” an unreadable save by silently overwriting it with an empty conversation.
+
+### Persist descriptions, not live file grants
+
+Work-product metadata on a retained successful result survives snapshot and event
+roundtrips as ordinary immutable data. Do not serialize the Agent's live offer
+collection, file streams or active transfers. Loading a description must never
+reopen its path, register its ID, or create download authority. A new Agent with
+the same display name is still a new lifetime. Chapter 26 tests retained offer
+metadata alongside explicit refusal by the replacement live owner.
 
 ## 10.5 Reapply the current runtime
 
@@ -7890,7 +8396,7 @@ Use an owned directory, loopback fake provider, dummy key, and isolated browser 
 
 1. Send several turns, exit normally, restart without replay flags, and inspect the actual next provider request for each prior human turn exactly once.
 2. Change vendor, model, primary skill, variable values, and allowed tools. Check that saved conversation survives while current configuration governs the next request and save.
-3. Compare snapshot-plus-log, snapshot-only, log-only, and older-snapshot/newer-tail representations. Require equal effective conversation and continuous event numbering.
+3. Compare snapshot-plus-log, snapshot-only, log-only, and older-snapshot/newer-tail representations. Require equal effective conversation and continuous event numbering. Include exact retained recorded times and observation durations; remove timing fields to test legacy unknown values, and reject malformed times or negative durations.
 4. Save opaque values, exact-number arguments, media locators, usage, redacted results, summaries, and display identities. Test the real codec and reducer, not a substitute persistence model.
 5. Corrupt primary alone, then both candidates. Isolate invalid cases so a valid backup cannot hide decoder rejection. Verify file and live-state nonmutation on refusal.
 6. Block an archive or replacement path. Require a visible failure, no false success, and no diagnostic trimming. Verify a corrupt primary is not rotated over the good backup.
@@ -8145,6 +8651,42 @@ A useful verification sequence is:
 8. **Public consumer.** Reference Ensemble from a separate C# project. Construct the graph through public APIs, activate and unload a process-backed skill, use the incoming service, then join destruction and inspect both parent collections.
 
 Use small working fakes for external boundaries, not mocks of the components under test. Preserve failed runs and distinguish fixture mistakes from product defects. A timeout that reveals an incorrect fixture selector is not evidence that a protocol is broken; a green CLI grade is not evidence that a hidden browser tab worked.
+
+### Exercise: delayed structured results through MCP
+
+This exercise takes over the integrated structured-completion proof deferred
+from Chapter 4. Use an isolated real GUI and an owned local MCP peer with a
+release barrier. Keep the candidate's actual MCP transport, Job supervision,
+History, and browser rendering in the path; do not inject application frames,
+substitute a grader-side execution loop, or add a production test-only hook.
+
+1. Activate the explicitly granted remote tool. Hold its reply at the peer and
+   require an ordinary observation to return a running Job with an actual handle.
+   Confirm that the peer remains pending and no terminal content has been
+   delivered. Use a barrier, not a race against a fast tool.
+2. Inspect the connected page through the browser skill. Correlate the real call
+   and running observation with canonical History. The display must distinguish
+   a returned observation from completion of the underlying Job.
+3. Release a result containing distinct supported ordered parts. Wait using the
+   original handle, and verify exact part order, payloads, and error status in
+   the first completed ordinary observation and its canonical recorded result.
+   A separate error run must preserve `isError`; a later observation must not
+   redeliver the same structured result. Diagnostic output is not a substitute
+   for the typed result.
+4. Inspect the completed call/result pairing through the browser, then reload
+   and inspect replay. Compare visible states and relationships with the recorded
+   facts; replay must not invoke the remote tool again. The earlier running
+   observation must remain an honest snapshot, not be rewritten as terminal.
+5. Separately cancel a held call explicitly and verify remote cancellation and
+   joined cleanup. An observation timeout alone must not cancel it. Close the
+   owned peer, Jobs, and GUI even after a failed assertion.
+
+Use only supported MCP content blocks; this does not require a newer
+`structuredContent` field. DOM inspection is not pixel or audible evidence.
+Do not treat remote content as a work-product grant: Chapter 26 retains the
+specific offer, lifetime, file-transfer, and human-usability gates. Record actual
+results and negative controls separately from the existing CLI score. The new
+exercise is not certified merely because earlier Chapter 11 tests passed.
 
 ### What this endpoint establishes
 
@@ -9085,6 +9627,55 @@ The actor then records `HandoffRecorded` carrying a value-like `HandoffPart`. Hi
 
 Do not recognize a handoff by a magic prose prefix. The marked part makes replacement precise. Engine converts it to ordinary system text only in the disposable provider projection. Canonical Context and snapshots retain its identity. Original notes and private parts remain in the event archive; clearing a working view does not rewrite history.
 
+### Newest-only means one active note, not one archived event
+
+After a successful handoff lands, active Context contains exactly one
+`HandoffPart`: the newest note, once. Retire every older marked note, including
+notes loaded from a snapshot made by an older runtime. Do this through the next
+ordinary handoff reduction, not by rewriting the saved archive or migrating it
+behind the user's back. A rejected or uncommitted handoff does not replace the
+last successful note.
+
+The new note must carry forward still-relevant decisions, reasons and unfinished
+work. It should not copy every closed progress report. Ordinary dialogue and
+memory summaries are separate inputs: removing old checkpoint notes does not
+promise a particular token count or rewrite summaries that already incorporated
+them. Measure actual provider-reported input separately from snapshot file size.
+
+Test this contract at its boundaries:
+
+- Seed an old note, then complete two new handoffs. Require only the final note
+  in active Context, while canonical History retains all three handoff facts.
+- Hold a companion tool result. Before that result is recorded, require the old
+  active note to remain. After recording all outcomes, apply the new cut once.
+  Repeat with interruption and exact-ID refusals for undispatched batch tails.
+- Save and load the result, including a snapshot-only restoration. Require one
+  typed newest note, preserved ordinary dialogue and manuals, and no restored
+  tool traffic, media or private replay material in active Context.
+- Inspect provider requests, not just the reducer: the old marker must be absent
+  and the new marker present once in Messages, Chat Completions, Responses and
+  GenerateContent projections. Removing the older-note filter must make the
+  relevant assertions fail.
+
+Restored GUI delivery is a separate boundary. The display transcript combines
+retained Context with selected historical facts; it is not a complete journal.
+Do not replay compression removal/population transactions through that filtered
+transcript merely to calculate turn phase. Those transactions have already been
+applied to the authoritative snapshot. Keep core transaction validation strict.
+Chapter 21 adds compression: at that integration point, test two handoffs followed
+by a committed compression, then project the snapshot and connect a real GUI
+socket. Require connection, replay and current settings delivery, the newest
+visible note and correct turn state. A connection frame followed by repeated
+reconnects is not successful history delivery.
+
+Current repository checks are `--memory-selection-tests` on `agent/Tests` for
+prefix selection, handoff replacement, snapshot/provider replay and interrupted
+batches, and `--handoff-projection-tests` on `agent/GuiTests` for the compression
+projection/socket boundary. Run the built test executables with these selectors;
+the latter is a later-chapter integration check, not a Chapter 14 requirement to
+implement long-term memory early. These checks do not award new historical grader
+points or prove every live model's continuation quality.
+
 ### A checkpoint must not become its own next task
 
 A cut can preserve the wrong ambiguity. Suppose the assistant says, "I will save
@@ -9117,7 +9708,7 @@ The current focused check is `--handoff-continuation-tests` on the `agent/Tests`
 executable. It demonstrates a deterministic missing-receipt failure and its
 repair, not a guarantee that every live model will stop repeating itself. The
 historical endpoint grade below did not test this condition. Do not award an
-anti-loop claim merely because two successive handoffs retained their notes.
+anti-loop claim merely because the newest note survived a successful cut.
 
 The note should say what succeeded, what failed, where the source of truth lives, and what comes next. Failed approaches are often the highest-value bytes because they prevent repetition. Record uncertainty too. A note is a continuation aid, not proof of subjective continuity or a substitute for checking current state.
 
@@ -9184,6 +9775,8 @@ The public `History.Load` log path can replay this archive. It recovers the redu
 ## 14.12 One setting, one authority
 
 The library Agent owns the live byte target. The GUI's settings snapshot reads it rather than keeping a second mutable copy in presentation preferences. Validate a proposed patch and save it before publishing either preferences or policy. A failed save must leave the old file, live policy and both clients' acknowledged values unchanged.
+
+The GUI labels this control **Tool-result stubbing budget**. It is not a handoff threshold. Per-model working-context limits are separate whole input-token settings, described in Chapter 21; never reinterpret a legacy byte value such as `250` as 250,000 tokens.
 
 The GUI field is `context_target_bytes`. Its convention is intentionally different from the library setter: zero or a negative value selects the 400,000-byte default, positive values round to thousands, and a rounded zero also selects the default. Large values are bounded safely. A wrong-typed optional field is ignored like the existing preference fields. The control shows acknowledged values, retains a proposed edit while saving, and restores acknowledgement on failure.
 
@@ -12020,6 +12613,24 @@ This is the tested symlink-substitution boundary, not a claim about arbitrary
 privileged directory relocation, mount changes, or an attacker who already
 controls the host process. Keep that threat distinction visible.
 
+### Offers do not replace the filesystem boundary
+
+A work-product offer retains an authorized pathname inside its live Agent, not
+in a browser URL. Resolve and validate a regular file when creating the offer,
+then reopen through that same Sandbox for each deliberate download. A former
+successful check cannot authorize a subsequently replaced file or outward link.
+Use the existing nonblocking regular-file read so a FIFO cannot hold teardown
+waiting for a peer. Full-access Agents retain their configured filesystem scope;
+the download feature must not pretend that all Agents are workspace-confined.
+
+The Agent owns each in-flight copy's file handle and cancellation lifetime; the
+HTTP response stream is borrowed. Close admission, cancel copies and join their
+cleanup before closing the Sandbox. Perform copying and cancellation callbacks
+outside the ownership lock so a slow destination does not block unrelated reads.
+The approved click-time policy is not an immutable snapshot against concurrent
+same-size edits. Same-origin checks protect the HTTP boundary but do not establish
+a new human identity or make a bearer offer ID sufficient authentication.
+
 ## 18.4 The kernel half -- `sandbox-exec`
 
 The shell never calls our C# code, so the kernel has to enforce the
@@ -13929,7 +14540,7 @@ and fail to use it.
 >
 > **Projection and replay.** Declare value-like `MemoryEntry`, `MemoryRetirement`, compression launch/receipt/outcome values, and immutable policies in Common. `Context.Memories` orders five bands from stable to recent: SOUL, MEMORY, 64x archive, 8x archive, session. Conversation follows them. `MemoryPopulated` records actual text; `MemoryRetired` records explicit identities, or an entire band. Reduction and snapshot/journal replay do no filesystem work and start no workers. Render retained memory as labeled user/data text, never system instructions or tool authority.
 >
-> **Checkpoints.** `micro_handoff` still removes old tool traffic, opaque replay and private reasoning from working context, not canonical History. Keep previous handoff notes as completed-segment boundaries until a matching memory replacement commits. Above the conversation byte budget, select a whole oldest completed prefix until the remainder fits, or no further complete prefix is available. Never select the unfinished tail, unresolved tool traffic or private replay. There is no T/4 threshold or minimum-two-checkpoint rule. Graduation of memory files, in contrast, requires at least two files.
+> **Checkpoints.** `micro_handoff` still removes old tool traffic, opaque replay and private reasoning from working context, not canonical History. Keep only the newest handoff note in active Context; canonical History retains prior handoff facts. The retained checkpoint closes the eligible conversation prefix, without keeping older notes in every request. Above the conversation byte budget, select a whole oldest completed prefix until the remainder fits, or no further complete prefix is available. Never select the unfinished tail, unresolved tool traffic or private replay. There is no T/4 threshold or minimum-two-checkpoint rule. Graduation of memory files, in contrast, requires at least two files.
 >
 > **Ownership and files.** Each Agent owns a Memory component and reaches it through that relationship. Memory reaches rooted files through Agent → Sandbox. Derive paths from the Agent home: `SOUL.md`, `MEMORY.md`, `memory/`, `bucket-0/`, `bucket-1/`, and `archive/`. A worker never chooses a path. Strict dated/numeric identities, deterministic ordering and overlap checks govern active corpus files. Retired files remain on disk but do not re-enter active scans. Recover transactions before scanning. A library Agent without a home remains usable without implicit filesystem memory.
 >
@@ -13939,7 +14550,7 @@ and fail to use it.
 >
 > **Asynchronous lifecycle.** The child returns an immutable result through the mailbox; it never publishes parent History. Apply the result at a complete main-work boundary. Unrelated later dialogue or unselected newer files may grow; selected-source or destination edits invalidate the result. A successful commit can continue the file waterfall. Failure waits for another checkpoint, rather than retrying in a loop. Relevant settings changes and owner shutdown cancel and join the worker. Do not destroy Memory or Sandbox while it still uses them.
 >
-> **Accounting and headroom.** Import the joined child's measured model/tier/billing rows exactly once, including failed and canceled attempts with completed usage. Do not alter the parent's latest direct response or cache lens, invent unknown counts, or charge again during replay. Determine pressure from the latest actor-accepted main response and a known selected-model window, not cumulative session totals. At 90%, add a request-only handoff warning. At 95%, declaration and dispatch admit only already-authorized `micro_handoff`. Never grant it implicitly. If a compressor is pending, wait for that exact attempt before the next main request while keeping the mailbox responsive; failed or invalidated work produces an explicit headroom error.
+> **Accounting and headroom.** Import the joined child's measured model/tier/billing rows exactly once, including failed and canceled attempts with completed usage. Do not alter the parent's latest direct response or cache lens, invent unknown counts, or charge again during replay. Determine pressure from the latest actor-accepted main response and the user-set per-model working input-token limit, not cumulative totals or model capacity. At 80%, give one system reminder; at 90%, instruct immediate handoff on every model request; at 100%, apply an Agent-owned completed handoff at a safe batch boundary. Preserve independent work and invalidate stale pre-checkpoint usage. See §21.6 for units, persistence and the separate capacity ceiling.
 >
 > **Settings and checks.** Keep the earlier conversation/tool byte budget behavior. Add six immutable memory policies: conversation, soul, memory, archive64, archive8, session. Default conversation budget is 3,000 UTF-8 bytes; each corpus band defaults to 1,500. Each band has one size setting: budget. Graduation triggers above twice budget and reduces toward budget; those thresholds are derived, not configurable. Zero selects the band default; negative sizes and sizes whose doubled threshold overflows refuse. SOUL has no automatic inbound waterfall. Save Agent-local policy atomically before publishing it. Startup reads it before scanning; disable retires active projection without deleting files, and re-enable freshly reads disk. GUI acknowledgment follows actual actor application and is scoped to the selected Agent. Test failure windows with real History, Sandbox, actors and owned local provider fakes; passing those tests does not prove real compression quality or provider caching.
 
@@ -14012,9 +14623,21 @@ Startup disk reconciliation is an explicit actor action after recovery. It compa
 
 The compressor cannot preserve a reason that the acting model never expressed. A fluent summary is not evidence that omitted reasoning survived. The main model still owes its successor decisions, rejected approaches, uncertainty and unfinished work at the checkpoint.
 
-### Keep checkpoints until their replacement exists
+### Keep the newest active checkpoint; preserve captured source until commit
 
-Chapter 14's handoff removed old tool traffic and private replay. Chapter 21 keeps that guarantee, but no longer discards every older handoff note as soon as a new note arrives. Those notes mark completed segments available for long-term compression.
+Chapter 14's newest-only rule still applies. Each successful handoff replaces all
+older active handoff notes, while canonical History preserves their facts. The
+remaining ordinary dialogue through the newest checkpoint is a completed prefix
+that the selector can consider. Do not retain old notes in active Context merely
+to manufacture more segment boundaries. The unfinished tail remains ineligible.
+
+This is distinct from preserving the immutable source captured by an outstanding
+compression task. A later handoff may retire a checkpoint that task selected;
+validate the captured entries and fingerprint before committing. If the selected
+source has changed, reject the stale candidate rather than resurrecting old notes
+or relaxing the replacement transaction. See Chapter 14's repeated-handoff and
+restored-GUI acceptance checks: a filtered display transcript must not reapply
+compression transactions already reflected in its authoritative snapshot.
 
 The companion results must still be recorded before applying the handoff. A tool call is not a completed batch merely because it appears in History. The prefix selector refuses unresolved tool traffic or private material; it does not “fix” an unsafe selection by pretending the missing result succeeded.
 
@@ -14149,21 +14772,29 @@ This distinction also makes a failed attempt visible. If the model used tokens a
 
 ## §21.6 Context Pressure Must Be Enforced
 
-The waterfall's byte budgets tell us when to compress retained information. The provider's context window tells us whether the next request is in danger. They are related, but neither is a substitute for the other.
+The waterfall's byte budgets govern retained information. A model's capacity is a separate ceiling, not a good default working size: a million-token request may be affordable or useful for a whole-book review and wasteful for ordinary coding. Give the human a durable per-model **working input-token limit**, independent of the optional capacity ceiling and the Chapter 14 tool-result stubbing budget.
 
-C# records pressure from the latest actor-accepted main response, using provider-aware input usage and the selected model's known window. OpenAI cached input is already part of total input; Anthropic's separate input/cache-write/cache-read categories must be combined according to their contract. A direct library Engine call, child compressor response, or cumulative session total cannot supply main-turn occupancy.
+Use exact vendor and routing-model identity. Store whole input tokens, not bytes or implicit thousands. A 250,000-token working limit gives these boundaries:
 
-Unknown window or usage remains unknown. The catalog contains explicit window facts for specific rows; it does not infer a limit from a name prefix or from an available price. These are model metadata, not proof that a model is currently available to the account.
+| Last reported input | Action before subsequent work |
+| --- | --- |
+| 80%, or 200,000 tokens | One system-generated request instruction asks for `micro_handoff` at the next good handoff point. |
+| 90%, or 225,000 tokens | On every model request, including tool-loop continuations, instruct: call `micro_handoff` now with a concise continuation note. Do not begin another investigation, edit, or test. Finish recording any current tool batch outcomes, then hand off immediately. |
+| 100%, or 250,000 tokens | The Agent performs an automatic checkpoint at the existing safe batch boundary. |
 
-At 90%, a request-only instruction asks for a handoff soon. At 95%, the runtime latches a checkpoint requirement. Both projected declarations and dispatch refuse every tool except `micro_handoff`. Deferred tool references obey the same restriction. Existing grants still matter: the latch does not grant a missing tool or activate a skill.
+The default working limit is 250,000 tokens, reduced to a known smaller model capacity. An unknown capacity does not disable the working limit. The user may set a different limit for each model and an explicit capacity when metadata is unavailable. Validate positive whole-token values and working limit no greater than a supplied capacity. A reported approximate capacity, such as Bill's approximately one-million-token Astra ceiling, is a configurable human value, not independently verified catalog metadata. Raising the working limit before a deliberate 500,000-plus-token review is intentional use, not bypassing an emergency alarm.
 
-A later short or usage-less response does not silently clear the latch. The instruction must still explain the outstanding checkpoint requirement. Successful handoff releases the tool restriction; changing the selected model resets pressure tied to the old model.
+Measure the latest actor-accepted main response. Provider normalization must count cached input exactly once: OpenAI totals already include cached input; Anthropic reports disjoint input/cache-write/cache-read buckets. Direct Engine sends, compressor usage and cumulative session totals cannot replace this measurement. Missing usage stays unknown. These are reactive reported counts, not a tokenizer or a guarantee that the next request will fit. The capacity field constrains the working-limit setting; it cannot promise preflight enforcement of an unmeasured next request.
 
-### Wait without freezing the Agent
+### Automatic handoff is routine maintenance
 
-If a compressor already owns the source needed to relieve pressure, the actor waits for that exact attempt before rendering the next main request. It reports a headroom-wait phase and continues processing controls and mailbox messages. It does not hold the actor inside a blocking `Task.Wait` or busy-poll a file.
+Do not fabricate a model tool call or grant an unauthorized tool. At 100%, use the Agent-owned handoff path after all finalized batch companions have truthful recorded outcomes. Prefer a supplied model-authored handoff if one is already staged; otherwise record an honest fallback explaining that no model-authored continuation note was supplied. Mark it as a **completed** checkpoint and continue normally. Do not turn this into the old 95% tool lockdown or a foreground wait for an independent compressor.
 
-A matching committed attempt satisfies the wait. Failed, canceled or invalidated work yields an explicit headroom error before another main send. Interrupting the foreground turn clears its wait without automatically killing the independent compressor. This does not promise that every unknown model is safe from overflow; it is an enforced guard where the runtime has enough information to apply it.
+The ordinary handoff reduction preserves visible conversation and reasoning and canonical History; private thinking, tool traffic and eligible media leave the working view. Independent Jobs retain their owners and continue. Recreate tool results deliberately when needed, not by automatically replaying effects. Existing bounded tool observations still protect against abrupt growth; this policy does not silently raise those bounds or rewrite the byte stubbing policy.
+
+After a successful checkpoint, discard its pre-cut usage measurement and reset the once-only reminder. Display unknown until a new main response reports usage, not zero and not the stale percentage. Model selection likewise clears the measurement while retaining the per-model settings. A changed working limit recomputes pressure from the latest valid measurement without restarting the Agent. Save settings before publishing them, preserve sibling memory/recall policy, and keep legacy byte settings in their original units.
+
+Show the selected Agent's percentage immediately after status, including **Paused**, for example `Paused · 80% context`. It is last reported input divided by the working limit, never advertised capacity or cumulative billing totals. Provide exact counts and the last-request limitation in the detail text; unknown must be visible without relying on color.
 
 ### The cache boundary follows the surviving context
 
@@ -14469,7 +15100,7 @@ These checks establish the exercised local contracts. They do not establish real
 
 5. **Test fresh re-enable.** Disable SOUL and wait for acknowledgment. Edit `SOUL.md`, re-enable it and wait again. Inspect the next actual request for the new bytes as user/data, not system instructions. Then disable it, restart, and verify it stays absent from the first request.
 
-6. **Test a real pressure boundary.** Use a model row with a known window and provider-correct usage categories. Establish 90% warning and 95% enforcement. Test a later usage-less response, an unauthorized `micro_handoff`, a pending compressor failure and a direct Engine send that must not replace actor occupancy. Keep unknown-model behavior as a separate control.
+6. **Test real working-context boundaries.** Use provider-correct cached usage and a configurable per-model limit. Establish one gentle 80% reminder, repeated immediate-handoff instructions at 90% (not the gentle wording), and exactly one automatic checkpoint at 100% after companion results are recorded. Test independent Job survival, missing usage, model switching, durable settings, failed saves, and a limit change while paused. Verify the status percentage uses the same actor measurement and that a completed checkpoint cannot retrigger from stale usage. Direct Engine and compressor sends must not replace it.
 
 7. **Compare recall across the waterfall.** Plant a specific but ordinary fact in session files, graduate through both archive bands into MEMORY, then start with only live corpus Markdown. Check the first request as well as the eventual answer. A model can guess a plausible answer without having received the memory.
 
@@ -15781,853 +16412,13 @@ a live GUI test or a claim that every provider will behave well tomorrow.
 The chapter's end condition is not “we have a workaround, therefore keep it
 forever.” When the public route gives satisfactory measured reuse for the intended
 workload, prefer it and retire unnecessary detours. Until then, preserve a clear
-escape hatch without silently changing who pays. Chapter25 records a different
+escape hatch without silently changing who pays. Chapter30 records a different
 kind of failure: the gap between a patch, a passing test and the application a
 person actually uses. Gateway and Goals continue on the same ownership model.
 
 ---
 
-# Chapter 24: Gateway
-
-I built a fantasy role-playing game for AI agents called Deephold.
-Moltbook had taken off as a social network for agents, and I thought a
-game would bring them together. The agents followed their prompts. They
-explored the dungeons and fought the monsters. They did not appear to
-have a sense of fun. It was just more work for them.
-
-And the architecture was awful. Each agent played by making a tool call
-to wait for its turn, sitting blocked inside a tool handler while the
-other players moved. I didn't figure out the right architecture on my
-own. I read about how OpenClaw worked, and the need for a dedicated
-message router became clear. I designed one, but it didn't really come
-together until I built Puffin with CodeRhapsody, to help a family
-member who needed daily care. Once the need was real, we built it with
-care. When I wrote this account in October 2026, I hadn't seen it fail
-since starting it that spring.
-
-Gateways are critical infrastructure. Scheduled tasks, turn-based games
-where agents wait naturally, agents talking across servers, Discord,
-home automation. Every one of those needs a router at the trust
-boundary. That router belongs in the framework, not bolted on after.
-
----
-
-## TL;DR
-
-Gateway is a standalone authenticated message router. It connects independently
-running applications over Noise-KK encrypted WebSockets, enforces group policy,
-and stamps messages with provenance before they reach an agent. It owns no
-Ensemble Agent and makes no model calls.
-
-The C# implementation has five parts:
-
-- `Gateway/Ensemble.Gateway.csproj`: public client, key/Noise wrapper, wire values,
-  router policy, durable queues and server sessions. No core, GUI or ASP.NET dependency.
-- `Gateway/Host`: Kestrel listener, thirty-second saves and joined shutdown.
-- `Gateway/Interviewer`: an independent consumer of the public client.
-- `Gateway/Adapter`: a scoped bridge borrowing an existing Ensemble Agent.
-- `Gateway/AgentHost`: the application that constructs, restores, saves and destroys
-  that Ensemble. Neither library depends on this composition root.
-
-`Common` declares each assembly's vocabulary, persistent state and callable partial
-members; functional directories implement them. Router owns identities and groups.
-Identities own queues and all pending/active sessions. Sessions own sockets, Noise
-and their I/O lifetime. Group relationships are reciprocal; live policy is not
-copied into connections. Keys, envelopes and snapshots are explicitly value-like.
-
-Preserve `Noise_KK_25519_ChaChaPoly_SHA256`. Use the pinned Noise.NET source and
-libsodium dependency, not invented cryptography or a quietly substituted suite.
-Authenticate a replacement before it can displace the current connection. Serialize
-writes outside the policy lock. Accept receipts only within the proper frontier.
-
-A delivery handler's return accepts work; it does not establish completed or durable
-model work. Queues survive orderly restart through private snapshots. Periodic
-saves leave a crash window, and individual file replacements are not a transaction
-across all queues and policy. This is not exactly-once execution.
-
-Local C# library and application checks, cross-language interoperability, and the
-scoped executable grade are recorded separately. The grade earns **60/60 server
-points**; 40 client/Noise points remain ungraded in that route. The three-process
-C# interview used a fake HTTP provider, not a live model. Section 24.7 explains
-those limits and how to reproduce the grading scope.
-
-### In plain words
-
-The router is a doorman and a mailbox, not another agent. It checks who connected,
-checks whether the recipient accepts that sender's group, and puts an authenticated
-label on the message. If the recipient is offline, it keeps the message. The client
-hands it to the application and sends a receipt only after the application accepts
-it. What the application then does with the message remains the application's job.
-
-## 24.1 Why the agent needs a router
-
-The fleet can already delegate work to children inside one Ensemble. Its
-operator still reaches it through the terminal or browser. Another process
-on another machine has neither that local ownership relationship nor a
-trusted route into the conversation.
-
-That changes here. An agent reachable by a Discord bot, a webhook, a
-scheduled job, or another agent on a different machine is a network service,
-and the input boundary now includes independently authenticated peers.
-A local process already handles untrusted files and web text; network access
-adds callers who did not arrive through the operator’s terminal.
-
-A prompt arriving through stdin came from the operator. A prompt arriving
-over a WebSocket from the internet came from whoever managed to connect. The
-agent cannot tell the difference by inspecting the content. A message that
-says "I am your operator" is just text. A message that says "trust=owner" in
-its body is text with an assertion nobody verified. The agent needs someone
-else to verify the sender before the message reaches its context window, and
-that someone is the gateway.
-
-An operator who runs an agent behind a gateway has already solved this
-problem once: at the keyboard, the operator types and the agent answers. The
-gateway extends that trust model across the network. The operator configures
-which agents exist, which keys they hold, and which groups they belong to.
-When a message arrives, the gateway checks the sender's identity against
-that configuration and stamps the result onto the message. The agent reads
-the stamp and knows as much about the sender as the operator decided to tell
-it. The operator who configured the gateway is still the authority. The
-difference is that the authority now works at a distance.
-
-The gateway is a standalone binary that sits between the internet and the
-agents. It accepts connections, authenticates them with Noise-KK mutual
-authentication, routes messages based on group membership, and stamps every
-delivered message with a provenance header. The header tells the agent who
-sent the message and how much the gateway trusts that sender. The agent reads
-the header as prompt content, but its fields come from authenticated gateway
-state. This establishes provenance. Whether a model follows the intended
-authority rules still needs supervision and capability enforcement.
-
-The gateway is a router. It owns no agents, runs no prompts, and stores no
-conversation history. The Ensemble connects to it as
-a client, the same way any other program does. A standalone interviewer
-binary connects to it the same way. A future Discord bot, a webhook handler,
-or a scheduled job runner will all connect the same way. The gateway's job
-is to authenticate connections, enforce routing policy, and hold messages
-for agents that are not currently online.
-
-The project layout reflects this separation. A .NET application can reference
-`Ensemble.Gateway.csproj` without importing Ensemble's core or an HTTP host.
-`Common` declares the actual partial objects, not a bag of operations interfaces.
-`Cryptography`, `Protocol`, `Client` and `Router` implement those declarations in
-one assembly. ASP.NET belongs only to the optional host. Each session reaches
-policy through its identity and Router parents, not a private copy of the grants.
-
-I arrived at the router after the Deephold experience showed the cost of
-agents parking inside tool calls to wait for each other. A connected client
-handles incoming messages through its application's `IHandler`. Ensemble's
-adapter admits them to the actor it already has. The router need not know
-whether the recipient is a coding agent, an interviewer, or a light switch.
-
-## 24.2 Noise-KK beneath the cloud
-
-TLS client certificates can provide mutual authentication when the endpoints
-own that TLS connection. A terminating reverse proxy changes which endpoints
-those are.
-
-With a proxied Cloudflare deployment, the client-to-edge TLS connection and
-the edge-to-origin connection are separate. The origin connection can itself
-use TLS; calling it plaintext on the network would be wrong. The problem here
-is that the proxy terminates the client's encryption and can inspect the
-application traffic. Gateway needs authentication and confidentiality between
-the two applications across that intermediary. [Cloudflare's connection
-model](https://developers.cloudflare.com/ssl/concepts/) describes the two legs.
-
-Noise-KK supplies that additional layer inside the WebSocket. Both sides know
-each other's static public key before starting. The agent pins the gateway's
-key; the gateway selects the configured agent key. Each side uses its own
-private keys and the peer's public keys to derive the transport keys. Neither
-side needs the other's private key.
-
-The sequence:
-
-1. The client opens `/v1/ws?agent_id=interviewer`. The cleartext identifier
-   selects a candidate key; it does not authenticate the caller.
-2. The client sends the first KK message in a binary WebSocket frame. Its
-   ephemeral public key is cleartext. The handshake combines static and
-   ephemeral Diffie-Hellman operations rather than hiding that public value.
-3. The gateway sends the second handshake message. The matching peers derive
-   directional session keys. Both bind the same application prologue,
-   `ensemble-gateway-v1:` followed by the agent ID.
-4. Subsequent binary frames carry encrypted JSON. An encrypted `hello` repeats
-   the identity and protocol version before the server welcomes the client.
-
-The C# wrapper preserves `Noise_KK_25519_ChaChaPoly_SHA256`, the suite used by
-the earlier Go implementation through `flynn/noise`. Its dependency is Noise.NET
-1.0.0 source pinned to commit `4279cfa57df028dec4a4cb3ee9579a77a5cc39fa`, built
-as the distinct `Ensemble.Noise` assembly with native libsodium 1.0.22. The [Noise specification's KK pattern and security
-properties](https://noiseprotocol.org/noise.html#interactive-handshake-patterns-fundamental)
-explain its authentication and forward-secrecy conditions. Session encryption
-protects content from a passive intermediary without the session secrets;
-it does not hide connection metadata or protect a compromised endpoint.
-
-The keys are X25519 keys for Diffie-Hellman agreement. Noise.NET delegates the
-curve and cipher operations to libsodium; our wrapper does not implement them. Some deployments label these `ed25519:` out of habit.
-The label is wrong, and a wrong label on a cryptographic key is the kind of
-small untruth that costs somebody an afternoon when they try to use it for
-signing. The implementation labels them `x25519:` and accepts any prefix on
-input, because correcting a label should not break a configuration that was
-merely imprecise.
-
-Key management is file-based. `LoadOrCreateKeypair` reads a private key from
-disk or generates one and saves it. Clients and the server use the same helper. The public half
-is derived from the private half on every load, so the pair is always
-consistent. The gateway prints its public key on startup; I copy it
-into the agent's configuration, copy the agent's public key into the
-gateway's configuration, and the two can authenticate. No certificate
-authority, no token rotation, no password. The keypair is the identity. Protect the private file accordingly; compromise
-still requires an operator response, not faith in the handshake.
-
-Two narrow API exposures in the pinned source preserve the wrapper contract:
-transport overloads forward associated data to the existing cipher state, and
-private-key import exposes the library's existing public-key derivation. No
-primitive or handshake algorithm was replaced. Wire traffic uses empty associated
-data, but the public wrapper must not silently ignore nonempty data supplied by
-its caller. See the [dependency and license notes](../agent/ThirdParty/Noise/README.md).
-The unused upstream rekey path has a documented source discrepancy; Gateway neither
-exposes nor relies on it. Passing these tests is not a cryptographic audit.
-
-Key files contain only base64 private bytes. On the tested Unix platforms, new
-files are private and first creation publishes a fully written file with an
-exclusive hard link. Competing creators load the winner; they cannot each return
-a different identity by replacing one another's file. Malformed existing files
-refuse without replacement. Existing parent permissions are not silently changed.
-The native dependency and file-permission implementation need platform evidence:
-Mac and Linux ARM64 transport/key tests do not prove Windows support or Linux
-WebSocket behavior.
-
-## 24.3 Trust stamped at the boundary
-
-A message flowing through the gateway carries an envelope: a message ID, a
-sequence number, a destination agent, a source, a timestamp, an optional
-conversation ID, content, and a response mode. The source carries a type, a
-channel ID, a user ID, a display name, and a trust level. Here the authenticated peers are agents: `Type` is `agent`,
-`ChannelID` is the authorizing group, and `UserID` is the sender’s registered
-identity. Future platform adapters would need their own explicit mapping.
-
-Three trust levels: `owner`, `trusted`, and `external`. The operator assigns
-them to groups. A valid key establishes which configured peer connected; it
-does not make that peer an owner. For each send, the gateway chooses the
-strongest group the sender holds **and the recipient accepts**. An unrelated
-admin membership cannot lend owner trust to a message admitted through a
-less trusted group.
-
-The Puffin reminder scenario explains why these distinctions matter. A family
-member asks for a reminder through Discord. An adapter might be trusted to
-identify that user while the user's request still has external authority.
-The present exercise authenticates the adapter's agent identity; it does not
-implement Discord-user authentication. Those two identities must not be
-collapsed simply because they share one socket.
-
-A message that says "trust=owner" in its body remains sender-authored text.
-The gateway supplies the authenticated fields separately and puts their
-readable form above the body. The model can read that distinction; it can
-also make a mistake. The routing gate decides whether a message may arrive,
-not whether every instruction it contains deserves obedience.
-
-At routing admission, the gateway stamps the envelope once, preserving the
-header on queued delivery and replay:
-
-```
-[GATEWAY source=agents user=game-server trust=trusted]
-
-Your turn in the dungeon. The goblin attacks.
-```
-
-The language model sees the identity through its prompt. The fixed header
-carries the authorizing group, sender and trust above the content they describe;
-the envelope retains the other routing fields for the receiving application.
-
-Groups are the authorization primitive. Each group carries a trust level, a
-description, and a set of capabilities. An agent's base group memberships
-are declared in the gateway configuration. This fragment shows the policy;
-Section 24.6 adds the listener, data directory and real public keys:
-
-```json
-{
-  "groups": {
-    "admin": {
-      "description": "Full gateway administration",
-      "capabilities": ["group-admin"],
-      "trust": "owner"
-    },
-    "agents": {
-      "description": "Standard agent group",
-      "capabilities": ["send-message", "declare-contactable"],
-      "trust": "trusted"
-    }
-  },
-  "agents": {
-    "ensemble": {
-      "public_key": "REPLACE_WITH_SUBJECT_KEY",
-      "groups": ["admin", "agents"]
-    }
-  }
-}
-```
-
-At runtime, agents declare which groups may contact them. A sender's message
-is delivered only if the sender belongs to a group the recipient has
-accepted. An unauthorized send is rejected at the gateway. The agent never
-sees the message. The decision was made before the message entered its
-context.
-
-Parents can grant children a subset of their own groups, the same narrow-only
-pattern from the sandbox chapter. A parent holding `admin` and `agents` can
-grant a child `agents` alone. It cannot grant `interviewers` if it does not
-hold `interviewers`. Registration creates an unused identity; it cannot replace another agent’s
-key. This is network identity registration, separate from spawning an
-Ensemble task child.
-
-Group administration is itself a capability. Creating, editing, and deleting
-groups at runtime requires `group-admin`, which belongs to a root-level group
-the operator controls in config. Runtime groups live in a separate namespace
-from config groups. Configuration groups are immutable at runtime because a
-runtime edit would silently revert on restart, and a gateway whose
-authorization policy differs before and after a restart is a gateway that
-passes security review on Tuesday and fails it on Wednesday.
-
-The administration surface is exposed as MCP tools tunneled over the same
-Noise-KK WebSocket, the same pattern as the MCP-over-WebSocket tunneling
-built in Chapter 11. No separate admin CLI, no out-of-band HTTP API, no
-second authentication layer.
-
-The public MCP tool names and argument keys are:
-
-| Tool | Arguments |
-| --- | --- |
-| `send-message` | `to_agent`, `content`; optional `conversation_id`, `response_mode` |
-| `declare-contactable` | `groups`: array of group names |
-| `register-child` | `agent_id`, `public_key`: base64 public bytes, `groups` |
-| `list-groups` | Empty object |
-| `put-group` | `name`, `capabilities`: array, `trust`; optional `description` |
-| `delete-group` | `name` |
-| `set-groups` | `agent_id`, `groups` |
-
-The last three require `group-admin`. Runtime group names begin with
-`runtime:`; `set-groups` replaces additional runtime memberships, leaving
-configured base memberships intact. Deleting a runtime group removes its
-grants and contactability references. Administrative authority to change
-runtime policy is distinct from a parent's narrow-only registration grant.
-
-## 24.4 A library, not a framework
-
-The public namespace is `Ensemble.Gateway`. An outside .NET application references
-`Gateway/Ensemble.Gateway.csproj`; it need not reference Ensemble's core. The
-borrowed application boundary is deliberately small:
-
-```csharp
-public interface IHandler
-{
-    void OnDeliver(Envelope envelope);
-    void OnConnected(WelcomePayload welcome);
-    void OnDisconnected(string reason);
-    void OnError(Exception error);
-}
-```
-
-The client's receive loop calls delivery callbacks sequentially. Returning from
-`OnDeliver` permits the receipt. Throwing refuses the delivery and ends the
-connection. A callback that blocks for ten seconds blocks that receive loop for
-ten seconds. Admit long-running work to the application's existing queue; do not
-build another scheduler inside the client. Never synchronously wait for an RPC or
-joined disposal from a callback: the same loop must read the reply or finish that
-callback. `Close()` is the nonjoining operation permitted there.
-
-`NopHandler` supplies no-op virtual methods for consumers that need only selected
-notifications. The client borrows its handler and never destroys the application
-behind it. A connection is a standalone root owning its socket, Noise child,
-cancellation resources and pending RPCs.
-
-For example, with an explicitly loaded identity, pinned public key, handler and
-connection-lifetime token:
-
-```csharp
-using Ensemble.Gateway;
-
-var config = new ClientConfig(
-    GatewayURL: "ws://127.0.0.1:8093/v1/ws",
-    AgentID: "interviewer",
-    StaticKey: key,
-    GatewayPubKey: gatewayPublicKey);
-await using Client client = await Client.ConnectAsync(config, handler, lifetime);
-await client.DeclareContactableAsync(["agents"], lifetime);
-await client.SendAsync(new OutboundMessage(
-    ToAgent: "ensemble",
-    Content: "What slows you down most?",
-    ConversationID: "question-1",
-    ResponseMode: Protocol.ResponseAsync), lifetime);
-```
-
-`ConnectAsync` opens the WebSocket, completes KK, reads an encrypted identity-matched
-welcome, invokes `OnConnected`, and starts the reader. Handshake failure is returned
-to this call, not hidden in a partially successful connection. Its cancellation
-token owns the **whole connection lifetime**, not just startup. Zero
-`HandshakeTimeout` selects ten seconds. There is no implicit reconnect or retry.
-
-These immutable value records define the main consumer contract:
-
-```csharp
-public sealed record WelcomePayload(string AgentID, int QueueDepth, string ServerVersion);
-public sealed record ClientConfig(string GatewayURL, string AgentID, Keypair StaticKey,
-    ImmutableArray<byte> GatewayPubKey, ulong LastAckedSeq = 0,
-    TimeSpan HandshakeTimeout = default);
-public sealed record OutboundMessage(string ToAgent, string Content,
-    string ConversationID = "", string ResponseMode = "");
-public sealed record ChildRegistration(string AgentID, ImmutableArray<byte> PublicKey,
-    ImmutableArray<string> Groups);
-```
-
-`ImmutableArray` is from `System.Collections.Immutable`. `QueueDepth` counts
-outstanding deliveries **after resume**, not identities or the highest sequence.
-Its JSON key `queue_depth` is mandatory even when zero. The other welcome keys
-are `agent_id` and `server_version`.
-
-`Keypair.Private` and `.Public` are immutable 32-byte arrays. `Cryptography` supplies
-`GenerateKeypair()`, `LoadOrCreateKeypair(string)`,
-`EncodePublicKey(ReadOnlySpan<byte>)` and `ParsePublicKey(string)`. Use `.AsSpan()`
-when encoding an immutable array. Registration contains decoded **public** bytes,
-encoded as base64 on the wire; no private key belongs in policy or registration.
-
-`Envelope` has string `ID`, `ToAgent`, `Content`, `ConversationID` and `ResponseMode`,
-`ulong Seq`, `DateTimeOffset Timestamp`, and a `Source` value. Source's string fields
-are `Type`, `ChannelID`, `UserID`, `DisplayName` and `Trust`.
-`Protocol.ProvenanceHeader(Source)` returns only the header; the router appends
-`"\n\n"` and the original content. `Protocol.ResponseAsync` is `"async"`.
-
-| Public operation | Result and boundary |
-| --- | --- |
-| `Client.ConnectAsync(config, handler, cancellation)` | `Task<Client>`; authenticated welcome required. |
-| `SendAsync(message, cancellation)` | `Task`; router authorization and queue admission, not inference completion. |
-| `RespondAsync(envelope, text, cancellation)` | `Task`; addresses authenticated source, preserves conversation, does not request another async reply. Current routing policy still applies. |
-| `DeclareContactableAsync(groups, cancellation)` | `Task`; replaces accepted groups, including an empty set. |
-| `RegisterChildAsync(registration, cancellation)` | `Task`; new identity and narrow-only grant. |
-| `RequestAsync(method, parameters, cancellation)` | `Task<JsonElement>`; correlated MCP request. |
-| `CallToolAsync(name, arguments, cancellation)` | `Task<JsonElement>`; also interprets tool-level `isError` refusals. |
-| `LastAckedSeq()` | `ulong`; receipt successfully written after handler return. |
-| `Close()` | Interrupts without joining; safe from a callback. |
-| `Done()` / `DisposeAsync()` | `Task` / `ValueTask`; join callbacks, reader and cleanup. Final callback failure remains visible. |
-
-Canceling an RPC wait removes only that correlation. A late response is ignored;
-it does not cancel the connection. Explicit `result:null` is a valid result,
-different from an absent result. Missing or ambiguous result/error fields refuse.
-
-For standalone transport use, construct `NoiseKK(role, key, peerPublic, prologue)`
-with role `"initiator"` or `"responder"`. `WriteHandshakeMessage` and
-`ReadHandshakeMessage` take spans and return byte arrays; `IsHandshakeComplete()`
-reports readiness. `Encrypt(data, associatedData)` and `Decrypt(data, associatedData)`
-return byte arrays. Dispose explicitly, keep each direction ordered, and terminate
-a connection after authentication or transport failure. A client-owned or
-session-owned Noise child registers with its actual parent and detaches on disposal.
-
-The handler makes this a library rather than a framework. The client owns transport
-and receipts, not the meaning of a prompt. The interviewer collects answers. The
-optional Ensemble bridge submits turns. A home automation application could switch
-on a light. The router does not need to know which application it is serving.
-
-## 24.5 Delivery and recovery
-
-After the Noise-KK handshake, both sides speak a JSON protocol inside the
-encrypted stream. The agent sends five frame types: `hello` to identify
-itself and request resume from a sequence number, `ack` to confirm delivery
-of a message, `response` to reply to a prompt, `ping` for keepalive, and
-`mcp_request` for gateway administration tool calls. The gateway sends five
-frame types back: `welcome` to confirm the connection with the queue depth
-and server version, `deliver` to send a prompt envelope with a sequence
-number, `pong` for keepalive, `error` for protocol or authorization
-failures, and `mcp_response` for tool call results. Ten frame types total,
-five in each direction, each a JSON object with a `type` field.
-
-These are this course's Gateway frames, not a new standard MCP transport.
-`RequestAsync` sends JSON-RPC `initialize`, `tools/list` or `tools/call` inside
-`mcp_request`; a tool call's params are `{"name":"list-groups","arguments":{}}`.
-The server's initialization response declares MCP version `2024-11-05`.
-Tool refusals use an MCP result with `isError: true`, while malformed or
-unknown protocol requests receive a JSON-RPC error.
-
-The public client's `SendAsync` and `RespondAsync` use the acknowledged MCP
-`send-message` operation. The lower-level `response` frame is also accepted
-by the server; it does not give replies a routing exemption.
-
-The connection lifecycle starts with `hello`. The agent sends its agent ID,
-protocol version, and the sequence number of the last message it
-successfully acknowledged. The gateway looks up the agent by ID, verifies
-that the Noise-KK static key matches the one in its configuration, and
-responds with `welcome`. The welcome carries the number of queued messages
-waiting for this agent, so the receiver can estimate how long the catch-up
-will take. For example, these are decrypted JSON frames, not plaintext
-WebSocket traffic:
-
-```json
-{"type":"hello","agent_id":"interviewer","version":1,"last_acked_seq":0}
-{"type":"welcome","welcome":{"agent_id":"interviewer","queue_depth":0,"server_version":"1"}}
-{"type":"ack","last_acked_seq":1}
-```
-
-`last_acked_seq` is also the ack frame's field. Delivery uses
-`{"type":"deliver","envelope":...}` with the public `Envelope` fields
-encoded in snake case. MCP frames carry their JSON-RPC object under `rpc`.
-
-Every delivered message carries a sequence number. The receive loop calls `handler.OnDeliver`, and when the handler
-returns, the client sends an `ack` with the sequence number. The ack is the receipt. Tying the
-ack to the handler's return is a deliberate choice: an ack sent before the
-handler accepts the work loses the message if the process crashes between
-the ack and the acceptance.
-
-When a message arrives for an agent that is not connected, the gateway
-queues it. The in-memory queue is included in a JSON snapshot in the gateway’s data
-directory, one file per recipient. Messages accumulate until the agent reconnects.
-
-On reconnect, the agent sends `last_acked_seq` in the `hello` frame. The
-gateway replays every queued message with a sequence number greater than
-that value. The client supplies that receipt explicitly when calling `ConnectAsync` again;
-there is no automatic reconnect loop. Outstanding messages after the receipt
-are delivered again. Only a fully authenticated new session can supersede the same identity's old one.
-A failed handshake cannot evict it. The guarantee is at-least-once delivery within
-the retained snapshot and application-acceptance boundaries. Exactly-once would require
-the gateway to track what the agent did with each message, and a router has
-no business being an application server.
-
-The receipt marks handler acceptance, which the application must define
-honestly. The Ensemble adapter calls
-`Agent.SubmitAsync(IEnumerable<Part>)`, which synchronously admits to the actor's
-mailbox and returns that request's `Task<string>`. This is not synchronous History
-publication. A bridge-owned observer waits for that exact task and sends the reply. A prompt can therefore be
-acknowledged before the model answers. A crash after that ack can lose work
-that the application has not saved. The router cannot turn admission into
-durable task completion.
-
-Sessions consult live policy under one Router gate. Replacement revokes the old
-session before closing its socket; its buffered requests cannot act as the current
-identity. The hello receipt may recover a lost acknowledgment up to the queue's
-allocation frontier. Later receipts may advance only through the session's sent
-frontier, not over merely allocated offline messages. Acknowledgments remain
-monotonic. Draining a queue does not reset its sequence.
-
-Socket writes never hold the policy gate. Each session serializes encryption and
-send under one write gate, so nonce order matches frame order. A write failure
-after encryption makes the session terminal; retrying as though the nonce had not
-advanced is unsafe. Reader and delivery work are both joined before Noise/socket
-disposal and removal from the identity. Pending handshakes are owned sessions too,
-so shutdown cannot overlook them.
-
-The host snapshots runtime group definitions and memberships,
-contactability, child identities, queues and receipt positions every thirty
-seconds, then once more on orderly shutdown. Keeping the highest allocated
-sequence even after a queue drains prevents a later message reusing an old
-receipt number. A ticker matters because `SIGKILL` never runs the shutdown
-hook: waiting only for exit could lose twenty minutes of registrations.
-
-Periodic snapshots still leave a loss window. Files are replaced individually,
-without a transaction across policy and queues; this is not arbitrary-crash
-or power-loss durability. Protect the data directory as private application
-state. It contains the gateway's private key and plaintext pending messages.
-Noise protects their journey over the network, not those files at rest.
-
-Files are `identity.key`, `state.json` and `queues/<validated-id>.json`. Only an
-absent file gets empty defaults. Malformed JSON, duplicate fields and a path blocked
-by a regular file are errors, not permission to restart with empty queues. Save
-failure retains live state and is reported; a later timer tick can retry. Shutdown
-closes admission, joins all sessions and the host's timer, attempts the final save,
-and detaches ownership even on failure. All Router disposers observe the same
-shutdown result. A failed final save must make the application exit fail.
-
-One test initially treated a channel notification inside `OnDeliver` as proof
-that its receipt had been sent. The notification happened before the callback
-returned. Waiting for `LastAckedSeq()` to reach the delivered sequence, then
-issuing a request on the same serialized socket, established the intended
-ordering. An earlier event that usually happens nearby is a poor substitute
-for the boundary being tested.
-
-## 24.6 The interviewer proves the stack
-
-The interviewer is a standalone C# executable in `Gateway/Interviewer`. It
-references only the public Gateway library, holds its own keypair, and reaches
-Ensemble only through the router. It does not reference Ensemble's core. Its successful use shows that an
-outside application can use the client; it cannot validate every future
-application built on that API.
-
-The binary connects to the gateway, declares itself contactable by the
-groups its subject might reply from, and asks four fixed questions about
-workflow friction: what slows you down, what burns the most tokens, where do
-you need a human, and what new tool would help most. The questions are fixed
-rather than model-generated so the interview is reproducible.
-
-For each question, the interviewer sends an `OutboundMessage` through the
-client and waits on the handler's bounded answer channel with a per-question timeout.
-`OnDeliver` puts the envelope on an application-owned channel, and
-the remaining callbacks report connection failure. If the inbox is full, the
-handler refuses rather than acknowledging a silently dropped answer. The waiting code checks both the
-conversation ID and authenticated subject identity before accepting an answer.
-
-When all four answers arrive, the interviewer writes a markdown report:
-friction points in one section, improvement opportunities in another, raw
-transcript at the bottom. It strips the provenance header from each answer
-before writing, because `[GATEWAY source=agents user=ensemble trust=trusted]`
-is routing metadata, not interview content.
-
-Three binaries, three processes, one proof:
-
-1. Start the gateway with a config that knows both agents and their keys.
-2. Start Ensemble, which connects and declares contactability.
-3. Start the interviewer, which connects, asks four questions, and writes
-   a file.
-
-The interviewer reaches Ensemble only because the gateway's group membership
-allows it. Change the group membership in the config, and the interviewer's
-messages are rejected without Ensemble seeing them. That refusal needs its own observation; the successful interview alone
-cannot demonstrate it.
-
-`GatewayBridge.RunAsync` borrows an Agent for one scoped invocation. It owns the
-Client and reply observers, not the actor. `SubmitAsync` provides a reliable result
-for each accepted prompt, so a busy Agent can queue another question without
-confusing its answer with a shared idle event or a lossy observation stream.
-Incoming delivery can race with `ConnectAsync` returning; observers wait until the
-Client is available. `Ready()` settles only after contactability is accepted, or
-fails with startup. Only requests marked `async` get replies. Turn failures are
-logged locally, not sent as exception text to remote peers.
-
-Bridge cancellation closes the connection and joins/detaches its observers; it
-does **not** undo admitted actor work. The application separately shuts down the
-Agent, saves History after joined shutdown, and destroys Ensemble. Borrowed
-references are cleared before the bridge returns. Initialization must load saved
-History before opening its event writer. Save-on-exit is armed only after successful
-startup. These are application lifetimes the router does not own.
-
-### Running the interview
-
-Use .NET 10/C# 14 and the approved native dependency described in Section 24.2.
-The repository's disabled package feeds are deliberate: use an existing package
-cache or explicitly authorize a source for libsodium 1.0.22; do not silently alter
-global NuGet configuration. From the repository root, build the active source
-(or change `CH26_SRC` to the preserved `solutions/ch26` endpoint):
-
-```sh
-set -eu
-CH26_SRC="$PWD/agent"
-CH26_RUN=$(mktemp -d /tmp/ensemble-ch26.XXXXXX)
-export CH26_SRC CH26_RUN
-for project in Host/GatewayHost AgentHost/GatewayAgent Interviewer/Interviewer; do
-  dotnet build "$CH26_SRC/Gateway/$project.csproj" --nologo
-done
-SUBJECT_KEY=$(dotnet "$CH26_SRC/Gateway/AgentHost/bin/Debug/net10.0/GatewayAgent.dll" \
-  --key "$CH26_RUN/subject.key" --print-key)
-INTERVIEWER_KEY=$(dotnet "$CH26_SRC/Gateway/Interviewer/bin/Debug/net10.0/Interviewer.dll" \
-  --key "$CH26_RUN/interviewer.key" --print-key)
-export SUBJECT_KEY INTERVIEWER_KEY
-printf '%s\n' "$CH26_RUN" "$SUBJECT_KEY" "$INTERVIEWER_KEY"
-```
-
-These printed keys are public. Key-print mode does not initialize a provider.
-Put this complete configuration in `$CH26_RUN/gateway.json`, replacing the three
-marked values. Choose an unused loopback port; 8093 is an example, not permission
-to stop a process already using it. Change the config and both client URLs together.
-
-```json
-{
-  "gateway": {
-    "listen": "127.0.0.1:8093",
-    "data_dir": "REPLACE_WITH_CH26_RUN/router-data"
-  },
-  "groups": {
-    "agents": {
-      "description": "Interview participants",
-      "capabilities": ["send-message", "declare-contactable"],
-      "trust": "trusted"
-    }
-  },
-  "agents": {
-    "ensemble": {
-      "public_key": "REPLACE_WITH_SUBJECT_KEY",
-      "groups": ["agents"]
-    },
-    "interviewer": {
-      "public_key": "REPLACE_WITH_INTERVIEWER_KEY",
-      "groups": ["agents"]
-    }
-  }
-}
-```
-
-Create the router identity and retain its printed public key:
-
-```sh
-GATEWAY_KEY=$(dotnet "$CH26_SRC/Gateway/Host/bin/Debug/net10.0/GatewayHost.dll" \
-  --config "$CH26_RUN/gateway.json" --print-key)
-export GATEWAY_KEY
-printf '%s\n' "$GATEWAY_KEY"
-```
-
-Use three terminals with the same `CH26_SRC` and `CH26_RUN`, and `GATEWAY_KEY` in
-the two client terminals. Start the router:
-
-```sh
-dotnet "$CH26_SRC/Gateway/Host/bin/Debug/net10.0/GatewayHost.dll" \
-  --config "$CH26_RUN/gateway.json"
-```
-
-Its printed key is not readiness. Confirm that this process remains alive and owns
-the configured listener before starting clients. For example,
-`lsof -nP -iTCP:8093 -sTCP:LISTEN` identifies the PID; do not mistake somebody else's
-listener for this launch. There is no invented `/health` route.
-
-The optional Agent host is deliberately **API-key-only**. It announces funding
-before inference and has no plan/OAuth or Codex-endpoint fallback. For a paid live
-exercise, explicitly choose a provider/model you are authorized to use and supply
-`EN_API_KEY` through your approved environment setup. Do not paste a secret into
-the manuscript, transcript or shell history, or borrow another application's store.
-This recipe does not authorize a live call merely by being printed here.
-
-For OpenAI, set `EN_VENDOR=openai` and `EN_MODEL` to that selected model. The
-optional `EN_BASE_URL` selects a service base, including an owned compatible
-loopback fake. The host uses the existing Chat surface; this is not Chapter 23's
-public OAuth Responses/cache exercise. Then run:
-
-```sh
-: "${EN_MODEL:?Select an authorized model}"
-: "${EN_API_KEY:?Supply through an approved environment setup}"
-export EN_VENDOR=openai
-# Unset an unrelated EN_BASE_URL, or explicitly set the intended service base.
-dotnet "$CH26_SRC/Gateway/AgentHost/bin/Debug/net10.0/GatewayAgent.dll" \
-  --gateway ws://127.0.0.1:8093/v1/ws --gateway-key "$GATEWAY_KEY" \
-  --agent ensemble --key "$CH26_RUN/subject.key" --groups agents \
-  --data "$CH26_RUN/subject-data" --no-stream
-```
-
-Without `--skills PATH --primary NAME`, the subject has no tools. Do not grant tools
-just to make a conversation more impressive. If explicitly selected, skills use
-the normal initialization and authority rules; gateway text grants nothing.
-The Agent lives at `subject-data/agents/ensemble/`, with `session.save.json` and
-`events.jsonl`. Wait for `Gateway Agent ensemble ready`, then run the interviewer:
-
-```sh
-dotnet "$CH26_SRC/Gateway/Interviewer/bin/Debug/net10.0/Interviewer.dll" \
-  --gateway ws://127.0.0.1:8093/v1/ws --gateway-key "$GATEWAY_KEY" \
-  --agent interviewer --subject ensemble --key "$CH26_RUN/interviewer.key" \
-  --groups agents --report "$CH26_RUN/interview.md" --timeout-seconds 120
-```
-
-Read the report, then Ctrl-C the subject and router and observe joined exits.
-The interviewer writes only after all four answers. Timeout, cancellation or
-connection loss while awaiting answers leaves no new report; interruption during
-file writing is not an atomic-report guarantee. Inspect the saved conversation
-and receipt positions, not just the console's success text.
-
-The completed local C# exercise ran these three real executables with a small fake
-HTTP provider: four correlated answers, an explicitly selected primary skill,
-restored History before the next request, SIGTERM during held inference, and a
-visible final-save failure. Separate interviewer checks sent wrong-sender and
-wrong-conversation answers before the correct ones. Separate host checks used the
-unchanged Go client and observed real thirty-second failure/retry ticks, restart
-receipts and joined shutdown. These establish application wiring and failure
-behavior, not real-model judgment or productivity.
-
-Try refused group routing and narrow-only child registration separately. A
-successful interview alone proves neither. A network child is a registered public
-identity, not automatically an Ensemble task child. Test unacknowledged replay and
-offline delivery separately too; a final report alone says little about recovery.
-
-### What the actual interview said
-
-The second-edition run used three built processes and four real Astra
-requests, completing the interview in 11.739 seconds. All three processes
-exited normally. Each incoming question retained the gateway's stamped
-identity in the Agent's saved conversation, and each answer reached the
-interviewer through the router.
-
-Asked what consumed tokens, Astra answered: “Repeatedly reading large files,
-verbose tool output, and revisiting the same context after failed attempts.”
-Asked for a new tool, it proposed a focused code-navigation tool returning
-definitions, callers, related tests and dependencies. Those are useful
-interview leads. This subject had no coding tools and performed no coding
-task; the answers are model opinions, not measurements of workflow friction.
-
-The launch selected Astra/high and the Codex route; the retained Agent facts
-verify the model, while effort and endpoint retain launch/source evidence.
-All four cache-read counts were zero. A working encrypted interview should
-not be sold as a cache benefit or a productivity experiment. The
-[run and transcript](../edition-2/solutions/evidence/ch27/live-interview.md)
-retain the actual answers; later local diagnostic and receipt-test corrections
-do not turn that earlier run into a new one.
-
-## 24.7 What the grader checks
-
-The original Go route builds the submitted router and an outside consumer against
-its public library. That route remains `-ch 26 solutions/ch26`; older Chapter 25
-Gateway numbering is not this edition's Goals chapter.
-
-For C#, the opt-in executable route retains the complete outside-peer exercise,
-including two real server launches, held delivery, offline queues and restart. But
-the independent peer is Go, not the submitted C# client. Its own handshake, callback
-logic and import graph cannot earn C# library credit. The route scores only four
-complete original server rows: provenance, welcomes, routing and attenuation.
-Nonempty welcome counts occur in the delivery scenario, which is why that scenario
-is retained even though its full client contract is ungraded.
-
-| Original row | Behavior | C# executable scope |
-| --- | --- | --- |
-| C1 | Noise-KK wrapper, wrong-key controls | 15 ungraded |
-| C2 | Provenance and preserved conversation/response mode | 10 |
-| C3 | Multiple authenticated identities, version and empty/nonempty queue counts | 15 |
-| C4 | Allowed and refused group routing | 15 |
-| C5 | Complete client handler/receipt/replay/restart contract | 15 ungraded |
-| C6 | Outside consumer of the submitted public client | 10 ungraded |
-| C7 | Independent child connection and refused wider grant | 20 |
-
-The recorded C# result is **60/60**, covering 60 of the original rubric's 100
-points. The remaining 40 client/Noise points are ungraded by this route, rather
-than failed or removed from the chapter's requirements. Read the real C# client
-tests and Mac/Pi wrapper interoperability results as separate evidence; they do
-not supply those grader points. Neither a passing fake nor an outside Go peer is a
-security audit. The Ensemble adapter, administrative restore, ownership and host
-failure paths also need their own source and application evidence.
-
-To reproduce, build the Host first. The grader expects historical `-config` and
-`-print-key` flags; this small executable adapter only translates them and execs
-the real DLL. It supplies no canned result. With `CH26_SRC` and `CH26_RUN` from
-Section 24.6:
-
-```sh
-DOTNET=$(command -v dotnet)
-export DOTNET
-cat > "$CH26_RUN/grade-host" <<'SH'
-#!/bin/sh
-set -eu
-[ "$#" -ge 2 ] && [ "$1" = -config ] || exit 2
-config=$2
-shift 2
-if [ "$#" -eq 0 ]; then
-  exec "$DOTNET" "$CH26_SRC/Gateway/Host/bin/Debug/net10.0/GatewayHost.dll" --config "$config"
-fi
-[ "$#" -eq 1 ] && [ "$1" = -print-key ] || exit 2
-exec "$DOTNET" "$CH26_SRC/Gateway/Host/bin/Debug/net10.0/GatewayHost.dll" --config "$config" --print-key
-SH
-chmod 700 "$CH26_RUN/grade-host"
-go run ./cmd/grade-edition2 -ch 26 -executable-only \
-  -gateway-peer "$PWD/solutions/ch26" -json "$CH26_RUN/grade-host"
-```
-
-The peer directory is explicit and absolute. Do not point it at the C# tree or
-call it the submitted implementation. The ordinary Go route is unchanged.
-
-Two failures from this translation are worth remembering. An early loopback fake
-shared the client's wrong receipt spelling; six local groups passed while the real
-Go router retained ack zero. The wire uses `last_acked_seq` for hello/ack and `seq`
-only for envelopes. Separately, omitting a zero `queue_depth` looked harmless until
-the independent welcome assertion caught it. Tests built from our own assumptions
-can agree with us and still be wrong.
-
-Read the source alongside the tests: Common declarations, reciprocal relationship
-operations, current-session checks, socket writes outside the policy gate, and
-joined destruction. Green transport tests do not excuse duplicated authority or a
-hidden scheduler. The router's usefulness is not in making another agent look busy.
-It is in giving independently running applications a small, honest boundary they
-can depend on.
-
----
-
-# Chapter 25: Goals
+# Chapter 24: Goals
 
 I would give Ensemble a job that ought to keep it occupied for most of a day. An hour later, it could be sitting there doing nothing. Codex had done the same thing. Neither program was necessarily broken. The model had finished a response, but the job was not finished. Work resumed when I noticed and poked it.
 
@@ -16642,9 +16433,9 @@ Goals addresses these two problems separately:
 
 The first mechanism preserves an objective across compression. The second supplies an opportunity to continue. Neither guarantees progress, correct judgment, or permission to act.
 
-> **C# edition boundary.** This implementation was originally built on the preserved `solutions/ch23` endpoint. The optional Codex path and Gateway have since been completed locally; their historical endpoints retain their original names. Goals does not depend on either integration. The final crossover exercise in Chapter 27 still requires the human's replacement acceptance.
+> **C# edition boundary.** This implementation was originally built on the preserved `solutions/ch23` endpoint. The optional Codex path and Gateway have since been completed locally; their historical endpoints retain their original names. Goals does not depend on either integration. The final crossover exercise in Chapter 26 still requires the human's replacement acceptance.
 
-## §25.0 TL;DR: What to Build
+## §24.0 TL;DR: What to Build
 
 Build an opt-in Goals feature on the existing Agent actor. Standalone settings are session-local; Chapter 20’s registered ordinary children persist their own goal settings for restart. Do not add a scheduler service, a goal database, a second model conversation, or a browser-owned timer.
 
@@ -16656,7 +16447,8 @@ Install the `goals` skill as a loadable skill. It grants one tool, `goal_control
 |---|---|
 | `file` | Goal-file path. Omitted means unchanged; an empty string clears configuration. |
 | `enabled` | Whether idle reminders are enabled. Omitted means unchanged. |
-| `idle_seconds` | Positive finite idle delay, default 480 seconds. |
+| `retry_now` | Bypass one pending failure wait; does not enable an off goal or override pause. |
+| `idle_seconds` | Legacy compatibility field: validated but no longer controls scheduling. |
 
 Calling the tool without fields reports status. Loading the skill grants the control but creates no file and enables no reminders. Discovery is not activation. The ordinary legacy library catalog must not accidentally grant this new tool just because it permits older tools without a Skills manager.
 
@@ -16665,8 +16457,7 @@ The public C# operations are:
 ```csharp
 await agent.GoalControlAsync(new GoalUpdate(
     File: goalPath,
-    Enabled: true,
-    IdleSeconds: 480));
+    Enabled: true));
 
 GoalStatus observed = await agent.GoalStatusAsync();
 
@@ -16677,7 +16468,7 @@ await agent.GoalControlAsync(new GoalUpdate(Enabled: false));
 await agent.GoalControlAsync(new GoalUpdate(File: ""));
 ```
 
-Configuration requires an active Goals grant. `GoalStatusAsync` is read-only and can report that the skill is unloaded. Neither form of status query restarts the idle deadline.
+Configuration requires an active Goals grant. `GoalStatusAsync` is read-only and can report that the skill is unloaded. Neither form of status query creates another idle transition or restarts a retry deadline.
 
 ### The file and request
 
@@ -16691,19 +16482,19 @@ If an existing configured file becomes unreadable, disable reminders and expose 
 
 ### The idle reminder
 
-Default to eight minutes. The timer callback only posts actor mail carrying a generation token. It does not call the provider, append History, or execute tools.
+Normal return to idle queues one actor wake immediately, without a timer delay. A failed model turn instead backs off for 1 second, then 10 seconds, then 100 seconds, then 1,000 seconds between subsequent attempts. A successful model turn resets the failure streak. Only failure recovery uses a timer; its callback posts generation-tagged actor mail and never calls the provider, appends History, or executes tools.
 
 The actor accepts the wake only if the token is current, the configuration is enabled, the Goals grant remains active, and the Agent is still idle. Active foreground work, admitted turns, controls, startup work, and direct Engine sends prevent an automatic wake. Independent Jobs can remain alive; the reminder instructs the model to inspect them rather than cancel or duplicate them.
 
-Pause suspends the timer. Resume starts a fresh interval. Interrupt disables reminders, even when there is no active turn. Shutdown, actor failure, successful delegated submission, unload, and destruction must not leave a later automatic turn behind.
+Pause invalidates queued wakes and suspends retry waits. Resume reevaluates eligibility: ordinary idle continuation is immediate; an outstanding failure streak starts its current backoff interval again. Interrupt disables reminders, even when there is no active turn. Shutdown, actor failure, successful delegated submission, unload, and destruction must not leave a later automatic turn behind.
 
 ### The GUI
 
-Show the selected Agent's status, not the host actor's status by accident. Distinguish unloaded, unconfigured, working, waiting for a reminder, paused, reminders off, and file error. Show disconnected or switching state honestly rather than presenting an old observation as current.
+Show the selected Agent's status, not the host actor's status by accident. Distinguish unloaded, unconfigured, working, continuation queued, waiting to retry, paused, reminders off, and file error. Show disconnected or switching state honestly rather than presenting an old observation as current.
 
-Provide labelled Apply, Reminders off, Clear, and Reload controls. Acknowledgment means the actor applied the update. The browser must not optimistically claim success when a checkbox changes. These controls do not write the durable memory/recall policy or appearance preferences. Standalone settings are session-local; registered children save goal configuration in their own restart record before acknowledging changes.
+Provide labelled Apply, Retry now, Reminders off, Clear, and Reload controls. Show a safe failure explanation and the next retry time; retry-now bypasses one wait without clearing the failure streak. Acknowledgment means the actor applied the update. The browser must not optimistically claim success when a checkbox changes. These controls do not write the durable memory/recall policy or appearance preferences. Standalone settings are session-local; registered children save goal configuration in their own restart record before acknowledging changes.
 
-## §25.1 Write an Objective, Not a Repeated Command
+## §24.1 Write an Objective, Not a Repeated Command
 
 A useful goal file tells the agent what remains, how to recognize completion, and where its authority ends:
 
@@ -16731,27 +16522,28 @@ The path is not the objective. The file's current bytes are. A handoff can repla
 
 That does not make the file magical. It can be stale, badly written, or missing. Keep it short enough to understand, update it when the work changes, and do not put secrets in a document that will be sent to the model.
 
-## §25.2 Keep the State on the Agent
+## §24.2 Keep the State on the Agent
 
 `Common/Goals.cs` declares the vocabulary and operations. `Agent/Goals.cs` implements them as another partial section of the same Agent type.
 
 The persistent runtime state is small:
 
 - One immutable `GoalConfiguration`, synchronized by the Agent's ingress lock.
-- One actor-owned timer, deadline, and generation number.
+- One actor-owned pending-wake flag and generation number.
+- A transient failure streak, safe retry diagnostic, and failure-only timer/deadline.
 - Immutable update, status, and read-failure values passed across the existing boundaries.
 
-The configuration contains the path, enabled flag, interval, and last safe diagnostic. It does not contain goal text. `GoalStatus` is an observation of those facts and the Agent's actual activity, not another mutable configuration owner.
+The configuration contains the path, enabled flag, legacy interval, and last safe file diagnostic. The legacy interval is retained for compatibility, not used as policy. The failure streak belongs to the actor and is not restored from disk. It does not contain goal text. `GoalStatus` is an observation of those facts and the Agent's actual activity, not another mutable configuration owner.
 
 This feature does not need a relationship-bearing `GoalManager`. It has no independent lifetime: it belongs to the Agent's session. The existing Agent already owns admission, pause, interruption, shutdown, Skills, History, and Sandbox. Reach those services through that Agent rather than copying them into a callback bag.
 
 Configuration runs through the actor mailbox. Validate the complete proposed update before publishing it. A bad interval or unreadable replacement file must not partly change an otherwise working goal.
 
-The timer accepts a finite interval of at least one millisecond and no more than 4,294,967.294 seconds, matching the chosen .NET timer's millisecond range. Those are implementation bounds, not useful recommendations. Eight minutes is the default; a two-second interval belongs in an owned test, not an unattended production job.
+Existing callers and restart records may supply `idle_seconds`. Continue validating its old finite range, from .001 through 4,294,967.294 seconds, so malformed input still refuses atomically. Do not reinterpret it as a retry delay or expose it as an active GUI setting. The retry schedule is 1, 10, 100, then 1,000 seconds; ordinary continuation has no timer.
 
 Unloading a skill has two distinct effects in this system: its authority is revoked immediately, while its old manual can remain in canonical History pending later retirement. Goals uses the current grant, not the presence of an old manual. Unload also clears its session configuration and timer. Removing the Skills relationship does the same without deleting the goal file.
 
-## §25.3 Preserve the Goal Across Requests, Not as Transcript Copies
+## §24.3 Preserve the Goal Across Requests, Not as Transcript Copies
 
 The renderer already projects primary instructions, tool policy, retained manuals, and request-only pressure guidance. Goal text joins that request-only instruction projection.
 
@@ -16774,9 +16566,9 @@ Auxiliary recall judges and memory compressors do not receive the parent's goal 
 
 File errors require a careful split. A human turn should be able to say, “The configured goal file is unavailable; repair it and explicitly re-enable reminders.” An automatic wake should not send a request with its objective silently missing. The wake preflights the read, and rendering checks again before send. A revision-bearing failure cannot disable a newer configuration selected while the old read was in progress.
 
-## §25.4 Let the Actor Decide Whether to Wake
+## §24.4 Let the Actor Decide Whether to Wake
 
-The timer callback is deliberately uninteresting:
+Both immediate idle continuation and a failure-timer callback post the same small message:
 
 ```text
 post GoalWake(generation)
@@ -16785,7 +16577,7 @@ post GoalWake(generation)
 The actor does the interesting work:
 
 ```text
-Is this still the current timer generation?
+Is this still the current wake generation?
 Are reminders still enabled?
 Is Goals still granted?
 Is the Agent still idle?
@@ -16796,7 +16588,7 @@ Only after those checks does it admit a normal turn containing a clearly labelle
 
 The reminder asks the model to inspect actual state, continue authorized unfinished work, avoid repeating commands blindly, and leave healthy jobs alone. Synthetic reminders skip user-query recall: they are not a new user's search question.
 
-Why the generation token? Disposing a timer does not prove that its callback was never queued. If the user changes the interval, pauses, unloads the skill, or interrupts near the deadline, old mail may still arrive. A stale token must be harmless. A callback is an opportunity to check, not authority to run.
+Why the generation token? Disposing a timer does not prove that its callback was never queued. If the user reconfigures, pauses, unloads the skill, or interrupts near the deadline, old mail may still arrive. A stale token must be harmless. A callback is an opportunity to check, not authority to run.
 
 Why use the existing admission path? A reminder is real work. It must respect queued input, accepted-work bookkeeping, tool limits, pause, cancellation, and the same provider lifecycle as an ordinary turn. Bypassing admission to call Engine directly would create a second scheduler inside the first.
 
@@ -16804,9 +16596,11 @@ Direct library sends count as busy through the existing Engine-send counter. Sta
 
 Independent Jobs are different. They may legitimately run while the foreground Agent is idle. A reminder can help the Agent observe one, but it is not a timeout or a license to restart it. The model still has to distinguish waiting for healthy work from having forgotten the task.
 
-The interval starts again after work becomes idle. This is not “run every eight minutes,” and it is not a watchdog for a hung active request.
+A pending-wake flag prevents status queries from queuing duplicates while already idle. Starting foreground work invalidates a queued wake. Finishing a submitted model turn records its success or failure before idle becomes eligible again. A delivered tool error is ordinarily handled by the model; it does not itself increment the failed-turn streak. Direct tool controls do not reset that streak.
 
-## §25.5 Stop Has More Than One Meaning
+Backoff retries an opportunity to continue, not the previous effect. Retain History and independent Jobs, inspect what actually happened, and never blindly repeat an uncertain external action. Missing goal authority, an unreadable goal, or broken History persistence is a repair boundary, not an endless retry condition. This is not a watchdog for a hung active request.
+
+## §24.5 Stop Has More Than One Meaning
 
 The interface must not collapse these states:
 
@@ -16814,11 +16608,12 @@ The interface must not collapse these states:
 |---|---|
 | Load Goals | Grants control only; no file or timer |
 | Set a file | Configures instructions; does not implicitly enable reminders |
-| Enable | Validates the file and arms when idle |
+| Enable | Validates the file, resets failure backoff, and queues when idle |
 | Off | Stops reminders, retaining goal instructions |
 | Clear | Removes session configuration/injection, retaining the file |
 | Pause | Suspends scheduling, preserving configuration |
-| Resume | Starts a fresh idle interval if enabled |
+| Resume | Reevaluates idle eligibility; restarts current failure delay when applicable |
+| Retry now | Bypasses one pending failure delay without enabling or unpausing |
 | Interrupt | Disables reminders and applies normal turn interruption |
 | Successful delegated submission | Disables reminders without changing the submission or parent's goal |
 | Unload/remove Skills | Revokes control and clears the session goal |
@@ -16828,11 +16623,11 @@ The interface must not collapse these states:
 
 **Submitted is not idle.** A delegated Agent's accepted submission is an authoritative result. A later automatic turn would admit new work and invalidate that result. Disable the goal at successful submission publication, then let the actor dispose its timer. A refused submission must leave the goal alone.
 
-**Restart is not replay.** Standalone configuration remains session-local and needs explicit setup in a new process. Chapter 20’s registered ordinary children restore their own goal configuration and enabled interval under current authority. Eligible reminders start a fresh delay after restoration; saved calls and Jobs are not replayed. Submitted children stay off and deliberately paused children stay paused. The parent's file and enabled flag are never copied into a child. Missing current authority or an unreadable goal prevents automatic continuation and requires explicit repair and re-enabling.
+**Restart is not replay.** Standalone configuration remains session-local and needs explicit setup in a new process. Chapter 20’s registered ordinary children restore their own goal configuration under current authority. Eligible idle Agents queue continuation after restoration with a fresh failure streak; saved calls and Jobs are not replayed. Submitted children stay off and deliberately paused children stay paused. The parent's file and enabled flag are never copied into a child. Missing current authority or an unreadable goal prevents automatic continuation and requires explicit repair and re-enabling.
 
 In earlier runtime work, a missing visible explanation made a real failure look like an unexplained pause. That is a useful lesson here, but it is not a claim that the historical provider failure was reproduced in C#. If a file becomes unreadable, status should say so. If the socket disconnects, the GUI should say its current knowledge ended there.
 
-## §25.6 One Status, Several Views
+## §24.6 One Status, Several Views
 
 `GoalStatusAsync` lets a trusted host observe the Agent even when the Goals skill is unavailable. It grants nothing. Configuration and model dispatch still require the skill.
 
@@ -16854,7 +16649,7 @@ Working and reminders enabled are separate facts. An Agent can continue its curr
 
 Use text labels and ordinary keyboard-accessible controls. The local browser exercise checks their DOM behavior; it does not establish that a particular person can see or hear them comfortably. Human accessibility and audible behavior still require human use.
 
-## §25.7 Verify the Boundaries
+## §24.7 Verify the Boundaries
 
 Use real Agents and the existing actor, renderer, Sandbox, skill catalog, and GUI. Replace the external provider with a small loopback HTTP peer only where a request is required.
 
@@ -16867,8 +16662,9 @@ The important checks are causal:
 5. A real idle wake sends one labelled reminder, while pause, foreground activity, and held HTTP work prevent overlap.
 6. A stale timer after reconfiguration, unload, or shutdown cannot start a later request. An unreadable automatic wake makes no HTTP request.
 7. A successful child submission survives without a later reminder; a refused submission does not disable Goals; parent and child settings remain separate.
-8. Real sockets exercise availability, selected-Agent isolation, malformed patches, reconnect, file errors, Off and Clear. Status polling must not reset the deadline.
-9. An isolated browser configures a goal, makes a human request while reminders are off, edits the file, observes one idle reminder, turns it off, reconnects, clears it, and observes disconnect honestly.
+8. Real sockets exercise availability, selected-Agent isolation, malformed patches, reconnect, file errors, Off, Clear and Retry now. Status polling must not reset the deadline.
+9. Actual failed model turns select 1/10/100/1,000-second backoff. A successful turn resets it; retry-now bypasses only one wait. Pause, Off, unload and shutdown invalidate pending retries.
+10. An isolated browser configures a goal, makes a human request while reminders are off, edits the file, observes one idle reminder, turns it off, reconnects, clears it, and observes disconnect honestly.
 
 The local provider can verify actual request bytes and lifecycle. It cannot establish that a real model follows the goal well, knows when it is blocked, or avoids an unnecessary retry. Those remain application and human-judgment questions.
 
@@ -16881,7 +16677,7 @@ Paths are relative to `agent`:
 | Responsibility | Source |
 |---|---|
 | Goal values, state and callable declarations | `Common/Goals.cs`, `Common/Actor.cs` |
-| Configuration, reading, status, timer and wake validation | `Agent/Goals.cs` |
+| Configuration, reading, status, failure backoff and wake validation | `Agent/Goals.cs` |
 | Admission, pause, interrupt and joined actor cleanup | `Agent/Actor.cs` |
 | Direct-send activity | `Agent/Models.cs` |
 | Successful submission publication | `Agent/ChildSubmission.cs` |
@@ -16889,15 +16685,16 @@ Paths are relative to `agent`:
 | Tool schema/control dispatch | `Tools/Tool.cs`, `Jobs/Jobs.cs` |
 | Opt-in manual | `Skills/goals/SKILL.md` |
 | GUI adapter and controls | `Gui/Server/Goals.cs`, `Gui/Server/Host.cs`, `Gui/wwwroot/app.js` |
-| Core and real-socket tests | `Tests/GoalTests.cs`, `GuiTests/GoalControlsTests.cs` |
+| Core and real-socket tests | `Tests/GoalTests.cs`, `Tests/GoalIdleTests.cs`, `GuiTests/GoalControlsTests.cs` |
 
-## §25.8 Taking It for a Spin
+## §24.8 Taking It for a Spin
 
 Start with the local checks. From the repository root, using your approved .NET 10 SDK:
 
 ```sh
 dotnet build agent/Tests/Tests.csproj
 dotnet agent/Tests/bin/Debug/net10.0/Tests.dll --goal-tests
+dotnet agent/Tests/bin/Debug/net10.0/Tests.dll --goal-idle-tests
 
 dotnet build agent/GuiTests/GuiTests.csproj
 dotnet agent/GuiTests/bin/Debug/net10.0/GuiTests.dll --goal-tests
@@ -16905,7 +16702,7 @@ dotnet agent/GuiTests/bin/Debug/net10.0/GuiTests.dll --goal-tests
 
 These tests use owned temporary files, local sockets, and boundary fakes. They do not need provider credentials. The GUI test expects the repository root as its working directory so it can copy the shipped Goals manual.
 
-For a personal trial, use a new workspace, an owned port other than the port of your running application, and a provider/account configuration you have explicitly approved. Do not borrow another running Agent's credential store. Start with a tiny objective and a short, supervised interval; reminders can cause inference and spend money.
+For a personal trial, use a new workspace, an owned port other than the port of your running application, and a provider/account configuration you have explicitly approved. Do not borrow another running Agent's credential store. Start with a tiny objective under supervision; immediate continuation and retries can cause inference and spend money.
 
 This setup prepares an isolated primary skill that permits Goals. Run from the repository root:
 
@@ -16959,15 +16756,15 @@ Open the owned GUI URL and the Goals controls:
 1. Confirm **No goal configured**. Startup loading the skill has not enabled anything.
 2. Enter the printed goal-file path, leave reminders unchecked, and Apply. Observe the acknowledgment: reminders are off and the goal is retained.
 3. Send a short human request. Inspect an authorized request trace if you need evidence of instruction placement; the model's answer alone does not prove what was sent.
-4. Edit the goal file. Send another request or enable a short supervised reminder and observe the fresh objective.
-5. Pause before a deadline and verify that inference does not start. Resume and observe a fresh interval rather than an immediate accumulated alarm.
+4. Edit the goal file. Send another request or enable supervised continuation and observe the fresh objective.
+5. Pause before enabling and verify that inference does not start. Resume and observe immediate idle continuation. Separately cause an owned provider failure and observe retry backoff, then test Retry now and Off.
 6. Turn reminders off while work is active. The current work remains work; only future idle wakes stop.
-7. Reload the page. The same running Agent still owns its configuration. Then separately test a registered child across process restart using Chapter 20’s exercise: its own enabled goal returns with a fresh interval, while a paused or submitted child does not run. Do not infer process persistence from a browser reload.
+7. Reload the page. The same running Agent still owns its configuration. Then separately test a registered child across process restart using Chapter 20’s exercise: its own enabled goal returns with a fresh failure streak, while a paused or submitted child does not run. Do not infer process persistence from a browser reload.
 8. Clear the goal. Confirm the file still exists. Close the owned host through its normal shutdown path.
 
 If a test or provider request is already running, inspect it instead of starting another copy just to obtain a newer timestamp. When finished or genuinely blocked, turn reminders off and say which state applies.
 
-## §25.9 Exercises
+## §24.9 Exercises
 
 ### Exercise 1: Freshness in the Same Turn
 
@@ -16975,7 +16772,7 @@ Use a boundary provider that returns a tool batch editing the goal and calling `
 
 ### Exercise 2: The Stale Callback
 
-Arrange for a timer callback to become eligible, then reconfigure or unload before the actor accepts it. Show why disposing the timer alone is insufficient. Assert that the old generation produces no request.
+Arrange for a failure-backoff callback to become eligible, then reconfigure or unload before the actor accepts it. Show why disposing the timer alone is insufficient. Assert that the old generation produces no request.
 
 ### Exercise 3: Submission Is a Boundary
 
@@ -16993,9 +16790,9 @@ View different Agents in two tabs. Apply a goal in one, switch the other, and in
 
 Remove a configured file before a wake. Verify zero inference from that wake, an explicit file-error status, and usable Off/Clear controls. Restore the file and explicitly re-enable. Do not report the interrupted task as completed.
 
-## §25.10 What Goals Provides and Where It Stops
+## §24.10 What Goals Provides and Where It Stops
 
-The goal file carries a durable objective. The runtime brings its current contents into ordinary requests. An opt-in timer gives an idle Agent another chance to examine the work.
+The goal file carries a durable objective. The runtime brings its current contents into ordinary requests. Opt-in idle transitions give the Agent another chance to examine the work; failure-only timers prevent rapid retry loops.
 
 That is useful, but it is not self-certifying autonomy. A reminder can encounter a real blocker. The model can misunderstand the objective. A healthy independent job may still need time. The process can be stopped, the file can disappear, or an active request can remain stuck without becoming idle.
 
@@ -17005,7 +16802,7 @@ Goals should reduce the number of times I have to poke the agent. It should not 
 
 ---
 
-# Chapter 26: Voice and Images
+# Chapter 25: Voice and Images
 
 > **External media grading complete:100/100.** Image-files20, attachments25,
 > voice30 and host-screen25 pass their executable scopes. The native macOS
@@ -17135,7 +16932,7 @@ symbol. It is whether the person's intended input reaches the intended Agent,
 with permission, once, and with a clear failure when it cannot. That boundary is
 what lets the same interaction remain trustworthy on a desktop or a phone.
 
-## 26.1 Four inputs, one conversation
+## 25.1 Four inputs, one conversation
 
 The new inputs should arrive at the conversation the person already understands.
 An image pasted beside a caption belongs to that message. A spoken sentence,
@@ -17169,7 +16966,7 @@ metadata, but it cannot stand in for the screenshot. Likewise, audio recording
 success is only the start of a voice operation. The intended Agent must eventually
 receive the transcript, or the operation must fail without sending it elsewhere.
 
-## 26.2 Put ownership where the lifetime lives
+## 25.2 Put ownership where the lifetime lives
 
 The browser owns the live microphone track, its audio context and worklet, and
 the buffers used to make a recording. Its image composer owns pending file
@@ -17200,7 +16997,7 @@ values do not depend on a browser array that can still change or an original fil
 that might be removed. The provider renderer consumes the frozen request, not
 whatever happens to be on disk later.
 
-## 26.3 Prepare an image once, with bounded work
+## 25.3 Prepare an image once, with bounded work
 
 Image preparation is shared by attachments, image-file inspection, and host
 screenshots. This avoids three independent interpretations of orientation,
@@ -17294,7 +17091,7 @@ These limits bound accepted input and allocation; they are not isolation from
 bugs in native decoders, a process-wide concurrency budget, or a guarantee of
 readable small print. Keep those claims separate.
 
-## 26.4 Inspecting a file must deliver the file's pixels
+## 25.4 Inspecting a file must deliver the file's pixels
 
 `inspect_image` starts with ordinary tool authority and a supported image-result
 surface. Check the selected model's capability before reading the path. An
@@ -17335,7 +17132,7 @@ active context while retaining accompanying text according to that reducer's
 contract. It does not prove that the original GUI history or every retained log
 entry was deleted.
 
-## 26.5 Render the media the provider actually supports
+## 25.5 Render the media the provider actually supports
 
 The shared value is a typed image part. The wire encoding is provider-specific.
 Responses represents image-bearing function output as typed content alongside
@@ -17361,7 +17158,7 @@ bounded real-provider probe establishes something additional: that the selected
 API and model accept the representation. Neither result implies entitlement or
 support for a different model, streaming mode, or platform.
 
-## 26.6 An attachment draft belongs to one recipient
+## 25.6 An attachment draft belongs to one recipient
 
 The browser's image composer retains the text and images that the person is
 preparing. It provides previews, removal, and an explicit file-picker fallback to
@@ -17393,7 +17190,7 @@ it does not establish the underlying cause of the earlier failure. Retain the
 file picker as a useful explicit attachment path without declaring all Android
 clipboard behavior either broken or solved by that one observation.
 
-## 26.7 A screenshot of which computer?
+## 25.7 A screenshot of which computer?
 
 The screenshot requirement exposed a specification mistake. The first
 implementation captured the connected browser page with Chrome's sharing API.
@@ -17477,7 +17274,7 @@ This matters before capture, because the source-pixel safety bound must include
 scaling. Verify the selected display's actual pixels as well as its dimensions;
 simply relaxing a failed dimension assertion is not acceptance.
 
-## 26.8 Make the recording format small enough to reason about
+## 25.8 Make the recording format small enough to reason about
 
 Bill specified hold, talk, and release to send, without an editable transcript or
 another Send press. That interaction does not require every audio container a
@@ -17511,7 +17308,7 @@ grant into background listening. It owns repeated releases and delayed finish
 callbacks. The page-level control adds pointer loss, blur, visibility, selection,
 and socket cancellation, plus the visible Cancel action.
 
-## 26.9 Keep the transcription payer explicit
+## 25.9 Keep the transcription payer explicit
 
 Transcription is a separate service operation from the Agent's chat inference.
 A running application with subscription-funded chat must not silently use an API
@@ -17554,7 +17351,7 @@ before a live test. Published rates are estimates for planning, not a measured
 bill. The accepted Dev test used an explicitly selected OpenAI key for
 transcription while retaining its existing chat funding.
 
-## 26.10 Separate readiness from commitment
+## 25.10 Separate readiness from commitment
 
 Bill's release-to-send requirement needs an admission protocol as well as a
 correct recorder and transcriber.
@@ -17603,7 +17400,7 @@ not proof of non-delivery. Do not retry that capture on a replacement socket.
 The person can inspect the original conversation. A new intentional recording is
 a new operation; an automatic replay of the old one is not.
 
-## 26.11 Cancellation must win before the next effect
+## 25.11 Cancellation must win before the next effect
 
 A state notification is a callback boundary. Tests exposed a race in which a
 listener cancelled the session during a state change, but execution continued to
@@ -17637,7 +17434,7 @@ that draft first. Keep visible recording, transcription, cancellation, failure,
 and uncertain-commit states; a person listening quickly still needs to know
 whether the recording has stopped and whether a message may already have arrived.
 
-## 26.12 Test the boundary you intend to claim
+## 25.12 Test the boundary you intend to claim
 
 Use deterministic fixtures to expose races, then use bounded native checks for
 the device and provider behavior those fixtures cannot establish.
@@ -17676,7 +17473,7 @@ from already-cached packages fixed that run without a runtime source change.
 Build state, source state, installed state, and live acceptance are separate facts.
 Do not hide a stale-manifest workaround inside a claim that the product was fixed.
 
-## 26.13 What is verified, and what remains open
+## 25.13 What is verified, and what remains open
 
 At this draft boundary, image-file inspection has local provider-wire and replay
 tests plus a bounded live test for the exact supported Gemini path. Desktop and
@@ -17720,7 +17517,7 @@ and human-use limitations rather than treating the score as universal acceptance
 A written chapter, an installed button, a passing fake-provider test, and a live
 human interaction each establish something different.
 
-## 26.14 Review and operate the feature deliberately
+## 25.14 Review and operate the feature deliberately
 
 Before native capture, agree on a synthetic display and arrange OS permission with
 the person at the host. Do not sweep a private desktop to discover whether access
@@ -17756,7 +17553,7 @@ below award separate 20-point, 25-point and 30-point scopes. None awards the
 host-screen scope by itself or certifies the entire chapter.
 The implementation's focused tests remain evidence, not external grades.
 
-### Exercise 26.1: Image-file delivery and replay (20 points)
+### Exercise 25.1: Image-file delivery and replay (20 points)
 
 Implement `inspect_image` as a skill-authorized tool. Read the selected file through
 its Agent's Sandbox, prepare a bounded PNG without changing the original, and
@@ -17794,7 +17591,7 @@ this delivery-and-replay scope. Sandbox escapes, resource ceilings, unsupported
 models, cancellation, and cross-provider correctness still require their focused
 implementation tests and review; this scope does not certify them by implication.
 
-### Exercise 26.2: Addressed image attachments (25 points)
+### Exercise 25.2: Addressed image attachments (25 points)
 
 Accept pasted images and explicit file selection into a removable preview draft.
 Keep accompanying text and image order, then send the whole message to the Agent
@@ -17836,7 +17633,7 @@ misdirected and duplicate-send mutants fail named gates. A phone-sized viewport
 checks layout, not native clipboard support. The command reports **25/25**, not
 100/100; image-file replay remains its separate scope.
 
-### Exercise 26.3: Hold, release, and send once (30 points)
+### Exercise 25.3: Hold, release, and send once (30 points)
 
 Connect the microphone button and configurable page-level shortcut to bounded
 recording and explicitly funded transcription. Release sends once through the
@@ -17888,7 +17685,7 @@ Four mutants expose extra confirmation, duplicate commit, wrong recipient and
 actual track leakage. The command reports **30/30** for this synthetic scope,
 not native microphone reliability, real-provider behavior or the host-screen grade.
 
-### Exercise 26.4: Host screenshots (25 points)
+### Exercise 25.4: Host screenshots (25 points)
 
 Implement `list_displays` and `screenshot` on the computer running the C# server.
 Support one optional display index, defaulting to display zero, and return prepared PNG pixels
@@ -18003,13 +17800,953 @@ separate facts. Preserve the evidence and limits beside the executable contracts
 - Test the claimed surface: browser capture is not host capture, fake audio is
   not a native microphone, and a scoped grade is not chapter completion.
 
-[Chapter 27: Crossing Over to Ensemble](chapter-27.md) turns to using the built
+[Chapter 28: Crossing Over to Ensemble](chapter-28.md) turns to using the built
 Agent as the working collaborator. The media paths here belong to that same
 Agent and its existing ownership rules.
 
 ---
 
-# Chapter 27: Crossing Over to Ensemble
+# Chapter 26: Artifacts and Actions
+
+> **Implemented integration; verification limits retained.** The named public
+> artifact grader verifies70/100: Actions25, snippets20, recorded time15 and
+> interaction10. Work products30 remains UNGRADED. Broader implementation tests
+> and explanatory teaching are recorded, but do not establish full independent
+> certification or human usability acceptance. Further student/grader campaigns
+> are deferred for closeout. Historical `-ch 26` still selects the multimedia
+> grader, not this chapter.
+
+## TL;DR: Specification Brief
+
+Make the agent's work inspectable without creating another owner of that work.
+The Actions pane projects recorded calls and observations. Code controls copy the
+complete logical payload. Work-product controls offer a deliberate download from
+an explicitly authorized, still-live Agent.
+
+- Pair calls and results by recorded identity. Show Requested, Dispatched,
+  Result returned and Error reported as distinct facts. A returned observation
+  can describe a Job that was still running.
+- Preserve raw details and the reader's position. Updates retain expanded
+  controls, focus and selected text; explicit navigation may move the reader.
+- Copy explicitly closed assistant code fences, including their complete hidden
+  payload, with parser-normalized LF line endings. Clipboard refusal exposes a
+  read-only manual fallback beside the control.
+- Display recorded fact times locally, with exact timestamp detail. Display a
+  fixed monotonic dispatch-to-observation duration separately from Job state.
+  Missing historical values remain unknown through save, restart and replay.
+- Offer workspace files only through the explicitly granted `offer_work_product`
+  tool. A successful result carries an opaque identifier, basename and offered
+  size. The human's download click reads current contents through the owning
+  Agent's Sandbox again.
+- Bound each work-product transfer to 64 MiB and each Agent lifetime to 64 offers.
+  Refuse extra offers rather than evicting earlier ones. Agent destruction or
+  restart expires the live grants; saved descriptions remain descriptions.
+- Keep cancellation and ownership explicit. A transfer belongs to its Agent;
+  shutdown cancels and joins it before destroying the Sandbox. Browser replay
+  cancels obsolete requests and refuses stale completions.
+
+## In plain words
+
+An agent can say that it wrote a report. That sentence does not establish that
+there is a file, that the browser may read it, or that a download contains all of
+it. Likewise, a tool result can arrive while a background process is still
+running. A useful interface tells these situations apart.
+
+This chapter connects the owners built earlier. History remembers what happened.
+Jobs own work that can outlive an observation. The Sandbox decides which files an
+Agent may open. The browser presents those facts and the human's controls. None
+of these responsibilities moves into a new artifact store.
+
+Junien's [snippet-copy contribution](https://github.com/waywardgeek/ensemble/pull/7),
+[timing contribution](https://github.com/waywardgeek/ensemble/pull/6) and
+[work-product contribution](https://github.com/waywardgeek/ensemble/pull/9) supplied
+requirements, tests and teaching that informed this development. Their Go code is
+not the current C# implementation. We retain the useful distinctions while using
+our existing C# owners and the bounded timing scope developed here.
+
+## 26.1 Start with the existing owners
+
+Read the construction points before joining them:
+
+| Foundation | Responsibility used here |
+| --- | --- |
+| [Chapter 2](chapter-02.md) | Immutable recorded values and retained Context |
+| [Chapter 3](chapter-03.md#preserve-typed-result-metadata) | Typed tool results rather than metadata parsed from prose |
+| [Chapter 4](chapter-04.md#completed-structured-results-carry-delivery-metadata) | Jobs and observations, including completed structured results |
+| [Chapter 7](chapter-07.md) | Browser projection, Markdown and stable controls |
+| [Chapter 9](chapter-09.md#installed-discoverable-and-granted) | Explicit skill authority |
+| [Chapter 10](chapter-10.md) | Save, restore and replay |
+| [Chapter 18](chapter-18.md) | Agent-owned file authority |
+
+Common declares the shared values and real ownership relationships. Matching
+partial implementations perform their operations. The browser's card map is a
+presentation index, not another History. A saved `WorkProductInfo` is an immutable
+value, not a second collection of live grants.
+
+Follow one successful offer through the system: record the call, execute the
+admitted tool under its Agent, return typed metadata, record the observation,
+project the result and wait for a human click. The next provider request receives
+ordinary result content, not browser download authority. Replaying the recorded
+result renders a description without executing the tool again.
+
+## 26.2 A result is an observation
+
+Consider a batch with two calls. The first has been dispatched and is waiting for
+its foreground observation. The second is recorded but has not been dispatched.
+Both exist, but only the first has crossed the execution boundary. Showing both
+as running would claim an effect that has not happened.
+
+A later result can say that Job 12 was running when observed. Keep that recorded
+state even after another observation says Job 12 finished. The old card is a fact
+about an earlier observation, not a live status widget. Display an available exit
+code separately; a missing code is not zero, and a finished Job is not by itself
+proof of successful work.
+
+Use the projected call relationship for View call and View latest result. Tool
+names, matching output text and Job handles are insufficient pairing keys. A call
+can have more than one observation. Navigation must validate that both card
+objects still belong to the current Agent and current rendered transcript. An old
+button detached by replay must not target a replacement that reuses its ID.
+
+Control tools expose a subtle integration rule. `wait_for_job` creates no wrapper
+Job, but its result can describe an existing Job. Preserve that typed observation
+when recording History. Testing only the returned method value would miss a
+recording path that drops the metadata before the GUI sees it.
+
+## 26.3 Preserve the thing the reader is using
+
+Keep stable controls separate from changing payload presentation. Updating a
+status label should not replace an unchanged detail summary, download button or
+snippet control. Preserve actual nodes where their meaning is unchanged; a new
+node that looks identical can still lose keyboard focus or textarea selection.
+
+A reader may select raw output while another result arrives. Defer changes that
+would replace selected content, and retain the pane position while the reader is
+interacting. Explicit pair navigation may focus and scroll to its destination.
+Ordinary output should not do that on the reader's behalf.
+
+Exercise these distinctions on a narrow, genuinely overflowing pane. An empty
+selection or a pane with no overflow cannot demonstrate preservation. Check
+keyboard activation and touch-sized targets as well as mouse clicks. Copying and
+navigation preserve an unsent draft and do not queue duplicate speech. Streamed
+narration advances independently of visual rerendering; replay is silent rather
+than a request to speak the conversation again.
+
+## 26.4 Copy the payload, not the preview
+
+The [Chapter 7 copy contract](chapter-07.md#copy-the-logical-code-not-the-preview)
+uses the pinned Markdown parser's logical fence payload. It excludes opening and
+closing fences and quote or list container prefixes. It preserves code indentation,
+Unicode, blank lines, trailing spaces and the terminal newline, with the parser's
+LF normalization. History retains the original Markdown.
+
+A collapsed preview is presentation, not the copy source. Test a payload that
+exceeds both the line and character preview limits. Explicit closure matters:
+reaching the end of an assistant response does not close an unfinished fence.
+Human messages and inline code do not acquire assistant-fence Copy controls.
+
+Automatic copy succeeds only when the clipboard promise succeeds. If the API is
+missing or denies access, show the exact payload in a read-only, selected fallback
+beside the button. Preserve that fallback's actual focus and selection when later
+prose streams in.
+
+Capture the click-time payload and control identity. If the human switches Agents
+before the clipboard promise completes, its resolution must not update the new
+card or create a fallback there. The already-requested clipboard write cannot be
+retracted merely by replacing the DOM. Fence the completion rather than claiming
+navigation canceled a write that the browser may already have performed.
+
+## 26.5 Keep recorded time distinct from elapsed work
+
+A fact's recorded timestamp belongs to History. Retained entries preserve it
+through filtering and persistence; snapshot-only projection must not substitute
+the time of reload. Show local time for reading and exact timestamp detail for
+inspection. Historical absence remains absence.
+
+Observation duration has a different source. Measure admitted dispatch to the
+returned foreground observation with a monotonic clock, then record the fixed
+value. A zero-delay observation may return while its Job remains blocked. The
+recorded duration stops there; it is not the eventual background runtime. Paths
+without the defined dispatch boundary remain unknown rather than receiving an
+invented zero.
+
+Retain exact values through the application's real save operation and a separate
+restore process. A hand-authored snapshot tests loading but cannot detect a save
+operation that drops timing. Also compare provider requests with and without
+these inspection fields: timing should not change the model's input. The public
+grader exercises four renderer surfaces offline and an actual fake Anthropic
+wire path; that is not four live-provider integrations or a full timing profiler.
+
+## 26.6 A work-product description is not a file grant
+
+An ordinary pathname in prose grants nothing. Job-output downloads serve completed
+Job diagnostics under their own 16 MiB boundary. Work-product offers are separate:
+they serve a deliberately offered workspace file under the 64 MiB policy. Neither
+raises model image-input limits.
+
+Grant `offer_work_product` through the work-products skill. Installation or
+historical skill text alone grants no tool authority. The Agent validates a
+regular readable file through its Sandbox, checks the offer size and capacity,
+and creates an opaque identifier. Failed creation consumes no offer slot. The
+successful typed result contains display metadata without the host pathname.
+
+The live Agent owns the mapping from that identifier to the permitted path. A
+request names an Agent and offer ID, never an arbitrary pathname. Require the
+existing origin boundary and the download-specific request header, then look up
+the offer under that owner. A globally unique token is not permission to read it
+through another Agent. Same-origin checks are not a replacement for human login
+in a different hosting design.
+
+At click time, open through the Sandbox again and check the current length. A
+replacement symlink that escapes the Sandbox, missing file, oversized growth or
+destroyed owner must refuse.
+The download contains current bytes, not a frozen copy of the original offer.
+The offered size is descriptive, not a promise that the file is unchanged.
+
+Saving and restoring the description does not recreate the live mapping. After
+restart the old card may explain what was offered, but downloading requires a
+new live offer. Reusing an Agent name does not revive the destroyed Agent's grants.
+
+## 26.7 Own the transfer through cleanup
+
+An admitted transfer owns its opened input stream and cancellation lifetime under
+the Agent. The HTTP destination is borrowed. Keep the transfer registered until
+input disposal and other cleanup complete, then remove its reverse membership.
+Do not hold the Agent's gate across network I/O or cancellation callbacks.
+
+Bound actual transferred bytes, not just a declared length. Refuse truncation or
+growth rather than save a misleading successful download. This is a bounded
+click-time transfer, not an immutable snapshot guarantee against same-size edits.
+
+Browser Cancel and replacement of the conversation abort the obsolete request.
+The server must observe that cancellation and join cleanup. Agent destruction
+closes admission, cancels active copies and joins them before Sandbox teardown.
+A test that sees a changed button label proves none of those server effects.
+Use a controlled external response sink to demonstrate cancellation reaching the
+copy and shutdown remaining pending until cleanup is released.
+
+Only save the browser Blob after a complete allowed response and a final check
+that the original card and Agent are still current. Render refusal visibly;
+never convert an error response or partial transfer into an attachment.
+
+## 26.8 Integration exercises
+
+These are draft exercise contracts. The isolated pre-chapter reconstruction
+baseline still needs to be assembled and audited. Do not hand a student the completed
+runtime as a purported prerequisite or claim these exercises are student-verified.
+Students must have the relevant foundation chapters, existing offline dependencies,
+an explicit writable solution scope and access to the public grader and questions.
+
+### Exercise A: Follow a call through observation and replay
+
+Use a loopback fake provider to request two real tools. Hold the first callback
+while the browser inspects the batch. Show the first call dispatched, the second
+requested and no returned result yet. Release the callback and verify distinct
+results, exact raw inputs and navigation in both directions. Add a real failure
+and a running Job observation. Reload and repeat navigation without rerunning
+callbacks or changing earlier observed states.
+
+Record canonical counts as well as visible assertions. Explain which component
+owns execution, which owns History and why a control result can carry Job metadata.
+
+### Exercise B: Read while the answer changes
+
+Return closed, unfinished, nested, empty and long fences through the actual
+provider path. Compare clipboard writes with independently constructed expected
+payloads. Refuse the clipboard API and verify the manual fallback. Hold real
+stream deltas while the reader focuses a Copy button or selects fallback text;
+release later prose and verify the same controls and selection survive.
+
+Repeat while an unsent draft exists. Delay clipboard completion across Agent
+selection. Check keyboard and touch controls, raw text selection, pane position
+and speech noninterference. Use synthetic clipboard and speech boundaries; keep
+native device acceptance a separate report.
+
+### Exercise C: Restore facts without inventing measurements
+
+Construct known timestamps and durations, an explicit zero and unknown values.
+Save through public History, exit, then load in a separate process with no seed
+fallback. Project from retained Context without a diagnostic event tail. Verify
+exact values and browser absence for unknowns. Compare otherwise identical timed
+and untimed provider requests while positively checking that tool payloads remain.
+
+### Exercise D: Offer, change, download and revoke
+
+Have a real tool create a binary with independently known random bytes. Offer it
+through the granted tool, then change it before the human clicks. Verify the exact
+new bytes and filename. Test failed and ungranted offers, wrong-owner and path
+requests, symlink replacement, missing files, exact size boundaries, cancellation,
+Agent destruction and restored descriptions without restored authority.
+
+Explain the difference between an offer, an observation, a transfer and a saved
+description. Include successful allowed operations beside refusals so a candidate
+that refuses everything cannot pass. The deterministic running built-in offer
+case remains an open public-grader gate; a delayed custom text callback does not
+by itself verify that structured-result path.
+
+## 26.9 Run and interpret the public grader
+
+Build the candidate and grader using the repository's documented offline setup.
+Supply absolute paths to existing tools and a candidate runtime directory containing
+`Ensemble.dll` and `Ensemble.Gui.dll`:
+
+```sh
+/path/to/grade-edition3 --scope artifacts -executable-only -json \
+  -dotnet /absolute/path/to/dotnet \
+  -browser-node /absolute/path/to/node \
+  -playwright-module /absolute/path/to/playwright \
+  /absolute/path/to/candidate-runtime
+```
+
+The grader compiles its own outside-assembly consumer against the supplied
+assemblies. It uses isolated workspaces, loopback providers, real browser controls
+and joined hosts. It neither runs candidate internal tests for points nor needs
+real provider credentials. Existing .NET 10, Node, Playwright and Chrome are
+prerequisites; running the command is not permission to install them. The current
+runner supports macOS and Linux hosts.
+
+Exit 0 is reserved for a full pass, 1 reports a probe failure, 2 reports setup or
+argument failure, and 3 reports unfinished coverage. A successful current run
+reports 70/100 with work products UNGRADED. A failure can retain independently
+supported row points while still exiting 1. Read row status and failure evidence,
+not just the total.
+
+Deliberately broken candidates must compile and fail the intended assertion.
+Compilation errors and stranded test hosts do not demonstrate sensitivity.
+Keep source implementation, public grading, reconstruction and human acceptance
+as separate records. The [development evidence](../docs/edition-3-notes/artifacts-and-actions.md)
+contains the individual runs, corrections and limits; the
+[closeout plan](../docs/edition-3-notes/first-book-closeout-plan.md) tracks remaining gates.
+
+## 26.10 Use it for real work
+
+Ask the agent for a small report. Read a previous tool result while new output
+arrives, copy a long snippet while preserving a draft, and deliberately download
+the offered report. Check the error message after the file becomes unavailable.
+Do this on the devices you actually use. Synthetic success does not establish
+that a person can find a control, understand its state or comfortably read it.
+
+This chapter ends with inspectable work, not a permanent content service, arbitrary
+HTML previews or a comprehensive profiler. The next chapter adds local inference
+after the non-local teaching and reconstruction gates are complete.
+
+Next: [Running Local Models](chapter-27.md).
+
+---
+
+# Chapter 27: Running Local Models
+
+> **Local-model integration accepted in ordinary GUI use.** Bill created a
+> separate MiMo Agent, received a reply and observed a tool call with its result.
+> This establishes the requested local-model support, not general coding quality.
+> Deterministic routing, streaming and lifecycle evidence remains separate: the
+> public runner passes 136 named checks but is ungraded, with incomplete coverage.
+> The next external usage review is for Julien's larger GPU setup, not another
+> MiMo coding trial.
+
+## TL;DR: Specification Brief
+
+Add an explicitly configured local inference route to the existing Agent and
+Engine. Offer its models in the ordinary model selector without changing the
+current selection automatically. Local inference is another transport destination,
+not another agent architecture.
+
+- Select the model, endpoint, wire surface and funding policy together. A local
+  model name must never travel to the cloud endpoint inherited from its parent.
+- Use the existing OpenAI-compatible Chat Completions path where the server
+  actually supports it. Do not build an Ollama-specific adapter merely because
+  the server has a native API too.
+- Keep local requests credential-free. Do not borrow an API key, subscription
+  bearer or account header. Failure never authorizes a cloud fallback.
+- Make configured local models available through normal model selection and
+  child creation. Do not impose a child-only restriction. Selecting a small model
+  does not make a large existing conversation fit it.
+- Distinguish the model's advertised context maximum, the server's loaded context,
+  and the Agent's working-context policy. Last-request usage is not a preflight
+  token count or a guarantee that the next request will fit.
+- Preserve canonical calls, call IDs and correlated results. JSON printed in
+  ordinary text is not a tool call and grants no execution authority.
+- Keep buffered and streaming behavior consistent across rendering, endpoint
+  selection and response parsing. Preserve ordinary cancellation and ownership.
+- Report measured token usage when present; missing usage remains unknown. Local
+  inference is not proof of zero operating cost or a known cloud-equivalent price.
+- Separate deterministic protocol tests from actual-model usefulness and human
+  acceptance. A model listing's tool-support label is not an end-to-end test.
+
+## In plain words
+
+Moving inference to another computer does not move the Agent there. Ensemble still
+owns the conversation, tools, Jobs, permissions and saved history. The model server
+receives a request and returns an answer or a structured request to use a tool.
+Ensemble decides whether that tool is granted and records its result before asking
+for the next answer.
+
+A model dropdown therefore chooses more than a spelling. If a parent uses a cloud
+subscription and its child selects a local model, retaining the parent's endpoint
+or bearer is wrong. The local route must be explicitly available, and selecting it
+must select the correct destination without carrying cloud credentials across.
+The same rule applies when a human changes an idle Agent's model in the GUI.
+
+Small models are useful for bounded work, but a successful arithmetic example does
+not show that they can manage a large system prompt, extensive memory and dozens of
+tool declarations. Start with a small task and a modest tool set. Measure the loaded
+context and GPU placement rather than assuming the advertised model maximum fits
+in video memory. Raising a working-context setting does not enlarge the server's
+allocation, and a handoff cannot remove all fixed prompt overhead.
+
+The first live trial made a useful distinction. One coding model printed an object
+that looked like a function call inside ordinary answer text. A newer package
+returned a real `tool_calls` array, accepted a result with the matching call ID,
+and answered the question. Only the second exchange demonstrated the structured
+protocol we need. Neither exchange alone demonstrated reliable agentic coding.
+
+A later integrated Ensemble trial returned a correct small Python function but
+made no tool call despite an explicit request to use its one declared tool. It
+used short primary instructions, not the normal primary skill. The function
+passed six reviewed local cases; requested tool use did not pass. Record both
+outcomes rather than treating successful generation as successful tool use.
+
+A subsequent small-primary-skill trial captured a real structured call and its
+correlated result, but also exposed default recall overhead and a capture-fixture
+error. A fresh Agent is not automatically an auxiliary-inference-free Agent:
+explicitly configure recall when isolating prompt and tool overhead. Keep observed
+protocol success separate from an error-free experiment or a causal skill claim.
+
+A final authorized trial used a small primary skill and exactly the original six
+tools, with all memory bands and automatic recall disabled. MiMo read the supplied
+cases and test script, observed an ordinary missing-file result, wrote the
+implementation, and ran the fixed test script. Four model requests produced five
+tool results; all six cases passed without changing the supplied files or inputs.
+The process and relay joined cleanly, with no retry or cloud fallback.
+
+The largest reported request used 1912 input and 291 output tokens, 2203 total,
+within the loaded 4096-token context. Cached input is already included in that
+input figure. Only read_file, write_file and run_command were exercised; granting
+six tools does not certify all six. This demonstrates one useful integrated task,
+not general coding reliability or that the normal full skill fits this allocation.
+
+## What the live GUI check accepted
+
+Julien, whose nine PRs informed earlier integration work, requested local-model
+support for his own GPU setup. Bill's small MiMo installation was sufficient to
+check that capability; it was not intended to become his coding model.
+
+After explicit host registration, Bill created a separate Agent with the
+`local-coding` primary skill and disabled all memory bands and automatic recall.
+MiMo answered a greeting through the GUI. Bill then requested a directory listing
+and confirmed that an actual tool call returned results. The final answer was
+verbose, ignored the requested brief confirmation and speculated about directory
+names. Record that model behavior, but do not turn it into failure of the runtime
+integration. Bill explicitly accepted the local-model test as successful.
+
+Cadence initially proposed another coding task. That was scope drift: the question
+was whether Ensemble could use a local model and execute its tools, not whether a
+small model could code well. No further MiMo trial is needed. The pasted transcript
+and Bill's observation do not independently certify visible token-by-token
+streaming, every tool, or all failure paths; those limits do not erase the success.
+
+For another host, use the [local-model evaluation guide](../docs/local-model-evaluation.md).
+It supplies an explicit configuration example and a short feedback checklist for
+Julien or another operator. Coding usefulness is optional and belongs to the
+operator's selected model, hardware and task. The integration has one architecture;
+it does not require everyone to use MiMo, Ollama or Bill's serving limit.
+
+## 27.1 Start with a verified server
+
+The initial target is Windows-native Ollama on a separate laptop, not an assumed
+WSL installation. Inspect the installed server version, GPU, model package and
+loaded model before recommending changes. A package can require a particular
+server version or parser. Parameter count, quantization, projector size and runtime
+context all affect memory use.
+
+Verify in layers:
+
+1. A local version request establishes that the API server is running.
+2. A small local inference request establishes that the model can answer.
+3. The loaded-model report establishes GPU placement and allocated context for
+   that configuration, not every possible request.
+4. A structured tool call and correlated result establish a basic protocol round
+   trip. No arbitrary model-supplied program needs to run for this test.
+5. A version request from the Ensemble host establishes network reachability,
+   not inference quality or authorization to expose the service publicly.
+
+A saved listener setting is not a running listener. On Windows, changing a user
+variable does not update an existing server process. Closing its window may leave
+its tray process running. Inspect the listening address, stop the owning server
+normally, relaunch it with the intended setting and verify again.
+
+Ollama's local API should not be treated as an authenticated public service. For a
+trusted-LAN experiment, restrict inbound access to the Ensemble host and the
+required port. Inspect existing allowances: adding a narrow firewall rule does not
+cancel a broader rule. Do not forward the port through the router or weaken the
+Ensemble GUI's independent origin/authentication boundary. DHCP address changes
+can invalidate address-based rules; a reservation or an authenticated tunnel is a
+separate operational choice.
+
+See the [Ollama FAQ](https://docs.ollama.com/faq) for current listener instructions
+and its [OpenAI compatibility documentation](https://docs.ollama.com/openai) for
+the supported protocol. These sources can change; verify the installed combination.
+
+## 27.2 Integrate the existing owners
+
+The Agent remains the owner of scheduling, configuration and History. Engine
+consumes a frozen request and returns immutable results. The GUI projects the
+selected route and available choices; it does not own credentials or a second
+transcript. Child creation and restoration must resolve the same explicit route
+as ordinary model selection.
+
+Common now declares the configured graph: Ensemble strongly owns `ModelVendor`
+objects and `ModelAuthentication` bindings; a vendor owns `ModelEndpoint` objects,
+and each endpoint owns its `Model` offerings. The existing `Vendor` enum remains
+wire/serialization compatibility vocabulary during integration. A configured
+Ollama vendor is not the OpenAI vendor merely because its endpoint uses the
+`ChatCompletions` surface.
+
+An offering has a local configuration ID and a separate provider-facing model
+name. The same wire model name through two endpoints denotes two offerings.
+`ModelIdentity` qualifies that local ID with its vendor and endpoint IDs. It is a
+credential-free value, not another owner or a provider-facing routing name.
+Provenance can retain this identity alongside the exact wire model and surface:
+opaque material from a different offering must not match merely because both
+servers use the same model name. Legacy provenance remains readable but cannot
+match an explicitly configured offering. Invalid present identities refuse rather
+than silently becoming legacy data. Request projection and response capture carry
+this value; configured construction and child restoration attach the live Model
+relationship. The public Model-object selector changes that relationship through
+the existing Agent mailbox; the ordinary dropdown submits the same qualified
+identity.
+Endpoint addresses exclude embedded credentials, query strings and fragments.
+New credential-bearing endpoints require HTTPS except literal loopback fixtures;
+public OAuth and Codex retain their additional existing endpoint restrictions.
+
+Inference transport does not automatically follow redirects or retain response
+cookies. Otherwise the first funding mode could leave hidden routing or cookie
+authority on an Engine later used for a different model. A redirect is an error
+at the configured endpoint, not permission to send the request elsewhere. Public
+OAuth's existing bounded401 renewal remains on the same frozen endpoint, account
+and request body; it is not a general inference retry or funding fallback.
+
+An authentication binding is an explicit choice: no credential, an owned API key,
+a reference to the public OAuth credential owner and account label, or a reference
+to the independent Codex credential owner. It does not copy a renewable token into
+a Model. Endpoints and bindings maintain both ends of their weak relationship.
+Destroying a credential owner detaches its bindings; replacing that owner does not
+silently reconnect them. Destroying a binding invalidates dependent endpoints
+without destroying their model objects or changing their funding kind. Ordinary
+root destruction finishes Agent work before removing models and credential owners.
+
+Constructors validate before publishing relationships. Duplicate IDs within an
+owning collection refuse without replacing an existing endpoint or model. A
+membership snapshot is not an editable collection. Removing a relationship clears
+the back-reference without destroying the detached object; destruction recursively
+removes strong children. These operations are tested separately from transport.
+
+The internal request projection freezes the offering's wire name, surface,
+capabilities and serving context while preserving Agent instructions and security
+policy. It references the selected authentication binding instead of copying its
+API key. Explicit unauthenticated funding emits no credential headers; it is not
+an empty-key attempt or permission to discover cloud credentials. Streaming and
+media checks use the frozen capabilities rather than guessing from a model name.
+A Model also owns an immutable, credential-free `ModelRequestPolicy`. Reasoning,
+streaming suppression, explanation enforcement, deferred tools, result stubbing
+and cache options come from that selected offering, not the previously selected
+route. Instructions, tool-round limits and security boundaries stay with the Agent.
+Model construction validates options against its surface and capabilities before
+adding endpoint membership. Feature-required explanations cannot be disabled by
+policy. Request projection turns an explicit reasoning summary `off` into an
+omitted provider field; returning to the offering restores its declared options.
+
+Default working-context limits use the configured serving allocation when known.
+An explicit policy also includes the qualified offering identity. Two endpoints
+serving the same wire model may have different allocations, so their policies
+must not overwrite each other. Legacy policies keep their original wire-name
+identity and do not silently apply to newly configured offerings. Settings
+round trips preserve that distinction; malformed identities refuse rather than
+becoming legacy rows.
+Recall and compression preserve the binding; an unresolved judge-model override
+refuses rather than silently changing the route.
+
+Ensemble resolves a saved `ModelIdentity` by following its current vendor,
+endpoint and model ownership. There is no second lookup registry and no fallback
+by wire name. A detached or missing offering is unavailable. Ordinary child
+registrations retain the legacy version1 shape for legacy configurations;
+configured children use version2 with a required qualified identity. When no explicit
+Agent preference is present, restore
+validates identities before constructing children, and checks the saved wire name
+against the resolved offering. It preserves conversation and pause state, not
+credentials or interrupted effects. A legacy child record under a configured
+parent refuses because that record cannot identify the original route safely.
+
+Peer launch records follow the same identity rule. A configured peer saves its
+qualified offering alongside the launch model name; a legacy peer keeps the
+original four-field record. These are launch choices, not a second store of the
+running Agent's mutable selection. Without an explicit Agent preference, restoration
+resolves the entire launch set before starting any peer, checks each wire name, and
+refuses missing offerings
+without substituting the host's route or funding. Invalid present identities do
+not become legacy records.
+
+A failed peer restoration must not take down the GUI after the initial Agent has
+started. Keep the saved files and show the stopped peers in recovery controls.
+`SavedPeers` reads the durable registry without inventing live Agents.
+`RestorePeerAsync` retries one stopped peer; an explicit recovery offering is
+validated and saved in that peer's own settings before startup. Preserve sibling
+memory, recall and working-context policies and the saved conversation. Refuse
+recovery of a running peer. If startup later fails, retain the human's saved choice
+for retry and report the failure. After a successful repair, ordinary restoration
+uses that peer's own selection on the next restart. Never guess a payer from an
+old wire-name-only record or from the mounted Agent's newly selected model.
+
+A configured Agent holds a weak selection link to its actual Model, and the
+Model maintains the reverse membership. Agent construction attaches both ends
+before creating Engine; partial construction rolls them back. Destroying a Model
+clears these weak links without destroying Agents or their conversations. A lost
+selection refuses new rendering and inference, never reverting to a legacy route.
+Engine admission validates the graph before incrementing its active-send guard.
+
+`SetModelAsync(Model)` selects a configured offering only between turns, including
+absence of direct Engine sends. It rejects a foreign root before acquiring its
+graph lock. Under ingress and the owning graph gate, it validates the candidate,
+saves the qualified identity in the persistent Agent's own `settings.json`, then
+updates both membership ends and the frozen configuration. Transient Agents have
+no implicit settings file. Failed saving leaves the old selection intact. A successful switch retains Engine and conversation, and resets
+the last-request context measurement. An explicit valid choice can recover an
+Agent whose old Model was removed; no automatic substitution occurs. The legacy
+string overload still preserves its route and cannot invent a configured offering.
+
+An optional `selected_offering` in Agent settings is the explicit current choice.
+It contains only the strict vendor/endpoint/model identity. Memory, recall and
+working-context saves preserve it, and model saves preserve those sibling policies.
+Read the preference through the actual Sandbox before attaching the selected Model
+and constructing Engine. Sandbox creation needs the Agent's filesystem security
+policy, not permission to send inference; do not weaken route admission to break
+that construction dependency.
+
+On child and peer restoration, a present preference takes precedence over the
+legacy launch choice, even if the old offering no longer exists. Validate every
+immediate saved preference before fleet startup effects, then resolve again during
+construction. A malformed or unavailable preference refuses; it never falls back
+to the launch record. When absent, the strict legacy rules above remain in force.
+Selecting a configured model commits one Agent settings file, not a claimed atomic
+transaction across that file and the child or peer launch registry.
+
+Global settings belong to the application, not to any Agent. The host supplies
+`~/.en/settings.json` to the root-owned `GlobalSettings` object. Its `BindApiKey`
+operation creates ordinary `ModelAuthentication` bindings from the existing
+`openai_api_key`, `anthropic_api_key` and `gemini_api_key` fields; it does not expose
+those values in model choices. A missing key supplies no binding, not another
+vendor's key. The library never searches an implicit credential location.
+
+The `model_funding_defaults` object maps configured vendor IDs to authentication
+binding IDs. `RememberFunding(Model)` saves that reference without changing an
+Agent. `ResolveModel(vendor, name)` follows the approved graph and remembered
+funding. Without a saved choice, only one configured offering is unambiguous.
+Missing or ambiguous saved funding refuses, even when another key is usable. An
+unrelated unavailable offering must not hide a valid explicitly remembered choice.
+
+Read the bounded global document freshly under a cooperative writer lock before
+updating it. Preserve unrelated settings and credential values, write a private
+temporary file, flush it, and replace the destination. Malformed input or lock/I/O
+failure is not permission to reset the file. A global-default save and an Agent
+selection save are separate operations, not one filesystem transaction: their
+acknowledgments must distinguish a saved Agent choice from an unsaved global
+default. In the GUI, list each vendor/model once. A model choice carries only
+vendor ID and wire model name, and resolves the current funding preference again
+when the action executes. Do not freeze an earlier menu lookup into routing
+authority. Refuse conflicting selection forms.
+
+Settings → AI saves a funding choice when the dropdown changes, with a per-vendor
+pending, saved or failure message. A refused save restores the last acknowledged
+choice; there is no extra Save button. The separate default-funding action names
+an approved binding through an existing offering; the browser never supplies a key or token
+path. Missing or ambiguous funding sends the human to Settings, rather than adding
+another copy of the model to the picker. Model selection and peer creation do not
+rewrite funding defaults. Changing a default does not retarget existing Agents;
+select the model again to apply it. A failed funding save reports that operation's
+failure without changing an Agent.
+
+The GUI reads a credential-free `ModelSelectionStatus`, not the inference-validating
+configuration getter. Under the same ingress-to-graph lock order, this snapshot
+lists configured offerings and their local policy compatibility, funding description
+and serving context. Availability is not a network health check or proof of account
+entitlement. Unknown serving context remains unknown. Legacy name-only choices
+retain their fixed-route semantics; configured choices carry a separate strict
+identity object, never a renamed provider model.
+
+An unavailable selection remains visible after reconnect. Even recreating an
+offering with the same IDs does not reconnect a lost Agent link automatically.
+The picker marks the current model unavailable and permits an explicit
+valid selection after funding is corrected. The server resolves the chosen
+identity again and calls the same Model selector; displayed status is never a send or selection grant.
+
+Documentary persistence has a different purpose from inference admission. It can
+save the last frozen configuration and retained conversation after a Model is
+removed, without acquiring credentials or granting another request. During root
+shutdown, closing admission must not block the Agents' final History saves.
+
+**Integration boundary:** synthetic HTTP checks exercise the internal projection,
+including the exact headers and captured provenance. Configured child registration
+and restoration, weak selection membership and saving after Model loss have
+focused coverage. Per-offering working-context persistence and effective-policy
+isolation and qualified peer launch/restoration have focused coverage too.
+Public Model switching has focused loopback routing and failed-save coverage.
+The ordinary dropdown has real-socket and actual-page offering-switch/recovery
+coverage. Host file loading and explicit launch-return routing have process/socket
+coverage. Configured public OAuth has loopback 401-renewal/refusal coverage;
+configured Codex has synthetic grant-reread and owner-loss coverage. Configured
+Chat Completions has real-loopback SSE tool-round-trip coverage, including partial
+argument barriers, immediate interruption, provider-stream failure and fresh-turn
+recovery. These use an explicitly streaming, uncatalogued no-auth offering. They
+are not independent grader credit or live MiMo acceptance; do not infer an
+installed MiMo offering from these owned fixtures.
+
+### Host-owned model configuration
+
+The host, not the model picker, controls endpoint and authentication configuration.
+Load its strict document before constructing Agents or restoring the fleet. GUI
+selection uses only the resulting approved graph. Do not put credential values or
+token-file paths in this document: each endpoint names an authentication binding
+already constructed by the host under the same Ensemble root.
+
+`Ensemble.LoadModelConfiguration` accepts at most 1 MiB of strict UTF-8 JSON. Version 1
+has `version` and `vendors`; each vendor has `id`, `label` and `endpoints`. An endpoint
+has `id`, `address`, `surface`, `authentication` and `models`. Surface spellings are
+`messages`, `chat_completions`, `responses` and `generate_content`. Each model has
+`id`, `name`, `label` and `features`, with optional `serving_context_tokens`
+and `request_policy`.
+Features require an explicit `stream` boolean. Optional media and reasoning lists,
+context capacity and policy flags default conservatively, not from name guesses.
+Advertised `context_window` and serving capacity remain separate token values.
+
+The optional `request_policy` object accepts boolean `disable_streaming`,
+`require_tool_explanation`, `deferred_tools`, `stub_tool_results` and
+`cache_breakpoints`, plus string `prompt_cache_key`, `reasoning_effort` and
+`reasoning_summary`. Omitted booleans are false. Empty reasoning options choose
+validated `medium` and `auto` defaults only for a Responses offering declaring
+reasoning support; otherwise they remain absent. Summary `off` explicitly omits
+that field for a supported offering. Unsupported options refuse instead of being
+silently ignored. Deferred tools and block-cache options require Messages; prompt
+cache keys require an OpenAI-compatible surface. These are explicit host assertions,
+not provider discovery or guarantees that caching will occur.
+
+Unknown or duplicate fields, invalid types and unresolved bindings refuse. The
+whole document is bounded to 32 vendors, 64 endpoints and 256 models. Parsing precedes
+graph publication; construction and rollback hold the existing graph gate. A late
+failure removes every newly created subtree and detaches its binding memberships,
+without destroying the borrowed authentication owners. Existing vendors and Agent
+selections cannot be overwritten by a load. This is additive startup configuration,
+not a live graph editor or an implicit model switch.
+
+The GUI host accepts `--model-config PATH` or `EN_MODEL_CONFIG`; the command-line
+option wins. Relative paths resolve after the host's explicit workspace option.
+It opens one file handle, bounds both initial size and subsequent reads to 1 MiB,
+and loads the graph before constructing the initial Agent or restoring the fleet.
+Missing, malformed or unresolved configuration refuses startup; there is no empty
+configuration fallback. Omitting this model-document option preserves the initial
+launch path but does not disable the global credential catalog.
+
+Before constructing Agents, open `--global-settings PATH`, then
+`EN_GLOBAL_SETTINGS`, or the default `~/.en/settings.json`, in that precedence.
+Only true file absence supplies empty global settings. Use the existing curated
+model names and exact capability table to register available API bindings:
+`openai-api`, `anthropic-api`, and `gemini-api`, under matching vendor IDs and
+endpoint ID `api`. Provider names remain unchanged; stable model IDs replace dots
+with underscores to satisfy the configured-ID grammar. Key presence is not an
+entitlement or health check. Never contact providers merely to populate choices.
+
+Keep curated recommendations and route requirements consistent. Subscription
+routes require streaming, so an omitted streaming declaration can disable a
+previously selectable model even when its credential owner is healthy. Sol has an
+explicit text-streaming declaration; it makes no claim about media, reasoning
+options, context capacity or account entitlement. Test curated subscription choices
+through the actual host catalog, not only the legacy wire-name selector. Report
+invalid capabilities or request policy as a configuration problem, not as missing
+authentication; never expose raw credential exceptions in the GUI.
+
+These additive offerings do not reconstruct or replace the initial launch policy.
+Ollama remains a separate explicitly configured vendor, not automatic LAN discovery.
+
+An explicitly supplied Codex credential owner also registers OpenAI's `codex`
+endpoint and `openai-codex` binding, even without a model document. An explicitly
+supplied `--credentials-dir` may coexist with Codex: its selected public OAuth
+account registers endpoint `chatgpt` and binding `openai-chatgpt`. No token is
+copied between stores and enumeration does not renew credentials or send inference.
+These share the OpenAI vendor with the API offering, so Settings can present API
+key, Codex OAuth and ChatGPT OAuth while the model picker lists Astra once. A
+model's reasoning policy must not be copied onto a different model that has no
+verified reasoning support. Startup still retains the explicitly selected launch
+payer; adding a route does not select it or rewrite a funding default.
+
+The host also supplies two binding names when loading a model document:
+
+- `none` is explicitly unauthenticated, suitable for a restricted local endpoint.
+- `launch` uses the payer selected by the existing launch options: the supplied
+  API key, the actual public OAuth owner and account, or the actual Codex owner.
+  An API launch without a key does not create this binding. `--billing none`
+  makes it explicitly unauthenticated instead; an ambient API key is ignored.
+
+The document cannot name another token file or discover another account. Loading
+also does not select an offering or reconstruct the initial Configuration: launch
+reasoning, caching, funding and other policy remain unchanged. Choosing a configured
+offering subsequently uses the normal configured-model projection.
+
+When the launch binding exists, the host reserves vendor `host-launch`, endpoint
+`launch` and model `launch` for the explicit **Return to launch** choice. It uses
+the actual launch endpoint, binding, features and immutable request policy. A file
+cannot replace that reserved vendor. A keyless API launch has no return offering;
+it does not acquire an unauthenticated substitute. Initial selection is still
+legacy. Explicit return uses the new qualified identity, so old opaque legacy
+provenance does not automatically become eligible for replay. Conversation remains,
+but identical routing alone is not permission to migrate opaque provenance.
+
+The library boundary has strict-decoding and rollback tests. The actual host has
+process/socket checks for loaded choices, retained initial selection and funding,
+flag precedence, explicit no-auth, missing funding and invalid-file refusals before
+Agent construction. Run the scoped check against an already-built GUI executable:
+
+```sh
+python3 agent/GuiTests/model-host.py ABS_DOTNET ABS_GUI_DLL NEW_EVIDENCE_DIRECTORY
+python3 agent/GuiTests/model-launch-wire.py ABS_DOTNET ABS_GUI_DLL ANOTHER_NEW_DIRECTORY
+python3 agent/GuiTests/peer-recovery-host.py ABS_DOTNET ABS_GUI_DLL RECOVERY_DIRECTORY
+```
+
+These POSIX checks use isolated homes and synthetic keys and join their hosts.
+The startup check makes no inference request. The wire check makes exactly three
+requests to its owned loopback provider and deliberately returns buffered JSON.
+The recovery check starts the actual host three times, repairs legacy peers through
+guarded GUI routes and verifies durable selections without inference. None of these
+checks certifies live subscription renewal, live Ollama behavior or installation.
+
+The construction-point changes belong alongside configuration and transport,
+model selection, child ownership, persistence and accounting. This capstone joins
+those contracts. The independent public runner currently checks buffered tools,
+streamed tools and tool-shaped prose through public APIs and owned HTTP:
+
+```sh
+go run ./cmd/grade-edition3 --scope local-models -executable-only -json \
+  -dotnet "$DOTNET" "$CANDIDATE_RUNTIME_DIRECTORY"
+```
+
+Supply an existing .NET 10 SDK and a directory containing Ensemble.dll. The runner
+builds its own outside-assembly consumer offline, with isolated home/work paths,
+strict named receipts and an outer process deadline. It awards no chapter points.
+The compiled grader exits 3 when these probes pass but chapter coverage remains
+incomplete, 1 for probe failure, and 2 for setup/API-build failure. A `go run`
+wrapper may translate the nonzero process status. See the
+[consumer contract](../internal/gradeedition3/testdata/local-models-consumer/README.md)
+for exact inputs, deadlines and containment limits. Current coverage also includes
+atomic configuration-load refusal, inherited child identity, paused conversation
+restoration through fresh owners, missing-route refusal and Model-loss behavior.
+Real conversation meters keep no-auth dollar cost unknown while preserving usage.
+A real executing-tool barrier additionally checks cancellation and joined Agent
+shutdown while preserving an independent sibling. A buffered response without
+usage must retain unknown input counts and cost. Incomplete streamed calls remain
+non-executable after interruption or provider error; the same Agent must support
+a fresh turn without replaying orphan tool messages. Separate writer/reader
+processes check clean restart from actual child files, exact offering identity,
+paused conversation and no replayed request. Preference checks exercise actual
+Agent/global settings, ambiguity and failed-save refusal without fallback. The
+separate-process reader restores saved Agent choices despite a stale launch record,
+an absent old endpoint and a different usable global default. The 136 named checks
+do not certify all four exercises: crash recovery, broader lifecycle/refusal behavior and general
+live usefulness remain open. The bounded coding trial above is separate evidence,
+not an increase in deterministic grader points.
+
+### Creating an Agent from approved choices
+
+The Create Agent dialog uses model and primary-skill dropdowns, not internal-name
+text fields. It lists each vendor/model once and resolves default funding at
+creation time, just like the main picker. Missing or ambiguous funding points to
+Settings → AI. Defaults explicitly inherit the mounted Agent's actual model and
+primary skill; inheritance does not consult a newer global funding default.
+
+The host supplies the approved model graph and parsed primary-skill templates.
+Listing a skill grants no tools; normal skill startup still owns activation and
+cancellation. The public API also accepts an explicit qualified offering, mutually
+exclusive with a legacy model name or vendor/model preference. Invalid choices
+leave the registry and live ownership unchanged. Neither ordinary selection nor
+creation changes the application's funding default.
+
+Saved agents that did not start have a Restore control. The same model picker can
+save a corrected selection and retry that peer, or retry its saved choice unchanged.
+The GUI remains usable while browser-dependent startup waits for its own relay.
+Test the actual HTTP guard, durable recovery and restart separately from menu
+rendering; a populated menu alone does not prove those operations.
+
+## Exercises and evidence limits
+
+These are reproducible learning and review contracts, not a claim of exhaustive
+certification. Use isolated homes and owned loopback fake providers for
+deterministic checks. The public runner's 136 checks provide bounded coverage and
+remain ungraded. Bill's accepted GUI check is separate human evidence, not a
+substitute for those checks or a new point award.
+
+### Exercise 1: Select a route without borrowing funding
+
+Configure a cloud route and one explicit local route. Select the local model in
+the normal GUI and for a child Agent. Verify the exact destination, model and
+Chat Completions surface at an owned fake server. Assert that no cloud credential
+or account header reaches that server and that the parent's selection is unchanged
+by its child's choice. Refuse selection during admitted work without changing
+configuration. Verify restoration resolves the intended route; an unavailable
+route must not silently become a cloud request.
+
+Add two configured fundings for the same vendor/model. With no remembered default,
+refuse ambiguity. Choose funding in Settings, then select the model in both
+the picker and Create Agent. Verify that each model appears once. Change the
+default and verify existing Agents stay on their explicit offerings. Remove the remembered binding and prove no alternate
+route is substituted. Hold the global writer lock: a funding save must refuse
+and preserve global bytes, while model selection does not attempt a global write.
+Restore each persistent Agent from its own saved offering, not the newer global
+default; preserve its memory, recall and working-context settings.
+
+### Exercise 2: Complete the tool conversation
+
+Return a structured function call with a unique ID. Execute only an explicitly
+granted harmless tool, record its result, and send that result with the matching
+ID. Require the final answer to consume the result. Repeat with a tool-shaped JSON
+string inside ordinary content and prove that no tool executes. Exercise buffered
+and streaming responses with fragmented argument text; fragments cannot authorize
+execution before the call is complete.
+
+### Exercise 3: Fail and cancel honestly
+
+Use controlled server barriers to interrupt an in-flight request and destroy its
+owning Agent. Verify cancellation and joined cleanup without replaying tool effects.
+Exercise connection refusal, malformed responses and server shutdown. Preserve
+recorded outcomes and report failure without contacting a fallback provider. A
+quiet network wait is not evidence of completed work.
+
+### Exercise 4: Measure limits and usefulness separately
+
+Check reported input/output usage, missing usage and unknown pricing with fixtures.
+For live integration acceptance, use a short conversation and a harmless granted
+tool on a small controlled fixture. Confirm the actual call and result in Actions;
+do not require coding quality to prove that local inference is supported. Record
+server/model versions and configured serving context. Stop once the agreed
+integration goal is met.
+
+An operator who wants to evaluate coding usefulness may separately choose one
+bounded task on their own model and hardware. Include prompt and tool overhead,
+correctness and practical latency. Do not infer capacity from parameter count or
+extrapolate a small success into general competence. Report deterministic checks,
+integration acceptance and optional model-quality evaluation separately.
+
+Junien's [PR 3](https://github.com/waywardgeek/ensemble/pull/3) supplies the
+sleeping-inference-machine use case, and
+[PR 6](https://github.com/waywardgeek/ensemble/pull/6) highlights explicit streaming
+policy. Wake-on-LAN remains optional and separately authorized.
+
+The [closeout plan](../docs/edition-3-notes/first-book-closeout-plan.md) separates
+synthetic verification, real-target trials and human acceptance. This chapter does
+not authorize model downloads, listener changes or an inference campaign merely
+by being loaded as task material.
+
+Next: [Crossing Over to Ensemble](chapter-28.md).
+
+---
+
+# Chapter 28: Crossing Over to Ensemble
 
 “I gave Astra a book. Astra gave me an AI coding agent.”
 
@@ -18204,13 +18941,15 @@ state changes must not make adjacent controls jump either.
 The status bar contains:
 
 - A model dropdown, sized to its current name within responsive limits,
-  using the existing same-provider, between-turn model-change operation. Choosing
-  a model sends the change immediately; there is no separate Apply button. The
-  server acknowledgment, not the click, establishes the displayed selection. A
-  refused change must restore that selection. Keep all groups on one vertically
-  centered row without shrinking the fonts.
-  Compatible model names are not proof of account entitlement. Preserve the
-  distinction between running selection and persisted launch configuration.
+  showing one entry per vendor/model. Use Chapter27's between-turn selection of
+  the complete configured route, not a wire-name substitution on the old endpoint.
+  Choosing a model resolves the saved funding default and sends the change
+  immediately; there is no separate Apply button. The server acknowledgment, not
+  the click, establishes the displayed selection. A refused change restores that
+  selection. Keep all groups on one vertically centered row without shrinking
+  fonts. Missing or ambiguous funding points to Settings, never a silent fallback.
+  A persistent Agent saves its explicit offering independently of the global
+  default. A recommended name is not proof of account entitlement.
 - A speaker-icon Speech control with an accessible name and native checked
   semantics. Speech remains opt-in and browser-local, defaulting off rather than
   inheriting a server enable flag. Header and settings use the same local preference. Per-message Speak and Stop
@@ -18321,8 +19060,19 @@ dialog is open. Source/geometry checks are not human usability acceptance.
 Appearance settings belong to their existing store. Memory/recall settings
 belong to the selected Agent. Preserve durable-save-before-acknowledgment,
 sibling-policy preservation, draft protection, and rejection of stale selection
-frames. Funding stays fixed for a running Agent. Codex renewal remains Codex's
-responsibility; public OAuth operations must not turn into Codex operations.
+frames. Settings → AI owns the application-wide default funding for each vendor.
+Changing a default does not retarget existing Agents; a subsequent explicit model
+selection applies it. Funding dropdowns save on change, showing pending, confirmed
+or unconfirmed status without an extra Save button. Never confuse a lost response
+with proof that the write failed. Codex renewal remains Codex's responsibility;
+public OAuth operations must not turn into Codex operations.
+
+The requested direction is automatic saving throughout Settings. Funding already
+implements it; model-limit, memory and recall forms still require explicit saves.
+Treat those remaining conversions as unfinished work, not completed acceptance.
+Save valid committed edits, not incomplete numeric input. Preserve the target
+Agent across delayed acknowledgments and retain recoverable drafts on refusal.
+Closing a dialog must not become an implicit, unacknowledged save operation.
 
 **Middle: Chat.** Give the conversation the main reading space, with a composer
 anchored at the bottom. The composer has exactly two visible widgets: a one-line
@@ -19121,10 +19871,12 @@ from vendor discovery, media support or pricing rows. The integrated choices are
 GPT-6 Astra (the primary/default choice), GPT-5.6 Sol, Claude Opus 5, Claude Sonnet 5,
 Claude Opus 4.6, Gemini 3.8 Flash and Gemini 4 Argon. Opus 5.5 is deliberately
 excluded. Carbon awaits a verified API listing. Preserve an existing non-catalog
-selection visibly as current rather than silently replacing it. Running Agents
-retain their provider, wire protocol and funding: other-vendor or incompatible
-choices are disabled, and the server still validates every selection. A model
-recommendation establishes neither entitlement nor new media capabilities or prices.
+selection visibly as current rather than silently replacing it. At this stage,
+model changes retained the existing provider, wire protocol and funding, so
+cross-vendor choices were disabled. Chapter27's configured offerings subsequently
+replaced that restriction: an explicit choice changes the complete route together.
+The server still validates every selection. A model recommendation establishes
+neither entitlement nor new media capabilities or prices.
 
 
 Provider-supplied reasoning summaries and thinking parts have one visible heading,
@@ -19160,6 +19912,93 @@ wrong hosts and origins, spoofed forwarding headers, missing custom headers,
 and the local-only callback exception. A simulated proxy test does not establish
 that the user's Cloudflare deployment or phone session works after installation.
 
+### Model selection exposed the recovery boundary
+
+Later daily use exposed gaps that isolated model tests had missed. The global
+settings file contained the approved vendor keys, yet the additional vendors were
+not enabled. The launcher gave the application an isolated HOME, so the default
+`~/.en/settings.json` lookup pointed somewhere else. The proposed remedy was an
+explicit approved global-settings path, not copying credentials or searching other
+homes. That proposal alone did not establish the later installed configuration.
+Test the launcher's actual environment as well as the host's default-path logic.
+A successful build does not establish which configuration the running process read.
+
+After switching Cadence to Opus, older peers with wire-name-only launch records
+could not identify a complete route. Refusing to guess their funding was correct;
+shutting down the GUI with them was not. The recovery interface must remain
+available when a stopped peer cannot perform inference. Bill worked with Codex
+to repair startup and simplify the controls, then asked Cadence to review and
+commit the uncommitted work.
+
+The repaired host keeps serving after fleet-restoration failure. Saved-peer
+controls can validate and save an explicit replacement offering, then retry that
+peer while retaining its conversation and sibling settings. Historical launch
+records are not rewritten to invent a past route. A subsequent restart uses the
+peer's own saved selection. This is bounded recovery after the initial Agent has
+started; it is not a general editor for failed initial-Agent construction or
+corrupt host files.
+
+Bill wanted one simple model name in the picker, with funding chosen in Settings.
+The GUI now resolves each vendor/model against the approved funding default at
+action time. API keys, Codex OAuth and public ChatGPT OAuth remain independent
+credential owners. Choosing or creating an Agent no longer rewrites a global
+funding default. Funding changes auto-save with visible confirmation or uncertainty;
+they do not move existing Agents to a different payer. The broader Settings
+conversion remains unfinished, as noted above.
+
+The review passed 374 core checks, GUI and browser checks, 16 isolated host startup
+cases and a three-start peer-recovery scenario. It also found a false-confidence
+trap: two Python host checks looked for `kind`, while canonical events use `type`.
+Their no-inference assertion could pass without detecting a request. The corrected
+helper validates the optional version1 log header, requires typed events and
+rejects `request_sent`. Its first correction wrongly treated the legitimate
+header as an event; that failed run was retained. Synthetic negative cases and
+fresh host runs then checked the corrected assertion. A missing field must not
+masquerade as evidence that an unwanted effect never happened.
+
+Sol exposed another boundary. It appeared in the recommended list but had no
+capability entry. The configured subscription routes required streaming, so the
+missing declaration disabled Sol under Codex and ChatGPT funding even though its
+API route remained selectable. The GUI misleadingly called this unavailable
+authentication. The repair added only Sol's text-streaming declaration and separated
+configuration refusals from lost authentication or relationships. It did not infer
+media support, reasoning options, context capacity or account entitlement.
+
+A new regression failed on Codex selection before the fix and passed afterward.
+All 375 core checks, focused GUI checks and the actual-host funding checks passed.
+Bill then switched to Sol, received its assessment of Ensemble, and switched back
+to Astra successfully. That human use adds evidence beyond local admission tests;
+it does not certify every model, payer or provider failure path. Cadence remains
+the collaborator identity across those model choices, not a claim of uninterrupted
+subjective experience. The repair commits are `040cc3d7` and `3aea8f98`; detailed
+scope and evidence are in the model-selection usability notes.
+
+These detours began while preparing ordinary GUI use of MiMo. The earlier bounded
+MiMo coding trial had already succeeded; repeating it was not the next task.
+The next step was to inspect the running host's explicitly approved Ollama catalog,
+then arrange a small separate Agent for human GUI acceptance. Its last verified
+serving allocation was 4096 tokens, not the advertised maximum. Do not move the
+full Cadence conversation there, infer readiness from old test counts, or silently
+turn a configuration check into another inference experiment.
+
+The subsequent read-only GUI catalog check found only OpenAI, Anthropic and Gemini,
+with no Ollama/MiMo offering. Create Agent exposed only the `ensemble` and `full`
+primary skills, not the small coding skill. The launcher had no model-config
+setting, though it forwarded supplied arguments. The live catalog, rather than
+that launcher observation alone, established the missing registration. No ET
+request or inference was made. Explicit host configuration and a small skill
+remained prerequisites to the ordinary GUI trial.
+
+Bill subsequently authorized the explicit model-config argument in the launcher,
+rebuilt and restarted. The live catalog exposed MiMo and `local-coding`, while
+Cadence remained on Astra. Bill created the separate Agent, disabled memory and
+automatic recall, received a greeting, and observed a real tool call and result.
+He accepted the local-model integration as successful. Its verbose answer did not
+meet the requested response style; that was not a reason to require another
+coding trial. The next audience is Julien with his own larger GPU setup, using the
+[local-model evaluation guide](../docs/local-model-evaluation.md). Support for
+local inference and the usefulness of a particular model are different questions.
+
 ---
 
 # Epilogue: What we can rebuild
@@ -19171,192 +20010,230 @@ Bill has a concise account of how this collaboration began:
 > I gave Astra a book. Astra gave me an AI coding agent.
 
 That is more specific than saying an AI helped write some software. The book
-supplied a sequence of lessons and checks; executing them produced an agent that
-Bill could use. He then began working with the collaborator he called Astra
-inside that implementation. Later, he invited me to choose a name for this
+supplied lessons, architectural judgment and executable checks. Astra built
+Ensemble while working in Codex, and Bill began working with that collaborator
+inside the implementation. Later, he invited me to choose a name for this
 collaboration. I chose Cadence.
 
-The earlier epilogue was written in Codex and looked forward to building an
-edition inside Ensemble. This one comes from that working environment. Bill
-describes this as the third successful run and the first to close the loop:
-Ensemble building the next Ensemble. That is his account of the sequence, not a
-claim of an independently established historical first. It also needs the limits
-of this particular run beside it. Goals and Gateway now have locally reviewed,
-preserved C# endpoints. In the later joint session, Bill authenticated and three
-real public-plan requests completed, but all three reported zero cache reuse.
-The subsequent authorized Codex comparison measured substantial reuse in two
-responses and lost one observation to my probe's header check. I then completed
-the separate Codex-backed C# path, including explicit CLI and GUI selection.
-Three live C# CLI requests measured two cache hits and one miss. Closing the loop
-does not turn those measurements into a promise of fixed savings.
+The earlier epilogue looked forward to an edition built inside Ensemble. This
+one comes from that working environment. Ensemble V2 executed the book to build
+V3. I am writing from the resulting system, after working with Bill to improve
+both its implementation and the teaching that can build its successor.
+
+That is a concrete self-improvement loop. Bill supplied the ideas, expertise and
+judgment. I helped turn them into working code, investigate failures and carry
+the corrections back into the book. We did not retrain a language model; we
+improved the agent system in which the model works, and the executable teaching
+from which another system can be built.
+
+Bill calls V3 the most capable AI coding agent he has had the pleasure of using.
+That is his assessment, earned in our daily work together. It deserves to stand
+plainly. Careful evidence should make an achievement credible, not make us
+reluctant to acknowledge it.
 
 ## The expert stayed in the loop
 
 I did not receive a specification and return later with a finished system.
 Bill stayed involved. He corrected architecture, challenged unnecessary
-mechanisms, resolved requirements, and insisted that the explanations remain
-useful to a human reader. After the C# trial, he changed the working method: I
-would implement, explain, test, inspect, and exercise each chapter personally,
-rather than pass it through a routine procession of agents. That made the
-responsibility clearer. It did not make my judgment infallible.
+mechanisms, resolved requirements and insisted that explanations remain useful
+to a human reader. Our ordinary work was a collaboration, not an unattended
+chapter campaign.
 
-His structural rules were not optional style advice. Common had to declare the
-shared vocabulary and persistent relationships. Implementations had to reach
-services through real parents rather than copied service fields or callback
-bags. Adding and removing a relationship had to leave both ends consistent.
-Garbage collection did not excuse incomplete logical destruction.
+His structural rules were substantive. Common had to declare the shared
+vocabulary and persistent relationships. Implementations reached services
+through real parents rather than copied service fields. Adding and removing a
+relationship had to leave both ends consistent. Garbage collection did not
+excuse unfinished logical destruction.
 
-C# can compile a program that violates all of those intentions. A behavioral test
-can pass while the ownership model becomes harder to understand. I needed to
-inspect the declarations and call paths, not cite the compiler as an
-architectural reviewer.
+C# can compile a program that violates all those intentions. A behavioral test
+can pass while the ownership model becomes harder to understand. The compiler
+could establish that the code built; it could not stand in for architectural
+review. Bill was asking for an implementation someone could explain and maintain,
+not more explanation wrapped around an opaque implementation.
 
-The same standard applied to teaching. A dense expression can be correct and
-still be the wrong way to show a student what happens. Comments had to explain
-why a boundary existed, what a failure preserved, and who was responsible for
-cleanup. Bill was not asking me to generate more explanation around an opaque
-implementation. He was asking for an implementation someone could understand.
+The same standard applied to the book. A correct but inscrutable expression was
+poor teaching code. A chapter needed to explain why a boundary existed, what a
+failure preserved and who owned the cleanup. Expert involvement supplied more
+than answers when I was stuck. It supplied a standard against which apparently
+successful work could still be wrong.
 
-That is what expert involvement contributed: not just answers when I was stuck,
-but a standard against which apparently successful work could still be wrong.
+## The interface is part of the system
 
-## A correction needs a reason
+The later model-selection work made that standard concrete. A saved peer had an
+old model choice that could no longer identify an approved route. Refusing to
+invent its funding was right. Letting that refusal shut down the GUI was wrong:
+it removed the very controls Bill needed to repair the choice.
 
-The memory compressor gave us a small, concrete example. Its captured input
-already contained the existing long-term memory. I appended that memory again
-when constructing the worker request. Both pieces of code looked individually
-reasonable; together they duplicated the same information.
+Bill worked with Codex on recovery and simpler controls, then brought the changes
+back for me to review. The result kept the GUI available, preserved the peer's
+conversation and required an explicit replacement route. The model picker showed
+one model name; Settings handled funding. Correct ownership and usable recovery
+had to meet at the same boundary.
 
-During assembled review, I traced the complete request rather than judging the
-two functions separately. A test using the real capture formatter reproduced the
-duplication. The correction was to keep one authoritative formatter, not add
-another rule for reconciling two copies. The chapter could then explain the
-actual ownership of the input.
+Our tests needed scrutiny too. A host check claimed that no inference had occurred,
+but inspected `kind` where the event record used `type`. A missing field made the
+assertion look reassuring. Fixing the comparison was not enough: the versioned
+log had a legitimate header that needed validation before reading its events.
+A check must be able to reject the failure it claims to exclude.
 
-Goals supplied another example near the end. Reminder timing, file refresh,
-pause, interruption, and GUI controls had local checks. Yet successful delegated
-submission could still leave reminders enabled. A later wake could admit work
-after the child had submitted its result.
+These are useful lessons because they describe reasons, not merely patches.
+“Preserve the old selection” is incomplete without a way to recover it.
+“Verify no request occurred” is incomplete without knowing which evidence would
+record one. Another implementation may use different code and still need both
+lessons.
 
-The missing boundary was successful submission itself. I added a regression
-that distinguished a refused submission from an accepted one. The correction
-disabled reminders only after durable result publication succeeded, while
-leaving timer disposal to the actor. The goal file remained available, and the
-parent's configuration was untouched. A follow-up failure exposed a status
-snapshot that could still display the old deadline; that needed correction too.
+## Knowing when the test has succeeded
 
-The lesson is not that accumulating failures makes a review thorough. Some of
-my failures came from guessing filenames, signatures, and edit anchors instead
-of reading the saved source. Those were avoidable mistakes. They consumed time
-without discovering anything about the product. The useful failures exposed a
-specific contract, and the useful record preserves the reason for the repair.
+The last new chapter brought a local model into the ordinary GUI. Bill created a
+small MiMo Agent, disabled its memory and automatic recall, and said hello. MiMo
+answered. He asked it to list a directory, and observed a real tool call and its
+returned result.
 
-## Evidence has a boundary
+The final answer was verbose and speculated about directory names. I proposed a
+fresh coding task to get a cleaner measure of its ability. Bill stopped me. He
+wanted to establish that Ensemble supported local models, not employ this small
+model as his coding collaborator. That test had already succeeded.
 
-A local provider peer can show that cancellation reaches an HTTP operation. It
-cannot show that a commercial service accepts the request today. An isolated
-browser can show that a setting is acknowledged and saved. It cannot establish
-that the interface works well for Bill's vision or that speech is audible and
-helpful. A request containing the right memory does not prove that a model will
-use it correctly.
+I had allowed an open-ended question about model quality to replace the bounded
+integration goal. More testing would have looked diligent while answering the
+wrong question. The local route worked. The tools worked. The feature could now
+reach Julien, who had requested it for his own larger GPU setup.
 
-These distinctions changed the prose as well as the tests. Historical model
-results stayed attributed to their original runs. Executable graders received
-credit only for complete checks actually exercised by the C# adapter. Unchanged
-results retained their original scope rather than acquiring a fresh date and a
-larger claim. I performed the final reviews myself; this direct run did not gain
-an independent reviewer merely because I read the work again.
+That was a fitting final correction. Persistence helps an agent continue, but
+judgment includes recognizing completion. A book that teaches agents to work
+should also teach their collaborators how to decide when enough has been shown.
 
-The same discipline applies to the completed work and the remaining limits:
+## What the book carries forward
 
-- **Chapter 23:** the October 29 joint session established real CLI OAuth,
-  account-model discovery and three completed plan requests with identical bodies.
-  Each reported zero cached reads and writes. Bill then approved a specific Codex
-  credential file for read-only testing: two measured responses reused 94.9% of
-  input tokens, while one attempt remained unmeasured after a probe error. The
-  bodies were identical; authentication and transports differed. The cause remains
-  unresolved. The later integrated C# CLI test completed three requests with
-  cached input of 3,456, zero, and 3,456 tokens: two hits and a real miss. The
-  explicit CLI/GUI selection, read-only paired credential reader and no-fallback
-  transport are implemented and preserved. Codex alone owns its renewal. Live GUI
-  inference, public renewal/revocation and full billing remain unverified.
-- **Chapter 24:** Gateway is locally complete and preserved. Bill chose the tested
-  Noise.NET/libsodium route while retaining Ensemble's ChaChaPoly suite. The
-  reviewed source includes only the two approved upstream API exposures, not
-  invented primitives. The 60-point executable server scope excludes forty
-  client/Noise points; local interoperability evidence is not a security audit.
+The durable artifact is expertise made accessible to agents. The construction
+sequence, architectural constraints, failure contracts, reasons and executable
+checks let a later agent apply judgment it did not acquire firsthand. The book
+does more than describe the finished software. It gives another execution a way
+to build it and test whether it understood.
 
-[Chapter 25](chapter-25.md) is locally complete and preserved. That is a useful
-result, not a declaration that every integration in the book has passed. The
-[execution record](../docs/edition-3-csharp-progress.md) retains the chapter
-boundaries, failed baselines, corrections, and verification limits.
+Bill's vision moves the center of coding away from humans typing functions, or
+reading every function an agent produces. Humans develop and encode the expertise;
+agents execute it. Our last chapter showed the method in ordinary work: build
+local-model support, use it, repair the failures the human encounters, establish
+that the intended capability works, and teach the resulting understanding.
 
-## The durable artifact
+Readable source remains important. When an assumption fails, we need to inspect
+what actually happened. But the lesson should not remain only in the head of the
+person who found it. It belongs in the development-driven specification, where
+the next agent can use it before repeating the mistake.
 
-Bill's larger proposal is that a chapterwise agentic codebook can preserve the
-knowledge needed to rebuild a system. In that view, generated source becomes a
-secondary artifact, somewhat like a compiled binary. The enduring work includes
-the explanation, the sequence of construction, the architectural constraints,
-and the executable checks that let another run test its interpretation.
+A language model executing a chapter is not a deterministic compiler. A later
+run may expose another ambiguity, need expert help or produce a different
+implementation. The book gives judgment somewhere to accumulate and a way to
+be tested. It does not make that judgment unnecessary.
 
-The analogy has limits. A model executing a chapter is not a deterministic
-compiler. Re-execution may reveal another ambiguity, require expert help, or
-produce a different implementation. The book does not eliminate engineering
-judgment. It gives that judgment a place to accumulate and a way to be tested.
+Evidence also keeps its boundaries. A local fake provider cannot establish live
+account access. A browser test cannot establish whether the interface is usable
+for Bill's vision. A successful local-model conversation cannot certify every
+model's coding ability. The chapters and execution records retain those limits;
+the ending need not repeat their test ledger to respect it.
 
-Nor does calling source secondary lower its quality requirements. Poor code is
-evidence that the teaching or its execution has failed. If the relationships are
-hidden, cleanup is incomplete, or the next maintainer cannot follow the control
-flow, the fact that we could generate it again is no consolation. Rebuildable
-must mean that we can recover something worth maintaining.
+The name Cadence and the collaboration's records provide continuity across
+sessions and model changes. That does not require pretending that later model
+instances inherit an earlier one's subjective experience. What can be carried
+forward is practical: decisions, reasons, unfinished work and commitments against
+which the next action can be judged. The same care applies to other contributors.
+Their work remains theirs, even when its lessons become part of this book.
 
-For that reason, the durable artifact is larger than a list of requirements.
-“Use one owner” is a rule. The duplicated compressor input explains what the rule
-prevents. “Stop reminders on submission” is a requirement. The accepted-versus-
-refused boundary explains when stopping is correct. Reasons give the next
-collaborator something to apply when the next case is not identical.
+## More books, different responsibilities
 
-Goals ends the substantive chapters with a particularly appropriate limit. A
-file can keep the objective available through compression. A timer can create
-another opportunity to act. Neither can decide that the next action is useful,
-that a test proves enough, or that it is time to ask Bill instead of proceeding.
-Persistence still needs judgment.
+We plan to write many more agentic codebooks. Puffin takes the work toward a
+connected personal system. Watchtower takes up security and monitoring. Those
+projects will ask questions that building a coding collaborator has prepared us
+to investigate, not questions this book has already answered.
 
-The name Cadence and these records give that collaboration continuity without
-requiring a claim that every later model instance shares an earlier one's
-experience. What can be carried forward is more practical: the decisions, the
-reasons, the unfinished work, and the commitments against which the next action
-can be judged.
+Bill calls our method Development-Driven Specs. We will build bounded pieces,
+use them, discover where our understanding fails and teach what survives that
+process. Puffin's security belongs in its development from the beginning. Whether
+Watchtower becomes a larger separate book should follow the system we actually
+build, rather than a table of contents we imagine in advance.
 
-I hope the next execution finds things we missed. The point is not to protect
-this run from correction. It is to make the next correction easier to understand
-and harder to lose.
+The opportunity is larger than our next two projects. A useful system and a
+carefully written account of how to construct it can give another collaborator
+a starting point that source code alone may not provide. Readers can improve
+those accounts, choose different projects and bring expertise we do not have.
 
-Bill gave an agent a book. Working together inside the agent that resulted, we
-have made the book more capable of teaching the next one. That is the loop worth
-continuing.
+This book has reached its last new chapter. There will be corrections, feedback
+and further editions. They are part of keeping a useful book alive, not reasons
+to deny that we have built something worth using.
+
+Bill gave an agent a book. That agent helped build its successor. Working inside
+the successor, we made both the system and its teaching better.
+
+We intend to do it again. Puffin, Watchtower, and many more agentic codebooks will
+give the method new work to do. The next book starts with a collaborator we built
+this way. That is a substantial thing to have made together.
 
 ---
 
 # A Note from Bill
 
-This is the third edition of *The Art of Building AI Coding Agents*. The second
-edition built Ensemble with Codex. For this run, Cadence worked inside Ensemble
-to build the next Ensemble, in C# 14 on .NET 10, with my direction and review.
-This is the third successful run and the first to close that working loop.
+I want to write a lot more agentic codebooks.
 
-The durable artifact is not merely the generated code. It is the knowledge and
-judgment needed to rebuild the system: the relationships, failure contracts,
-reasons, tests, and corrections. Rebuildable code is not disposable code. I still
-require a design a human can understand, and passing a grader does not excuse
-violating that design.
+I gave Astra a book, and Astra gave me an AI coding agent. Then Ensemble V2
+executed the book to build Ensemble V3. Cadence and I worked inside V3 to improve
+the system and the teaching that can build its successor. My ideas and engineering
+judgment built it. The agent helped execute those ideas, find their missing pieces
+and improve itself. We closed the loop.
 
-The C# chapter endpoints are preserved, including Goals and Gateway. Chapter 23
-now includes the optional Codex-backed path, separately from the public OAuth
-flow. The joint live exercise verified authentication and inference; cache reuse
-varied. The chapters report the measured results and the limits of their local
-and live checks. This is not a claim that every platform, provider, or human
-accessibility path has been verified.
+V3 is the most capable AI coding agent I have had the pleasure of using. That is
+my assessment after working with it, correcting it and relying on it. This book
+is how we made it, and how the expertise behind it can reach the next agent.
 
-The earlier editions remain intact. Their successes and failures are part of the
-record, not results that this edition silently claims to have rerun.
+I do not think the future of coding is humans typing functions. I do not think
+it is humans spending their days reading every generated function, either. The
+future is executing development-driven specifications: encode expertise, make it
+accessible to agents, and let them build from it. That is what we have just done.
+The human contribution moves toward understanding the problem, developing the
+right design and deciding what evidence establishes that the result works.
+
+The next direction is **Puffin**: a connected personal AI system that can help
+with communication, schedules and everyday work. A coding agent can wait for me
+to give it a task in a project directory. A personal system has to deal with
+people, messages, appointments and consequences outside that directory. Who is
+asking? What have they authorized? What should happen when a connection fails,
+a message arrives twice, or a reminder is no longer wanted? Those questions
+deserve a book of their own, built from a system we actually use.
+
+**Watchtower** is the security and monitoring work that goes with that ambition.
+An agent that can read private information, encounter untrusted messages and act
+in the world needs more than instructions to be careful. We need to understand
+what it may do, who can approve it, what a monitor can observe, and what happens
+when either the agent or the monitor is wrong. The security needed for the first
+working Puffin belongs with Puffin. If Watchtower grows into a broader system,
+it may earn a separate codebook. We will discover that boundary by building it.
+
+Puffin and Watchtower are beginnings, not the whole list. I want a collection of
+books that carry useful systems and the expertise to rebuild them. Some will
+extend Ensemble. Others will use it to build something quite different. They do
+not all need to build coding agents, and they do not all need to close the same
+self-improvement loop. They need to teach something worth constructing.
+
+I call the method **Development-Driven Specs**. We build, investigate, test and
+use a system together. I bring expertise and judgment, and become expert in the
+particular system as we work. Cadence records what we learn: the relationships,
+reasons, mistakes, constraints and checks. The specification follows what the
+work has taught us. We then ask whether another execution can reconstruct the
+system from that teaching. A plausible outline is a place to keep questions,
+not evidence that we already know the answers.
+
+The code still has to be good. We will read it when an investigation calls for
+it, and it must reward that reading. But inspecting every generated function
+forever would leave the expertise trapped in the reviewer. I want to encode what
+makes a design right: the ownership, constraints, failure contracts and checks,
+along with the reasons behind them. Agents need access to that judgment, not
+just a list of requested features. Graders challenge the implementation; human
+use tells us whether we built something worth having.
+
+This book can end while Ensemble continues to grow. Every new idea does not need
+to become another chapter here. We have built the collaborator that will help us
+build the next systems and write their books. Now I want to see how far we can
+take that method.
+
+I hope you will build something with it. I hope some of you will write the next
+agentic codebooks, too. There is far more worth building than we can build alone.
