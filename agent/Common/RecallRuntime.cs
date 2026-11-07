@@ -8,8 +8,13 @@ internal sealed record RecallCompletion(ImmutableArray<RecallHit> Selected, int 
 
 // Value-like disk document. This is a transfer value, not a second live policy
 // owner: Agent remains authoritative for current settings.
-internal sealed record AgentSettings(MemorySettings Memory, RecallSettings Recall,
-    ImmutableArray<WorkingContextLimit> WorkingContext = default);
+internal sealed partial record AgentSettings(MemorySettings Memory, RecallSettings Recall,
+    ImmutableArray<WorkingContextLimit> WorkingContext = default)
+{
+    // Restore callers inspect the same strict document before constructing an
+    // Agent. The caller supplies its actual filesystem owner, not raw file I/O.
+    internal static partial AgentSettings? Read(Sandbox sandbox, string path);
+}
 
 public static partial class JsonCodec
 {

@@ -40,6 +40,18 @@ internal static class WorkingContextTests
             await agent.SaveMemorySettingsAsync(new MemorySettings());
             await agent.SaveRecallSettingsAsync(new RecallSettings(disabled: true));
             Check(agent.WorkingContextLimits().Length == 3, "Both model policies remain live");
+            // Restore prevalidation reads through the existing Agent's Sandbox,
+            // without constructing the destination Agent or another parser.
+            var saved = AgentSettings.Read(agent.Sandbox(), Path.Combine(home, "settings.json"));
+            Check(saved is not null && saved.Recall.Disabled && saved.WorkingContext.Length == 3,
+                "Shared settings reader preserves the complete saved policy");
+            string probe = Path.Combine(home, "settings-probe.json");
+            Check(AgentSettings.Read(agent.Sandbox(), probe) is null, "Only missing settings supply defaults");
+            foreach (string invalid in new[] { "null", "{}", "{\"version\":1,\"version\":1}", new string(' ', 16 * 1024 + 1) })
+            {
+                agent.Sandbox().ReplaceFile(probe, System.Text.Encoding.UTF8.GetBytes(invalid));
+                Refuses(() => AgentSettings.Read(agent.Sandbox(), probe));
+            }
         }
         finally { app.Destroy(); }
         app = new Ensemble.Ensemble(TextWriter.Null);
