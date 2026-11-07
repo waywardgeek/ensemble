@@ -79,7 +79,8 @@ public static partial class Gui
             {
                 facts.Add(new Event(EventKind.ToolReturned, seq: entry.Seq, time: entry.Time, parts: result.Parts,
                     callID: result.CallID, isError: result.IsError, job: result.Job,
-                    toolReferences: result.ToolReferences, observationDuration: entry.ObservationDuration, workProduct: result.WorkProduct));
+                    toolReferences: result.ToolReferences, observationDuration: entry.ObservationDuration, workProduct: result.WorkProduct,
+                    directoryListing: result.DirectoryListing, fileEvidence: result.FileEvidence, searchEvidence: result.SearchEvidence));
             }
             else if (entry.Actor == Actor.Agent)
             {

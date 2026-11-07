@@ -1091,3 +1091,32 @@ Chapter3 hard prose lint still fails three pre-existing em dashes, byte-identica
 to HEAD; two advisories remain. The new diff passes whitespace checks. No frozen
 endpoint, historical grader score, release artifact or running installation was
 changed. Source highlighting and file-view usability are the next discussion.
+
+### Real-use correction: retained evidence must survive display reconstruction
+
+Bill's Dev read of `cmd/main.go` displayed plain text without a line gutter or
+highlighted strings. Local Dev HTTP served all source-renderer modules as
+JavaScript, but that alone did not prove browser execution. Inspection found a
+concrete data-loss boundary: `Gui.DisplayFacts` reconstructed tool-return events
+from retained Context entries without directory, file, or search evidence.
+Downstream serialization therefore correctly emitted null evidence. Preserve
+all three existing immutable fields when constructing the display event.
+
+A new outside-assembly regression dispatches real read, directory, and search
+tools against disposable files, then places their actual results in retained
+conversation fixtures. It checks complete evidence equality through ordinary
+and snapshot-only GUI projection. Before the repair it built successfully and
+failed specifically at missing `file_evidence`; after the repair all three
+checks and the default GUI suite passed. Existing synthetic-frame browser
+regressions passed at desktop/phone widths, their host joined, and the GUI
+distribution built with zero warnings/errors. Logs: `evidence-projection-*` in
+the existing renderer verification workspace. These are complementary checks,
+not a claim of live-provider or installed-Dev acceptance. No new core-suite run
+was needed for this GUI-only field-copy repair.
+
+Lesson: real tool evidence tests plus synthetic browser rendering tests left
+the reconstruction boundary uncovered. Readable fallback concealed the loss;
+sharing a highlighter did not prove that the source renderer received its data.
+The candidate also contains the earlier numbered-read correction. Installation
+and Bill's next usability check remain separate gates. No highlighting library,
+publication artifact, running installation, or private browser data changed.

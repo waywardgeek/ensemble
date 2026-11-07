@@ -92,6 +92,11 @@ if (args is ["--handoff-projection-tests"])
     await HandoffProjectionTests.RunAsync();
     return;
 }
+if (args is ["--artifact-evidence-tests"])
+{
+    await ArtifactEvidenceTests.RunAsync();
+    return;
+}
 if (args is ["--recorded-time-tests"])
 {
     RecordedTimeTests.Run();
@@ -552,6 +557,7 @@ finally
         Directory.SetCurrentDirectory(originalDirectory);
     }
 }
+await ArtifactEvidenceTests.RunAsync();
 await HandoffProjectionTests.RunAsync();
 await PeerControlsTests.RunAsync();
 await ImageControlsTests.RunAsync();
