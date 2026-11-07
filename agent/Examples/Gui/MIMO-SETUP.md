@@ -50,12 +50,16 @@ Do not edit the installed launcher, copy credentials or restart automatically.
 5. Agree on a disposable task directory and inspect the inherited host Sandbox
    policy. A directory named in a prompt and a small tool list are not confinement.
    GUI peers inherit host policy; this setup adds no per-peer security boundary.
-6. Only after approval, send one modest coding task and inspect Actions and the
-   actual test output. Do not retry uncertain effects, install models, increase
+6. Only after approval, send a short greeting and request one harmless tool on a
+   small controlled fixture. Confirm the actual call and result in Actions. Do not
+   retry uncertain effects, install models, increase
    serving context, switch funding or fall back to cloud inference automatically.
 
-The earlier bounded live MiMo coding experiment already passed. This next trial
-checks the normal GUI workflow; it is not a new general model certification.
+The earlier bounded live MiMo coding experiment already passed. Bill has now also
+accepted the ordinary GUI integration: a greeting and an observed tool call/result
+worked. No further MiMo coding trial is required. Use
+[the evaluation guide](../../../docs/local-model-evaluation.md) for another host;
+model quality is a separate optional question.
 
 ## Offline preparation evidence
 

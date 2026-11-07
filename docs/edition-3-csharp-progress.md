@@ -1,3 +1,13 @@
+# Current boundary: local-model integration accepted; external usage review next
+
+Bill accepted ordinary GUI MiMo support: separate Agent, memory/recall disabled,
+a reply and an observed tool call/result. No further MiMo coding trial is needed.
+Chapter27 now distinguishes runtime integration from model quality and provides a
+[guide for Julien's larger GPU setup](local-model-evaluation.md). External usage
+feedback remains pending; public136 remains ungraded. This prose closeout changes
+no runtime, deployment, provider authority or historical artifact score. Broader
+Settings auto-save remains separate unfinished work. Historical boundaries follow.
+
 # Current boundary: Cadence startup recovery and funding controls
 
 Bill requested a repair after switching Cadence to Opus made legacy peers fail

@@ -1,10 +1,12 @@
 # Chapter 27: Running Local Models
 
-> **Implemented with bounded verification.** Configured routing, model selection,
-> streaming tools and lifecycle checks have deterministic evidence. The public
-> runner passes 136 named checks but remains ungraded, with incomplete coverage.
-> One isolated six-tool MiMo trial completed a small coding task using read, write
-> and command execution. Broader reliability and human usability remain unverified.
+> **Local-model integration accepted in ordinary GUI use.** Bill created a
+> separate MiMo Agent, received a reply and observed a tool call with its result.
+> This establishes the requested local-model support, not general coding quality.
+> Deterministic routing, streaming and lifecycle evidence remains separate: the
+> public runner passes 136 named checks but is ungraded, with incomplete coverage.
+> The next external usage review is for Julien's larger GPU setup, not another
+> MiMo coding trial.
 
 ## TL;DR: Specification Brief
 
@@ -86,6 +88,32 @@ within the loaded 4096-token context. Cached input is already included in that
 input figure. Only read_file, write_file and run_command were exercised; granting
 six tools does not certify all six. This demonstrates one useful integrated task,
 not general coding reliability or that the normal full skill fits this allocation.
+
+## What the live GUI check accepted
+
+Julien, whose nine PRs informed earlier integration work, requested local-model
+support for his own GPU setup. Bill's small MiMo installation was sufficient to
+check that capability; it was not intended to become his coding model.
+
+After explicit host registration, Bill created a separate Agent with the
+`local-coding` primary skill and disabled all memory bands and automatic recall.
+MiMo answered a greeting through the GUI. Bill then requested a directory listing
+and confirmed that an actual tool call returned results. The final answer was
+verbose, ignored the requested brief confirmation and speculated about directory
+names. Record that model behavior, but do not turn it into failure of the runtime
+integration. Bill explicitly accepted the local-model test as successful.
+
+Cadence initially proposed another coding task. That was scope drift: the question
+was whether Ensemble could use a local model and execute its tools, not whether a
+small model could code well. No further MiMo trial is needed. The pasted transcript
+and Bill's observation do not independently certify visible token-by-token
+streaming, every tool, or all failure paths; those limits do not erase the success.
+
+For another host, use the [local-model evaluation guide](../docs/local-model-evaluation.md).
+It supplies an explicit configuration example and a short feedback checklist for
+Julien or another operator. Coding usefulness is optional and belongs to the
+operator's selected model, hardware and task. The integration has one architecture;
+it does not require everyone to use MiMo, Ollama or Bill's serving limit.
 
 ## 27.1 Start with a verified server
 
@@ -509,11 +537,13 @@ The GUI remains usable while browser-dependent startup waits for its own relay.
 Test the actual HTTP guard, durable recovery and restart separately from menu
 rendering; a populated menu alone does not prove those operations.
 
-## Exercises (draft acceptance contracts)
+## Exercises and evidence limits
 
-These exercises are not yet certified against the implementation. Use isolated
-homes and owned loopback fake providers for deterministic checks. A real local
-model trial is a separate exercise, not a substitute for those checks.
+These are reproducible learning and review contracts, not a claim of exhaustive
+certification. Use isolated homes and owned loopback fake providers for
+deterministic checks. The public runner's 136 checks provide bounded coverage and
+remain ungraded. Bill's accepted GUI check is separate human evidence, not a
+substitute for those checks or a new point award.
 
 ### Exercise 1: Select a route without borrowing funding
 
@@ -554,12 +584,17 @@ quiet network wait is not evidence of completed work.
 ### Exercise 4: Measure limits and usefulness separately
 
 Check reported input/output usage, missing usage and unknown pricing with fixtures.
-Then, with explicit permission, run one bounded real coding task on the local
-model. Record package/server versions, loaded context, GPU placement, correctness
-and practical latency. Include the prompt and tool overhead in the experiment;
-do not infer capacity from parameter count or extrapolate an arithmetic success
-into general coding competence. Report deterministic checks, real-model results
-and human acceptance separately.
+For live integration acceptance, use a short conversation and a harmless granted
+tool on a small controlled fixture. Confirm the actual call and result in Actions;
+do not require coding quality to prove that local inference is supported. Record
+server/model versions and configured serving context. Stop once the agreed
+integration goal is met.
+
+An operator who wants to evaluate coding usefulness may separately choose one
+bounded task on their own model and hardware. Include prompt and tool overhead,
+correctness and practical latency. Do not infer capacity from parameter count or
+extrapolate a small success into general competence. Report deterministic checks,
+integration acceptance and optional model-quality evaluation separately.
 
 Junien's [PR 3](https://github.com/waywardgeek/ensemble/pull/3) supplies the
 sleeping-inference-machine use case, and

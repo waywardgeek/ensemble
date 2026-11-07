@@ -4,8 +4,10 @@ Status: Bill approved closing the adopted PR-integration work and proceeding
 personally to Local Models. Further student campaigns and expanded artifact/GUI
 grading are deferred; their unverified coverage remains unverified. The existing
 artifact score remains70/100, not a newly awarded full pass. No more students
-without a new explicit request. Finish Local Models on the agreed real target,
-then perform a bounded manuscript/publication check and human usability acceptance.
+without a new explicit request. Bill has accepted local-model integration through
+ordinary GUI MiMo conversation and tool use. Finish the Chapter27 handoff for
+Julien's larger GPU setup, then the bounded manuscript/publication check. Julien's
+usage feedback remains pending; another MiMo coding trial is not a prerequisite.
 The earlier detailed student and exhaustive grading gates below are retained as
 historical planning, not mandatory steps or current launch authority.
 

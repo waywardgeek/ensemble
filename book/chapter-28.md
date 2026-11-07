@@ -1240,3 +1240,13 @@ setting, though it forwarded supplied arguments. The live catalog, rather than
 that launcher observation alone, established the missing registration. No ET
 request or inference was made. Explicit host configuration and a small skill
 remained prerequisites to the ordinary GUI trial.
+
+Bill subsequently authorized the explicit model-config argument in the launcher,
+rebuilt and restarted. The live catalog exposed MiMo and `local-coding`, while
+Cadence remained on Astra. Bill created the separate Agent, disabled memory and
+automatic recall, received a greeting, and observed a real tool call and result.
+He accepted the local-model integration as successful. Its verbose answer did not
+meet the requested response style; that was not a reason to require another
+coding trial. The next audience is Julien with his own larger GPU setup, using the
+[local-model evaluation guide](../docs/local-model-evaluation.md). Support for
+local inference and the usefulness of a particular model are different questions.

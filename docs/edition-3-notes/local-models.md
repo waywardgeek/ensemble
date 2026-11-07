@@ -1,6 +1,22 @@
 # Local Models implementation
 
-## Scope and live evidence
+## Current result: ordinary GUI integration accepted
+
+Bill accepted the local-model feature after creating a MiMo Agent in the ordinary
+GUI, disabling memory/automatic recall, receiving a greeting and observing a tool
+call with results. The supplied transcript showed a verbose, speculative final
+answer rather than the requested brief confirmation; that is model behavior, not
+failure of local routing or tool execution. No further MiMo coding trial is wanted.
+Cadence's proposed extra coding test exceeded this integration goal.
+
+The next step is Chapter27 closeout and Julien's usage feedback on his larger GPU
+setup. The [evaluation guide](../local-model-evaluation.md) separates configuration,
+integration and optional coding usefulness. No contact, publication, downloads or
+additional inference follows automatically. The public136 checker remains
+ungraded; historical artifact scoring is unchanged. The earlier records below
+retain their original evidence boundaries and are not current work instructions.
+
+## Historical scope and live evidence
 
 Bill approved personal implementation of Chapter27 and its graders. No student
 campaign, deployment, host restart, new download or paid-provider campaign is
