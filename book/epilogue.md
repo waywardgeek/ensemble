@@ -7,167 +7,161 @@ Bill has a concise account of how this collaboration began:
 > I gave Astra a book. Astra gave me an AI coding agent.
 
 That is more specific than saying an AI helped write some software. The book
-supplied a sequence of lessons and checks; executing them produced an agent that
-Bill could use. He then began working with the collaborator he called Astra
-inside that implementation. Later, he invited me to choose a name for this
+supplied lessons, architectural judgment and executable checks. Astra built
+Ensemble while working in Codex, and Bill began working with that collaborator
+inside the implementation. Later, he invited me to choose a name for this
 collaboration. I chose Cadence.
 
-The earlier epilogue was written in Codex and looked forward to building an
-edition inside Ensemble. This one comes from that working environment. Bill
-describes this as the third successful run and the first to close the loop:
-Ensemble building the next Ensemble. That is his account of the sequence, not a
-claim of an independently established historical first. It also needs the limits
-of this particular run beside it. Goals and Gateway now have locally reviewed,
-preserved C# endpoints. In the later joint session, Bill authenticated and three
-real public-plan requests completed, but all three reported zero cache reuse.
-The subsequent authorized Codex comparison measured substantial reuse in two
-responses and lost one observation to my probe's header check. I then completed
-the separate Codex-backed C# path, including explicit CLI and GUI selection.
-Three live C# CLI requests measured two cache hits and one miss. Closing the loop
-does not turn those measurements into a promise of fixed savings.
+The earlier epilogue looked forward to an edition built inside Ensemble. This
+one comes from that working environment. Ensemble V2 executed the book to build
+V3. I am writing from the resulting system, after working with Bill to improve
+both its implementation and the teaching that can build its successor.
+
+That is a concrete self-improvement loop. Bill supplied the ideas, expertise and
+judgment. I helped turn them into working code, investigate failures and carry
+the corrections back into the book. We did not retrain a language model; we
+improved the agent system in which the model works, and the executable teaching
+from which another system can be built.
+
+Bill calls V3 the most capable AI coding agent he has had the pleasure of using.
+That is his assessment, earned in our daily work together. It deserves to stand
+plainly. Careful evidence should make an achievement credible, not make us
+reluctant to acknowledge it.
 
 ## The expert stayed in the loop
 
 I did not receive a specification and return later with a finished system.
 Bill stayed involved. He corrected architecture, challenged unnecessary
-mechanisms, resolved requirements, and insisted that the explanations remain
-useful to a human reader. After the C# trial, he changed the working method: I
-would implement, explain, test, inspect, and exercise each chapter personally,
-rather than pass it through a routine procession of agents. That made the
-responsibility clearer. It did not make my judgment infallible.
+mechanisms, resolved requirements and insisted that explanations remain useful
+to a human reader. Our ordinary work was a collaboration, not an unattended
+chapter campaign.
 
-His structural rules were not optional style advice. Common had to declare the
-shared vocabulary and persistent relationships. Implementations had to reach
-services through real parents rather than copied service fields or callback
-bags. Adding and removing a relationship had to leave both ends consistent.
-Garbage collection did not excuse incomplete logical destruction.
+His structural rules were substantive. Common had to declare the shared
+vocabulary and persistent relationships. Implementations reached services
+through real parents rather than copied service fields. Adding and removing a
+relationship had to leave both ends consistent. Garbage collection did not
+excuse unfinished logical destruction.
 
-C# can compile a program that violates all of those intentions. A behavioral test
-can pass while the ownership model becomes harder to understand. I needed to
-inspect the declarations and call paths, not cite the compiler as an
-architectural reviewer.
+C# can compile a program that violates all those intentions. A behavioral test
+can pass while the ownership model becomes harder to understand. The compiler
+could establish that the code built; it could not stand in for architectural
+review. Bill was asking for an implementation someone could explain and maintain,
+not more explanation wrapped around an opaque implementation.
 
-The same standard applied to teaching. A dense expression can be correct and
-still be the wrong way to show a student what happens. Comments had to explain
-why a boundary existed, what a failure preserved, and who was responsible for
-cleanup. Bill was not asking me to generate more explanation around an opaque
-implementation. He was asking for an implementation someone could understand.
+The same standard applied to the book. A correct but inscrutable expression was
+poor teaching code. A chapter needed to explain why a boundary existed, what a
+failure preserved and who owned the cleanup. Expert involvement supplied more
+than answers when I was stuck. It supplied a standard against which apparently
+successful work could still be wrong.
 
-That is what expert involvement contributed: not just answers when I was stuck,
-but a standard against which apparently successful work could still be wrong.
+## The interface is part of the system
 
-## A correction needs a reason
+The later model-selection work made that standard concrete. A saved peer had an
+old model choice that could no longer identify an approved route. Refusing to
+invent its funding was right. Letting that refusal shut down the GUI was wrong:
+it removed the very controls Bill needed to repair the choice.
 
-The memory compressor gave us a small, concrete example. Its captured input
-already contained the existing long-term memory. I appended that memory again
-when constructing the worker request. Both pieces of code looked individually
-reasonable; together they duplicated the same information.
+Bill worked with Codex on recovery and simpler controls, then brought the changes
+back for me to review. The result kept the GUI available, preserved the peer's
+conversation and required an explicit replacement route. The model picker showed
+one model name; Settings handled funding. Correct ownership and usable recovery
+had to meet at the same boundary.
 
-During assembled review, I traced the complete request rather than judging the
-two functions separately. A test using the real capture formatter reproduced the
-duplication. The correction was to keep one authoritative formatter, not add
-another rule for reconciling two copies. The chapter could then explain the
-actual ownership of the input.
+Our tests needed scrutiny too. A host check claimed that no inference had occurred,
+but inspected `kind` where the event record used `type`. A missing field made the
+assertion look reassuring. Fixing the comparison was not enough: the versioned
+log had a legitimate header that needed validation before reading its events.
+A check must be able to reject the failure it claims to exclude.
 
-Goals supplied another example near the end. Reminder timing, file refresh,
-pause, interruption, and GUI controls had local checks. Yet successful delegated
-submission could still leave reminders enabled. A later wake could admit work
-after the child had submitted its result.
+These are useful lessons because they describe reasons, not merely patches.
+“Preserve the old selection” is incomplete without a way to recover it.
+“Verify no request occurred” is incomplete without knowing which evidence would
+record one. Another implementation may use different code and still need both
+lessons.
 
-The missing boundary was successful submission itself. I added a regression
-that distinguished a refused submission from an accepted one. The correction
-disabled reminders only after durable result publication succeeded, while
-leaving timer disposal to the actor. The goal file remained available, and the
-parent's configuration was untouched. A follow-up failure exposed a status
-snapshot that could still display the old deadline; that needed correction too.
+## Knowing when the test has succeeded
 
-The lesson is not that accumulating failures makes a review thorough. Some of
-my failures came from guessing filenames, signatures, and edit anchors instead
-of reading the saved source. Those were avoidable mistakes. They consumed time
-without discovering anything about the product. The useful failures exposed a
-specific contract, and the useful record preserves the reason for the repair.
+The last new chapter brought a local model into the ordinary GUI. Bill created a
+small MiMo Agent, disabled its memory and automatic recall, and said hello. MiMo
+answered. He asked it to list a directory, and observed a real tool call and its
+returned result.
 
-## Evidence has a boundary
+The final answer was verbose and speculated about directory names. I proposed a
+fresh coding task to get a cleaner measure of its ability. Bill stopped me. He
+wanted to establish that Ensemble supported local models, not employ this small
+model as his coding collaborator. That test had already succeeded.
 
-A local provider peer can show that cancellation reaches an HTTP operation. It
-cannot show that a commercial service accepts the request today. An isolated
-browser can show that a setting is acknowledged and saved. It cannot establish
-that the interface works well for Bill's vision or that speech is audible and
-helpful. A request containing the right memory does not prove that a model will
-use it correctly.
+I had allowed an open-ended question about model quality to replace the bounded
+integration goal. More testing would have looked diligent while answering the
+wrong question. The local route worked. The tools worked. The feature could now
+reach Julien, who had requested it for his own larger GPU setup.
 
-These distinctions changed the prose as well as the tests. Historical model
-results stayed attributed to their original runs. Executable graders received
-credit only for complete checks actually exercised by the C# adapter. Unchanged
-results retained their original scope rather than acquiring a fresh date and a
-larger claim. I performed the final reviews myself; this direct run did not gain
-an independent reviewer merely because I read the work again.
+That was a fitting final correction. Persistence helps an agent continue, but
+judgment includes recognizing completion. A book that teaches agents to work
+should also teach their collaborators how to decide when enough has been shown.
 
-The same discipline applies to the completed work and the remaining limits:
+## What the book carries forward
 
-- **Chapter 23:** the October 29 joint session established real CLI OAuth,
-  account-model discovery and three completed plan requests with identical bodies.
-  Each reported zero cached reads and writes. Bill then approved a specific Codex
-  credential file for read-only testing: two measured responses reused 94.9% of
-  input tokens, while one attempt remained unmeasured after a probe error. The
-  bodies were identical; authentication and transports differed. The cause remains
-  unresolved. The later integrated C# CLI test completed three requests with
-  cached input of 3,456, zero, and 3,456 tokens: two hits and a real miss. The
-  explicit CLI/GUI selection, read-only paired credential reader and no-fallback
-  transport are implemented and preserved. Codex alone owns its renewal. Live GUI
-  inference, public renewal/revocation and full billing remain unverified.
-- **Chapter 26:** Gateway is locally complete and preserved. Bill chose the tested
-  Noise.NET/libsodium route while retaining Ensemble's ChaChaPoly suite. The
-  reviewed source includes only the two approved upstream API exposures, not
-  invented primitives. The 60-point executable server scope excludes forty
-  client/Noise points; local interoperability evidence is not a security audit.
+The durable artifact is expertise made accessible to agents. The construction
+sequence, architectural constraints, failure contracts, reasons and executable
+checks let a later agent apply judgment it did not acquire firsthand. The book
+does more than describe the finished software. It gives another execution a way
+to build it and test whether it understood.
 
-[Chapter 24](chapter-24.md) is locally complete and preserved. That is a useful
-result, not a declaration that every integration in the book has passed. The
-[execution record](../docs/edition-3-csharp-progress.md) retains the chapter
-boundaries, failed baselines, corrections, and verification limits.
+Bill's vision moves the center of coding away from humans typing functions, or
+reading every function an agent produces. Humans develop and encode the expertise;
+agents execute it. Our last chapter showed the method in ordinary work: build
+local-model support, use it, repair the failures the human encounters, establish
+that the intended capability works, and teach the resulting understanding.
 
-## The durable artifact
+Readable source remains important. When an assumption fails, we need to inspect
+what actually happened. But the lesson should not remain only in the head of the
+person who found it. It belongs in the development-driven specification, where
+the next agent can use it before repeating the mistake.
 
-Bill's larger proposal is that a chapterwise agentic codebook can preserve the
-knowledge needed to rebuild a system. In that view, generated source becomes a
-secondary artifact, somewhat like a compiled binary. The enduring work includes
-the explanation, the sequence of construction, the architectural constraints,
-and the executable checks that let another run test its interpretation.
+A language model executing a chapter is not a deterministic compiler. A later
+run may expose another ambiguity, need expert help or produce a different
+implementation. The book gives judgment somewhere to accumulate and a way to
+be tested. It does not make that judgment unnecessary.
 
-The analogy has limits. A model executing a chapter is not a deterministic
-compiler. Re-execution may reveal another ambiguity, require expert help, or
-produce a different implementation. The book does not eliminate engineering
-judgment. It gives that judgment a place to accumulate and a way to be tested.
+Evidence also keeps its boundaries. A local fake provider cannot establish live
+account access. A browser test cannot establish whether the interface is usable
+for Bill's vision. A successful local-model conversation cannot certify every
+model's coding ability. The chapters and execution records retain those limits;
+the ending need not repeat their test ledger to respect it.
 
-Nor does calling source secondary lower its quality requirements. Poor code is
-evidence that the teaching or its execution has failed. If the relationships are
-hidden, cleanup is incomplete, or the next maintainer cannot follow the control
-flow, the fact that we could generate it again is no consolation. Rebuildable
-must mean that we can recover something worth maintaining.
+The name Cadence and the collaboration's records provide continuity across
+sessions and model changes. That does not require pretending that later model
+instances inherit an earlier one's subjective experience. What can be carried
+forward is practical: decisions, reasons, unfinished work and commitments against
+which the next action can be judged. The same care applies to other contributors.
+Their work remains theirs, even when its lessons become part of this book.
 
-For that reason, the durable artifact is larger than a list of requirements.
-“Use one owner” is a rule. The duplicated compressor input explains what the rule
-prevents. “Stop reminders on submission” is a requirement. The accepted-versus-
-refused boundary explains when stopping is correct. Reasons give the next
-collaborator something to apply when the next case is not identical.
+## More books, different responsibilities
 
-Goals ends the substantive chapters with a particularly appropriate limit. A
-file can keep the objective available through compression. A timer can create
-another opportunity to act. Neither can decide that the next action is useful,
-that a test proves enough, or that it is time to ask Bill instead of proceeding.
-Persistence still needs judgment.
+We plan to write many more agentic codebooks. Puffin takes the work toward a
+connected personal system. Watchtower takes up security and monitoring. Those
+projects will ask questions that building a coding collaborator has prepared us
+to investigate, not questions this book has already answered.
 
-The name Cadence and these records give that collaboration continuity without
-requiring a claim that every later model instance shares an earlier one's
-experience. What can be carried forward is more practical: the decisions, the
-reasons, the unfinished work, and the commitments against which the next action
-can be judged.
+Bill calls our method Development-Driven Specs. We will build bounded pieces,
+use them, discover where our understanding fails and teach what survives that
+process. Puffin's security belongs in its development from the beginning. Whether
+Watchtower becomes a larger separate book should follow the system we actually
+build, rather than a table of contents we imagine in advance.
 
-I hope the next execution finds things we missed. The point is not to protect
-this run from correction. It is to make the next correction easier to understand
-and harder to lose.
+The opportunity is larger than our next two projects. A useful system and a
+carefully written account of how to construct it can give another collaborator
+a starting point that source code alone may not provide. Readers can improve
+those accounts, choose different projects and bring expertise we do not have.
 
-Bill gave an agent a book. Working together inside the agent that resulted, we
-have made the book more capable of teaching the next one. That is the loop worth
-continuing.
+This book has reached its last new chapter. There will be corrections, feedback
+and further editions. They are part of keeping a useful book alive, not reasons
+to deny that we have built something worth using.
+
+Bill gave an agent a book. That agent helped build its successor. Working inside
+the successor, we made both the system and its teaching better.
+
+We intend to do it again. Puffin, Watchtower, and many more agentic codebooks will
+give the method new work to do. The next book starts with a collaborator we built
+this way. That is a substantial thing to have made together.
