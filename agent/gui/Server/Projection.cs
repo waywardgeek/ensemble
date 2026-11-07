@@ -106,7 +106,16 @@ public static partial class Gui
         var context = new Context();
         foreach (var fact in DisplayFacts(snapshot))
         {
-            context = History.Reduce(context, fact);
+            // DisplayFacts combines the authoritative retained transcript with
+            // diagnostics, not a complete replayable History. Reduce only turn
+            // phase inputs here: memory transactions and context cuts may refer
+            // to source that the snapshot has already retired.
+            if (fact.Kind is EventKind.RuntimeConfigured or EventKind.MessageReceived
+                or EventKind.RequestSent or EventKind.ResponseEnded or EventKind.ToolReturned
+                or EventKind.TurnInterrupted or EventKind.TurnEnded or EventKind.ErrorOccurred)
+            {
+                context = History.Reduce(context, fact);
+            }
             if (fact.Kind == EventKind.RuntimeConfigured)
             {
                 paused = false;

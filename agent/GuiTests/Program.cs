@@ -77,6 +77,11 @@ if (args is ["--work-product-tests"])
     await WorkProductHttpTests.RunAsync();
     return;
 }
+if (args is ["--handoff-projection-tests"])
+{
+    await HandoffProjectionTests.RunAsync();
+    return;
+}
 if (args is ["--recorded-time-tests"])
 {
     RecordedTimeTests.Run();
@@ -531,6 +536,7 @@ finally
         Directory.SetCurrentDirectory(originalDirectory);
     }
 }
+await HandoffProjectionTests.RunAsync();
 await PeerControlsTests.RunAsync();
 await ImageControlsTests.RunAsync();
 await PublicOriginTests.RunAsync();
