@@ -1,22 +1,34 @@
 using System.Collections.Immutable;
 using System.Text.Json;
+using System.Text;
+using System.Security.Cryptography;
+using Ensemble;
 using Microsoft.AspNetCore.Routing;
 
 namespace EnsembleGui;
 
 public static partial class Gui
 {
-    private static partial void MapRenderers(IEndpointRouteBuilder routes, RendererStore? store,
+    private static partial void MapRenderers(IEndpointRouteBuilder routes, Agent owner, RendererStore? store,
         int port, string? publicOrigin, CancellationToken stopping)
     {
-        // The query selects a shipped output type, never a filesystem path.
-        static string? Renderer(HttpContext context)
+        static bool BuiltIn(string? name) => name is "list_directory" or "read_file" or "search_files"
+            or "write_file" or "edit_file" or "tool_default" or "prose" or "command";
+        // Identity follows the exact tool name across Agents. The separate key
+        // space cannot collide with prose/command/default presentation slots.
+        static string ToolKey(string name) => "tool-" + Convert.ToHexStringLower(
+            SHA256.HashData(Encoding.UTF8.GetBytes(name)));
+        string[] ToolNames() => owner.Parent().Agents().SelectMany(agent => agent.Tools())
+            .Select(tool => tool.Name()).Distinct(StringComparer.Ordinal)
+            .Where(name => name is not ("list_directory" or "read_file" or "search_files" or "write_file" or "edit_file"))
+            .Order(StringComparer.Ordinal).ToArray();
+        string? Renderer(HttpContext context)
         {
             var values = context.Request.Query["renderer"];
             if (values.Count == 0) return "list_directory"; // Existing clients.
             if (values.Count != 1) return null;
-            return values[0] is "list_directory" or "read_file" or "search_files"
-                or "write_file" or "edit_file" or "tool_default" or "prose" or "command" ? values[0] : null;
+            string? value = values[0];
+            return BuiltIn(value) || ToolNames().Any(name => ToolKey(name) == value) ? value : null;
         }
         bool Allowed(HttpContext context, bool mutation)
         {
@@ -31,6 +43,12 @@ public static partial class Gui
             or InvalidDataException or InvalidOperationException or JsonException or UnauthorizedAccessException;
         static IResult Refusal() => Results.BadRequest(new { error = "Renderer data is invalid, unavailable, or changed. Refresh before trying again." });
 
+        routes.MapGet("/renderers/tools", (HttpContext context) =>
+        {
+            if (!Allowed(context, false)) return Results.StatusCode(403);
+            return Results.Json(new { tools = ToolNames().Select(name => new { name, renderer = ToolKey(name) }) });
+        });
+
         // Read only this build's explicit embedded source. Discovery does not
         // stage a version, change acceptance, or expose a filesystem directory.
         routes.MapGet("/renderers/shipped", (HttpContext context) =>
@@ -38,6 +56,7 @@ public static partial class Gui
             if (!Allowed(context, false)) return Results.StatusCode(403);
             string? renderer = Renderer(context);
             if (renderer is null) return Refusal();
+            if (!BuiltIn(renderer)) return Results.NotFound();
             string skill = renderer is "write_file" or "edit_file" ? "code-tools" : "file-reading";
             var assembly = typeof(Gui).Assembly;
             string? Source(string resource)
@@ -124,14 +143,11 @@ public static partial class Gui
         routes.MapGet("/renderers/modules/{version}/{**file}", (HttpContext context, string version, string file) =>
         {
             if (!Allowed(context, false)) return Results.StatusCode(403);
-            string? renderer = Renderer(context);
-            if (renderer is null) return Refusal();
             if (store is null) return Results.NotFound();
             try
             {
                 var package = store.Read(version);
-                if (package.Renderer is not ("list_directory" or "read_file" or "search_files" or "write_file" or "edit_file" or "tool_default" or "prose" or "command")
-                    || !package.Files.TryGetValue(file, out string? source))
+                if (!package.Files.TryGetValue(file, out string? source))
                     return Results.NotFound();
                 // Validate the snapshot on every read; a changed file must never
                 // be served under the identity of approved code.

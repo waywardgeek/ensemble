@@ -54,8 +54,9 @@ Approved code runs with page authority. Review and supervision do not contain
 it. Safe helpers treat output as data, but cannot constrain malicious approved
 JavaScript. The implemented approval keys are `list_directory`, `read_file`,
 `write_file`, `edit_file`, `search_files`, `tool_default`, `prose`, and `command`.
-Unknown tools have the configurable default; arbitrary MCP renderer activation
-is not implemented and remains an open part of the original extension direction.
+Additional registered tools, including MCP tools, have namespaced approval choices
+shared by exact tool name across Agents. Without an accepted specialized renderer,
+they use the configurable default. Discovery itself never executes renderer code.
 Iframe isolation and a general extension installer remain outside this chapter.
 
 Demonstrate that Artifact identity does not require a card through a standalone
@@ -383,6 +384,34 @@ than automatically repeating the mutation.
 
 *Actual approval controls with an inert synthetic candidate. Open the source disclosure to review code before Try live; Keep remains unavailable until a trial.*
 
+### An unfamiliar tool is still a tool
+
+Suppose Bill connects an MCP tool named `remote_weather`. Its result should not
+need a new GUI build before he can customize its presentation. The host reads the
+actual registered Tool objects across its Agents and offers **Tool: remote_weather**
+in the same approval panel. It does not connect a server, enable a skill or fetch
+JavaScript merely to populate that list. Reload discovers later registrations.
+
+There is a subtle identity trap here. An MCP tool can be named `command`, but
+that name must not select the continuing terminal renderer. Additional tools use
+separate approval keys: `tool-` plus the lowercase SHA-256 of the exact UTF-8 name.
+The browser keeps their render functions in a separate tool-name map. The eight
+shipped presentation choices remain unchanged. Same-name tools across Agents
+share a choice; this is not proof that two servers use compatible output formats.
+
+Bill stages a package and reviews its executable helpers exactly as before. There
+is no fabricated shipped package for the new tool. Its renderer receives bounded
+preview text, which may be an incomplete JSON document, and only whatever optional
+evidence the operation actually supplied. If it cannot render those facts faithfully,
+it declines and the default takes over. Never reread a resource or repeat the tool
+just to make its result prettier.
+
+If the tool disappears before approval, the request refuses. If it is absent at
+page load, its saved choice remains on disk but is not imported. Already approved
+code in an open page remains until reload; presentation permission is not tool
+execution permission. These deliberately separate lifetimes keep customization
+from becoming another tool-grant mechanism.
+
 ### Approval is trust, not containment
 
 Approved JavaScript runs inside the application page. It can access conversations,
@@ -439,8 +468,10 @@ renderers:
 ```
 
 Reject duplicate tool names, absolute/traversal entries and non-JavaScript files.
-Metadata grants neither tools nor execution. Explicit host registration remains
-necessary; this declaration is not arbitrary downloaded-module activation.
+Metadata grants neither tools nor execution. Shipped source still uses explicit
+host packaging; this declaration is not downloaded-module activation. Additional
+registered tools use the guarded name-discovery endpoint and explicit approval
+flow described above, not arbitrary skill-directory serving.
 
 The three invocation contracts are:
 

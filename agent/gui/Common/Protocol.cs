@@ -61,7 +61,7 @@ public static partial class Gui
     private static partial void MapWorkProducts(Microsoft.AspNetCore.Routing.IEndpointRouteBuilder routes,
         Agent source, int port, string? publicOrigin, CancellationToken stopping);
     private static partial void MapRenderers(Microsoft.AspNetCore.Routing.IEndpointRouteBuilder routes,
-        RendererStore? store, int port, string? publicOrigin, CancellationToken stopping);
+        Agent owner, RendererStore? store, int port, string? publicOrigin, CancellationToken stopping);
     // Current-process accounting comes from Engine, never reconstructed from replay.
     public static partial JsonObject MeterFrame(Agent agent);
     private static partial JsonObject WorkingContextFrame(Agent agent);

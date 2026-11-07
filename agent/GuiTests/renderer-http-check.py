@@ -2,6 +2,7 @@
 Usage: python3 renderer-http-check.py DOTNET GUITESTS_DLL
 """
 import json
+import hashlib
 from pathlib import Path
 import subprocess
 import sys
@@ -69,6 +70,25 @@ def main():
                     assert selection()["accepted"] is None
                     request("rollback" + query, {"expected": staged})
                     assert json.loads(request("selection" + query))["selection"]["accepted"] is None
+                discovered = json.loads(request("tools"))["tools"]
+                names = {row["name"]: row["renderer"] for row in discovered}
+                for name in ["remote_weather", "command"]:
+                    assert names[name] == "tool-" + hashlib.sha256(name.encode()).hexdigest()
+                assert "peer_only" in names, "Discovery missed another owned Agent"
+                assert sum(row["name"] == "remote_weather" for row in discovered) == 1, "Duplicated shared tool identity"
+                key = names["remote_weather"]
+                query = "?renderer=" + key
+                request("shipped" + query, expected=404)
+                custom = {"entry": "main.js", "files": {"main.js": "export default (doc,text) => {const p=doc.createElement('pre');p.textContent=text;return p;}"}}
+                version = json.loads(request("stage" + query, custom))["version"]
+                assert json.loads(request("selection" + query))["selection"]["accepted"] is None
+                request("accept?renderer=" + names["command"], {"version": version, "expected": None}, expected=400)
+                request("accept?renderer=command", {"version": version, "expected": None}, expected=400)
+                request("accept" + query, {"version": version, "expected": None})
+                assert request(f"modules/{version}/main.js").decode() == custom["files"]["main.js"]
+                request("rollback" + query, {"expected": version})
+                request("tools", expected=403, origin_value="https://untrusted.invalid")
+                request("selection?renderer=tool-" + "0" * 64, expected=400)
                 request("selection?renderer=unknown", expected=400)
                 request("selection?renderer=read_file&renderer=edit_file", expected=400)
                 package = {"entry": "main.js", "files": {"main.js": "import './helper.js'; export default () => document.createElement('pre');", "helper.js": "export const marker = 'one';"}}

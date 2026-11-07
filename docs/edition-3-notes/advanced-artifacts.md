@@ -3,9 +3,10 @@
 Current authoring boundary: the full unnumbered chapter body is drafted from the
 bounded implementation through b07c7c48. It remains outside release assembly.
 Six authorized synthetic figures are captured; human usability review is pending; no independent
-chapter reconstruction or grader acceptance is claimed. Original MCP-specific
-renderer activation remains open: eight shipped approval keys are supported,
-with customizable default output for unknown tools, not arbitrary registration.
+chapter reconstruction or grader acceptance is claimed. Specialized approval now
+includes actual registered tools across the host's Agents, including MCP tools,
+with distinct namespaced keys and explicit exact-version approval. See the final
+development entry for verification and page-load discovery limits.
 The dated development record below preserves earlier states.
 
 
@@ -927,3 +928,39 @@ from a short tail to an actual 65536-byte window. Final command image retains it
 normal scrolling edge rather than retouching it. Lesson: capture success alone
 proves neither readable pixels nor faithful fixture data. Source syntax, all six image links/alt texts, PNG dimensions and hard chapter
 prose/whitespace checks pass. Existing negation/person-gap style advisories remain.
+
+
+## Registered MCP tool renderers
+
+Extended the existing approval route/controller rather than add a second store.
+Discovery reads root.Agents()/Agent.Tools() snapshots; no skill activation, MCP
+connection, filesystem serving or execution. Deduplicated exact names map to
+`tool-` plus UTF-8 SHA256, independently of the eight existing presentation keys.
+A separate browser tool map prevents a tool named command/prose from using those
+host renderers. Missing/inapplicable code uses default then literal fallback.
+Same names share choices; differing server schemas are not asserted compatible.
+
+Discovery occurs at page load. Absent tools are not imported; their durable choice
+is retained. Mutations recheck live registration. Module reads remain verified
+immutable snapshots and declared files; helper imports do not inherit queries or
+require a live tool. Existing explicit trust, recovery and stale-save semantics
+remain. This is not auto-loading downloaded skill code or an extension installer.
+
+Clean isolated GuiTests build, HTTP registration/key/cross-tool refusal checks,
+and desktop/phone trials passed. Fixture uses real McpClient handshake and owned
+Tool registration through an in-memory fake transport on two Agents: shared name
+deduplication and peer-only discovery, command-name collision, stage inertness,
+Try/Keep/reload/recovery/rollback. Browser output facts remain synthetic, not a live
+remote tools/call acceptance claim. Existing directory/file/search browser checks
+and all six default GUI groups passed, fixture hosts joined (Job485 terminal0).
+No provider/install/restart. Full core remains historical380, not rerun here.
+
+Review caught the C# source-variable shadow before compilation and the old direct
+registry lookup's collision with presentation names. Corrected both before tests.
+Lesson: exact tool-name sharing needs a separate presentation-key namespace.
+Both isolated normal GUI/CLI distribution builds passed with zero warnings/errors;
+packaged API-note bytes matched source. Hard prose, chapter links, six exercises/
+figures, draft assembler exclusion and whitespace checks passed. Style advisories
+remain. Initial chapter-count checker assumed `### Exercise` rather than actual
+numbered headings; it failed before notes/queue updates. Corrected the checker
+and reran fail-fast, without changing chapter headings to fit the test.

@@ -28,6 +28,8 @@
     };
     window.EnsembleArtifactRenderers ||= Object.create(null);
     const shipped = Object.create(null);
+    const toolNames = new Map();
+    window.EnsembleToolRenderers ||= Object.create(null);
     const safe = new URL(location.href);
     safe.searchParams.set("renderers", "shipped");
     byId("renderer-safe").href = safe.href;
@@ -60,7 +62,8 @@
         accepted = value.accepted; previous = value.previous;
     }
     function install(render, renderer = tool) {
-        window.EnsembleArtifactRenderers[renderer] = render;
+        if (toolNames.has(renderer)) window.EnsembleToolRenderers[toolNames.get(renderer)] = render;
+        else window.EnsembleArtifactRenderers[renderer] = render;
         document.dispatchEvent(new Event("ensemble-renderers-changed"));
     }
     async function load(version, renderer = tool) {
@@ -125,11 +128,13 @@
         location.reload();
     }, "Rollback was not confirmed. Reload to check selection; no automatic retry was made.");
     function describe() {
-        status.textContent = safeMode
-            ? "Recovery mode: shipped renderers only. Accepted selection is unchanged; rollback remains available."
-            : accepted === null ? "Using the shipped " + tool + " renderer." : "Using accepted version " + accepted + ".";
+        if (safeMode) status.textContent = "Recovery mode: shipped renderers only. Accepted selection is unchanged; rollback remains available.";
+        else if (accepted !== null) status.textContent = "Using accepted version " + accepted + ".";
+        else if (toolNames.has(tool)) status.textContent = "Using the default preview for " + toolNames.get(tool) + ".";
+        else status.textContent = "Using the shipped " + tool + " renderer.";
     }
     function downloadLink() {
+        byId("renderer-download").hidden = toolNames.has(tool);
         const url = new URL(endpoint("shipped")); url.searchParams.set("renderer", tool);
         byId("renderer-download").href = url.href;
         byId("renderer-download").download = tool + "-renderer.json";
@@ -146,6 +151,18 @@
     }, "Renderer selection could not be read. Reload before trying again.");
     void action(async () => {
         const failures = [];
+        try {
+            const discovery = await api("tools");
+            for (const item of discovery.tools) {
+                if (typeof item.name !== "string" || !/^tool-[a-f0-9]{64}$/.test(item.renderer)
+                    || toolNames.has(item.renderer)) throw new Error("Invalid tool renderer discovery");
+                toolNames.set(item.renderer, item.name);
+                const option = document.createElement("option");
+                option.value = item.renderer; option.textContent = "Tool: " + item.name;
+                toolInput.append(option);
+            }
+        } catch { failures.push("tool discovery"); }
+
         for (const [renderer, path] of Object.entries(shippedPaths)) {
             try {
                 const module = await import(new URL("./skills/" + path, scriptUrl).href);
@@ -162,6 +179,13 @@
                 if (!safeMode && state.available && state.selection.accepted !== null)
                     await execute(state.selection.accepted, await load(state.selection.accepted, renderer), renderer);
             } catch { failures.push(renderer); }
+        }
+        for (const renderer of toolNames.keys()) {
+            try {
+                const state = await api("selection", undefined, renderer);
+                if (!safeMode && state.available && state.selection.accepted !== null)
+                    await execute(state.selection.accepted, await load(state.selection.accepted, renderer), renderer);
+            } catch { failures.push(toolNames.get(renderer)); }
         }
         downloadLink();
         if (failures.length) {

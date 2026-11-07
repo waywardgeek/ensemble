@@ -668,7 +668,9 @@ function render(card) {
             const clipped = card.text.slice(0, 1400).split("\n").slice(0, 18).join("\n");
             const previewText = clipped + (clipped.length < card.text.length ? "\n… (bounded preview)" : "");
             const renderer = card.kind === "tool_result" && card.status !== "error"
-                ? window.EnsembleArtifactRenderers?.[card.toolName] : null;
+                ? (window.EnsembleToolRenderers?.[card.toolName] ||
+                    (["list_directory", "read_file", "search_files", "write_file", "edit_file"].includes(card.toolName)
+                        ? window.EnsembleArtifactRenderers?.[card.toolName] : null)) : null;
             const defaultRenderer = window.EnsembleArtifactRenderers?.tool_default;
             if (card.previewText !== previewText || card.previewDefaultRenderer !== defaultRenderer || card.previewRenderer !== renderer || card.previewDirectoryListing !== card.directoryListing || card.previewFileEvidence !== card.fileEvidence || card.previewSearchEvidence !== card.searchEvidence) {
                 let content = null;

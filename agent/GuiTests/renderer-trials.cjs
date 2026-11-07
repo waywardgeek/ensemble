@@ -148,6 +148,34 @@ const { chromium } = require('../../edition-2/agent/gui/node_modules/playwright'
                 await ready('Using the shipped');
                 assert.equal(await page.evaluate(() => window.packageMarker), undefined);
             }
+            for (const name of ['remote_weather', 'command']) {
+                await panel();
+                const key = await page.locator('#renderer-tool option').evaluateAll((options, name) =>
+                    options.find(option => option.textContent === 'Tool: ' + name)?.value, name);
+                assert(key, 'registered MCP tool absent from choices');
+                await page.locator('#renderer-tool').selectOption(key);
+                await ready('Using the default preview');
+                assert(await page.locator('#renderer-download').isHidden(), 'invented shipped MCP source');
+                await candidate('remote-' + name + '-' + width);
+                assert.equal(await page.evaluate(() => window.trialMarker), undefined);
+                await page.locator('#renderer-try').click(); await ready('Trial active');
+                assert.equal(await page.evaluate(name => {
+                    const card = cardFor('remote-result');
+                    Object.assign(card, { kind: 'tool_result', role: 'tool', status: 'completed', toolName: name, text: 'recorded remote data' });
+                    render(card);
+                    return card.node.querySelector('.preview').textContent;
+                }, name), 'remote-' + name + '-' + width + ': recorded remote data');
+                assert.equal(await page.evaluate(() => typeof window.EnsembleArtifactRenderers.command), 'function');
+                await page.locator('#renderer-keep').click(); await ready('Accepted ');
+                await page.reload(); await ready('Using the shipped');
+                assert.equal(await page.evaluate(() => window.trialMarker), 'remote-' + name + '-' + width);
+                await page.goto(base + '?renderers=shipped'); await ready('Recovery mode');
+                assert.equal(await page.evaluate(() => window.trialMarker), undefined);
+                await panel(); await page.locator('#renderer-tool').selectOption(key); await ready('Recovery mode');
+                await page.locator('#renderer-rollback').click(); await ready('Recovery mode');
+                await page.goto(base); await ready('Using the shipped');
+            }
+            console.log(`PASS MCP renderer ${width}: actual registered names, inert stage, name collision, try/keep/reload/recovery/rollback`);
             console.log(`PASS shared approval ${width}: seven additional output selectors, inert packages, helper imports, independent keep/reload, safe mode, rollback`);
             assert.deepEqual(await page.evaluate(() => {
                 const registry = window.EnsembleArtifactRenderers;
@@ -162,14 +190,14 @@ const { chromium } = require('../../edition-2/agent/gui/node_modules/playwright'
                     const node = document.createElement('div'); node.textContent = 'Custom: ' + text; return node;
                 };
                 render(card); const custom = preview().textContent;
-                registry.unfamiliar_tool = () => { throw new Error('specialized refusal'); };
+                window.EnsembleToolRenderers.unfamiliar_tool = () => { throw new Error('specialized refusal'); };
                 render(card); const specializedFailure = preview().textContent;
                 registry.tool_default = () => { throw new Error('default refusal'); };
                 render(card); const defaultFailure = preview().textContent;
                 const heading = card.node.querySelector('.card-heading');
                 registry.tool_default = () => heading;
                 render(card); const connectedRejected = heading.parentElement === card.node && preview().textContent === literal;
-                delete registry.unfamiliar_tool; registry.tool_default = original; render(card);
+                delete window.EnsembleToolRenderers.unfamiliar_tool; registry.tool_default = original; render(card);
                 return { literal, custom, specializedFailure, defaultFailure, connectedRejected };
             }), { literal: '<hostile> recorded output', custom: 'Custom: <hostile> recorded output',
                 specializedFailure: 'Custom: <hostile> recorded output',
