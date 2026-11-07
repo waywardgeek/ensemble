@@ -35,8 +35,14 @@ useful thinking and open questions, not authority to implement a whole platform.
 
 ## Boundary with the coding-agent book
 
-The first book retains the coding collaborator, local-model work still to be
-implemented/taught, Actions-pane/artifact improvements, and Crossing Over as its
+Puffin centers on multi-agent collaboration. Workflows and the bulletin board
+belong in this codebook, not the coding-agent book. Their design and teaching will
+come from development; this direction does not assign chapter numbers or claim
+implementation. Advanced Artifacts is the final chapter to execute for the
+coding-agent book.
+
+The first book retains the coding collaborator, accepted local-model support,
+Actions-pane/artifact improvements, and Crossing Over as its
 ending. Gateway through Puffin belongs here because it concerns connected personal
 AI systems, not because every component must be a separate executable. A local
 model server can be another executable and still belong in the first book.

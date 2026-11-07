@@ -167,3 +167,20 @@ It does not implement Connections, Agenda, Puffin, Watchtower or self-improvemen
 change live permissions; inspect secrets; run a security campaign; restart a
 service; migrate live family data; or publish either book. The original Counterpoint
 design, frozen editions and source endpoints remain unchanged.
+
+## Multi-agent collaboration: workflows and bulletin board
+
+Bill clarified that Puffin will center on multi-agent collaboration. Workflows
+and the bulletin board belong in the Puffin codebook, not the coding-agent book.
+This supersedes the proposal to implement workflows after Advanced Artifacts as
+another first-book chapter or an addition to its Skills chapter. Advanced
+Artifacts is the final chapter to execute for the first book; Cadence will finish
+its implementation and bounded verification, record lessons during the work,
+and then write the body from that experience. Completion today is a possibility,
+not an acceptance criterion or a guarantee.
+
+Keep the workflow idea of executables using reverse MCP to orchestrate children
+of the calling Agent, including book writing, review and editing. Exact APIs and
+bulletin-board behavior remain to be earned through development. This records
+placement and purpose, not a speculative architecture or permission to start
+Puffin implementation now.
