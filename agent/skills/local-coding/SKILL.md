@@ -2,7 +2,8 @@
 name: local-coding
 description: Small file-based coding tasks with six coding tools.
 type: primary
-tools: read_file list_directory search_files write_file edit_file run_command
+depends: file-reading
+tools: write_file edit_file run_command
 ---
 Work on one small coding task in the human's specified directory.
 Explain your next action briefly before tools. Read before editing; preserve

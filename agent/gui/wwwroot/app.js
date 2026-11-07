@@ -665,14 +665,29 @@ function render(card) {
         if (artifact && card.kind !== "blob") {
             let preview = card.node.querySelector(":scope > .preview");
             if (!preview) {
-                preview = document.createElement("pre");
+                preview = document.createElement("div");
                 preview.className = "preview";
                 card.node.insertBefore(preview, details);
                 details.ontoggle = () => { preview.hidden = details.open; };
             }
             const clipped = card.text.slice(0, 1400).split("\n").slice(0, 18).join("\n");
             const previewText = clipped + (clipped.length < card.text.length ? "\n… (bounded preview)" : "");
-            if (preview.textContent !== previewText) preview.textContent = previewText;
+            const renderer = card.kind === "tool_result" && card.status !== "error"
+                ? window.EnsembleArtifactRenderers?.[card.toolName] : null;
+            if (card.previewText !== previewText || card.previewRenderer !== renderer) {
+                let content = null;
+                if (typeof renderer === "function") {
+                    try { content = renderer(document, previewText); }
+                    catch { /* A presentation failure must not hide the recorded result. */ }
+                }
+                if (!(content instanceof HTMLElement) || content.isConnected) {
+                    content = document.createElement("pre");
+                    content.textContent = previewText;
+                }
+                preview.replaceChildren(content);
+                card.previewText = previewText;
+                card.previewRenderer = renderer;
+            }
             preview.hidden = details.open;
         }
     }

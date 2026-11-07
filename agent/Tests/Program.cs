@@ -161,6 +161,7 @@ try
         await AsyncCase("Chapter 9 parser, ownership and provider instruction placement", SkillTests.Projection);
         await AsyncCase("Chapter 9 real discovery exchanges and deferred references", ActorTests.SkillExchange);
         await AsyncCase("Native coding guidance discovery and instruction-only activation", SkillTests.NativeCodingGuidance);
+        await AsyncCase("Shared file-reading dependency preserves primary grants", SkillTests.FileReadingDependency);
         await AsyncCase("Per-Agent queue guidance and owner-derived directory variables", SkillTests.AgentQueueGuidance);
         if (args is ["--skill-tests"])
         {

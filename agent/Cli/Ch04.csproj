@@ -12,4 +12,7 @@
     <ProjectReference Include="../Ensemble.csproj" />
   </ItemGroup>
   <ItemGroup><Content Include="../Skills/**/SKILL.md" Link="skills/%(RecursiveDir)%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" /></ItemGroup>
+  <ItemGroup>
+    <Content Include="../skills/file-reading/renderers/list-directory.js" Link="skills/file-reading/renderers/list-directory.js" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
 </Project>

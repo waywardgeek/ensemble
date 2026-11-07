@@ -93,6 +93,40 @@ internal static class SkillTests
         }
     }
 
+    public static Task FileReadingDependency()
+    {
+        string root = Path.Combine(Directory.GetCurrentDirectory(), "agent", "skills");
+        string reads = "read_file list_directory search_files";
+        var primaries = new Dictionary<string, string>
+        {
+            ["ensemble"] = reads + " wait_for_job agent_status spawn_sub_agent agents_status get_sub_agent_status get_submission interrupt_agent join_agents submit send_message_to_parent respond_to_parent_message shutdown_agent kill_agent send_message ask_agent wait_for_agent wait_for_agent_change",
+            ["full"] = reads + " write_file edit_file run_command wait_for_job send_input kill_job tool_limits",
+            ["local-coding"] = reads + " write_file edit_file run_command"
+        };
+        var app = new Application(TextWriter.Null);
+        try
+        {
+            foreach (var (primary, tools) in primaries)
+            {
+                var agent = new Agent(app,
+                    new Configuration(Vendor.OpenAI, "gpt-6-astra", "http://127.0.0.1:1", surface: Surface.Responses),
+                    skillSpec: new SkillSpec(root, primary));
+                var manager = agent.SkillManager()!;
+                var expected = (tools + " load_skill unload_skill micro_handoff").Split(' ').Order(StringComparer.Ordinal);
+                var actual = agent.Tools().Select(tool => tool.Name()).Where(agent.ToolEnabled).Order(StringComparer.Ordinal);
+                Check(actual.SequenceEqual(expected), primary + " changed its effective tools");
+                Check(manager.Active().Count(skill => skill.Name == "file-reading") == 1,
+                    primary + " must activate file-reading exactly once");
+                foreach (string tool in reads.Split(' '))
+                    Check(manager.Source(tool)?.Skill == "file-reading", primary + " has wrong read-tool owner");
+                Check(!manager.Active().Single(skill => skill.Primary).Tools.Intersect(reads.Split(' ')).Any(),
+                    primary + " still duplicates the read grants");
+            }
+        }
+        finally { app.Destroy(); }
+        return Task.CompletedTask;
+    }
+
     public static async Task NativeCodingGuidance()
     {
         string repository = Directory.GetCurrentDirectory();

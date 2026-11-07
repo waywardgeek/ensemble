@@ -62,6 +62,11 @@ static async Task<JsonElement> Frame(ClientWebSocket socket, string type, Cancel
             return json.RootElement.Clone();
     }
 }
+if (args is ["--artifact-renderer-fixture", var rendererDirectory])
+{
+    await ArtifactRendererFixture.RunAsync(rendererDirectory);
+    return;
+}
 if (args is ["--configured-model-fixture", var fixtureDirectory])
 {
     await ConfiguredModelTests.RunAsync(fixtureDirectory);
@@ -192,7 +197,7 @@ try
             await Ready(http, origin + "/", hosting, cancellation);
             string page = await http.GetStringAsync(origin + "/", cancellation);
             Check(page.Contains("/app.js", StringComparison.Ordinal), "Embedded index missing");
-            foreach (string asset in new[] { "app.js", "auth.js", "mcp.js", "speech.js", "style.css" })
+            foreach (string asset in new[] { "app.js", "auth.js", "mcp.js", "speech.js", "style.css", "skills/file-reading/renderers/list-directory.js" })
                 Check((await http.GetStringAsync(origin + "/" + asset, cancellation)).Length > 100, "Asset missing: " + asset);
             foreach (var asset in new[] { ("voice-recorder.js", "export class PcmVoiceRecorder"),
                 ("voice-worklet.js", "registerProcessor('pcm-voice'"), ("voice-pcm.js", "export const VOICE_PCM"),

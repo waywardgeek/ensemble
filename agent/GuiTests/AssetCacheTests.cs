@@ -45,6 +45,12 @@ static class AssetCacheTests
             }
             string root = await Script("/");
             string mounted = await Script("/mounted/");
+            string rendererPath = mounted.Replace("app.js", "skills/file-reading/renderers/list-directory.js");
+            using var renderer = await client.GetAsync("/mounted/" + rendererPath, cancellation);
+            Check(renderer.IsSuccessStatusCode && renderer.Content.Headers.ContentType?.MediaType == "text/javascript",
+                "Skill renderer must be served as JavaScript in the same immutable asset version");
+            Check((await client.GetStringAsync("/mounted/", cancellation)).Contains("./" + rendererPath),
+                "Skill renderer script reference must use the mounted asset version");
             Check(root == mounted, "Identical snapshots must have identical versions");
             string first = await Script("/first/");
             string second = await Script("/second/");

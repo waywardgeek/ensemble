@@ -8,6 +8,51 @@ especially §7.6, and [Chapter 26, Artifacts and Actions](../../book/chapter-26.
 The earlier [Artifacts/Actions notes](artifacts-and-actions.md) retain their own
 scope and evidence; this work does not reopen their grading campaign.
 
+## First experiment: shared file-reading ownership and shipped preview
+
+Bill approved a `file-reading` dependency as the shared home for `read_file`,
+`list_directory`, and `search_files`. The `ensemble`, `full`, and `local-coding`
+primaries depend on it instead of duplicating those grants. Exact effective
+permission sets remain unchanged; the first enabling skill is now `file-reading`.
+
+The first renderer lives at
+`agent/skills/file-reading/renderers/list-directory.js`. An explicit reviewed
+build resource and HTML script reference load it before `app.js`; merely finding
+or loading another skill does not execute its JavaScript. GUI and CLI outputs
+copy the readable source beside the manual. This is a bounded experiment, not
+final renderer-declaration syntax or an approval/update mechanism. Editing the
+copied file does not update the embedded, frozen GUI asset snapshot.
+
+The renderer receives the existing bounded display text and returns a detached
+DOM element. It labels literal text as directory output without splitting lines
+into purported entries: filenames can contain newlines. It uses `textContent`,
+not HTML interpretation. The host keeps identity, call/result pairing, raw-detail
+controls, timing, selection deferral and placement. This preview slot does not
+make a card or Tools pane part of the eventual renderer contract. Missing,
+throwing or invalid renderers use the plain preview; errors, calls and unpaired
+results do not use the directory renderer. This is trusted in-page JavaScript,
+not a security sandbox.
+
+A structured directory payload remains separate work. The current text format
+and observation envelope cannot reliably identify entries or distinguish an empty
+directory from an observation with no output. Preserve operation evidence through
+Jobs, History and replay before claiming richer directory semantics. The existing
+GUI's text normalization and observation truncation are not repaired by this hook.
+
+Focused checks cover unchanged primary grants; versioned, mounted asset serving;
+desktop/phone literal text and fallback; retained DOM/focus; and existing Actions
+state, pairing, selection, scroll and timing behavior. Browser cases inject recorded
+facts into the actual page handler, not a live directory call. An initial phone
+focus assertion failed because the test had not opened the Tools pane; explicitly
+opening it and requiring focus before rerender corrected the test. No production
+focus change was necessary. Core377/0 and all six default GUI groups pass;
+GUI and CLI builds have zero warnings/errors, with byte-identical manual and
+renderer copies in both outputs. Versioned-asset and final browser checks pass,
+including invalid/connected-node fallback. Owned fixture hosts exited normally.
+Evidence is under `/private/tmp/cadence-advanced-artifacts.7bNped`; it is local
+verification, not a portable release artifact. No installation or human visual
+acceptance is claimed.
+
 ## Reader and user purpose
 
 Users should be able to describe in words how they want output to look. Their
