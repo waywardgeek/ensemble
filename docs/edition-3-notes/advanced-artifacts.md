@@ -660,3 +660,40 @@ and API-note bytes all pass. Browser fixture joined; no installation or inferenc
 Bill requested chapter-body images of the actual Artifacts; the draft and private
 queue now record purposeful synthetic-data figures, alt text, captions and no
 color-only meanings. Capture approval is still pending; no screenshots taken.
+
+### Continuing Job foundation: origin identity and bounded output window
+
+JobInfo now records the original admitted call ID and tool name, sourced from
+Job's retained ToolCallPart. Wait/input keep their own model correlation IDs;
+the origin is a separate relationship scoped by the owning Agent. Tool facts and
+JobKilled serialization preserve it; older records leave origin unknown.
+
+The GUI adds a distinct same-origin, custom-header-protected /jobs/window route.
+It resolves Agent membership and the actual owned Job, never a browser path,
+and reads at most the last 64 KiB through OpenRegularRead. Its end offset is the
+Job's flushed byte-count snapshot; later writes are excluded. It returns exact
+base64 bytes, offsets, origin, status, and an explicit rolled-out flag. This is
+not a model observation and does not consume the model cursor. The existing
+/jobs/output route still requires completion and retains its 16 MiB download
+limit. Neither route authenticates bytes against arbitrary local file replacement.
+
+This establishes transport, not terminal rendering. UTF-8/ANSI window boundaries,
+page polling lifetime, one continuing Artifact, explicit foreground movement,
+and historical reconstruction remain to implement. The byte window can start
+inside a multibyte character or escape sequence; the renderer must handle that
+rather than mistake a bounded tail for a complete terminal state.
+
+The initial HTTP fixture omitted starting its borrowed host after ServeAsync
+mounted routes. Its deadline fired and cleanup joined; no endpoint check ran.
+Corrected explicit StartAsync/StopAsync produced a passing HTTP check. A later
+core test compile failed nullable analysis on the synthetic termination record;
+no core tests ran in that batch. Corrected before final verification. The cursor
+test was strengthened to publish an unobserved marker before the HTTP read and
+require that marker in the next model wait, not merely check later output.
+The synthetic termination codec check then correctly refused sequence zero;
+the fixture was corrected to use a positive durable sequence. This was not a
+runtime origin failure. Final builds are clean with zero warnings/errors; all
+three process/PTY groups, the real bounded-window HTTP test, and six default GUI
+groups pass. The HTTP fixture joins its mount and stops its owned host. No browser
+aggregation or ANSI rendering is claimed by this foundation. No installation,
+provider inference, screenshots, or push.

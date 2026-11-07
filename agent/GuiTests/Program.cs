@@ -77,6 +77,11 @@ if (args is ["--configured-model-tests"])
     await ConfiguredModelTests.RunAsync();
     return;
 }
+if (args is ["--job-window-tests"])
+{
+    await JobWindowTests.RunAsync();
+    return;
+}
 if (args is ["--work-product-tests"])
 {
     await WorkProductHttpTests.RunAsync();

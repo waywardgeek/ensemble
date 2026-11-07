@@ -410,7 +410,9 @@ public static partial class JsonCodec
                         ["bytes"] = value.Job.Bytes,
                         ["truncated"] = value.Job.Truncated,
                         ["exit_code"] = value.Job.ExitCode,
-                        ["cwd"] = value.Job.Cwd
+                        ["cwd"] = value.Job.Cwd,
+                        ["origin_call_id"] = value.Job.OriginCallID,
+                        ["origin_tool"] = value.Job.OriginTool
                     };
                 }
                 o["tool"] = tool;
@@ -450,7 +452,9 @@ public static partial class JsonCodec
                     ["status"] = value.Job.Status,
                     ["reason"] = value.Reason,
                     ["output"] = new JsonObject { ["kind"] = "handle", ["locator"] = value.Job.OutputPath },
-                    ["bytes"] = value.Job.Bytes
+                    ["bytes"] = value.Job.Bytes,
+                    ["origin_call_id"] = value.Job.OriginCallID,
+                    ["origin_tool"] = value.Job.OriginTool
                 };
                 break;
             case EventKind.Redacted:
@@ -529,7 +533,8 @@ public static partial class JsonCodec
                     job: tool.TryGetProperty("job", out var job) ? new JobInfo(
                         job.GetProperty("handle").GetInt32(), String(job, "status"),
                         String(job.GetProperty("output"), "locator"), job.GetProperty("bytes").GetInt64(),
-                        Flag(job, "truncated"), job.TryGetProperty("exit_code", out var exit) && exit.ValueKind == JsonValueKind.Number ? exit.GetInt32() : null, OptionalString(job, "cwd")) : null);
+                        Flag(job, "truncated"), job.TryGetProperty("exit_code", out var exit) && exit.ValueKind == JsonValueKind.Number ? exit.GetInt32() : null, OptionalString(job, "cwd"),
+                        OptionalString(job, "origin_call_id"), OptionalString(job, "origin_tool")) : null);
             case EventKind.CompressionLaunched:
                 return new(kind, seq, time, compression: root.TryGetProperty("compression", out var launch) && launch.ValueKind != JsonValueKind.Null
                     ? ReadCompressionLaunch(launch) : null);
@@ -561,7 +566,8 @@ public static partial class JsonCodec
                 var killed = root.GetProperty("job");
                 return new(kind, seq, time, reason: String(killed, "reason"), job: new JobInfo(
                     killed.GetProperty("handle").GetInt32(), String(killed, "status"),
-                    String(killed.GetProperty("output"), "locator"), killed.GetProperty("bytes").GetInt64()));
+                    String(killed.GetProperty("output"), "locator"), killed.GetProperty("bytes").GetInt64(),
+                    OriginCallID: OptionalString(killed, "origin_call_id"), OriginTool: OptionalString(killed, "origin_tool")));
             case EventKind.Redacted:
                 if (!root.TryGetProperty("redact", out var r))
                 {

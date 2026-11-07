@@ -51,7 +51,7 @@ public sealed partial class Job
                 }
             }
             return new JobInfo(Handle, StatusName(status), OutputPath, bytes,
-                ExitCode: exitCode, Cwd: cwd);
+                ExitCode: exitCode, Cwd: cwd, OriginCallID: call.CallID, OriginTool: call.Name);
         }
     }
 
@@ -224,7 +224,8 @@ public sealed partial class Job
                     var notice = commandJob ? "Job killed: " + reason + "\n"
                         : "Job killed: " + reason + "; .NET cannot forcibly stop an uncooperative managed handler. Cancellation requested; late output is ignored.\n";
                     AppendOutput(notice);
-                    var info = new JobInfo(Handle, "killed", OutputPath, bytes, ExitCode: exitCode);
+                    var info = new JobInfo(Handle, "killed", OutputPath, bytes, ExitCode: exitCode,
+                        OriginCallID: call.CallID, OriginTool: call.Name);
                     try
                     {
                         Parent().Parent().History().Append(new Event(EventKind.JobKilled, reason: reason, job: info));

@@ -11,8 +11,11 @@ public enum JobStatus
 }
 
 // Value-like recorded report. It cannot restart a process during replay.
+// Origin identifies the admitted call within its owning Agent, not a later
+// wait/input call. Empty origins in historical records remain unknown.
 public sealed record JobInfo(int Handle, string Status, string OutputPath, long Bytes,
-    bool Truncated = false, int? ExitCode = null, string Cwd = "");
+    bool Truncated = false, int? ExitCode = null, string Cwd = "",
+    string OriginCallID = "", string OriginTool = "");
 
 // Value-like observation policy. Delay wakes the caller; it never stops work.
 public sealed record JobLimits(double Delay = 3, string Pattern = "", int MaxBytes = 16384);

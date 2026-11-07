@@ -44,12 +44,28 @@ internal static class JobTests
             var initial = await Call("slow", new { ai_callback_delay = 0.05 });
             Check(initial.Job is { Handle: 1, Status: "running" }, "first job survives wake delay");
             Check(Text(initial).Contains("first"), "initial output visible");
+            Check(initial.Job!.OriginCallID == initial.CallID && initial.Job.OriginTool == "slow",
+                "Job origin is its admitted call");
             var pending = Call("wait_for_job", new { handle = 1, ai_callback_delay = 0.08 });
             var wait = Stopwatch.StartNew();
             var empty = await pending;
             Check(wait.ElapsedMilliseconds >= 40 && !Text(empty).Contains("first"), "no old output on next wait");
             Check(agent.History().Events().Single(e => e.Kind == EventKind.ToolObserved && e.CallID == empty.CallID).Job == empty.Job,
                 "running control observation retains typed Job in History");
+            Check(empty.CallID != initial.CallID && empty.Job!.OriginCallID == initial.CallID
+                && empty.Job.OriginTool == "slow", "wait keeps correlation separate from Job origin");
+            var observed = agent.History().Events().Single(e => e.Kind == EventKind.ToolObserved && e.CallID == empty.CallID);
+            var saved = JsonCodec.WriteEvent(observed);
+            Check(JsonCodec.ReadEvent(saved).Job == empty.Job, "Job origin survives History codec");
+            var killedFact = new Event(EventKind.JobKilled, seq: observed.Seq, reason: "test", job: empty.Job! with { Status = "killed" });
+            var killedRoundTrip = JsonCodec.ReadEvent(JsonCodec.WriteEvent(killedFact));
+            Check(killedRoundTrip.Job!.OriginCallID == initial.CallID && killedRoundTrip.Job.OriginTool == "slow",
+                "termination facts preserve Job origin");
+            var legacy = System.Text.Json.Nodes.JsonNode.Parse(saved)!;
+            legacy["tool"]!["job"]!.AsObject().Remove("origin_call_id");
+            legacy["tool"]!["job"]!.AsObject().Remove("origin_tool");
+            Check(JsonCodec.ReadEvent(legacy.ToJsonString()).Job is { OriginCallID: "", OriginTool: "" },
+                "legacy Job origin stays unknown");
             released.SetResult();
             var final = await Call("wait_for_job", new { handle = 1, ai_callback_pattern = "last", ai_callback_delay = 2 });
             Check(Text(final).Contains("last"), "fresh pattern result");
@@ -88,6 +104,8 @@ internal static class JobTests
             });
             Check(pty.Job?.Status == "running" && Text(pty).Contains("PTY") && Text(pty).Contains("50 200"), "real PTY with dimensions");
             var input = await Call("send_input", new { handle = pty.Job!.Handle, input = "hello", ai_callback_pattern = "answer:hello", ai_callback_delay = 2 });
+            Check(input.CallID != pty.CallID && input.Job!.OriginCallID == pty.CallID
+                && input.Job.OriginTool == "run_command", "input preserves original command identity");
             Check(Text(input).Contains("answer:hello") && !Text(input).Contains("PROMPT>"), "input pattern starts at new bytes");
 
             var many = await Call("run_command", new { command = "printf HEAD; i=0; while [ $i -lt 10000 ]; do printf x; i=$((i+1)); done; printf TAIL", max_output_bytes = 128 });
