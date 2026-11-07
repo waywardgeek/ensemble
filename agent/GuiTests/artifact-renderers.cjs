@@ -76,6 +76,22 @@ assert(!['8088', '8089', '8090'].includes(new URL(base).port));
             const large = page.locator('[data-part-id="large-result"]');
             assert((await large.locator('.preview').textContent()).includes('(bounded preview)'));
             assert.equal((await large.locator('details > pre').textContent()).length, 6000);
+            await page.evaluate(() => {
+                handle({ type: 'tool_dispatched', part_id: 'structured-call', name: 'list_directory', input: { path: '.' } });
+                handle({ type: 'tool_finished', part_id: 'structured-result', tool_part_id: 'structured-call',
+                    result: 'bounded model observation', directory_listing: { total_entries: 5, entries: [
+                        { name: 'one\ntwo', kind: 'unknown' },
+                        { name: '<img src=x onerror=alert(1)>', kind: 'unknown' },
+                        { name: 'folder', kind: 'directory' }
+                    ] } });
+            });
+            const structured = page.locator('[data-part-id="structured-result"]');
+            assert.equal(await structured.locator('.directory-preview li').count(), 3);
+            assert.deepEqual(await structured.locator('.directory-preview code').allTextContents(),
+                ['one\ntwo', '<img src=x onerror=alert(1)>', 'folder']);
+            assert((await structured.locator('.directory-preview').textContent()).includes('3 of 5 entries shown (2 omitted)'));
+            assert.equal(await structured.locator('img, script').count(), 0);
+            assert.equal(await structured.locator('details > pre').textContent(), 'bounded model observation');
             assert.deepEqual(errors, []);
             await page.close();
             console.log(`PASS directory renderer ${width}: literal data, raw detail, stable nodes/focus, missing/failing/error/unpaired fallback, bounded preview`);

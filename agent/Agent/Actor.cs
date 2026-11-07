@@ -190,7 +190,7 @@ public sealed partial class Agent
         }
         if (fact.Kind is EventKind.ToolReturned or EventKind.ToolObserved)
         {
-            var part = new ToolResultPart(fact.CallID, fact.Parts, fact.IsError, fact.Job, fact.ToolReferences, fact.WorkProduct);
+            var part = new ToolResultPart(fact.CallID, fact.Parts, fact.IsError, fact.Job, fact.ToolReferences, fact.WorkProduct, fact.DirectoryListing);
             Publish(new Observation(ObservationKind.PartFinal, saved.Seq, part));
         }
     }
@@ -623,7 +623,7 @@ public sealed partial class Agent
                 {
                     Record(new Event(EventKind.ToolObserved, callID: result.CallID, parts: result.Parts,
                         isError: result.IsError, job: result.Job, toolReferences: result.ToolReferences,
-                        observationDuration: message.ObservationDuration, workProduct: result.WorkProduct));
+                        observationDuration: message.ObservationDuration, workProduct: result.WorkProduct, directoryListing: result.DirectoryListing));
                     StageHandoff(message.Call!, result);
                     message.ToolReply!.TrySetResult(result);
                 }
@@ -870,7 +870,7 @@ public sealed partial class Agent
             // Controls allocate no wrapper Job, but may observe an existing one.
             Record(new Event(resultKind, callID: result.CallID, parts: result.Parts,
                 isError: result.IsError, job: result.Job, toolReferences: result.ToolReferences,
-                observationDuration: message.ObservationDuration, workProduct: result.WorkProduct));
+                observationDuration: message.ObservationDuration, workProduct: result.WorkProduct, directoryListing: result.DirectoryListing));
             StageHandoff(completedCall, result);
             if (active?.Kind != MailKind.DirectTool)
             {

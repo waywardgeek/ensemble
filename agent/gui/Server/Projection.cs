@@ -198,6 +198,8 @@ public static partial class Gui
                     ["recorded_at"] = fact.Time?.ToString("O"),
                     ["part_id"] = id, ["tool_part_id"] = calls.GetValueOrDefault(fact.CallID),
                     ["call_id"] = fact.CallID, ["result"] = JsonCodec.Text(fact.Parts),
+                    ["directory_listing"] = fact.DirectoryListing is null ? null
+                        : JsonNode.Parse(JsonCodec.WriteEvent(fact))?["tool"]?["directory_listing"]?.DeepClone(),
                     ["parts"] = new JsonArray(fact.Parts.Select(p => (JsonNode)JsonCodec.WritePart(p)).ToArray()),
                     ["is_error"] = fact.IsError,
                     ["job"] = fact.Job is null ? null : JsonNode.Parse(JsonCodec.WriteEvent(fact))?["tool"]?["job"]?.DeepClone()

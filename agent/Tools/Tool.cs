@@ -508,6 +508,7 @@ public sealed partial class Tool
             {
                 return InspectImage(call, cancellation);
             }
+            if (kind == ToolKind.ListDirectory) return ListDirectory(call);
             var text = kind switch
             {
                 ToolKind.AgentStatus => Status(job),
@@ -517,7 +518,6 @@ public sealed partial class Tool
                     or ToolKind.ShutdownAgent or ToolKind.KillAgent or ToolKind.SpawnSubAgent or ToolKind.AgentsStatus or ToolKind.InterruptAgent or ToolKind.GetSubmission or ToolKind.SendMessage or ToolKind.AskAgent
                     or ToolKind.WaitForAgent or ToolKind.WaitForAgentChange => await ChildOperationAsync(job, call.Args, cancellation),
                 ToolKind.ReadFile => ReadFile(call.Args),
-                ToolKind.ListDirectory => ListDirectory(call.Args),
                 ToolKind.SearchFiles => SearchFiles(call.Args),
                 ToolKind.RunCommand => await job.RunCommandAsync(call.Args, cancellation),
                 ToolKind.Custom => await handler!(job, call.Args, cancellation),

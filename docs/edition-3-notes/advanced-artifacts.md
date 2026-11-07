@@ -490,3 +490,48 @@ checks, and all six default GUI groups. Both browser fixture hosts joined. GUI a
 CLI packaged API-note bytes match source. The shared core regression completed with 377 passed and zero failed. Evidence: `renderer-discovery-*`, `renderer-skill-*`, and
 `discovery-*` logs under the existing renderer-versions evidence directory. No
 installation, provider inference or application restart occurred.
+
+## Executed slice: bounded directory operation evidence
+
+`DirectoryListing` is immutable presentation evidence alongside `ToolResultPart`
+and successful returned/observed History events, not an extra model-visible Part.
+The listing operation captures individual names in its existing enumeration loop;
+newlines in names remain inside one entry. Confirmed directories carry that kind.
+Other entries currently remain unknown: `Directory.Exists` returning false does
+not prove a regular file exists. No later filesystem reread reconstructs evidence.
+
+The display snapshot retains a prefix of at most 256 entries and 32 KiB of UTF-8
+names, plus the actual total count. It reports omitted entries explicitly. The
+existing text output, retained output file and model observation clipping remain
+unchanged. Jobs retain this value separately from the structured-result branch,
+which would otherwise bypass ordinary text clipping. The first successful terminal
+observation delivers it, including an empty directory; later observations do not
+repeat it. Constructor/codec bounds refuse invalid evidence. Historical records
+without this optional field remain plain text. History copies and serialization
+preserve evidence; provider request normalization and result redaction omit it.
+
+The GUI projects the optional evidence as `directory_listing`. The preview API's
+optional third argument supplies it without breaking two-argument candidates.
+The shipped module renders literal names as separate list items, directory labels,
+and shown/total/omitted counts. Legacy results keep their text preview. Metadata
+identity participates in preview invalidation; raw details are unchanged.
+
+Verification so far: clean core/GUI builds; focused real directory dispatch with
+302 entries, a newline filename, a 64-byte observation cap, display truncation,
+empty directory, once-only observation, recorded-event and result codec round trips,
+and malformed metadata refusals. Actual-page desktop/phone checks use synthetic
+frames to establish separate names, literal HTML-looking names, omission labels,
+raw details, focus stability and renderer fallbacks. This is not a single end-to-end
+live directory-to-browser proof. Desktop/phone trial/reload/Keep/recovery/rollback
+and six default GUI groups pass; the shared core suite completed with 378 passed
+and zero failed. All owned fixture hosts joined.
+The zero-delay scheduling/later-wait branch is not deterministically forced by this
+slice's tests; do not claim scheduler luck proves it.
+
+Failures: the new negative test initially used nonexistent EventKind.UserAdded;
+compilation refused before testing, corrected to MessageReceived. The first browser
+wrapper incorrectly invoked the independently hosted trial script with only an
+ambient URL; its missing CLI arguments refused before starting its fixture. The
+wrapper's own host joined. Correct explicit SDK/assembly invocation passed. Failed
+log retained as directory-browser-invocation-failure.log in the renderer evidence
+directory. No installed application, provider inference, or live service changed.

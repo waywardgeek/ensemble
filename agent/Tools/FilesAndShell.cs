@@ -66,19 +66,25 @@ public sealed partial class Tool
         return Encoding.UTF8.GetString(bytes, 0, boundary) + "\n[truncated]\n";
     }
 
-    private string ListDirectory(JsonElement args)
+    private ToolResultPart ListDirectory(ToolCallPart call)
     {
-        var directory = String(args, "path", ".");
+        var directory = String(call.Args, "path", ".");
         var files = Parent().Sandbox();
         var result = new StringBuilder();
+        var entries = new List<DirectoryEntry>();
+        int total = 0, nameBytes = 0;
+        bool displayFull = false;
         foreach (string name in files.ReadDirectory(directory))
         {
+            total++;
+            var entryKind = DirectoryEntryKind.Unknown;
             result.Append(name);
             try
             {
                 if (files.IsDirectory(Path.Combine(directory, name)))
                 {
                     result.Append('/');
+                    entryKind = DirectoryEntryKind.Directory;
                 }
             }
             catch (IOException)
@@ -87,8 +93,17 @@ public sealed partial class Tool
                 // a visible name. Decoration must not bypass the boundary.
             }
             result.Append('\n');
+            int size = Encoding.UTF8.GetByteCount(name);
+            if (!displayFull && entries.Count < DirectoryListing.MaximumEntries
+                && size <= DirectoryListing.MaximumNameBytes - nameBytes)
+            {
+                entries.Add(new DirectoryEntry(name, entryKind));
+                nameBytes += size;
+            }
+            else displayFull = true;
         }
-        return result.ToString();
+        return new ToolResultPart(call.CallID, [new TextPart(result.ToString())],
+            directoryListing: new DirectoryListing(entries, total));
     }
 
     private IEnumerable<string> SearchPaths(string path, HashSet<string> visited)

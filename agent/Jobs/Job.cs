@@ -119,6 +119,7 @@ public sealed partial class Job
                                 output.Flush();
                                 Notify();
                             }
+                            directoryListing = result.DirectoryListing;
                             isError = result.IsError;
                         }
                     }
@@ -374,8 +375,9 @@ public sealed partial class Job
                     if (info.Status == "done" && cursor < bytes && structuredResult is { } completed)
                     {
                         cursor = bytes;
+                        directoryListingObserved = true;
                         return new ToolResultPart(callID, completed.Parts, completed.IsError,
-                            info, completed.ToolReferences, completed.WorkProduct);
+                            info, completed.ToolReferences, completed.WorkProduct, completed.DirectoryListing);
                     }
                 }
                 bool truncated = fresh.Length > maxBytes;
@@ -397,9 +399,15 @@ public sealed partial class Job
                         + "\n[output truncated; full output on disk]\n"
                         + Encoding.UTF8.GetString(fresh.AsSpan(tailStart));
                 }
+                DirectoryListing? listing = null;
                 bool firstReport;
                 lock (gate)
                 {
+                    if (info.Status == "done" && !error && !directoryListingObserved)
+                    {
+                        listing = directoryListing;
+                        directoryListingObserved = true;
+                    }
                     firstReport = cursor == 0;
                     cursor += fresh.Length;
                 }
@@ -420,7 +428,7 @@ public sealed partial class Job
                 return new ToolResultPart(callID, [new TextPart(bareResult ? text : header + text)], error, info with
                 {
                     Truncated = truncated
-                });
+                }, directoryListing: listing);
             }
             await Task.WhenAny(signal, expires, wake).WaitAsync(token);
         }

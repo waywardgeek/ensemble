@@ -134,6 +134,27 @@ public static partial class JsonCodec
         return JsonNode.Parse(value.GetRawText());
     }
 
+    private static JsonObject? WriteDirectoryListing(DirectoryListing? value) => value is null ? null : new()
+    {
+        ["total_entries"] = value.TotalEntries,
+        ["entries"] = new JsonArray(value.Entries.Select(entry => (JsonNode)new JsonObject
+        {
+            ["name"] = entry.Name, ["kind"] = entry.Kind.ToString().ToLowerInvariant()
+        }).ToArray())
+    };
+    private static DirectoryListing? ReadDirectoryListing(JsonElement owner)
+    {
+        if (!owner.TryGetProperty("directory_listing", out var value) || value.ValueKind == JsonValueKind.Null)
+            return null;
+        return new DirectoryListing(value.GetProperty("entries").EnumerateArray().Select(entry =>
+            new DirectoryEntry(String(entry, "name"), String(entry, "kind") switch
+            {
+                "unknown" => DirectoryEntryKind.Unknown, "file" => DirectoryEntryKind.File,
+                "directory" => DirectoryEntryKind.Directory,
+                _ => throw new JsonException("Invalid directory entry kind")
+            })), value.GetProperty("total_entries").GetInt32());
+    }
+
     private static JsonObject? WriteWorkProduct(WorkProductInfo? value) => value is null ? null : new()
     {
         ["id"] = value.ID, ["name"] = value.Name, ["offered_bytes"] = value.OfferedBytes
@@ -177,6 +198,7 @@ public static partial class JsonCodec
             ["type"] = "tool_result",
             ["call_id"] = p.CallID,
             ["work_product"] = WriteWorkProduct(p.WorkProduct),
+            ["directory_listing"] = WriteDirectoryListing(p.DirectoryListing),
             ["parts"] = Parts(p.Parts),
             ["tool_references"] = new JsonArray(p.ToolReferences.Select(name => (JsonNode?)JsonValue.Create(name)).ToArray()),
             ["is_error"] = p.IsError
@@ -244,7 +266,7 @@ public static partial class JsonCodec
         "blob" => new BlobPart(String(value, "mime"), ReadRef(value.GetProperty("ref"))),
         "opaque" => new OpaquePart(ReadProvenance(value.GetProperty("from")), value.GetProperty("data")),
         "tool_call" => new ToolCallPart(String(value, "call_id"), ReadProvenance(value.GetProperty("from")), String(value, "name"), value.GetProperty("args"), value.TryGetProperty("opaque", out var op) ? op : null),
-        "tool_result" => new ToolResultPart(String(value, "call_id"), Parts(value), Flag(value, "is_error"), workProduct: ReadWorkProduct(value), toolReferences: value.TryGetProperty("tool_references", out var references) ? references.EnumerateArray().Select(item => item.GetString()!) : null),
+        "tool_result" => new ToolResultPart(String(value, "call_id"), Parts(value), Flag(value, "is_error"), workProduct: ReadWorkProduct(value), directoryListing: ReadDirectoryListing(value), toolReferences: value.TryGetProperty("tool_references", out var references) ? references.EnumerateArray().Select(item => item.GetString()!) : null),
         "redacted" => new RedactedPart(String(value, "kind"), value.GetProperty("bytes").GetInt64(), String(value, "reason"), value.TryGetProperty("ref", out var r) ? ReadRef(r) : null),
         var t => throw new FormatException($"Unknown part type: {t}")
     };
@@ -316,6 +338,7 @@ public static partial class JsonCodec
                     tool["parts"] = Parts(value.Parts);
                     tool["is_error"] = value.IsError;
                     if (value.WorkProduct is not null) tool["work_product"] = WriteWorkProduct(value.WorkProduct);
+                    if (value.DirectoryListing is not null) tool["directory_listing"] = WriteDirectoryListing(value.DirectoryListing);
                     if (!value.ToolReferences.IsEmpty)
                     {
                         tool["tool_references"] = new JsonArray(value.ToolReferences.Select(name => (JsonNode?)JsonValue.Create(name)).ToArray());
@@ -444,7 +467,7 @@ public static partial class JsonCodec
                 var tool = root.GetProperty("tool");
                 return new(kind, seq, time, parts: Parts(tool), callID: String(tool, "call_id"), name: OptionalString(tool, "name"),
                     args: tool.TryGetProperty("args", out var args) ? args : null, isError: Flag(tool, "is_error"),
-                    workProduct: ReadWorkProduct(tool),
+                    workProduct: ReadWorkProduct(tool), directoryListing: ReadDirectoryListing(tool),
                     observationDuration: root.TryGetProperty("observation_ticks", out var ticks) ? TimeSpan.FromTicks(ticks.GetInt64()) : null,
                     toolReferences: tool.TryGetProperty("tool_references", out var toolRefs) ? toolRefs.EnumerateArray().Select(item => item.GetString()!) : null,
                     job: tool.TryGetProperty("job", out var job) ? new JobInfo(

@@ -62,7 +62,7 @@ public sealed partial class Job
             if (structuredResult is { } completed)
             {
                 return new ToolResultPart(call.CallID, completed.Parts,
-                    completed.IsError, info, completed.ToolReferences, completed.WorkProduct);
+                    completed.IsError, info, completed.ToolReferences, completed.WorkProduct, completed.DirectoryListing);
             }
             // Expected protocol/execution errors use the normal Job output path.
             // Completion has closed the writer, and this read changes no cursor.

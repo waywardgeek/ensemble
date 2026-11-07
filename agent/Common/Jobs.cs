@@ -83,6 +83,8 @@ public sealed partial class Job
     // it until destruction so automatic collection can read it independently;
     // later ordinary observations still return only unseen byte output.
     private ToolResultPart? structuredResult;
+    private DirectoryListing? directoryListing;
+    private bool directoryListingObserved;
     private long bytes;
     private long cursor;
     // End of the latest urgent progress range. The shared byte cursor consumes

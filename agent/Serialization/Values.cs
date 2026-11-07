@@ -342,7 +342,7 @@ public sealed partial class ToolCallPart
 }
 public sealed partial class ToolResultPart
 {
-    public partial ToolResultPart(string callID, IEnumerable<Part> parts, bool isError, JobInfo? job, IEnumerable<string>? toolReferences, WorkProductInfo? workProduct)
+    public partial ToolResultPart(string callID, IEnumerable<Part> parts, bool isError, JobInfo? job, IEnumerable<string>? toolReferences, WorkProductInfo? workProduct, DirectoryListing? directoryListing)
     {
         if (string.IsNullOrEmpty(callID))
         {
@@ -353,9 +353,12 @@ public sealed partial class ToolResultPart
         // Copy the sequence so callers cannot change an already recorded result.
         Parts = parts.ToImmutableArray();
         IsError = isError;
+        if (directoryListing is not null && isError)
+            throw new ArgumentException("An error result cannot contain a directory listing");
         if (workProduct is not null && isError)
             throw new ArgumentException("An error result cannot offer a work product");
         WorkProduct = workProduct;
+        DirectoryListing = directoryListing;
         Job = job;
         ToolReferences = (toolReferences ?? []).Distinct(StringComparer.Ordinal).ToImmutableArray();
         if (ToolReferences.Any(string.IsNullOrWhiteSpace) || (isError && !ToolReferences.IsEmpty))
@@ -386,7 +389,7 @@ public sealed partial class Event
         string error, long redactFrom, long redactTo, Redaction? level, string reason, JobInfo? job,
         long responseID, IEnumerable<int>? partIDs, IEnumerable<string>? toolReferences,
         MemoryEntry? memory, MemoryRetirement? retirement, string taskID,
-        CompressionLaunch? compression, CompressionOutcome? outcome, TimeSpan? observationDuration, WorkProductInfo? workProduct)
+        CompressionLaunch? compression, CompressionOutcome? outcome, TimeSpan? observationDuration, WorkProductInfo? workProduct, DirectoryListing? directoryListing)
     {
         if (!Enum.IsDefined(kind) || (actor.HasValue && !Enum.IsDefined(actor.Value)))
         {
@@ -445,9 +448,12 @@ public sealed partial class Event
         RedactTo = redactTo;
         Level = level;
         Reason = reason;
+        if (directoryListing is not null && (isError || kind is not (EventKind.ToolReturned or EventKind.ToolObserved)))
+            throw new ArgumentException("Directory listings require a successful observation");
         if (workProduct is not null && (isError || kind is not (EventKind.ToolReturned or EventKind.ToolObserved)))
             throw new ArgumentException("Work products require a successful returned observation");
         WorkProduct = workProduct;
+        DirectoryListing = directoryListing;
         Job = job;
         ResponseID = responseID;
         PartIDs = partIDs?.ToImmutableArray() ?? [];
@@ -483,11 +489,11 @@ public sealed partial class Event
         }
     }
 
-    public partial Event Numbered(long seq, DateTimeOffset time) => new(Kind, seq, time, Actor, Parts, From, Usage, CallID, Name, Args, IsError, Error, RedactFrom, RedactTo, Level, Reason, Job, ResponseID, PartIDs, ToolReferences, Memory, Retirement, TaskID, Compression, Outcome, ObservationDuration, WorkProduct);
+    public partial Event Numbered(long seq, DateTimeOffset time) => new(Kind, seq, time, Actor, Parts, From, Usage, CallID, Name, Args, IsError, Error, RedactFrom, RedactTo, Level, Reason, Job, ResponseID, PartIDs, ToolReferences, Memory, Retirement, TaskID, Compression, Outcome, ObservationDuration, WorkProduct, DirectoryListing);
 
     public partial Event WithDisplay(long responseID, IEnumerable<int> partIDs) =>
         new(Kind, Seq, Time, Actor, Parts, From, Usage, CallID, Name, Args,
-            IsError, Error, RedactFrom, RedactTo, Level, Reason, Job, responseID, partIDs, ToolReferences, Memory, Retirement, TaskID, Compression, Outcome, ObservationDuration, WorkProduct);
+            IsError, Error, RedactFrom, RedactTo, Level, Reason, Job, responseID, partIDs, ToolReferences, Memory, Retirement, TaskID, Compression, Outcome, ObservationDuration, WorkProduct, DirectoryListing);
 }
 public sealed partial class Entry
 {

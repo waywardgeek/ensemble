@@ -155,6 +155,15 @@ try
         Console.WriteLine($"{passed} passed, {failures} failed");
         return failures == 0 ? 0 : 1;
     }
+    if (args is ["--directory-listing-tests"] || args.Length == 0)
+    {
+        await AsyncCase("Directory presentation evidence and bounded observation", () => DirectoryListingTests.Run(temp));
+        if (args is ["--directory-listing-tests"])
+        {
+            Console.WriteLine($"Directory tests: {passed} passed, {failures} failed");
+            return failures == 0 ? 0 : 1;
+        }
+    }
     if (args is ["--skill-tests"] || args.Length == 0)
     {
         await AsyncCase("Chapter 9 transactional skills and capability gating", SkillTests.Capabilities);
