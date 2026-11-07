@@ -37,6 +37,21 @@ see the [chapter guide](chapters.md). This is not a claim that the book is finis
 
 The companion publication is available under [companion/](companion/README.md).
 
+## Writing new chapters
+
+Read the [chapter-writing procedure](chapter-writing-procedure.md) and
+[voice guide](voice.md) before drafting. The procedure identifies the current
+human-led creation method and distinguishes it from historical execution runs.
+Begin with the TL;DR, plain-language explanation and exercises; develop the
+implementation with the human before writing the detailed chapter body.
+
+[Advanced Artifacts](advanced-artifacts.md) is an initial design packet under
+active discussion. It is unnumbered and excluded from the release assembly;
+chapter placement and open renderer interfaces remain undecided. Its
+[working notes](../docs/edition-3-notes/advanced-artifacts.md) preserve the agreed
+direction and unresolved choices. This link does not announce implementation,
+independent reconstruction acceptance, or a newly rebuilt publication.
+
 ## Sequential manuscript numbers and historical endpoints
 
 Only Edition 3 manuscript numbers changed. Do not renumber immutable source
