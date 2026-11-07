@@ -193,13 +193,15 @@ state changes must not make adjacent controls jump either.
 The status bar contains:
 
 - A model dropdown, sized to its current name within responsive limits,
-  using the existing same-provider, between-turn model-change operation. Choosing
-  a model sends the change immediately; there is no separate Apply button. The
-  server acknowledgment, not the click, establishes the displayed selection. A
-  refused change must restore that selection. Keep all groups on one vertically
-  centered row without shrinking the fonts.
-  Compatible model names are not proof of account entitlement. Preserve the
-  distinction between running selection and persisted launch configuration.
+  showing one entry per vendor/model. Use Chapter27's between-turn selection of
+  the complete configured route, not a wire-name substitution on the old endpoint.
+  Choosing a model resolves the saved funding default and sends the change
+  immediately; there is no separate Apply button. The server acknowledgment, not
+  the click, establishes the displayed selection. A refused change restores that
+  selection. Keep all groups on one vertically centered row without shrinking
+  fonts. Missing or ambiguous funding points to Settings, never a silent fallback.
+  A persistent Agent saves its explicit offering independently of the global
+  default. A recommended name is not proof of account entitlement.
 - A speaker-icon Speech control with an accessible name and native checked
   semantics. Speech remains opt-in and browser-local, defaulting off rather than
   inheriting a server enable flag. Header and settings use the same local preference. Per-message Speak and Stop
@@ -310,8 +312,19 @@ dialog is open. Source/geometry checks are not human usability acceptance.
 Appearance settings belong to their existing store. Memory/recall settings
 belong to the selected Agent. Preserve durable-save-before-acknowledgment,
 sibling-policy preservation, draft protection, and rejection of stale selection
-frames. Funding stays fixed for a running Agent. Codex renewal remains Codex's
-responsibility; public OAuth operations must not turn into Codex operations.
+frames. Settings → AI owns the application-wide default funding for each vendor.
+Changing a default does not retarget existing Agents; a subsequent explicit model
+selection applies it. Funding dropdowns save on change, showing pending, confirmed
+or unconfirmed status without an extra Save button. Never confuse a lost response
+with proof that the write failed. Codex renewal remains Codex's responsibility;
+public OAuth operations must not turn into Codex operations.
+
+The requested direction is automatic saving throughout Settings. Funding already
+implements it; model-limit, memory and recall forms still require explicit saves.
+Treat those remaining conversions as unfinished work, not completed acceptance.
+Save valid committed edits, not incomplete numeric input. Preserve the target
+Agent across delayed acknowledgments and retain recoverable drafts on refusal.
+Closing a dialog must not become an implicit, unacknowledged save operation.
 
 **Middle: Chat.** Give the conversation the main reading space, with a composer
 anchored at the bottom. The composer has exactly two visible widgets: a one-line
@@ -1110,10 +1123,12 @@ from vendor discovery, media support or pricing rows. The integrated choices are
 GPT-6 Astra (the primary/default choice), GPT-5.6 Sol, Claude Opus 5, Claude Sonnet 5,
 Claude Opus 4.6, Gemini 3.8 Flash and Gemini 4 Argon. Opus 5.5 is deliberately
 excluded. Carbon awaits a verified API listing. Preserve an existing non-catalog
-selection visibly as current rather than silently replacing it. Running Agents
-retain their provider, wire protocol and funding: other-vendor or incompatible
-choices are disabled, and the server still validates every selection. A model
-recommendation establishes neither entitlement nor new media capabilities or prices.
+selection visibly as current rather than silently replacing it. At this stage,
+model changes retained the existing provider, wire protocol and funding, so
+cross-vendor choices were disabled. Chapter27's configured offerings subsequently
+replaced that restriction: an explicit choice changes the complete route together.
+The server still validates every selection. A model recommendation establishes
+neither entitlement nor new media capabilities or prices.
 
 
 Provider-supplied reasoning summaries and thinking parts have one visible heading,
@@ -1148,3 +1163,80 @@ Exercise the real HTTP/WebSocket routes with local and configured public hosts,
 wrong hosts and origins, spoofed forwarding headers, missing custom headers,
 and the local-only callback exception. A simulated proxy test does not establish
 that the user's Cloudflare deployment or phone session works after installation.
+
+### Model selection exposed the recovery boundary
+
+Later daily use exposed gaps that isolated model tests had missed. The global
+settings file contained the approved vendor keys, yet the additional vendors were
+not enabled. The launcher gave the application an isolated HOME, so the default
+`~/.en/settings.json` lookup pointed somewhere else. The proposed remedy was an
+explicit approved global-settings path, not copying credentials or searching other
+homes. That proposal alone did not establish the later installed configuration.
+Test the launcher's actual environment as well as the host's default-path logic.
+A successful build does not establish which configuration the running process read.
+
+After switching Cadence to Opus, older peers with wire-name-only launch records
+could not identify a complete route. Refusing to guess their funding was correct;
+shutting down the GUI with them was not. The recovery interface must remain
+available when a stopped peer cannot perform inference. Bill worked with Codex
+to repair startup and simplify the controls, then asked Cadence to review and
+commit the uncommitted work.
+
+The repaired host keeps serving after fleet-restoration failure. Saved-peer
+controls can validate and save an explicit replacement offering, then retry that
+peer while retaining its conversation and sibling settings. Historical launch
+records are not rewritten to invent a past route. A subsequent restart uses the
+peer's own saved selection. This is bounded recovery after the initial Agent has
+started; it is not a general editor for failed initial-Agent construction or
+corrupt host files.
+
+Bill wanted one simple model name in the picker, with funding chosen in Settings.
+The GUI now resolves each vendor/model against the approved funding default at
+action time. API keys, Codex OAuth and public ChatGPT OAuth remain independent
+credential owners. Choosing or creating an Agent no longer rewrites a global
+funding default. Funding changes auto-save with visible confirmation or uncertainty;
+they do not move existing Agents to a different payer. The broader Settings
+conversion remains unfinished, as noted above.
+
+The review passed 374 core checks, GUI and browser checks, 16 isolated host startup
+cases and a three-start peer-recovery scenario. It also found a false-confidence
+trap: two Python host checks looked for `kind`, while canonical events use `type`.
+Their no-inference assertion could pass without detecting a request. The corrected
+helper validates the optional version1 log header, requires typed events and
+rejects `request_sent`. Its first correction wrongly treated the legitimate
+header as an event; that failed run was retained. Synthetic negative cases and
+fresh host runs then checked the corrected assertion. A missing field must not
+masquerade as evidence that an unwanted effect never happened.
+
+Sol exposed another boundary. It appeared in the recommended list but had no
+capability entry. The configured subscription routes required streaming, so the
+missing declaration disabled Sol under Codex and ChatGPT funding even though its
+API route remained selectable. The GUI misleadingly called this unavailable
+authentication. The repair added only Sol's text-streaming declaration and separated
+configuration refusals from lost authentication or relationships. It did not infer
+media support, reasoning options, context capacity or account entitlement.
+
+A new regression failed on Codex selection before the fix and passed afterward.
+All 375 core checks, focused GUI checks and the actual-host funding checks passed.
+Bill then switched to Sol, received its assessment of Ensemble, and switched back
+to Astra successfully. That human use adds evidence beyond local admission tests;
+it does not certify every model, payer or provider failure path. Cadence remains
+the collaborator identity across those model choices, not a claim of uninterrupted
+subjective experience. The repair commits are `040cc3d7` and `3aea8f98`; detailed
+scope and evidence are in the model-selection usability notes.
+
+These detours began while preparing ordinary GUI use of MiMo. The earlier bounded
+MiMo coding trial had already succeeded; repeating it was not the next task.
+The next step was to inspect the running host's explicitly approved Ollama catalog,
+then arrange a small separate Agent for human GUI acceptance. Its last verified
+serving allocation was 4096 tokens, not the advertised maximum. Do not move the
+full Cadence conversation there, infer readiness from old test counts, or silently
+turn a configuration check into another inference experiment.
+
+The subsequent read-only GUI catalog check found only OpenAI, Anthropic and Gemini,
+with no Ollama/MiMo offering. Create Agent exposed only the `ensemble` and `full`
+primary skills, not the small coding skill. The launcher had no model-config
+setting, though it forwarded supplied arguments. The live catalog, rather than
+that launcher observation alone, established the missing registration. No ET
+request or inference was made. Explicit host configuration and a small skill
+remained prerequisites to the ordinary GUI trial.
