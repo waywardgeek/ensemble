@@ -19,7 +19,7 @@ assert(!['8088','8089','8090'].includes(new URL(base).port));
     await route.fulfill({json:{handle:77,status:'done',start:100,end:100+data.length,rolled_out:true,encoding:'base64',data:data.toString('base64'),origin_call_id:'origin',origin_tool:'run_command'}}).catch(()=>{});
    });
    await page.goto(base);
-   await page.waitForFunction(()=>settings!==null&&!selectionPending&&jobSessions!==null);
+   await page.waitForFunction(()=>settings!==null&&!selectionPending&&jobSessions!==null&&typeof window.EnsembleArtifactRenderers?.command === "function");
    if(width===390) await page.locator('.pane-tab[data-pane="tools"]').click();
    await page.evaluate(()=>{
     settings={...settings,tts_enabled:false};
@@ -53,7 +53,27 @@ assert(!['8088','8089','8090'].includes(new URL(base).port));
    await page.evaluate(()=>document.querySelector('.job-session button').click());
    await page.waitForTimeout(100);
    assert(await page.evaluate(()=>document.querySelector('.terminal-output span')===firstSpan&&window.getSelection().toString()==='SAFE <img>'));
+   await page.evaluate(()=>{
+    window.originalCommandRenderer=window.EnsembleArtifactRenderers.command;
+    window.EnsembleArtifactRenderers.command=(parent)=>{parent.textContent='CUSTOM';};
+    document.dispatchEvent(new Event('ensemble-renderers-changed'));
+   });
+   assert(await page.evaluate(()=>document.querySelector('.terminal-output span')===firstSpan),'renderer change disrupted selection');
    await page.evaluate(()=>window.getSelection().removeAllRanges());
+   await page.waitForFunction(()=>document.querySelector('.terminal-output').textContent==='CUSTOM');
+   await page.evaluate(()=>{
+    window.EnsembleArtifactRenderers.command=(_parent,bytes)=>{bytes.fill(88);throw new Error('renderer refusal');};
+    document.dispatchEvent(new Event('ensemble-renderers-changed'));
+   });
+   assert.match(await page.locator('.terminal-output').textContent(),/SAFE <img>/);
+   assert.equal(await page.locator('.terminal-output img').count(),0);
+   await page.evaluate(()=>{
+    window.EnsembleArtifactRenderers.command=window.originalCommandRenderer;
+    document.dispatchEvent(new Event('ensemble-renderers-changed'));
+   });
+   assert.equal(await page.locator('.terminal-bold.terminal-fg-1').textContent(),'SAFE <img>');
+   assert(await page.evaluate(()=>document.querySelector('.job-session')===sessionNode));
+
    await page.evaluate(()=>{const marker=document.createElement('div');marker.id='background-marker';toolTranscript.append(marker);});
    await page.locator('.job-session button').click();
    await page.waitForTimeout(100);

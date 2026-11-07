@@ -818,3 +818,31 @@ Try/Keep/reload, shipped-only recovery and rollback; Markdown/copy regressions;
 all six default GUI groups. Fixture hosts joined. CLI and GUI distribution builds
 have zero warnings/errors, and copied prose dependencies/API note match source
 bytes. No full core rerun, installation, live provider or human acceptance claimed.
+
+
+### Continuing command presentation approval
+
+Extracted span presentation from `job-sessions.js` into skill source
+`shared/command-output.js`; its exact decoder is part of the approved package.
+The existing shared approval lifecycle now includes `command`, with no new store
+or automatic execution policy. GUI retains validated Agent/Job/origin identity,
+polling/cancellation, placement, rolling notice, selection and scroll ownership.
+Its latest bounded snapshot supports renderer changes after Job completion,
+without fetching again or changing model observations. Unchanged windows retain
+nodes; selection defers a changed renderer. Missing/throwing custom code uses a
+literal GUI fallback, not a promise to reverse arbitrary in-page side effects.
+
+The first build failed because the new route block reused `files`, conflicting
+with an enclosing local declaration. Renamed it `commandFiles`; no tests ran on
+the failed build. Desktop/phone session checks subsequently passed including
+selection-held changes, stable session node, safe fallback, raw history, and stale
+response reset. Full approval and packaging results follow after verification.
+
+Approval verification passed: clean fixture build, HTTP per-renderer isolation
+and exact two-file command package, desktop/phone Try/Keep/reload/recovery/rollback,
+and all six default GUI groups. Both normal distribution builds passed and copied
+skill source/API bytes matched. Final review then separated the custom renderer's
+mutable byte buffer from fallback input; a clean rebuilt fixture passed the
+mutation-then-throw negative at both widths with joined host. Earlier broad GUI
+and distribution checks precede that one-line controller correction; no full core,
+installed acceptance or deployment is claimed.

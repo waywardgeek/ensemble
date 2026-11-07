@@ -33,3 +33,8 @@ results without a usable specialized renderer. Its approval key is `tool_default
 it uses the same reviewed-version lifecycle as specialized tool previews. The GUI
 retains a final literal-text fallback if custom code throws or returns an invalid
 or already-connected node. Raw details and controls remain GUI-owned.
+
+`command-output.js` presents a bounded byte window in place, using the exact
+`terminal-output.js` helper bundled with its `command` approval package. Read
+these sources for terminal-log customization; polling and Job lifetime remain in
+the GUI. See the renderer API note for selection and rolling-window limits.

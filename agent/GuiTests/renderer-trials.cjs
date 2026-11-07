@@ -87,7 +87,7 @@ const { chromium } = require('../../edition-2/agent/gui/node_modules/playwright'
             await page.goto(base);
             await ready('Using the shipped');
             assert.equal(await page.evaluate(() => window.trialMarker), undefined);
-            for (const tool of ['read_file', 'search_files', 'write_file', 'edit_file', 'tool_default', 'prose']) {
+            for (const tool of ['read_file', 'search_files', 'write_file', 'edit_file', 'tool_default', 'prose', 'command']) {
                 await panel();
                 await page.locator('#renderer-tool').selectOption(tool);
                 await ready('Using the shipped ' + tool);
@@ -104,6 +104,13 @@ const { chromium } = require('../../edition-2/agent/gui/node_modules/playwright'
                 await ready('Trial active');
                 assert(await page.locator('#renderer-tool').isDisabled(), 'tool changed under active trial');
                 assert.equal(await page.evaluate(() => window.packageMarker), tool);
+                if (tool === 'command') {
+                    assert(await page.evaluate(() => {
+                        const node = document.createElement('pre');
+                        window.EnsembleArtifactRenderers.command(node, new TextEncoder().encode('\x1b[31mSAFE <img>\x1b[0m'), false);
+                        return node.textContent === 'SAFE <img>' && !!node.querySelector('.terminal-fg-1') && !node.querySelector('img');
+                    }), 'command package failed its decoder import');
+                }
                 if (tool === 'prose') {
                     assert.equal(await page.evaluate(() => {
                         const node = document.createElement('div');
@@ -141,7 +148,7 @@ const { chromium } = require('../../edition-2/agent/gui/node_modules/playwright'
                 await ready('Using the shipped');
                 assert.equal(await page.evaluate(() => window.packageMarker), undefined);
             }
-            console.log(`PASS shared approval ${width}: six additional output selectors, inert packages, helper imports, independent keep/reload, safe mode, rollback`);
+            console.log(`PASS shared approval ${width}: seven additional output selectors, inert packages, helper imports, independent keep/reload, safe mode, rollback`);
             assert.deepEqual(await page.evaluate(() => {
                 const registry = window.EnsembleArtifactRenderers;
                 const original = registry.tool_default;

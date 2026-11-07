@@ -16,7 +16,7 @@ public static partial class Gui
             if (values.Count == 0) return "list_directory"; // Existing clients.
             if (values.Count != 1) return null;
             return values[0] is "list_directory" or "read_file" or "search_files"
-                or "write_file" or "edit_file" or "tool_default" or "prose" ? values[0] : null;
+                or "write_file" or "edit_file" or "tool_default" or "prose" or "command" ? values[0] : null;
         }
         bool Allowed(HttpContext context, bool mutation)
         {
@@ -46,6 +46,17 @@ public static partial class Gui
                 if (stream is null) return null;
                 using var reader = new StreamReader(stream);
                 return reader.ReadToEnd();
+            }
+            if (renderer == "command")
+            {
+                var commandFiles = new Dictionary<string, string>();
+                foreach (string helper in new[] { "command-output.js", "terminal-output.js" })
+                {
+                    string? source = Source("EnsembleGui.Assets/skills/shared/" + helper);
+                    if (source is null) return Results.NotFound();
+                    commandFiles.Add("shared/" + helper, source);
+                }
+                return Results.Json(new { entry = "shared/command-output.js", files = commandFiles });
             }
             if (renderer == "prose")
             {
@@ -119,7 +130,7 @@ public static partial class Gui
             try
             {
                 var package = store.Read(version);
-                if (package.Renderer is not ("list_directory" or "read_file" or "search_files" or "write_file" or "edit_file" or "tool_default" or "prose")
+                if (package.Renderer is not ("list_directory" or "read_file" or "search_files" or "write_file" or "edit_file" or "tool_default" or "prose" or "command")
                     || !package.Files.TryGetValue(file, out string? source))
                     return Results.NotFound();
                 // Validate the snapshot on every read; a changed file must never

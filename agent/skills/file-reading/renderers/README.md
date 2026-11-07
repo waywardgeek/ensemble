@@ -64,7 +64,7 @@ remain literal text. Numbered lines are presentation, not a replacement for raw
 recorded output. Empty content has no invented written line. Removed and inserted
 sections are an applied replacement, not a whole-file diff.
 
-The trial panel selects directory, read, write, edit, search, default tool output or prose. Accepted
+The trial panel selects directory, read, write, edit, search, default tool output, prose or continuing command output. Accepted
 and previous versions are independent per tool and shared across Agent views.
 Only one trial is active through the panel at a time: Keep it or reload before
 changing tools. Package review and promotion must match the selected tool.
@@ -105,3 +105,19 @@ The `prose` selection uses an in-place function rather than the detached preview
 interface: `render(parent, text, allowCopy)`. Chat and readable thinking share it.
 Read `skills/shared/README.md` for lifecycle ownership and the complete three-file
 parser/lexer package. The GUI retains original text, speech and a literal fallback.
+
+## Continuing command output
+
+The `command` selection exports `render(parent, bytes, rolledOut)`, a synchronous
+in-place function. `bytes` is a fresh Uint8Array of at most 64 KiB; `rolledOut`
+indicates that the beginning of the retained output is no longer in this window.
+The shipped package includes `shared/command-output.js` and its exact
+`shared/terminal-output.js` decoder. It is a terminal log, not an emulator.
+
+The GUI owns Agent/Job/origin validation, fetching, cancellation, foreground
+placement, notices, selection deferral and scroll position. It retains one bounded
+snapshot to repaint when approval changes, including after completion. Custom
+code owns only output presentation, not those controls or recorded observations.
+Missing or throwing code falls back to literal decoded text, which may show ANSI
+control fragments; this does not undo custom side effects. The shipped decoder
+resets styling at rolling boundaries and makes complete terminal commands inert.

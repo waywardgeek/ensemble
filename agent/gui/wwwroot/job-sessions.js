@@ -1,5 +1,3 @@
-import { terminalRuns } from "./skills/shared/terminal-output.js";
-
 // Owns only a page's continuing views, never Jobs or their model-observation cursor.
 export function createJobSessions(pane, request = fetch) {
     const sessions = new Map();
@@ -20,7 +18,9 @@ export function createJobSessions(pane, request = fetch) {
         return false;
     }
     function paint(session, value) {
-        if (session.renderedStart === value.start && session.renderedData === value.data) {
+        session.latest = value;
+        const renderer = window.EnsembleArtifactRenderers?.command;
+        if (session.renderedStart === value.start && session.renderedData === value.data && session.renderer === renderer) {
             session.status = value.status;
             session.label.textContent = `Command session · Job ${session.handle} · ${value.status}`;
             return;
@@ -32,18 +32,17 @@ export function createJobSessions(pane, request = fetch) {
         session.pending = null;
         const bytes = Uint8Array.from(atob(value.data), c => c.charCodeAt(0));
         if (bytes.length !== value.end - value.start) throw new Error("Invalid window length");
-        const runs = terminalRuns(bytes, value.rolled_out);
         const oldTop = session.output.scrollTop;
         const atBottom = !session.output.contains(document.activeElement) && session.output.scrollHeight - oldTop - session.output.clientHeight < 24;
-        const nodes = runs.map(run => {
-            const span = document.createElement("span");
-            span.textContent = run.text;
-            if (run.bold) span.classList.add("terminal-bold");
-            if (run.foreground !== null) span.classList.add(`terminal-fg-${run.foreground}`);
-            if (run.background !== null) span.classList.add(`terminal-bg-${run.background}`);
-            return span;
-        });
-        session.output.replaceChildren(...nodes);
+        try {
+            if (typeof renderer !== "function") throw new Error("Command renderer unavailable");
+            renderer(session.output, bytes.slice(), value.rolled_out);
+        } catch {
+            // Optional presentation cannot suppress the recorded output. This
+            // literal fallback does not emulate ANSI or undo custom side effects.
+            session.output.replaceChildren(document.createTextNode(new TextDecoder().decode(bytes)));
+        }
+        session.renderer = renderer;
         session.renderedStart = value.start;
         session.renderedData = value.data;
         session.output.scrollTop = atBottom ? session.output.scrollHeight : oldTop;
@@ -91,6 +90,9 @@ export function createJobSessions(pane, request = fetch) {
             paint(session, session.pending);
     }
     document.addEventListener("selectionchange", selectionChanged);
+    document.addEventListener("ensemble-renderers-changed", () => {
+        for (const session of sessions.values()) if (session.latest) paint(session, session.latest);
+    });
     function observe(card, foreground = false) {
         const job = card.job;
         if (job?.origin_tool !== "run_command" || typeof job.origin_call_id !== "string" || !job.origin_call_id ||
