@@ -37,11 +37,45 @@ public sealed partial class Skills
         var lists = new Dictionary<string, List<string>>(StringComparer.Ordinal);
         string? list = null;
         ImmutableArray<McpServerSpec> servers = [];
+        var renderers = ImmutableArray.CreateBuilder<SkillRenderer>();
         for (int index = 1; index < end; index++)
         {
             string line = lines[index].Trim();
             if (line.Length == 0 || line.StartsWith('#'))
             {
+                continue;
+            }
+            if (line == "renderers:")
+            {
+                if (char.IsWhiteSpace(lines[index][0]) || !fields.TryAdd("renderers", ""))
+                    throw Invalid("Duplicate or indented renderers field");
+                var names = new HashSet<string>(StringComparer.Ordinal);
+                int indent = -1;
+                while (index + 1 < end && (string.IsNullOrWhiteSpace(lines[index + 1])
+                    || char.IsWhiteSpace(lines[index + 1][0])))
+                {
+                    string raw = lines[++index];
+                    string item = raw.Trim();
+                    if (item.Length == 0 || item.StartsWith('#')) continue;
+                    int currentIndent = raw.Length - raw.TrimStart().Length;
+                    if (raw.Contains('\t') || (indent >= 0 && currentIndent != indent))
+                        throw Invalid("Renderer entries require consistent space indentation");
+                    indent = currentIndent;
+                    int separator = item.IndexOf(':');
+                    if (separator < 1) throw Invalid("Expected renderer name: entry");
+                    string renderer = item[..separator].Trim();
+                    string entry = item[(separator + 1)..].Trim();
+                    if (!Regex.IsMatch(renderer, "^[A-Za-z0-9_-]+$") || !names.Add(renderer))
+                        throw Invalid("Invalid or duplicate renderer name");
+                    if (entry.Length > 256 || !entry.EndsWith(".js", StringComparison.Ordinal)
+                        || !Regex.IsMatch(entry, "^[A-Za-z0-9_./-]+$")
+                        || entry.Split('/').Any(segment => segment is "" or "." or ".."))
+                        throw Invalid("Renderer entry must be a relative JavaScript file");
+                    if (renderers.Count >= 64) throw Invalid("Too many renderer entries");
+                    renderers.Add(new SkillRenderer(renderer, entry));
+                }
+                if (renderers.Count == 0) throw Invalid("Empty renderers mapping");
+                list = null;
                 continue;
             }
             if (line == "mcp_servers:")
@@ -114,6 +148,6 @@ public sealed partial class Skills
             ? values.Distinct(StringComparer.Ordinal).ToImmutableArray() : [];
         return new SkillDefinition(name, fields.GetValueOrDefault("description", ""), type,
             Names("tools"), Names("depends"), Names("loadable-skills"),
-            string.Join('\n', lines.Skip(end + 1)), servers);
+            string.Join('\n', lines.Skip(end + 1)), servers, renderers.ToImmutable());
     }
 }

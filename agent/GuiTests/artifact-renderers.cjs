@@ -16,6 +16,7 @@ assert(!['8088', '8089', '8090'].includes(new URL(base).port));
             page.on('pageerror', error => errors.push(error.message));
             await page.goto(base);
             await page.waitForFunction(() => settings !== null && !selectionPending);
+            await page.waitForFunction(() => typeof window.EnsembleArtifactRenderers?.list_directory === "function");
             if (width === 390) await page.locator('.pane-tab[data-pane="tools"]').click();
             const text = '<img src="https://invalid.example/leak" onerror="window.leaked=true">\nfolder/\nname\nwith-newline\n';
             await page.evaluate(text => {

@@ -241,6 +241,22 @@ internal static class SkillTests
         {
             var parsed = Skills.Parse("---\nname: list\ntype: loadable\ntools:\n - read_file\n - list_directory\n---\nbody\n---\n$UNKNOWN", "fixture");
             Check(parsed.Tools.Length == 2 && parsed.Body.EndsWith("---\n$UNKNOWN"), "Frontmatter consumed body or lost list");
+            var described = Skills.Parse("---\nname: display\ntype: dependency\nrenderers:\n  list_directory: renderers/list-directory.js\n---\nManual", "fixture");
+            Check(described.Renderers.Single() == new SkillRenderer("list_directory", "renderers/list-directory.js")
+                && described.Tools.IsEmpty && described.Body == "Manual", "Renderer metadata changed grants or body");
+            Check(parsed.Renderers.IsEmpty, "Legacy skill acquired a renderer");
+            foreach (string mapping in new[] {
+                "  list_directory: ../outside.js", "  list_directory: /absolute.js",
+                "  list_directory: a//b.js", "  list_directory: a/./b.js",
+                "  list_directory: https://example.com/a.js", "  list_directory: a.txt",
+                "  list_directory: a.js\n  list_directory: b.js",
+                "  list_directory: a.js\n   read_file: b.js", "" })
+            {
+                bool refused = false;
+                try { Skills.Parse("---\nname: bad\ntype: dependency\nrenderers:\n" + mapping + "\n---\nBody", "fixture"); }
+                catch (InvalidDataException) { refused = true; }
+                Check(refused, "Invalid renderer declaration accepted: " + mapping);
+            }
             bool invalid = false;
             try { Skills.Parse("---\nname: x\ntype: mystery\n---\nbody", "fixture"); }
             catch (InvalidDataException) { invalid = true; }

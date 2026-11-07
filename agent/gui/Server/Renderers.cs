@@ -25,6 +25,24 @@ public static partial class Gui
             or InvalidDataException or InvalidOperationException or JsonException or UnauthorizedAccessException;
         static IResult Refusal() => Results.BadRequest(new { error = "Renderer data is invalid, unavailable, or changed. Refresh before trying again." });
 
+        // Read only this build's explicit embedded source. Discovery does not
+        // stage a version, change acceptance, or expose a filesystem directory.
+        routes.MapGet("/renderers/shipped", (HttpContext context) =>
+        {
+            if (!Allowed(context, false)) return Results.StatusCode(403);
+            var assembly = typeof(Gui).Assembly;
+            using var manual = assembly.GetManifestResourceStream("EnsembleGui.RendererSkill/file-reading");
+            if (manual is null) return Results.NotFound();
+            using var reader = new StreamReader(manual);
+            var definition = Ensemble.Skills.Parse(reader.ReadToEnd(), "embedded file-reading");
+            var association = definition.Renderers.Single(value => value.Name == renderer);
+            using var code = assembly.GetManifestResourceStream("EnsembleGui.Assets/skills/file-reading/" + association.Entry);
+            if (code is null) return Results.NotFound();
+            using var source = new StreamReader(code);
+            return Results.Json(new { entry = association.Entry,
+                files = new Dictionary<string, string> { [association.Entry] = source.ReadToEnd() } });
+        });
+
         routes.MapGet("/renderers/selection", (HttpContext context) =>
         {
             if (!Allowed(context, false)) return Results.StatusCode(403);

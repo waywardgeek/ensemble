@@ -48,6 +48,11 @@ def main():
                     return json.loads(request("selection"))["selection"]
 
                 assert selection() == {"accepted": None, "previous": None}
+                shipped = json.loads(request("shipped"))
+                assert shipped["entry"] == "renderers/list-directory.js"
+                source = Path(__file__).resolve().parents[1] / "skills/file-reading/renderers/list-directory.js"
+                assert shipped["files"] == {shipped["entry"]: source.read_text()}
+                assert selection() == {"accepted": None, "previous": None}, "Source discovery changed selection"
                 package = {"entry": "main.js", "files": {"main.js": "import './helper.js'; export default () => document.createElement('pre');", "helper.js": "export const marker = 'one';"}}
                 version = json.loads(request("stage", package))["version"]
                 assert selection()["accepted"] is None, "Staging activated a candidate"

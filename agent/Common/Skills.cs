@@ -18,11 +18,15 @@ public enum SkillType { Primary, Loadable, Dependency }
 
 public sealed record PrimarySkillChoice(string Name, string Description);
 
+// Discovery metadata only: neither a tool grant nor permission to execute JavaScript.
+public sealed record SkillRenderer(string Name, string Entry);
+
 // Templates grant nothing. Activation creates a separate historical snapshot;
 // later variable changes cannot rewrite instructions already given to a model.
 public sealed record SkillDefinition(string Name, string Description, SkillType Type,
     ImmutableArray<string> Tools, ImmutableArray<string> Depends,
-    ImmutableArray<string> Loadable, string Body, ImmutableArray<McpServerSpec> McpServers = default);
+    ImmutableArray<string> Loadable, string Body, ImmutableArray<McpServerSpec> McpServers = default,
+    ImmutableArray<SkillRenderer> Renderers = default);
 public sealed partial class SkillPart : Part
 {
     public string Name { get; }

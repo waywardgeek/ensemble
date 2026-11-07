@@ -453,3 +453,40 @@ storage negative test also needed an explicit InvalidDataException catch.
 Next: explicit skill association and readable package discovery, then the other
 agreed renderer behaviors and continuing Job output. These tests establish this
 slice only; they do not complete Advanced Artifacts or its chapter body.
+
+## Executed slice: declared directory renderer and readable source
+
+`SkillDefinition` now carries immutable `SkillRenderer` metadata. The bounded
+front-matter subset accepts an explicit mapping:
+
+```yaml
+renderers:
+  list_directory: renderers/list-directory.js
+```
+
+Entries are relative JavaScript paths, bounded to 64 declarations and 256 path
+characters; duplicate names, traversal, empty segments and inconsistent indentation
+refuse. Metadata alone grants no tool or browser execution. Existing skills remain
+valid without mappings. The file-reading dependency owns the shipped declaration.
+
+The shipped directory source now uses the same default-export ES-module interface
+as trial candidates. The GUI controller imports it relative to its own frozen,
+fingerprinted asset URL before selecting accepted custom code. Import failure
+leaves the ordinary text preview available. Lesson: shipped source must be a usable
+candidate starting point, not require conversion from a separate registration API.
+
+The read-only `renderers/shipped` route derives its entry from the embedded skill
+manual and returns the explicitly embedded build source in inert candidate-package
+JSON. It neither stages nor selects code. It does not represent optional disk
+asset overrides or arbitrary downloaded skill packages. Settings offers an explicit
+source download. The installed skill has a short renderer API note; GUI and CLI
+copy that note alongside readable implementation. Browser loading does not place
+source in model context. General helper-library discovery remains unfinished.
+
+Verification: clean build and six skill groups including valid/invalid mappings
+and no accidental tool grants; clean GUI build, HTTP source comparison against the
+actual file plus unchanged selection, desktop/phone trial/reload/acceptance/recovery
+checks, and all six default GUI groups. Both browser fixture hosts joined. GUI and
+CLI packaged API-note bytes match source. The shared core regression completed with 377 passed and zero failed. Evidence: `renderer-discovery-*`, `renderer-skill-*`, and
+`discovery-*` logs under the existing renderer-versions evidence directory. No
+installation, provider inference or application restart occurred.

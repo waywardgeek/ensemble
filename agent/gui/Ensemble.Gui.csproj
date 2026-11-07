@@ -11,6 +11,7 @@
   <ItemGroup>
     <ProjectReference Include="../Ensemble.csproj" />
     <EmbeddedResource Include="wwwroot/**/*" LogicalName="EnsembleGui.Assets/%(RecursiveDir)%(Filename)%(Extension)" />
+    <EmbeddedResource Include="../skills/file-reading/SKILL.md" LogicalName="EnsembleGui.RendererSkill/file-reading" />
     <!-- Explicit reviewed renderer set; discovering a skill does not execute its JavaScript. -->
     <EmbeddedResource Include="../skills/file-reading/renderers/list-directory.js" LogicalName="EnsembleGui.Assets/skills/file-reading/renderers/list-directory.js" />
   </ItemGroup>

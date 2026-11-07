@@ -12,5 +12,6 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="../../skills/file-reading/renderers/list-directory.js" Link="skills/file-reading/renderers/list-directory.js" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="../../skills/file-reading/renderers/README.md" Link="skills/file-reading/renderers/README.md" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 </Project>

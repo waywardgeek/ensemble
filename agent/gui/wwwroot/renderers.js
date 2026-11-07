@@ -11,7 +11,11 @@
     const tryButton = byId("renderer-try");
     const keep = byId("renderer-keep");
     const rollback = byId("renderer-rollback");
-    const shipped = window.EnsembleArtifactRenderers.list_directory;
+    // Capture the fingerprinted script URL synchronously; currentScript is null
+    // after an await. Missing shipped code leaves the host's plain-text fallback.
+    const shippedUrl = new URL("./skills/file-reading/renderers/list-directory.js", document.currentScript.src).href;
+    window.EnsembleArtifactRenderers ||= Object.create(null);
+    let shipped;
     const safe = new URL(location.href);
     safe.searchParams.set("renderers", "shipped");
     byId("renderer-safe").href = safe.href;
@@ -106,6 +110,10 @@
         location.reload();
     }, "Rollback was not confirmed. Reload to check selection; no automatic retry was made.");
     void action(async () => {
+        try {
+            const module = await import(shippedUrl);
+            if (typeof module.default === "function") { shipped = module.default; install(shipped); }
+        } catch { /* Plain-text fallback remains available. */ }
         const state = await api("selection");
         available = state.available === true;
         if (!available) { status.textContent = "This host uses shipped renderers only."; return; }
