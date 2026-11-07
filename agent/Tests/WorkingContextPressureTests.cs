@@ -73,10 +73,18 @@ internal static partial class MeterTests
                 return wire;
             }
             string first = await Turn(80_000);
-            Check(first.Contains("80.0%") && first.Contains("next good handoff point"), "80% gentle reminder missing");
+            Check(first.Contains("80.0%") && first.Contains("next good handoff point")
+                && !first.Contains("Call micro_handoff now"), "80% gentle reminder missing or escalated early");
             Check(!(await Turn(90_000)).Contains("Ensemble context reminder:"), "Gentle reminder repeated");
-            Check((await Turn(90_000)).Contains("90.0%"), "90% first repeated reminder missing");
-            Check((await Turn(99_999)).Contains("90.0%"), "90% reminder not repeated each request");
+            foreach (int tokens in new[] { 90_000, 99_999 })
+            {
+                string urgent = await Turn(tokens);
+                Check(urgent.Contains("90.0%") && urgent.Contains("Call micro_handoff now")
+                    && urgent.Contains("Do not begin another investigation, edit, or test")
+                    && urgent.Contains("finish recording its outcomes and hand off immediately afterward")
+                    && !urgent.Contains("next good handoff point"),
+                    "90% immediate handoff instruction missing from repeated request");
+            }
             Check(!agent.History().Events().Any(fact => fact.Kind == EventKind.HandoffRecorded),
                 "Checkpoint occurred below exact 100% threshold");
 

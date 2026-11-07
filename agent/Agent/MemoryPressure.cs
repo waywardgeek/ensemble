@@ -61,10 +61,13 @@ public sealed partial class Agent
                 || mainContextOccupancy < 90m && memoryPressureReminderSent)
                 return "";
             string percent = mainContextOccupancy.Value.ToString("0.0", CultureInfo.InvariantCulture);
-            string cadence = mainContextOccupancy >= 90m
-                ? "This reminder repeats on every model request until a checkpoint or lower reported usage."
-                : "This is the once-per-checkpoint reminder.";
-            return $"Ensemble context reminder: the last reported main request used {percent}% of your configured working input-token limit. Please call micro_handoff at the next good handoff point. {cadence} This is reported usage, not a prediction of the next request.";
+            string instruction = mainContextOccupancy >= 90m
+                ? "Context is near the working limit. Call micro_handoff now with a concise continuation note. "
+                    + "Do not begin another investigation, edit, or test. If already completing a tool batch, "
+                    + "finish recording its outcomes and hand off immediately afterward. "
+                    + "This reminder repeats on every model request until a checkpoint or lower reported usage."
+                : "Please call micro_handoff at the next good handoff point. This is the once-per-checkpoint reminder.";
+            return $"Ensemble context reminder: the last reported main request used {percent}% of your configured working input-token limit. {instruction} This is reported usage, not a prediction of the next request.";
         }
     }
 
