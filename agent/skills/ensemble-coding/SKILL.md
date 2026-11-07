@@ -9,7 +9,7 @@ type: loadable
 ## Canonical layout
 
 - `agent/`: active C# 14 / .NET 10 application.
-- `book/`: current Edition 3 manuscript, Chapters 00–27, and companion.
+- `book/`: current Edition 3 manuscript, Chapters 00–28, and companion.
 - `solutions/chNN/`: preserved C# chapter endpoints. Their historical numbers
   differ from some current manuscript numbers; see `book/README.md`.
 - `edition-1/` and `edition-2/`: frozen archives. Do not rewrite their sources,
@@ -34,6 +34,23 @@ are permitted for authorized work; Bill owns pushes.
 Normal work is interactive collaboration, not an autonomous chapter campaign.
 New student exercises require an explicitly assigned isolated worktree and scope.
 A candidate is not permission to replace Bill's installed application.
+
+Make visible explanations a reproducible engineering record for Bill and for a
+future continuation after opaque thinking is removed. Before a tool batch, name
+the relevant paths and, once inspected, functions or types; explain the change
+or question and why it matters. If the location is unknown, say what you will
+search for instead of guessing. “Starting the next slice” is not an explanation.
+Afterward, describe the actual behavior and ownership, decisions and rejected
+alternatives that matter, edits made, failures corrected, and what the checks
+proved or left open. Distinguish source edits, builds, installation and live use.
+
+The standard is that Bill could reproduce the work by listening to this record,
+and a future collaborator could recover the code's design from chat. Use concrete,
+spoken-friendly explanations with enough detail to teach the code, not raw output
+dumps, private internal deliberation, or repetitive status narration. State each
+lesson learned in chat. Answer interruptions, then resume clear authorized work;
+keep docs/queue.md current when priorities or completion change. Do not expand
+acceptance criteria merely to keep working.
 
 ## C# architecture and review
 

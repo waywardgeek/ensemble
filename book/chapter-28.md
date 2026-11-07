@@ -724,9 +724,27 @@ The earlier Go crossover record is history, not a list of patches to transplant.
 Several of its lessons belong in the replacement exercise:
 
 - **Explain before effects.** Ordinary visible assistant text explains intent;
-  private reasoning, a spinner, and a tool result do not replace it. Keep that
-  explanation visible beside Actions. The existing enforcement checks arrival
-  order, not just a normalized final message; do not weaken it for the new UI.
+  private reasoning, a spinner, and a tool result do not replace it. Name the
+  paths and inspected functions, the intended change and its reason. Follow up
+  with actual changes, meaningful decisions, failures and verification limits.
+  Keep that explanation visible beside Actions. The existing enforcement checks
+  arrival order, not teaching quality; do not weaken it for the new UI.
+- **Continue the agreed work.** Answer an interruption, incorporate corrections,
+  then resume when the next authorized step is clear. A progress summary is not
+  completion. Ordinary collaboration should not require idle goal reminders to
+  keep moving. Stop for completion, a human stop request or a consequential
+  decision; do not manufacture additional acceptance gates to avoid stopping.
+- **Checkpoint at a useful boundary.** After a verified milestone and before
+  beginning another, consider `micro_handoff` even at modest context usage, such
+  as 45%. This is a judgment about the work, not another percentage threshold.
+  Carry concrete changes, reasons, evidence limits, pending decisions, live Jobs
+  and the next action. Observe the result; handoff neither finishes the task nor
+  cancels its Jobs. Chapter 14 supplies the context-management contract.
+- **Preserve suspended goals explicitly.** Chapter 24's goal control selects one
+  file; it has no native stack or automatic pop. Before an authorized switch,
+  record the prior task and its next step in the work queue. Restore it explicitly
+  when appropriate. A stack remains a design proposal, not a feature that skill
+  wording can create.
 - **Observation serves work.** Use explicit GUI/speech observation when needed.
   Do not add automatic snapshot polling before every model request as a layout
   shortcut or turn diagnostic noise into spoken dialogue.
@@ -747,6 +765,32 @@ Several of its lessons belong in the replacement exercise:
 
 These principles explain why green grades alone did not finish the crossover.
 They also keep a redesign from regressing less visible work that already matters.
+
+### Teach the next collaborator through chat
+
+Bill listens to the engineering explanation to learn the code. “Starting the
+next slice” names neither the code nor the decision. A useful explanation says,
+for example: “`agent/Skills/Skills.cs`, in `UniversalControls()`, already grants
+`micro_handoff` alongside skill loading and unloading. I will put milestone
+handoff guidance in `agent/skills/ensemble/SKILL.md`; no new control or scheduler
+is needed.” After the edit, report what changed and how it was checked. Explain
+important rejected alternatives and errors when they affect the next decision.
+
+The visible record should let Bill reproduce the work and a future collaborator
+recover the design after opaque thinking is removed. That requires concrete
+paths, behavior, ownership and reasons, without dumping private deliberation or
+making the human listen to undigested tool output. Concision removes repetition,
+not the information needed to understand the change.
+
+The primary `ensemble` skill carries continuation and milestone-handoff guidance;
+`ensemble-coding` supplies the engineering-explanation standard; `goals` explains
+reminders and the single-goal limit. These are instruction improvements, not
+proof of reliable model behavior or new runtime features. Editing a skill file
+does not replace instruction snapshots already held by a running Agent. Verify
+subsequent activation or startup separately from saving the source. In daily
+use, check whether the collaborator answers a question and resumes, whether its
+explanation teaches the changed code, and whether its checkpoint preserves the
+next action. Do not turn that review into another open-ended acceptance campaign.
 
 ## Where to work
 
