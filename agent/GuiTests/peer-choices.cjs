@@ -8,7 +8,6 @@ const assert = require('node:assert/strict');
 const root = path.resolve(__dirname, '../gui/wwwroot');
 const offering = { vendor: 'ollama', endpoint: 'et', model: 'mimo' };
 const preference = { vendor: 'ollama', model: 'fixture-mimo' };
-const warning = 'Agent created, but the application-wide funding default was not saved. Existing funding defaults are unchanged.';
 let failChoices = false;
 const creations = [];
 
@@ -18,11 +17,12 @@ const creations = [];
         if (url.pathname.startsWith('/peers/')) {
             if (request.headers['x-ensemble-peers'] !== '1') { response.writeHead(403).end(); return; }
             response.setHeader('Content-Type', 'application/json');
+            if (url.pathname === '/peers/saved') { response.end('[]'); return; }
             if (url.pathname === '/peers/choices') {
                 if (failChoices) { response.writeHead(503).end('{}'); return; }
                 response.end(JSON.stringify({ model_choices: ['astra'], configured_models: [
-                    { vendor: 'Ollama', label: 'MiMo', offering, funding: 'No authentication', enabled: true },
-                    { vendor: 'Ollama', label: 'Unavailable', offering: { ...offering, model: 'gone' }, funding: 'Unavailable', enabled: false }
+                    { vendor: 'Ollama', label: 'MiMo', model: 'fixture-mimo', offering, funding: 'No authentication', enabled: true },
+                    { vendor: 'Ollama', label: 'Unavailable', model: 'gone', offering: { ...offering, model: 'gone' }, funding: 'Unavailable', enabled: false }
                 ], preferred_models: [
                     { vendor: 'Ollama', label: 'MiMo', preference, funding: 'No authentication', enabled: true },
                     { vendor: 'Ollama', label: 'Missing default', preference: { ...preference, model: 'gone' }, funding: 'unavailable; choose explicit funding', enabled: false }
@@ -33,7 +33,7 @@ const creations = [];
                 let body = '';
                 for await (const chunk of request) body += chunk;
                 const value = JSON.parse(body); creations.push(value);
-                response.end(JSON.stringify({ name: value.name, created: true, warning: value.name.startsWith('preferred-') ? warning : null })); return;
+                response.end(JSON.stringify({ name: value.name, created: true })); return;
             }
             response.writeHead(404).end(); return;
         }
@@ -61,21 +61,22 @@ const creations = [];
             assert.equal(await page.locator('#peer-model').evaluate(e => e.tagName), 'SELECT');
             assert.equal(await page.locator('#peer-skill').evaluate(e => e.tagName), 'SELECT');
             assert.equal(await page.locator('#peer-model optgroup').getAttribute('label'), 'Ollama');
-            assert.equal(await page.locator('#peer-model option[data-offering-key]').filter({ hasText: 'Unavailable' }).isDisabled(), true);
+            assert.equal(await page.locator('#peer-model option[data-offering-key]').count(), 0);
+            assert.equal(await page.locator('#peer-model option').filter({ hasText: /^MiMo$/ }).count(), 1);
             await page.locator('#peer-name').fill(`small-${width}`);
-            await page.locator('#peer-model').selectOption({ label: 'MiMo · No authentication' });
+            await page.locator('#peer-model').selectOption({ label: 'MiMo' });
             await page.locator('#peer-skill').selectOption('small-coding');
             await page.locator('#peer-create').click();
             await page.locator('#peer-notice').filter({ hasText: `Created Agent small-${width}` }).waitFor();
-            assert.deepEqual(creations.at(-1), { name: `small-${width}`, skill: 'small-coding', offering });
+            assert.deepEqual(creations.at(-1), { name: `small-${width}`, skill: 'small-coding', preference });
             await page.locator('#peer-open').click();
             await page.waitForFunction(() => !document.querySelector('#peer-create').disabled);
             assert.equal(await page.locator('#peer-model option').filter({ hasText: 'Missing default' }).isDisabled(), true);
             await page.locator('#peer-name').fill(`preferred-${width}`);
-            await page.locator('#peer-model').selectOption({ label: 'MiMo · remembered funding: No authentication' });
+            await page.locator('#peer-model').selectOption({ label: 'MiMo' });
             await page.locator('#peer-skill').selectOption('small-coding');
             await page.locator('#peer-create').click();
-            await page.locator('#peer-notice').filter({ hasText: warning }).waitFor();
+            await page.locator('#peer-notice').filter({ hasText: `Created Agent preferred-${width}` }).waitFor();
             assert.match(await page.locator('#peer-notice').textContent(), new RegExp(`Created Agent preferred-${width}`));
             assert.deepEqual(creations.at(-1), { name: `preferred-${width}`, skill: 'small-coding', preference });
         }

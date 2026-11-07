@@ -1,3 +1,17 @@
+# Current boundary: Cadence startup recovery and funding controls
+
+Bill requested a repair after switching Cadence to Opus made legacy peers fail
+restoration and shut down the GUI. The source now keeps the GUI available after
+fleet failure and provides explicit saved-peer model recovery. Model pickers show
+one vendor/model entry; Settings owns default funding changes. Explicit Codex and
+public OAuth stores can coexist with API funding in the OpenAI catalog.
+Core374/0, peer7/0, GUI socket/browser checks and isolated process restarts pass;
+see [recovery evidence](edition-3-notes/model-selection-usability.md).
+Initial-Agent/host-file failure recovery is outside this bounded peer repair.
+Bill then approved installation and startup. The verified candidate is installed
+in `/Users/bill/ensemble-edition3-cadence`; the GUI responds on port8088 with three
+saved peers awaiting explicit recovery, Astra once and all three funding sources.
+
 # Current boundary: Local Models domain implementation
 
 Bill approved Chapter27 implementation and graders personally by Cadence. The

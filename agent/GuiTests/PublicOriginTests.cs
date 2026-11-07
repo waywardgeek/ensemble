@@ -98,6 +98,16 @@ static class PublicOriginTests
             await Expect("/auth/status", HttpStatusCode.Forbidden);
             await Expect("/auth/status", HttpStatusCode.Forbidden, origin: "https://untrusted.example.test", guard: "X-Ensemble-Auth");
             await Expect("/auth/callback?code=dummy&state=dummy", HttpStatusCode.Forbidden);
+            // Same-origin fetch GETs omit Origin even behind the public proxy.
+            foreach (string path in new[] { "/peers/choices", "/peers/saved" })
+            {
+                await Expect(path, HttpStatusCode.OK, guard: "X-Ensemble-Peers");
+                await Expect(path, HttpStatusCode.Forbidden);
+                await Expect(path, HttpStatusCode.Forbidden, "https://untrusted.example.test", "X-Ensemble-Peers");
+            }
+            await Expect("/models/funding", HttpStatusCode.BadRequest, publicOrigin, "X-Ensemble-Peers", post: true);
+            await Expect("/models/funding", HttpStatusCode.Forbidden, guard: "X-Ensemble-Peers", post: true);
+            await Expect("/models/funding", HttpStatusCode.Forbidden, "https://untrusted.example.test", "X-Ensemble-Peers", post: true);
             // Refusal inside the operation (400), rather than its CSRF guard
             // (403), demonstrates that an allowed request reaches real routing.
             await Expect("/peers/create", HttpStatusCode.BadRequest, publicOrigin, "X-Ensemble-Peers", post: true);

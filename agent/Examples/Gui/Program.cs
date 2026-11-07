@@ -95,9 +95,9 @@ try
     string credentialsDirectory = Selected("--credentials-dir", "EN_CREDENTIALS_DIR");
     string billingSelection = Selected("--billing", "EN_BILLING");
     string codexAuthFile = Selected("--codex-auth-file", "EN_CODEX_AUTH_FILE");
-    // Codex and public OAuth have independent stores and renewal owners.
-    // Do not inspect a public store when this launch explicitly selects Codex.
-    Credentials? launchCredentials = billingSelection == "codex" || string.IsNullOrWhiteSpace(credentialsDirectory)
+    // A separately supplied public OAuth store may coexist with Codex. Merely
+    // registering it does not change the selected payer or renew a credential.
+    Credentials? launchCredentials = string.IsNullOrWhiteSpace(credentialsDirectory)
         ? null : new Credentials(app, credentialsDirectory);
     string? savedAccount = launchCredentials is null ? null
         : await launchCredentials.SelectedPlanAccountAsync();
@@ -172,6 +172,8 @@ try
     }
     var globalSettings = new GlobalSettings(app, globalSettingsPath);
     RegisterApiOfferings(app, globalSettings);
+    RegisterSubscriptionOfferings(app, config, launchCodex, launchCredentials,
+        accountSelection.Length != 0 ? accountSelection : savedAccount);
     string modelConfigurationPath = Selected("--model-config", "EN_MODEL_CONFIG");
     if (modelConfigurationPath.Length != 0)
     {
@@ -285,8 +287,19 @@ try
     Task restoring = RestoreFleet();
     async Task RestoreFleet()
     {
-        await agent.RestoreChildrenAsync(fleetStop.Token, waitForBrowser: true);
-        await app.RestorePeersAsync(agent, fleetStop.Token, waitForBrowser: true);
+        try
+        {
+            await agent.RestoreChildrenAsync(fleetStop.Token, waitForBrowser: true);
+            await app.RestorePeersAsync(agent, fleetStop.Token, waitForBrowser: true);
+        }
+        catch (OperationCanceledException) when (fleetStop.IsCancellationRequested) { throw; }
+        catch (Exception error)
+        {
+            // A stopped peer must not take away the human's recovery controls.
+            // Keep the original files; the GUI lists unstarted registry peers
+            // and can save an explicit selection before retrying one of them.
+            ReportFailure("Saved agents could not start; use the GUI's saved-agent recovery controls", error);
+        }
     }
     Task first = await Task.WhenAny(serving, restoring);
     if (ReferenceEquals(first, restoring) && restoring.IsCompletedSuccessfully)
@@ -455,6 +468,45 @@ static void RegisterApiOfferings(Application app, GlobalSettings settings)
             string modelID = recommendation.Name.Replace('.', '_');
             _ = new Model(endpoint, modelID, recommendation.Name,
                 recommendation.Label, features);
+        }
+    }
+}
+
+// Subscription routes share the OpenAI vendor with API funding, so the picker
+// can show one model while Settings selects its payer. No endpoint is probed.
+static void RegisterSubscriptionOfferings(Application app, Configuration launch,
+    CodexCredentials? codex, Credentials? credentials, string? account)
+{
+    if (codex is null && (credentials is null || string.IsNullOrWhiteSpace(account))) return;
+    var vendor = app.ModelVendors().SingleOrDefault(value => value.ID == "openai")
+        ?? new ModelVendor(app, "openai", "OpenAI");
+    if (codex is not null)
+    {
+        var authentication = new ModelAuthentication(app, "openai-codex", codex);
+        Add("codex", CodexCredentials.ServiceBase, authentication);
+    }
+    if (credentials is not null && !string.IsNullOrWhiteSpace(account))
+    {
+        var authentication = new ModelAuthentication(app, "openai-chatgpt", credentials, account);
+        Add("chatgpt", "https://api.openai.com", authentication);
+    }
+    void Add(string id, string address, ModelAuthentication authentication)
+    {
+        var endpoint = new ModelEndpoint(vendor, id, address, Surface.Responses, authentication);
+        foreach (var row in Engine.RecommendedModels.Where(value => value.Vendor == Vendor.OpenAI))
+        {
+            Engine.LookupModel(Vendor.OpenAI, row.Name, out ModelFeatures features);
+            ModelRequestPolicy? policy = null;
+            if (launch.Vendor == Vendor.OpenAI && launch.Model == row.Name)
+            {
+                string summary = launch.ReasoningSummary;
+                if (summary.Length == 0 && !features.ReasoningEfforts.IsDefaultOrEmpty) summary = "off";
+                policy = new ModelRequestPolicy(launch.DisableStreaming, launch.RequireToolExplanation,
+                    launch.DeferredTools, launch.StubsToolResults, launch.CacheBreakpoints,
+                    launch.PromptCacheKey, launch.ReasoningEffort, summary);
+            }
+            _ = new Model(endpoint, row.Name.Replace('.', '_'), row.Name, row.Label, features,
+                requestPolicy: policy);
         }
     }
 }

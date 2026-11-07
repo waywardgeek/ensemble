@@ -4,6 +4,77 @@ using Application = Ensemble.Ensemble;
 
 internal static class ConfiguredPeerTests
 {
+    public static async Task Recovery(string temp)
+    {
+        string container = Path.Combine(temp, "peer-recovery");
+        var legacy = new Configuration(Vendor.OpenAI, "old-wire", "http://127.0.0.1:1", "fake-key");
+        var app = new Application(TextWriter.Null, dataDirectory: container);
+        string registry = Path.Combine(container, "ensemble.json");
+        byte[] original;
+        try
+        {
+            Model local = Configure(app);
+            var root = new Agent(app, legacy, name: "root");
+            var peer = await app.CreatePeerAsync(root, "old-peer");
+            await peer.SaveRecallSettingsAsync(new RecallSettings(disabled: true));
+            peer.History().Append(new Event(EventKind.MessageReceived, actor: Actor.Human,
+                parts: [new TextPart("Keep this peer's own conversation.")]));
+            await root.SetModelAsync(local);
+            original = File.ReadAllBytes(registry);
+        }
+        finally { app.Destroy(); }
+
+        app = new Application(TextWriter.Null, dataDirectory: container);
+        try
+        {
+            Model local = Configure(app);
+            var root = new Agent(app, legacy, name: "root");
+            Check(ReferenceEquals(root.SelectedModel(), local), "Root restores its switched model.");
+            try
+            {
+                await app.RestorePeersAsync(root);
+                throw new Exception("Old unqualified route should require an explicit repair.");
+            }
+            catch (InvalidDataException) { }
+            Check(app.SavedPeers(root).Single().Name == "old-peer" && app.Agents().Length == 1,
+                "Failed fleet remains available for human recovery without a phantom peer.");
+            string settingsPath = Path.Combine(container, "agents", "old-peer", "settings.json");
+            byte[] before = File.ReadAllBytes(settingsPath);
+            try
+            {
+                await app.RestorePeerAsync(root, "old-peer", new ModelIdentity("missing", "missing", "missing"));
+                throw new Exception("Missing recovery model accepted.");
+            }
+            catch (InvalidOperationException) { }
+            Check(File.ReadAllBytes(settingsPath).SequenceEqual(before), "Refused recovery changed settings.");
+            var peer = await app.RestorePeerAsync(root, "old-peer", local.Identity());
+            Check(ReferenceEquals(peer.SelectedModel(), local)
+                && JsonNode.Parse(File.ReadAllText(settingsPath))!["recall"]!["disabled"]!.GetValue<bool>(),
+                "Explicit repair preserves sibling settings and selects the real Model.");
+            Check(JsonCodec.Text(peer.History().View().Dialogue.SelectMany(entry => entry.Parts))
+                .Contains("Keep this peer's own conversation."), "Repair discarded saved conversation.");
+            Check(File.ReadAllBytes(registry).SequenceEqual(original), "Repair rewrote historical launch choices.");
+            Check(peer.History().Events().All(value => value.Kind != EventKind.RequestSent), "Repair performed inference.");
+            try
+            {
+                await app.RestorePeerAsync(root, "old-peer", local.Identity());
+                throw new Exception("Live peer was replaced.");
+            }
+            catch (InvalidOperationException) { }
+        }
+        finally { app.Destroy(); }
+
+        app = new Application(TextWriter.Null, dataDirectory: container);
+        try
+        {
+            Model local = Configure(app);
+            var root = new Agent(app, legacy, name: "root");
+            var peer = (await app.RestorePeersAsync(root)).Single();
+            Check(ReferenceEquals(peer.SelectedModel(), local), "Repair did not survive the next restart.");
+        }
+        finally { app.Destroy(); }
+    }
+
     private static void Check(bool condition, string reason)
     {
         if (!condition) throw new Exception(reason);

@@ -1,5 +1,97 @@
 # Model selection usability follow-up
 
+## Cadence review of Codex's repair
+
+Bill supplied the uncommitted recovery, picker and funding work implemented with
+Codex. Cadence reviewed it and ran fresh isolated verification in
+`/private/tmp/cadence-codex-review.ShtOD6`: clean core/GUI/host builds, core374/0,
+six default GUI groups, the configured-model socket check, actual-page funding
+save/refusal/retry and peer recovery, desktop/phone creation controls, all16 host
+startup cases and the three-start recovery scenario passed. Fixture hosts joined;
+this review performed no installation, main-app restart or provider inference.
+Prose hard checks passed with advisory style warnings.
+
+Review found that both Python host checks compared `kind` rather than the event
+codec's `type`, making their no-inference assertion ineffective. The corrected
+shared helper validates the optional version1 header, requires typed events and
+rejects `request_sent`. Six synthetic cases check accepted logs and rejected
+inference, missing fields, bad versions and empty evidence. An initial correction
+wrongly treated the legitimate header as an event; its failed run is retained.
+The final host runs passed with the corrected assertions. Obsolete partial-save
+warning data was removed from the creation-dialog fixture.
+
+Limits: recovery here is for saved peers after the initial Agent starts, not a
+general repair UI for failed initial-Agent construction. Automatic saving is
+implemented for funding; working-context, memory and recall forms still have
+explicit Save controls. Converting those is remaining work, not acceptance implied
+by the funding browser test. The installation account below is the supplied prior
+repair record, not a deployment performed or independently reverified in this review.
+
+## November 6: startup recovery and separate funding controls
+
+Bill reported that selecting Opus then restarting Cadence stopped the GUI. The
+installed assembly reproduced `A legacy peer launch cannot identify a configured
+offering`: Cadence's new saved Anthropic selection was used as the policy source
+for Hobson, Resume and Pair programming's older wire-name-only launch records.
+The full saved Cadence History/journal loaded successfully; keys alone did not
+repair the peer routing refusal. The host wrapped the useful cause in a generic
+AggregateException and shut down its GUI.
+
+Bill requested a usable GUI after this failure, configuration recovery there,
+one entry per model, funding changes in Settings, and visible OAuth funding.
+The host now preserves the GUI after fleet-restoration failure. Saved-peer controls
+can persist an explicit per-peer selection and retry without guessing the old
+payer. They preserve the launch registry and conversation; subsequent restarts
+read each peer's own settings. Library all-peer restoration retains its strict
+prevalidation/rollback behavior. Initial-Agent construction and invalid host/model
+files remain startup errors; this repair does not claim arbitrary corrupt-file
+recovery or a general offline configuration editor.
+
+The picker and creation/recovery dialog show one vendor/model preference. Settings
+saves default funding independently; selections and creation no longer remember a
+new default implicitly. Ordinary Codex launch now registers its subscription route.
+An explicitly supplied public OAuth directory can coexist and registers its selected
+account separately. Both use the OpenAI vendor alongside API funding. Enumeration
+neither renews tokens nor submits inference. Model-specific reasoning options do
+not leak onto other recommendations without verified reasoning support.
+
+Evidence: `/private/tmp/cadence-repair-build`. Core374/0 and peer7/0 pass. The GUI
+suite and focused configured-model socket checks pass; browser checks exercise
+one-entry model selection, Settings funding, unavailable selection/recovery and
+creation at desktop/phone sizes. Sixteen existing host startup cases pass. The
+new external host script starts three times with synthetic API/Codex/public-OAuth
+credentials, keeps the GUI alive with a switched root and legacy peers, repairs
+through guarded HTTP and verifies automatic subsequent restoration with zero
+inference. Original registry and synthetic OAuth grant bytes remain unchanged.
+The first new host test caught reasoning options copied to an unverified model;
+only the matching launch model now retains that launch policy. Early test fixture
+corrections used canonical `/private/tmp` paths and checked durable recall settings
+before lazy Agent memory initialization. Historical results below are retained.
+
+Source/candidate verification is separate from installing or restarting Bill's app.
+Bill subsequently approved both. Six assembly/symbol files and the launcher were
+backed up under `backup-before-startup-repair-20261106-220308` in the Cadence app
+directory, then installed with byte comparisons. Existing dependency/runtime
+declarations matched the candidate. The launcher now explicitly supplies
+`home/.en/oauth`. The installed process serves HTTP200 on port8088, logs the saved
+agent restoration notice without exiting, and exposes three saved peers awaiting
+recovery. Read-only HTTP checks confirm Astra once and API key, Codex OAuth and
+ChatGPT OAuth funding. No peer model or funding default was chosen on Bill's behalf.
+
+Follow-up: Astra was present but disabled because no funding default had been
+saved. Bill chose Codex OAuth, then reported that he had missed the extra Save
+button. That choice is now saved, and funding dropdowns save on change with a
+per-vendor pending/saved/error message. A failed save restores the last confirmed
+choice. Refreshing the funding list clears stale controls before fetching.
+Inspection also reproduced HTTP403 for public-host catalog/recovery GETs without
+Origin, which browsers normally omit on same-origin reads. Those reads now use
+the checked Host and custom header; mutations still require the public Origin.
+The GUI suite, public-origin refusal checks, and actual browser autosave/refusal/
+retry/reload/recovery checks pass. The follow-up GUI assembly was backed up,
+installed and restarted while Cadence was idle. Installed browser checks confirm
+Astra is selectable, Codex OAuth is selected, and the extra Save button is absent.
+
+
 Bill requested dropdowns for Create Agent's model and primary skill, enabled
 cross-vendor selection using his available credentials, and a separate Ollama
 vendor group. The agreed policy is application-wide last-selected funding per

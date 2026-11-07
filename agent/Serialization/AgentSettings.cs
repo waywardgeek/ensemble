@@ -4,6 +4,23 @@ namespace Ensemble;
 
 internal sealed partial record AgentSettings
 {
+    internal partial void Write(Sandbox sandbox, string path)
+    {
+        var document = new System.Text.Json.Nodes.JsonObject
+        {
+            ["version"] = 1,
+            ["memory"] = JsonCodec.WriteMemorySettings(Memory),
+            ["recall"] = JsonCodec.WriteRecallSettings(Recall),
+            ["working_context"] = JsonCodec.WriteWorkingContextLimits(WorkingContext.IsDefault ? [] : WorkingContext)
+        };
+        if (SelectedOffering is { } offering)
+            document["selected_offering"] = JsonCodec.WriteModelIdentity(offering);
+        byte[] bytes = System.Text.Encoding.UTF8.GetBytes(document.ToJsonString());
+        if (bytes.Length > 16 * 1024)
+            throw new InvalidDataException("Agent settings exceed 16 KiB");
+        sandbox.ReplaceFile(path, bytes);
+    }
+
     internal static partial AgentSettings? Read(Sandbox sandbox, string path)
     {
         // Only absence means defaults. Corruption, confinement refusal and

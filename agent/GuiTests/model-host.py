@@ -20,6 +20,17 @@ def require(condition, message):
         raise AssertionError(message)
 
 
+
+def require_no_inference(log):
+    records = [json.loads(line) for line in log.read_text().splitlines() if line.strip()]
+    if records and "log_version" in records[0]:
+        require(records[0] == {"log_version": 1}, "unsupported event log header")
+        records = records[1:]
+    require(bool(records), "event log has no events")
+    require(all(isinstance(event.get("type"), str) for event in records), "event type missing")
+    require(all(event["type"] != "request_sent" for event in records), "startup initiated inference")
+
+
 def receive_exact(stream, count):
     data = bytearray()
     while len(data) < count:
@@ -198,8 +209,7 @@ def run_case(root, dotnet, gui, name, content, binding="none", billing="api", ke
     logs = list((directory / "data").rglob("events.jsonl"))
     require(bool(logs) == expected, "event log exists only after valid admission")
     for log in logs:
-        events = [json.loads(line) for line in log.read_text().splitlines() if line.strip()]
-        require(all(event.get("kind") != "request_sent" for event in events), "startup initiated inference")
+        require_no_inference(log)
     if global_content is not None:
         require(global_path.read_bytes() == global_content, "startup never rewrites global settings")
     return {"case": name, "passed": True, "exit": process.returncode, "joined": True, "forced": forced}

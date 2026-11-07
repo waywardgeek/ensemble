@@ -63,7 +63,43 @@ public static partial class Gui
                     ["vendor"] = group.Key.VendorID, ["model"] = group.Key.Model
                 },
                 ["vendor"] = first.VendorLabel, ["label"] = first.Label,
+                ["model"] = first.Model,
+                ["selected"] = selection.Model == first.Model
+                    && (selection.Offering?.VendorID == group.Key.VendorID
+                        || (selection.Offering is null && selection.Vendor.ToString()
+                            .Equals(group.Key.VendorID, StringComparison.OrdinalIgnoreCase))),
                 ["funding"] = funding, ["enabled"] = available
+            });
+        }
+        return result;
+    }
+
+    private static partial JsonArray FundingChoices(Agent agent)
+    {
+        var result = new JsonArray();
+        var root = agent.Parent();
+        if (root.GlobalSettings() is not { } settings) return result;
+        var defaults = settings.FundingDefaults();
+        var seen = new HashSet<(string Vendor, string Authentication)>();
+        foreach (var choice in agent.ModelSelectionStatus().ConfiguredChoices)
+        {
+            if (!choice.Available) continue;
+            Model model = root.ResolveModel(choice.Offering);
+            var auth = model.Parent().Authentication();
+            if (!seen.Add((choice.Offering.VendorID, auth.ID))) continue;
+            string label = auth.Kind switch
+            {
+                ModelAuthenticationKind.ApiKey => "API key",
+                ModelAuthenticationKind.Codex => "Codex OAuth",
+                ModelAuthenticationKind.ChatGptPlan => "ChatGPT OAuth · " + auth.Account,
+                _ => "No authentication · " + choice.EndpointID
+            };
+            result.Add(new JsonObject
+            {
+                ["vendor_id"] = choice.Offering.VendorID, ["vendor"] = choice.VendorLabel,
+                ["label"] = label, ["authentication"] = auth.ID,
+                ["offering"] = JsonCodec.WriteModelIdentity(choice.Offering),
+                ["selected"] = defaults.GetValueOrDefault(choice.Offering.VendorID) == auth.ID
             });
         }
         return result;

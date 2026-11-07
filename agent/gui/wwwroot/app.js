@@ -755,41 +755,41 @@ function showUsage(frame) {
         option.textContent = label;
         option.disabled = !enabled;
         if (!enabled) option.title = preference
-            ? "Remembered funding is unavailable, ambiguous, or incompatible. Choose an explicit offering."
+            ? "Default funding is unavailable or ambiguous. Choose funding in Settings → AI."
             : offering ? "Configured offering unavailable under this Agent's current policy."
             : "Unavailable legacy choice for this Agent's current route.";
         groups.get(vendor).append(option);
     };
-    const offeringKey = offering => JSON.stringify([offering.vendor, offering.endpoint, offering.model]);
     const configured = frame.configured_models || [];
-    for (const model of frame.preferred_models || []) {
-        add(model.vendor, "preference:" + JSON.stringify(model.preference),
-            `${model.label} — remembered funding: ${model.funding}`,
-            model.enabled, null, model.preference);
-    }
-    for (const model of configured) {
-        const serving = model.serving_context_tokens == null ? "serving context unknown"
-            : `${model.serving_context_tokens.toLocaleString("en-US")} serving tokens`;
-        add(model.vendor, offeringKey(model.offering),
-            `${model.label} — ${model.endpoint} — ${model.funding} — ${serving}`,
-            model.enabled, model.offering);
-    }
-    const recommendations = frame.recommended_models || [];
-    for (const model of recommendations) add(model.vendor, model.id, model.label, model.enabled);
+    const preferred = frame.preferred_models || [];
+    const shown = new Set();
     let selected = frame.selected_model;
-    if (frame.selected_offering) {
-        selected = offeringKey(frame.selected_offering);
-        if (frame.selection_available === false
-            || !configured.some(model => offeringKey(model.offering) === selected)) {
-            // A newly configured object can reuse an identity, but cannot heal
-            // the Agent's lost weak relationship without an explicit selection.
-            selected = "unavailable:" + selected;
-            add("Unavailable selection", selected, frame.selected_model + " (unavailable)", false);
-        }
-    } else if (!recommendations.some(model => model.id === selected && model.vendor === frame.model_vendor)) {
-        add(frame.model_vendor || "Current", selected, selected + " (current)", frame.selection_available !== false);
+    const key = (vendor, model) => `${vendor.toLowerCase()}:${model}`;
+    for (const model of preferred) {
+        const id = "preference:" + JSON.stringify(model.preference);
+        add(model.vendor, id, model.label + (model.selected && frame.selection_available === false ? " (unavailable)" : ""), model.enabled, null, model.preference);
+        shown.add(key(model.vendor, model.model || model.preference.model));
+        if (model.selected) selected = id;
     }
-    picker.title = "Configured offerings select endpoint and funding together. Availability is local configuration, not server health.";
+    // Embedded callers may have no global funding store. A sole explicit route
+    // still works; ambiguous routes require the host's funding configuration.
+    for (const model of configured) {
+        const identity = key(model.vendor, model.model);
+        if (shown.has(identity)) continue;
+        shown.add(identity);
+        const matches = configured.filter(value => key(value.vendor, value.model) === identity);
+        const id = JSON.stringify(model.offering);
+        add(model.vendor, id, model.label, matches.length === 1 && model.enabled, model.offering);
+        if (frame.selected_model === model.model && frame.selected_offering?.vendor === model.offering.vendor) selected = id;
+    }
+    for (const model of frame.recommended_models || []) {
+        if (shown.has(key(model.vendor, model.id))) continue;
+        add(model.vendor, model.id, model.label, model.enabled);
+        shown.add(key(model.vendor, model.id));
+    }
+    if (![...picker.options].some(option => option.value === selected))
+        add(frame.model_vendor || "Current", selected, frame.selected_model + " (current)", frame.selection_available !== false);
+    picker.title = "Select a model. Change its default funding in Settings → AI.";
     picker.value = selected;
     renderControls();
     const count = value => value == null ? "?" : value.toLocaleString("en-US");
@@ -1141,6 +1141,9 @@ window.addEventListener("pagehide", () => {
 });
 document.querySelector("#interrupt").onclick = () => send("interrupt");
 document.querySelector("#clear-tools").onclick = () => send("clear_tools");
+document.addEventListener("ensemble-funding-changed", () => {
+    if (socket?.readyState === WebSocket.OPEN) socket.send(JSON.stringify({ type: "get_model_choices" }));
+});
 document.querySelector("#model-choice").onchange = event => {
     // A choice is the action. The server's usage frame confirms it or restores
     // the unchanged model after refusal; never infer acceptance from the click.

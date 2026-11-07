@@ -924,6 +924,9 @@ public static partial class Gui
                                 };
                                 await selected.PostAsync(new AgentInput(interrupt));
                                 break;
+                            case "get_model_choices":
+                                lock (gate) { Queue(socket, queue, MeterFrame(selected)); }
+                                break;
                             case "set_model":
                                 try
                                 {
@@ -939,22 +942,7 @@ public static partial class Gui
                                         ModelIdentity identity = JsonCodec.ReadModelIdentity(offering);
                                         Model chosen = selected.Parent().ResolveModel(identity);
                                         await selected.SetModelAsync(chosen);
-                                        // Agent selection and the application default are separate
-                                        // durable writes. Never report the first as refused when
-                                        // only the second fails, or retarget other Agents.
-                                        if (selected.Parent().GlobalSettings() is { } globalSettings)
-                                        {
-                                            try { globalSettings.RememberFunding(chosen); }
-                                            catch (Exception error) when (error is ArgumentException or InvalidOperationException
-                                                or FormatException or IOException or InvalidDataException or UnauthorizedAccessException)
-                                            {
-                                                lock (gate)
-                                                {
-                                                    Queue(socket, queue, new JsonObject { ["type"] = "error",
-                                                        ["message"] = "Model selected, but the application-wide funding default was not saved. Existing funding defaults are unchanged." });
-                                                }
-                                            }
-                                        }
+
                                     }
                                     else
                                     {

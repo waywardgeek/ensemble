@@ -64,6 +64,7 @@ public static partial class Gui
     public static partial JsonObject MeterFrame(Agent agent);
     private static partial JsonObject WorkingContextFrame(Agent agent);
     private static partial JsonArray PreferredModelChoices(Agent agent, ModelSelectionStatus selection);
+    private static partial JsonArray FundingChoices(Agent agent);
     private static partial Model ResolvePreferredModel(Agent agent, System.Text.Json.JsonElement preference);
     // Replay and live durable delivery use this exact same projection.
     public static partial Projection Project(HistorySnapshot snapshot, string agentID);

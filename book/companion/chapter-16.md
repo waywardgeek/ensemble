@@ -25,17 +25,17 @@ Choosing it must select the vendor, endpoint, protocol and credential binding
 as one offering. Ollama using the OpenAI wire format does not become OpenAI, and
 an absent local route is not permission to borrow a cloud key.
 
-The application remembers the last explicitly chosen funding for each vendor in
+The application stores the default funding chosen in Settings for each vendor in
 `~/.en/settings.json`. Each persistent Agent saves its own qualified offering in
 its own settings file. A new vendor/model choice may consult the application
 preference; an existing Agent does not move when that preference changes. Missing
 or ambiguous funding refuses instead of trying another usable account.
 
-The GUI keeps explicit offerings separate from choices using remembered funding.
-It resolves preferences again when the action executes. Saving the Agent choice
-and remembering funding are two writes, not a joint transaction. If the second
-fails, say that the model was selected but the default was not saved. Reporting
-the whole operation as refused would teach the human the wrong state.
+The GUI lists each vendor/model once. Settings → AI changes its default funding;
+choosing a model resolves that preference again when the action executes. These
+are separate actions: selecting a model does not rewrite funding defaults, and
+saving a default does not retarget existing Agents. Explicitly supplied Codex and
+public OAuth stores remain independent funding choices alongside API keys.
 
 ## Identity is not permission to spend
 

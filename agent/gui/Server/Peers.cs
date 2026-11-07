@@ -28,7 +28,10 @@ public static partial class Gui
             context.Response.Headers["X-Content-Type-Options"] = "nosniff";
             var request = context.Request;
             string? expected = RequestOrigin(context, port, publicOrigin);
-            return expected is not null && MatchesOrigin(request, expected, required: expected == publicOrigin)
+            // Browsers omit Origin on same-origin GETs. The custom header and
+            // checked Host still guard reads; public mutations require Origin.
+            return expected is not null && MatchesOrigin(request, expected,
+                required: request.Method != "GET" && expected == publicOrigin)
                 && request.Headers["X-Ensemble-Peers"] == "1";
         }
 
@@ -37,6 +40,7 @@ public static partial class Gui
             if (!Guard(context)) return Results.StatusCode(StatusCodes.Status403Forbidden);
             // Reuse the same credential-free model projection as the main picker.
             var frame = MeterFrame(source);
+            frame["funding_choices"] = FundingChoices(source);
             frame["primary_skills"] = new System.Text.Json.Nodes.JsonArray(
                 (source.SkillManager()?.PrimaryChoices() ?? [])
                 .Select(value => (System.Text.Json.Nodes.JsonNode)new System.Text.Json.Nodes.JsonObject
@@ -46,10 +50,13 @@ public static partial class Gui
             return Results.Json(frame);
         }
 
-        async Task<IResult> Change(HttpContext context, bool create)
+        async Task<IResult> Change(HttpContext context, string operationName)
         {
             if (!Guard(context)) return Results.StatusCode(StatusCodes.Status403Forbidden);
             if (!context.Request.HasJsonContentType()) return Results.StatusCode(StatusCodes.Status415UnsupportedMediaType);
+            bool create = operationName == "create";
+            bool restore = operationName == "restore";
+            bool funding = operationName == "funding";
             // Both abort and mount shutdown reach the existing peer lifetime.
             // Once deletion closes admission, it ignores caller cancellation
             // and joins to a definite outcome rather than leaving half a delete.
@@ -75,21 +82,31 @@ public static partial class Gui
                 var seen = new HashSet<string>(StringComparer.Ordinal);
                 foreach (var property in body.EnumerateObject())
                 {
-                    bool offering = create && property.Name is "offering" or "preference";
-                    bool allowed = offering || property.Name == "name" || (create && property.Name is "model" or "skill");
+                    bool offering = (create || restore || funding) && property.Name is "offering" or "preference";
+                    bool allowed = offering || (!funding && property.Name == "name") || (create && property.Name is "model" or "skill");
                     if (!allowed || !seen.Add(property.Name)
                         || property.Value.ValueKind != (offering ? JsonValueKind.Object : JsonValueKind.String))
                     {
                         throw new InvalidDataException();
                     }
                 }
+                var ensemble = source.Parent();
+                if (funding)
+                {
+                    if (seen.Count != 1 || !body.TryGetProperty("offering", out var selected))
+                        throw new InvalidDataException();
+                    var chosen = ensemble.ResolveModel(JsonCodec.ReadModelIdentity(selected));
+                    var settings = ensemble.GlobalSettings()
+                        ?? throw new InvalidOperationException("Global settings are unavailable.");
+                    settings.RememberFunding(chosen);
+                    return Results.Json(new { saved = true });
+                }
                 if (!body.TryGetProperty("name", out var nameValue) || string.IsNullOrWhiteSpace(nameValue.GetString()))
                 {
                     throw new InvalidDataException();
                 }
                 string name = nameValue.GetString()!;
-                var ensemble = source.Parent();
-                if (create)
+                if (create || restore)
                 {
                     string model = body.TryGetProperty("model", out var modelValue) ? modelValue.GetString()! : "";
                     string skill = body.TryGetProperty("skill", out var skillValue) ? skillValue.GetString()! : "";
@@ -101,21 +118,11 @@ public static partial class Gui
                             throw new ArgumentException("Conflicting model selection forms.");
                         offering = ResolvePreferredModel(source, preference).Identity();
                     }
-                    var peer = await ensemble.CreatePeerAsync(source, name, model, skill, token,
-                        waitForBrowser: true, offering: offering);
-                    string? warning = null;
-                    if (body.TryGetProperty("offering", out _) && ensemble.GlobalSettings() is { } globalSettings)
-                    {
-                        try { globalSettings.RememberFunding(peer.SelectedModel()!); }
-                        catch (Exception error) when (error is ArgumentException or InvalidOperationException
-                            or FormatException or IOException or InvalidDataException or UnauthorizedAccessException)
-                        {
-                            // Creation is already durable. A second file's failure
-                            // must not invite the user to create the same Agent again.
-                            warning = "Agent created, but the application-wide funding default was not saved. Existing funding defaults are unchanged.";
-                        }
-                    }
-                    return Results.Json(new { name, address = peer.Address(), created = true, warning });
+                    var peer = restore
+                        ? await ensemble.RestorePeerAsync(source, name, offering, token, waitForBrowser: true)
+                        : await ensemble.CreatePeerAsync(source, name, model, skill, token,
+                            waitForBrowser: true, offering: offering);
+                    return Results.Json(new { name, address = peer.Address(), created = create, restored = restore });
                 }
                 // A borrowed mount cannot destroy the Agent its caller promised
                 // to keep alive until all mounted requests have drained.
@@ -146,17 +153,44 @@ public static partial class Gui
             }
             catch (Exception error) when (error is JsonException or InvalidDataException or ArgumentException or FormatException)
             {
-                return Results.BadRequest(new { error = "Invalid peer request, skill, or stored configuration." });
+                return Results.BadRequest(new { error = "Invalid request, model, skill, or stored configuration." });
             }
             catch (Exception error) when (error is InvalidOperationException or IOException or UnauthorizedAccessException or AggregateException)
             {
                 // Never reflect paths, provider diagnostics or credentials.
-                return Results.Conflict(new { error = "Peer operation refused. Check the name, startup skill, storage, and unfinished children." });
+                string message = operationName switch
+                {
+                    "funding" => "Funding default was not saved. Check the configured funding source and settings storage. Running Agents are unchanged.",
+                    "restore" => "Agent could not start. Check its model and funding in Settings, primary skill, and storage. An explicitly saved recovery choice is retained for retry.",
+                    "delete" => "Agent deletion refused. Check storage and unfinished children; saved files are retained.",
+                    _ => "Agent creation refused. Check the name, model funding, primary skill, and storage."
+                };
+                return Results.Conflict(new { error = message });
             }
         }
 
+        IResult Saved(HttpContext context)
+        {
+            if (!Guard(context)) return Results.StatusCode(StatusCodes.Status403Forbidden);
+            try
+            {
+                var root = source.Parent();
+                var saved = root.SavedPeers(source).Where(row => root.FindAgent(row.Name) is null)
+                    .Select(row => new { name = row.Name, model = row.Model,
+                        message = "Not running. Retry the saved configuration, or choose a model to repair it." });
+                return Results.Json(saved);
+            }
+            catch (Exception error) when (error is IOException or InvalidDataException or UnauthorizedAccessException)
+            {
+                return Results.Conflict(new { error = "The saved-agent registry could not be read. Files have been preserved." });
+            }
+        }
+
+        routes.MapGet("/peers/saved", (Func<HttpContext, IResult>)Saved);
+        routes.MapPost("/peers/restore", (Func<HttpContext, Task<IResult>>)(context => Change(context, "restore")));
+        routes.MapPost("/models/funding", (Func<HttpContext, Task<IResult>>)(context => Change(context, "funding")));
         routes.MapGet("/peers/choices", (Func<HttpContext, IResult>)Choices);
-        routes.MapPost("/peers/create", (Func<HttpContext, Task<IResult>>)(context => Change(context, create: true)));
-        routes.MapPost("/peers/delete", (Func<HttpContext, Task<IResult>>)(context => Change(context, create: false)));
+        routes.MapPost("/peers/create", (Func<HttpContext, Task<IResult>>)(context => Change(context, "create")));
+        routes.MapPost("/peers/delete", (Func<HttpContext, Task<IResult>>)(context => Change(context, "delete")));
     }
 }

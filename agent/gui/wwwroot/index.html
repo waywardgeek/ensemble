@@ -56,6 +56,8 @@
  <a id="relay-link" class="btn icon-button" target="_blank" rel="noopener noreferrer" aria-label="Open selected Agent in a separate relay tab" title="Open selected Agent in a separate relay tab" hidden>↗</a>
  <button class="btn btn-quiet" id="peer-cancel" type="button" hidden>Cancel creation</button></div>
  <div id="peer-notice" class="notice" role="status"></div>
+ <section id="saved-peers" hidden aria-label="Saved agents awaiting recovery"><h3>Saved agents not running</h3>
+ <p>Choose a model and retry. Conversations are retained.</p><div id="saved-peer-list"></div></section>
  <dialog id="peer-dialog" class="peer-dialog" aria-labelledby="peer-dialog-title">
  <form id="peer-form"><h2 id="peer-dialog-title">Create Agent</h2>
  <label class="form-label" for="peer-name">Name</label><input class="form-control" id="peer-name" required pattern=".*\S.*" title="Enter an Agent name." autocomplete="off">
@@ -110,7 +112,10 @@
  </nav>
  <div class="tab-content settings-body" id="settings-panel">
 <section class="tab-pane active show" id="settings-ai-panel" role="tabpanel" aria-labelledby="settings-ai-tab" tabindex="0">
-<section class="settings-section" aria-labelledby="ai-heading"><h2 id="ai-heading">Selected Agent’s AI settings</h2><p id="model-help">The header selects a same-provider session model between turns. Capabilities do not prove entitlement. Funding is fixed; launch configuration wins on restart.</p>
+<section class="settings-section" aria-labelledby="ai-heading"><h2 id="ai-heading">Selected Agent’s AI settings</h2><p id="model-help">The header selects a model between turns. Its saved selection survives restart. Choose default funding below; changing a default does not retarget running Agents. Select the model again to apply the new default.</p>
+ <fieldset><legend>Default model funding</legend><p>Each model appears once. Choose which configured funding source to use for future model selections. Changes save automatically.</p>
+ <div id="funding-choices"></div><p id="funding-status" role="status"></p>
+ <button class="btn btn-quiet" id="funding-refresh" type="button">Refresh funding</button></fieldset>
  <label>Tool batches per turn <input class="form-control" id="max-tool-rounds" type="number" min="0" step="1" value="0"> (0 = auto, 200)</label>
  <label>Tool-result stubbing budget <input class="form-control" id="context-target-bytes" type="number" min="0" step="1000" value="400000"> UTF-8 bytes (0 = default, 400,000)</label>
 <fieldset id="working-context-settings"><legend>Per-model working context</legend>

@@ -222,6 +222,17 @@ refuses missing offerings
 without substituting the host's route or funding. Invalid present identities do
 not become legacy records.
 
+A failed peer restoration must not take down the GUI after the initial Agent has
+started. Keep the saved files and show the stopped peers in recovery controls.
+`SavedPeers` reads the durable registry without inventing live Agents.
+`RestorePeerAsync` retries one stopped peer; an explicit recovery offering is
+validated and saved in that peer's own settings before startup. Preserve sibling
+memory, recall and working-context policies and the saved conversation. Refuse
+recovery of a running peer. If startup later fails, retain the human's saved choice
+for retry and report the failure. After a successful repair, ordinary restoration
+uses that peer's own selection on the next restart. Never guess a payer from an
+old wire-name-only record or from the mounted Agent's newly selected model.
+
 A configured Agent holds a weak selection link to its actual Model, and the
 Model maintains the reverse membership. Agent construction attaches both ends
 before creating Engine; partial construction rolls them back. Destroying a Model
@@ -275,18 +286,20 @@ temporary file, flush it, and replace the destination. Malformed input or lock/I
 failure is not permission to reset the file. A global-default save and an Agent
 selection save are separate operations, not one filesystem transaction: their
 acknowledgments must distinguish a saved Agent choice from an unsaved global
-default. In the GUI, keep two distinct actions: an explicit offering selects its
-qualified identity; a vendor/model preference selects using remembered funding.
-The latter carries only vendor ID and wire model name, and resolves the current
-global preference again when the action executes. Do not freeze an earlier menu
-lookup into routing authority. Refuse conflicting selection forms. If the default
-is unavailable, keep explicit offerings visible for recovery.
+default. In the GUI, list each vendor/model once. A model choice carries only
+vendor ID and wire model name, and resolves the current funding preference again
+when the action executes. Do not freeze an earlier menu lookup into routing
+authority. Refuse conflicting selection forms.
 
-After a successful explicit selection or explicit peer creation, remember that
-funding for future choices. If the global write fails, acknowledge the completed
-Agent operation and separately report the unsaved default. Do not undo the Agent
-operation or invite a duplicate creation by reporting it as wholly refused.
-Existing Agents retain their own choices when the global default changes.
+Settings → AI saves a funding choice when the dropdown changes, with a per-vendor
+pending, saved or failure message. A refused save restores the last acknowledged
+choice; there is no extra Save button. The separate default-funding action names
+an approved binding through an existing offering; the browser never supplies a key or token
+path. Missing or ambiguous funding sends the human to Settings, rather than adding
+another copy of the model to the picker. Model selection and peer creation do not
+rewrite funding defaults. Changing a default does not retarget existing Agents;
+select the model again to apply it. A failed funding save reports that operation's
+failure without changing an Agent.
 
 The GUI reads a credential-free `ModelSelectionStatus`, not the inference-validating
 configuration getter. Under the same ingress-to-graph lock order, this snapshot
@@ -298,9 +311,9 @@ identity object, never a renamed provider model.
 
 An unavailable selection remains visible after reconnect. Even recreating an
 offering with the same IDs does not reconnect a lost Agent link automatically.
-The picker shows a disabled current-selection placeholder and permits an explicit
-valid replacement. The server resolves the chosen identity again and calls the
-same Model selector; displayed status is never a send or selection grant.
+The picker marks the current model unavailable and permits an explicit
+valid selection after funding is corrected. The server resolves the chosen
+identity again and calls the same Model selector; displayed status is never a send or selection grant.
 
 Documentary persistence has a different purpose from inference admission. It can
 save the last frozen configuration and retained conversation after a Model is
@@ -379,6 +392,17 @@ entitlement or health check. Never contact providers merely to populate choices.
 These additive offerings do not reconstruct or replace the initial launch policy.
 Ollama remains a separate explicitly configured vendor, not automatic LAN discovery.
 
+An explicitly supplied Codex credential owner also registers OpenAI's `codex`
+endpoint and `openai-codex` binding, even without a model document. An explicitly
+supplied `--credentials-dir` may coexist with Codex: its selected public OAuth
+account registers endpoint `chatgpt` and binding `openai-chatgpt`. No token is
+copied between stores and enumeration does not renew credentials or send inference.
+These share the OpenAI vendor with the API offering, so Settings can present API
+key, Codex OAuth and ChatGPT OAuth while the model picker lists Astra once. A
+model's reasoning policy must not be copied onto a different model that has no
+verified reasoning support. Startup still retains the explicitly selected launch
+payer; adding a route does not select it or rewrite a funding default.
+
 The host also supplies two binding names when loading a model document:
 
 - `none` is explicitly unauthenticated, suitable for a restricted local endpoint.
@@ -409,13 +433,15 @@ Agent construction. Run the scoped check against an already-built GUI executable
 ```sh
 python3 agent/GuiTests/model-host.py ABS_DOTNET ABS_GUI_DLL NEW_EVIDENCE_DIRECTORY
 python3 agent/GuiTests/model-launch-wire.py ABS_DOTNET ABS_GUI_DLL ANOTHER_NEW_DIRECTORY
+python3 agent/GuiTests/peer-recovery-host.py ABS_DOTNET ABS_GUI_DLL RECOVERY_DIRECTORY
 ```
 
 These POSIX checks use isolated homes and synthetic keys and join their hosts.
 The startup check makes no inference request. The wire check makes exactly three
 requests to its owned loopback provider and deliberately returns buffered JSON.
-Neither certifies subscription renewal, SSE replies, restored fleet execution,
-live Ollama behavior or installation.
+The recovery check starts the actual host three times, repairs legacy peers through
+guarded GUI routes and verifies durable selections without inference. None of these
+checks certifies live subscription renewal, live Ollama behavior or installation.
 
 The construction-point changes belong alongside configuration and transport,
 model selection, child ownership, persistence and accounting. This capstone joins
@@ -455,25 +481,23 @@ not an increase in deterministic grader points.
 ### Creating an Agent from approved choices
 
 The Create Agent dialog uses model and primary-skill dropdowns, not internal-name
-text fields. The host supplies credential-free configured offerings grouped by
-vendor and only parsed primary-skill templates. Defaults explicitly inherit the
-mounted Agent's model and primary skill. Choosing an offering sends its qualified
-identity; the server resolves and validates its route and funding before creation.
-A legacy wire name cannot be combined with a configured offering. Invalid choices
-must leave the registry and live ownership unchanged. Listing a skill grants no
-tools; normal skill startup still owns activation and cancellation.
+text fields. It lists each vendor/model once and resolves default funding at
+creation time, just like the main picker. Missing or ambiguous funding points to
+Settings → AI. Defaults explicitly inherit the mounted Agent's actual model and
+primary skill; inheritance does not consult a newer global funding default.
 
-The dialog also offers vendor/model choices using remembered funding. Resolve
-them through the same global store as the main picker before creating the peer;
-missing or ambiguous funding refuses without fallback. Explicit offerings remain
-available to recover the default. The default inheritance option still means the
-mounted Agent's actual selection, not whatever global funding was most recently
-chosen. Show any partial-success warning alongside the created Agent's name.
+The host supplies the approved model graph and parsed primary-skill templates.
+Listing a skill grants no tools; normal skill startup still owns activation and
+cancellation. The public API also accepts an explicit qualified offering, mutually
+exclusive with a legacy model name or vendor/model preference. Invalid choices
+leave the registry and live ownership unchanged. Neither ordinary selection nor
+creation changes the application's funding default.
 
-The interface itself discovers no credentials and registers no offerings. Host
-startup owns the approved catalog above. Test the browser's submitted choice and
-warning display separately from the actual HTTP creation, persistence and refusal
-path; a populated menu alone does not prove those operations.
+Saved agents that did not start have a Restore control. The same model picker can
+save a corrected selection and retry that peer, or retry its saved choice unchanged.
+The GUI remains usable while browser-dependent startup waits for its own relay.
+Test the actual HTTP guard, durable recovery and restart separately from menu
+rendering; a populated menu alone does not prove those operations.
 
 ## Exercises (draft acceptance contracts)
 
@@ -492,13 +516,13 @@ configuration. Verify restoration resolves the intended route; an unavailable
 route must not silently become a cloud request.
 
 Add two configured fundings for the same vendor/model. With no remembered default,
-refuse ambiguity. Choose one explicitly, then use the remembered option in both
-the picker and Create Agent. Change the default and verify existing Agents stay
-on their explicit offerings. Remove the remembered binding and prove no alternate
-route is substituted. Hold the global writer lock: a successful Agent selection
-or creation must remain successful, preserve global bytes, and report the unsaved
-default. Restore each persistent Agent from its own saved offering, not the newer
-global default; preserve its memory, recall and working-context settings.
+refuse ambiguity. Choose funding in Settings, then select the model in both
+the picker and Create Agent. Verify that each model appears once. Change the
+default and verify existing Agents stay on their explicit offerings. Remove the remembered binding and prove no alternate
+route is substituted. Hold the global writer lock: a funding save must refuse
+and preserve global bytes, while model selection does not attempt a global write.
+Restore each persistent Agent from its own saved offering, not the newer global
+default; preserve its memory, recall and working-context settings.
 
 ### Exercise 2: Complete the tool conversation
 

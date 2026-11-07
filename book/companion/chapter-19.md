@@ -18,18 +18,19 @@ Replay reconstructs the view without starting inference or repeating speech. Ser
 
 ## New choices do not rewrite old Agents
 
-Create Agent offers explicit inheritance, approved primary skills and configured
-model offerings. Inheritance means the mounted Agent's actual selection, not a
-fresh lookup of the application-wide funding default. A vendor/model option is a
-different action: it resolves remembered funding when creation begins. An explicit
-offering names its endpoint and funding directly. Conflicting forms refuse.
+Create Agent offers explicit inheritance, approved primary skills and one entry
+per vendor/model. Inheritance means the mounted Agent's actual selection, not a
+fresh lookup of the application-wide funding default. A model choice resolves
+remembered funding when creation begins. Change that default separately in
+Settings → AI; creation does not rewrite it.
 
 The host registers available offerings; the browser does not discover credentials.
 A menu is neither a capability grant nor proof that a provider will accept a
 request. Creation still validates the route, persists the Agent, and performs
-normal skill startup. Only after successful explicit creation does it remember
-funding for future choices. A failed default save must report the already-created
-Agent and a separate warning, not invite a duplicate creation attempt.
+normal skill startup. A saved peer's restoration failure leaves the GUI available.
+Its Restore control can save an explicit model selection and retry without erasing
+its conversation or changing the mounted Agent's model. Old records with only a
+wire model name must not silently inherit another Agent's new funding route.
 
 ## A child has two parents
 

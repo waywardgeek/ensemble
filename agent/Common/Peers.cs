@@ -33,6 +33,18 @@ public sealed partial class Ensemble
     public partial Task<ImmutableArray<Agent>> RestorePeersAsync(Agent source,
         CancellationToken cancellation = default, bool waitForBrowser = false);
 
+    /// <summary>Read durable launch choices for host recovery controls. This does
+    /// not construct Agents or replace the live ownership collection.</summary>
+    public partial ImmutableArray<PeerLaunch> SavedPeers(Agent source);
+
+    /// <summary>Retry one stopped registry peer. An explicit offering is validated
+    /// and saved to that peer's settings before startup; sibling settings and
+    /// conversations are preserved. A later startup failure retains that choice
+    /// for another retry. Null retries the existing choice without changing it.</summary>
+    public partial Task<Agent> RestorePeerAsync(Agent source, string name,
+        ModelIdentity? offering = null, CancellationToken cancellation = default,
+        bool waitForBrowser = false);
+
     /// <summary>Explicitly stop and remove a registered live peer. Refuse retained
     /// unfinished children before closing admission. Once shutdown starts, join to
     /// a definite result even if the observer cancels. Remove the registry entry

@@ -138,27 +138,51 @@ static class PeerControlsTests
                 && local.Configuration().Billing == BillingMode.None && source.Configuration().Model == "offline",
                 "Qualified creation did not select the complete local route independently");
             await Expect("delete", "{\"name\":\"local-peer\"}", HttpStatusCode.OK);
-            Check(globalSettings.FundingDefaults().TryGetValue("ollama", out string? remembered)
-                && remembered == "local", "Explicit peer creation did not remember funding");
+            Check(globalSettings.FundingDefaults().IsEmpty, "Creating an Agent changed global funding.");
+            async Task<HttpResponseMessage> Funding(string body, string? origin = null, bool header = true)
+            {
+                using var request = new HttpRequestMessage(HttpMethod.Post, url + "/assistant/models/funding");
+                request.Content = new StringContent(body, Encoding.UTF8, "application/json");
+                if (header) request.Headers.Add("X-Ensemble-Peers", "1");
+                if (origin is not null) request.Headers.Add("Origin", origin);
+                return await http.SendAsync(request, token);
+            }
+            string fundingBody = "{\"offering\":" + offeringJson + "}";
+            using (var denied = await Funding(fundingBody, header: false))
+                Check(denied.StatusCode == HttpStatusCode.Forbidden, "Funding change lacked guard.");
+            using (var denied = await Funding(fundingBody, origin: "https://foreign.example"))
+                Check(denied.StatusCode == HttpStatusCode.Forbidden, "Cross-origin funding change accepted.");
+            using (var saved = await Funding(fundingBody, origin: url))
+                Check(saved.StatusCode == HttpStatusCode.OK, "Funding settings save failed.");
+            Check(globalSettings.FundingDefaults()["ollama"] == "local" && source.SelectedModel() is null,
+                "Funding save did not persist independently of the active model.");
             byte[] savedFunding = File.ReadAllBytes(globalPath);
             using (var held = new FileStream(globalPath + ".lock", FileMode.OpenOrCreate,
                 FileAccess.ReadWrite, FileShare.None))
+            using (var refused = await Funding(fundingBody))
             {
-                using var response = await Post("create", "{\"name\":\"partial-peer\",\"offering\":"
-                    + offeringJson + ",\"skill\":\"plain\"}");
-                Check(response.StatusCode == HttpStatusCode.OK, "Global failure misreported successful peer creation");
-                using var result = JsonDocument.Parse(await response.Content.ReadAsStringAsync(token));
-                Check(result.RootElement.GetProperty("created").GetBoolean()
-                    && result.RootElement.GetProperty("warning").GetString() ==
-                        "Agent created, but the application-wide funding default was not saved. Existing funding defaults are unchanged.",
-                    "Peer partial-success warning missing");
-                var partial = root.FindAgent("partial-peer")!;
-                Check(ReferenceEquals(partial.SelectedModel(), localModel)
-                    && File.Exists(Path.Combine(partial.DataDirectory(), "save.json")),
-                    "Global failure lost durable peer creation");
-                Check(File.ReadAllBytes(globalPath).SequenceEqual(savedFunding), "Refused global save changed funding");
+                Check(refused.StatusCode == HttpStatusCode.Conflict, "Locked funding write was accepted.");
+                Check(File.ReadAllBytes(globalPath).SequenceEqual(savedFunding), "Refused funding save changed defaults.");
             }
-            await Expect("delete", "{\"name\":\"partial-peer\"}", HttpStatusCode.OK);
+            // Existing legacy peers can be repaired independently while this GUI stays live.
+            var stoppedPeer = await root.CreatePeerAsync(source, "recover-me", cancellation: token);
+            stoppedPeer.History().Append(new Event(EventKind.MessageReceived, actor: Actor.Human,
+                parts: [new TextPart("Recovered conversation")]));
+            await stoppedPeer.ShutdownAsync();
+            stoppedPeer.Destroy();
+            using (var request = new HttpRequestMessage(HttpMethod.Get, url + "/assistant/peers/saved"))
+            {
+                request.Headers.Add("X-Ensemble-Peers", "1");
+                using var response = await http.SendAsync(request, token);
+                string listed = await response.Content.ReadAsStringAsync(token);
+                Check(response.IsSuccessStatusCode && listed.Contains("recover-me"), "Stopped peer missing from recovery UI.");
+            }
+            await Expect("restore", "{\"name\":\"recover-me\",\"offering\":" + offeringJson + "}", HttpStatusCode.OK);
+            Check(ReferenceEquals(root.FindAgent("recover-me")!.SelectedModel(), localModel), "HTTP recovery lost explicit route.");
+            Check(JsonCodec.Text(root.FindAgent("recover-me")!.History().View().Dialogue.SelectMany(entry => entry.Parts))
+                .Contains("Recovered conversation"), "HTTP recovery lost conversation.");
+            await Expect("restore", "{\"name\":\"recover-me\"}", HttpStatusCode.Conflict);
+            await Expect("delete", "{\"name\":\"recover-me\"}", HttpStatusCode.OK);
             const string preferenceJson = "{\"vendor\":\"ollama\",\"model\":\"fixture-mimo\"}";
             await Expect("create", "{\"name\":\"preferred-peer\",\"preference\":" + preferenceJson
                 + ",\"skill\":\"plain\"}", HttpStatusCode.OK);

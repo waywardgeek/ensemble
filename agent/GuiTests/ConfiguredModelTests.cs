@@ -74,6 +74,10 @@ static class ConfiguredModelTests
             }
             if (fixtureDirectory is not null)
             {
+                var stoppedPeer = await root.CreatePeerAsync(agent, "stopped-peer", cancellation: token);
+                stoppedPeer.History().Append(new Event(EventKind.MessageReceived, actor: Actor.Human,
+                    parts: [new TextPart("Saved peer conversation")]));
+                stoppedPeer.Destroy();
                 Directory.CreateDirectory(fixtureDirectory);
                 File.WriteAllText(Path.Combine(fixtureDirectory, "ready.json"),
                     JsonSerializer.Serialize(new { origin }));
@@ -93,6 +97,13 @@ static class ConfiguredModelTests
                     await Task.Delay(20, token);
                 }
                 Check(ReferenceEquals(agent.SelectedModel(), b), "Browser did not recover to the second offering");
+                var recovered = root.FindAgent("stopped-peer")
+                    ?? throw new InvalidOperationException("Browser did not restore the stopped peer.");
+                Check(ReferenceEquals(recovered.SelectedModel(), b)
+                    && JsonCodec.Text(recovered.History().View().Dialogue.SelectMany(entry => entry.Parts))
+                        .Contains("Saved peer conversation"), "Browser did not restore the peer's model and conversation.");
+                Check(recovered.History().Events().All(value => value.Kind != EventKind.RequestSent),
+                    "Peer recovery initiated inference.");
                 Check(agent.History().Events().All(value => value.Kind != EventKind.RequestSent),
                     "Browser model selection initiated inference");
                 Console.WriteLine("PASS configured model browser host: explicit recovery, no inference");
@@ -116,8 +127,7 @@ static class ConfiguredModelTests
                 Check(ReferenceEquals(agent.SelectedModel(), model), "Socket selection did not publish the actual Model");
             }
             await Select(a);
-            Check(globalSettings.FundingDefaults().TryGetValue("local", out string? funding)
-                && funding == "none", "Explicit GUI selection did not remember vendor funding");
+            Check(globalSettings.FundingDefaults().IsEmpty, "Model selection changed application funding defaults.");
             async Task SendPreference()
             {
                 await socket.SendAsync(System.Text.Encoding.UTF8.GetBytes(
@@ -138,7 +148,7 @@ static class ConfiguredModelTests
             Check(ReferenceEquals(agent.SelectedModel(), b), "Unavailable funding changed the Agent");
             Check(!Gui.MeterFrame(agent)["preferred_models"]![0]!["enabled"]!.GetValue<bool>(),
                 "Unavailable default remained enabled");
-            await Select(a); // Explicit funding recovers a missing saved default.
+            await Select(a); // Selecting an Agent model does not repair unrelated funding defaults.
             byte[] savedGlobal = File.ReadAllBytes(globalPath);
             var frame = Gui.MeterFrame(agent);
             Check(frame["configured_models"]!.AsArray().Count == 2
@@ -170,10 +180,6 @@ static class ConfiguredModelTests
                 }.ToJsonString();
                 await socket.SendAsync(System.Text.Encoding.UTF8.GetBytes(command),
                     WebSocketMessageType.Text, true, token);
-                var partial = await Frame(socket, "error", token);
-                Check(partial.GetProperty("message").GetString() ==
-                    "Model selected, but the application-wide funding default was not saved. Existing funding defaults are unchanged.",
-                    "Global save refusal misreported the successful Agent selection");
                 await Frame(socket, "usage", token, "b");
                 Check(ReferenceEquals(agent.SelectedModel(), b),
                     "Global save refusal rolled back or lost the successful Agent selection");

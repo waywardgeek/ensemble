@@ -14,6 +14,7 @@ internal sealed partial record AgentSettings(MemorySettings Memory, RecallSettin
     // Restore callers inspect the same strict document before constructing an
     // Agent. The caller supplies its actual filesystem owner, not raw file I/O.
     internal static partial AgentSettings? Read(Sandbox sandbox, string path);
+    internal partial void Write(Sandbox sandbox, string path);
 }
 
 public static partial class JsonCodec

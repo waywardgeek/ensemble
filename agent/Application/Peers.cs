@@ -6,6 +6,42 @@ namespace Ensemble;
 
 public sealed partial class Ensemble
 {
+    public partial ImmutableArray<PeerLaunch> SavedPeers(Agent source)
+    {
+        using var operation = BeginPeerOperation(source, CancellationToken.None);
+        return ReadPeerLaunches(source);
+    }
+
+    public partial async Task<Agent> RestorePeerAsync(Agent source, string name,
+        ModelIdentity? offering, CancellationToken cancellation, bool waitForBrowser)
+    {
+        using var operation = BeginPeerOperation(source, cancellation);
+        await peerOperations.WaitAsync(operation.Token).ConfigureAwait(false);
+        try
+        {
+            var entry = ReadPeerLaunches(source).SingleOrDefault(row => row.Name == name)
+                ?? throw new ArgumentException("No saved peer has that name.");
+            if (FindAgent(name) is not null)
+                throw new InvalidOperationException("That peer is already running.");
+            var policy = source.Configuration();
+            if (offering is not null)
+            {
+                // Explicit human recovery chooses a complete route. Never guess
+                // funding from an old wire name or the mounted Agent's selection.
+                _ = new Configuration(policy, ResolveModel(offering));
+                var sandbox = source.Sandbox();
+                string path = Path.Combine(AgentDirectory(name)!, "settings.json");
+                var saved = AgentSettings.Read(sandbox, path)
+                    ?? new AgentSettings(new MemorySettings(), new RecallSettings());
+                operation.Token.ThrowIfCancellationRequested();
+                (saved with { SelectedOffering = offering }).Write(sandbox, path);
+            }
+            return await ConstructPeerAsync(entry, policy, source.SkillManager()?.CaptureBootstrap(),
+                operation.Token, waitForBrowser, source.Sandbox()).ConfigureAwait(false);
+        }
+        finally { peerOperations.Release(); }
+    }
+
     private partial CancellationTokenSource BeginPeerOperation(Agent source, CancellationToken cancellation)
     {
         ArgumentNullException.ThrowIfNull(source);
