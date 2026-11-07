@@ -155,6 +155,11 @@ try
         Console.WriteLine($"{passed} passed, {failures} failed");
         return failures == 0 ? 0 : 1;
     }
+    if (args is ["--search-evidence-tests"] || args.Length == 0)
+    {
+        await AsyncCase("Search presentation evidence and bounded observation", () => SearchEvidenceTests.Run(temp));
+        if (args is ["--search-evidence-tests"]) return failures == 0 ? 0 : 1;
+    }
     if (args is ["--file-evidence-tests"] || args.Length == 0)
     {
         await AsyncCase("File presentation evidence and bounded observation", () => FileEvidenceTests.Run(temp));

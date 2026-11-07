@@ -623,3 +623,40 @@ stream/selection/safety and code-copy browser regressions also pass after lexer
 extraction. Their origin check was corrected to use the supplied random-port
 fixture rather than a hard-coded port. All owned fixture hosts joined. No install,
 restart, provider inference or full shared-core rerun in this presentation slice.
+
+## Grouped search evidence and shipped renderer
+
+SearchFiles now captures separate path, actual one-based line number, line text
+and exact .NET UTF-16 match spans during the operation. The existing grep text and
+merged context windows are unchanged. SearchEvidence travels through bounded Job
+observation, durable ToolReturned/ToolObserved records, codecs and GUI projection,
+not provider Parts. Failed observations cannot carry it. The browser receives an
+optional fifth argument, preserving directory/file renderer argument contracts.
+
+Display evidence retains a prefix of at most 256 full returned lines, 32 KiB of
+path-plus-text bytes and 256 spans per line. It stops at the first line that does
+not fit and retains the total returned line count for explicit omission reporting.
+It does not truncate match spans into an apparently complete line. Recursive
+search still skips inaccessible entries under its existing best-effort contract;
+complete display does not imply complete filesystem coverage. No new regex timeout
+or search-output memory guarantee is claimed by these display bounds.
+
+The shipped skill renderer groups by literal path, shows actual line numbers and
+context gaps, highlights recorded spans, labels match/context without color-only
+meaning, and marks zero-width matches explicitly. It keeps raw output unchanged
+and falls back for older History/errors. General trial selection remains unfinished.
+
+Initial test compilation failed on guessed JsonCodec/root-cleanup APIs; corrected
+to JsonDocument/JsonElement and existing synchronous root Destroy (joins ownership).
+No tests ran in that failed build. Corrected clean build and focused real-tool test
+pass: Unicode spans, path separators/newlines, merged context, capped observation,
+no matches, invalid regex, zero-width, display line/byte/span bounds and immutable
+replay after source mutation. Actual-page synthetic-fact checks pass at desktop
+and phone widths for grouping, spans, gaps, safe text, omissions, raw output,
+fallback and focus; existing file/directory checks also pass. Fixture joined.
+Final verification: shared core380/0, ordinary tool checks, six default GUI groups,
+six skill groups, clean GUI-tests/host/CLI builds and exact packaged search-module
+and API-note bytes all pass. Browser fixture joined; no installation or inference.
+Bill requested chapter-body images of the actual Artifacts; the draft and private
+queue now record purposeful synthetic-data figures, alt text, captions and no
+color-only meanings. Capture approval is still pending; no screenshots taken.

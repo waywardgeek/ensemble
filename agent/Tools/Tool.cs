@@ -512,6 +512,7 @@ public sealed partial class Tool
             if (kind == ToolKind.ReadFile) return ReadFile(call);
             if (kind == ToolKind.WriteFile) return WriteFile(call);
             if (kind == ToolKind.EditFile) return EditFile(call);
+            if (kind == ToolKind.SearchFiles) return SearchFiles(call);
             var text = kind switch
             {
                 ToolKind.AgentStatus => Status(job),
@@ -520,7 +521,6 @@ public sealed partial class Tool
                 ToolKind.Submit or ToolKind.SendMessageToParent or ToolKind.RespondToParentMessage
                     or ToolKind.ShutdownAgent or ToolKind.KillAgent or ToolKind.SpawnSubAgent or ToolKind.AgentsStatus or ToolKind.InterruptAgent or ToolKind.GetSubmission or ToolKind.SendMessage or ToolKind.AskAgent
                     or ToolKind.WaitForAgent or ToolKind.WaitForAgentChange => await ChildOperationAsync(job, call.Args, cancellation),
-                ToolKind.SearchFiles => SearchFiles(call.Args),
                 ToolKind.RunCommand => await job.RunCommandAsync(call.Args, cancellation),
                 ToolKind.Custom => await handler!(job, call.Args, cancellation),
                 _ => throw new InvalidOperationException("Unknown tool kind")

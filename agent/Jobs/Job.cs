@@ -121,6 +121,7 @@ public sealed partial class Job
                             }
                             directoryListing = result.DirectoryListing;
                             fileEvidence = result.FileEvidence;
+                            searchEvidence = result.SearchEvidence;
                             isError = result.IsError;
                         }
                     }
@@ -378,7 +379,7 @@ public sealed partial class Job
                         cursor = bytes;
                         presentationObserved = true;
                         return new ToolResultPart(callID, completed.Parts, completed.IsError,
-                            info, completed.ToolReferences, completed.WorkProduct, completed.DirectoryListing, completed.FileEvidence);
+                            info, completed.ToolReferences, completed.WorkProduct, completed.DirectoryListing, completed.FileEvidence, completed.SearchEvidence);
                     }
                 }
                 bool truncated = fresh.Length > maxBytes;
@@ -402,6 +403,7 @@ public sealed partial class Job
                 }
                 DirectoryListing? listing = null;
                 FileEvidence? evidence = null;
+                SearchEvidence? search = null;
                 bool firstReport;
                 lock (gate)
                 {
@@ -409,6 +411,7 @@ public sealed partial class Job
                     {
                         listing = directoryListing;
                         evidence = fileEvidence;
+                        search = searchEvidence;
                         presentationObserved = true;
                     }
                     firstReport = cursor == 0;
@@ -431,7 +434,7 @@ public sealed partial class Job
                 return new ToolResultPart(callID, [new TextPart(bareResult ? text : header + text)], error, info with
                 {
                     Truncated = truncated
-                }, directoryListing: listing, fileEvidence: evidence);
+                }, directoryListing: listing, fileEvidence: evidence, searchEvidence: search);
             }
             await Task.WhenAny(signal, expires, wake).WaitAsync(token);
         }

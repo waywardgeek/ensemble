@@ -85,6 +85,7 @@ public sealed partial class Job
     private ToolResultPart? structuredResult;
     private DirectoryListing? directoryListing;
     private FileEvidence? fileEvidence;
+    private SearchEvidence? searchEvidence;
     private bool presentationObserved;
     private long bytes;
     private long cursor;

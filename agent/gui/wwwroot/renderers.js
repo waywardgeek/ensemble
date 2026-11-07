@@ -117,6 +117,7 @@
         } catch { /* Plain-text fallback remains available. */ }
         for (const [tool, path] of [
             ["read_file", "file-reading/renderers/read-file.js"],
+            ["search_files", "file-reading/renderers/search-files.js"],
             ["write_file", "code-tools/renderers/write-file.js"],
             ["edit_file", "code-tools/renderers/edit-file.js"]]) {
             try {

@@ -2,9 +2,19 @@
 
 > **Initial design packet.** TL;DR, plain-language explanation and exercises for
 > discussion and implementation with Bill. This is an unnumbered working chapter,
-> outside the release assembly. The renderer interface and library choices are
-> still to be established through the first directory-listing experiment. The
-> detailed chapter body will follow implemented, observed behavior.
+> outside the release assembly. Directory and file rendering, shared helpers,
+> and renderer trial/recovery have bounded implementation evidence; remaining
+> work is tracked in the design notes. The detailed chapter body will follow
+> implemented, observed behavior.
+
+> **Body-writing plan: figures.** Bill requested images of the Artifacts we
+> create. Use actual implemented views with synthetic example data, after capture
+> approval, not mockups or private conversations. Candidate figures are directory
+> and grouped search output, an applied replacement, one continuing command
+> session, inline dice disclosure, and Try live/Keep/Revert controls. Select only
+> figures that teach a distinct point. Give each meaningful alt text and a caption;
+> retain a complete prose explanation and avoid color-only distinctions. Figures
+> are planned, not captured or visually approved.
 
 ## TL;DR
 

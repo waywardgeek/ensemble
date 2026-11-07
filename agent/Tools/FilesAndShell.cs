@@ -165,8 +165,13 @@ public sealed partial class Tool
         }
     }
 
-    private string SearchFiles(JsonElement args)
+    private ToolResultPart SearchFiles(ToolCallPart call)
     {
+        var args = call.Args;
+        var captured = new List<SearchLine>();
+        long totalLines = 0;
+        int displayBytes = 0;
+        bool displayFull = false;
         var radius = Integer(args, "context_lines", 0);
         if (radius < 0)
         {
@@ -224,13 +229,33 @@ public sealed partial class Tool
                 }
                 for (int i = windows[w].Start; i <= windows[w].End; i++)
                 {
+                    totalLines++;
+                    if (!displayFull)
+                    {
+                        long bytes = Encoding.UTF8.GetByteCount(file) + (long)Encoding.UTF8.GetByteCount(lines[i]);
+                        if (captured.Count == SearchEvidence.MaximumLines || bytes + displayBytes > SearchEvidence.MaximumBytes)
+                            displayFull = true;
+                        else
+                        {
+                            var spans = pattern.Matches(lines[i]).Cast<Match>()
+                                .Take(SearchEvidence.MaximumSpansPerLine + 1)
+                                .Select(match => new SearchSpan(match.Index, match.Length)).ToArray();
+                            if (spans.Length > SearchEvidence.MaximumSpansPerLine) displayFull = true;
+                            else
+                            {
+                                captured.Add(new SearchLine(file, i + 1, lines[i], spans));
+                                displayBytes += (int)bytes;
+                            }
+                        }
+                    }
                     var separator = matches[i] ? ':' : '-';
                     result.Append(file).Append(separator).Append(i + 1)
                         .Append(separator).Append(lines[i]).Append('\n');
                 }
             }
         }
-        return result.ToString();
+        return new ToolResultPart(call.CallID, [new TextPart(result.ToString())],
+            searchEvidence: new SearchEvidence(captured, totalLines));
     }
 
     private ToolResultPart WriteFile(ToolCallPart call)

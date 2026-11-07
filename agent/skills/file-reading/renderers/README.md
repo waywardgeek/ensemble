@@ -66,3 +66,20 @@ sections are an applied replacement, not a whole-file diff.
 The current trial panel and source-package endpoint still target `list_directory`
 only. File renderers are explicitly shipped assets; their metadata does not yet
 make them selectable candidates in that panel.
+
+## Search preview API
+
+`search-files.js` receives optional search evidence as its fifth argument; earlier
+arguments are unchanged. It is `{lines, total_lines}`, with each line containing
+`{path, number, text, matches}`. Each match is `{start, length}` in zero-based
+UTF-16 code units, captured by the .NET regular expression engine. Empty matches
+identify context lines; a span with zero length is a real zero-width match.
+
+The display retains a prefix of at most 256 complete match/context lines, 32 KiB
+of path-plus-text UTF-8 bytes, and 256 spans per line. It stops before a line that
+cannot fit, rather than silently omit that line's highlights. `total_lines`
+counts returned match/context lines, not files searched or matching occurrences.
+Recursive searches remain best effort for inaccessible files. Full display does
+not certify exhaustive access to the directory tree. Grouping never parses paths
+from grep text, and highlights never rerun the regex in the browser. Raw output
+and model observation limits remain independent. The trial UI is still directory-only.

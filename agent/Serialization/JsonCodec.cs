@@ -134,6 +134,28 @@ public static partial class JsonCodec
         return JsonNode.Parse(value.GetRawText());
     }
 
+    private static JsonObject? WriteSearchEvidence(SearchEvidence? value) => value is null ? null : new()
+    {
+        ["total_lines"] = value.TotalLines,
+        ["lines"] = new JsonArray(value.Lines.Select(line => (JsonNode)new JsonObject
+        {
+            ["path"] = line.Path, ["number"] = line.Number, ["text"] = line.Text,
+            ["matches"] = new JsonArray(line.Matches.Select(span => (JsonNode)new JsonObject
+            { ["start"] = span.Start, ["length"] = span.Length }).ToArray())
+        }).ToArray())
+    };
+    private static SearchEvidence? ReadSearchEvidence(JsonElement owner)
+    {
+        if (!owner.TryGetProperty("search_evidence", out var value) || value.ValueKind == JsonValueKind.Null)
+            return null;
+        return new SearchEvidence(value.GetProperty("lines").EnumerateArray()
+            .Take(SearchEvidence.MaximumLines + 1).Select(line => new SearchLine(
+                String(line, "path"), line.GetProperty("number").GetInt64(), String(line, "text"),
+                line.GetProperty("matches").EnumerateArray().Take(SearchEvidence.MaximumSpansPerLine + 1)
+                    .Select(span => new SearchSpan(span.GetProperty("start").GetInt32(), span.GetProperty("length").GetInt32())))),
+            value.GetProperty("total_lines").GetInt64());
+    }
+
     private static JsonObject WriteFileExcerpt(FileExcerpt value) => new()
     {
         ["text"] = value.Text, ["total_bytes"] = value.TotalBytes
@@ -230,6 +252,7 @@ public static partial class JsonCodec
             ["work_product"] = WriteWorkProduct(p.WorkProduct),
             ["directory_listing"] = WriteDirectoryListing(p.DirectoryListing),
             ["file_evidence"] = WriteFileEvidence(p.FileEvidence),
+            ["search_evidence"] = WriteSearchEvidence(p.SearchEvidence),
             ["parts"] = Parts(p.Parts),
             ["tool_references"] = new JsonArray(p.ToolReferences.Select(name => (JsonNode?)JsonValue.Create(name)).ToArray()),
             ["is_error"] = p.IsError
@@ -297,7 +320,7 @@ public static partial class JsonCodec
         "blob" => new BlobPart(String(value, "mime"), ReadRef(value.GetProperty("ref"))),
         "opaque" => new OpaquePart(ReadProvenance(value.GetProperty("from")), value.GetProperty("data")),
         "tool_call" => new ToolCallPart(String(value, "call_id"), ReadProvenance(value.GetProperty("from")), String(value, "name"), value.GetProperty("args"), value.TryGetProperty("opaque", out var op) ? op : null),
-        "tool_result" => new ToolResultPart(String(value, "call_id"), Parts(value), Flag(value, "is_error"), workProduct: ReadWorkProduct(value), directoryListing: ReadDirectoryListing(value), fileEvidence: ReadFileEvidence(value), toolReferences: value.TryGetProperty("tool_references", out var references) ? references.EnumerateArray().Select(item => item.GetString()!) : null),
+        "tool_result" => new ToolResultPart(String(value, "call_id"), Parts(value), Flag(value, "is_error"), workProduct: ReadWorkProduct(value), directoryListing: ReadDirectoryListing(value), fileEvidence: ReadFileEvidence(value), searchEvidence: ReadSearchEvidence(value), toolReferences: value.TryGetProperty("tool_references", out var references) ? references.EnumerateArray().Select(item => item.GetString()!) : null),
         "redacted" => new RedactedPart(String(value, "kind"), value.GetProperty("bytes").GetInt64(), String(value, "reason"), value.TryGetProperty("ref", out var r) ? ReadRef(r) : null),
         var t => throw new FormatException($"Unknown part type: {t}")
     };
@@ -370,6 +393,7 @@ public static partial class JsonCodec
                     tool["is_error"] = value.IsError;
                     if (value.WorkProduct is not null) tool["work_product"] = WriteWorkProduct(value.WorkProduct);
                     if (value.FileEvidence is not null) tool["file_evidence"] = WriteFileEvidence(value.FileEvidence);
+                    if (value.SearchEvidence is not null) tool["search_evidence"] = WriteSearchEvidence(value.SearchEvidence);
                     if (value.DirectoryListing is not null) tool["directory_listing"] = WriteDirectoryListing(value.DirectoryListing);
                     if (!value.ToolReferences.IsEmpty)
                     {
@@ -499,7 +523,7 @@ public static partial class JsonCodec
                 var tool = root.GetProperty("tool");
                 return new(kind, seq, time, parts: Parts(tool), callID: String(tool, "call_id"), name: OptionalString(tool, "name"),
                     args: tool.TryGetProperty("args", out var args) ? args : null, isError: Flag(tool, "is_error"),
-                    workProduct: ReadWorkProduct(tool), directoryListing: ReadDirectoryListing(tool), fileEvidence: ReadFileEvidence(tool),
+                    workProduct: ReadWorkProduct(tool), directoryListing: ReadDirectoryListing(tool), fileEvidence: ReadFileEvidence(tool), searchEvidence: ReadSearchEvidence(tool),
                     observationDuration: root.TryGetProperty("observation_ticks", out var ticks) ? TimeSpan.FromTicks(ticks.GetInt64()) : null,
                     toolReferences: tool.TryGetProperty("tool_references", out var toolRefs) ? toolRefs.EnumerateArray().Select(item => item.GetString()!) : null,
                     job: tool.TryGetProperty("job", out var job) ? new JobInfo(

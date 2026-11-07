@@ -5,6 +5,7 @@ type: dependency
 tools: read_file list_directory search_files
 renderers:
   read_file: renderers/read-file.js
+  search_files: renderers/search-files.js
   list_directory: renderers/list-directory.js
 ---
 Directory listings show immediate entries, not recursive contents. Preserve file

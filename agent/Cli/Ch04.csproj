@@ -18,6 +18,7 @@
     <Content Include="../skills/shared/source-code.js" Link="skills/shared/source-code.js" CopyToOutputDirectory="PreserveNewest" />
     <Content Include="../skills/shared/file-excerpt.js" Link="skills/shared/file-excerpt.js" CopyToOutputDirectory="PreserveNewest" />
     <Content Include="../skills/file-reading/renderers/read-file.js" Link="skills/file-reading/renderers/read-file.js" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="../skills/file-reading/renderers/search-files.js" Link="skills/file-reading/renderers/search-files.js" CopyToOutputDirectory="PreserveNewest" />
     <Content Include="../skills/code-tools/renderers/write-file.js" Link="skills/code-tools/renderers/write-file.js" CopyToOutputDirectory="PreserveNewest" />
     <Content Include="../skills/code-tools/renderers/edit-file.js" Link="skills/code-tools/renderers/edit-file.js" CopyToOutputDirectory="PreserveNewest" />
     <Content Include="../skills/shared/README.md" Link="skills/shared/README.md" CopyToOutputDirectory="PreserveNewest" />

@@ -655,10 +655,10 @@ function render(card) {
             const previewText = clipped + (clipped.length < card.text.length ? "\n… (bounded preview)" : "");
             const renderer = card.kind === "tool_result" && card.status !== "error"
                 ? window.EnsembleArtifactRenderers?.[card.toolName] : null;
-            if (card.previewText !== previewText || card.previewRenderer !== renderer || card.previewDirectoryListing !== card.directoryListing || card.previewFileEvidence !== card.fileEvidence) {
+            if (card.previewText !== previewText || card.previewRenderer !== renderer || card.previewDirectoryListing !== card.directoryListing || card.previewFileEvidence !== card.fileEvidence || card.previewSearchEvidence !== card.searchEvidence) {
                 let content = null;
                 if (typeof renderer === "function") {
-                    try { content = renderer(document, previewText, card.directoryListing, card.fileEvidence); }
+                    try { content = renderer(document, previewText, card.directoryListing, card.fileEvidence, card.searchEvidence); }
                     catch { /* A presentation failure must not hide the recorded result. */ }
                 }
                 if (!(content instanceof HTMLElement) || content.isConnected) {
@@ -670,6 +670,7 @@ function render(card) {
                 card.previewRenderer = renderer;
                 card.previewDirectoryListing = card.directoryListing;
                 card.previewFileEvidence = card.fileEvidence;
+                card.previewSearchEvidence = card.searchEvidence;
             }
             preview.hidden = details.open;
         }
@@ -967,6 +968,7 @@ function handle(frame) {
         card.workProduct = frame.is_error ? null : frame.work_product;
         card.directoryListing = frame.is_error ? null : frame.directory_listing;
         card.fileEvidence = frame.is_error ? null : frame.file_evidence;
+        card.searchEvidence = frame.is_error ? null : frame.search_evidence;
         card.role = "tool";
         card.status = frame.is_error ? "error" : "finished";
         card.text = (frame.result || (frame.parts || []).map(readable).join("\n"))
