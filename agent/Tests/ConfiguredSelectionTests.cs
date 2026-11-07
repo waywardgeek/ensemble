@@ -14,7 +14,7 @@ internal static partial class MeterTests
             await agent.SetModelAsync(model).WaitAsync(TimeSpan.FromSeconds(10));
         }
         catch (Exception error) when (error is ArgumentException or InvalidOperationException or IOException
-            or UnauthorizedAccessException or System.Text.Json.JsonException or FormatException)
+            or UnauthorizedAccessException or System.Text.Json.JsonException or FormatException or InvalidDataException)
         {
             Check(ReferenceEquals(previous, agent.SelectedModel())
                 && ReferenceEquals(configuration, agent.Configuration()),
@@ -162,9 +162,12 @@ internal static partial class MeterTests
             }
             var malformed = JsonNode.Parse(original)!;
             malformed["selected_offering"] = null;
-            File.WriteAllText(path, malformed.ToJsonString());
-            try { await RefuseConfiguredSelection(child, two); }
-            finally { File.WriteAllText(path, original); }
+            foreach (string damaged in new[] { malformed.ToJsonString(), "{}" })
+            {
+                File.WriteAllText(path, damaged);
+                try { await RefuseConfiguredSelection(child, two); }
+                finally { File.WriteAllText(path, original); }
+            }
             await child.SetModelAsync(two);
             Check(JsonNode.Parse(File.ReadAllText(path))!["selected_offering"]!["model"]!.GetValue<string>() == "two"
                 && ReferenceEquals(child.SelectedModel(), two) && !one.Agents().Contains(child),

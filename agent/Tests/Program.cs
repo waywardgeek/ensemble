@@ -94,6 +94,16 @@ try
             return failures == 0 ? 0 : 1;
         }
     }
+    if (args.Length == 0 || args is ["--global-settings-tests"])
+    {
+        await AsyncCase("Global credential bindings and vendor funding persistence", () => GlobalSettingsTests.Persistence(temp));
+        CheckCase("Global settings absence and strict refusal", () => GlobalSettingsTests.Refusal(temp));
+        if (args.Length != 0)
+        {
+            Console.WriteLine($"{passed} passed, {failures} failed");
+            return failures == 0 ? 0 : 1;
+        }
+    }
     if (args.Length == 0 || args is ["--model-domain-tests"])
     {
         CheckCase("Configured vendor/endpoint/model ownership", ModelDomainTests.Ownership);

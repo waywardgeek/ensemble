@@ -71,12 +71,48 @@ groups passed, including real peer HTTP/lifecycle paths and joined teardown; thi
 is not a fresh visual browser acceptance test. This is internal evidence, not
 public-grader or live-provider acceptance. No installed settings, credentials, service or release artifact changed.
 
+## Global settings persistence foundation
+
+GlobalSettings is a strongly owned application object with explicit path input;
+read-only operations never create files. It binds each configured synthetic API
+key through the existing ModelAuthentication owner and exposes only nonsecret
+vendor-to-binding references in model_funding_defaults. Funding resolution uses
+the real vendor/endpoint/model graph. Remembering a choice changes no Agent.
+Missing/ambiguous/unavailable saved funding refuses without selecting another key;
+an unrelated endpoint with a removed binding does not hide a valid saved choice.
+
+Global writes reread current settings under a fail-fast exclusive lock file,
+preserve unrelated JSON fields and credential values, flush a private temporary
+file, then replace. This is cooperative-writer serialization, not confinement,
+arbitrary external-writer protection, directory-fsync crash recovery, or a
+transaction with an Agent settings file. The application destroys the settings
+owner after Agents; destroying settings alone does not destroy credential bindings.
+
+The clean final build passes two new global-settings groups and all six model
+selection groups, plus seven existing model-domain groups, in the existing evidence
+directory (global-settings-final-* and global-settings-domain.log).
+Synthetic-only tests cover ownership/teardown, distinct vendor keys, preserved
+external sibling updates, contention and directory-shaped-path refusal, fresh-owner
+persistence, defaults not retargeting an Agent, unavailable-binding refusal/recovery,
+and absent/malformed/duplicate/oversized/invalid-UTF8 input. Internal key inspection
+confirms synthetic binding contents; this is not public request-header evidence.
+No installed global settings were read or written during these tests.
+
+Initial build failed because a new directory was outside explicit compile globs;
+implementation moved into Application. Initial refusal helper omitted the distinct
+InvalidDataException type. Review found the same omission in recoverable Agent
+selection errors; it is now handled, with an actual damaged-document/refusal/repair
+check on the same live Agent. A source-review lookup correction excludes unrelated
+missing bindings without making the remembered missing binding fall back. No
+pre-fix behavioral credit is claimed for that review-only correction. No new shared
+suite, host/browser, public-grader or live-provider acceptance is claimed here.
+
 ## Remaining integration
 
 The current host registers only its launch credential binding for a model document.
 Bill authorized ~/.en/settings.json as the global inference credential/default store;
 its three existing API-key field names/types were inspected without printing values.
-Host import and application-wide remembered funding are still pending. Keep the
+Host import and GUI use of the new application-wide funding store are still pending. Keep the
 existing transcription payer separate. Global defaults guide future explicit choices,
 never silently retarget existing Agents. Host-approved Ollama configuration remains
 explicit. Extend public Local Models checks and ordinary GUI evidence for these

@@ -80,7 +80,7 @@ public sealed partial class Agent
             message.Reply!.TrySetResult("");
         }
         catch (Exception error) when (error is ArgumentException or InvalidOperationException or IOException or UnauthorizedAccessException
-            or System.Text.Json.JsonException or FormatException)
+            or System.Text.Json.JsonException or FormatException or InvalidDataException)
         {
             message.Reply!.TrySetException(error);
         }

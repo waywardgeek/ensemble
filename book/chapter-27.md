@@ -255,6 +255,29 @@ to the launch record. When absent, the strict legacy rules above remain in force
 Selecting a configured model commits one Agent settings file, not a claimed atomic
 transaction across that file and the child or peer launch registry.
 
+Global settings belong to the application, not to any Agent. The host supplies
+`~/.en/settings.json` to the root-owned `GlobalSettings` object. Its `BindApiKey`
+operation creates ordinary `ModelAuthentication` bindings from the existing
+`openai_api_key`, `anthropic_api_key` and `gemini_api_key` fields; it does not expose
+those values in model choices. A missing key supplies no binding, not another
+vendor's key. The library never searches an implicit credential location.
+
+The `model_funding_defaults` object maps configured vendor IDs to authentication
+binding IDs. `RememberFunding(Model)` saves that reference without changing an
+Agent. `ResolveModel(vendor, name)` follows the approved graph and remembered
+funding. Without a saved choice, only one configured offering is unambiguous.
+Missing or ambiguous saved funding refuses, even when another key is usable. An
+unrelated unavailable offering must not hide a valid explicitly remembered choice.
+
+Read the bounded global document freshly under a cooperative writer lock before
+updating it. Preserve unrelated settings and credential values, write a private
+temporary file, flush it, and replace the destination. Malformed input or lock/I/O
+failure is not permission to reset the file. A global-default save and an Agent
+selection save are separate operations, not one filesystem transaction: their
+acknowledgments must distinguish a saved Agent choice from an unsaved global
+default. Host startup and GUI integration of this global-store foundation remain
+pending; the library operations alone do not enable new installed offerings.
+
 The GUI reads a credential-free `ModelSelectionStatus`, not the inference-validating
 configuration getter. Under the same ingress-to-graph lock order, this snapshot
 lists configured offerings and their local policy compatibility, funding description

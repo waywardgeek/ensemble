@@ -243,6 +243,12 @@ public sealed partial class Ensemble
                 failures.Add(ex);
             }
         }
+        try { GlobalSettings()?.Destroy(); }
+        catch (Exception error)
+        {
+            failures ??= [];
+            failures.Add(error);
+        }
         // Configured models outlive all admitted Agent work. Their graph is
         // removed before credential owners, which will supply endpoint bindings.
         foreach (ModelVendor vendor in ModelVendors())
