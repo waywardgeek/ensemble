@@ -47,13 +47,13 @@ assert(!['8088', '8089', '8090'].includes(new URL(base).port));
             const result = page.locator(`[data-part-id="state-${item.id}"]`);
             assert.equal(await result.locator('.tool-state').count(), 0);
             assert.equal(await result.getAttribute('data-status'), item.error ? 'error' : 'finished');
-            assert.equal(await result.locator('.card-heading strong').textContent(), (item.label === null ? (item.error ? 'Error reported' : 'Result returned') : `Job ${item.job.handle} ${item.label}`) + (item.error && item.job ? ' · error' : ''));
+            assert.equal(await result.locator('.card-heading strong').textContent(), 'run_command result' + (item.label === null ? '' : ` · Job ${item.job.handle} ${item.label}`) + (item.error ? ' · error' : ''));
         }
         // The later observation of Job81 does not rewrite its earlier snapshot.
         const running = page.locator('[data-part-id="state-running"]');
-        assert.equal(await running.locator('.card-heading strong').textContent(), 'Job 81 running when observed');
+        assert.equal(await running.locator('.card-heading strong').textContent(), 'run_command result · Job 81 running when observed');
         await page.evaluate(() => render(cards.get('state-running')));
-        assert.equal(await running.locator('.card-heading strong').textContent(), 'Job 81 running when observed');
+        assert.equal(await running.locator('.card-heading strong').textContent(), 'run_command result · Job 81 running when observed');
         assert.equal(await call.locator('.tool-state').count(), 0);
         assert.match(await call.locator('.card-heading strong').getAttribute('title'), /Result returned/);
         assert(await page.evaluate(() => toolTranscript.scrollWidth <= toolTranscript.clientWidth + 1));

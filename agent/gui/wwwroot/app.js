@@ -660,8 +660,13 @@ function render(card) {
     const statusLabel = artifact && card.status ? toolObservationLabel(card) : card.status;
     title.title = `${author} · ${card.name || card.toolName || kind}${summary}${statusLabel ? " · " + statusLabel : ""}`;
     card.node.querySelectorAll(":scope > .tool-state").forEach(node => node.remove());
-    if (card.kind === "tool_result")
-        title.textContent = (recordedJobLabel(card.job) || toolObservationLabel(card)) + (card.status === "error" && card.job ? " · error" : "");
+    if (card.kind === "tool_result") {
+        const jobLabel = recordedJobLabel(card.job);
+        const resultLabel = card.toolName ? `${card.toolName} result` : toolObservationLabel(card);
+        title.textContent = card.toolName
+            ? resultLabel + (jobLabel ? ` · ${jobLabel}` : "") + (card.status === "error" ? " · error" : "")
+            : (jobLabel || resultLabel) + (card.status === "error" && card.job ? " · error" : "");
+    }
     const speaker = heading.querySelector('[data-action="speak"]') || actionButton("Speak", () => speak(card));
     speaker.setAttribute("aria-label", `Speak ${author} ${card.kind}`);
     speaker.title = speaker.getAttribute("aria-label");

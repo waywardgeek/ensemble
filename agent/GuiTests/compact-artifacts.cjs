@@ -20,7 +20,7 @@ assert.equal(new URL(base).hostname, '127.0.0.1');
    });
    await page.waitForFunction(() => cards.get('compact-result')?.node.querySelector('.preview')?.textContent.endsWith('LAST OUTPUT END'));
    const result=page.locator('[data-part-id="compact-result"]');
-   assert.equal(await result.locator('.card-heading strong').textContent(),'Job 7 completed');
+   assert.equal(await result.locator('.card-heading strong').textContent(),'list_directory result · Job 7 completed');
    assert.equal(await result.locator('details').isVisible(),false);
    assert.equal(await result.locator('.tool-state').count(),0);
    assert((await result.locator('.preview').textContent())===tail, 'visible tail differs from retained bytes');
@@ -44,6 +44,12 @@ assert.equal(new URL(base).hostname, '127.0.0.1');
    await page.waitForFunction(() => cards.get('partial-result')?.node.querySelector('.preview')?.textContent.endsWith('LAST OUTPUT END'));
    assert.equal(await page.locator('[data-part-id="partial-result"] .directory-preview li').count(),1);
    assert.match(await page.locator('[data-part-id="partial-result"] .preview').textContent(),/Retained output tail/);
+   await page.evaluate(() => {
+    handle({type:'tool_finished',part_id:'named-no-job',tool_part_id:'compact-call',result:'recorded directory output'});
+    handle({type:'tool_finished',part_id:'unnamed-no-job',result:'legacy output'});
+   });
+   assert.equal(await page.locator('[data-part-id="named-no-job"] .card-heading strong').textContent(),'list_directory result');
+   assert.equal(await page.locator('[data-part-id="unnamed-no-job"] .card-heading strong').textContent(),'Result returned');
    let held;
    await page.route('**/jobs/window?*', async route => {
     if(new URL(route.request().url()).searchParams.get('handle')==='8') held=route;
