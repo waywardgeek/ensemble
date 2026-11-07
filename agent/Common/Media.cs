@@ -52,6 +52,9 @@ public sealed partial class Engine
         (Vendor.OpenAI, "gpt-6-astra", new(Media.Image, Stream: true,
             ReasoningEfforts: ["low", "medium", "high", "xhigh", "max"],
             ReasoningSummaries: ["auto"], RequireToolExplanation: true, ResponsesOnly: true)),
+        // Preserve Sol's supported text-streaming selection on subscription routes.
+        // This declares no media, reasoning options, context limit or entitlement.
+        (Vendor.OpenAI, "gpt-5.6-sol", new(Media.None, Stream: true)),
         // GenerateContent function-response image placement was verified with
         // this exact model. No prefix inference or account entitlement implied.
         // https://ai.google.dev/gemini-api/docs/function-calling

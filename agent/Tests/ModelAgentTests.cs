@@ -24,6 +24,50 @@ internal static class ModelAgentTests
         return new Model(endpoint, "small", "same-wire", "Small", new ModelFeatures(Media.None));
     }
 
+    public static async Task SolFunding(string temp)
+    {
+        var root = new Application(TextWriter.Null);
+        try
+        {
+            var vendor = new ModelVendor(root, "openai", "OpenAI");
+            var codex = new CodexCredentials(root, Path.Combine(temp, "unused-sol-codex.json"));
+            var plan = new Credentials(root, Path.Combine(temp, "unused-sol-plan"));
+            var bindings = new[] {
+                new ModelAuthentication(root, "api", "synthetic-sol-key"),
+                new ModelAuthentication(root, "codex", codex),
+                new ModelAuthentication(root, "plan", plan, "synthetic-account")
+            };
+            Engine.LookupModel(Vendor.OpenAI, "gpt-5.6-sol", out var features);
+            var agent = new Agent(root, new Configuration(Vendor.OpenAI, "gpt-4o",
+                "https://api.openai.com", "synthetic-old-key"));
+            foreach (var binding in bindings)
+            {
+                string address = binding.Kind == ModelAuthenticationKind.Codex
+                    ? CodexCredentials.ServiceBase : "https://api.openai.com";
+                var endpoint = new ModelEndpoint(vendor, binding.ID, address, Surface.Responses, binding);
+                var sol = new Model(endpoint, "sol", "gpt-5.6-sol", "GPT-5.6 Sol", features);
+                var choice = agent.ModelSelectionStatus().ConfiguredChoices.Single(row => row.Offering == sol.Identity());
+                Check(choice.Available, "Sol must be selectable through " + binding.ID);
+                await agent.SetModelAsync(sol);
+                Check(ReferenceEquals(agent.SelectedModel(), sol)
+                    && agent.Configuration().Authentication == binding,
+                    "Sol selection retains the explicitly chosen funding owner.");
+            }
+            var codexEndpoint = vendor.Endpoints().Single(endpoint => endpoint.ID == "codex");
+            var unsupported = new Model(codexEndpoint, "no-stream", "fixture-no-stream", "No stream",
+                new ModelFeatures(Media.None));
+            var rejected = agent.ModelSelectionStatus().ConfiguredChoices.Single(row => row.Offering == unsupported.Identity());
+            Check(!rejected.Available && rejected.Funding == "Unavailable model configuration (capabilities or request policy)",
+                "Missing subscription streaming must report configuration, not authentication.");
+            Refuses(() => new Configuration(agent.Configuration(), unsupported));
+            codex.Destroy();
+            Check(!agent.ModelSelectionStatus().ConfiguredChoices.Single(row => row.EndpointID == "codex" && row.Model == "gpt-5.6-sol").Available,
+                "Sol capability must not bypass lost credential ownership.");
+            Check(agent.History().Events().All(value => value.Kind != EventKind.RequestSent), "Selection must not initiate inference.");
+        }
+        finally { root.Destroy(); }
+    }
+
     public static void Membership(string temp)
     {
         var root = new Application(TextWriter.Null);

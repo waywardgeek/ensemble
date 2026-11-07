@@ -389,6 +389,16 @@ model names and exact capability table to register available API bindings:
 endpoint ID `api`. Provider names remain unchanged; stable model IDs replace dots
 with underscores to satisfy the configured-ID grammar. Key presence is not an
 entitlement or health check. Never contact providers merely to populate choices.
+
+Keep curated recommendations and route requirements consistent. Subscription
+routes require streaming, so an omitted streaming declaration can disable a
+previously selectable model even when its credential owner is healthy. Sol has an
+explicit text-streaming declaration; it makes no claim about media, reasoning
+options, context capacity or account entitlement. Test curated subscription choices
+through the actual host catalog, not only the legacy wire-name selector. Report
+invalid capabilities or request policy as a configuration problem, not as missing
+authentication; never expose raw credential exceptions in the GUI.
+
 These additive offerings do not reconstruct or replace the initial launch policy.
 Ollama remains a separate explicitly configured vendor, not automatic LAN discovery.
 

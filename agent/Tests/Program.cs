@@ -112,6 +112,7 @@ try
         CheckCase("Configured model admission and identity refusal", ModelDomainTests.Refusals);
         CheckCase("Configured model detach and destruction", ModelDomainTests.Detach);
         CheckCase("Configured Agent weak selection membership", () => ModelAgentTests.Membership(temp));
+        await AsyncCase("Sol configured funding capability and diagnostic", () => ModelAgentTests.SolFunding(temp));
         CheckCase("Model authentication bindings and credential lifetime", ModelAuthenticationTests.Bindings);
         if (args.Length != 0)
         {

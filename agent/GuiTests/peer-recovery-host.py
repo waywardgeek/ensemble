@@ -84,6 +84,14 @@ def main():
                 require(funding == {'API key', 'Codex OAuth', 'ChatGPT OAuth'}, 'missing independent OpenAI funding routes')
                 require(len([row for row in choices['preferred_models'] if row['preference'] ==
                              {'vendor': 'openai', 'model': 'gpt-6-astra'}]) == 1, 'Astra duplicated by funding')
+                sol = [row for row in choices['configured_models'] if row['model'] == 'gpt-5.6-sol']
+                require({row['offering']['endpoint'] for row in sol} == {'api', 'codex', 'chatgpt'}
+                        and all(row['enabled'] for row in sol), 'Sol unavailable on a configured funding route')
+                if attempt > 0:
+                    preferred_sol = [row for row in choices['preferred_models']
+                                     if row['preference'] == {'vendor': 'openai', 'model': 'gpt-5.6-sol'}]
+                    require(len(preferred_sol) == 1 and preferred_sol[0]['enabled'],
+                            'Sol picker unavailable with remembered Codex funding')
                 if attempt < 2:
                     require(len(request('/peers/saved')) == 2, 'failed fleet is not recoverable')
                     if attempt == 0:

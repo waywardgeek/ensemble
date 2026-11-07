@@ -35,7 +35,7 @@ public sealed partial class Agent
                         foreach (Model model in endpoint.Models())
                         {
                             bool selectable = !root.ModelGraphClosed;
-                            string funding = "Unavailable authentication";
+                            string funding = "Unavailable model relationship";
                             if (selectable)
                             {
                                 try
@@ -45,9 +45,15 @@ public sealed partial class Agent
                                     var candidate = new Configuration(configuration, model);
                                     funding = candidate.FundingDescription();
                                 }
-                                catch (Exception error) when (error is InvalidOperationException or ArgumentException)
+                                catch (ArgumentException)
                                 {
                                     selectable = false;
+                                    funding = "Unavailable model configuration (capabilities or request policy)";
+                                }
+                                catch (InvalidOperationException)
+                                {
+                                    selectable = false;
+                                    funding = "Unavailable authentication or model relationship";
                                 }
                             }
                             choices.Add(new ModelSelectionChoice(model.Identity(), vendor.Label,

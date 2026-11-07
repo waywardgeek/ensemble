@@ -1,5 +1,31 @@
 # Model selection usability follow-up
 
+## Sol subscription-selection regression
+
+Bill reported Sol disabled after the funding-picker repair. Read-only running-host
+status showed its API offering enabled, Codex and ChatGPT offerings disabled, and
+Codex selected as the OpenAI default. Sol was recommended but absent from the
+capability table; configured subscription validation therefore saw streaming as
+false. This was local admission, not a provider rejection. The generic unavailable
+authentication label incorrectly concealed the capability failure.
+
+The repair declares Sol text streaming without adding media, reasoning options,
+context capacity or entitlement claims. Selection status separates invalid model
+configuration from unavailable authentication/relationships without returning raw
+exceptions. A new domain regression first failed at Sol's Codex availability;
+after repair all8 domain groups pass, including API/Codex/ChatGPT selection,
+unsupported-streaming refusal and lost credential-owner refusal. Shared core375/0,
+focused GUI model checks and the three-start host recovery test pass. The host test
+now asserts all three Sol routes are available and the single preferred Sol choice
+is enabled with remembered Codex funding. Builds are warning-free; prose hard
+checks pass with advisories. Evidence is in
+`/private/tmp/cadence-codex-review.ShtOD6/sol-*`.
+
+No inference, funding-default write to the installed application, installation or
+restart was performed. These checks establish local admission and route ownership,
+not live account access. Lesson: test curated recommendations through configured
+funding admission, not just the legacy wire-name selector.
+
 ## Cadence review of Codex's repair
 
 Bill supplied the uncommitted recovery, picker and funding work implemented with
