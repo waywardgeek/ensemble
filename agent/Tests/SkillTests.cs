@@ -119,6 +119,17 @@ internal static class SkillTests
                 new Configuration(Vendor.OpenAI, "gpt-6-astra", "http://127.0.0.1:1", surface: Surface.Responses),
                 skillSpec: new SkillSpec(skillsRoot, "ensemble", variables));
             var manager = agent.SkillManager()!;
+            var explanationPath = Path.Combine(skillsRoot, "visible-reasoning", "SKILL.md");
+            var explanation = Skills.Parse(File.ReadAllText(explanationPath), explanationPath);
+            Check(explanation.Type == SkillType.Dependency && explanation.Tools.IsEmpty
+                && explanation.Depends.IsEmpty, "Visible reasoning must be a tool-free dependency");
+            var guidance = manager.Active().Single(skill => skill.Name == "visible-reasoning");
+            Check(!guidance.Primary && guidance.Body.Contains("Pair with Fixture")
+                && !guidance.Body.Contains("$HUMAN_NAME"), "Primary dependency did not activate with variables");
+            string initialInstructions = agent.Engine().Render(agent.History().View())["instructions"]!.GetValue<string>();
+            Check(initialInstructions.Contains(guidance.Body, StringComparison.Ordinal)
+                && initialInstructions.Split("# Visible engineering reasoning").Length == 2,
+                "Visible reasoning must appear once in initial provider instructions");
             Check(manager.LoadableSkills().Contains("ensemble-coding"), "Native coding skill is not offered");
             string[] toolsBefore = manager.CatalogTools().Order(StringComparer.Ordinal).ToArray();
             var result = await agent.DispatchAsync(Call("load_skill", new { name = "ensemble-coding" }));
