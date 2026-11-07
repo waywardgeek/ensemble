@@ -1547,3 +1547,8 @@ document.querySelector("#prompt").addEventListener("input", () => {
     voiceControl?.cancel();
     renderControls();
 });
+
+// Renderer selection changes presentation, never recorded tool facts.
+document.addEventListener("ensemble-renderers-changed", () => {
+    for (const card of cards.values()) queueCardRender(card);
+});

@@ -12,6 +12,7 @@
 <script src="./images.js" defer></script><script src="./theme.js" defer></script><script src="./speech-preferences.js" defer></script><script src="./device-preferences.js" defer></script><script src="./skills/file-reading/renderers/list-directory.js" defer></script><script src="./app.js" defer></script><script src="./layout.js" defer></script>
 <script src="./auth.js" defer></script><script src="./peers.js" defer></script>
 <script src="./settings.js" defer></script>
+<script src="./renderers.js" defer></script>
 </head><body>
 <!-- Local decorative symbols. Interactive controls own their accessible names. -->
 <svg class="icon-symbols" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false"><defs>
@@ -156,6 +157,25 @@
 </section>
 </section>
 <section class="tab-pane" id="settings-display-panel" role="tabpanel" aria-labelledby="settings-display-tab" tabindex="0">
+<section class="settings-section" aria-labelledby="renderer-heading">
+<h2 id="renderer-heading">Artifact renderer: directory listing</h2>
+<p>Custom JavaScript runs with this page’s authority, not in a sandbox. Review the entry and helpers before trying it. An unaccepted trial ends on reload.</p>
+<label for="renderer-package">Candidate package (JSON, at most 1 MiB)</label>
+<input class="form-control" id="renderer-package" type="file" accept=".json,application/json">
+<label for="renderer-version">Candidate version</label>
+<input class="form-control" id="renderer-version" type="text" maxlength="64" autocomplete="off" spellcheck="false">
+<div class="controls">
+<button type="button" id="renderer-review">Review candidate</button>
+<button type="button" id="renderer-try" disabled>Try live</button>
+<button type="button" id="renderer-keep" disabled>Keep this version</button>
+<button type="button" id="renderer-revert">Revert trial by reloading</button>
+<button type="button" id="renderer-rollback" disabled>Restore prior accepted version</button>
+</div>
+<p id="renderer-status" role="status">Loading renderer selection…</p>
+<details><summary>Candidate source and dependencies</summary><pre id="renderer-source"></pre></details>
+<p><a id="renderer-safe" href="?renderers=shipped">Reload with shipped renderers only</a></p>
+</section>
+
 <section class="settings-section" aria-labelledby="accessibility-heading"><h2 id="accessibility-heading">This browser: Speech &amp; Display</h2><p>Saved in this browser profile for this site. Tabs share preferences; other profiles and devices do not. If storage is blocked, changes last for this page only.</p>
  <label>Theme (this browser) <select class="form-select" id="theme"><option value="system">System</option><option value="light">Light</option><option value="dark" selected>Dark</option></select></label>
  <label>Font size (this browser) <input class="form-control" id="font-size" type="number" min="12" max="32" step="1" value="18"> px</label>

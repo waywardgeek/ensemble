@@ -276,7 +276,8 @@ try
             ? int.Parse(portText, System.Globalization.CultureInfo.InvariantCulture) : 8090,
         AssetsDirectory: hostFlags.GetValueOrDefault("--gui-dir"),
         SettingsPath: settingsPath,
-        PublicOrigin: hostFlags.GetValueOrDefault("--public-origin"));
+        PublicOrigin: hostFlags.GetValueOrDefault("--public-origin"),
+        RendererDirectory: Path.Combine(app.DataDirectory(), "renderers"));
     // Fleet restoration belongs to this application composition root, not the
     // reusable GUI mount, which only borrows the Agent supplied by its caller.
     // A browser-dependent peer cannot finish startup before its own relay can

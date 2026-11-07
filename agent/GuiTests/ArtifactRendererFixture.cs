@@ -23,7 +23,8 @@ internal static class ArtifactRendererFixture
                 outputDirectory: Path.Combine(directory, "jobs"));
             hosting = Gui.RunAsync(agent, new GuiOptions(port,
                 SettingsPath: Path.Combine(directory, "settings.json"),
-                TracePath: Path.Combine(directory, "gui.log")), stop.Token);
+                TracePath: Path.Combine(directory, "gui.log"),
+                RendererDirectory: Path.Combine(directory, "renderers")), stop.Token);
             string url = $"http://127.0.0.1:{port}/";
             using var client = new HttpClient();
             while (true)

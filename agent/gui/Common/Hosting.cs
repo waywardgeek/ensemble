@@ -16,8 +16,10 @@ namespace EnsembleGui;
 // including WebSockets. Forwarded headers do not grant host/origin authority.
 // Trusted peer POST controls use this mounted Agent as the explicit defaults
 // source and cannot delete it. Pending creation does not block socket traffic.
+// RendererDirectory explicitly enables shared renderer snapshots; null keeps only
+// shipped rendering. Trials are never persisted in this directory.
 // Null TracePath uses Agent-owned diagnostics. An explicit path is a fresh,
 // operation-owned aggregate trace for embedding/tests, not the normal host mode.
 public sealed record GuiOptions(int Port = 8090, string? AssetsDirectory = null,
     string SettingsPath = "settings.json", string? TracePath = null, string BasePath = "",
-    string? PublicOrigin = null);
+    string? PublicOrigin = null, string? RendererDirectory = null);

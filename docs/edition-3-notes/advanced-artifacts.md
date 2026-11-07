@@ -53,6 +53,59 @@ Evidence is under `/private/tmp/cadence-advanced-artifacts.7bNped`; it is local
 verification, not a portable release artifact. No installation or human visual
 acceptance is claimed.
 
+## Renderer trials and acceptance
+
+Bill approved version-specific review and proposed separate approval to try a
+renderer live and acceptance to keep it. Reload, not application restart, is the
+recovery boundary. A candidate must not overwrite accepted bytes. An explicitly
+approved trial belongs only to the current page's memory; neither browser storage
+nor host startup state may automatically resume an unaccepted trial. A fresh page
+loads the accepted version, or the shipped default when none exists.
+
+Acceptance must name the exact reviewed code and executable dependencies, not a
+mutable directory. Changed bytes require a new trial approval. Retaining the prior
+accepted version provides rollback after a later-discovered problem. These are
+agreed lifecycle requirements, not implemented behavior of the first experiment.
+
+Ordinary exceptions can fall back locally. In-page JavaScript can also hang the
+page or change unrelated state; a same-page watchdog cannot guarantee recovery.
+Reload discards trial selection, but does not undo arbitrary side effects. This
+is a recovery mechanism for reviewed code, not containment of hostile code.
+
+Inspection confirms that `Gui.MapAssets()` freezes its asset bytes at host startup;
+the current shipped hook cannot load edited source live. GUI `Preferences` is an
+appearance/user-information value record, not an executable-code owner. The next
+implementation must separate immutable version storage and durable acceptance
+from page-local trial selection, preserving the existing fixed asset boundary.
+Exact storage ownership, candidate admission and UI controls remain to implement.
+
+## Version storage implementation slice
+
+`Gui/Common/RendererStore.cs` declares immutable package/selection values and a
+GUI-operation-owned store. `Gui/Server/RendererStore.cs` stages canonical bounded
+JavaScript packages under SHA-256 identities covering entry, renderer identity,
+and every declared helper. Reads verify the hash. Staging does not activate code.
+Acceptance checks the expected current selection, validates the target snapshot,
+and saves before returning success. A prior accepted identity supports rollback,
+including rollback to the shipped default. There is no durable trial field.
+
+Selection mutation uses a cooperating-writer file lock and sibling temporary
+write/flush/replace. This is not arbitrary-writer protection or a directory-fsync
+crash guarantee. No browser route, candidate import UI, or loader uses this store
+yet. Package declarations do not statically prove the absence of undeclared
+JavaScript imports or external behavior; trusted-code review remains necessary.
+
+Focused public-API store tests pass with a clean GUI-tests build (zero warnings
+or errors). They cover dependency-edit identity, reopen without candidate
+activation, acceptance/rollback, stale and locked promotion refusal, tool identity,
+traversal/size limits, tampered snapshots and duplicate selection fields. The
+initial harness failed because its expected-refusal helper omitted
+`InvalidDataException`; the intended hash refusal occurred. Correcting that helper
+and rebuilding passed. A pre-encoding source-byte bound was added during the
+initial build; only the subsequent sequential build certifies final source.
+Evidence: `/private/tmp/cadence-renderer-versions.gOOJ6z`. These checks do not yet
+establish browser reload recovery or executable approval controls.
+
 ## Reader and user purpose
 
 Users should be able to describe in words how they want output to look. Their
@@ -345,3 +398,58 @@ Renderer/library declarations, approval/update policy and output-feed interfaces
 remain explicit design decisions for the first experiment. Six exercises capture
 observable agreed behavior, not a claim that an independent build contract or
 external graders are already complete. The remaining chapter body is unwritten.
+
+
+## Executed renderer trial and recovery slice
+
+The GUI host now explicitly supplies `RendererDirectory` under the application's
+shared data directory. Embedded hosts leave it null to retain shipped rendering
+only. `ServeAsync` owns the store and maps its HTTP endpoints into the existing
+origin-guarded, joined mount lifetime. This is not Agent settings or a new server.
+The bounded first API supports `list_directory`; general skill declarations and
+other renderer kinds remain to be implemented.
+
+A candidate upload is JSON with `entry` and `files`, a map of relative JavaScript
+names to source. `main.js` may import a packaged `./helper.js`; all declared files
+participate in the snapshot hash. Staging stores bytes without executing them.
+Routes refuse unknown/duplicate fields, oversized input, unsafe names, invalid
+snapshots, and cross-origin mutations. Mutations require Origin and the renderer
+header; the header is not a defense against trusted same-page JavaScript.
+Module requests resolve only snapshot members, never caller filesystem paths.
+
+Speech & Display contains candidate upload, literal source review, Try live,
+Keep, reload-to-revert, and prior-accepted rollback. A renderer entry exports a
+default function `(document, text)` returning a detached HTMLElement. This remains
+the bounded directory-preview interface, not a final all-Artifact lifecycle API.
+The browser stores trial state only in lexical page memory. Keep compares the
+accepted hash observed by that page; stale or unconfirmed writes are not silently
+retried. Reload without Keep loads the accepted version, never the candidate.
+A `renderers=shipped` query bypasses accepted custom imports for recovery after an
+accepted defect. It changes no durable selection; rollback is still available.
+
+Reload is an escape from page-local trial selection, not a promise to undo every
+side effect of trusted JavaScript. An import can throw after side effects, and a
+renderer can hang the page. No in-page watchdog or sandbox is claimed. Review
+must include undeclared imports and network behavior; snapshot membership alone
+does not constrain JavaScript's authority. Accepted rendering is shared policy;
+already-open pages retain their current code until reload or explicit trial.
+
+Verification: clean GUI consumer and normal-host builds, zero warnings/errors;
+public store tests; actual HTTP staging/module/origin/header/strictness/bounds/
+stale/rollback/tamper checks; actual browser controls at 1280 and 390 widths with
+helper import, no execution on staging, trial discard on reload, Keep surviving
+reload, failed import refusing Keep, shipped-only recovery, and rollback. The
+existing visible result switched renderers while raw recorded output stayed
+unchanged. Six default GUI regression groups passed. All fixture hosts joined;
+no provider inference, installed application changes, or restart. Evidence is in
+`/private/tmp/cadence-renderer-versions.gOOJ6z`.
+
+One edit script guessed the rendering scheduler name and stopped after writing
+Settings markup but before modifying `app.js`. Inspection found `queueCardRender`;
+the final event handler uses it to preserve existing deferred selection handling.
+This was an editing assumption failure, not a runtime failure. The initial
+storage negative test also needed an explicit InvalidDataException catch.
+
+Next: explicit skill association and readable package discovery, then the other
+agreed renderer behaviors and continuing Job output. These tests establish this
+slice only; they do not complete Advanced Artifacts or its chapter body.

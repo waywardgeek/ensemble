@@ -132,6 +132,12 @@ if (args is ["--capture-model-host"])
     return;
 }
 
+if (args is ["--renderer-store-tests"])
+{
+    RendererStoreTests.Run();
+    return;
+}
+
 if (args is ["--asset-cache-tests"])
 {
     await AssetCacheTests.RunAsync();

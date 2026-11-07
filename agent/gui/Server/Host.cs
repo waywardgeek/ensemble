@@ -184,6 +184,8 @@ public static partial class Gui
         MapPeers(routes, agent, port, publicOrigin, stopping.Token);
         MapJobOutput(routes, agent, port, publicOrigin, stopping.Token);
         MapWorkProducts(routes, agent, port, publicOrigin, stopping.Token);
+        MapRenderers(routes, options.RendererDirectory is { } rendererDirectory
+            ? new RendererStore(rendererDirectory) : null, port, publicOrigin, stopping.Token);
         MapAssets(routes, options.AssetsDirectory);
         var initialMcp = agent.EnsureMcp();
 
