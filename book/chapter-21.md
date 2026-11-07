@@ -43,7 +43,7 @@ and fail to use it.
 >
 > **Projection and replay.** Declare value-like `MemoryEntry`, `MemoryRetirement`, compression launch/receipt/outcome values, and immutable policies in Common. `Context.Memories` orders five bands from stable to recent: SOUL, MEMORY, 64x archive, 8x archive, session. Conversation follows them. `MemoryPopulated` records actual text; `MemoryRetired` records explicit identities, or an entire band. Reduction and snapshot/journal replay do no filesystem work and start no workers. Render retained memory as labeled user/data text, never system instructions or tool authority.
 >
-> **Checkpoints.** `micro_handoff` still removes old tool traffic, opaque replay and private reasoning from working context, not canonical History. Keep previous handoff notes as completed-segment boundaries until a matching memory replacement commits. Above the conversation byte budget, select a whole oldest completed prefix until the remainder fits, or no further complete prefix is available. Never select the unfinished tail, unresolved tool traffic or private replay. There is no T/4 threshold or minimum-two-checkpoint rule. Graduation of memory files, in contrast, requires at least two files.
+> **Checkpoints.** `micro_handoff` still removes old tool traffic, opaque replay and private reasoning from working context, not canonical History. Keep only the newest handoff note in active Context; canonical History retains prior handoff facts. The retained checkpoint closes the eligible conversation prefix, without keeping older notes in every request. Above the conversation byte budget, select a whole oldest completed prefix until the remainder fits, or no further complete prefix is available. Never select the unfinished tail, unresolved tool traffic or private replay. There is no T/4 threshold or minimum-two-checkpoint rule. Graduation of memory files, in contrast, requires at least two files.
 >
 > **Ownership and files.** Each Agent owns a Memory component and reaches it through that relationship. Memory reaches rooted files through Agent → Sandbox. Derive paths from the Agent home: `SOUL.md`, `MEMORY.md`, `memory/`, `bucket-0/`, `bucket-1/`, and `archive/`. A worker never chooses a path. Strict dated/numeric identities, deterministic ordering and overlap checks govern active corpus files. Retired files remain on disk but do not re-enter active scans. Recover transactions before scanning. A library Agent without a home remains usable without implicit filesystem memory.
 >
@@ -126,9 +126,21 @@ Startup disk reconciliation is an explicit actor action after recovery. It compa
 
 The compressor cannot preserve a reason that the acting model never expressed. A fluent summary is not evidence that omitted reasoning survived. The main model still owes its successor decisions, rejected approaches, uncertainty and unfinished work at the checkpoint.
 
-### Keep checkpoints until their replacement exists
+### Keep the newest active checkpoint; preserve captured source until commit
 
-Chapter 14's handoff removed old tool traffic and private replay. Chapter 21 keeps that guarantee, but no longer discards every older handoff note as soon as a new note arrives. Those notes mark completed segments available for long-term compression.
+Chapter 14's newest-only rule still applies. Each successful handoff replaces all
+older active handoff notes, while canonical History preserves their facts. The
+remaining ordinary dialogue through the newest checkpoint is a completed prefix
+that the selector can consider. Do not retain old notes in active Context merely
+to manufacture more segment boundaries. The unfinished tail remains ineligible.
+
+This is distinct from preserving the immutable source captured by an outstanding
+compression task. A later handoff may retire a checkpoint that task selected;
+validate the captured entries and fingerprint before committing. If the selected
+source has changed, reject the stale candidate rather than resurrecting old notes
+or relaxing the replacement transaction. See Chapter 14's repeated-handoff and
+restored-GUI acceptance checks: a filtered display transcript must not reapply
+compression transactions already reflected in its authoritative snapshot.
 
 The companion results must still be recorded before applying the handoff. A tool call is not a completed batch merely because it appears in History. The prefix selector refuses unresolved tool traffic or private material; it does not “fix” an unsafe selection by pretending the missing result succeeded.
 
