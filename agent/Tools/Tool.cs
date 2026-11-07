@@ -150,7 +150,7 @@ public sealed partial class Tool
                 break;
             case ToolKind.WriteFile:
                 name = "write_file";
-                description = "Create or write a UTF-8 file, creating parent directories. Existing files require overwrite:true or append:true.";
+                description = "Create or write a UTF-8 file, creating parent directories. Existing files require overwrite:true or append:true. Success reports written lines and starting UTF-16 column; append reads the existing file to establish positions.";
                 Field("path", "string", "File path.", true);
                 Field("content", "string", "Exact text to write.", true);
                 Field("overwrite", "boolean", "Allow replacing an existing file, default false.");

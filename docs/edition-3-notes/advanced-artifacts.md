@@ -535,3 +535,28 @@ ambient URL; its missing CLI arguments refused before starting its fixture. The
 wrapper's own host joined. Correct explicit SDK/assembly invocation passed. Failed
 log retained as directory-browser-invocation-failure.log in the renderer evidence
 directory. No installed application, provider inference, or live service changed.
+
+
+### Written ranges belong in model results too
+
+Bill rejected preserving write-only append at the cost of unknown line positions.
+Counting the existing lines is authorized; the successful model-facing result must
+report the written range, not reserve that information for the GUI. The initial
+unknown-position fallback proposal was not adopted.
+
+`write_file` now uses one read/write OpenOrCreate handle for append, counts lines
+with a bounded character buffer, seeks to the end, and writes through that handle.
+Ordinary creation still uses CreateNew; overwrite still uses Create. The writer
+closes before success is returned. Positions are one-based, columns count UTF-16
+code units, and LF advances the line (matching read_file). A final newline belongs
+to the line it terminates; empty content claims no written range. This avoids a
+second path lookup but does not lock out unrelated concurrent writers. Typed GUI
+file evidence and its renderer are still pending.
+
+Verification: isolated build passed with zero warnings/errors; the focused real
+file/shell tool group passed, including ordinary write, overwrite, both append
+positions, empty content, CRLF/Unicode, new-file append and refusal. All four
+sandbox groups passed, including rooted tool append and the existing symlink-swap
+check. This is not a concurrent-writer guarantee or a GUI-rendering check. Evidence:
+`write-position-build.log`, `write-position-tests.log`, and
+`write-position-sandbox.log` in the renderer verification workspace.

@@ -172,8 +172,9 @@ internal static class SandboxTests
                 "tool creates rooted parents and file");
             Check((await Call("write_file", new { path = "work/note.txt", content = "bad" })).IsError,
                 "tool no-overwrite refusal");
-            Check(!(await Call("write_file", new { path = "work/note.txt", content = "tail\n", append = true })).IsError,
-                "tool append");
+            var appended = await Call("write_file", new { path = "work/note.txt", content = "tail\n", append = true });
+            Check(!appended.IsError && Text(appended).Contains("Lines 3–3; starting column 1"),
+                "rooted append reports positions through same descriptor");
             Check(Text(await Call("read_file", new { path = "work/note.txt", start_line = 2, end_line = 2 })) == "needle\n",
                 "rooted inclusive line range");
             Check(!(await Call("edit_file", new { path = "work/note.txt", old_text = "needle", new_text = "found" })).IsError,

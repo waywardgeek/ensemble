@@ -86,6 +86,27 @@ internal static class ToolTests
                 append = true
             })).IsError, "append");
             Check(File.ReadAllText(file) == "original\ntail\n", "append preserves bytes");
+            var positioned = Path.Combine(directory, "positioned.txt");
+            Check(Text(await Call("write_file", new { path = positioned, content = "first\n" }))
+                .Contains("Lines 1–1; starting column 1"), "create reports actual line range");
+            Check(Text(await Call("write_file", new { path = positioned, content = "tail", append = true }))
+                .Contains("Lines 2–2; starting column 1"), "append after newline starts next line");
+            Check(Text(await Call("write_file", new { path = positioned, content = " end\nnext\n", append = true }))
+                .Contains("Lines 2–3; starting column 5"), "append continues unterminated line");
+            Check(File.ReadAllText(positioned) == "first\ntail end\nnext\n", "position reporting preserves bytes");
+            Check(Text(await Call("write_file", new { path = positioned, content = "", append = true }))
+                .Contains("no content written"), "empty append invents no written line");
+            Check(Text(await Call("write_file", new { path = positioned, content = "x", overwrite = true }))
+                .Contains("Lines 1–1; starting column 1"), "overwrite resets positions");
+            var failedWrite = await Call("write_file", new { path = positioned, content = "refused" });
+            Check(failedWrite.IsError && !Text(failedWrite).Contains("File written"), "failed write makes no success claim");
+            await Call("write_file", new { path = positioned, content = "one\r\n😀", overwrite = true });
+            Check(Text(await Call("write_file", new { path = positioned, content = "z", append = true }))
+                .Contains("Lines 2–2; starting column 3"), "CRLF and UTF-16 column are explicit");
+            Check(File.ReadAllText(positioned) == "one\r\n😀z", "append preserves CRLF and Unicode");
+            var newAppend = Path.Combine(directory, "new-append.txt");
+            Check(Text(await Call("write_file", new { path = newAppend, content = "new", append = true }))
+                .Contains("Lines 1–1; starting column 1"), "append creates missing file at first line");
             Check(Text(await Call("read_file", new
             {
                 path = file,

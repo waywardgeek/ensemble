@@ -236,11 +236,33 @@ public sealed partial class Tool
         files.CreateDirectory(string.IsNullOrEmpty(directory) ? "." : directory);
         // CreateNew enforces no-overwrite at the actual open. A separate
         // existence/size probe would race, and must not reopen a host path.
-        var mode = append ? FileMode.Append : overwrite ? FileMode.Create : FileMode.CreateNew;
-        using var stream = files.OpenFile(path, mode, FileAccess.Write);
-        using var writer = new StreamWriter(stream, new UTF8Encoding(false));
-        writer.Write(String(args, "content"));
-        return "File written.";
+        var content = String(args, "content");
+        var mode = append ? FileMode.OpenOrCreate : overwrite ? FileMode.Create : FileMode.CreateNew;
+        using var stream = files.OpenFile(path, mode, append ? FileAccess.ReadWrite : FileAccess.Write);
+        long startLine = 1, startColumn = 1;
+        if (append)
+        {
+            // Count and write through the same opened file, not a second path
+            // lookup. This is not a lock against unrelated concurrent writers.
+            using (var reader = new StreamReader(stream, leaveOpen: true))
+            {
+                var buffer = new char[4096];
+                int count;
+                while ((count = reader.Read(buffer, 0, buffer.Length)) != 0)
+                    foreach (char character in buffer.AsSpan(0, count))
+                        if (character == '\n') { startLine++; startColumn = 1; }
+                        else startColumn++;
+            }
+            stream.Seek(0, SeekOrigin.End);
+        }
+        // Dispose before returning success: flushing can fail too.
+        using (var writer = new StreamWriter(stream, new UTF8Encoding(false), leaveOpen: true))
+            writer.Write(content);
+        if (content.Length == 0) return "File written; no content written (empty input).";
+        long endLine = startLine;
+        for (int index = 0; index < content.Length - 1; index++)
+            if (content[index] == '\n') endLine++;
+        return $"File written. Lines {startLine}–{endLine}; starting column {startColumn} (UTF-16).";
     }
 
     private string EditFile(JsonElement args)
