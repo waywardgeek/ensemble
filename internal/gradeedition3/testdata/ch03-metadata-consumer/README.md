@@ -1,6 +1,7 @@
 # Chapter 3 retained-result metadata supplement
 
-This outside-assembly consumer tests the early metadata contract in Chapter 3.
+The default mode of this outside-assembly consumer tests the early metadata
+contract in Chapter 3. The separate `read-lines` mode below executes file reads.
 It references only the candidate `Ensemble.dll`: no candidate test assembly,
 reflection, Jobs, Sandbox, GUI, live offer collection, or HTTP request is used.
 It awards no chapter points and does not replace `grade-edition2 -ch 3`.
@@ -85,3 +86,17 @@ reader uses public `History.Load` and checks canonical events, restored Context,
 and redumped descriptions for both actual log files. No later snapshot API is
 required. This tests clean process exit and replay of data, not crash recovery,
 restored file authority, or synchronous tool execution.
+
+## Numbered file-read mode
+
+Run the built consumer with `read-lines` in a disposable workspace. Require exit0,
+`contract: chapter3-read-lines-v1`, `passed: true`, and all10 named checks. This
+mode executes the public `Tool.ExecuteAsync` against its own temporary files,
+then destroys the owning application and removes those files. No provider is
+called. It checks actual source line numbers, preserved whitespace/CRLF, empty
+selections, UTF-8 clipping, and the promised 32768-byte default source cap.
+The cap applies before number prefixes; `max_output_bytes` is raised explicitly
+for the larger assertions so a Job observation limit cannot hide the result.
+
+This mode adds no historical points. It certifies neither GUI formatting nor
+whole-Chapter3 acceptance. The other modes retain their existing check counts.

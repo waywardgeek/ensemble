@@ -12,7 +12,7 @@ public sealed partial class Tool
         var args = call.Args;
         var start = Integer(args, "start_line", 1);
         var end = Integer(args, "end_line", int.MaxValue);
-        var maximum = Integer(args, "max_bytes", int.MaxValue);
+        var maximum = Integer(args, "max_bytes", 32768);
         if (start == 0)
         {
             start = 1;
@@ -23,7 +23,7 @@ public sealed partial class Tool
         }
         if (maximum == 0)
         {
-            maximum = int.MaxValue;
+            maximum = 32768;
         }
         if (maximum < 0)
         {
@@ -55,7 +55,7 @@ public sealed partial class Tool
         var bytes = Encoding.UTF8.GetBytes(result.ToString());
         if (bytes.Length <= maximum)
         {
-            return new ToolResultPart(call.CallID, [new TextPart(result.ToString())],
+            return new ToolResultPart(call.CallID, [new TextPart(NumberReadLines(result.ToString(), start))],
                 fileEvidence: new FileEvidence(FileOperation.Read, String(args, "path"), start, 1,
                     FileExcerpt.Capture(result.ToString())));
         }
@@ -68,9 +68,28 @@ public sealed partial class Tool
         }
         var captured = Encoding.UTF8.GetString(bytes, 0, boundary);
         var excerpt = FileExcerpt.Capture(captured);
-        return new ToolResultPart(call.CallID, [new TextPart(captured + "\n[truncated]\n")],
+        return new ToolResultPart(call.CallID, [new TextPart(NumberReadLines(captured, start) + "\n[truncated]\n")],
             fileEvidence: new FileEvidence(FileOperation.Read, String(args, "path"), start, 1,
                 new FileExcerpt(excerpt.Text, bytes.LongLength)));
+    }
+
+    // Number the model-facing presentation, not the captured source evidence.
+    // Preserve indentation, terminators and an unterminated final line exactly.
+    private static string NumberReadLines(string text, int startLine)
+    {
+        var numbered = new StringBuilder();
+        int offset = 0;
+        long line = startLine;
+        while (offset < text.Length)
+        {
+            var newline = text.IndexOf('\n', offset);
+            var limit = newline < 0 ? text.Length : newline + 1;
+            numbered.Append(line.ToString(System.Globalization.CultureInfo.InvariantCulture)).Append(": ");
+            numbered.Append(text, offset, limit - offset);
+            offset = limit;
+            line++;
+        }
+        return numbered.ToString();
     }
 
     private ToolResultPart ListDirectory(ToolCallPart call)

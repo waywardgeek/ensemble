@@ -175,7 +175,7 @@ internal static class SandboxTests
             var appended = await Call("write_file", new { path = "work/note.txt", content = "tail\n", append = true });
             Check(!appended.IsError && Text(appended).Contains("Lines 3–3; starting column 1"),
                 "rooted append reports positions through same descriptor");
-            Check(Text(await Call("read_file", new { path = "work/note.txt", start_line = 2, end_line = 2 })) == "needle\n",
+            Check(Text(await Call("read_file", new { path = "work/note.txt", start_line = 2, end_line = 2 })) == "2: needle\n",
                 "rooted inclusive line range");
             Check(!(await Call("edit_file", new { path = "work/note.txt", old_text = "needle", new_text = "found" })).IsError,
                 "rooted unique edit");

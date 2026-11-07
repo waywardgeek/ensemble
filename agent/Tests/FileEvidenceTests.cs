@@ -66,6 +66,8 @@ internal static class FileEvidenceTests
             Check(read.FileEvidence is { Operation: FileOperation.Read, StartLine: 2, StartColumn: 1 }
                 && read.FileEvidence.Content.Text == "😀t" && !read.FileEvidence.Content.Complete,
                 "read cap/offset evidence incorrect");
+            Check(JsonCodec.Text(read.Parts).Contains("2: 😀t\n[truncated]"),
+                "model receives numbered source while evidence remains unnumbered");
             var edited = await Call("edit_file", new { path, old_text = "tail!", new_text = "new\nvalue", ai_callback_delay = 3 });
             Check(edited.FileEvidence is { Operation: FileOperation.Edit, StartLine: 2, StartColumn: 3 }
                 && edited.FileEvidence.Removed!.Text == "tail!" && edited.FileEvidence.Content.Text == "new\nvalue",

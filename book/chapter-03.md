@@ -390,6 +390,32 @@ subsequent turn of the conversation, because Chapter 2 sends the whole
 history every time. The tool that reads is also the tool that decides how
 much of the window to spend.
 
+Return actual one-based file line numbers in the model-facing text, not only in
+a future GUI gutter. Prefix each source line with its decimal number and `: `.
+For a read of lines 20–22, the result might be:
+
+```text
+20:     if (ready)
+21:
+22:         Run();
+```
+
+The blank line still has a number. Preserve indentation and original line
+terminators after the prefix; do not invent a final empty line after a trailing
+newline. An empty file or a range beyond EOF returns no source lines. These
+prefixes are presentation, not file bytes: `edit_file` still takes exact unique
+text anchors, without the number or separator. Line numbers help the model
+navigate and explain an edit; matching the original text makes the edit apply
+only where that text still exists.
+
+Apply `max_bytes` to the selected source's UTF-8 bytes before adding prefixes.
+Back up to a complete UTF-8 character when clipping, and append an unnumbered
+`[truncated]` notice rather than implying the last shown line is complete.
+Number prefixes and that notice are additional presentation bytes. Chapter 4's
+Job observation cap separately bounds the overall report. Any structured source
+evidence for a later renderer retains the unnumbered captured text and its actual
+starting line, so the GUI does not number the same source twice.
+
 `search_files` earns its ten percent because an agent that cannot grep cannot
 find what to read; it is what makes `read_file` usable on a codebase bigger
 than one directory. It takes `context_lines`, and its output with context is
@@ -433,7 +459,7 @@ while a missing field or `null` is not one.
 | tool | required fields | optional fields and behavior |
 | --- | --- | --- |
 | `run_command` | `command` string | fresh blocking shell; report stdout, stderr and exit code separately; optional `cwd` string applies only to that call |
-| `read_file` | `path` string | `start_line`, `end_line` integers: one-based inclusive range; `max_bytes` integer caps returned text and reports truncation |
+| `read_file` | `path` string | `start_line`, `end_line` integers: one-based inclusive range; `max_bytes` integer caps selected source bytes before `N: ` line prefixes and reports truncation |
 | `edit_file` | `path`, `old_text`, `new_text` strings | declare the mismatch/ambiguity policy discussed in §3.5 |
 | `search_files` | `path`, `pattern` strings | `context_lines` integer, default 0; matching lines use `path:line:text`, context lines `path-line-text`; merge overlapping or adjacent windows and separate groups with `--` |
 | `write_file` | `path`, `content` strings | `overwrite` boolean permits replacement; `append` boolean preserves existing bytes and adds content without requiring overwrite |
@@ -824,6 +850,16 @@ library tests and source-review obligations; a CLI-only grader cannot inspect
 an unexposed library configuration. The original student's result remains
 90/100 FAIL, accepted with the inherited media-scope exception and all nine
 new checks passing. Correcting the grader does not rewrite that result.
+
+### Numbered-read supplemental acceptance
+
+Run the same outside-assembly consumer described below with `read-lines`.
+Require its `chapter3-read-lines-v1` receipt, exit zero, and every named check.
+It executes the public tool against disposable files without a provider. The
+checks cover actual range offsets, blank lines, indentation, CRLF, Unicode
+clipping, empty selections, trailing newline handling, and default versus explicit
+source caps. The historical `readtools` score does not establish this newer
+numbered-output contract; this supplement adds no historical points.
 
 ### Retained-metadata supplemental acceptance
 

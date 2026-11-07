@@ -112,7 +112,28 @@ internal static class ToolTests
                 path = file,
                 start_line = 2,
                 end_line = 2
-            })) == "tail\n", "inclusive range");
+            })) == "2: tail\n", "inclusive numbered range");
+            var numberedPath = Path.Combine(directory, "numbered.txt");
+            File.WriteAllText(numberedPath, "first\r\n\r\n\t  indented\r\n😀tail");
+            Check(Text(await Call("read_file", new { path = numberedPath, start_line = 2 }))
+                == "2: \r\n3: \t  indented\r\n4: 😀tail", "actual numbers preserve blank lines, indentation, CRLF and final line");
+            Check(Text(await Call("read_file", new { path = numberedPath, start_line = 4, max_bytes = 3 }))
+                == "\n[truncated]\n", "UTF-8 cap cannot invent partial character or numbered source");
+            Check(Text(await Call("read_file", new { path = numberedPath, start_line = 4, max_bytes = 5 }))
+                == "4: 😀t\n[truncated]\n", "source cap precedes number prefix");
+            Check(Text(await Call("read_file", new { path = numberedPath, start_line = 9 })) == "", "past EOF is empty");
+            File.WriteAllText(numberedPath, "");
+            Check(Text(await Call("read_file", new { path = numberedPath })) == "", "empty file has no invented line");
+            File.WriteAllText(numberedPath, "last\n");
+            Check(Text(await Call("read_file", new { path = numberedPath })) == "1: last\n", "trailing newline has no extra numbered line");
+            File.WriteAllText(numberedPath, new string('x', 32769));
+            var expectedDefault = "1: " + new string('x', 32768) + "\n[truncated]\n";
+            Check(Text(await Call("read_file", new { path = numberedPath, max_output_bytes = 65536 })) == expectedDefault,
+                "omitted source cap matches advertised default");
+            Check(Text(await Call("read_file", new { path = numberedPath, max_bytes = 0, max_output_bytes = 65536 })) == expectedDefault,
+                "zero source cap matches advertised default");
+            Check(Text(await Call("read_file", new { path = numberedPath, max_bytes = 40000, max_output_bytes = 65536 }))
+                == "1: " + new string('x', 32769), "explicit larger source cap honored");
             foreach (var bad in new object[] { new { path = 42 }, new { path = file, start_line = 1.5 }, new { path = file, start_line = "2" } })
             {
                 Check((await Call("read_file", bad)).IsError, "strict argument type");
@@ -191,7 +212,7 @@ internal static class ToolTests
                     end_line = 0,
                     max_bytes = 3
                 });
-                Check(!capped.IsError && Text(capped).StartsWith("one") && JsonCodec.Text(capped.Parts).Contains("truncated"), "read cap follows line selection and reports truncation");
+                Check(!capped.IsError && Text(capped).StartsWith("1: one") && JsonCodec.Text(capped.Parts).Contains("truncated"), "read cap follows line selection and reports truncation");
                 var command = await Call("run_command", new
                 {
                     command = "printf '%s' \"${ANTHROPIC_API_KEY-unset}\"; printf err >&2; exit 7",

@@ -124,11 +124,11 @@ public sealed partial class Tool
                 break;
             case ToolKind.ReadFile:
                 name = "read_file";
-                description = "Read a UTF-8 text file, optionally selecting a one-based inclusive line range.";
+                description = "Read UTF-8 source with each line prefixed by its actual one-based line number and colon; optionally select an inclusive range.";
                 Field("path", "string", "File path.", true);
                 Field("start_line", "integer", "First line, default or zero means 1.");
                 Field("end_line", "integer", "Last line, default or zero means end of file.");
-                Field("max_bytes", "integer", "UTF-8 byte cap after line selection, default or zero means 32768; truncation is reported.");
+                Field("max_bytes", "integer", "Source UTF-8 byte cap after line selection, before line-number prefixes; default or zero means 32768. Truncation is reported; prefixes are not file content.");
                 break;
             case ToolKind.ListDirectory:
                 name = "list_directory";

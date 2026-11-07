@@ -1056,3 +1056,38 @@ focus expectations with scrolling-body checks. Every fixture joined. Evidence:
 /private/tmp/cadence-renderer-versions.gOOJ6z/compact-*.log. No live provider test.
 Dev still needs the new build and Bill's second look. Main untouched; book release
 artifacts/figures intentionally await the end of this human feedback phase.
+
+
+## Numbered reads at the construction point (2026-11-07)
+
+Bill accepted the directory presentation after the compact controls and explicit
+`list_directory result` title were installed in Dev. During the next file-read
+pass he identified missing model-facing line numbers. GUI source evidence alone
+is not a substitute for that tool contract. Chapter3, not Chapter4, constructs
+`read_file`; the requirement belongs there.
+
+Model text now prefixes each captured source line with its actual one-based
+number and `: `. Raw operation-time evidence remains unnumbered for the source
+renderer. Preserve indentation, CRLF, blank lines and unterminated final content;
+empty selections do not invent lines. Source UTF-8 clipping precedes prefixes,
+and the truncation marker remains unnumbered. Exact edits still use unique text
+anchors without presentation prefixes, not line addresses.
+
+Inspection also found that the schema and Chapter3 promised a 32768-byte default
+but the implementation used an unlimited source cap. Omitted and zero now honor
+the documented default; explicit larger reads remain supported. The independent
+Job observation cap still applies to the numbered report. This is a tool-output
+correction, not a new syntax-highlighting implementation or deployment.
+
+Verification: focused actual-tool/evidence checks passed; the outside-assembly
+consumer passed all10 checks. Its independently built run against the older Dev
+assembly failed the intended actual-range assertion, not setup. First full core
+run was379/1 because the confined-file test expected unnumbered text; changed
+only that expected line, preserving escape/refusal checks. Final full core380/0,
+actual-page compact/pairing/state/directory/file/search tests at desktop/phone
+widths, six GUI groups, and clean installable GUI build passed. Fixtures joined.
+Evidence is retained under `/private/tmp/cadence-renderer-versions.gOOJ6z/numbered-read-*`.
+Chapter3 hard prose lint still fails three pre-existing em dashes, byte-identical
+to HEAD; two advisories remain. The new diff passes whitespace checks. No frozen
+endpoint, historical grader score, release artifact or running installation was
+changed. Source highlighting and file-view usability are the next discussion.
