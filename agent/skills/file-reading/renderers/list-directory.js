@@ -6,7 +6,7 @@ export default function directoryPreview(document, text, listing) {
     const label = document.createElement("div");
     body.append(label);
     if (!listing) {
-        label.textContent = "Directory output";
+        label.remove();
         const output = document.createElement("pre");
         output.className = "tool-output";
         output.textContent = text;

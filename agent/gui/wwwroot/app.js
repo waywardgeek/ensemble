@@ -325,6 +325,61 @@ function media(parent, part, card) {
     box.append(element, download);
     parent.append(box);
 }
+function receivedTail(text) {
+    const bytes = new TextEncoder().encode(text);
+    let start = Math.max(0, bytes.length - 65536);
+    while (start < bytes.length && (bytes[start] & 0xc0) === 0x80) start++;
+    return new TextDecoder().decode(bytes.subarray(start));
+}
+function completePresentation(card) {
+    if (card.directoryListing) return card.directoryListing.entries.length === card.directoryListing.total_entries;
+    if (card.searchEvidence) return card.searchEvidence.lines.length === card.searchEvidence.total_lines;
+    if (card.fileEvidence) {
+        const segments = [card.fileEvidence.content, card.fileEvidence.removed].filter(Boolean);
+        return segments.every(segment => new TextEncoder().encode(segment.text).length === segment.total_bytes);
+    }
+    return false;
+}
+// Human output is independent of the immutable model observation in card.text.
+function loadResultWindow(card) {
+    if (card.windowRequested || card.kind !== "tool_result" || !Number.isSafeInteger(card.job?.handle)) return;
+    if (completePresentation(card)) return;
+    card.windowRequested = true;
+    const controller = new AbortController();
+    card.windowController = controller;
+    const deadline = setTimeout(() => controller.abort(), 10000);
+    const url = new URL("./jobs/window", document.baseURI);
+    url.searchParams.set("agent", card.agent);
+    url.searchParams.set("handle", card.job.handle);
+    (async () => {
+        try {
+            const response = await fetch(url, { headers: { "X-Ensemble-Output": "1" },
+                signal: controller.signal, credentials: "same-origin", redirect: "error", cache: "no-store" });
+            if (!response.ok) throw new Error("Unavailable");
+            const value = await response.json();
+            if (!currentCard(card)) return;
+            if (value.handle !== card.job.handle || value.encoding !== "base64" ||
+                !Number.isSafeInteger(value.start) || !Number.isSafeInteger(value.end) ||
+                value.start < 0 || value.end < value.start || value.end - value.start > 65536 ||
+                typeof value.data !== "string" || value.data.length > 87384 ||
+                value.rolled_out !== (value.start > 0) ||
+                (card.job.origin_call_id && value.origin_call_id !== card.job.origin_call_id)) throw new Error("Invalid window");
+            const bytes = Uint8Array.from(atob(value.data), c => c.charCodeAt(0));
+            if (bytes.length !== value.end - value.start) throw new Error("Invalid length");
+            let start = 0;
+            if (value.rolled_out) while (start < bytes.length && (bytes[start] & 0xc0) === 0x80) start++;
+            card.windowText = new TextDecoder().decode(bytes.subarray(start));
+            card.windowNotice = value.rolled_out ? "Latest 64 KiB; earlier output remains on disk." : "";
+        } catch {
+            if (!currentCard(card) || controller.signal.aborted) return;
+            card.windowNotice = "Retained output unavailable; showing the recorded observation.";
+        } finally {
+            clearTimeout(deadline);
+            if (card.windowController === controller) card.windowController = null;
+            if (currentCard(card) && !controller.signal.aborted) queueCardRender(card);
+        }
+    })();
+}
 function fullOutputLinks(card) {
     if (card.kind !== "tool_result") return;
     // Job metadata is published by the real projection. A handle is not a
@@ -339,7 +394,10 @@ function fullOutputLinks(card) {
     const download = document.createElement("button");
     download.type = "button";
     download.className = "btn btn-sm btn-outline-primary";
-    download.textContent = "Download complete output";
+    download.setAttribute("aria-label", "Download complete output");
+    download.title = "Download complete output";
+    download.dataset.action = "download-output";
+    setButtonIcon(download, "icon-download");
     const notice = document.createElement("span");
     notice.setAttribute("role", "status");
     download.addEventListener("click", async () => {
@@ -388,7 +446,8 @@ function fullOutputLinks(card) {
             download.disabled = false;
         }
     });
-    links.append(download, notice);
+    card.node.querySelector(".card-heading").insertBefore(download, card.node.querySelector('[data-action="speak"]'));
+    links.append(notice);
     card.node.append(links);
 }
 function workProductLinks(card) {
@@ -503,19 +562,19 @@ function recordedJobLabel(job) {
     // an old running observation still describes the process now.
     let state = "unavailable";
     switch (job.status) {
-        case "running": state = "running"; break;
-        case "done": state = "finished"; break;
+        case "running": state = "running when observed"; break;
+        case "done": state = "completed"; break;
         case "killed": state = "killed"; break;
     }
     const exit = Number.isSafeInteger(job.exit_code) ? ` · exit code ${job.exit_code}` : "";
-    return `Job ${job.handle} · state when observed: ${state}${exit}`;
+    return `Job ${job.handle} ${state}${exit}`;
 }
 function currentCard(card) {
     return card && cards.get(card.id) === card && card.agent === agentID && card.node.isConnected;
 }
 function renderPairLink(card) {
     const target = card.kind === "tool_call" ? card.latestResult : card.callCard;
-    let button = card.node.querySelector(':scope > [data-action="view-pair"]');
+    let button = card.node.querySelector('[data-action="view-pair"]');
     // The result may be assigned before its first DOM insertion. Keep the
     // existing control through that update; clicks still require connected cards.
     if (!target || cards.get(target.id) !== target || target.agent !== card.agent) {
@@ -533,9 +592,12 @@ function renderPairLink(card) {
             counterpart.node.scrollIntoView({ block: "nearest" });
         });
         button.dataset.action = "view-pair";
-        card.node.append(button);
+        setButtonIcon(button, "icon-pair");
+        const heading = card.node.querySelector(".card-heading");
+        heading.insertBefore(button, heading.querySelector('[data-action="speak"]'));
     }
-    button.textContent = card.kind === "tool_call" ? "View latest result" : "View call";
+    button.title = card.kind === "tool_call" ? "View latest result" : "View call";
+    button.setAttribute("aria-label", button.title);
 }
 function renderRecordedTiming(card) {
     let stamp = card.node.querySelector(":scope > .recorded-time");
@@ -547,7 +609,7 @@ function renderRecordedTiming(card) {
             card.node.append(stamp);
         }
         stamp.dateTime = card.recordedAt;
-        stamp.textContent = "Recorded " + parsed.toLocaleString();
+        stamp.textContent = parsed.toLocaleTimeString();
         stamp.title = "Finalized fact recorded at " + card.recordedAt;
         stamp.setAttribute("aria-label", stamp.title);
     } else stamp?.remove();
@@ -558,7 +620,7 @@ function renderRecordedTiming(card) {
             elapsed.className = "observation-duration";
             card.node.append(elapsed);
         }
-        elapsed.textContent = "Observation: " + (card.observationMs / 1000).toLocaleString(undefined,
+        elapsed.textContent = (parsed && Number.isFinite(parsed.getTime()) ? " · " : "") + (card.observationMs / 1000).toLocaleString(undefined,
             { maximumFractionDigits: 3 }) + " s";
         elapsed.title = "Dispatch to returned observation: " + card.observationMs + " ms; not background Job runtime";
     } else elapsed?.remove();
@@ -597,19 +659,9 @@ function render(card) {
         : card.kind === "text" ? author : kind;
     const statusLabel = artifact && card.status ? toolObservationLabel(card) : card.status;
     title.title = `${author} · ${card.name || card.toolName || kind}${summary}${statusLabel ? " · " + statusLabel : ""}`;
-    if (artifact && card.status) {
-        const status = card.node.querySelector(":scope > .tool-state:not(.job-state)") || document.createElement("div");
-        status.className = "tool-state";
-        status.textContent = toolObservationLabel(card);
-        if (!status.parentElement) card.node.append(status);
-    }
-    const jobLabel = card.kind === "tool_result" ? recordedJobLabel(card.job) : "";
-    if (jobLabel) {
-        const recorded = card.node.querySelector(":scope > .job-state") || document.createElement("div");
-        recorded.className = "tool-state job-state";
-        recorded.textContent = jobLabel;
-        if (!recorded.parentElement) card.node.append(recorded);
-    } else card.node.querySelector(":scope > .job-state")?.remove();
+    card.node.querySelectorAll(":scope > .tool-state").forEach(node => node.remove());
+    if (card.kind === "tool_result")
+        title.textContent = (recordedJobLabel(card.job) || toolObservationLabel(card)) + (card.status === "error" && card.job ? " · error" : "");
     const speaker = heading.querySelector('[data-action="speak"]') || actionButton("Speak", () => speak(card));
     speaker.setAttribute("aria-label", `Speak ${author} ${card.kind}`);
     speaker.title = speaker.getAttribute("aria-label");
@@ -636,6 +688,7 @@ function render(card) {
         }
         if (!body.parentElement) card.node.append(body);
     } else {
+        const result = card.kind === "tool_result";
         let details = card.node.querySelector(":scope > details");
         if (!details) {
             details = document.createElement("details");
@@ -644,6 +697,7 @@ function render(card) {
             details.append(summary, document.createElement("pre"));
             card.node.append(details);
         }
+        details.hidden = result;
         const pre = details.querySelector("pre:not(.edit-change)");
         if (pre.textContent !== card.text) pre.textContent = card.text;
         pre.className = card.toolName === "search_files" ? "search-results" : "tool-output";
@@ -666,7 +720,7 @@ function render(card) {
                 details.ontoggle = () => { preview.hidden = details.open; };
             }
             const clipped = card.text.slice(0, 1400).split("\n").slice(0, 18).join("\n");
-            const previewText = clipped + (clipped.length < card.text.length ? "\n… (bounded preview)" : "");
+            const previewText = result ? (card.windowText ?? receivedTail(card.text)) : clipped + (clipped.length < card.text.length ? "\n… (bounded preview)" : "");
             const renderer = card.kind === "tool_result" && card.status !== "error"
                 ? (window.EnsembleToolRenderers?.[card.toolName] ||
                     (["list_directory", "read_file", "search_files", "write_file", "edit_file"].includes(card.toolName)
@@ -687,6 +741,15 @@ function render(card) {
                     content.textContent = previewText;
                 }
                 preview.replaceChildren(content);
+                if (card.windowText !== undefined && !completePresentation(card) &&
+                    (card.directoryListing || card.fileEvidence || card.searchEvidence)) {
+                    const label = document.createElement("p");
+                    label.textContent = "Retained output tail (plain text)";
+                    const tail = document.createElement("pre");
+                    tail.className = "tool-output";
+                    tail.textContent = card.windowText;
+                    preview.append(label, tail);
+                }
                 card.previewText = previewText;
                 card.previewRenderer = renderer;
                 card.previewDefaultRenderer = defaultRenderer;
@@ -694,7 +757,20 @@ function render(card) {
                 card.previewFileEvidence = card.fileEvidence;
                 card.previewSearchEvidence = card.searchEvidence;
             }
-            preview.hidden = details.open;
+            preview.hidden = result ? false : details.open;
+            preview.tabIndex = 0;
+            preview.setAttribute("aria-label", "Scrollable tool output");
+            if (result) {
+                let windowNotice = card.node.querySelector(":scope > .output-window-notice");
+                if (!windowNotice) {
+                    windowNotice = document.createElement("small");
+                    windowNotice.className = "output-window-notice";
+                    card.node.insertBefore(windowNotice, details);
+                }
+                windowNotice.textContent = card.windowNotice || (new TextEncoder().encode(card.text).length > 65536 && card.windowText === undefined ? "Latest 64 KiB of the received observation; retained output not yet available." : "");
+                windowNotice.hidden = !windowNotice.textContent;
+                loadResultWindow(card);
+            }
         }
     }
     // Passive attachments and the owned-output control are separate from raw
@@ -710,6 +786,7 @@ function render(card) {
     }
     if (card.renderedJobHandle !== card.job?.handle) {
         card.node.querySelector(":scope > .artifact-links")?.remove();
+        card.node.querySelector('[data-action="download-output"]')?.remove();
         fullOutputLinks(card);
         card.renderedJobHandle = card.job?.handle;
     }
@@ -904,8 +981,9 @@ function handle(frame) {
         clearTimeout(cardRenderTimer);
         cardRenderTimer = null;
         pendingCardRenders.clear();
-        for (const card of cards.values()) card.workProductController?.abort();
+        for (const card of cards.values()) { card.workProductController?.abort(); card.windowController?.abort(); }
         jobSessions?.reset();
+        for (const card of cards.values()) card.windowController?.abort();
         cards.clear();
         transcript.replaceChildren();
         toolTranscript.replaceChildren();
@@ -1054,6 +1132,7 @@ function connect() {
     socket.onclose = () => {
         if (connection !== socket) return;
         jobSessions?.reset();
+        for (const card of cards.values()) card.windowController?.abort();
         document.querySelector("#connection").textContent = "Disconnected — reconnecting";
         selectionPending = true;
         voiceControl?.cancel();
@@ -1088,6 +1167,7 @@ function selectAgent(key) {
     voiceControl?.cancel();
     cancelPageCapture("Page capture cancelled on Agent change.");
     jobSessions?.reset();
+    for (const card of cards.values()) card.windowController?.abort();
     imageComposer.selectionChanged(key);
     // Release this tab's old pause cause before asking the server to switch.
     // The incoming view starts with an activity baseline, not a stale pause.

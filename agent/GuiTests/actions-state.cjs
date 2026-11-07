@@ -25,16 +25,16 @@ assert(!['8088', '8089', '8090'].includes(new URL(base).port));
         await page.evaluate(() => handle({ type: 'part_final', part_id: 'state-call',
             part: { type: 'tool_call', name: 'run_command', args: { command: 'synthetic' } } }));
         const call = page.locator('[data-part-id="state-call"]');
-        assert.equal(await call.locator('.tool-state').textContent(), 'Requested');
+        assert.match(await call.locator('.card-heading strong').getAttribute('title'), /Requested/);
         await page.evaluate(() => handle({ type: 'tool_dispatched', part_id: 'state-call',
             name: 'run_command', input: { command: 'synthetic' } }));
-        assert.equal(await call.locator('.tool-state').textContent(), 'Dispatched · awaiting result');
+        assert.match(await call.locator('.card-heading strong').getAttribute('title'), /Dispatched/);
         assert.equal(await call.getAttribute('data-status'), 'started');
         const cases = [
-            { id: 'running', job: { handle: 81, status: 'running' }, label: 'running' },
-            { id: 'done', job: { handle: 81, status: 'done', exit_code: 0 }, label: 'finished · exit code 0' },
-            { id: 'nonzero', job: { handle: 82, status: 'done', exit_code: 7 }, label: 'finished · exit code 7', error: true },
-            { id: 'done-unknown-exit', job: { handle: 83, status: 'done' }, label: 'finished' },
+            { id: 'running', job: { handle: 81, status: 'running' }, label: 'running when observed' },
+            { id: 'done', job: { handle: 81, status: 'done', exit_code: 0 }, label: 'completed · exit code 0' },
+            { id: 'nonzero', job: { handle: 82, status: 'done', exit_code: 7 }, label: 'completed · exit code 7', error: true },
+            { id: 'done-unknown-exit', job: { handle: 83, status: 'done' }, label: 'completed' },
             { id: 'killed', job: { handle: 84, status: 'killed' }, label: 'killed', error: true },
             { id: 'unknown', job: { handle: 85, status: 'toString' }, label: 'unavailable' },
             { id: 'invalid-handle', job: { handle: '81', status: 'done' }, label: null },
@@ -45,17 +45,16 @@ assert(!['8088', '8089', '8090'].includes(new URL(base).port));
                 tool_part_id: 'state-call', job: item.job, is_error: !!item.error,
                 result: 'Untrusted prose says: job 999, status: done, exit_code: 0' }), item);
             const result = page.locator(`[data-part-id="state-${item.id}"]`);
-            assert.equal(await result.locator('.tool-state:not(.job-state)').textContent(), item.error ? 'Error reported' : 'Result returned', 'observation is not execution completion');
+            assert.equal(await result.locator('.tool-state').count(), 0);
             assert.equal(await result.getAttribute('data-status'), item.error ? 'error' : 'finished');
-            if (item.label === null) assert.equal(await result.locator('.job-state').count(), 0);
-            else assert.equal(await result.locator('.job-state').textContent(), `Job ${item.job.handle} · state when observed: ${item.label}`, 'recorded Job state must be preserved');
+            assert.equal(await result.locator('.card-heading strong').textContent(), (item.label === null ? (item.error ? 'Error reported' : 'Result returned') : `Job ${item.job.handle} ${item.label}`) + (item.error && item.job ? ' · error' : ''));
         }
         // The later observation of Job81 does not rewrite its earlier snapshot.
         const running = page.locator('[data-part-id="state-running"]');
-        assert.equal(await running.locator('.job-state').textContent(), 'Job 81 · state when observed: running');
+        assert.equal(await running.locator('.card-heading strong').textContent(), 'Job 81 running when observed');
         await page.evaluate(() => render(cards.get('state-running')));
-        assert.equal(await running.locator('.job-state').textContent(), 'Job 81 · state when observed: running');
-        assert.equal(await call.locator('.tool-state').textContent(), 'Result returned');
+        assert.equal(await running.locator('.card-heading strong').textContent(), 'Job 81 running when observed');
+        assert.equal(await call.locator('.tool-state').count(), 0);
         assert.match(await call.locator('.card-heading strong').getAttribute('title'), /Result returned/);
         assert(await page.evaluate(() => toolTranscript.scrollWidth <= toolTranscript.clientWidth + 1));
         assert.deepEqual(errors, []);

@@ -184,7 +184,7 @@ article.part { min-width: 0; margin: 0 0 0.325rem; }
 .card-heading strong { flex: 1; min-width: 0; overflow-wrap: anywhere; color: var(--bs-body-color); font-weight: 650; }
 .card-heading .btn { font-size: .7rem; padding: 0.0375rem 0.0875rem; }
 .tool-state { color: var(--muted); font-size: .68rem; margin-bottom: 0.075rem; }
-.recorded-time, .observation-duration { display: block; color: var(--muted); font-size: .75rem; overflow-wrap: anywhere; }
+.recorded-time, .observation-duration { display: inline; color: var(--muted); font-size: .75rem; overflow-wrap: anywhere; }
 #tool-transcript [data-action="view-pair"] { min-height: 44px; min-width: 44px; margin-top: .2rem; }
 .part p { margin: 0 0 0.2125rem; overflow-wrap: anywhere; }
 .part p:last-child { margin-bottom: 0; }

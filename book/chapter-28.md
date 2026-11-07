@@ -158,6 +158,21 @@ an untrusted-extension platform.
 
 ## Teach the renderer what actually happened
 
+Keep the surrounding controls smaller than the content. A result header can say
+“Job 1 completed,” with labeled download, paired-call and speech icons on that
+same line. Show local time and observation duration together; retain the full
+recorded timestamp and duration meaning in accessible descriptions. A running
+snapshot still says “running when observed,” not that the process is running now.
+
+Result bodies scroll rather than requiring payload expansion. Where complete
+structured evidence is available, show it directly. Otherwise fetch the latest
+64 KiB of owned Job output independently of the model cursor. Preserve incomplete
+structured facts and label the additional plain-text tail; do not parse that tail
+to invent missing entries or positions. A failed fetch leaves the recorded
+observation visible with an explicit notice. Ordinary cards fetch once; the
+continuing command view described below owns live updates. Speech and durable
+history retain the original observation, not the fetched presentation window.
+
 Start with a directory listing. Splitting its text at newlines appears to produce
 one entry per line, until a filename contains a newline. A trailing slash can be
 a useful display convention, but it is a poor replacement for a recorded type.

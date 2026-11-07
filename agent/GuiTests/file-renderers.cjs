@@ -47,7 +47,7 @@ assert(!['8088', '8089', '8090'].includes(new URL(base).port));
             for (const id of ['file-legacy', 'file-error']) assert.equal(await page.locator(`[data-part-id="${id}"] .preview`).textContent(), 'Recorded raw output');
             assert(await page.evaluate(() => {
                 const card = cards.get('file-read'); const preview = card.node.querySelector('.file-preview');
-                const summary = card.node.querySelector('summary'); summary.focus();
+                const summary = card.node.querySelector('.preview'); summary.focus();
                 if (document.activeElement !== summary) throw Error('Focus precondition failed');
                 render(card);
                 return card.node.querySelector('.file-preview') === preview && document.activeElement === summary;

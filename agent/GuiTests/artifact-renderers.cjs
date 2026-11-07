@@ -31,9 +31,9 @@ assert(!['8088', '8089', '8090'].includes(new URL(base).port));
             assert(await page.evaluate(() => {
                 const card = cards.get('directory-result');
                 const body = card.node.querySelector('.directory-preview');
-                const summary = card.node.querySelector('summary');
+                const summary = card.node.querySelector('.preview');
                 summary.focus();
-                if (document.activeElement !== summary) throw new Error("Test precondition: summary must receive focus");
+                if (document.activeElement !== summary) throw new Error("Test precondition: preview must receive focus");
                 render(card);
                 return body === card.node.querySelector('.directory-preview') && document.activeElement === summary;
             }), 'metadata rendering replaced body or focus');
@@ -74,7 +74,7 @@ assert(!['8088', '8089', '8090'].includes(new URL(base).port));
             assert.equal(await page.locator('[data-part-id="unpaired-result"] .directory-preview').count(), 0);
             assert.equal(await page.locator('[data-part-id="directory-call"] .directory-preview').count(), 0);
             const large = page.locator('[data-part-id="large-result"]');
-            assert((await large.locator('.preview').textContent()).includes('(bounded preview)'));
+            assert.equal((await large.locator('.preview').textContent()).length, 6000);
             assert.equal((await large.locator('details > pre').textContent()).length, 6000);
             await page.evaluate(() => {
                 handle({ type: 'tool_dispatched', part_id: 'structured-call', name: 'list_directory', input: { path: '.' } });

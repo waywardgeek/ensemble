@@ -40,12 +40,12 @@ assert(!['8088', '8089', '8090'].includes(new URL(base).port));
         assert.equal(await page.evaluate(() => document.activeElement.dataset.partId), 'pair-call');
         await page.evaluate(() => {
             const result = cards.get('pair-result');
-            window.savedDownload = result.node.querySelector('.artifact-links button');
+            window.savedDownload = result.node.querySelector('.card-heading [aria-label="Download complete output"]');
             window.savedDownload.disabled = true;
             result.node.querySelector('.artifact-links [role="status"]').textContent = 'test pending';
             render(result);
         });
-        assert(await page.evaluate(() => cards.get('pair-result').node.querySelector('.artifact-links button') === window.savedDownload
+        assert(await page.evaluate(() => cards.get('pair-result').node.querySelector('.card-heading [aria-label="Download complete output"]') === window.savedDownload
             && window.savedDownload.disabled), 'rerender must retain pending download control');
         assert.equal(await page.locator('[data-part-id="pair-result"] .artifact-links [role="status"]').textContent(), 'test pending');
         await callLink.focus();
@@ -61,11 +61,11 @@ assert(!['8088', '8089', '8090'].includes(new URL(base).port));
         });
         assert.equal(await page.locator('[data-part-id="pair-orphan"] [data-action="view-pair"]').count(), 0);
         assert.equal(await page.locator('[data-part-id="pair-invalid"] [data-action="view-pair"]').count(), 0);
-        assert.equal(await page.locator('[data-part-id="pair-invalid"] .tool-output').textContent(), 'invalid counterpart');
+        assert.equal(await page.locator('[data-part-id="pair-invalid"] details > .tool-output').textContent(), 'invalid counterpart');
         await page.evaluate(() => {
             const result = cards.get('pair-result');
             result.node.querySelector('details').open = true;
-            const text = result.node.querySelector('.tool-output').firstChild;
+            const text = result.node.querySelector('.preview .tool-output').firstChild;
             const range = document.createRange();
             range.selectNodeContents(text);
             getSelection().removeAllRanges(); getSelection().addRange(range);
@@ -73,9 +73,9 @@ assert(!['8088', '8089', '8090'].includes(new URL(base).port));
             render(result);
         });
         assert.equal(await page.evaluate(() => getSelection().toString()), 'first result');
-        assert.equal(await page.locator('[data-part-id="pair-result"] .tool-output').textContent(), 'first result');
+        assert.equal(await page.locator('[data-part-id="pair-result"] .preview .tool-output').textContent(), 'first result');
         await page.evaluate(() => getSelection().removeAllRanges());
-        await page.waitForFunction(() => cards.get('pair-result').node.querySelector('.tool-output').textContent === 'changed while selected');
+        await page.waitForFunction(() => cards.get('pair-result').node.querySelector('.preview .tool-output').textContent === 'changed while selected');
         assert(await page.evaluate(() => {
             const call = cards.get('pair-call');
             call.node.querySelector('summary').focus();

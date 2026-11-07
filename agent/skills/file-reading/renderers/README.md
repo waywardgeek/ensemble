@@ -16,8 +16,13 @@ export default function render(document, text, directoryListing) {
 }
 ```
 
-Return a detached HTML element. The host supplies recorded, bounded preview text;
-it retains identity, call/result pairing, timing and raw details. Use textContent
+Return a detached HTML element. For results, text is the latest retained human
+output window (at most 64 KiB), or the bounded tail of the recorded observation
+when retrieval is unavailable. This does not alter model input or its cursor.
+Complete structured evidence needs no extra fetch; incomplete evidence retains
+its rich preview with a separately labeled plain-text tail. Ordinary result cards
+fetch once; continuing command sessions own live polling. The host retains
+identity, call/result pairing, timing, original speech text and audit payload. Use textContent
 for filenames and output. Do not infer entries by splitting lines: a filename
 can contain a newline. This preview API is not yet the complete streaming Artifact
 lifecycle interface.

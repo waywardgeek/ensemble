@@ -1028,3 +1028,31 @@ Final chapter prose hard checks passed; advisory negation/person-gap counts rema
 An initial lint invocation omitted its required filename and ran no checks; the
 corrected explicit chapter invocation passed. Crossover body, six exercises and
 local links verified. Four local release copies match their candidate hashes.
+
+
+## Human Dev feedback: compact result presentation (2026-11-07)
+
+Bill successfully opened the isolated updated Dev installation and requested a
+single Job header, icon controls beside speech, scrolling latest-64-KiB output,
+and one local-time/duration footer. Implemented shared-card changes and removed
+the redundant directory fallback label. Typed Job state remains authoritative;
+running observations retain their historical qualification. Full date and timing
+meaning remain accessible. Download and explicit call pairing keep their handlers.
+
+Ordinary result windows use the existing owned endpoint once, never advance model
+cursors, validate identity/range/encoding, discard a split UTF-8 prefix, cancel on
+replay/disconnect/switch, and reject stale card responses. Complete structured
+facts render without a fetch. Partial structured facts retain a labeled text tail.
+Original observation stays immutable and supplies speech/audit. Running commands
+retain the separate continuing view, not a new polling loop per observation.
+
+Actual-page desktop/phone checks cover 64-KiB tail versus smaller model text,
+compact controls, same-line timing, stable focus/pairing, partial evidence and
+late-response rejection. Existing pairing/state/directory/file/search groups and
+six default GUI groups pass; clean fixture/distribution builds. Test corrections:
+await painted DOM rather than assigned fetch state; target visible preview versus
+hidden audit payload explicitly; replace obsolete short-preview marker and summary
+focus expectations with scrolling-body checks. Every fixture joined. Evidence:
+/private/tmp/cadence-renderer-versions.gOOJ6z/compact-*.log. No live provider test.
+Dev still needs the new build and Bill's second look. Main untouched; book release
+artifacts/figures intentionally await the end of this human feedback phase.

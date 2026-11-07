@@ -43,7 +43,7 @@ assert(!['8088', '8089', '8090'].includes(new URL(base).port));
             assert.match(await page.locator('[data-part-id="search-empty"] .search-preview').textContent(), /0 returned/);
             assert(await page.evaluate(() => {
                 const card = cards.get('search-result'); const preview = card.node.querySelector('.search-preview');
-                const summary = card.node.querySelector('summary'); summary.focus();
+                const summary = card.node.querySelector('.preview'); summary.focus();
                 if (document.activeElement !== summary) throw Error('Focus precondition failed');
                 render(card); return card.node.querySelector('.search-preview') === preview && document.activeElement === summary;
             }));
