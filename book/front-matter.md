@@ -4,7 +4,7 @@
 
 Series: The Singularity as it Happened, Book 5
 
-Third Edition — C#, October 2026
+Third Edition — C#, November 2026
 
 By Bill Cox
 
