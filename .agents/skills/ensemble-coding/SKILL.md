@@ -34,7 +34,8 @@ Normal work is interactive collaboration, not an autonomous chapter campaign.
 New student exercises require an explicitly assigned isolated worktree and scope.
 A candidate is not permission to replace Bill's installed application.
 
-Keep docs/queue.md current when priorities or completion change.
+Keep this Agent's queue current when priorities or completion change; follow the
+`task-queue` skill rather than assuming a repository-wide queue.
 
 ## C# architecture and review
 

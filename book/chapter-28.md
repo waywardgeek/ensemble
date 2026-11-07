@@ -783,8 +783,9 @@ making the human listen to undigested tool output. Concision removes repetition,
 not the information needed to understand the change.
 
 The primary `ensemble` skill carries continuation and milestone-handoff guidance.
-Its `depends: visible-reasoning` declaration automatically activates the shared
-engineering-explanation manual in `agent/skills/visible-reasoning/SKILL.md`.
+Its `depends: visible-reasoning task-queue` declaration automatically activates
+the shared manuals. The engineering-explanation guidance lives in
+`agent/skills/visible-reasoning/SKILL.md`.
 Other primary skills can reuse that dependency without copying its prose; the
 manual grants no tools. It teaches sharing evidence, assumptions, tradeoffs and
 corrections while the human can still steer, preserving justification for the
@@ -797,6 +798,14 @@ subsequent activation or startup separately from saving the source. In daily
 use, check whether the collaborator answers a question and resumes, whether its
 explanation teaches the changed code, and whether its checkpoint preserves the
 next action. Do not turn that review into another open-ended acceptance campaign.
+
+The tool-free `task-queue` dependency captures interruptions such as “add this
+to the queue” without changing the active task. Its `queue.md` belongs in the
+current Agent's `$AGENT_DATA_DIRECTORY`, not the repository or another Agent's
+home. Record the idea, verify the write, briefly confirm it and resume. The
+primary skill also states that directory for other Agent-specific work. An Agent
+without storage receives `UNAVAILABLE` rather than a guessed path. Queue entries
+neither grant execution authority nor enable goal reminders.
 
 ## Where to work
 

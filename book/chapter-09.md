@@ -195,11 +195,16 @@ Built-in substitutions are:
 | --- | --- |
 | `$TOOLS` | Sorted enabled tool names after the proposed activation. |
 | `$SKILLS` | Currently offered, not-yet-active skill names and descriptions. |
+| `$AGENT_NAME` | The actual owning Agent's name or fallback identity. |
+| `$AGENT_DATA_DIRECTORY` | The owning Agent's resolved data directory, or `UNAVAILABLE` without storage. |
 | `$CUSTOM_VAR`, or another registered uppercase name | Host-supplied value at activation. |
 
 Unknown variables remain visible. Substitution makes one pass: text supplied as
 a variable value is not recursively interpreted. Variable names must match
-`[A-Z][A-Z0-9_]*`; hosts cannot replace the built-ins `TOOLS` and `SKILLS`.
+`[A-Z][A-Z0-9_]*`; hosts cannot replace the built-ins `TOOLS`, `SKILLS`,
+`AGENT_NAME` and `AGENT_DATA_DIRECTORY`. The directory is resolved through the
+actual Agent owner, never an inherited variable or current working directory.
+It grants no file authority and does not create a queue or enable reminders.
 
 `RegisterVariable` updates the manager's explicit variable map under its lock.
 It does not mutate existing skill bodies. This is configuration for the next

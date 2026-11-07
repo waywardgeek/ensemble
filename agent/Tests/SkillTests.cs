@@ -153,6 +153,52 @@ internal static class SkillTests
         }
     }
 
+    public static Task AgentQueueGuidance()
+    {
+        string skillsRoot = Path.Combine(Directory.GetCurrentDirectory(), "agent", "Skills");
+        string root = Path.Combine(Path.GetTempPath(), "queue-guidance-" + Guid.NewGuid().ToString("N"));
+        var app = new Application(TextWriter.Null);
+        try
+        {
+            string queuePath = Path.Combine(skillsRoot, "task-queue", "SKILL.md");
+            var definition = Skills.Parse(File.ReadAllText(queuePath), queuePath);
+            Check(definition.Type == SkillType.Dependency && definition.Tools.IsEmpty
+                && definition.Depends.IsEmpty, "Task queue must grant no tools");
+            var config = new Configuration(Vendor.OpenAI, "gpt-6-astra", "http://127.0.0.1:1", surface: Surface.Responses);
+            Agent Make(string? home) => new(app, config, skillSpec: new SkillSpec(skillsRoot, "ensemble"), dataDirectory: home);
+            var first = Make(Path.Combine(root, "first"));
+            var second = Make(Path.Combine(root, "second"));
+            var transient = Make(null);
+            foreach (var agent in new[] { first, second, transient })
+            {
+                string expected = agent == transient ? "UNAVAILABLE" : agent.DataDirectory();
+                var manager = agent.SkillManager()!;
+                var queue = manager.Active().Single(part => part.Name == "task-queue");
+                Check(queue.Body.Contains("directory is: " + expected)
+                    && !queue.Body.Contains("$AGENT_DATA_DIRECTORY"), "Queue used the wrong Agent directory");
+                Check(manager.Active().Single(part => part.Primary).Body.Contains("directory is: " + expected),
+                    "Primary must know its own directory too");
+                string instructions = agent.Engine().Render(agent.History().View())["instructions"]!.GetValue<string>();
+                Check(instructions.Contains(queue.Body) && instructions.Split("# Per-Agent task queue").Length == 2,
+                    "Queue dependency must appear once in provider instructions");
+                bool refused = false;
+                try { manager.RegisterVariable("AGENT_DATA_DIRECTORY", "/forged"); }
+                catch (ArgumentException) { refused = true; }
+                Check(refused, "Host variables must not override Agent storage identity");
+                if (agent != transient)
+                    Check(!File.Exists(Path.Combine(expected, "queue.md")), "Skill activation created a queue without a request");
+            }
+            Check(!first.SkillManager()!.Active().Single(part => part.Name == "task-queue").Body.Contains(second.DataDirectory()),
+                "One Agent's queue guidance leaked another Agent's directory");
+        }
+        finally
+        {
+            app.Destroy();
+            if (Directory.Exists(root)) Directory.Delete(root, recursive: true);
+        }
+        return Task.CompletedTask;
+    }
+
     public static async Task Projection()
     {
         string root = Fixture();

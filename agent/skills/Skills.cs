@@ -139,7 +139,7 @@ public sealed partial class Skills
 
     public partial void RegisterVariable(string name, string value)
     {
-        if (!Regex.IsMatch(name, "^[A-Z][A-Z0-9_]*$") || name is "TOOLS" or "SKILLS" or "AGENT_NAME")
+        if (!Regex.IsMatch(name, "^[A-Z][A-Z0-9_]*$") || name is "TOOLS" or "SKILLS" or "AGENT_NAME" or "AGENT_DATA_DIRECTORY")
         {
             throw new ArgumentException("Variable name is invalid or reserved", nameof(name));
         }
@@ -319,6 +319,9 @@ public sealed partial class Skills
             }
             // Identity comes from the real owner, never an inherited parent name.
             if (key == "AGENT_NAME") return Parent().Name ?? Parent().ChildID() ?? "Agent";
+            // Storage belongs to this Agent, not the workspace or an inherited variable.
+            if (key == "AGENT_DATA_DIRECTORY")
+                return Parent().HasDataDirectory() ? Parent().DataDirectory() : "UNAVAILABLE";
             return (values ?? variables).TryGetValue(key, out string? value) ? value
                 : key == "HUMAN_NAME" ? "Human"
                 : key == "HUMAN_DESCRIPTION" ? "" : match.Value;

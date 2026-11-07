@@ -25,8 +25,8 @@ Off does not mean completed. Off retains goal instructions; file:"" clears them.
 There is one configured goal file, not a goal stack. Do not claim that replacing
 it saves a prior goal or that completing it automatically pops back to one. For
 an authorized task switch, preserve the suspended task, completion criteria and
-next step in the agreed work queue or notes before replacing its goal. Returning
-to it is an explicit decision within the human's authorization. Native push/pop
+next step in this Agent's queue (see `task-queue`) before replacing its goal.
+Returning to it is an explicit decision within the human's authorization. Native push/pop
 behavior is a proposal requiring implementation, not an existing tool operation.
 
 The file is read freshly for every normal request, including after tools and
