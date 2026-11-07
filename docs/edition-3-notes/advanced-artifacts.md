@@ -697,3 +697,45 @@ three process/PTY groups, the real bounded-window HTTP test, and six default GUI
 groups pass. The HTTP fixture joins its mount and stops its owned host. No browser
 aggregation or ANSI rendering is claimed by this foundation. No installation,
 provider inference, screenshots, or push.
+
+
+### Continuing command view
+
+The browser now owns one continuing node per Agent, Job handle, and recorded
+origin call. Only run_command origins participate; old records without origin
+remain ordinary observations. Call/result cards and their pairing stay immutable.
+Wait and input observations foreground the existing session node; background
+window reads do not move it. Replay, selection changes, and disconnect reset the
+controller, abort requests, clear timers, and reject stale responses. The view
+reads only the protected bounded window endpoint, never a filesystem path or the
+model observation cursor. Visible running views poll at one-second intervals;
+hidden panes/pages skip reads. Completed views can be refreshed explicitly.
+
+The shared skill helper is a terminal-log decoder, not a terminal emulator.
+It supports basic SGR colors/emphasis, suppresses complete terminal commands and
+OSC hyperlinks, and emits literal text runs. A rolling boundary resets styles,
+drops leading UTF-8 continuation bytes and defers incomplete trailing codepoints.
+A missing escape-sequence prefix cannot be reconstructed: the rollover notice
+explicitly permits literal control fragments at that boundary. Carriage-return
+progress becomes log lines. Extended colors and cursor editing are not emulated.
+Earlier output remains on disk; completed download limits remain unchanged.
+
+Unchanged windows preserve their spans. Changed output is deferred during text
+selection, including a final snapshot; selection-clear applies that bounded
+pending value. The outer node and output scroller are stable. The modern DOM
+moveBefore operation preserves focus during foreground movement; older browsers
+fall back to append and have not been certified for focus retention.
+
+Thirteen pure decoder checks pass. Actual-page synthetic facts and intercepted
+window responses pass at desktop/phone widths: one node across run/wait,
+foreground-only movement, raw observation preservation, literal hostile text,
+SGR styles, focus/selection and unchanged-span retention, and held-response
+rejection after reset. Existing directory/file/search browser tests and all six
+default GUI groups pass on final implementation bytes; the fixture host joined.
+This is separate from the preceding real HTTP/model-cursor proof. No installed
+GUI, live command-to-browser integration, phone performance, or full terminal
+fidelity is claimed. No screenshots or provider calls were made.
+
+Lesson: stable outer DOM identity does not protect reading if unchanged inner
+spans are replaced. Selection can also outlast the final response, so deferral
+must have a selection-clear path, not depend on another polling response.

@@ -364,3 +364,39 @@ body.compact #transcript { padding: .3rem; }
 .file-line-number { display: inline-block; min-width: 4ch; padding-right: 1ch; text-align: right; user-select: none; opacity: .75; flex-shrink: 0; }
 .file-source-line code { white-space: pre; }
 .file-preview > p { overflow-wrap: anywhere; }
+
+/* Continuing command output is a bounded log, not an interactive terminal. */
+.terminal-output { background: #14171b; color: #e7e9ee; max-height: 24rem; overflow: auto; white-space: pre-wrap; padding: .75rem; }
+.terminal-bold { font-weight: 700; }
+.terminal-fg-0 { color: #a5aab3; }
+.terminal-bg-0 { background-color: #a5aab3; color: #14171b; }
+.terminal-fg-1 { color: #ff9898; }
+.terminal-bg-1 { background-color: #ff9898; color: #14171b; }
+.terminal-fg-2 { color: #a9dca4; }
+.terminal-bg-2 { background-color: #a9dca4; color: #14171b; }
+.terminal-fg-3 { color: #edda8d; }
+.terminal-bg-3 { background-color: #edda8d; color: #14171b; }
+.terminal-fg-4 { color: #a7c5ff; }
+.terminal-bg-4 { background-color: #a7c5ff; color: #14171b; }
+.terminal-fg-5 { color: #d7b0ef; }
+.terminal-bg-5 { background-color: #d7b0ef; color: #14171b; }
+.terminal-fg-6 { color: #94d8e0; }
+.terminal-bg-6 { background-color: #94d8e0; color: #14171b; }
+.terminal-fg-7 { color: #e7e9ee; }
+.terminal-bg-7 { background-color: #e7e9ee; color: #14171b; }
+.terminal-fg-8 { color: #bdc1c9; }
+.terminal-bg-8 { background-color: #bdc1c9; color: #14171b; }
+.terminal-fg-9 { color: #ffb4b4; }
+.terminal-bg-9 { background-color: #ffb4b4; color: #14171b; }
+.terminal-fg-10 { color: #c5edb8; }
+.terminal-bg-10 { background-color: #c5edb8; color: #14171b; }
+.terminal-fg-11 { color: #fff0ad; }
+.terminal-bg-11 { background-color: #fff0ad; color: #14171b; }
+.terminal-fg-12 { color: #c3d8ff; }
+.terminal-bg-12 { background-color: #c3d8ff; color: #14171b; }
+.terminal-fg-13 { color: #edcbff; }
+.terminal-bg-13 { background-color: #edcbff; color: #14171b; }
+.terminal-fg-14 { color: #b6edf0; }
+.terminal-bg-14 { background-color: #b6edf0; color: #14171b; }
+.terminal-fg-15 { color: #ffffff; }
+.terminal-bg-15 { background-color: #ffffff; color: #14171b; }

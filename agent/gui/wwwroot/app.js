@@ -4,6 +4,12 @@
 const transcript = document.querySelector("#transcript");
 const cards = new Map();
 const toolTranscript = document.querySelector("#tool-transcript");
+let jobSessions = null;
+import(new URL("./job-sessions.js", document.currentScript.src).href).then(module => {
+    jobSessions = module.createJobSessions(toolTranscript);
+    if (socket?.readyState === WebSocket.OPEN && !selectionPending)
+        for (const card of cards.values()) if (card.kind === "tool_result") jobSessions.observe(card);
+}).catch(() => { /* Recorded cards remain usable without continuing views. */ });
 let acknowledgedState = null;
 let workingContext = null;
 let workingContextForm = null;
@@ -883,6 +889,7 @@ function handle(frame) {
         cardRenderTimer = null;
         pendingCardRenders.clear();
         for (const card of cards.values()) card.workProductController?.abort();
+        jobSessions?.reset();
         cards.clear();
         transcript.replaceChildren();
         toolTranscript.replaceChildren();
@@ -993,6 +1000,8 @@ function handle(frame) {
         if (!card.node.parentElement) render(card);
         else queueCardRender(card);
     } else render(card);
+    if (card.kind === "tool_result") jobSessions?.observe(card,
+        ["wait_for_job", "send_input"].includes(card.toolName));
     if (card.callCard) renderPairLink(card.callCard);
     narrate(card);
 }
@@ -1028,6 +1037,7 @@ function connect() {
     };
     socket.onclose = () => {
         if (connection !== socket) return;
+        jobSessions?.reset();
         document.querySelector("#connection").textContent = "Disconnected — reconnecting";
         selectionPending = true;
         voiceControl?.cancel();
@@ -1061,6 +1071,7 @@ function selectAgent(key) {
     }
     voiceControl?.cancel();
     cancelPageCapture("Page capture cancelled on Agent change.");
+    jobSessions?.reset();
     imageComposer.selectionChanged(key);
     // Release this tab's old pause cause before asking the server to switch.
     // The incoming view starts with an activity baseline, not a stale pause.
