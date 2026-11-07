@@ -48,14 +48,18 @@ Chapter numbering and its position relative to the ending remain undecided.
 ## Skills, instructions and goal behavior
 
 Review the relevant `SKILL.md` files that contribute to the model's instructions.
-The instruction owners are now identified: the primary `ensemble` skill,
-`ensemble-coding`, and
-`goals`. `Skills.UniversalControls()` supplies `micro_handoff`; there is no separate
+The primary `ensemble` skill now owns continuation, milestone handoffs and the
+visible-explanation standard; the latter was moved out of the optional
+`ensemble-coding` skill so it applies by default. `ensemble-coding` retains
+repository-specific guidance, and `goals` documents goal controls. `Skills.UniversalControls()` supplies `micro_handoff`; there is no separate
 handoff skill. A first source-instruction pass is implemented for continuation,
 milestone handoffs and visible explanations, with matching Chapter 28 teaching.
 The goals skill now explicitly documents the single-goal limit and preserving
 suspended work; native goal stacking remains proposed, not implemented. Activation
-in a running Agent and behavioral effectiveness remain unverified.
+of the moved explanation guidance in a running Agent and behavioral effectiveness
+remain unverified. After the preceding restart, Cadence directly confirmed the
+primary continuation and handoff guidance but not the optional coding manual;
+that exposed and motivated this placement correction.
 
 ### Continue clear authorized work without repeated prompting
 

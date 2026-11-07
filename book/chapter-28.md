@@ -782,9 +782,10 @@ paths, behavior, ownership and reasons, without dumping private deliberation or
 making the human listen to undigested tool output. Concision removes repetition,
 not the information needed to understand the change.
 
-The primary `ensemble` skill carries continuation and milestone-handoff guidance;
-`ensemble-coding` supplies the engineering-explanation standard; `goals` explains
-reminders and the single-goal limit. These are instruction improvements, not
+The primary `ensemble` skill carries continuation, milestone-handoff guidance
+and the engineering-explanation standard, so they do not depend on loading an
+optional coding skill. `ensemble-coding` adds repository-specific engineering
+rules; `goals` explains reminders and the single-goal limit. These are instruction improvements, not
 proof of reliable model behavior or new runtime features. Editing a skill file
 does not replace instruction snapshots already held by a running Agent. Verify
 subsequent activation or startup separately from saving the source. In daily
