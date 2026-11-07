@@ -87,6 +87,51 @@ const { chromium } = require('../../edition-2/agent/gui/node_modules/playwright'
             await page.goto(base);
             await ready('Using the shipped');
             assert.equal(await page.evaluate(() => window.trialMarker), undefined);
+            for (const tool of ['read_file', 'search_files', 'write_file', 'edit_file']) {
+                await panel();
+                await page.locator('#renderer-tool').selectOption(tool);
+                await ready('Using the shipped ' + tool);
+                const pkg = await page.evaluate(async tool => {
+                    const response = await fetch('./renderers/shipped?renderer=' + tool);
+                    if (!response.ok) throw new Error('shipped package');
+                    return response.json();
+                }, tool);
+                pkg.files[pkg.entry] += '\nwindow.packageMarker = ' + JSON.stringify(tool) + ';\n';
+                await page.locator('#renderer-package').setInputFiles({ name: tool + '.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(pkg)) });
+                await ready('Staging has not executed');
+                assert.equal(await page.evaluate(() => window.packageMarker), undefined, 'staging executed tool package');
+                await page.locator('#renderer-try').click();
+                await ready('Trial active');
+                assert(await page.locator('#renderer-tool').isDisabled(), 'tool changed under active trial');
+                assert.equal(await page.evaluate(() => window.packageMarker), tool);
+                if (tool !== 'search_files') {
+                    assert.equal(await page.evaluate(tool => {
+                        const operation = { read_file: 'read', write_file: 'write', edit_file: 'edit' }[tool];
+                        const segment = { text: 'const answer = 42;', total_bytes: 18 };
+                        const node = window.EnsembleArtifactRenderers[tool](document, '', null,
+                            { operation, path: 'example.js', start_line: 1, start_column: 1,
+                                content: segment, removed: segment, inserted: segment });
+                        return !!node.querySelector('.code-keyword');
+                    }, tool), true, 'packaged lexical helper did not render');
+                }
+                await page.locator('#renderer-keep').click();
+                await ready('Accepted ');
+                await page.reload();
+                await ready('Using the shipped');
+                assert.equal(await page.evaluate(() => window.packageMarker), tool, 'accepted tool not restored at startup');
+                await page.goto(base + '?renderers=shipped');
+                await ready('Recovery mode');
+                assert.equal(await page.evaluate(() => window.packageMarker), undefined, 'safe mode imported accepted tool');
+                await panel();
+                await page.locator('#renderer-tool').selectOption(tool);
+                await page.waitForFunction(() => !document.querySelector('#renderer-rollback').disabled);
+                await page.locator('#renderer-rollback').click();
+                await ready('Recovery mode');
+                await page.goto(base);
+                await ready('Using the shipped');
+                assert.equal(await page.evaluate(() => window.packageMarker), undefined);
+            }
+            console.log(`PASS shared approval ${width}: four tool selectors, inert packages, helper imports, independent keep/reload, safe mode, rollback`);
             assert.deepEqual(errors, []);
             console.log(`PASS renderer trial ${width}: inert stage, helpers, try, reload discard, keep, failed import, recovery, rollback`);
             await page.close();

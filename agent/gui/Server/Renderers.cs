@@ -9,9 +9,15 @@ public static partial class Gui
     private static partial void MapRenderers(IEndpointRouteBuilder routes, RendererStore? store,
         int port, string? publicOrigin, CancellationToken stopping)
     {
-        // The bounded first experiment supports one real renderer, not a registry
-        // of speculative renderer names. No request may supply a filesystem path.
-        const string renderer = "list_directory";
+        // The query selects a shipped output type, never a filesystem path.
+        static string? Renderer(HttpContext context)
+        {
+            var values = context.Request.Query["renderer"];
+            if (values.Count == 0) return "list_directory"; // Existing clients.
+            if (values.Count != 1) return null;
+            return values[0] is "list_directory" or "read_file" or "search_files"
+                or "write_file" or "edit_file" ? values[0] : null;
+        }
         bool Allowed(HttpContext context, bool mutation)
         {
             context.Response.Headers.CacheControl = "no-store";
@@ -30,22 +36,43 @@ public static partial class Gui
         routes.MapGet("/renderers/shipped", (HttpContext context) =>
         {
             if (!Allowed(context, false)) return Results.StatusCode(403);
+            string? renderer = Renderer(context);
+            if (renderer is null) return Refusal();
+            string skill = renderer is "write_file" or "edit_file" ? "code-tools" : "file-reading";
             var assembly = typeof(Gui).Assembly;
-            using var manual = assembly.GetManifestResourceStream("EnsembleGui.RendererSkill/file-reading");
+            string? Source(string resource)
+            {
+                using var stream = assembly.GetManifestResourceStream(resource);
+                if (stream is null) return null;
+                using var reader = new StreamReader(stream);
+                return reader.ReadToEnd();
+            }
+            string? manual = Source("EnsembleGui.RendererSkill/" + skill);
             if (manual is null) return Results.NotFound();
-            using var reader = new StreamReader(manual);
-            var definition = Ensemble.Skills.Parse(reader.ReadToEnd(), "embedded file-reading");
+            var definition = Ensemble.Skills.Parse(manual, "embedded " + skill);
             var association = definition.Renderers.Single(value => value.Name == renderer);
-            using var code = assembly.GetManifestResourceStream("EnsembleGui.Assets/skills/file-reading/" + association.Entry);
+            // Retain the skill-relative directory layout so ordinary module
+            // imports resolve inside this immutable package, including helpers.
+            string entry = renderer == "list_directory" ? association.Entry : skill + "/" + association.Entry;
+            var files = new Dictionary<string, string>();
+            string? code = Source("EnsembleGui.Assets/skills/" + skill + "/" + association.Entry);
             if (code is null) return Results.NotFound();
-            using var source = new StreamReader(code);
-            return Results.Json(new { entry = association.Entry,
-                files = new Dictionary<string, string> { [association.Entry] = source.ReadToEnd() } });
+            files.Add(entry, code);
+            if (renderer is "read_file" or "write_file" or "edit_file")
+                foreach (string helper in new[] { "file-excerpt.js", "source-code.js" })
+                {
+                    string? source = Source("EnsembleGui.Assets/skills/shared/" + helper);
+                    if (source is null) return Results.NotFound();
+                    files.Add("shared/" + helper, source);
+                }
+            return Results.Json(new { entry, files });
         });
 
         routes.MapGet("/renderers/selection", (HttpContext context) =>
         {
             if (!Allowed(context, false)) return Results.StatusCode(403);
+            string? renderer = Renderer(context);
+            if (renderer is null) return Refusal();
             if (store is null) return Results.Json(new { available = false });
             try { return Results.Json(new { available = true, selection = store.Selection(renderer) }); }
             catch (Exception error) when (ExpectedFailure(error)) { return Refusal(); }
@@ -53,6 +80,8 @@ public static partial class Gui
         routes.MapGet("/renderers/packages/{version}", (HttpContext context, string version) =>
         {
             if (!Allowed(context, false)) return Results.StatusCode(403);
+            string? renderer = Renderer(context);
+            if (renderer is null) return Refusal();
             if (store is null) return Results.NotFound();
             try
             {
@@ -64,11 +93,14 @@ public static partial class Gui
         routes.MapGet("/renderers/modules/{version}/{**file}", (HttpContext context, string version, string file) =>
         {
             if (!Allowed(context, false)) return Results.StatusCode(403);
+            string? renderer = Renderer(context);
+            if (renderer is null) return Refusal();
             if (store is null) return Results.NotFound();
             try
             {
                 var package = store.Read(version);
-                if (package.Renderer != renderer || !package.Files.TryGetValue(file, out string? source))
+                if (package.Renderer is not ("list_directory" or "read_file" or "search_files" or "write_file" or "edit_file")
+                    || !package.Files.TryGetValue(file, out string? source))
                     return Results.NotFound();
                 // Validate the snapshot on every read; a changed file must never
                 // be served under the identity of approved code.
@@ -81,6 +113,8 @@ public static partial class Gui
             routes.MapPost("/renderers/" + action, async (HttpContext context) =>
             {
                 if (!Allowed(context, true)) return Results.StatusCode(403);
+                string? renderer = Renderer(context);
+                if (renderer is null) return Refusal();
                 if (store is null) return Results.NotFound();
                 using var linked = CancellationTokenSource.CreateLinkedTokenSource(stopping, context.RequestAborted);
                 try

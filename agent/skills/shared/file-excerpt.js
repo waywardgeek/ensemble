@@ -1,3 +1,4 @@
+import { highlight } from "./source-code.js";
 // Shared presentation helper. No path reads: only captured operation evidence.
 export function fileExcerpt(document, evidence, operations) {
     if (!evidence || !operations.includes(evidence.operation)) return null;
@@ -34,7 +35,7 @@ export function fileExcerpt(document, evidence, operations) {
             number.className = "file-line-number";
             number.textContent = String(evidence.start_line + index);
             const code = document.createElement("code");
-            if (source) window.EnsembleSourceCode.highlight(code, text);
+            if (source) highlight(code, text);
             else code.textContent = text;
             row.append(number, code);
             pre.append(row);

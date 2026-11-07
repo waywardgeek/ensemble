@@ -53,6 +53,24 @@ def main():
                 source = Path(__file__).resolve().parents[1] / "skills/file-reading/renderers/list-directory.js"
                 assert shipped["files"] == {shipped["entry"]: source.read_text()}
                 assert selection() == {"accepted": None, "previous": None}, "Source discovery changed selection"
+                for tool in ["read_file", "search_files", "write_file", "edit_file"]:
+                    query = "?renderer=" + tool
+                    bundled = json.loads(request("shipped" + query))
+                    expected_count = 1 if tool == "search_files" else 3
+                    assert len(bundled["files"]) == expected_count
+                    for name, code in bundled["files"].items():
+                        assert code == (source.parents[2] / name).read_text(), name
+                    staged = json.loads(request("stage" + query, bundled))["version"]
+                    request("accept", {"version": staged, "expected": None}, expected=400)
+                    request(f"packages/{staged}", expected=404)
+                    assert json.loads(request(f"packages/{staged}" + query))["renderer"] == tool
+                    request("accept" + query, {"version": staged, "expected": None})
+                    assert json.loads(request("selection" + query))["selection"]["accepted"] == staged
+                    assert selection()["accepted"] is None
+                    request("rollback" + query, {"expected": staged})
+                    assert json.loads(request("selection" + query))["selection"]["accepted"] is None
+                request("selection?renderer=unknown", expected=400)
+                request("selection?renderer=read_file&renderer=edit_file", expected=400)
                 package = {"entry": "main.js", "files": {"main.js": "import './helper.js'; export default () => document.createElement('pre');", "helper.js": "export const marker = 'one';"}}
                 version = json.loads(request("stage", package))["version"]
                 assert selection()["accepted"] is None, "Staging activated a candidate"

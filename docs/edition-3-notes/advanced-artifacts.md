@@ -739,3 +739,34 @@ fidelity is claimed. No screenshots or provider calls were made.
 Lesson: stable outer DOM identity does not protect reading if unchanged inner
 spans are replaced. Selection can also outlast the final response, so deferral
 must have a selection-clear path, not depend on another polling response.
+
+
+### Shared approval for the five shipped tool previews
+
+The HTTP boundary and Speech & Display panel now select list_directory, read_file,
+search_files, write_file or edit_file. The existing RendererStore already owns
+independent selections by renderer name; no second registry or persistence format
+was needed. Old requests default to directory; unknown or duplicate renderer
+queries refuse. Package review and promotion check tool identity. Immutable module
+URLs identify the whole package because relative imports do not inherit queries.
+
+Shipped file packages preserve relative directories and include file-excerpt.js
+and source-code.js. Inspection found that the excerpt helper depended on a hidden
+page-global lexer. It now imports the exact packaged lexer; chat dynamically loads
+the same ES module with literal-text fallback and queued repaint. This makes the
+reviewed executable dependency set explicit instead of reviewing only a wrapper.
+The panel disables changing tools during a trial. Acceptance and rollback remain
+independent per tool; startup loads all accepted previews, while recovery mode
+bypasses all custom imports. In-page code remains trusted, not contained.
+
+Bounded verification: clean isolated build; HTTP exact embedded-package bytes,
+per-tool acceptance/rollback, cross-tool refusal and invalid-query checks; visible
+controls at desktop/phone widths exercise all five tools, inert stage, imported
+helpers, Try, Keep/reload, safe mode and rollback. Six default GUI groups pass.
+Final-byte Markdown/copy and directory/file/search browser checks pass, including
+selection, focus and literal hostile data. Hosts joined. No full core rerun,
+installation, inference or human acceptance claimed. A whitespace check caught an
+extra trailing blank line; review restored strict-mode directive placement after
+adding the module loader. General Artifact lifecycle, arbitrary MCP discovery,
+command-session customization and remaining built-in/chat/default relocation are
+not certified by these preview tests.

@@ -1,7 +1,7 @@
 "use strict";
 // Lexical display only, not a language parser. Every original byte remains
 // in text nodes; provider code never becomes HTML or executable script.
-function highlight(code, source) {
+export function highlight(code, source) {
     const tokens = /("(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'|\/\/[^\n]*|#[^\n]*|\b(?:class|public|private|static|partial|void|return|if|else|for|foreach|while|async|await|def|import|from|const|let|function|true|false|null|None|True|False)\b|\b\d+(?:\.\d+)?\b)/g;
     let offset = 0;
     for (const match of source.matchAll(tokens)) {
@@ -17,5 +17,3 @@ function highlight(code, source) {
     }
     code.append(code.ownerDocument.createTextNode(source.slice(offset)));
 }
-
-window.EnsembleSourceCode = { highlight };

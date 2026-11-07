@@ -1,4 +1,12 @@
 "use strict";
+// Chat can arrive before the optional lexer. Keep literal text until it loads.
+let highlight = (code, source) => { code.textContent = source; };
+void import(new URL("./skills/shared/source-code.js", document.currentScript.src).href)
+    .then(module => {
+        highlight = module.highlight;
+        document.dispatchEvent(new Event("ensemble-renderers-changed"));
+    }).catch(() => { /* Literal source remains readable. */ });
+
 // Presentation only: callers retain original Markdown for History and speech.
 // Never enable raw HTML or plugins without reviewing this security boundary.
 const messageMarkdown = window.markdownit({ html: false, linkify: false, typographer: false });

@@ -31,7 +31,8 @@ Evidence retains at most 256 entries and 32 KiB of UTF-8 names independently of
 model observation clipping. It describes that completed operation, not the current
 filesystem. Missing metadata means legacy text, not an empty directory.
 
-The GUI's `renderers/shipped` endpoint downloads the embedded build's source as
+The GUI's `renderers/shipped?renderer=TOOL_NAME` endpoint downloads the selected
+embedded build renderer's source as
 `{"entry":"relative.js","files":{"relative.js":"source"}}`. It does not
 include optional disk-asset overrides. A candidate may include relative helper
 modules; all declared files participate in its version hash. Review every file.
@@ -56,16 +57,20 @@ The third argument remains directory evidence for compatibility. File evidence i
 code units. These facts describe the operation, not the file's present state.
 
 The shipped `read-file.js` and code-tools write/edit entries share
-`../../shared/file-excerpt.js`. That module uses the host-loaded lexical helper
-`window.EnsembleSourceCode` from `../../shared/source-code.js`. Known source suffixes
+`../../shared/file-excerpt.js`. That module imports `highlight` from
+`./source-code.js`; both helpers are included in each file-renderer source package. Known source suffixes
 receive lexical highlighting, not parsing or semantic analysis; unknown suffixes
 remain literal text. Numbered lines are presentation, not a replacement for raw
 recorded output. Empty content has no invented written line. Removed and inserted
 sections are an applied replacement, not a whole-file diff.
 
-The current trial panel and source-package endpoint still target `list_directory`
-only. File renderers are explicitly shipped assets; their metadata does not yet
-make them selectable candidates in that panel.
+The trial panel selects directory, read, write, edit or search output. Accepted
+and previous versions are independent per tool and shared across Agent views.
+Only one trial is active through the panel at a time: Keep it or reload before
+changing tools. Package review and promotion must match the selected tool.
+Changing a helper changes the package version; no mutable page-global formatter
+is an implicit dependency. Omitting the endpoint query retains directory behavior
+for existing clients. Unknown or duplicate renderer queries are refused.
 
 ## Search preview API
 
@@ -82,4 +87,4 @@ counts returned match/context lines, not files searched or matching occurrences.
 Recursive searches remain best effort for inaccessible files. Full display does
 not certify exhaustive access to the directory tree. Grouping never parses paths
 from grep text, and highlights never rerun the regex in the browser. Raw output
-and model observation limits remain independent. The trial UI is still directory-only.
+and model observation limits remain independent.
