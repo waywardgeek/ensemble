@@ -275,8 +275,18 @@ temporary file, flush it, and replace the destination. Malformed input or lock/I
 failure is not permission to reset the file. A global-default save and an Agent
 selection save are separate operations, not one filesystem transaction: their
 acknowledgments must distinguish a saved Agent choice from an unsaved global
-default. Host startup and GUI integration of this global-store foundation remain
-pending; the library operations alone do not enable new installed offerings.
+default. In the GUI, keep two distinct actions: an explicit offering selects its
+qualified identity; a vendor/model preference selects using remembered funding.
+The latter carries only vendor ID and wire model name, and resolves the current
+global preference again when the action executes. Do not freeze an earlier menu
+lookup into routing authority. Refuse conflicting selection forms. If the default
+is unavailable, keep explicit offerings visible for recovery.
+
+After a successful explicit selection or explicit peer creation, remember that
+funding for future choices. If the global write fails, acknowledge the completed
+Agent operation and separately report the unsaved default. Do not undo the Agent
+operation or invite a duplicate creation by reporting it as wholly refused.
+Existing Agents retain their own choices when the global default changes.
 
 The GUI reads a credential-free `ModelSelectionStatus`, not the inference-validating
 configuration getter. Under the same ingress-to-graph lock order, this snapshot
@@ -355,9 +365,21 @@ option wins. Relative paths resolve after the host's explicit workspace option.
 It opens one file handle, bounds both initial size and subsequent reads to 1 MiB,
 and loads the graph before constructing the initial Agent or restoring the fleet.
 Missing, malformed or unresolved configuration refuses startup; there is no empty
-configuration fallback. Omitting the option preserves the legacy launch path.
+configuration fallback. Omitting this model-document option preserves the initial
+launch path but does not disable the global credential catalog.
 
-The host supplies two binding names when loading a document:
+Before constructing Agents, open `--global-settings PATH`, then
+`EN_GLOBAL_SETTINGS`, or the default `~/.en/settings.json`, in that precedence.
+Only true file absence supplies empty global settings. Use the existing curated
+model names and exact capability table to register available API bindings:
+`openai-api`, `anthropic-api`, and `gemini-api`, under matching vendor IDs and
+endpoint ID `api`. Provider names remain unchanged; stable model IDs replace dots
+with underscores to satisfy the configured-ID grammar. Key presence is not an
+entitlement or health check. Never contact providers merely to populate choices.
+These additive offerings do not reconstruct or replace the initial launch policy.
+Ollama remains a separate explicitly configured vendor, not automatic LAN discovery.
+
+The host also supplies two binding names when loading a model document:
 
 - `none` is explicitly unauthenticated, suitable for a restricted local endpoint.
 - `launch` uses the payer selected by the existing launch options: the supplied
@@ -438,10 +460,17 @@ A legacy wire name cannot be combined with a configured offering. Invalid choice
 must leave the registry and live ownership unchanged. Listing a skill grants no
 tools; normal skill startup still owns activation and cancellation.
 
-This interface does not discover credentials or register missing offerings.
-Application-wide remembered funding defaults and registration of other vendor
-credentials remain separate host integration work. Durable per-Agent current
-selection is implemented as described above; a populated menu alone proves neither.
+The dialog also offers vendor/model choices using remembered funding. Resolve
+them through the same global store as the main picker before creating the peer;
+missing or ambiguous funding refuses without fallback. Explicit offerings remain
+available to recover the default. The default inheritance option still means the
+mounted Agent's actual selection, not whatever global funding was most recently
+chosen. Show any partial-success warning alongside the created Agent's name.
+
+The interface itself discovers no credentials and registers no offerings. Host
+startup owns the approved catalog above. Test the browser's submitted choice and
+warning display separately from the actual HTTP creation, persistence and refusal
+path; a populated menu alone does not prove those operations.
 
 ## Exercises (draft acceptance contracts)
 
@@ -458,6 +487,15 @@ or account header reaches that server and that the parent's selection is unchang
 by its child's choice. Refuse selection during admitted work without changing
 configuration. Verify restoration resolves the intended route; an unavailable
 route must not silently become a cloud request.
+
+Add two configured fundings for the same vendor/model. With no remembered default,
+refuse ambiguity. Choose one explicitly, then use the remembered option in both
+the picker and Create Agent. Change the default and verify existing Agents stay
+on their explicit offerings. Remove the remembered binding and prove no alternate
+route is substituted. Hold the global writer lock: a successful Agent selection
+or creation must remain successful, preserve global bytes, and report the unsaved
+default. Restore each persistent Agent from its own saved offering, not the newer
+global default; preserve its memory, recall and working-context settings.
 
 ### Exercise 2: Complete the tool conversation
 

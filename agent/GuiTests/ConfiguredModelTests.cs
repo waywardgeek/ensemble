@@ -46,12 +46,15 @@ static class ConfiguredModelTests
         Task? serving = null;
         try
         {
+            string globalPath = Path.Combine(directory, "global.json");
+            var globalSettings = new GlobalSettings(root, globalPath);
             var auth = new ModelAuthentication(root, "none");
             var vendor = new ModelVendor(root, "local", "Local inference");
             var a = new Model(new ModelEndpoint(vendor, "a", "http://127.0.0.1:1",
                 Surface.ChatCompletions, auth), "small", "same-wire", "First", new ModelFeatures(Media.None));
             var b = new Model(new ModelEndpoint(vendor, "b", "http://127.0.0.1:2",
-                Surface.ChatCompletions, auth), "small", "same-wire", "Second", new ModelFeatures(Media.None));
+                Surface.ChatCompletions, new ModelAuthentication(root, "alternate-none")),
+                "small", "same-wire", "Second", new ModelFeatures(Media.None));
             var agent = new Agent(root, new Configuration(Vendor.Anthropic, "offline", "http://127.0.0.1:3", ""), name: "viewer");
             using var reservation = new TcpListener(IPAddress.Loopback, 0);
             reservation.Start();
@@ -113,6 +116,30 @@ static class ConfiguredModelTests
                 Check(ReferenceEquals(agent.SelectedModel(), model), "Socket selection did not publish the actual Model");
             }
             await Select(a);
+            Check(globalSettings.FundingDefaults().TryGetValue("local", out string? funding)
+                && funding == "none", "Explicit GUI selection did not remember vendor funding");
+            async Task SendPreference()
+            {
+                await socket.SendAsync(System.Text.Encoding.UTF8.GetBytes(
+                    "{\"type\":\"set_model\",\"agent_id\":\"viewer\",\"preference\":{\"vendor\":\"local\",\"model\":\"same-wire\"}}"),
+                    WebSocketMessageType.Text, true, token);
+            }
+            globalSettings.RememberFunding(b);
+            Check(ReferenceEquals(agent.SelectedModel(), a), "Default change retargeted an existing Agent");
+            await SendPreference();
+            await Frame(socket, "usage", token, "b");
+            Check(ReferenceEquals(agent.SelectedModel(), b), "Preference selection did not use remembered funding");
+            File.WriteAllText(globalPath, "{\"model_funding_defaults\":{\"local\":\"missing-binding\"}}");
+            await SendPreference();
+            var refused = await Frame(socket, "error", token);
+            Check(refused.GetProperty("message").GetString()!.Contains("No funding fallback was used"),
+                "Unavailable preference did not report no-fallback refusal");
+            await Frame(socket, "usage", token, "b");
+            Check(ReferenceEquals(agent.SelectedModel(), b), "Unavailable funding changed the Agent");
+            Check(!Gui.MeterFrame(agent)["preferred_models"]![0]!["enabled"]!.GetValue<bool>(),
+                "Unavailable default remained enabled");
+            await Select(a); // Explicit funding recovers a missing saved default.
+            byte[] savedGlobal = File.ReadAllBytes(globalPath);
             var frame = Gui.MeterFrame(agent);
             Check(frame["configured_models"]!.AsArray().Count == 2
                 && frame["selection_available"]!.GetValue<bool>(), "Qualified choices missing from status");
@@ -133,6 +160,26 @@ static class ConfiguredModelTests
             var unavailable = await Frame(socket, "usage", token, "a");
             Check(!unavailable.GetProperty("selection_available").GetBoolean(),
                 "Reconnect misrepresented unavailable selection");
+            using (var held = new FileStream(globalPath + ".lock", FileMode.OpenOrCreate,
+                FileAccess.ReadWrite, FileShare.None))
+            {
+                string command = new System.Text.Json.Nodes.JsonObject
+                {
+                    ["type"] = "set_model", ["agent_id"] = "viewer",
+                    ["offering"] = JsonCodec.WriteModelIdentity(b.Identity())
+                }.ToJsonString();
+                await socket.SendAsync(System.Text.Encoding.UTF8.GetBytes(command),
+                    WebSocketMessageType.Text, true, token);
+                var partial = await Frame(socket, "error", token);
+                Check(partial.GetProperty("message").GetString() ==
+                    "Model selected, but the application-wide funding default was not saved. Existing funding defaults are unchanged.",
+                    "Global save refusal misreported the successful Agent selection");
+                await Frame(socket, "usage", token, "b");
+                Check(ReferenceEquals(agent.SelectedModel(), b),
+                    "Global save refusal rolled back or lost the successful Agent selection");
+                Check(File.ReadAllBytes(globalPath).SequenceEqual(savedGlobal),
+                    "Refused global save changed saved defaults");
+            }
             await Select(b);
             Check(agent.History().Events().All(value => value.Kind != EventKind.RequestSent),
                 "Status and selection unexpectedly initiated inference");

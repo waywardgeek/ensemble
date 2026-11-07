@@ -64,6 +64,7 @@ public static partial class Gui
                 ? JsonCodec.WriteModelIdentity(identity) : null,
             ["selection_available"] = selection.Available,
             ["configured_models"] = configured,
+            ["preferred_models"] = PreferredModelChoices(agent, selection),
             ["working_context"] = WorkingContextFrame(agent),
             ["funding"] = selection.Funding,
             ["selected_model"] = selection.Model,

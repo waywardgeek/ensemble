@@ -47,6 +47,8 @@ static class PeerControlsTests
         File.WriteAllText(Path.Combine(skills, "browser", "SKILL.md"), "---\nname: browser\ndescription: Browser\ntype: primary\ntools: page_echo\nmcp_servers:\n  - name: page\n    transport: websocket\n---\nBrowser\n");
         File.WriteAllText(Path.Combine(skills, "extra", "SKILL.md"), "---\nname: extra\ndescription: Loadable only\ntype: loadable\n---\nExtra\n");
         var root = new Ensemble.Ensemble(TextWriter.Null, dataDirectory: Path.Combine(work, "fleet"));
+        string globalPath = Path.Combine(work, "global.json");
+        var globalSettings = new GlobalSettings(root, globalPath);
         var localAuth = new ModelAuthentication(root, "local");
         var localVendor = new ModelVendor(root, "ollama", "Ollama");
         var localEndpoint = new ModelEndpoint(localVendor, "test", "http://127.0.0.1:2",
@@ -136,6 +138,40 @@ static class PeerControlsTests
                 && local.Configuration().Billing == BillingMode.None && source.Configuration().Model == "offline",
                 "Qualified creation did not select the complete local route independently");
             await Expect("delete", "{\"name\":\"local-peer\"}", HttpStatusCode.OK);
+            Check(globalSettings.FundingDefaults().TryGetValue("ollama", out string? remembered)
+                && remembered == "local", "Explicit peer creation did not remember funding");
+            byte[] savedFunding = File.ReadAllBytes(globalPath);
+            using (var held = new FileStream(globalPath + ".lock", FileMode.OpenOrCreate,
+                FileAccess.ReadWrite, FileShare.None))
+            {
+                using var response = await Post("create", "{\"name\":\"partial-peer\",\"offering\":"
+                    + offeringJson + ",\"skill\":\"plain\"}");
+                Check(response.StatusCode == HttpStatusCode.OK, "Global failure misreported successful peer creation");
+                using var result = JsonDocument.Parse(await response.Content.ReadAsStringAsync(token));
+                Check(result.RootElement.GetProperty("created").GetBoolean()
+                    && result.RootElement.GetProperty("warning").GetString() ==
+                        "Agent created, but the application-wide funding default was not saved. Existing funding defaults are unchanged.",
+                    "Peer partial-success warning missing");
+                var partial = root.FindAgent("partial-peer")!;
+                Check(ReferenceEquals(partial.SelectedModel(), localModel)
+                    && File.Exists(Path.Combine(partial.DataDirectory(), "save.json")),
+                    "Global failure lost durable peer creation");
+                Check(File.ReadAllBytes(globalPath).SequenceEqual(savedFunding), "Refused global save changed funding");
+            }
+            await Expect("delete", "{\"name\":\"partial-peer\"}", HttpStatusCode.OK);
+            const string preferenceJson = "{\"vendor\":\"ollama\",\"model\":\"fixture-mimo\"}";
+            await Expect("create", "{\"name\":\"preferred-peer\",\"preference\":" + preferenceJson
+                + ",\"skill\":\"plain\"}", HttpStatusCode.OK);
+            Check(ReferenceEquals(root.FindAgent("preferred-peer")!.SelectedModel(), localModel)
+                && source.SelectedModel() is null, "Remembered funding did not create an independent configured peer");
+            await Expect("delete", "{\"name\":\"preferred-peer\"}", HttpStatusCode.OK);
+            File.WriteAllText(globalPath, "{\"model_funding_defaults\":{\"ollama\":\"missing\"}}");
+            await Expect("create", "{\"name\":\"missing-funding\",\"preference\":" + preferenceJson + "}",
+                HttpStatusCode.Conflict);
+            Check(root.FindAgent("missing-funding") is null, "Unavailable funding created a peer through fallback");
+            await Expect("create", "{\"name\":\"mixed-choice\",\"preference\":" + preferenceJson
+                + ",\"offering\":" + offeringJson + "}", HttpStatusCode.BadRequest);
+            globalSettings.RememberFunding(localModel);
             await Expect("create", "{\"name\":\"conflict\",\"model\":\"offline\",\"offering\":"
                 + offeringJson + "}", HttpStatusCode.BadRequest);
             await Expect("create", "{\"name\":\"bad-offering\",\"offering\":null}", HttpStatusCode.BadRequest);

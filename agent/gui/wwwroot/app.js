@@ -741,7 +741,7 @@ function showUsage(frame) {
     // Configured offerings change the complete arrangement; legacy curated
     // names preserve their route. The server validates every actual selection.
     const groups = new Map();
-    const add = (vendor, id, label, enabled, offering = null) => {
+    const add = (vendor, id, label, enabled, offering = null, preference = null) => {
         if (!groups.has(vendor)) {
             const group = document.createElement("optgroup");
             group.label = vendor === "Gemini" ? "Google" : vendor;
@@ -751,15 +751,22 @@ function showUsage(frame) {
         const option = document.createElement("option");
         option.value = id;
         if (offering) option.dataset.offering = JSON.stringify(offering);
+        if (preference) option.dataset.preference = JSON.stringify(preference);
         option.textContent = label;
         option.disabled = !enabled;
-        if (!enabled) option.title = offering
-            ? "Configured offering unavailable under this Agent's current policy."
+        if (!enabled) option.title = preference
+            ? "Remembered funding is unavailable, ambiguous, or incompatible. Choose an explicit offering."
+            : offering ? "Configured offering unavailable under this Agent's current policy."
             : "Unavailable legacy choice for this Agent's current route.";
         groups.get(vendor).append(option);
     };
     const offeringKey = offering => JSON.stringify([offering.vendor, offering.endpoint, offering.model]);
     const configured = frame.configured_models || [];
+    for (const model of frame.preferred_models || []) {
+        add(model.vendor, "preference:" + JSON.stringify(model.preference),
+            `${model.label} — remembered funding: ${model.funding}`,
+            model.enabled, null, model.preference);
+    }
     for (const model of configured) {
         const serving = model.serving_context_tokens == null ? "serving context unknown"
             : `${model.serving_context_tokens.toLocaleString("en-US")} serving tokens`;
@@ -1034,12 +1041,12 @@ function connect() {
     };
     socket.onerror = () => { notice("Connection unavailable; work may still be running."); };
 }
-function send(type, text = "", offering = null) {
+function send(type, text = "", offering = null, preference = null) {
     if (!socket || socket.readyState !== WebSocket.OPEN) {
         notice("Not connected; input was not sent.");
         return false;
     }
-    socket.send(JSON.stringify({ type, text, ...(offering ? { offering } : {}), ...(agentID ? { agent_id: agentID } : {}) }));
+    socket.send(JSON.stringify({ type, text, ...(offering ? { offering } : {}), ...(preference ? { preference } : {}), ...(agentID ? { agent_id: agentID } : {}) }));
     notice("");
     return true;
 }
@@ -1139,7 +1146,8 @@ document.querySelector("#model-choice").onchange = event => {
     // the unchanged model after refusal; never infer acceptance from the click.
     const option = event.target.selectedOptions[0];
     const offering = option?.dataset.offering ? JSON.parse(option.dataset.offering) : null;
-    if (send("set_model", offering ? "" : event.target.value, offering)) event.target.disabled = true;
+    const preference = option?.dataset.preference ? JSON.parse(option.dataset.preference) : null;
+    if (send("set_model", offering || preference ? "" : event.target.value, offering, preference)) event.target.disabled = true;
 };
 document.querySelector("#prompt").oninput = event => {
     resizeComposer();

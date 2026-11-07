@@ -63,6 +63,8 @@ public static partial class Gui
     // Current-process accounting comes from Engine, never reconstructed from replay.
     public static partial JsonObject MeterFrame(Agent agent);
     private static partial JsonObject WorkingContextFrame(Agent agent);
+    private static partial JsonArray PreferredModelChoices(Agent agent, ModelSelectionStatus selection);
+    private static partial Model ResolvePreferredModel(Agent agent, System.Text.Json.JsonElement preference);
     // Replay and live durable delivery use this exact same projection.
     public static partial Projection Project(HistorySnapshot snapshot, string agentID);
     // Merge authoritative reduced entries with retained lifecycle diagnostics.

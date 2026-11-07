@@ -35,12 +35,12 @@ try
             flags[flag] = "1";
             continue;
         }
-        if (flag is not ("--model-config" or "--data-dir" or "--agent-name" or "--sandbox" or "--port" or "--public-origin" or "--gui-dir" or "--vendor" or "--model" or "--base-url" or "--workspace" or "--event-log" or "--settings" or "--skills-dir" or "--primary-skill" or "--startup-skills" or "--save" or "--save-log" or "--archive-log" or "--cache-lens" or "--prompt-cache-key" or "--surface" or "--billing" or "--transcription" or "--transcription-key-file" or "--account" or "--credentials-dir" or "--codex-auth-file" or "--reasoning-effort" or "--reasoning-summary" or "--safe-mode" or "--enable-web-search") || i + 1 >= args.Length)
+        if (flag is not ("--global-settings" or "--model-config" or "--data-dir" or "--agent-name" or "--sandbox" or "--port" or "--public-origin" or "--gui-dir" or "--vendor" or "--model" or "--base-url" or "--workspace" or "--event-log" or "--settings" or "--skills-dir" or "--primary-skill" or "--startup-skills" or "--save" or "--save-log" or "--archive-log" or "--cache-lens" or "--prompt-cache-key" or "--surface" or "--billing" or "--transcription" or "--transcription-key-file" or "--account" or "--credentials-dir" or "--codex-auth-file" or "--reasoning-effort" or "--reasoning-summary" or "--safe-mode" or "--enable-web-search") || i + 1 >= args.Length)
         {
             throw new ArgumentException("Unknown or incomplete GUI flag");
         }
         string value = args[++i];
-        if (flag is "--model-config" or "--data-dir" or "--agent-name" or "--sandbox" or "--surface" or "--billing" or "--transcription" or "--transcription-key-file" or "--account" or "--credentials-dir" or "--codex-auth-file" or "--reasoning-effort" or "--reasoning-summary" or "--safe-mode" or "--enable-web-search")
+        if (flag is "--global-settings" or "--model-config" or "--data-dir" or "--agent-name" or "--sandbox" or "--surface" or "--billing" or "--transcription" or "--transcription-key-file" or "--account" or "--credentials-dir" or "--codex-auth-file" or "--reasoning-effort" or "--reasoning-summary" or "--safe-mode" or "--enable-web-search")
         {
             if ((flag != "--sandbox" && string.IsNullOrWhiteSpace(value)) || value.StartsWith("--"))
             {
@@ -164,6 +164,14 @@ try
         }
         launchCodex = new CodexCredentials(app, codexAuthFile);
     }
+    string globalSettingsPath = Selected("--global-settings", "EN_GLOBAL_SETTINGS");
+    if (globalSettingsPath.Length == 0)
+    {
+        globalSettingsPath = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".en", "settings.json");
+    }
+    var globalSettings = new GlobalSettings(app, globalSettingsPath);
+    RegisterApiOfferings(app, globalSettings);
     string modelConfigurationPath = Selected("--model-config", "EN_MODEL_CONFIG");
     if (modelConfigurationPath.Length != 0)
     {
@@ -420,4 +428,33 @@ static byte[] ReadModelConfiguration(string path)
     if (used > maximumBytes)
         throw new InvalidDataException("Model configuration exceeds 1 MiB.");
     return bytes.AsSpan(0, used).ToArray();
+}
+
+// Host-approved API routes use the existing curated names and exact capability
+// table. Presence of a key is not a provider entitlement or a network probe.
+// Stable graph IDs are persisted by Agent settings and global funding defaults.
+static void RegisterApiOfferings(Application app, GlobalSettings settings)
+{
+    var vendors = new (Vendor Vendor, string ID, string Label, string Address, Surface Surface)[]
+    {
+        (Vendor.OpenAI, "openai", "OpenAI", "https://api.openai.com", Surface.Responses),
+        (Vendor.Anthropic, "anthropic", "Anthropic", "https://api.anthropic.com", Surface.Messages),
+        (Vendor.Gemini, "gemini", "Gemini", "https://generativelanguage.googleapis.com", Surface.GenerateContent)
+    };
+    foreach (var row in vendors)
+    {
+        ModelAuthentication? binding = settings.BindApiKey(row.Vendor, row.ID + "-api");
+        if (binding is null) continue;
+        var vendor = new ModelVendor(app, row.ID, row.Label);
+        var endpoint = new ModelEndpoint(vendor, "api", row.Address, row.Surface, binding);
+        foreach (var recommendation in Engine.RecommendedModels)
+        {
+            if (recommendation.Vendor != row.Vendor) continue;
+            Engine.LookupModel(row.Vendor, recommendation.Name, out ModelFeatures features);
+            // Provider names may contain dots; graph IDs have a narrower grammar.
+            string modelID = recommendation.Name.Replace('.', '_');
+            _ = new Model(endpoint, modelID, recommendation.Name,
+                recommendation.Label, features);
+        }
+    }
 }

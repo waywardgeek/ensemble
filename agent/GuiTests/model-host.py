@@ -86,7 +86,8 @@ def document(binding="none"):
 
 
 def run_case(root, dotnet, gui, name, content, binding="none", billing="api", key="synthetic-host-key",
-             expected=True, via_environment=False, override=False, omitted=False):
+             expected=True, via_environment=False, override=False, omitted=False,
+             global_content=None, global_override=False):
     directory = root / name
     directory.mkdir()
     for part in ("home", "tmp", "cli", "skills/primary"):
@@ -96,6 +97,12 @@ def run_case(root, dotnet, gui, name, content, binding="none", billing="api", ke
     path = directory / "models.json"
     if content is not None:
         path.write_bytes(content)
+    global_path = directory / "home/.en/settings.json"
+    if global_override:
+        global_path = directory / "explicit-global.json"
+    if global_content is not None:
+        global_path.parent.mkdir(parents=True, exist_ok=True)
+        global_path.write_bytes(global_content)
     with socket.socket() as reservation:
         reservation.bind(("127.0.0.1", 0))
         port = reservation.getsockname()[1]
@@ -111,6 +118,10 @@ def run_case(root, dotnet, gui, name, content, binding="none", billing="api", ke
         env["EN_MODEL_CONFIG"] = str(directory / "missing.json") if override else str(path)
     if not via_environment and not omitted:
         command += ["--model-config", str(path)]
+    if global_override:
+        env["EN_GLOBAL_SETTINGS"] = str(directory / "invalid-global.json")
+        (directory / "invalid-global.json").write_text("null")
+        command += ["--global-settings", str(global_path)]
     process = None
     forced = False
     frame = None
@@ -137,6 +148,19 @@ def run_case(root, dotnet, gui, name, content, binding="none", billing="api", ke
                                   if billing == "none" else "API key (metered usage).")
                 require(frame["funding"] == "Model: launch-wire. Funding: " + launch_funding,
                         "initial launch funding preserved")
+                if global_content is not None:
+                    api_choices = [item for item in choices
+                                   if item["offering"]["vendor"] in ("openai", "anthropic", "gemini")]
+                    require(len(api_choices) == 7 and all(item["enabled"] for item in api_choices),
+                            "all curated global API offerings enabled")
+                    require({item["offering"]["vendor"] for item in api_choices} ==
+                            {"openai", "anthropic", "gemini"}, "separate configured vendors")
+                    require(all(item["offering"]["endpoint"] == "api" for item in api_choices),
+                            "stable API endpoint identity")
+                    for secret in json.loads(global_content).values():
+                        if isinstance(secret, str):
+                            require(secret not in json.dumps(frame), "global secret absent from status")
+                    choices = [item for item in choices if item not in api_choices]
                 if omitted:
                     require(choices == [], "no implicit configured graph")
                 else:
@@ -176,6 +200,8 @@ def run_case(root, dotnet, gui, name, content, binding="none", billing="api", ke
     for log in logs:
         events = [json.loads(line) for line in log.read_text().splitlines() if line.strip()]
         require(all(event.get("kind") != "request_sent" for event in events), "startup initiated inference")
+    if global_content is not None:
+        require(global_path.read_bytes() == global_content, "startup never rewrites global settings")
     return {"case": name, "passed": True, "exit": process.returncode, "joined": True, "forced": forced}
 
 
@@ -184,7 +210,17 @@ def main():
     require(Path(dotnet).is_absolute() and Path(gui).is_absolute(), "absolute existing runtime paths")
     root = Path(output).resolve()
     root.mkdir()
+    global_keys = json.dumps({"openai_api_key": "fixture-openai-global",
+                              "anthropic_api_key": "fixture-anthropic-global",
+                              "gemini_api_key": "fixture-gemini-global"}).encode()
     cases = [
+        ("global-default-home", None, {"omitted": True, "global_content": global_keys}),
+        ("global-explicit-precedence", None,
+            {"omitted": True, "global_content": global_keys, "global_override": True}),
+        ("global-malformed", None,
+            {"omitted": True, "global_content": b"null", "expected": False}),
+        ("global-reserved-vendor", json.dumps(document()).replace('"id": "local"', '"id": "openai"').encode(),
+            {"global_content": global_keys, "expected": False}),
         ("legacy-no-option", None, {"omitted": True}),
         ("none-binding", json.dumps(document()).encode(), {}),
         ("launch-binding", json.dumps(document("launch")).encode(), {"binding": "launch"}),

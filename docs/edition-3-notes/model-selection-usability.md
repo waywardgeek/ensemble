@@ -107,13 +107,50 @@ missing bindings without making the remembered missing binding fall back. No
 pre-fix behavioral credit is claimed for that review-only correction. No new shared
 suite, host/browser, public-grader or live-provider acceptance is claimed here.
 
-## Remaining integration
+## Host and GUI funding integration
 
-The current host registers only its launch credential binding for a model document.
-Bill authorized ~/.en/settings.json as the global inference credential/default store;
-its three existing API-key field names/types were inspected without printing values.
-Host import and GUI use of the new application-wide funding store are still pending. Keep the
-existing transcription payer separate. Global defaults guide future explicit choices,
-never silently retarget existing Agents. Host-approved Ollama configuration remains
-explicit. Extend public Local Models checks and ordinary GUI evidence for these
-contracts before claiming the full usability effort complete.
+The host now loads the root-owned global store before Agent construction and
+fleet restoration. Explicit --global-settings wins over EN_GLOBAL_SETTINGS,
+then ~/.en/settings.json. Curated OpenAI, Anthropic and Gemini API offerings use
+stable graph identities and exact capability lookup; absent keys add no offerings.
+Startup does not probe providers, rewrite settings or retarget the launch Agent.
+Configured Ollama remains explicit and separately grouped. Sixteen isolated
+startup/socket cases passed before the context investigation, including override,
+malformed global settings and reserved-vendor refusal. Provider-name dots cannot
+serve directly as graph IDs; stable underscore IDs preserve exact wire names.
+
+Both GUI controls distinguish an explicit offering from a vendor/model preference.
+The preference resolves through GlobalSettings at action time, never from cached
+browser routing. Missing or ambiguous saved funding refuses without fallback.
+Explicit selection/creation remembers funding only after Agent success. A failed
+global write reports partial success without rolling back or misreporting the
+Agent operation. The files are not one atomic transaction.
+
+Final parent job38 built cleanly and passed the configured socket fixture and six
+GUI regression groups. Actual HTTP creation checks cover preferred creation,
+missing-funding refusal, conflicting forms and locked-global-file warnings with
+durable peer state and unchanged global bytes. Socket checks cover independent
+Agent/default state, default selection, refusal and explicit recovery. The new
+funding-save assertion failed before its handler change, then passed afterward.
+No inference was submitted.
+
+The actual model-picker page passed ambiguity, explicit/default commands and
+unavailable reload/recovery; browser and host exited zero without forced cleanup.
+Evidence is in /private/tmp/cadence-model-preferences.ERLGRh/funding-page-s99l4q1q.
+The Create Agent dialog passed desktop/phone preferred payload, disabled default,
+inheritance, failed-load retry and partial-success display against an owned HTTP
+substitute. Real peer-route behavior is the separate C# check above, not a claimed
+end-to-end browser creation proof. Its first added run failed because a broad
+Unavailable locator matched two different options; scoping it to explicit options
+fixed the fixture without weakening the separate missing-default assertion.
+
+The initial source receipt funding-gui-source-receipt.json is post-execution,
+not a predeclared audit. Review corrected a disabled preference's legacy-route
+tooltip. A clean rebuild and actual-page check of the final embedded assets passed
+with an explicit tooltip assertion; browser and host both exited zero without
+forced cleanup in funding-page-final-k5c6yaw_. The final post-execution receipt
+funding-integration-final-receipt.json records the reviewed source hashes and the
+separate test scopes. Hard chapter/companion/note lint passes with advisories.
+Public Local Models preference/restoration checks remain the next slice. Installed
+settings, provider entitlement and human usability remain separate gates. No
+installation, restart, private credential output or live provider call was performed.

@@ -16,6 +16,21 @@ The GUI borrows its Agent and, when supplied, its web host. Cancelling a view st
 
 Replay reconstructs the view without starting inference or repeating speech. Serving a JavaScript file demonstrates deployment; rendering a usable interface is another observation. The current source includes outside consumers and isolated browser work, while leaving audible speech and human accessibility unclaimed by those checks.
 
+## New choices do not rewrite old Agents
+
+Create Agent offers explicit inheritance, approved primary skills and configured
+model offerings. Inheritance means the mounted Agent's actual selection, not a
+fresh lookup of the application-wide funding default. A vendor/model option is a
+different action: it resolves remembered funding when creation begins. An explicit
+offering names its endpoint and funding directly. Conflicting forms refuse.
+
+The host registers available offerings; the browser does not discover credentials.
+A menu is neither a capability grant nor proof that a provider will accept a
+request. Creation still validates the route, persists the Agent, and performs
+normal skill startup. Only after successful explicit creation does it remember
+funding for future choices. A failed default save must report the already-created
+Agent and a separate warning, not invite a duplicate creation attempt.
+
 ## A child has two parents
 
 Ensemble strongly owns every live Agent. A delegated Agent also has the Agent that spawned it as a parent. The first relationship covers global resources and identity; the second covers work, questions, and recursive cleanup. A constructor establishes both through the parents' relationship operations. Destruction removes both directions and recursively closes descendants, Jobs, pending questions, subscriptions, and MCP clients without destroying any multiply owned object twice.

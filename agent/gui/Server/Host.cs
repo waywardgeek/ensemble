@@ -927,10 +927,34 @@ public static partial class Gui
                             case "set_model":
                                 try
                                 {
-                                    if (command.TryGetProperty("offering", out var offering))
+                                    bool hasPreference = command.TryGetProperty("preference", out var preference);
+                                    if (hasPreference && (command.TryGetProperty("offering", out _) || !string.IsNullOrEmpty(text)))
+                                        throw new ArgumentException("Conflicting model selection forms.");
+                                    if (hasPreference)
+                                    {
+                                        await selected.SetModelAsync(ResolvePreferredModel(selected, preference));
+                                    }
+                                    else if (command.TryGetProperty("offering", out var offering))
                                     {
                                         ModelIdentity identity = JsonCodec.ReadModelIdentity(offering);
-                                        await selected.SetModelAsync(selected.Parent().ResolveModel(identity));
+                                        Model chosen = selected.Parent().ResolveModel(identity);
+                                        await selected.SetModelAsync(chosen);
+                                        // Agent selection and the application default are separate
+                                        // durable writes. Never report the first as refused when
+                                        // only the second fails, or retarget other Agents.
+                                        if (selected.Parent().GlobalSettings() is { } globalSettings)
+                                        {
+                                            try { globalSettings.RememberFunding(chosen); }
+                                            catch (Exception error) when (error is ArgumentException or InvalidOperationException
+                                                or FormatException or IOException or InvalidDataException or UnauthorizedAccessException)
+                                            {
+                                                lock (gate)
+                                                {
+                                                    Queue(socket, queue, new JsonObject { ["type"] = "error",
+                                                        ["message"] = "Model selected, but the application-wide funding default was not saved. Existing funding defaults are unchanged." });
+                                                }
+                                            }
+                                        }
                                     }
                                     else
                                     {
@@ -938,12 +962,13 @@ public static partial class Gui
                                     }
                                     Broadcast(selected, null);
                                 }
-                                catch (Exception error) when (error is ArgumentException or InvalidOperationException or FormatException or IOException)
+                                catch (Exception error) when (error is ArgumentException or InvalidOperationException or FormatException or IOException
+                                    or InvalidDataException or UnauthorizedAccessException)
                                 {
                                     lock (gate)
                                     {
                                         Queue(socket, queue, new JsonObject { ["type"] = "error",
-                                            ["message"] = "Model selection refused: Agent must be idle, the configured route available, and any required save successful." });
+                                            ["message"] = "Model selection refused: Agent must be idle, the route and saved funding available and unambiguous, and any required save successful. No funding fallback was used." });
                                     }
                                 }
                                 // Also acknowledge unchanged selection and refusals.

@@ -29,8 +29,21 @@ const identity = endpoint => JSON.stringify(['local', endpoint, 'small']);
             assert.deepEqual(commands.at(-1).offering, { vendor: 'local', endpoint, model: 'small' });
             assert.equal(commands.at(-1).text, '');
         }
+        assert.equal(await picker.locator('option[data-preference]').count(), 1);
+        assert.equal(await picker.locator('option[data-preference]').isDisabled(), true,
+            'Ambiguous funding must not invent a default');
+        assert.match(await picker.locator('option[data-preference]').getAttribute('title'), /Remembered funding/);
         await select('a');
         await select('b');
+        const preference = { vendor: 'local', model: 'same-wire' };
+        await picker.selectOption('preference:' + JSON.stringify(preference));
+        await page.waitForFunction(value => {
+            const picker = document.querySelector('#model-choice');
+            return !picker.disabled && picker.value === value;
+        }, identity('b'));
+        assert.deepEqual(commands.at(-1).preference, preference);
+        assert.equal(commands.at(-1).offering, undefined);
+        assert.equal(commands.at(-1).text, '');
         assert.equal(await picker.locator('option[data-offering]').count(), 2);
         const labels = await picker.locator('option[data-offering]').allTextContents();
         assert(labels.every(label => label.includes('serving context unknown')), 'Serving context must not be invented');
@@ -49,7 +62,7 @@ const identity = endpoint => JSON.stringify(['local', endpoint, 'small']);
         assert.equal(await picker.locator('option:checked').isDisabled(), true);
         assert.match(await picker.locator('option:checked').textContent(), /unavailable/);
         await select('b');
-        assert.equal(commands.length, 4, 'Reload or status must not submit an extra model selection');
+        assert.equal(commands.length, 5, 'Reload or status must not submit an extra model selection');
         console.log('PASS configured model page: same-wire choices, qualified commands, unavailable reload and recovery');
     } finally {
         await browser.close();

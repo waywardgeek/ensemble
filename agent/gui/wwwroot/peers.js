@@ -14,6 +14,7 @@
     let pending = null;
     let choicesPending = false;
     const offerings = new Map();
+    const preferences = new Map();
 
     async function change(operation, address) {
         if (pending) { notice.textContent = "An Agent operation is already in progress."; return; }
@@ -22,7 +23,9 @@
             if (choicesPending || create.disabled) return;
             body.skill = skill.value;
             const offering = offerings.get(model.selectedOptions[0]?.dataset.offeringKey);
+            const preference = preferences.get(model.selectedOptions[0]?.dataset.preferenceKey);
             if (offering) body.offering = offering;
+            else if (preference) body.preference = preference;
             else body.model = model.value;
         }
         pending = new AbortController();
@@ -39,12 +42,12 @@
                 body: JSON.stringify(body), signal: pending.signal
             });
             if (!response.ok) {
-                notice.textContent = "Agent operation refused. Check the name, primary skill, storage, and unfinished children. The mounted Agent cannot be deleted here.";
+                notice.textContent = "Agent operation refused. Check the name, primary skill, saved funding, storage, and unfinished children. No funding fallback was used. The mounted Agent cannot be deleted here.";
                 return;
             }
             const result = await response.json();
             notice.textContent = operation === "create"
-                ? `Created Agent ${result.name}. Select it in the tree.`
+                ? `Created Agent ${result.name}. Select it in the tree.${result.warning ? " " + result.warning : ""}`
                 : `Deleted Agent ${result.name}; saved files retained.`;
         } catch (_) {
             // Response cancellation is not proof that commit did not win the race.
@@ -62,6 +65,7 @@
         choiceNotice.textContent = "Loading approved models and primary skills…";
         create.disabled = model.disabled = skill.disabled = true;
         offerings.clear();
+        preferences.clear();
         model.replaceChildren(new Option("Inherit mounted Agent’s model", ""));
         skill.replaceChildren(new Option("Inherit mounted Agent’s primary skill", ""));
         try {
@@ -73,6 +77,19 @@
             const choices = await response.json();
             for (const value of choices.model_choices || []) model.add(new Option(value, value));
             const groups = new Map();
+            for (const choice of choices.preferred_models || []) {
+                let group = groups.get(choice.vendor);
+                if (!group) {
+                    group = document.createElement("optgroup"); group.label = choice.vendor;
+                    groups.set(choice.vendor, group); model.append(group);
+                }
+                const key = `preference:${preferences.size}`;
+                preferences.set(key, choice.preference);
+                const option = new Option(`${choice.label} · remembered funding: ${choice.funding}`, key);
+                option.dataset.preferenceKey = key;
+                option.disabled = !choice.enabled;
+                group.append(option);
+            }
             for (const choice of choices.configured_models || []) {
                 let group = groups.get(choice.vendor);
                 if (!group) {

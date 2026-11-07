@@ -75,7 +75,7 @@ public static partial class Gui
                 var seen = new HashSet<string>(StringComparer.Ordinal);
                 foreach (var property in body.EnumerateObject())
                 {
-                    bool offering = create && property.Name == "offering";
+                    bool offering = create && property.Name is "offering" or "preference";
                     bool allowed = offering || property.Name == "name" || (create && property.Name is "model" or "skill");
                     if (!allowed || !seen.Add(property.Name)
                         || property.Value.ValueKind != (offering ? JsonValueKind.Object : JsonValueKind.String))
@@ -95,9 +95,27 @@ public static partial class Gui
                     string skill = body.TryGetProperty("skill", out var skillValue) ? skillValue.GetString()! : "";
                     ModelIdentity? offering = body.TryGetProperty("offering", out var identity)
                         ? JsonCodec.ReadModelIdentity(identity) : null;
+                    if (body.TryGetProperty("preference", out var preference))
+                    {
+                        if (offering is not null || model.Length != 0)
+                            throw new ArgumentException("Conflicting model selection forms.");
+                        offering = ResolvePreferredModel(source, preference).Identity();
+                    }
                     var peer = await ensemble.CreatePeerAsync(source, name, model, skill, token,
                         waitForBrowser: true, offering: offering);
-                    return Results.Json(new { name, address = peer.Address(), created = true });
+                    string? warning = null;
+                    if (body.TryGetProperty("offering", out _) && ensemble.GlobalSettings() is { } globalSettings)
+                    {
+                        try { globalSettings.RememberFunding(peer.SelectedModel()!); }
+                        catch (Exception error) when (error is ArgumentException or InvalidOperationException
+                            or FormatException or IOException or InvalidDataException or UnauthorizedAccessException)
+                        {
+                            // Creation is already durable. A second file's failure
+                            // must not invite the user to create the same Agent again.
+                            warning = "Agent created, but the application-wide funding default was not saved. Existing funding defaults are unchanged.";
+                        }
+                    }
+                    return Results.Json(new { name, address = peer.Address(), created = true, warning });
                 }
                 // A borrowed mount cannot destroy the Agent its caller promised
                 // to keep alive until all mounted requests have drained.
