@@ -13,7 +13,8 @@
     const rollback = byId("renderer-rollback");
     // Capture the fingerprinted script URL synchronously; currentScript is null
     // after an await. Missing shipped code leaves the host's plain-text fallback.
-    const shippedUrl = new URL("./skills/file-reading/renderers/list-directory.js", document.currentScript.src).href;
+    const scriptUrl = document.currentScript.src;
+    const shippedUrl = new URL("./skills/file-reading/renderers/list-directory.js", scriptUrl).href;
     window.EnsembleArtifactRenderers ||= Object.create(null);
     let shipped;
     const safe = new URL(location.href);
@@ -114,6 +115,16 @@
             const module = await import(shippedUrl);
             if (typeof module.default === "function") { shipped = module.default; install(shipped); }
         } catch { /* Plain-text fallback remains available. */ }
+        for (const [tool, path] of [
+            ["read_file", "file-reading/renderers/read-file.js"],
+            ["write_file", "code-tools/renderers/write-file.js"],
+            ["edit_file", "code-tools/renderers/edit-file.js"]]) {
+            try {
+                const module = await import(new URL("./skills/" + path, scriptUrl).href);
+                if (typeof module.default === "function") window.EnsembleArtifactRenderers[tool] = module.default;
+            } catch { /* Each missing renderer independently keeps plain output. */ }
+        }
+        document.dispatchEvent(new Event("ensemble-renderers-changed"));
         const state = await api("selection");
         available = state.available === true;
         if (!available) { status.textContent = "This host uses shipped renderers only."; return; }

@@ -2,6 +2,9 @@
 name: code-tools
 description: Edit files and run independent background jobs.
 type: loadable
+renderers:
+  write_file: renderers/write-file.js
+  edit_file: renderers/edit-file.js
 tools: inspect_image write_file edit_file run_command wait_for_job send_input kill_job tool_limits
 ---
 Use small, checked edits and test the changed behavior. Shell state does not persist

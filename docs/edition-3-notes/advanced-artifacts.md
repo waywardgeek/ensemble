@@ -592,3 +592,34 @@ file evidence, ordinary tools, all four sandbox groups, directory evidence and a
 six default GUI groups. The 379-test full-suite result is from before that final
 ordering edit, not a second full-suite run.
 No installation or live-browser behavior is established by these checks.
+
+### Shipped file previews and shared lexical helper
+
+The read/write/edit preview entries now consume the fourth optional renderer
+argument, recorded file evidence. Directory evidence remains the third argument.
+The host includes file evidence in its preview identity key and preserves raw result
+text and controls. Missing evidence, errors and failed rendering use the existing
+plain-text fallback. Shared `skills/shared/file-excerpt.js` shows actual start lines
+and UTF-16 columns, explicit truncated-prefix notices and empty segments. Edits have
+textually labeled Removed and Inserted sections, not a claimed whole-file diff.
+Known source suffixes receive lexical highlighting; unknown suffixes remain plain.
+
+The unchanged small lexer moved from app.js to skills/shared/source-code.js, loaded
+before Markdown and app.js. Both Markdown and file excerpts use it. Renderer modules
+are explicitly embedded and copied with GUI/CLI skill source; arbitrary skill files
+are still not executed. The source-note contract documents this host helper dependency.
+The trial UI and source-package endpoint remain directory-only; generalizing them
+is still unfinished. This is not a complete custom-file-renderer lifecycle.
+
+Initial actual-page synthetic-fact checks passed at 1280 and 390 widths: numbered
+positions, literal HTML-like source, suffix highlighting, explicit omissions, edit
+labels, empty content, fallback, unchanged raw result and stable focus/nodes. Real
+operation capture is separately covered by the preceding file-evidence tests.
+
+Final slice checks: clean GUI-tests, GUI-host and CLI builds, six skill groups,
+exact GUI/CLI packaged source bytes, six default GUI groups, desktop/phone
+directory and file presentation plus trial/reload checks all pass. Markdown
+stream/selection/safety and code-copy browser regressions also pass after lexer
+extraction. Their origin check was corrected to use the supplied random-port
+fixture rather than a hard-coded port. All owned fixture hosts joined. No install,
+restart, provider inference or full shared-core rerun in this presentation slice.

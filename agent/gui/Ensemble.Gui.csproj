@@ -14,5 +14,10 @@
     <EmbeddedResource Include="../skills/file-reading/SKILL.md" LogicalName="EnsembleGui.RendererSkill/file-reading" />
     <!-- Explicit reviewed renderer set; discovering a skill does not execute its JavaScript. -->
     <EmbeddedResource Include="../skills/file-reading/renderers/list-directory.js" LogicalName="EnsembleGui.Assets/skills/file-reading/renderers/list-directory.js" />
+    <EmbeddedResource Include="../skills/shared/source-code.js" LogicalName="EnsembleGui.Assets/skills/shared/source-code.js" />
+    <EmbeddedResource Include="../skills/shared/file-excerpt.js" LogicalName="EnsembleGui.Assets/skills/shared/file-excerpt.js" />
+    <EmbeddedResource Include="../skills/file-reading/renderers/read-file.js" LogicalName="EnsembleGui.Assets/skills/file-reading/renderers/read-file.js" />
+    <EmbeddedResource Include="../skills/code-tools/renderers/write-file.js" LogicalName="EnsembleGui.Assets/skills/code-tools/renderers/write-file.js" />
+    <EmbeddedResource Include="../skills/code-tools/renderers/edit-file.js" LogicalName="EnsembleGui.Assets/skills/code-tools/renderers/edit-file.js" />
   </ItemGroup>
 </Project>

@@ -149,25 +149,6 @@ function readable(part) {
     return ""; // Never speak provider signatures or hidden opaque metadata.
 }
 
-// Lexical display only, not a language parser. Every original byte remains
-// in text nodes; provider code never becomes HTML or executable script.
-function highlight(code, source) {
-    const tokens = /("(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'|\/\/[^\n]*|#[^\n]*|\b(?:class|public|private|static|partial|void|return|if|else|for|foreach|while|async|await|def|import|from|const|let|function|true|false|null|None|True|False)\b|\b\d+(?:\.\d+)?\b)/g;
-    let offset = 0;
-    for (const match of source.matchAll(tokens)) {
-        code.append(document.createTextNode(source.slice(offset, match.index)));
-        const span = document.createElement("span");
-        const token = match[0];
-        span.className = /^("|')/.test(token) ? "code-string"
-            : /^(\/\/|#)/.test(token) ? "code-comment"
-            : /^\d/.test(token) ? "code-number" : "code-keyword";
-        span.textContent = token;
-        code.append(span);
-        offset = match.index + token.length;
-    }
-    code.append(document.createTextNode(source.slice(offset)));
-}
-
 // Send only local activity edges. A different device can resume the Agent;
 // unchanged activity here must not reassert its previous pause.
 function updatePauseCause() {
@@ -674,10 +655,10 @@ function render(card) {
             const previewText = clipped + (clipped.length < card.text.length ? "\n… (bounded preview)" : "");
             const renderer = card.kind === "tool_result" && card.status !== "error"
                 ? window.EnsembleArtifactRenderers?.[card.toolName] : null;
-            if (card.previewText !== previewText || card.previewRenderer !== renderer || card.previewDirectoryListing !== card.directoryListing) {
+            if (card.previewText !== previewText || card.previewRenderer !== renderer || card.previewDirectoryListing !== card.directoryListing || card.previewFileEvidence !== card.fileEvidence) {
                 let content = null;
                 if (typeof renderer === "function") {
-                    try { content = renderer(document, previewText, card.directoryListing); }
+                    try { content = renderer(document, previewText, card.directoryListing, card.fileEvidence); }
                     catch { /* A presentation failure must not hide the recorded result. */ }
                 }
                 if (!(content instanceof HTMLElement) || content.isConnected) {
@@ -688,6 +669,7 @@ function render(card) {
                 card.previewText = previewText;
                 card.previewRenderer = renderer;
                 card.previewDirectoryListing = card.directoryListing;
+                card.previewFileEvidence = card.fileEvidence;
             }
             preview.hidden = details.open;
         }
@@ -984,6 +966,7 @@ function handle(frame) {
         card.job = frame.job;
         card.workProduct = frame.is_error ? null : frame.work_product;
         card.directoryListing = frame.is_error ? null : frame.directory_listing;
+        card.fileEvidence = frame.is_error ? null : frame.file_evidence;
         card.role = "tool";
         card.status = frame.is_error ? "error" : "finished";
         card.text = (frame.result || (frame.parts || []).map(readable).join("\n"))

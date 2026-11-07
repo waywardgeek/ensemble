@@ -357,3 +357,10 @@ body.compact #transcript { padding: .3rem; }
 .work-product-links { display: flex; flex-wrap: wrap; align-items: center; gap: .35rem; margin-top: .3rem; }
 .work-product-links button { min-height: 44px; max-width: 100%; overflow-wrap: anywhere; }
 .work-product-links small, .work-product-links [role="status"] { flex-basis: 100%; overflow-wrap: anywhere; }
+
+/* Recorded file excerpts: textual labels carry meaning without color. */
+.file-source { overflow-x: auto; max-height: 24rem; }
+.file-source-line { display: flex; min-width: max-content; }
+.file-line-number { display: inline-block; min-width: 4ch; padding-right: 1ch; text-align: right; user-select: none; opacity: .75; flex-shrink: 0; }
+.file-source-line code { white-space: pre; }
+.file-preview > p { overflow-wrap: anywhere; }

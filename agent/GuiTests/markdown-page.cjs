@@ -12,7 +12,7 @@ assert(!['8088','8089'].includes(new URL(base).port));
   const page = await browser.newPage({viewport:{width:390,height:844}});
   const errors = [], remote = [];
   page.on('pageerror', error => errors.push(error.message));
-  page.on('request', request => { if (!request.url().startsWith('http://127.0.0.1:18202/')) remote.push(request.url()); });
+  page.on('request', request => { if (!request.url().startsWith(new URL(base).origin + '/')) remote.push(request.url()); });
   await page.goto(base);
   await page.waitForFunction(() => settings !== null && !selectionPending);
   for (const kind of ['thinking','reasoning_summary']) {

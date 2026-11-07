@@ -45,3 +45,24 @@ without deleting the accepted selection. No automatic retry can resolve an
 uncertain acceptance response; reload and check the durable selection.
 
 Read `list-directory.js` only when adapting or debugging its implementation.
+
+## File preview API
+
+Read, write and edit renderers receive an optional fourth argument, `fileEvidence`.
+The third argument remains directory evidence for compatibility. File evidence is
+`{operation, path, start_line, start_column, content, removed}`. An excerpt is
+`{text, total_bytes}`; fewer UTF-8 bytes in `text` means a truncated display.
+`removed` is present only for edits. Positions are one-based; columns count UTF-16
+code units. These facts describe the operation, not the file's present state.
+
+The shipped `read-file.js` and code-tools write/edit entries share
+`../../shared/file-excerpt.js`. That module uses the host-loaded lexical helper
+`window.EnsembleSourceCode` from `../../shared/source-code.js`. Known source suffixes
+receive lexical highlighting, not parsing or semantic analysis; unknown suffixes
+remain literal text. Numbered lines are presentation, not a replacement for raw
+recorded output. Empty content has no invented written line. Removed and inserted
+sections are an applied replacement, not a whole-file diff.
+
+The current trial panel and source-package endpoint still target `list_directory`
+only. File renderers are explicitly shipped assets; their metadata does not yet
+make them selectable candidates in that panel.
