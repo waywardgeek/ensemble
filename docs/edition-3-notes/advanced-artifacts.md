@@ -1,6 +1,15 @@
 # Advanced Artifacts: working chapter notes
 
-Status: initial [chapter packet](../../book/advanced-artifacts.md) drafted with
+Current authoring boundary: the full unnumbered chapter body is drafted from the
+bounded implementation through b07c7c48. It remains outside release assembly.
+Figures/capture permission and human usability review are pending; no independent
+chapter reconstruction or grader acceptance is claimed. Original MCP-specific
+renderer activation remains open: eight shipped approval keys are supported,
+with customizable default output for unknown tools, not arbitrary registration.
+The dated development record below preserves earlier states.
+
+
+Initial packet status (historical): [chapter packet](../../book/advanced-artifacts.md) drafted with
 TL;DR, In plain words and exercises; not an implemented migration or a finished
 chapter. Develop the code and teaching together. Chapter numbering is undecided.
 Foundations: [Chapter 7, Everything Is an Artifact](../../book/chapter-07.md),
@@ -869,3 +878,33 @@ Homebrew-VTT end-to-end test, and not a screen-reader usability certification.
 Both isolated CLI and ExampleGui distribution builds pass with zero warnings or
 errors; copied JS/HTML/index bytes match source. The same desktop/touch browser
 checks also pass against the built GUI distribution. Nothing installed or deployed.
+
+## Full-body authoring pass
+
+Read the full book voice/procedure and Teach Your AI creation/voice guidance;
+inspected renderer APIs, approval store/routes, command controller/endpoint and
+helper sources. Personal implementation/authoring follows Bill's current direction;
+no new student or independent-review campaign. Through-line: the human needs to
+understand and customize output without losing the facts being supervised. Kept
+Bill's recorded dice example and operation-time append-position lesson, with no
+invented quotation or live demonstration. The chapter is new, not an edition
+rewrite of an earlier Advanced Artifacts chapter.
+
+Replaced aspirational TL;DR with current contracts, added causal explanations,
+implementation reference, reproducible user steps, explicit evidence boundaries
+and five planned figure captions/alt texts. Six exercises retained and reconciled
+with terminal-log reset behavior and exact-version approval. No images captured.
+README now distinguishes full draft from published or reconstruction-accepted work.
+No runtime bytes changed and no build/test campaign repeated merely for freshness.
+Prose hard checks pass; advisories for negative requirements and a long technical
+person-gap remain intentional: explicit boundaries teach safety, and no invented
+human incident was inserted to satisfy the counter. Final link/assembly checks
+are recorded after their actual results.
+
+Final authoring checks: chapter relative links and internal reference anchor,
+six exercises, balanced fences, exclusion from the assembler's numbered-chapter
+glob, whitespace and hard prose lint pass. No publication build performed.
+Queue check initially used a case-sensitive heading that did not match the saved
+entry; corrected to inspect its actual wording. The first shell did not fail fast
+and its last command masked that assertion's status; subsequent checks used
+fail-fast execution. Auto-recall backlog content remains intact and unimplemented.
