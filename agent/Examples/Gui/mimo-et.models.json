@@ -1,0 +1,26 @@
+{
+  "version": 1,
+  "vendors": [
+    {
+      "id": "ollama",
+      "label": "Ollama",
+      "endpoints": [
+        {
+          "id": "et",
+          "address": "http://et.lan:11434",
+          "surface": "chat_completions",
+          "authentication": "none",
+          "models": [
+            {
+              "id": "mimo-v2_6-9b",
+              "name": "mimo-v2.6:9b",
+              "label": "MiMo 9B",
+              "features": { "stream": true },
+              "serving_context_tokens": 4096
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
