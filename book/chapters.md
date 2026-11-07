@@ -1,7 +1,7 @@
 # Chapters
 
 This book builds a coding collaborator. Chapter 25's four external media scopes
-pass 100/100 with documented limits; Chapter 28 retains crossover acceptance.
+pass 100/100 with documented limits; Chapter 29 retains crossover acceptance.
 Gateway and the connected personal-system subjects now live in
 [the Puffin book](../puffin-book/README.md). See the [edition guide](README.md)
 for historical endpoint and grader mappings. This split does not declare the
@@ -36,7 +36,8 @@ remaining closeout work complete.
 - [Chapter 25: Voice and Images](chapter-25.md)
 - [Chapter 26: Artifacts and Actions](chapter-26.md) (integration teaching; partial grading)
 - [Chapter 27: Running Local Models](chapter-27.md) (implemented; bounded verification)
-- [Chapter 28: Crossing Over to Ensemble](chapter-28.md)
+- [Chapter 28: Advanced Artifacts](chapter-28.md)
+- [Chapter 29: Crossing Over to Ensemble](chapter-29.md)
 - [Epilogue: What we can rebuild](epilogue.md)
 - [A note from Bill](note-from-bill.md)
 

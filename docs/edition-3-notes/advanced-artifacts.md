@@ -1,7 +1,16 @@
+## Book completion pass
+
+Bill approved placement as Chapter 28 before Crossing Over (now 29), one isolated
+student attempt for questions and teaching feedback, then one editorial reviewer.
+This is not a reconstruction certification campaign. Student baseline 9ed49875;
+completed implementation is withheld. Publication remains pending Bill approval.
+
 # Advanced Artifacts: working chapter notes
 
-Current authoring boundary: the full unnumbered chapter body is drafted from the
-bounded implementation through b07c7c48. It remains outside release assembly.
+Current authoring boundary: Advanced Artifacts is Chapter 28, followed by
+Crossing Over as Chapter 29. The implementation includes the registered-tool
+approval extension through fe99c2d7. The bounded student and single editorial review are complete; final local
+publication candidates are built, with publication pending Bill approval.
 Six authorized synthetic figures are captured; human usability review is pending; no independent
 chapter reconstruction or grader acceptance is claimed. Specialized approval now
 includes actual registered tools across the host's Agents, including MCP tools,
@@ -10,7 +19,7 @@ development entry for verification and page-load discovery limits.
 The dated development record below preserves earlier states.
 
 
-Initial packet status (historical): [chapter packet](../../book/advanced-artifacts.md) drafted with
+Initial packet status (historical): [chapter packet](../../book/chapter-28.md) drafted with
 TL;DR, In plain words and exercises; not an implemented migration or a finished
 chapter. Develop the code and teaching together. Chapter numbering is undecided.
 Foundations: [Chapter 7, Everything Is an Artifact](../../book/chapter-07.md),
@@ -964,3 +973,58 @@ figures, draft assembler exclusion and whitespace checks passed. Style advisorie
 remain. Initial chapter-count checker assumed `### Exercise` rather than actual
 numbered headings; it failed before notes/queue updates. Corrected the checker
 and reran fail-fast, without changing chapter headings to fit the test.
+
+## Bounded student feedback during book completion
+
+One isolated student at baseline 9ed49875 implemented the directory slice, not
+the complete chapter. Its saved feedback is in
+`/private/tmp/cadence-artifacts-student.5wZD6F/assignment/student-feedback.md`.
+The student reported clean offline builds, two focused native groups, and an
+isolated intercepted-request browser fixture using approved installed Chrome.
+No live asset-delivery or full reconstruction claim follows. The child submitted
+and was shut down; experimental code remains isolated and was not imported.
+
+Concrete teaching revisions explain constructing/migrating file-reading while
+preserving enabled tools, name a directory-only checkpoint, separate declaration
+validation from execution, and explain classic app.js versus module loading.
+The missing browser and seq=0 test record were fixture/setup failures, not runtime
+defects. Browser setup guidance now forbids assuming a bundled executable.
+One editorial reviewer follows these revisions; no student repair campaign.
+
+## One editorial review and author revision
+
+Reviewer feedback saved at `/private/tmp/cadence-artifacts-reviewer-feedback.md`.
+One read-only chapter/API pass found three small teaching gaps: state the default
+export convention, explain a shipped-renderer/fixture demonstration before the
+trial panel exists, and use Removed/Inserted terminology rather than imply a
+whole-file diff. All three accepted and corrected. Reviewer submitted and was
+shut down. No additional review/student campaign. The opening now distinguishes
+the completed directory-only attempt from full reconstruction, and figures from
+installed usability. Final artifacts follow this manuscript snapshot.
+
+## Final local book candidate
+
+Thirty chapters assembled, Advanced Artifacts28 before Crossing Over29. Final
+EPUB has36 navigation entries and seven embedded images (six figures plus cover).
+Final print has559 interior pages at7x10,560 covered reading pages,33 verified
+contents references and141 preserved reading links. Actual body10.5pt and minimum
+code10pt passed; fourteen publication regressions passed. Six PDF figure objects
+verified; revised file/search and approval pages visually inspected. Source
+Crossing Over body preserved byte-for-byte except heading number.
+
+The first final print attempt refused shrunken type (10.11/9.62pt): suppressing
+duplicate figure captions had made full-width images inline in indented paragraphs.
+Browser measurement identified21px image overflow; block display fixed the cause.
+The regression now checks block image markup, descriptive alt and no duplicate
+figcaption. An image-page count assertion was corrected to count image objects:
+two figures legitimately share a page. Failed logs retained in the build workspace.
+
+Verified artifacts copied locally into book/; byte/hash receipt at
+`/private/tmp/cadence-book-completion.yr6v6W/final-artifacts.json`. No publication,
+push, install or app restart. Print cover wrap must use559 pages and chosen paper;
+KDP preview and Bill's publication approval remain separate.
+
+Final chapter prose hard checks passed; advisory negation/person-gap counts remain.
+An initial lint invocation omitted its required filename and ran no checks; the
+corrected explicit chapter invocation passed. Crossover body, six exercises and
+local links verified. Four local release copies match their candidate hashes.

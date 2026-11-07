@@ -1,7 +1,7 @@
 # Edition 3: C# inside Ensemble
 
 This edition includes the completed Chapter 25, Voice and Images, and the
-current Chapter 28 crossover requirements, alongside Goals and the
+current Chapter 29 crossover requirements, alongside Goals and the
 optional Codex-backed path. Bill directed the architecture; Cadence
 implemented, exercised and reviewed the C# work personally inside Ensemble.
 
@@ -19,21 +19,16 @@ Historical foundation checks alone were not that human acceptance. The optional 
 completed after Gateway and Goals, and its historical `ch24` endpoint intentionally
 contains that foundation. Earlier endpoints are not renamed or overwritten.
 
-The last release artifacts (assembled Markdown, EPUB, print interior, and covered
-reading PDF) were rebuilt
-from the current manuscript after the former Chapter 26 passed all 100 external media points.
-The release checks cover EPUB navigation and local resources, print typography,
-contents destinations, page labels, and reading-copy links. They are not a new
-whole-book execution grade or KDP preview approval.
-**Working manuscript:** Chapters 00–28 now form the coding-agent book, ending
-with Crossing Over. Gateway, Connections, Agenda, Puffin and their active notes
-have moved to [the Puffin book](../puffin-book/README.md). The prior assembled
-Markdown/PDF/EPUB release artifacts have not been regenerated for this split or
-the closeout chapter placement. Chapter 26 is an integration draft with partial
-public grading; Chapter 27 now teaches implemented local-model support with
-deterministic checks and one bounded live coding success. Broader acceptance and
-human usability remain closeout work;
-see the [chapter guide](chapters.md). This is not a claim that the book is finished.
+The local publication artifacts (assembled Markdown, EPUB, print interior and
+covered reading PDF) now include all 30 chapters, 00–29: Advanced Artifacts is
+Chapter 28 and Crossing Over remains the closing chapter. Gateway, Connections,
+Agenda, Puffin and their active notes live in [the Puffin book](../puffin-book/README.md).
+The release checks cover EPUB navigation and embedded figures, print typography,
+contents destinations, page labels and reading-copy links. These are local
+release candidates awaiting Bill's publication decision, not a new whole-book
+execution grade, installed usability acceptance or KDP preview approval.
+Historical partial and ungraded exercise results retain their limits; see the
+[chapter guide](chapters.md).
 
 The companion publication is available under [companion/](companion/README.md).
 
@@ -45,12 +40,13 @@ human-led creation method and distinguishes it from historical execution runs.
 Begin with the TL;DR, plain-language explanation and exercises; develop the
 implementation with the human before writing the detailed chapter body.
 
-[Advanced Artifacts](advanced-artifacts.md) is a full working chapter based on
-bounded local implementation and tests. It remains unnumbered and excluded from
-release assembly; chapter placement and human usability review are pending. Its figures use
-authorized captures of isolated synthetic fixtures. Its [working notes](../docs/edition-3-notes/advanced-artifacts.md) retain
-design decisions and verification limits. This is not independent reconstruction
-acceptance or a newly rebuilt publication.
+[Advanced Artifacts](chapter-28.md) is based on bounded local implementation and
+tests. One isolated student attempt exercised the directory slice and informed
+teaching improvements, followed by one editorial review. It was not a complete
+chapter reconstruction. Six figures use authorized isolated synthetic browser
+fixtures. The [working notes](../docs/edition-3-notes/advanced-artifacts.md) retain
+design decisions, feedback and verification limits. Installed human usability
+remains separate from this manuscript completion.
 
 ## Sequential manuscript numbers and historical endpoints
 
@@ -71,7 +67,8 @@ endpoints, archived evidence, or executable grader flags to match the book.
 | 25 | [Voice and Images](chapter-25.md) | External media grader remains `-ch 26`; scopes pass 100/100 with documented limits. |
 | 26 | [Artifacts and Actions](chapter-26.md) | Integration draft; named artifact grade70/100, work products ungraded; further student campaigns deferred |
 | 27 | [Running Local Models](chapter-27.md) | Implemented with bounded evidence; public119 ungraded, human usability pending |
-| 28 | Crossover | Active source in `agent/`; no numbered snapshot |
+| 28 | [Advanced Artifacts](chapter-28.md) | Bounded implementation; directory-slice student feedback and one editorial review |
+| 29 | Crossover | Active source in `agent/`; no numbered snapshot |
 
 Gateway's preserved endpoint remains `solutions/ch26`; its historical graders
 and [current persistence evidence](../puffin-book/notes/gateway-complete-state.md)
@@ -119,7 +116,10 @@ python3 "$BOOK_DIR/build-print.py"
 ```
 
 To isolate generated output, set `BOOK_OUTPUT_DIR` to an existing owned build
-directory instead. The assembler writes stdout. The EPUB and print builder use
+directory instead. For an isolated print build, copy `book/figures/` to
+`$BOOK_OUTPUT_DIR/figures/` before rendering: the generated HTML retains relative
+image paths. For example, `cp -R "$BOOK_DIR/figures" "$BOOK_OUTPUT_DIR/"`.
+The assembler writes stdout. The EPUB and print builder use
 the selected assembled file. The shared scripts now default to the promoted Edition 3 book when
 these variables are absent. Archived Edition 2 scripts retain their old defaults.
 Chrome rendering uses a fresh temporary profile, never the running user profile.
@@ -141,8 +141,8 @@ because the command-line renderer wrote a PDF but exited nonzero on teardown.
 Outputs are the assembled Markdown, EPUB, coverless **Print Interior.pdf**, and
 **The Art of Building AI Coding Agents.pdf** with the cover for free reading.
 `interior-print.html` is the intermediate print input. Existing cover artwork is
-reused as requested. The current coverless interior is **540 pages at 7 × 10
-inches**; the covered reading PDF is **541 pages**. The reading PDF is for the
+reused as requested. The current coverless interior is **559 pages at 7 × 10
+inches**; the covered reading PDF is **560 pages**. The reading PDF is for the
 website, not the KDP interior upload. A print cover wrap is separate and must be
 sized for the final interior and selected paper.
 

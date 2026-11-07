@@ -606,4 +606,4 @@ synthetic verification, real-target trials and human acceptance. This chapter do
 not authorize model downloads, listener changes or an inference campaign merely
 by being loaded as task material.
 
-Next: [Crossing Over to Ensemble](chapter-28.md).
+Next: [Advanced Artifacts](chapter-28.md).
