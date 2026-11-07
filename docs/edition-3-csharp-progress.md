@@ -29,7 +29,8 @@ candidates. The named local-models runner now supplies strict receipt validation
 and bounded process execution; passing current coverage exits 3, with no points.
 Separate writer/reader processes now check clean child restoration without
 replayed inference; crash recovery is not certified. Broader lifecycle/refusal
-coverage and real-model acceptance are pending.
+coverage and general real-model reliability remain unverified; the later bounded
+six-tool coding task below passed without closing those wider gates.
 Qualified peer launch records now preserve offering identity; restoration validates
 the entire launch set before startup effects, without a host-route fallback.
 Internal configured request binding, qualified child restoration and
@@ -38,13 +39,21 @@ retaining documentary saves. Working-context persistence now distinguishes
 configured offerings from each other and from legacy wire-name policies. Final
 shared regression passes364/0. The previous360/1 Sandbox fixture race and its
 passing focused recheck remain recorded, not claimed repaired. Final GUI regression
-groups also pass. Configuring an installed local offering and integrated inference
-acceptance remain open. One isolated live MiMo trial returned correct code but
+groups also pass. Installed-app usability acceptance remains open. The following
+isolated trials provide bounded integrated inference evidence. The first returned
+correct code but
 made no requested tool call; it used minimal instructions and no primary skill.
 Current ET status confirmed a 4096-token serving context. This mixed result does
 not close live tool or human usability acceptance. A second small-primary-skill
 trial captured a real tool call and correlated result, but default recall and a
 relay error confounded the experiment; it is not clean full acceptance.
+The final authorized small-skill trial disabled all memory bands and recall and
+exposed exactly six original tools. Four requests and five tool results exercised
+read/write/run; the fixed six-case Python test passed with inputs and protected
+files unchanged. Process and relay joined without force or retry. Peak reported
+input/output was 1912/291, within the 4096-token serving allocation. This is one
+bounded live success, not all-six-tool or general coding certification; public119
+remains ungraded. No further live trial is planned.
 Chapter27 now contains TL;DR, plain-words teaching and four draft exercises.
 See [Local Models](edition-3-notes/local-models.md) for evidence and limits.
 No installation or restart performed by Cadence; Bill reports rebuilding/restarting

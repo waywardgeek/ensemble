@@ -840,3 +840,50 @@ offline-source-before.json, offline-result.json, offline-wire and
 offline-verification.json. All pre-run hashes match after execution, as do the
 previous live trial's hashes. No third ET trial or server configuration change
 was made. Further live experimentation is a human decision, not an idle retry.
+
+
+## Approved six-tool live trial: bounded coding task passed
+
+Bill subsequently authorized one final small-primary-skill trial with the original
+six tools and no memory or web search. The earlier decision-wait section is
+historical, not a direction to retry. No further live trial is planned.
+
+The fresh fixture at /private/tmp/cadence-mimo-six.najJzo registered read_file,
+list_directory, search_files, write_file, edit_file and run_command individually.
+Primary skill activation's load/unload controls were removed through public Tool
+lifecycle operations so exactly six schemas appeared on every captured request.
+All six memory bands were disabled before automatic recall was explicitly disabled.
+The workspace had fixed cases and a test script, but no implementation copied from
+the offline fake. Commands were network-denied with workspace and restricted system
+and toolchain access; this was not a blanket prohibition on every outside read.
+
+An initial skill-header setup failed before any requests because its tool names
+were comma-separated; the parser requires a space-separated list or YAML sequence.
+After correction, an owned fake exercised real read/write/run operations and the
+six-case script, with joined cleanup. This offline validation preceded the single
+announced live run, rather than using another live request to debug setup.
+
+The live process exited 0 in 20.333 seconds. Four forwarded requests produced five
+tool results: read cases, read test script, read absent implementation (an ordinary
+file-not-found result), write implementation, and run the supplied Python test.
+The set-based function passed six cases with inputs unchanged. Protected case and
+script hashes were unchanged. Every request declared exactly six tools, no recall
+attachment or auxiliary request appeared, and the relay reported no errors. The
+process and relay joined without forced cleanup, retry or cloud fallback.
+
+Reported input/output pairs were 1517/58, 1774/81, 1854/28 and 1912/291 tokens.
+Cached tokens are included in those input counts, not added again. The largest
+reported total was 2203, within the configured 4096-token serving allocation;
+this is measured task evidence, not a universal next-request fit guarantee.
+Dollar cost remained unknown. Only read_file, write_file and run_command were
+exercised. The other three granted tools, normal full primary skill, broader coding
+quality and human usability were not certified.
+
+Evidence includes live-source-before.json, live-process.json, live-result.json,
+live-verification.json and bounded wire captures in that directory. The source
+receipt precedes execution; the verification receipt records the checked outcomes.
+This write-up reads those saved results, not a new inference run. Earlier failed
+and confounded trials remain evidence. The independent public runner's 119 checks
+still carry no chapter points and a successful incomplete run exits 3; clean
+process restoration is not crash recovery. No installation, restart, serving
+context change, download or credential change accompanied this trial or write-up.

@@ -1,9 +1,10 @@
 # Chapter 27: Running Local Models
 
-> **In development.** The learning brief and exercises below define the current
-> implementation target, not completed acceptance. A Windows-native Ollama trial
-> has demonstrated buffered text, structured tool calls and result consumption.
-> Ensemble integration, streaming and lifecycle verification remain pending.
+> **Implemented with bounded verification.** Configured routing, model selection,
+> streaming tools and lifecycle checks have deterministic evidence. The public
+> runner passes 119 named checks but remains ungraded, with incomplete coverage.
+> One isolated six-tool MiMo trial completed a small coding task using read, write
+> and command execution. Broader reliability and human usability remain unverified.
 
 ## TL;DR: Specification Brief
 
@@ -72,6 +73,19 @@ correlated result, but also exposed default recall overhead and a capture-fixtur
 error. A fresh Agent is not automatically an auxiliary-inference-free Agent:
 explicitly configure recall when isolating prompt and tool overhead. Keep observed
 protocol success separate from an error-free experiment or a causal skill claim.
+
+A final authorized trial used a small primary skill and exactly the original six
+tools, with all memory bands and automatic recall disabled. MiMo read the supplied
+cases and test script, observed an ordinary missing-file result, wrote the
+implementation, and ran the fixed test script. Four model requests produced five
+tool results; all six cases passed without changing the supplied files or inputs.
+The process and relay joined cleanly, with no retry or cloud fallback.
+
+The largest reported request used 1912 input and 291 output tokens, 2203 total,
+within the loaded 4096-token context. Cached input is already included in that
+input figure. Only read_file, write_file and run_command were exercised; granting
+six tools does not certify all six. This demonstrates one useful integrated task,
+not general coding reliability or that the normal full skill fits this allocation.
 
 ## 27.1 Start with a verified server
 
@@ -368,8 +382,9 @@ non-executable after interruption or provider error; the same Agent must support
 a fresh turn without replaying orphan tool messages. Separate writer/reader
 processes check clean restart from actual child files, exact offering identity,
 paused conversation and no replayed request. The 119 named checks do not certify
-all four exercises: crash recovery, broader lifecycle/refusal behavior and live
-usefulness remain open.
+all four exercises: crash recovery, broader lifecycle/refusal behavior and general
+live usefulness remain open. The bounded coding trial above is separate evidence,
+not an increase in deterministic grader points.
 
 ## Exercises (draft acceptance contracts)
 
