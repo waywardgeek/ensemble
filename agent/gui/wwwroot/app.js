@@ -625,7 +625,15 @@ function render(card) {
     if (prose) {
         const body = keepBody || document.createElement("div");
         body.className = "message";
-        markdown(body, card.text, card.kind === "text" && card.role === "assistant");
+        const proseRenderer = window.EnsembleArtifactRenderers?.prose;
+        try {
+            if (typeof proseRenderer !== "function") throw new Error("Prose renderer unavailable");
+            proseRenderer(body, card.text, card.kind === "text" && card.role === "assistant");
+        } catch {
+            // Presentation failure never changes recorded text or speech. This
+            // literal fallback is outside the customizable renderer chain.
+            body.replaceChildren(document.createTextNode(card.text));
+        }
         if (!body.parentElement) card.node.append(body);
     } else {
         let details = card.node.querySelector(":scope > details");

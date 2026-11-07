@@ -18,6 +18,7 @@
     <EmbeddedResource Include="../skills/shared/terminal-output.js" LogicalName="EnsembleGui.Assets/skills/shared/terminal-output.js" />
     <EmbeddedResource Include="../skills/shared/tool-default.js" LogicalName="EnsembleGui.Assets/skills/shared/tool-default.js" />
     <EmbeddedResource Include="../skills/shared/markdown.js" LogicalName="EnsembleGui.Assets/skills/shared/markdown.js" />
+    <EmbeddedResource Include="../skills/shared/markdown-parser.js" LogicalName="EnsembleGui.Assets/skills/shared/markdown-parser.js" />
     <EmbeddedResource Include="../skills/shared/source-code.js" LogicalName="EnsembleGui.Assets/skills/shared/source-code.js" />
     <EmbeddedResource Include="../skills/shared/file-excerpt.js" LogicalName="EnsembleGui.Assets/skills/shared/file-excerpt.js" />
     <EmbeddedResource Include="../skills/file-reading/renderers/read-file.js" LogicalName="EnsembleGui.Assets/skills/file-reading/renderers/read-file.js" />

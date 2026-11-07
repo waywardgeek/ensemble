@@ -64,7 +64,7 @@ remain literal text. Numbered lines are presentation, not a replacement for raw
 recorded output. Empty content has no invented written line. Removed and inserted
 sections are an applied replacement, not a whole-file diff.
 
-The trial panel selects directory, read, write, edit, search or default tool output. Accepted
+The trial panel selects directory, read, write, edit, search, default tool output or prose. Accepted
 and previous versions are independent per tool and shared across Agent views.
 Only one trial is active through the panel at a time: Keep it or reload before
 changing tools. Package review and promotion must match the selected tool.
@@ -97,3 +97,11 @@ tool names. A throwing or invalid specialized renderer falls back to this defaul
 a throwing, invalid or already-connected default result falls back to literal GUI
 text. Neither customization changes raw observations, pairing or tool status.
 The shipped source is `skills/shared/tool-default.js`, with no helper dependencies.
+
+
+## Prose rendering
+
+The `prose` selection uses an in-place function rather than the detached preview
+interface: `render(parent, text, allowCopy)`. Chat and readable thinking share it.
+Read `skills/shared/README.md` for lifecycle ownership and the complete three-file
+parser/lexer package. The GUI retains original text, speech and a literal fallback.

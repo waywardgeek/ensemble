@@ -786,3 +786,35 @@ remain GUI-owned. Desktop/phone tests cover unknown tools, live renderer changes
 throwing specialized/default functions and connected-node refusal. HTTP tests
 cover the new one-file package and independent acceptance/rollback. No installed
 or human-use acceptance is claimed.
+
+### Exact-version prose packages
+
+The `prose` selection now shares the existing Try/Keep/reload/rollback mechanism
+for chat and supplied readable thinking. Its default export updates a supplied
+body in place: `render(parent, text, allowCopy)`. It does not adopt the detached
+node tool-preview API. GUI ownership of identity, original text, speech, update
+scheduling and selection deferral remains unchanged. Missing or throwing code
+gets a literal-text GUI fallback; that is not containment or rollback of arbitrary
+in-page code effects.
+
+The hashed package includes the Markdown entry, lexical helper and parser adapter.
+The adapter encloses the byte-identical pinned markdown-it 14.1.0 UMD payload in
+module-local CommonJS bindings, with its complete MIT license, rather than using
+a page-global parser. No dependency download or library upgrade occurred. Reading
+all executable dependencies is necessary for meaningful version approval.
+
+Two old browser tests initially failed because their instrumentation called
+classic-script globals (`markdown`, then `closedCodeFence`/`messageMarkdown`).
+The first now counts calls through the prose registry slot; the second retains
+all 18 fence inputs and checks actual Copy controls through the renderer. No
+obsolete runtime globals were restored to satisfy tests. The page/focus/selection
+and copy regressions subsequently passed, including a throwing-renderer literal
+fallback with recorded text and speech controls retained. Final approval and
+packaging verification is recorded after its terminal result below.
+
+Final verification: clean GUI fixture build; HTTP per-renderer isolation and exact
+three-file prose download; desktop/phone inert staging, parser/lexer import,
+Try/Keep/reload, shipped-only recovery and rollback; Markdown/copy regressions;
+all six default GUI groups. Fixture hosts joined. CLI and GUI distribution builds
+have zero warnings/errors, and copied prose dependencies/API note match source
+bytes. No full core rerun, installation, live provider or human acceptance claimed.

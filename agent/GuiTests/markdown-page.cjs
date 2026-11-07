@@ -44,8 +44,8 @@ assert(!['8088','8089'].includes(new URL(base).port));
   await page.evaluate(()=>{
    savedButton.focus();render(cards.get('markdown-test'));
    window.focusKept=document.activeElement===savedButton;
-   window.parseCount=0;window.originalMarkdown=markdown;
-   markdown=(...args)=>{parseCount++;return originalMarkdown(...args);};
+   window.parseCount=0;window.originalMarkdown=window.EnsembleArtifactRenderers.prose;
+   window.EnsembleArtifactRenderers.prose=(...args)=>{parseCount++;return originalMarkdown(...args);};
    for(let i=0;i<100;i++)handle({type:'part_delta',part_id:'batch-test',kind:'text',chunk:'x'});
    window.immediateParseCount=parseCount;
   });
@@ -53,7 +53,7 @@ assert(!['8088','8089'].includes(new URL(base).port));
   assert.equal(await page.evaluate(()=>immediateParseCount),1);
   await page.waitForFunction(()=>pendingCardRenders.size===0);
   assert.equal(await page.evaluate(()=>parseCount),2);
-  await page.evaluate(()=>{markdown=originalMarkdown;});
+  await page.evaluate(()=>{window.EnsembleArtifactRenderers.prose=originalMarkdown;});
   console.log('PASS playback keyboard focus and 100 deltas coalesced into two paints');
   const hostile='<script>window.pwned=1</script>\n\n<img src=x onerror="window.pwned=1">\n\n![tracker](https://example.com/tracker.png)\n\n[bad](javascript:alert(1)) [data](data:text/html,evil) [entity](jav&#x61;script:alert(1))';
   await page.evaluate(text=>handle({type:'part_final',part_id:'hostile-test',part:{type:'text',text}}),hostile);
@@ -97,6 +97,17 @@ assert(!['8088','8089'].includes(new URL(base).port));
   await page.evaluate(()=>getSelection().removeAllRanges());
   await page.waitForFunction(()=>cards.get('scroll-1').node.textContent.includes('Updated middle card'));
   console.log('PASS cross-message selection protects intermediate card');
+  await page.evaluate(()=>{
+   const renderer=window.EnsembleArtifactRenderers.prose;
+   window.EnsembleArtifactRenderers.prose=()=>{throw new Error('deliberate refusal');};
+   handle({type:'part_final',part_id:'fallback-prose',part:{type:'text',text:'<b>literal recorded text</b>'}});
+   window.EnsembleArtifactRenderers.prose=renderer;
+  });
+  assert.equal(await page.locator('[data-part-id="fallback-prose"] .message').textContent(),'<b>literal recorded text</b>');
+  assert.equal(await page.locator('[data-part-id="fallback-prose"] .message b').count(),0);
+  assert.equal(await page.evaluate(()=>cards.get('fallback-prose').text),'<b>literal recorded text</b>');
+  assert.equal(await page.locator('[data-part-id="fallback-prose"] [data-action="speak"]').count(),1);
+  console.log('PASS prose renderer refusal preserves literal text and GUI controls');
   await page.evaluate(()=>{
    handle({type:'part_delta',part_id:'pending-test',kind:'text',chunk:'start'});
    handle({type:'part_delta',part_id:'pending-test',kind:'text',chunk:'tail'});

@@ -53,7 +53,7 @@ def main():
                 source = Path(__file__).resolve().parents[1] / "skills/file-reading/renderers/list-directory.js"
                 assert shipped["files"] == {shipped["entry"]: source.read_text()}
                 assert selection() == {"accepted": None, "previous": None}, "Source discovery changed selection"
-                for tool in ["read_file", "search_files", "write_file", "edit_file", "tool_default"]:
+                for tool in ["read_file", "search_files", "write_file", "edit_file", "tool_default", "prose"]:
                     query = "?renderer=" + tool
                     bundled = json.loads(request("shipped" + query))
                     expected_count = 1 if tool in ("search_files", "tool_default") else 3

@@ -1,15 +1,9 @@
-"use strict";
-// Chat can arrive before the optional lexer. Keep literal text until it loads.
-let highlight = (code, source) => { code.textContent = source; };
-void import(new URL("./source-code.js", document.currentScript.src).href)
-    .then(module => {
-        highlight = module.highlight;
-        document.dispatchEvent(new Event("ensemble-renderers-changed"));
-    }).catch(() => { /* Literal source remains readable. */ });
+import markdownit from "./markdown-parser.js";
+import { highlight } from "./source-code.js";
 
 // Presentation only: callers retain original Markdown for History and speech.
 // Never enable raw HTML or plugins without reviewing this security boundary.
-const messageMarkdown = window.markdownit({ html: false, linkify: false, typographer: false });
+const messageMarkdown = markdownit({ html: false, linkify: false, typographer: false });
 messageMarkdown.validateLink = url => /^https?:\/\//i.test(url);
 messageMarkdown.renderer.rules.image = (tokens, index) =>
     messageMarkdown.utils.escapeHtml(`[Image: ${tokens[index].content}]`);
@@ -69,7 +63,7 @@ function snippetCopyControls(snippet, source) {
     controls.append(copy, status);
     snippet.append(controls);
 }
-function markdown(parent, text, allowCopy = false) {
+export default function markdown(parent, text, allowCopy = false) {
     const oldSnippets = new Map([...parent.querySelectorAll(".code-snippet")]
         .map(node => [node.dataset.codeIndex, node]));
     const focused = parent.contains(document.activeElement) ? document.activeElement : null;

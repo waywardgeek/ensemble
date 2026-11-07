@@ -87,7 +87,7 @@ const { chromium } = require('../../edition-2/agent/gui/node_modules/playwright'
             await page.goto(base);
             await ready('Using the shipped');
             assert.equal(await page.evaluate(() => window.trialMarker), undefined);
-            for (const tool of ['read_file', 'search_files', 'write_file', 'edit_file', 'tool_default']) {
+            for (const tool of ['read_file', 'search_files', 'write_file', 'edit_file', 'tool_default', 'prose']) {
                 await panel();
                 await page.locator('#renderer-tool').selectOption(tool);
                 await ready('Using the shipped ' + tool);
@@ -104,6 +104,16 @@ const { chromium } = require('../../edition-2/agent/gui/node_modules/playwright'
                 await ready('Trial active');
                 assert(await page.locator('#renderer-tool').isDisabled(), 'tool changed under active trial');
                 assert.equal(await page.evaluate(() => window.packageMarker), tool);
+                if (tool === 'prose') {
+                    assert.equal(await page.evaluate(() => {
+                        const node = document.createElement('div');
+                        window.EnsembleArtifactRenderers.prose(node, '**Recorded**\n\n```js\nconst answer = 42;\n```', true);
+                        return node.querySelector('strong')?.textContent === 'Recorded'
+                            && !!node.querySelector('.code-keyword')
+                            && !!node.querySelector('[data-action="copy-code"]')
+                            && window.markdownit === undefined;
+                    }), true, 'prose package depended on page-global parser or lost controls');
+                }
                 if (['read_file', 'write_file', 'edit_file'].includes(tool)) {
                     assert.equal(await page.evaluate(tool => {
                         const operation = { read_file: 'read', write_file: 'write', edit_file: 'edit' }[tool];
@@ -131,7 +141,7 @@ const { chromium } = require('../../edition-2/agent/gui/node_modules/playwright'
                 await ready('Using the shipped');
                 assert.equal(await page.evaluate(() => window.packageMarker), undefined);
             }
-            console.log(`PASS shared approval ${width}: five output selectors, inert packages, helper imports, independent keep/reload, safe mode, rollback`);
+            console.log(`PASS shared approval ${width}: six additional output selectors, inert packages, helper imports, independent keep/reload, safe mode, rollback`);
             assert.deepEqual(await page.evaluate(() => {
                 const registry = window.EnsembleArtifactRenderers;
                 const original = registry.tool_default;

@@ -37,6 +37,7 @@ assert(!['8088', '8089', '8090'].includes(new URL(base).port));
                 }
             }});
         });
+        await page.waitForFunction(() => typeof window.EnsembleArtifactRenderers?.prose === 'function');
         const closureCases = [
             ['```\nx\n```', true], ['```\nx', false], ['```\nx\n', false],
             ['```\n', false], ['```\n```', true], ['````\n```\n````', true],
@@ -48,8 +49,11 @@ assert(!['8088', '8089', '8090'].includes(new URL(base).port));
             ['```\n\n\n```', true], ['```\n\n', false]
         ];
         for (const [source, expected] of closureCases) {
-            assert.equal(await page.evaluate(source => closedCodeFence(
-                messageMarkdown.parse(source, {}).find(token => token.type === 'fence')), source), expected, source);
+            assert.equal(await page.evaluate(source => {
+                const node = document.createElement('div');
+                window.EnsembleArtifactRenderers.prose(node, source, true);
+                return !!node.querySelector('[data-action="copy-code"]');
+            }, source), expected, source);
         }
         const renderText = async (id, text, role = 'assistant', type = 'text') => {
             await page.evaluate(({ id, text, role, type }) => handle({
