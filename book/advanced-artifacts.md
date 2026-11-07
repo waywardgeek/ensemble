@@ -7,8 +7,8 @@ supervision harder than it needs to be. This chapter gives presentation its own
 editable code without giving it ownership of the work it describes.
 
 > **Working chapter.** The implementation has bounded local verification; this
-> unnumbered manuscript remains outside release assembly. Figures and human
-> usability review are pending. No independent reconstruction of this chapter
+> unnumbered manuscript remains outside release assembly. Captured figures use synthetic fixtures; human
+> usability review remains pending. No independent reconstruction of this chapter
 > has been performed. The [development notes](../docs/edition-3-notes/advanced-artifacts.md)
 > retain detailed evidence and verification limits.
 
@@ -179,6 +179,10 @@ the tool returns, the old Artifact must continue to describe the old operation.
 A renderer that refreshes the directory to improve its display has silently
 changed the evidence under review.
 
+![Four entries: README.md, src and tests labeled directory, and literal notes <draft>.txt.](figures/advanced-artifacts/directory.png)
+
+*Directory preview with synthetic recorded entries. Names remain literal, and confirmed directories carry a text label.*
+
 ### Positions belong to the operation
 
 A source excerpt needs a starting line, not a browser guess. An append needs more:
@@ -208,6 +212,10 @@ The source highlighter is a lexer chosen by suffix; unknown suffixes remain
 literal. Numbering and colors help reading, while raw copy continues to use the
 recorded text rather than the decorated DOM.
 
+![Removed and Inserted source excerpts at line 19, column 1, labeled as an applied exact replacement.](figures/advanced-artifacts/replacement.png)
+
+*Applied replacement from synthetic operation evidence. Both positions and the extent of the comparison are explicit.*
+
 ### Search captures spans once
 
 Search results require a different shape from a contiguous source excerpt. They
@@ -222,6 +230,10 @@ and their spans together: if a line cannot fit, omit it and report the omission
 rather than display it with some matches mysteriously missing. Showing all
 returned lines still does not prove every file was readable; recursive search
 retains its existing best-effort behavior for inaccessible files.
+
+![Search lines grouped under two paths, with line numbers, match and context labels, and three omitted lines.](figures/advanced-artifacts/search.png)
+
+*Grouped search from synthetic evidence. Recorded spans identify matches; the notice distinguishes displayed lines from all returned lines.*
 
 ## Keep the presentation code available
 
@@ -334,6 +346,10 @@ after a renderer change without another fetch. Custom code receives a copy of
 the decoded byte buffer: mutation followed by an exception must not corrupt the
 literal fallback's input.
 
+![One command session with a 64 KiB rolling-window notice, progress lines and a build summary.](figures/advanced-artifacts/command.png)
+
+*Continuing command view from synthetic observations and a synthetic 64 KiB response. The displayed test count is illustrative data, not an Ensemble test receipt.*
+
 ## Review code, try it, then keep it
 
 A request such as “make directories easier to distinguish” starts a small code
@@ -362,6 +378,10 @@ A stale tab receives a refusal instead of silently replacing another decision.
 Save failure leaves the selection unchanged. If a response is lost after a save,
 the page cannot infer whether acceptance happened; refresh and inspect rather
 than automatically repeating the mutation.
+
+![Staged directory renderer with Try live available, Keep disabled, inert-stage status, source disclosure and shipped-only recovery.](figures/advanced-artifacts/approval.png)
+
+*Actual approval controls with an inert synthetic candidate. Open the source disclosure to review code before Try live; Keep remains unavailable until a trial.*
 
 ### Approval is trust, not containment
 
@@ -402,6 +422,10 @@ server. It is not registered in Ensemble's page, does not add a dice tool, and
 does not change Tools-pane routing. Its lesson transfers to another host: retain
 the original event and identity while choosing a shape appropriate to that
 conversation.
+
+![Attack: 23 expanded inline to d20 17 plus proficiency 3 plus ability 3, between chat sentences.](figures/advanced-artifacts/inline-dice.png)
+
+*The distributed inline fixture, opened with its synthetic recorded result. Revealing the arithmetic does not roll again.*
 
 ## Implementation reference
 
@@ -517,29 +541,6 @@ These tests do not constitute a real-provider end-to-end session, screen-reader
 acceptance, or proof that a fresh student can reconstruct this chapter. Detailed
 commands and outcomes remain in the development notes rather than a claimed
 chapter-wide certification score.
-
-### Planned figures
-
-The following are capture instructions, not completed screenshots. Capture only
-approved synthetic examples from the implemented views; prose above remains
-usable without the figures.
-
-- **Directory and grouped search.** Alt text: “Recorded directory entries beside
-  search lines grouped by path, with line numbers and omitted-line notice.”
-  Caption: Structured evidence preserves names and positions without parsing
-  display text or repeating the operation.
-- **Applied replacement.** Alt text: “Removed and Inserted source excerpts at the
-  recorded edit position, each with explicit labels.” Caption: An exact edit
-  shows the replaced region, not an invented whole-file diff.
-- **Continuing command.** Alt text: “One command session showing a bounded tail,
-  rollover notice and separate historical observations.” Caption: Human output
-  polling does not consume the model's observation cursor.
-- **Inline dice.** Alt text: “Attack: 23 expands inline to recorded terms 17, 3
-  and 3, without a tool card.” Caption: The host keeps identity; the renderer
-  chooses a compact disclosure and never rerolls.
-- **Renderer trial.** Alt text: “Renderer source review with Try live, Keep and
-  recovery controls.” Caption: Trying code authorizes this page; keeping it
-  selects the exact version for future pages.
 
 ## Exercises
 

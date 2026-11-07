@@ -2,7 +2,7 @@
 
 Current authoring boundary: the full unnumbered chapter body is drafted from the
 bounded implementation through b07c7c48. It remains outside release assembly.
-Figures/capture permission and human usability review are pending; no independent
+Six authorized synthetic figures are captured; human usability review is pending; no independent
 chapter reconstruction or grader acceptance is claimed. Original MCP-specific
 renderer activation remains open: eight shipped approval keys are supported,
 with customizable default output for unknown tools, not arbitrary registration.
@@ -908,3 +908,22 @@ Queue check initially used a case-sensitive heading that did not match the saved
 entry; corrected to inspect its actual wording. The first shell did not fail fast
 and its last command masked that assertion's status; subsequent checks used
 fail-fast execution. Auto-recall backlog content remains intact and unimplemented.
+
+## Authorized figure capture
+
+Bill authorized isolated browser captures. Six actual component images now sit
+beside their explanations: directory, search, replacement, command, approval and
+distributed inline dice. Inputs are synthetic and captions distinguish illustration
+from tool execution or test receipts. No private page, host screenshot, inference,
+installation or publication. Capture source and image/fixture hashes are retained
+under book/figures/advanced-artifacts/README.md. Existing compiled fixture reused;
+all hosts joined and browser cleanup completed.
+
+Pixel review caught clipped search/edit previews and the approval dialog's bounded
+scroll container. Shortened synthetic search text, used the normal 690px Tools
+layout, and captured approval with its source disclosure collapsed. No renderer
+CSS changed for photography. Review also corrected the synthetic rollover reply
+from a short tail to an actual 65536-byte window. Final command image retains its
+normal scrolling edge rather than retouching it. Lesson: capture success alone
+proves neither readable pixels nor faithful fixture data. Source syntax, all six image links/alt texts, PNG dimensions and hard chapter
+prose/whitespace checks pass. Existing negation/person-gap style advisories remain.

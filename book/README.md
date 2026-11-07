@@ -47,8 +47,8 @@ implementation with the human before writing the detailed chapter body.
 
 [Advanced Artifacts](advanced-artifacts.md) is a full working chapter based on
 bounded local implementation and tests. It remains unnumbered and excluded from
-release assembly; chapter placement, figures and human usability review are
-pending. Its [working notes](../docs/edition-3-notes/advanced-artifacts.md) retain
+release assembly; chapter placement and human usability review are pending. Its figures use
+authorized captures of isolated synthetic fixtures. Its [working notes](../docs/edition-3-notes/advanced-artifacts.md) retain
 design decisions and verification limits. This is not independent reconstruction
 acceptance or a newly rebuilt publication.
 
