@@ -23,7 +23,7 @@ and back with restored launch policy and retained conversation. Configured Codex
 grant/source-loss checks and public OAuth loopback renewal/refusal checks pass.
 Configured Chat SSE tool success/interruption/provider-error checks now pass in
 five focused transport groups. An outside-assembly Local Models consumer passes
-119 public conversation/configuration/restoration/lifecycle/accounting checks and
+136 public conversation/configuration/restoration/lifecycle/accounting checks and
 rejects compiled no-auth header-leak, wrong-endpoint restoration and unjoined-shutdown
 candidates. The named local-models runner now supplies strict receipt validation
 and bounded process execution; passing current coverage exits 3, with no points.
@@ -52,7 +52,7 @@ exposed exactly six original tools. Four requests and five tool results exercise
 read/write/run; the fixed six-case Python test passed with inputs and protected
 files unchanged. Process and relay joined without force or retry. Peak reported
 input/output was 1912/291, within the 4096-token serving allocation. This is one
-bounded live success, not all-six-tool or general coding certification; public119
+bounded live success, not all-six-tool or general coding certification; public136
 remains ungraded. No further live trial is planned.
 Chapter27 now contains TL;DR, plain-words teaching and four draft exercises.
 See [Local Models](edition-3-notes/local-models.md) for evidence and limits.

@@ -97,6 +97,13 @@ internal static partial class Probe
         finally { app.Destroy(); }
 
         // Same wire name under a different endpoint is not a replacement identity.
+        // Keep this case about child restoration: the parent deliberately uses
+        // the legacy launch policy. Its newly persistent explicit preference
+        // would otherwise refuse construction before RestoreChildren is reached.
+        string parentSettingsPath = Path.Combine(home, "settings.json");
+        var parentSettings = JsonNode.Parse(File.ReadAllText(parentSettingsPath))!.AsObject();
+        parentSettings.Remove("selected_offering");
+        File.WriteAllText(parentSettingsPath, parentSettings.ToJsonString());
         byte[] beforeRefusal = File.ReadAllBytes(registration);
         app = new Application(TextWriter.Null);
         try

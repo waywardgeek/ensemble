@@ -151,6 +151,38 @@ with an explicit tooltip assertion; browser and host both exited zero without
 forced cleanup in funding-page-final-k5c6yaw_. The final post-execution receipt
 funding-integration-final-receipt.json records the reviewed source hashes and the
 separate test scopes. Hard chapter/companion/note lint passes with advisories.
-Public Local Models preference/restoration checks remain the next slice. Installed
-settings, provider entitlement and human usability remain separate gates. No
+At this host/GUI checkpoint, public preference checks were the next slice; the
+following section records their completion. Installed settings, provider entitlement and human usability remain separate gates. No
 installation, restart, private credential output or live provider call was performed.
+
+## Public preference and process-restart checks
+
+The existing Local Models runner now embeds PreferenceChecks.cs and requires 126
+main checks plus 4 writer and 6 reader checks: 136 total, still ungraded/exit3.
+Fifteen public-API checks use actual isolated files for independent Agent/default
+state, ambiguity, remembered binding, unrelated key/settings preservation, writer
+lock refusal, sibling settings, failed Agent save, and fresh-root restoration.
+A usable global choice cannot replace an unavailable saved Agent preference.
+
+The process-separated writer saves a child on a new offering, remembers another
+global default, and preserves a deliberately stale launch record. The reader
+omits the old launch endpoint, yet restores both Agents' saved selection and the
+paused child conversation without replayed inference. This is clean restart, not
+crash recovery, full fleet coverage or browser restoration certification.
+
+Two fixture assumptions were corrected, not production behavior: the original
+child-negative test first refused the parent's newly saved offering, so it now
+explicitly makes only that parent legacy before testing child refusal. The first
+new writer expected child.json to stay stale through later pause/shutdown saves;
+it now captures the original paused launch and deliberately restores those bytes
+after shutdown, leaving the real Agent settings untouched. Initial failed receipts
+remain in parent jobs67/72; final packages and real integration pass in job74.
+
+The actual CLI good report is public-preferences-good.json under
+/private/tmp/cadence-model-preferences.ERLGRh, with actual exit3. A separate
+successfully built source copy changes only remembered binding equality to
+inequality; public-preferences-wrong-funding.json reports exit1 at exactly
+preference-resolves-remembered-binding, after its earlier guards pass. Mutant
+source/build is /private/tmp/cadence-funding-mutant.tiw6c_w9. The good runtime was
+not overwritten. No every-assertion mutation coverage or new chapter points are
+claimed. Original chapter and consumer instructions describe the expanded scope.

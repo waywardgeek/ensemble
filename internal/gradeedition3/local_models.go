@@ -114,7 +114,7 @@ func GradeLocalModels(c LocalModelGradeConfig) (report LocalModelReport, result 
 	if !found {
 		return report, fmt.Errorf("an installed .NET 10 SDK is required")
 	}
-	for _, name := range []string{"Program.cs", "ConfigurationChecks.cs", "LifecycleChecks.cs", "RestartChecks.cs", "LocalModelsConsumer.csproj", "NuGet.Config"} {
+	for _, name := range []string{"Program.cs", "ConfigurationChecks.cs", "PreferenceChecks.cs", "LifecycleChecks.cs", "RestartChecks.cs", "LocalModelsConsumer.csproj", "NuGet.Config"} {
 		data, err := localModelFiles.ReadFile("testdata/local-models-consumer/" + name)
 		if err != nil {
 			return report, err
@@ -203,15 +203,23 @@ func localModelCheckNames() []string {
 		"child-missing-route-no-wire-name-fallback", "child-refusal-preserves-registration-no-request",
 		"lifecycle-real-configured-request", "lifecycle-real-tool-started",
 		"lifecycle-cancellation-reaches-executing-tool", "lifecycle-destruction-joins-held-cleanup",
-		"lifecycle-worker-exited-before-destruction-return", "lifecycle-detaches-without-destroying-sibling")
+		"lifecycle-worker-exited-before-destruction-return", "lifecycle-detaches-without-destroying-sibling",
+		"preference-ambiguous-funding-refuses", "preference-agent-saves-reference-not-secret",
+		"preference-default-does-not-retarget-agent", "preference-resolves-remembered-binding",
+		"preference-global-preserves-unrelated-and-key", "preference-global-lock-refusal-preserves-default",
+		"preference-selection-preserves-sibling-settings", "preference-agent-save-refusal-preserves-selection",
+		"preference-new-default-keeps-explicit-selection", "preference-missing-funding-no-fallback",
+		"preference-operations-no-inference", "preference-restores-agent-ahead-of-global-default",
+		"preference-restore-no-replayed-inference", "preference-refusal-has-usable-global-decoy",
+		"preference-unavailable-agent-choice-refuses-global-fallback")
 }
 
 func localModelRestartCheckNames(phase string) []string {
 	if phase == "restart-write" {
-		return []string{"restart-write-fresh-state", "restart-write-real-child-no-request", "restart-write-saved-identity-no-secret"}
+		return []string{"restart-write-fresh-state", "restart-write-real-child-no-request", "restart-write-saved-identity-no-secret", "restart-write-distinct-agent-and-global-preferences"}
 	}
 	if phase == "restart-read" {
-		return []string{"restart-read-separate-process-manifest", "restart-read-registration-exists", "restart-read-exact-offering-no-host-fallback", "restart-read-paused-conversation", "restart-read-no-replayed-request"}
+		return []string{"restart-read-separate-process-manifest", "restart-read-registration-exists", "restart-read-exact-offering-no-host-fallback", "restart-read-paused-conversation", "restart-read-no-replayed-request", "restart-read-agent-preference-over-launch-and-global"}
 	}
 	return nil
 }

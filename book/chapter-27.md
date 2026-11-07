@@ -2,7 +2,7 @@
 
 > **Implemented with bounded verification.** Configured routing, model selection,
 > streaming tools and lifecycle checks have deterministic evidence. The public
-> runner passes 119 named checks but remains ungraded, with incomplete coverage.
+> runner passes 136 named checks but remains ungraded, with incomplete coverage.
 > One isolated six-tool MiMo trial completed a small coding task using read, write
 > and command execution. Broader reliability and human usability remain unverified.
 
@@ -444,8 +444,11 @@ usage must retain unknown input counts and cost. Incomplete streamed calls remai
 non-executable after interruption or provider error; the same Agent must support
 a fresh turn without replaying orphan tool messages. Separate writer/reader
 processes check clean restart from actual child files, exact offering identity,
-paused conversation and no replayed request. The 119 named checks do not certify
-all four exercises: crash recovery, broader lifecycle/refusal behavior and general
+paused conversation and no replayed request. Preference checks exercise actual
+Agent/global settings, ambiguity and failed-save refusal without fallback. The
+separate-process reader restores saved Agent choices despite a stale launch record,
+an absent old endpoint and a different usable global default. The 136 named checks
+do not certify all four exercises: crash recovery, broader lifecycle/refusal behavior and general
 live usefulness remain open. The bounded coding trial above is separate evidence,
 not an increase in deterministic grader points.
 

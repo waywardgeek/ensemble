@@ -28,6 +28,7 @@ internal static partial class Probe
                 foreach (string mode in new[] { "buffered", "streamed", "prose", "missing-usage", "interrupt", "provider-error" })
                     await Conversation(mode);
                 await ConfigurationChecks();
+                await PreferenceChecks();
                 await LifecycleChecks();
             }
             else if (arguments.Length == 1 && arguments[0] is "restart-write" or "restart-read")

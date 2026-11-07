@@ -5,7 +5,7 @@ It uses public Agent, Model, Tool and History APIs with grader-owned loopback HT
 random payloads and real buffered/SSE replies. It never references candidate tests,
 reflects private fields, accesses an installed credential store, or calls ET.
 
-Current coverage is 119 named checks across buffered tools, streamed tools,
+Current coverage is 136 named checks across buffered tools, streamed tools,
 ordinary tool-shaped prose, configured child restoration and executing-tool
 shutdown, including separate writer/reader processes. Checks cover exact local
 routing, explicit no-auth headers, configured capabilities, real callback/result
@@ -47,6 +47,24 @@ saved child History from a disposable copy fails restart-read-paused-conversatio
 an empty reader directory refuses without creating seed files. This is clean
 process restart, not crash recovery or a full GUI-host restart.
 
+The writer also separates the child's original launch offering, its current saved
+Agent preference, and the application's remembered funding default. After orderly
+shutdown it deliberately restores its captured original launch record, without
+altering the saved preference. The reader omits that old launch endpoint entirely.
+Both parent and child must restore the saved offering, not the different usable
+global default. This checks preference precedence across a clean process boundary;
+it does not certify crash recovery or every peer/fleet restoration case.
+
+Fifteen additional public preference checks use real temporary settings files.
+They cover ambiguity, explicit saved references, independent Agent/default state,
+exact remembered binding, unrelated global/key preservation, exclusive writer-lock
+refusal, sibling Agent settings, selection-save refusal, missing funding without
+fallback, and fresh-root restoration. A usable global decoy must not replace an
+unavailable saved Agent choice. These operations initiate no inference; synthetic
+key preservation is not a credential transport or live entitlement test. An
+isolated compiled wrong-binding resolver fails exactly
+preference-resolves-remembered-binding after the preceding preference guards pass.
+
 The lifecycle probe delivers a real tool call over owned HTTP. Its callback
 acknowledges candidate cancellation and holds cleanup behind a fixture gate.
 Agent destruction must stay pending until release, then remove Model membership
@@ -85,7 +103,7 @@ Setup has a two-minute limit; all three executions share a separate 75-second
 limit. Both stdout and stderr are capped at 64 KiB. The runner cancels its owned process group,
 waits for the direct child and bounds inherited output-pipe waits. It does not
 provide a network sandbox or containment of deliberately detached descendants.
-Success requires the 111 conversation checks, 3 writer checks and 5 reader checks
+Success requires the 126 main checks, 4 writer checks and 6 reader checks
 in their respective receipts, each with a null failure field;
 missing, duplicated, unknown or trailing receipt data refuse. Temporary files are
 removed after execution; capture the JSON report for retained evidence.
@@ -115,18 +133,18 @@ env -i PATH=/usr/bin:/bin HOME="$EVIDENCE/home" TMPDIR="$EVIDENCE/tmp" \
 The executable emits one JSON receipt after joining its server/turn tasks and
 root destruction. Exit0 means these named checks passed; exit1 means failure.
 A compile failure is setup/API incompatibility, not a behavioral negative control.
-Each scenario has a 20-second cooperative deadline. A broken candidate may ignore
-cancellation; direct callers still need an outer process-group deadline. The
+Network and lifecycle scenarios have 20-second cooperative deadlines. A broken
+candidate may ignore cancellation; direct callers still need an outer process-group deadline. The
 public runner supplies that outer bound. A cleared environment is not a network
 sandbox. The loopback port is reserved then rebound;
 a competing bind causes a setup failure, not a silently chosen remote endpoint.
 
-The no-argument invocation above runs the original 111 checks. To exercise restart,
+The no-argument invocation above runs the 126 main checks. To exercise restart,
 invoke the same executable with restart-write, wait for successful exit, then
 invoke restart-read from the same work directory and cleared environment. Each
-phase emits its own receipt (3 and 5 checks); the public runner enforces this order.
+phase emits its own receipt (4 and 6 checks); the public runner enforces this order.
 
-Calibration: the current candidate passes all 119 checks. An isolated, successfully
+Calibration: the current candidate passes all 136 checks. An isolated, successfully
 compiled candidate that emits a synthetic bearer for explicit no-auth fails at
 buffered-no-borrowed-credentials-0. That proves this wire oracle's sensitivity,
 not mutation coverage for every assertion. No candidate or installed source is

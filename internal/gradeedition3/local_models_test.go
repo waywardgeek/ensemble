@@ -15,7 +15,7 @@ import (
 
 func TestLocalModelReceipt(t *testing.T) {
 	names := localModelCheckNames()
-	if len(names) != 111 {
+	if len(names) != 126 {
 		t.Fatal(len(names))
 	}
 	encode := func(checks []string) []byte {
@@ -143,7 +143,7 @@ func TestLocalModelExternal(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !report.ProbePassed || report.ExitCode() != 3 || !strings.HasPrefix(report.Detail, strconv.Itoa(len(localModelCheckNames())+8)+" named public ") {
+	if !report.ProbePassed || report.ExitCode() != 3 || !strings.HasPrefix(report.Detail, strconv.Itoa(len(localModelCheckNames())+10)+" named public ") {
 		t.Fatalf("%+v", report)
 	}
 }
