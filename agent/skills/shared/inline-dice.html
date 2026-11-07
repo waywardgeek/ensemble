@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Recorded inline dice — Artifact example</title>
+<style>
+:root { color-scheme: light dark; font: 1.1rem system-ui, sans-serif; }
+body { max-width: 42rem; margin: 2rem auto; padding: 0 1rem; line-height: 1.6; }
+.inline-dice { display: inline; }
+.inline-dice summary { display: inline-block; cursor: pointer; text-decoration: underline;
+    min-height: 44px; line-height: 44px; padding: 0 .25rem; }
+.inline-dice summary::before { content: "▸ "; }
+.inline-dice[open] summary::before { content: "▾ "; }
+.inline-dice summary:focus-visible { outline: 2px solid currentColor; outline-offset: 2px; }
+</style>
+<h1>A result in the conversation</h1>
+<p>This synthetic record is already complete. Activate the underlined total by
+click, keyboard or touch to inspect its recorded terms. Nothing rolls again.</p>
+<div role="log" aria-label="Example conversation">
+<p>You attack the training dummy. <span id="result"></span> The conversation continues.</p>
+</div>
+<script type="module">
+import inlineDice from "./inline-dice.js";
+// The host retains identity and the original record, not the renderer.
+const artifact = Object.freeze({ id: "example-attack-1", result: Object.freeze({
+    label: "Attack", total: 23, terms: Object.freeze([
+        Object.freeze({ label: "d20", value: 17 }),
+        Object.freeze({ label: "proficiency", value: 3 }),
+        Object.freeze({ label: "ability", value: 3 })
+    ])
+}) });
+const host = document.querySelector("#result");
+host.dataset.artifactId = artifact.id;
+try { host.append(inlineDice(document, artifact.result)); }
+catch { host.textContent = JSON.stringify(artifact.result); }
+</script>
+</html>

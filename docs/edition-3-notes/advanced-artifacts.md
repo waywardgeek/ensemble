@@ -846,3 +846,26 @@ mutable byte buffer from fallback input; a clean rebuilt fixture passed the
 mutation-then-throw negative at both widths with joined host. Earlier broad GUI
 and distribution checks precede that one-line controller correction; no full core,
 installed acceptance or deployment is claimed.
+
+## Inline recorded-dice example
+
+Added a standalone two-file example beside the shared skill helpers, explicitly
+copied into CLI and GUI distributions, not loaded by the normal application.
+The synthetic chat host retains the record ID and immutable recorded facts;
+`inline-dice.js` returns native details/summary styled inline. Click, Enter/Space
+and touch reveal the additive terms without rerolling. Literal labels, bounded
+safe-integer terms and agreement with the recorded total are checked. Invalid
+facts refuse to the host's raw-record fallback; no inferred dice grammar or game
+rules. Native disclosure avoids a bespoke keyboard/event lifecycle and demonstrates
+that Artifact identity does not require a common card template or Tools pane.
+
+The browser regression runs from a disposable copy with only two files served by
+interception, no listener/providers or screenshots. Desktop1280 and touch390 pass
+open/close, keyboard, unchanged node/host ID, 44px target, no horizontal overflow,
+hostile literal labels, negative modifier, bounds/overflow/mismatch refusal and
+unchanged frozen input. Randomness is replaced with a throwing function before
+interaction. This is a synthetic recorded-facts fixture, not a real dice-tool or
+Homebrew-VTT end-to-end test, and not a screen-reader usability certification.
+Both isolated CLI and ExampleGui distribution builds pass with zero warnings or
+errors; copied JS/HTML/index bytes match source. The same desktop/touch browser
+checks also pass against the built GUI distribution. Nothing installed or deployed.

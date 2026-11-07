@@ -38,3 +38,21 @@ or already-connected node. Raw details and controls remain GUI-owned.
 `terminal-output.js` helper bundled with its `command` approval package. Read
 these sources for terminal-log customization; polling and Job lifetime remain in
 the GUI. See the renderer API note for selection and rolling-window limits.
+
+`inline-dice.js` and `inline-dice.html` are a standalone, chat-only example,
+not an enabled tool or a registered Ensemble renderer. Serve this copied directory
+with a local static HTTP server and open `inline-dice.html`; module loading is not
+promised under `file:` URLs. No source checkout or library installation is needed.
+The host owns the synthetic record ID and original facts. The renderer returns a
+native inline disclosure, with click, Enter/Space and touch access to the recorded
+terms. It has no random source, callback, fetch or reroll operation. The example's
+CSS provides a 44-pixel-high summary target and a visible keyboard focus outline.
+
+Its small contract is `render(document, {label, total, terms: [{label, value}]})`:
+labels are literal strings up to 256 UTF-16 code units; one to 32 additive terms
+and their total must be safe integers. A mismatched total or overflow refuses;
+the host falls back to the original record. This is not a general dice notation
+parser or a Homebrew-VTT integration. A real host must supply its own durable
+identity, recorded result and lifecycle. Merely opening an explanation changes
+neither those facts nor tool execution. The example needs no shared card template,
+heading, status row or Tools pane, and executes only when explicitly opened.
