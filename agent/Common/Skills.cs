@@ -16,6 +16,8 @@ internal sealed record SkillBootstrap(string Directory, string Primary, Immutabl
 
 public enum SkillType { Primary, Loadable, Dependency }
 
+public sealed record PrimarySkillChoice(string Name, string Description);
+
 // Templates grant nothing. Activation creates a separate historical snapshot;
 // later variable changes cannot rewrite instructions already given to a model.
 public sealed record SkillDefinition(string Name, string Description, SkillType Type,
@@ -107,6 +109,8 @@ public sealed partial class Skills
     public partial ImmutableArray<SkillPart> Active();
     // Progressive discovery: offered by active manuals and not already active.
     public partial ImmutableArray<string> LoadableSkills();
+    /// <summary>Parsed primary templates only; enumeration grants no tools.</summary>
+    public partial ImmutableArray<PrimarySkillChoice> PrimaryChoices();
     // Reachable declarations alone never grant dispatch.
     // Reachable declarations for optional deferral; this does not enable dispatch.
     public partial ImmutableArray<string> CatalogTools(Context? context = null);

@@ -10,12 +10,21 @@
     const create = document.querySelector("#peer-create");
     const cancel = document.querySelector("#peer-cancel");
     const notice = document.querySelector("#peer-notice");
+    const choiceNotice = document.querySelector("#peer-choice-status");
     let pending = null;
+    let choicesPending = false;
+    const offerings = new Map();
 
     async function change(operation, address) {
         if (pending) { notice.textContent = "An Agent operation is already in progress."; return; }
         const body = { name: operation === "create" ? name.value : address };
-        if (operation === "create") Object.assign(body, { model: model.value, skill: skill.value });
+        if (operation === "create") {
+            if (choicesPending || create.disabled) return;
+            body.skill = skill.value;
+            const offering = offerings.get(model.selectedOptions[0]?.dataset.offeringKey);
+            if (offering) body.offering = offering;
+            else body.model = model.value;
+        }
         pending = new AbortController();
         for (const control of [name, model, skill, create, open]) control.disabled = true;
         cancel.hidden = operation !== "create";
@@ -46,7 +55,48 @@
             for (const control of [name, model, skill, create, open]) control.disabled = false;
         }
     }
-    open.onclick = () => { dialog.showModal(); name.focus(); };
+    open.onclick = async () => {
+        if (pending || choicesPending) return;
+        dialog.showModal(); name.focus();
+        choicesPending = true;
+        choiceNotice.textContent = "Loading approved models and primary skills…";
+        create.disabled = model.disabled = skill.disabled = true;
+        offerings.clear();
+        model.replaceChildren(new Option("Inherit mounted Agent’s model", ""));
+        skill.replaceChildren(new Option("Inherit mounted Agent’s primary skill", ""));
+        try {
+            const response = await fetch("./peers/choices", {
+                credentials: "same-origin", redirect: "error", cache: "no-store",
+                headers: { "X-Ensemble-Peers": "1" }, signal: AbortSignal.timeout(10000)
+            });
+            if (!response.ok) throw new Error("choices unavailable");
+            const choices = await response.json();
+            for (const value of choices.model_choices || []) model.add(new Option(value, value));
+            const groups = new Map();
+            for (const choice of choices.configured_models || []) {
+                let group = groups.get(choice.vendor);
+                if (!group) {
+                    group = document.createElement("optgroup"); group.label = choice.vendor;
+                    groups.set(choice.vendor, group); model.append(group);
+                }
+                const key = `offering:${offerings.size}`;
+                offerings.set(key, choice.offering);
+                const option = new Option(`${choice.label} · ${choice.funding}`, key);
+                option.dataset.offeringKey = key;
+                option.disabled = !choice.enabled;
+                group.append(option);
+            }
+            for (const choice of choices.primary_skills || []) {
+                const option = new Option(choice.name, choice.name);
+                option.title = choice.description;
+                skill.add(option);
+            }
+            create.disabled = model.disabled = skill.disabled = false;
+            choiceNotice.textContent = "";
+        } catch (_) {
+            choiceNotice.textContent = "Agent choices unavailable. Close and reopen the dialog to retry.";
+        } finally { choicesPending = false; }
+    };
     document.querySelector("#peer-close").onclick = () => dialog.close();
     document.querySelector("#peer-form").onsubmit = event => { event.preventDefault(); void change("create"); };
     document.addEventListener("click", event => {

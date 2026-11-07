@@ -42,10 +42,17 @@ static class PeerControlsTests
         Directory.CreateDirectory(work);
         Console.WriteLine("Peer controls workspace: " + work);
         string skills = Path.Combine(work, "skills");
-        foreach (string skill in new[] { "plain", "browser" }) Directory.CreateDirectory(Path.Combine(skills, skill));
+        foreach (string skill in new[] { "plain", "browser", "extra" }) Directory.CreateDirectory(Path.Combine(skills, skill));
         File.WriteAllText(Path.Combine(skills, "plain", "SKILL.md"), "---\nname: plain\ndescription: Plain\ntype: primary\n---\nPlain\n");
         File.WriteAllText(Path.Combine(skills, "browser", "SKILL.md"), "---\nname: browser\ndescription: Browser\ntype: primary\ntools: page_echo\nmcp_servers:\n  - name: page\n    transport: websocket\n---\nBrowser\n");
+        File.WriteAllText(Path.Combine(skills, "extra", "SKILL.md"), "---\nname: extra\ndescription: Loadable only\ntype: loadable\n---\nExtra\n");
         var root = new Ensemble.Ensemble(TextWriter.Null, dataDirectory: Path.Combine(work, "fleet"));
+        var localAuth = new ModelAuthentication(root, "local");
+        var localVendor = new ModelVendor(root, "ollama", "Ollama");
+        var localEndpoint = new ModelEndpoint(localVendor, "test", "http://127.0.0.1:2",
+            Surface.ChatCompletions, localAuth);
+        var localModel = new Model(localEndpoint, "mimo", "fixture-mimo", "MiMo fixture",
+            new ModelFeatures(Media.None), servingContextTokens: 4096);
         using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(50));
         var token = deadline.Token;
         var source = new Agent(root, new Configuration(Vendor.OpenAI, "offline", "http://127.0.0.1:1"),
@@ -86,6 +93,25 @@ static class PeerControlsTests
         try
         {
             await host.StartAsync(token);
+            using (var denied = await http.GetAsync(url + "/assistant/peers/choices", token))
+                Check(denied.StatusCode == HttpStatusCode.Forbidden, "Unguarded choices request was accepted");
+            using (var request = new HttpRequestMessage(HttpMethod.Get, url + "/assistant/peers/choices"))
+            {
+                request.Headers.Add("X-Ensemble-Peers", "1");
+                request.Headers.Add("Origin", url);
+                using var response = await http.SendAsync(request, token);
+                Check(response.StatusCode == HttpStatusCode.OK && response.Headers.CacheControl?.NoStore == true,
+                    "Choices were unavailable or cacheable");
+                using var choices = JsonDocument.Parse(await response.Content.ReadAsStringAsync(token));
+                var offered = choices.RootElement.GetProperty("configured_models").EnumerateArray().Single();
+                Check(offered.GetProperty("vendor").GetString() == "Ollama"
+                    && offered.GetProperty("enabled").GetBoolean()
+                    && JsonCodec.ReadModelIdentity(offered.GetProperty("offering")) == localModel.Identity(),
+                    "Choices lost the configured vendor or offering identity");
+                Check(choices.RootElement.GetProperty("primary_skills").EnumerateArray()
+                    .Select(value => value.GetProperty("name").GetString()).SequenceEqual(new[] { "browser", "plain" }),
+                    "Primary choices must exclude loadable templates");
+            }
             await Expect("create", "{\"name\":\"bad\"}", HttpStatusCode.Forbidden, header: null);
             await Expect("create", "{\"name\":\"bad\"}", HttpStatusCode.Forbidden, origin: "http://foreign.example");
             await Expect("create", "{\"name\":\"bad\"}", HttpStatusCode.BadRequest, hostHeader: "foreign.example:" + port);
@@ -102,6 +128,17 @@ static class PeerControlsTests
             using (var get = await http.GetAsync(url + "/assistant/peers/create", token))
                 Check(get.StatusCode == HttpStatusCode.MethodNotAllowed, "Mutation accepted GET");
 
+            string offeringJson = JsonCodec.WriteModelIdentity(localModel.Identity()).ToJsonString();
+            await Expect("create", "{\"name\":\"local-peer\",\"offering\":" + offeringJson
+                + ",\"skill\":\"plain\"}", HttpStatusCode.OK, origin: url);
+            var local = root.FindAgent("local-peer")!;
+            Check(ReferenceEquals(local.SelectedModel(), localModel)
+                && local.Configuration().Billing == BillingMode.None && source.Configuration().Model == "offline",
+                "Qualified creation did not select the complete local route independently");
+            await Expect("delete", "{\"name\":\"local-peer\"}", HttpStatusCode.OK);
+            await Expect("create", "{\"name\":\"conflict\",\"model\":\"offline\",\"offering\":"
+                + offeringJson + "}", HttpStatusCode.BadRequest);
+            await Expect("create", "{\"name\":\"bad-offering\",\"offering\":null}", HttpStatusCode.BadRequest);
             await Expect("create", "{\"name\":\"plain-peer\",\"model\":\"chosen-model\"}", HttpStatusCode.OK, origin: url);
             var plain = root.FindAgent("plain-peer")!;
             Check(plain.Configuration().Model == "chosen-model" && File.Exists(Path.Combine(plain.DataDirectory(), "save.json")), "Creation acknowledged before durable startup");

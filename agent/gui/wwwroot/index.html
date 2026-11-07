@@ -59,8 +59,9 @@
  <dialog id="peer-dialog" class="peer-dialog" aria-labelledby="peer-dialog-title">
  <form id="peer-form"><h2 id="peer-dialog-title">Create Agent</h2>
  <label class="form-label" for="peer-name">Name</label><input class="form-control" id="peer-name" required pattern=".*\S.*" title="Enter an Agent name." autocomplete="off">
- <label class="form-label" for="peer-model">Model (optional)</label><input class="form-control" id="peer-model" autocomplete="off">
- <label class="form-label" for="peer-skill">Primary skill (optional)</label><input class="form-control" id="peer-skill" autocomplete="off">
+ <label class="form-label" for="peer-model">Model</label><select class="form-select" id="peer-model"><option value="">Inherit mounted Agent’s model</option></select>
+ <label class="form-label" for="peer-skill">Primary skill</label><select class="form-select" id="peer-skill"><option value="">Inherit mounted Agent’s primary skill</option></select>
+ <p id="peer-choice-status" role="status"></p>
  <div class="dialog-actions"><button class="btn btn-quiet" id="peer-close" type="button">Cancel</button><button class="btn btn-primary" id="peer-create" type="submit">Create</button></div>
  </form></dialog>
 </section></div>

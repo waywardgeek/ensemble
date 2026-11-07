@@ -386,6 +386,21 @@ all four exercises: crash recovery, broader lifecycle/refusal behavior and gener
 live usefulness remain open. The bounded coding trial above is separate evidence,
 not an increase in deterministic grader points.
 
+### Creating an Agent from approved choices
+
+The Create Agent dialog uses model and primary-skill dropdowns, not internal-name
+text fields. The host supplies credential-free configured offerings grouped by
+vendor and only parsed primary-skill templates. Defaults explicitly inherit the
+mounted Agent's model and primary skill. Choosing an offering sends its qualified
+identity; the server resolves and validates its route and funding before creation.
+A legacy wire name cannot be combined with a configured offering. Invalid choices
+must leave the registry and live ownership unchanged. Listing a skill grants no
+tools; normal skill startup still owns activation and cancellation.
+
+This interface does not discover credentials or register missing offerings.
+Application-wide remembered funding defaults and durable per-Agent current
+selections are a separate integration slice, not established by a populated menu.
+
 ## Exercises (draft acceptance contracts)
 
 These exercises are not yet certified against the implementation. Use isolated

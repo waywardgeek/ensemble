@@ -24,7 +24,7 @@ public sealed partial class Ensemble
     }
 
     public partial async Task<Agent> CreatePeerAsync(Agent source, string name, string? model,
-        string? skill, CancellationToken cancellation, bool waitForBrowser)
+        string? skill, CancellationToken cancellation, bool waitForBrowser, ModelIdentity? offering)
     {
         using var operation = BeginPeerOperation(source, cancellation);
         await peerOperations.WaitAsync(operation.Token).ConfigureAwait(false);
@@ -40,10 +40,17 @@ public sealed partial class Ensemble
             }
             var configuration = source.Configuration();
             var bootstrap = source.SkillManager()?.CaptureBootstrap();
-            string selectedModel = string.IsNullOrEmpty(model) ? configuration.Model : model;
+            if (offering is not null && !string.IsNullOrEmpty(model))
+            {
+                throw new ArgumentException("Choose a qualified offering or a legacy model name, not both.");
+            }
+            // Resolve in this root; a model name must never stand in for its
+            // endpoint and funding. Projection validates the actual binding.
+            var selection = offering is null
+                ? configuration.WithModel(string.IsNullOrEmpty(model) ? configuration.Model : model)
+                : new Configuration(configuration, ResolveModel(offering));
             string selectedSkill = string.IsNullOrEmpty(skill) ? bootstrap?.Primary ?? "" : skill;
-            var selection = configuration.WithModel(selectedModel);
-            var entry = new PeerLaunch(name, selectedModel, selectedSkill, DateTimeOffset.UtcNow, selection.Offering);
+            var entry = new PeerLaunch(name, selection.Model, selectedSkill, DateTimeOffset.UtcNow, selection.Offering);
             peer = await ConstructPeerAsync(entry, configuration, bootstrap, operation.Token, waitForBrowser).ConfigureAwait(false);
             operation.Token.ThrowIfCancellationRequested();
             // This replacement is the commit point. Do not throw cancellation

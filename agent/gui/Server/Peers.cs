@@ -32,6 +32,20 @@ public static partial class Gui
                 && request.Headers["X-Ensemble-Peers"] == "1";
         }
 
+        IResult Choices(HttpContext context)
+        {
+            if (!Guard(context)) return Results.StatusCode(StatusCodes.Status403Forbidden);
+            // Reuse the same credential-free model projection as the main picker.
+            var frame = MeterFrame(source);
+            frame["primary_skills"] = new System.Text.Json.Nodes.JsonArray(
+                (source.SkillManager()?.PrimaryChoices() ?? [])
+                .Select(value => (System.Text.Json.Nodes.JsonNode)new System.Text.Json.Nodes.JsonObject
+                {
+                    ["name"] = value.Name, ["description"] = value.Description
+                }).ToArray());
+            return Results.Json(frame);
+        }
+
         async Task<IResult> Change(HttpContext context, bool create)
         {
             if (!Guard(context)) return Results.StatusCode(StatusCodes.Status403Forbidden);
@@ -61,8 +75,10 @@ public static partial class Gui
                 var seen = new HashSet<string>(StringComparer.Ordinal);
                 foreach (var property in body.EnumerateObject())
                 {
-                    bool allowed = property.Name == "name" || (create && property.Name is "model" or "skill");
-                    if (!allowed || !seen.Add(property.Name) || property.Value.ValueKind != JsonValueKind.String)
+                    bool offering = create && property.Name == "offering";
+                    bool allowed = offering || property.Name == "name" || (create && property.Name is "model" or "skill");
+                    if (!allowed || !seen.Add(property.Name)
+                        || property.Value.ValueKind != (offering ? JsonValueKind.Object : JsonValueKind.String))
                     {
                         throw new InvalidDataException();
                     }
@@ -77,7 +93,10 @@ public static partial class Gui
                 {
                     string model = body.TryGetProperty("model", out var modelValue) ? modelValue.GetString()! : "";
                     string skill = body.TryGetProperty("skill", out var skillValue) ? skillValue.GetString()! : "";
-                    var peer = await ensemble.CreatePeerAsync(source, name, model, skill, token, waitForBrowser: true);
+                    ModelIdentity? offering = body.TryGetProperty("offering", out var identity)
+                        ? JsonCodec.ReadModelIdentity(identity) : null;
+                    var peer = await ensemble.CreatePeerAsync(source, name, model, skill, token,
+                        waitForBrowser: true, offering: offering);
                     return Results.Json(new { name, address = peer.Address(), created = true });
                 }
                 // A borrowed mount cannot destroy the Agent its caller promised
@@ -107,7 +126,7 @@ public static partial class Gui
             {
                 return Results.StatusCode(StatusCodes.Status503ServiceUnavailable);
             }
-            catch (Exception error) when (error is JsonException or InvalidDataException or ArgumentException)
+            catch (Exception error) when (error is JsonException or InvalidDataException or ArgumentException or FormatException)
             {
                 return Results.BadRequest(new { error = "Invalid peer request, skill, or stored configuration." });
             }
@@ -118,6 +137,7 @@ public static partial class Gui
             }
         }
 
+        routes.MapGet("/peers/choices", (Func<HttpContext, IResult>)Choices);
         routes.MapPost("/peers/create", (Func<HttpContext, Task<IResult>>)(context => Change(context, create: true)));
         routes.MapPost("/peers/delete", (Func<HttpContext, Task<IResult>>)(context => Change(context, create: false)));
     }

@@ -19,10 +19,12 @@ public sealed partial class Ensemble
     /// that source. No source relationship is retained. Success means startup,
     /// initial History save and atomic ensemble.json replacement have completed.
     /// A host that can accept an independent browser may opt into waiting for it.
-    /// Headless/default callers retain immediate missing-browser refusal. Cancelling
-    /// an opted-in wait joins cleanup and removes the pending peer.</summary>
+    /// A qualified offering selects its complete route; it cannot be combined with a
+    /// model-name override. Headless/default callers retain immediate missing-browser
+    /// refusal. Cancelling an opted-in wait joins cleanup and removes the pending peer.</summary>
     public partial Task<Agent> CreatePeerAsync(Agent source, string name, string? model = null,
-        string? skill = null, CancellationToken cancellation = default, bool waitForBrowser = false);
+        string? skill = null, CancellationToken cancellation = default, bool waitForBrowser = false,
+        ModelIdentity? offering = null);
 
     /// <summary>Restore all registry peers, not delegated children. The host's
     /// initial Agent is already constructed and is not a registry entry. Validate

@@ -37,6 +37,36 @@ internal static class ConfiguredPeerTests
                 "Peer inherits the actual configured Model relationship.");
             peer.History().Append(new Event(EventKind.MessageReceived, actor: Actor.Human,
                 parts: [new TextPart("Retain peer conversation without inference.")]));
+            var legacy = new Agent(app, policy, name: "legacy");
+            Agent explicitPeer = await app.CreatePeerAsync(legacy, "explicit-local",
+                cancellation: deadline.Token, offering: model.Identity());
+            Check(ReferenceEquals(explicitPeer.SelectedModel(), model)
+                && explicitPeer.Configuration().Billing == BillingMode.None
+                && ReferenceEquals(legacy.Configuration(), policy),
+                "Explicit peer offering changes route/funding without changing the source Agent.");
+            await app.DeletePeerAsync(legacy, "explicit-local", deadline.Token);
+            string before = File.ReadAllText(Path.Combine(container, "ensemble.json"));
+            foreach (bool conflictingName in new[] { false, true })
+            {
+                bool refused = false;
+                try
+                {
+                    await app.CreatePeerAsync(legacy, "must-not-start",
+                        model: conflictingName ? "same-wire-name" : null,
+                        cancellation: deadline.Token,
+                        offering: conflictingName ? model.Identity()
+                            : new ModelIdentity("ollama", "missing", "small"));
+                }
+                catch (Exception error) when (error is InvalidOperationException or ArgumentException)
+                {
+                    refused = true;
+                }
+                Check(refused && app.FindAgent("must-not-start") is null
+                    && !Directory.Exists(Path.Combine(container, "agents", "must-not-start"))
+                    && File.ReadAllText(Path.Combine(container, "ensemble.json")) == before,
+                    "Invalid explicit offering must preserve live membership and saved registry.");
+            }
+            legacy.Destroy();
         }
         finally { app.Destroy(); }
 
