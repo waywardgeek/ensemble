@@ -1370,3 +1370,11 @@ Bill subsequently reviewed the completed Chapter28 and said “The chapter LGTM.
 This closes human editorial acceptance as well as the previously accepted runtime
 and usability. Publication/upload remains a separate decision; no new verification
 or release rebuild is needed for this acceptance-only record.
+
+### Whole-codebook human acceptance
+
+After accepting Chapter28, Bill said “The entire codebook LGTM.” This records
+his overall approval of the current codebook, not just this chapter. It does not
+upgrade bounded tests or partial student reconstruction into independent full-book
+certification, and does not authorize a push, website deployment or KDP upload.
+The verified local release remains ready for Bill’s publication decision.
