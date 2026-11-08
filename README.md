@@ -12,6 +12,12 @@ vibe-code a system and document its source afterward. The goal is to become the
 expert by pair-programming with the AI, then preserve that expertise in a form
 another agent can execute.
 
+**Want to use this method for your own project? Start with
+[dev-driven-specs](https://github.com/waywardgeek/dev-driven-specs).** It provides
+reusable agent skills for the approach used to build Ensemble: develop something
+with your AI, turn the lessons into a specification, then test it by having an
+agent execute it. Give your agent the skills and start building.
+
 Bill's workflow is concrete:
 
 1. Discuss the design, then draft just the next chapter's **TL;DR and exercises**.
