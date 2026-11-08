@@ -22,6 +22,13 @@
     <Content Include="../../skills/shared/markdown-parser.js" Link="skills/shared/markdown-parser.js" CopyToOutputDirectory="PreserveNewest" />
     <Content Include="../../skills/shared/source-code.js" Link="skills/shared/source-code.js" CopyToOutputDirectory="PreserveNewest" />
     <Content Include="../../skills/shared/file-excerpt.js" Link="skills/shared/file-excerpt.js" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="../../skills/shared/file-diff.js" Link="skills/shared/file-diff.js" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="../../skills/shared/jsdiff/diff/base.js" Link="skills/shared/jsdiff/diff/base.js" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="../../skills/shared/jsdiff/diff/line.js" Link="skills/shared/jsdiff/diff/line.js" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="../../skills/shared/jsdiff/util/params.js" Link="skills/shared/jsdiff/util/params.js" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="../../skills/shared/jsdiff/LICENSE" Link="skills/shared/jsdiff/LICENSE" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="../../skills/shared/jsdiff/license.js" Link="skills/shared/jsdiff/license.js" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="../../skills/shared/jsdiff/README.md" Link="skills/shared/jsdiff/README.md" CopyToOutputDirectory="PreserveNewest" />
     <Content Include="../../skills/file-reading/renderers/read-file.js" Link="skills/file-reading/renderers/read-file.js" CopyToOutputDirectory="PreserveNewest" />
     <Content Include="../../skills/file-reading/renderers/search-files.js" Link="skills/file-reading/renderers/search-files.js" CopyToOutputDirectory="PreserveNewest" />
     <Content Include="../../skills/code-tools/renderers/write-file.js" Link="skills/code-tools/renderers/write-file.js" CopyToOutputDirectory="PreserveNewest" />

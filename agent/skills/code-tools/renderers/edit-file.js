@@ -1,4 +1,4 @@
-import { fileExcerpt } from "../../shared/file-excerpt.js";
+import { fileDiff } from "../../shared/file-diff.js";
 export default function render(document, preview, directory, file) {
-    return fileExcerpt(document, file, ["edit"]);
+    return fileDiff(document, file);
 }

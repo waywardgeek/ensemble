@@ -28,7 +28,10 @@ const { chromium } = require('../../edition-2/agent/gui/node_modules/playwright'
             const errors = [];
             page.on('pageerror', error => errors.push(error.message));
             const state = page.locator('#renderer-status');
-            async function ready(text) { await page.waitForFunction(text => document.querySelector('#renderer-status').textContent.includes(text), text); }
+            async function ready(text) {
+                try { await page.waitForFunction(text => document.querySelector('#renderer-status').textContent.includes(text), text); }
+                catch (error) { throw new Error(`Expected ${text}; tool=${await page.locator('#renderer-tool').inputValue()}; status=${await state.textContent()}`, { cause: error }); }
+            }
             async function panel() {
                 await page.locator('#settings-open').click();
                 await page.locator('#settings-display-tab').click();

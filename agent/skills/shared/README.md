@@ -7,6 +7,13 @@ code. Other implementation languages may use shared source here as needs arise.
 `source-code.js` contains the existing safe lexical highlighter, used by Markdown
 and file excerpts. It appends text nodes and spans, never HTML from source text.
 `file-excerpt.js` builds bounded numbered file views from recorded operation facts.
+`file-diff.js` compares complete captured edit segments with locally pinned jsdiff
+9.0.0 (BSD-3-Clause, `jsdiff/LICENSE`). It renders a unified replacement diff with
+old/new positions, explicit minus/plus markers and three context lines. Missing
+final newlines are labeled. Truncated evidence or exhausted comparison budget
+falls back to the before/after excerpt helper; no current file is reread.
+The edit approval package includes the three unchanged jsdiff modules, license
+and provenance. Other file renderers do not import the comparison dependency.
 Read a renderer's API note before loading implementation source into model context.
 These are trusted in-page helpers, not a sandbox or an independent approval system.
 

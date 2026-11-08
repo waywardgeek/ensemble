@@ -115,6 +115,13 @@ public static partial class Gui
                     if (source is null) return Results.NotFound();
                     files.Add("shared/" + helper, source);
                 }
+            if (renderer == "edit_file")
+                foreach (string helper in new[] { "file-diff.js", "jsdiff/diff/base.js", "jsdiff/diff/line.js", "jsdiff/util/params.js", "jsdiff/license.js" })
+                {
+                    string? source = Source("EnsembleGui.Assets/skills/shared/" + helper);
+                    if (source is null) return Results.NotFound();
+                    files.Add("shared/" + helper, source);
+                }
             return Results.Json(new { entry, files });
         });
 

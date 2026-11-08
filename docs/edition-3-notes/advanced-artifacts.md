@@ -1164,3 +1164,55 @@ fragment text and absence of guessed highlighting, alongside existing scrolling,
 read/edit/search/directory and focus/pairing checks. Fixture joined; GUI builds
 passed with zero warnings/errors. Logs: `append-layout-*` in the existing
 verification workspace. Candidate not yet installed; human acceptance separate.
+
+### Unified replacement diffs after hands-on acceptance
+
+Bill accepted the installed read and append views, then requested interleaved
+minus/plus changes instead of two large Removed/Inserted blocks. Compare only
+the captured successful replacement segments, never a later filesystem read.
+Use old/new line columns, three context lines and explicit unchanged gaps. Keep
+the basename heading compact and identify partial-line positions. Missing final
+newlines carry explicit segment labels; partial lexical context stays literal.
+
+Bill authorized adding jsdiff. npm metadata and the 9.0.0 tarball were fetched
+with verified HTTPS via system curl; Python certificate validation failed first,
+without changing trust settings. Archive SHA-512 matched the published integrity.
+The three required ES modules are vendored unchanged with BSD-3-Clause license
+and provenance, included in GUI/CLI distribution and immutable edit review
+packages. No npm install, lifecycle scripts, runtime CDN or page-global dependency.
+Read/write entries do not import the diff library. Comparison uses complete
+segments up to 32 KiB each, maxEditLength 256 and cooperative timeout 25 ms.
+Truncated evidence or budget exhaustion falls back honestly to before/after
+excerpts. This is not preemptive browser isolation or a whole-file patch.
+
+Initial actual-page tests passed at desktop and phone widths: separated changes,
+gaps, old/new numbers, partial hostile source, truncation and budget fallback,
+plus existing layout/focus/pairing regressions. Fixture joined. Final helper
+cleanup and newline-boundary tests require the final rerun below. Chapter28 now
+teaches this at the construction point, compact headings/single scrolling owner,
+and the real-tool-to-display-reconstruction regression lesson. The earlier
+replacement figure is explicitly identified as the superseded view pending
+human acceptance and later figure refresh. Release PDFs/EPUB remain unchanged.
+
+The first final sequence stopped in approval tests before Try: the store correctly
+rejects non-JavaScript package entries, including the raw LICENSE/README added
+initially. Preserve that validation. Put their text in comment-only `license.js`
+for immutable review packages; keep original LICENSE and provenance in shipped
+files. Improve test failure diagnostics with selected tool/status. The failed
+sequence did not run later GUI/default/distribution checks; final rerun follows.
+
+Final corrected sequence (Job773) completed exit0: clean GuiTests build,
+compact/pairing/state/directory/file/search browser checks at both widths,
+actual Try/Keep/reload/recovery/rollback package tests at both widths, default
+GUI suite including real-tool evidence projection, clean GUI/CLI distributions.
+Newline-only, empty insertion/deletion and CRLF cases passed as well. Hosts joined.
+Upstream modules/license byte-identical to the verified archive. Chapter28 hard
+prose checks pass with the existing negative-constraint/person-gap advisories;
+six exercises retained and whitespace clean. No fresh full core suite claimed
+for this presentation-only change. New figures/releases and installed usability
+acceptance remain pending. Logs: unified-* in the existing verification workspace.
+
+Staged whitespace checking identified two trailing spaces in upstream base.js
+(lines2 and204). Retained intentionally to preserve byte-identical vendoring;
+authored files pass whitespace checks separately. The first commit command
+stopped before commit at this check, not during a build or test.

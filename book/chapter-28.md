@@ -223,15 +223,40 @@ exact edit remains a refusal, regardless of how attractive its proposed diff
 would have looked.
 
 For an exact replacement, record the removed anchor and inserted text at the
-applied position. Label the two excerpts **Removed** and **Inserted**. This tells
-the reader the extent of the evidence without implying a whole-file comparison.
+applied position. Bill found that separate **Removed** and **Inserted** blocks
+made nearby changes difficult to compare: the reader had to find each changed
+line twice. Render a unified replacement diff instead. Interleave unchanged
+context, `−` removed lines and `+` inserted lines, with old/new line-number
+columns. Show three context lines around each change and label omitted unchanged
+runs. The comparison covers the applied replacement, not necessarily the whole
+file. Never reread mutable files to reconstruct operation-time evidence.
+
+Use the locally bundled jsdiff 9.0.0 `diffLines` implementation, retaining its
+BSD-3-Clause license. Its three-module dependency chain belongs to the edit
+renderer's exact-version review package, not a page-global library. Compare only
+complete captured segments, at most 32 KiB each. Bound comparison with
+`maxEditLength: 256` and `timeout: 25`. The timeout is cooperative, not a hard
+browser execution deadline. If comparison aborts or either segment is truncated,
+show clearly labeled before/after excerpts and explain why there is no unified
+diff. Never present a prefix comparison as a complete patch. Mark missing final
+newlines explicitly, including when only that boundary changed.
+
+Keep ordinary file headings compact: a basename, with the full path available
+in its tooltip and accessible label. Append positions fit beside the basename,
+for example `sample.go · appended at 4:17`. The numbered source supplies ordinary
+line positions without a repeated paragraph. One outer result preview owns
+vertical and horizontal scrolling; do not nest another height-limited source
+scroller. Preserve source layout without wrapping by default.
+
 The source highlighter is a lexer chosen by suffix; unknown suffixes remain
-literal. Numbering and colors help reading, while raw copy continues to use the
-recorded text rather than the decorated DOM.
+literal. A mid-line fragment may begin inside a string or comment, so display
+it literally rather than guess the missing lexical context. Identify the partial
+line and its UTF-16 column. Numbering and colors help reading, but the underlying
+captured text remains unchanged; presentation gutters are not edit anchors.
 
 ![Removed and Inserted source excerpts at line 19, column 1, labeled as an applied exact replacement.](figures/advanced-artifacts/replacement.png){style="display: block;"}<!-- Caption follows; retain descriptive alt without a duplicate figure caption. -->
 
-*Applied replacement from synthetic operation evidence. Both positions and the extent of the comparison are explicit.*
+*Earlier before/after presentation from synthetic operation evidence. Bill’s usability review led to the unified replacement diff described above; this figure awaits refresh after the revised view is accepted.*
 
 ### Search captures spans once
 
@@ -289,6 +314,8 @@ skills/
   shared/
     README.md               helper index
     file-excerpt.js
+    file-diff.js
+    jsdiff/                 pinned comparison modules, license and provenance
     source-code.js
     markdown.js
     markdown-parser.js
@@ -588,12 +615,21 @@ identity, offsets, lengths and generation before painting. Live polling pauses
 when its page or pane is hidden; reset cancels its observations without cancelling
 the underlying Job.
 
+Test the transport boundary as well as the renderer. During Bill's hands-on
+review, real reads fell back to plain text even though tool-evidence tests and
+synthetic browser tests passed. Display reconstruction had omitted the evidence
+when rebuilding result events from retained conversation entries. A regression
+must carry actual dispatched read, directory and search evidence through GUI
+projection, including snapshot-only replay. Then test the browser presentation.
+Neither side alone proves the information survives between them.
+
 ## Take it for a spin
 
 Use an isolated instance with disposable files. Start with a directory containing
 a subdirectory and an HTML-looking filename, then inspect a read beginning partway
-through a source file. Compare an exact replacement's Removed/Inserted excerpts
-with the raw result. Run a controlled process that prints, waits for input and
+through a source file. Compare an exact replacement's unified diff
+with its captured before/after text, including separated changes and a missing
+final newline. Run a controlled process that prints, waits for input and
 prints again; inspect its continuing output alongside the separate observations.
 
 In Speech & Display settings, select a shipped renderer, download its package and
@@ -659,7 +695,10 @@ or React migration is required.
 ### 3. Show file contents and changes at their real positions
 
 Add suffix-based code highlighting and line numbers for reads and writes, plus
-labeled Removed/Inserted excerpts for successful exact edits. Use a file read starting partway down
+unified replacement diffs for successful exact edits. Compare two changes
+separated by unchanged lines; verify old/new numbers, explicit gaps and a change
+to the final newline. Require clearly labeled before/after fallback for truncated
+evidence or an exhausted comparison budget. Use a file read starting partway down
 the file, an ordinary write, an append after a trailing newline, and an append
 to an unterminated line. Show the resulting line numbers and the actual edited
 region. Keep a readable presentation for an unknown suffix.

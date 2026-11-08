@@ -66,8 +66,17 @@ The shipped `read-file.js` and code-tools write/edit entries share
 `./source-code.js`; both helpers are included in each file-renderer source package. Known source suffixes
 receive lexical highlighting, not parsing or semantic analysis; unknown suffixes
 remain literal text. Numbered lines are presentation, not a replacement for raw
-recorded output. Empty content has no invented written line. Removed and inserted
-sections are an applied replacement, not a whole-file diff.
+recorded output. Empty content has no invented written line. Fallback Removed and Inserted
+sections describe the applied replacement, not a whole-file diff.
+
+The edit entry additionally uses `shared/file-diff.js` and the pinned jsdiff
+9.0.0 modules under `shared/jsdiff/`, with their BSD-3-Clause license and
+provenance. Complete segments yield a unified replacement diff, not a whole-file
+diff: old/new line numbers, minus/plus markers, three context lines and labeled
+gaps. Missing final newlines are explicit. Mid-line fragments remain literal.
+Comparison is bounded by 32 KiB per segment, 256 edits and a cooperative 25 ms
+timeout; truncation or budget exhaustion uses labeled before/after excerpts.
+Every executable dependency travels in the edit renderer's review package.
 
 The trial panel selects directory, read, write, edit, search, default tool output, prose, continuing command output, or registered tools discovered across the host's Agents. Accepted
 and previous versions are independent per tool and shared across Agent views.

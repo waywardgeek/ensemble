@@ -27,6 +27,18 @@ assert(!['8088', '8089', '8090'].includes(new URL(base).port));
                 add('file-read', 'read_file', evidence);
                 add('file-append', 'write_file', { ...evidence, operation: 'append', start_line: 3, start_column: 5, content: segment('tail\")\nreturn 42;') });
                 add('file-edit', 'edit_file', { ...evidence, operation: 'edit', content: segment('new\nvalue'), removed: segment('old') });
+                const middle = Array.from({length: 20}, (_, i) => `context ${i}\n`).join('');
+                add('file-separated', 'edit_file', { ...evidence, operation: 'edit',
+                    removed: segment('old one\n' + middle + 'old two\n'), content: segment('new one\n' + middle + 'new two\n') });
+                add('file-truncated-edit', 'edit_file', { ...evidence, operation: 'edit',
+                    removed: segment('old', 10), content: segment('new') });
+                add('file-budget', 'edit_file', { ...evidence, operation: 'edit',
+                    removed: segment('old\n'.repeat(300)), content: segment('new\n'.repeat(300)) });
+                add('file-fragment', 'edit_file', { ...evidence, operation: 'edit', start_column: 17,
+                    removed: segment('<img src=x>'), content: segment('<script>evil()</script>') });
+                add('file-newline', 'edit_file', { ...evidence, operation: 'edit', removed: segment('same'), content: segment('same\n') });
+                add('file-delete', 'edit_file', { ...evidence, operation: 'edit', removed: segment('gone\n'), content: segment('') });
+                add('file-insert', 'edit_file', { ...evidence, operation: 'edit', removed: segment(''), content: segment('new\r\n') });
                 add('file-empty', 'write_file', { ...evidence, operation: 'write', content: segment('') });
                 add('file-plain', 'read_file', { ...evidence, path: '/sample.unknown' });
                 add('file-long', 'read_file', { ...evidence, path: '/long/path/to/cmd/main.go',
@@ -49,7 +61,30 @@ assert(!['8088', '8089', '8090'].includes(new URL(base).port));
             assert.equal(await append.locator('[class^="code-"]').count(), 0, 'Partial fragment must not guess lexical context');
             assert.deepEqual(await append.locator('.file-source code').allTextContents(), ['tail")', 'return 42;']);
             const edit = await page.locator('[data-part-id="file-edit"] .file-preview').textContent();
-            for (const label of ['not a whole-file diff', 'Removed', 'Inserted']) assert(edit.includes(label));
+            for (const label of ['replacement diff', '−', '+', 'No final newline']) assert(edit.includes(label));
+            assert.match(await page.locator('[data-part-id="file-edit"] .file-name').getAttribute('title'), /not a whole-file diff/);
+            const separated = page.locator('[data-part-id="file-separated"]');
+            assert.match(await separated.locator('.file-diff-gap').textContent(), /14 unchanged lines omitted/);
+            const changed = await separated.locator('.file-source-line').evaluateAll(nodes => nodes.filter(n => n.querySelector('code') && /^(old|new) /.test(n.querySelector('code').textContent)).map(n => [...n.children].map(c => c.textContent)));
+            assert.deepEqual(changed, [['27', '', '−', 'old one'], ['', '27', '+', 'new one'], ['48', '', '−', 'old two'], ['', '48', '+', 'new two']]);
+            assert.match(await page.locator('[data-part-id="file-truncated-edit"] .file-preview').textContent(), /Incomplete evidence.*Removed.*Inserted/s);
+            assert.match(await page.locator('[data-part-id="file-budget"] .file-preview').textContent(), /Comparison budget reached/);
+            const fragment = page.locator('[data-part-id="file-fragment"]');
+            assert.equal(await fragment.locator('img, script, [class^="code-"]').count(), 0);
+            assert.match(await fragment.locator('.file-name').textContent(), /partial line at 27:17/);
+            assert.deepEqual(await fragment.locator('code').allTextContents(), ['<img src=x>', '<script>evil()</script>']);
+            const newline = page.locator('[data-part-id="file-newline"]');
+            assert.deepEqual(await newline.locator('code').allTextContents(), ['same', 'same']);
+            assert.match(await newline.locator('.file-diff-boundary').textContent(), /removed segment/);
+            assert.deepEqual(await page.locator('[data-part-id="file-delete"] code').allTextContents(), ['gone']);
+            assert.deepEqual(await page.locator('[data-part-id="file-insert"] code').allTextContents(), ['new\r']);
+            const pkg = await page.evaluate(async () => {
+                const response = await fetch('./renderers/shipped?renderer=edit_file');
+                if (!response.ok) throw Error('Shipped edit package unavailable: ' + response.status);
+                return response.json();
+            });
+            for (const file of ['shared/file-diff.js', 'shared/jsdiff/diff/line.js', 'shared/jsdiff/diff/base.js', 'shared/jsdiff/util/params.js', 'shared/jsdiff/license.js']) assert.equal(typeof pkg.files[file], 'string', file);
+
             assert.match(await page.locator('[data-part-id="file-empty"] .file-preview').textContent(), /No content/);
             assert.equal(await page.locator('[data-part-id="file-plain"] .code-keyword').count(), 0);
             for (const id of ['file-legacy', 'file-error']) assert.equal(await page.locator(`[data-part-id="${id}"] .preview`).textContent(), 'Recorded raw output');

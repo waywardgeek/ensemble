@@ -4,20 +4,8 @@ export function fileExcerpt(document, evidence, operations) {
     if (!evidence || !operations.includes(evidence.operation)) return null;
     const root = document.createElement("div");
     root.className = "file-preview";
-    const title = document.createElement("p");
-    title.className = "file-name";
-    title.textContent = evidence.path.split(/[\\/]/).at(-1) || evidence.path;
+    root.append(fileTitle(document, evidence));
     const partial = evidence.start_column > 1;
-    const append = evidence.operation === "append";
-    let description = evidence.path;
-    if (append || partial) {
-        const action = append ? (evidence.content.text.length ? "appended" : "empty append") : "partial line";
-        title.textContent += ` · ${action} at ${evidence.start_line}:${evidence.start_column}`;
-        description += `; ${action} at line ${evidence.start_line}, column ${evidence.start_column} (UTF-16)`;
-    }
-    title.title = description;
-    title.setAttribute("aria-label", description);
-    root.append(title);
     const source = /\.(cs|js|mjs|cjs|ts|tsx|jsx|py|go|java|c|h|cpp|hpp|rs|json|sh)$/i.test(evidence.path);
     function section(label, excerpt) {
         if (label) {
@@ -65,4 +53,22 @@ export function fileExcerpt(document, evidence, operations) {
         section("Inserted", evidence.content);
     } else section("", evidence.content);
     return root;
+}
+
+// Shared compact heading; does not construct or discard source DOM.
+export function fileTitle(document, evidence) {
+    const title = document.createElement("p");
+    title.className = "file-name";
+    title.textContent = evidence.path.split(/[\\/]/).at(-1) || evidence.path;
+    const partial = evidence.start_column > 1;
+    const append = evidence.operation === "append";
+    let description = evidence.path;
+    if (append || partial) {
+        const action = append ? (evidence.content.text.length ? "appended" : "empty append") : "partial line";
+        title.textContent += ` · ${action} at ${evidence.start_line}:${evidence.start_column}`;
+        description += `; ${action} at line ${evidence.start_line}, column ${evidence.start_column} (UTF-16)`;
+    }
+    title.title = description;
+    title.setAttribute("aria-label", description);
+    return title;
 }
