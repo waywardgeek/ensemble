@@ -67,7 +67,7 @@ endpoints, archived evidence, or executable grader flags to match the book.
 | 25 | [Voice and Images](chapter-25.md) | External media grader remains `-ch 26`; scopes pass 100/100 with documented limits. |
 | 26 | [Artifacts and Actions](chapter-26.md) | Integration draft; named artifact grade70/100, work products ungraded; further student campaigns deferred |
 | 27 | [Running Local Models](chapter-27.md) | Implemented with bounded evidence; public119 ungraded, human usability pending |
-| 28 | [Advanced Artifacts](chapter-28.md) | Bounded implementation; directory-slice student feedback and one editorial review |
+| 28 | [Advanced Artifacts](chapter-28.md) | Implemented and human-reviewed; directory-slice student feedback, one editorial review, and continuing-session usability |
 | 29 | Crossover | Active source in `agent/`; no numbered snapshot |
 
 Gateway's preserved endpoint remains `solutions/ch26`; its historical graders
@@ -141,8 +141,8 @@ because the command-line renderer wrote a PDF but exited nonzero on teardown.
 Outputs are the assembled Markdown, EPUB, coverless **Print Interior.pdf**, and
 **The Art of Building AI Coding Agents.pdf** with the cover for free reading.
 `interior-print.html` is the intermediate print input. Existing cover artwork is
-reused as requested. The current coverless interior is **559 pages at 7 × 10
-inches**; the covered reading PDF is **560 pages**. The reading PDF is for the
+reused as requested. The current coverless interior is **563 pages at 7 × 10
+inches**; the covered reading PDF is **564 pages**. The reading PDF is for the
 website, not the KDP interior upload. A print cover wrap is separate and must be
 sized for the final interior and selected paper.
 

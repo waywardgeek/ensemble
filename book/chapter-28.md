@@ -9,8 +9,10 @@ editable code without giving it ownership of the work it describes.
 > **Verification boundary.** The implementation has bounded local verification.
 > One isolated student attempt exercised the directory slice and informed the
 > teaching; one editorial review followed. Neither establishes reconstruction of
-> the full chapter. Figures use synthetic fixtures; installed human usability
-> remains unverified. The [development notes](../docs/edition-3-notes/advanced-artifacts.md)
+> the full chapter. Bill accepted the installed file/search views and continuing
+> output through hands-on use, including rollover and a real debugger session.
+> Figures use synthetic fixtures; these checks do not establish all-platform
+> or screen-reader acceptance. The [development notes](../docs/edition-3-notes/advanced-artifacts.md)
 > retain detailed evidence and verification limits.
 
 ## TL;DR
@@ -159,7 +161,7 @@ an untrusted-extension platform.
 ## Teach the renderer what actually happened
 
 Keep the surrounding controls smaller than the content. A result header can say
-“Job 1 completed,” with labeled download, paired-call and speech icons on that
+“list_directory result · Job 1 completed,” with labeled download, paired-call and speech icons on that
 same line. Show local time and observation duration together; retain the full
 recorded timestamp and duration meaning in accessible descriptions. A running
 snapshot still says “running when observed,” not that the process is running now.
@@ -254,9 +256,9 @@ it literally rather than guess the missing lexical context. Identify the partial
 line and its UTF-16 column. Numbering and colors help reading, but the underlying
 captured text remains unchanged; presentation gutters are not edit anchors.
 
-![Removed and Inserted source excerpts at line 19, column 1, labeled as an applied exact replacement.](figures/advanced-artifacts/replacement.png){style="display: block;"}<!-- Caption follows; retain descriptive alt without a duplicate figure caption. -->
+![Unified replacement excerpt at line 19, with old/new line numbers and minus/plus markers.](figures/advanced-artifacts/replacement.png){style="display: block;"}<!-- Caption follows; retain descriptive alt without a duplicate figure caption. -->
 
-*Earlier before/after presentation from synthetic operation evidence. Bill’s usability review led to the unified replacement diff described above; this figure awaits refresh after the revised view is accepted.*
+*Unified replacement diff from synthetic operation evidence. The basename keeps the heading compact; minus/plus markers distinguish removed and inserted text without relying on color.*
 
 ### Search captures spans once
 
@@ -276,7 +278,7 @@ rather than display it with some matches mysteriously missing. Showing all
 returned lines still does not prove every file was readable; recursive search
 retains its existing best-effort behavior for inaccessible files.
 
-![Search lines grouped under two paths, with line numbers, match and context labels, and three omitted lines.](figures/advanced-artifacts/search.png){style="display: block;"}<!-- Caption follows; retain descriptive alt without a duplicate figure caption. -->
+![Search lines grouped under two basenames, with line numbers, match and context labels, and three omitted lines.](figures/advanced-artifacts/search.png){style="display: block;"}<!-- Caption follows; retain descriptive alt without a duplicate figure caption. -->
 
 *Grouped search from synthetic evidence. Recorded spans identify matches; the notice distinguishes displayed lines from all returned lines.*
 
@@ -441,6 +443,30 @@ literal fallback's input.
 ![One command session with a 64 KiB rolling-window notice, progress lines and a build summary.](figures/advanced-artifacts/command.png){style="display: block;"}<!-- Caption follows; retain descriptive alt without a duplicate figure caption. -->
 
 *Continuing command view from synthetic observations and a synthetic 64 KiB response. The displayed test count is illustrative data, not an Ensemble test receipt.*
+
+### A real debugger, one session
+
+Bill tested the continuing view with a Go Tower of Hanoi program and Delve.
+The program began with `hanoi(4, "A", "B", "C")`; its parameters were the disk
+count, source peg, spare peg and destination peg. Each nonzero invocation assigned
+`remaining := disks - 1`, then called `hanoi(remaining, from, to, spare)` before
+moving its own disk. Build with optimizations and inlining disabled
+(`go build -gcflags='all=-N -l'`) so the debugger can expose those frames.
+
+Cadence started Delve through `run_command`, stopped before the first recursive
+call and used `step` to enter each of the next two frames. At the third invocation,
+after its local assignment, Delve reported `disks = 2`, `from = "A"`,
+`spare = "B"`, `to = "C"` and `remaining = 1`. The stack showed three `hanoi`
+frames above `main`. Breakpoints, stepping, variable inspection and exit all
+used the same Job. Bill could follow the session without assembling a new output
+card for every input.
+
+Bill also suggested using `ai_callback_pattern: "\\(dlv\\)"` on input
+observations: the next debugger prompt is a useful synchronization point, rather
+than always waiting the default delay. The prompt means the debugger is ready
+for another command, not that the debuggee has completed. Delve was explicitly
+exited and the Job's terminal result collected. This exercise demonstrates the
+interactive path; it does not certify every debugger or terminal application.
 
 ## Review code, try it, then keep it
 

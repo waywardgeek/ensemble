@@ -3589,6 +3589,32 @@ subsequent turn of the conversation, because Chapter 2 sends the whole
 history every time. The tool that reads is also the tool that decides how
 much of the window to spend.
 
+Return actual one-based file line numbers in the model-facing text, not only in
+a future GUI gutter. Prefix each source line with its decimal number and `: `.
+For a read of lines 20–22, the result might be:
+
+```text
+20:     if (ready)
+21:
+22:         Run();
+```
+
+The blank line still has a number. Preserve indentation and original line
+terminators after the prefix; do not invent a final empty line after a trailing
+newline. An empty file or a range beyond EOF returns no source lines. These
+prefixes are presentation, not file bytes: `edit_file` still takes exact unique
+text anchors, without the number or separator. Line numbers help the model
+navigate and explain an edit; matching the original text makes the edit apply
+only where that text still exists.
+
+Apply `max_bytes` to the selected source's UTF-8 bytes before adding prefixes.
+Back up to a complete UTF-8 character when clipping, and append an unnumbered
+`[truncated]` notice rather than implying the last shown line is complete.
+Number prefixes and that notice are additional presentation bytes. Chapter 4's
+Job observation cap separately bounds the overall report. Any structured source
+evidence for a later renderer retains the unnumbered captured text and its actual
+starting line, so the GUI does not number the same source twice.
+
 `search_files` earns its ten percent because an agent that cannot grep cannot
 find what to read; it is what makes `read_file` usable on a codebase bigger
 than one directory. It takes `context_lines`, and its output with context is
@@ -3632,9 +3658,9 @@ while a missing field or `null` is not one.
 | tool | required fields | optional fields and behavior |
 | --- | --- | --- |
 | `run_command` | `command` string | fresh blocking shell; report stdout, stderr and exit code separately; optional `cwd` string applies only to that call |
-| `read_file` | `path` string | `start_line`, `end_line` integers: one-based inclusive range; `max_bytes` integer caps returned text and reports truncation |
+| `read_file` | `path` string | `start_line`, `end_line` integers: one-based inclusive range; `max_bytes` integer caps selected source bytes before `N: ` line prefixes and reports truncation |
 | `edit_file` | `path`, `old_text`, `new_text` strings | declare the mismatch/ambiguity policy discussed in §3.5 |
-| `search_files` | `path`, `pattern` strings | `context_lines` integer, default 0; matching lines use `path:line:text`, context lines `path-line-text`; merge overlapping or adjacent windows and separate groups with `--` |
+| `search_files` | `path`, `pattern` strings | `context_lines` integer, default 0; optional `exclude` glob array (see below); matching lines use `path:line:text`, context lines `path-line-text`; merge overlapping or adjacent windows and separate groups with `--` |
 | `write_file` | `path`, `content` strings | `overwrite` boolean permits replacement; `append` boolean preserves existing bytes and adds content without requiring overwrite |
 | `list_directory` | `path` string | list the immediate entries, rather than recursively filling the response |
 
@@ -3648,6 +3674,35 @@ Keep these choices visible in the tool descriptions so the model can use them.
 matches, or multiple matches (including overlapping sites), with no write.
 Name the path and tell the model to read and choose an exact unique anchor.
 Refusal is not a miniature automatic patcher.
+
+Search scope should be explicit. Add an optional `exclude` array, for example:
+
+```json
+{"path":".","pattern":"TODO","exclude":[".git/","node_modules/","*.min.js"]}
+```
+
+Omitting the array or passing `[]` preserves inclusive recursive search, including
+dotfiles. Do not silently read `.gitignore`. Patterns without slashes match entry
+names at any depth; patterns containing slashes match paths relative to the
+requested root. A trailing `/` matches directories only and prunes their entire
+subtree. An explicitly requested file remains searchable despite exclusions.
+
+Keep the glob language small: `*` matches zero or more characters within a path
+component, `?` matches one, and a whole-component `**` matches zero or more
+components. Use `/` separators and case-sensitive matching on every platform.
+For example, `src/generated/` prunes that particular subtree, while
+`**/generated/` prunes generated directories at any depth. These are globs for
+file selection; `pattern` remains the regex for file contents.
+
+Validate the complete list before traversal: at most 64 strings, each 1–256
+characters. Refuse absolute paths, empty or dot/dot-dot components, backslashes,
+control characters, bracket/brace classes, negation and embedded double-stars.
+Compile the supported patterns once into non-backtracking matchers; do not
+implement Git's ignore precedence or add another configuration system. Apply
+exclusions to discovered entries before descending or opening their contents.
+Sandbox checks still own filesystem authority. Exclusions control search scope,
+not security. Test omitted and empty lists, dotfiles, nested directory pruning,
+relative paths, wildcard names, direct-file override and malformed patterns.
 
 Some Gemini replies attach opaque signatures to visible text as well as calls.
 Keep each signature attached to its original part, serialize it with provenance,
@@ -4023,6 +4078,16 @@ library tests and source-review obligations; a CLI-only grader cannot inspect
 an unexposed library configuration. The original student's result remains
 90/100 FAIL, accepted with the inherited media-scope exception and all nine
 new checks passing. Correcting the grader does not rewrite that result.
+
+### Numbered-read supplemental acceptance
+
+Run the same outside-assembly consumer described below with `read-lines`.
+Require its `chapter3-read-lines-v1` receipt, exit zero, and every named check.
+It executes the public tool against disposable files without a provider. The
+checks cover actual range offsets, blank lines, indentation, CRLF, Unicode
+clipping, empty selections, trailing newline handling, and default versus explicit
+source caps. The historical `readtools` score does not establish this newer
+numbered-output contract; this supplement adds no historical points.
 
 ### Retained-metadata supplemental acceptance
 
@@ -18773,8 +18838,10 @@ editable code without giving it ownership of the work it describes.
 > **Verification boundary.** The implementation has bounded local verification.
 > One isolated student attempt exercised the directory slice and informed the
 > teaching; one editorial review followed. Neither establishes reconstruction of
-> the full chapter. Figures use synthetic fixtures; installed human usability
-> remains unverified. The [development notes](../docs/edition-3-notes/advanced-artifacts.md)
+> the full chapter. Bill accepted the installed file/search views and continuing
+> output through hands-on use, including rollover and a real debugger session.
+> Figures use synthetic fixtures; these checks do not establish all-platform
+> or screen-reader acceptance. The [development notes](../docs/edition-3-notes/advanced-artifacts.md)
 > retain detailed evidence and verification limits.
 
 ## TL;DR
@@ -18922,6 +18989,21 @@ an untrusted-extension platform.
 
 ## Teach the renderer what actually happened
 
+Keep the surrounding controls smaller than the content. A result header can say
+“list_directory result · Job 1 completed,” with labeled download, paired-call and speech icons on that
+same line. Show local time and observation duration together; retain the full
+recorded timestamp and duration meaning in accessible descriptions. A running
+snapshot still says “running when observed,” not that the process is running now.
+
+Result bodies scroll rather than requiring payload expansion. Where complete
+structured evidence is available, show it directly. Otherwise fetch the latest
+64 KiB of owned Job output independently of the model cursor. Preserve incomplete
+structured facts and label the additional plain-text tail; do not parse that tail
+to invent missing entries or positions. A failed fetch leaves the recorded
+observation visible with an explicit notice. Ordinary cards fetch once; the
+continuing command view described below owns live updates. Speech and durable
+history retain the original observation, not the fetched presentation window.
+
 Start with a directory listing. Splitting its text at newlines appears to produce
 one entry per line, until a filename contains a newline. A trailing slash can be
 a useful display convention, but it is a poor replacement for a recorded type.
@@ -18972,15 +19054,40 @@ exact edit remains a refusal, regardless of how attractive its proposed diff
 would have looked.
 
 For an exact replacement, record the removed anchor and inserted text at the
-applied position. Label the two excerpts **Removed** and **Inserted**. This tells
-the reader the extent of the evidence without implying a whole-file comparison.
+applied position. Bill found that separate **Removed** and **Inserted** blocks
+made nearby changes difficult to compare: the reader had to find each changed
+line twice. Render a unified replacement diff instead. Interleave unchanged
+context, `−` removed lines and `+` inserted lines, with old/new line-number
+columns. Show three context lines around each change and label omitted unchanged
+runs. The comparison covers the applied replacement, not necessarily the whole
+file. Never reread mutable files to reconstruct operation-time evidence.
+
+Use the locally bundled jsdiff 9.0.0 `diffLines` implementation, retaining its
+BSD-3-Clause license. Its three-module dependency chain belongs to the edit
+renderer's exact-version review package, not a page-global library. Compare only
+complete captured segments, at most 32 KiB each. Bound comparison with
+`maxEditLength: 256` and `timeout: 25`. The timeout is cooperative, not a hard
+browser execution deadline. If comparison aborts or either segment is truncated,
+show clearly labeled before/after excerpts and explain why there is no unified
+diff. Never present a prefix comparison as a complete patch. Mark missing final
+newlines explicitly, including when only that boundary changed.
+
+Keep file headings compact, including edits: a basename, with the full path available
+in its tooltip and accessible label. Append positions fit beside the basename,
+for example `sample.go · appended at 4:17`. The numbered source supplies ordinary
+line positions without a repeated paragraph. One outer result preview owns
+vertical and horizontal scrolling; do not nest another height-limited source
+scroller. Preserve source layout without wrapping by default.
+
 The source highlighter is a lexer chosen by suffix; unknown suffixes remain
-literal. Numbering and colors help reading, while raw copy continues to use the
-recorded text rather than the decorated DOM.
+literal. A mid-line fragment may begin inside a string or comment, so display
+it literally rather than guess the missing lexical context. Identify the partial
+line and its UTF-16 column. Numbering and colors help reading, but the underlying
+captured text remains unchanged; presentation gutters are not edit anchors.
 
-![Removed and Inserted source excerpts at line 19, column 1, labeled as an applied exact replacement.](figures/advanced-artifacts/replacement.png){style="display: block;"}<!-- Caption follows; retain descriptive alt without a duplicate figure caption. -->
+![Unified replacement excerpt at line 19, with old/new line numbers and minus/plus markers.](figures/advanced-artifacts/replacement.png){style="display: block;"}<!-- Caption follows; retain descriptive alt without a duplicate figure caption. -->
 
-*Applied replacement from synthetic operation evidence. Both positions and the extent of the comparison are explicit.*
+*Unified replacement diff from synthetic operation evidence. The basename keeps the heading compact; minus/plus markers distinguish removed and inserted text without relying on color.*
 
 ### Search captures spans once
 
@@ -18988,7 +19095,10 @@ Search results require a different shape from a contiguous source excerpt. They
 may contain several context windows, gaps and matches within one line. The tool
 captures the .NET regular expression engine's UTF-16 spans while producing its
 existing textual result. The browser groups by recorded path and highlights
-those spans. It does not rerun the expression with JavaScript semantics.
+those spans. Show only each basename in the heading, with its full path in the
+hover tooltip and accessible label. Files sharing a basename remain separate
+groups. Omit routine match/context totals; retain explicit truncation notices
+and a concise no-matches message. It does not rerun the expression with JavaScript semantics.
 
 A line with no spans is context. A span of length zero is a genuine zero-width
 match and needs a visible boundary indicator. Bounds apply to complete lines
@@ -18997,7 +19107,7 @@ rather than display it with some matches mysteriously missing. Showing all
 returned lines still does not prove every file was readable; recursive search
 retains its existing best-effort behavior for inaccessible files.
 
-![Search lines grouped under two paths, with line numbers, match and context labels, and three omitted lines.](figures/advanced-artifacts/search.png){style="display: block;"}<!-- Caption follows; retain descriptive alt without a duplicate figure caption. -->
+![Search lines grouped under two basenames, with line numbers, match and context labels, and three omitted lines.](figures/advanced-artifacts/search.png){style="display: block;"}<!-- Caption follows; retain descriptive alt without a duplicate figure caption. -->
 
 *Grouped search from synthetic evidence. Recorded spans identify matches; the notice distinguishes displayed lines from all returned lines.*
 
@@ -19038,6 +19148,8 @@ skills/
   shared/
     README.md               helper index
     file-excerpt.js
+    file-diff.js
+    jsdiff/                 pinned comparison modules, license and provenance
     source-code.js
     markdown.js
     markdown-parser.js
@@ -19090,10 +19202,28 @@ records whose origin is explicitly `run_command` create this view. Legacy record
 without an origin stay ordinary observations instead of being guessed into a
 session.
 
-Historical call/result cards remain intact. The session is an additional view
-of retained output. When a wait or input observation explicitly foregrounds it,
-the GUI moves the existing node to the bottom of Tools. Background output updates
-that node where it is. Neither action reruns the command.
+Historical calls and results remain intact, but preserving history does not
+require displaying the same output twice. Once an identified session has usable
+output, successful command, wait and input results show a compact link to that
+session, with their immutable text available in a closed Recorded observation
+disclosure. Errors remain visible. A missing origin, failed session fetch or
+unavailable session restores ordinary recorded output rather than hiding it.
+
+When a wait or input observation explicitly foregrounds the session, the GUI
+moves its existing node to the bottom of Tools. Background polling updates that
+node where it is, without a model wait call or a second per-observation fetch.
+Neither action reruns the command. The model still receives each observation's
+output and status: it cannot see the human's browser. If the session module loads
+late, it takes over outstanding ordinary output fetches without changing the
+recorded text. Replay resets the association; links must validate the current
+card, Agent, Job and originating call before focusing a session.
+
+Keep the session heading compact: `Job 1 completed` or its actual current state.
+Do not spend a paragraph on routine byte counts and terminal implementation
+limits. Put those details in the output tooltip and accessible label. Show a
+short warning when earlier output rolls out, and a Retry control only when
+fetching fails. Clearing a fetch error must update those notices even when the
+returned bytes have not changed.
 
 ### Separate the human window from the model cursor
 
@@ -19142,6 +19272,30 @@ literal fallback's input.
 ![One command session with a 64 KiB rolling-window notice, progress lines and a build summary.](figures/advanced-artifacts/command.png){style="display: block;"}<!-- Caption follows; retain descriptive alt without a duplicate figure caption. -->
 
 *Continuing command view from synthetic observations and a synthetic 64 KiB response. The displayed test count is illustrative data, not an Ensemble test receipt.*
+
+### A real debugger, one session
+
+Bill tested the continuing view with a Go Tower of Hanoi program and Delve.
+The program began with `hanoi(4, "A", "B", "C")`; its parameters were the disk
+count, source peg, spare peg and destination peg. Each nonzero invocation assigned
+`remaining := disks - 1`, then called `hanoi(remaining, from, to, spare)` before
+moving its own disk. Build with optimizations and inlining disabled
+(`go build -gcflags='all=-N -l'`) so the debugger can expose those frames.
+
+Cadence started Delve through `run_command`, stopped before the first recursive
+call and used `step` to enter each of the next two frames. At the third invocation,
+after its local assignment, Delve reported `disks = 2`, `from = "A"`,
+`spare = "B"`, `to = "C"` and `remaining = 1`. The stack showed three `hanoi`
+frames above `main`. Breakpoints, stepping, variable inspection and exit all
+used the same Job. Bill could follow the session without assembling a new output
+card for every input.
+
+Bill also suggested using `ai_callback_pattern: "\\(dlv\\)"` on input
+observations: the next debugger prompt is a useful synchronization point, rather
+than always waiting the default delay. The prompt means the debugger is ready
+for another command, not that the debuggee has completed. Delve was explicitly
+exited and the Job's terminal result collected. This exercise demonstrates the
+interactive path; it does not certify every debugger or terminal application.
 
 ## Review code, try it, then keep it
 
@@ -19337,12 +19491,21 @@ identity, offsets, lengths and generation before painting. Live polling pauses
 when its page or pane is hidden; reset cancels its observations without cancelling
 the underlying Job.
 
+Test the transport boundary as well as the renderer. During Bill's hands-on
+review, real reads fell back to plain text even though tool-evidence tests and
+synthetic browser tests passed. Display reconstruction had omitted the evidence
+when rebuilding result events from retained conversation entries. A regression
+must carry actual dispatched read, directory and search evidence through GUI
+projection, including snapshot-only replay. Then test the browser presentation.
+Neither side alone proves the information survives between them.
+
 ## Take it for a spin
 
 Use an isolated instance with disposable files. Start with a directory containing
 a subdirectory and an HTML-looking filename, then inspect a read beginning partway
-through a source file. Compare an exact replacement's Removed/Inserted excerpts
-with the raw result. Run a controlled process that prints, waits for input and
+through a source file. Compare an exact replacement's unified diff
+with its captured before/after text, including separated changes and a missing
+final newline. Run a controlled process that prints, waits for input and
 prints again; inspect its continuing output alongside the separate observations.
 
 In Speech & Display settings, select a shipped renderer, download its package and
@@ -19408,7 +19571,10 @@ or React migration is required.
 ### 3. Show file contents and changes at their real positions
 
 Add suffix-based code highlighting and line numbers for reads and writes, plus
-labeled Removed/Inserted excerpts for successful exact edits. Use a file read starting partway down
+unified replacement diffs for successful exact edits. Compare two changes
+separated by unchanged lines; verify old/new numbers, explicit gaps and a change
+to the final newline. Require clearly labeled before/after fallback for truncated
+evidence or an exhausted comparison budget. Use a file read starting partway down
 the file, an ordinary write, an append after a trailing newline, and an append
 to an unterminated line. Show the resulting line numbers and the actual edited
 region. Keep a readable presentation for an unknown suffix.

@@ -1317,3 +1317,51 @@ distribution builds; candidate GUI assembly matches browser-tested assembly.
 Tests verify compact running/completed headings, hidden normal count/retry,
 rollover notice, visible failure retry and metadata recovery with unchanged
 bytes. Logs session-title-*; candidate not installed.
+
+### Human acceptance and bounded chapter closeout
+
+Bill reported rebuilding/restarting main and accepted the compact command view.
+This supersedes the earlier candidate-not-installed status as human-reported use;
+Cadence did not independently verify main's loaded binaries. Dev's latest recorded
+installation remains the earlier single-output-owner revision.
+
+Bill observed a real command producing 1,024 lines of 80 bytes over eight seconds:
+81,934 retained bytes including its exit trailer, terminal exit0. He accepted
+rolling output and the single view. A separate disposable Go Hanoi program was
+built without optimizations/inlining using installed Go1.25.4 and Delve1.27.2,
+without downloads. The same Job4 received all debugger commands. Counting the
+initial hanoi(4,A,B,C) as level1, actual steps entered levels2 and3; at level3
+after local initialization args were disks2/from A/spare B/to C, local remaining1.
+Stack showed3hanoi frames above main. Delve exited and terminal Job cleanup was
+collected. Bill praised the coherent session and agreed the chapter implementation
+and usability were done. His prompt-pattern suggestion synchronized observation
+with the next (dlv) prompt, not an arbitrary delay. No live screenshot was taken.
+
+Authorized closeout: personally review Chapter28, refresh existing six SYNTHETIC
+figures, run publication checks and rebuild local book artifacts; no further
+student/reviewer/runtime campaign, push or publication. Corrected stale opening
+claim that installed usability was unverified, corrected tool-named result header,
+added bounded real debugger example, and updated unified-diff figure description.
+Chapter28 remains honest about partial reconstruction and accessibility limits.
+All six figures recaptured through existing isolated actual-page fixture; host
+joined. Actual image contact sheet inspected: compact headings and replacement
+minus/plus rows visible, meaningful truncation/rollover retained. Four image files
+changed, approval/dice bytes unchanged. Fourteen publication regressions pass;
+chapter hard prose checks pass with negation/person-gap advisories retained.
+Publication build is isolated; its completion and resulting page counts are pending.
+
+Closeout publication Job14 terminal0: EPUB and PDF builders succeeded, final
+interior563 pages at7x10, reading copy564; typography10.5pt body/min10pt code,
+TOC/page-label/link checks pass,141 reading links. Six PDF figure objects and
+seven EPUB images inclcover verified. Actual final replacement/search and command
+PDF pages inspected: complete figures, single captions, readable markers.
+Extra chapter inventory first assumed colon punctuation and failed on existing
+headings; corrected to actual heading contract, all30 sequential chapters once.
+No manuscript changes were needed for that check. All four generated release
+files copied locally with SHA256 equality, receipt under
+/private/tmp/cadence-artifacts-closeout.0JjcSB/verified-copy.json.
+README measured page counts updated. No push/upload/publication, no runtime changes.
+Lesson: completion records must distinguish accepted installed usability, bounded
+reconstruction, synthetic illustrations and publication checks instead of allowing
+an old disclaimer to erase demonstrated human use. Chapter is closed at this
+bounded implementation/teaching milestone; Bill retains final reading/publication.
