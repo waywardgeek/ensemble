@@ -132,7 +132,46 @@ public sealed partial class Tool
             directoryListing: new DirectoryListing(entries, total));
     }
 
-    private IEnumerable<string> SearchPaths(string path, HashSet<string> visited)
+    // Search scope only: these matchers never grant filesystem authority.
+    private static List<(Regex Pattern, bool DirectoryOnly, bool NameOnly)> SearchExclusions(JsonElement args)
+    {
+        var result = new List<(Regex, bool, bool)>();
+        if (!args.TryGetProperty("exclude", out var exclusions)) return result;
+        if (exclusions.ValueKind != JsonValueKind.Array || exclusions.GetArrayLength() > 64)
+            throw new ArgumentException("exclude must be an array of at most 64 glob strings.");
+        foreach (var item in exclusions.EnumerateArray())
+        {
+            if (item.ValueKind != JsonValueKind.String)
+                throw new ArgumentException("exclude entries must be glob strings.");
+            string glob = item.GetString()!;
+            if (glob.Length is < 1 or > 256 || glob.IndexOfAny(['\\', '[', ']', '{', '}', '!', ':']) >= 0 || glob.Any(char.IsControl))
+                throw new ArgumentException("exclude supports relative /-separated globs with *, ? and whole-component ** only.");
+            bool directoryOnly = glob.EndsWith('/');
+            string body = directoryOnly ? glob[..^1] : glob;
+            var components = body.Split('/');
+            if (components.Any(part => part is "" or "." or ".." || (part.Contains("**", StringComparison.Ordinal) && part != "**")))
+                throw new ArgumentException("exclude requires nonempty relative components; ** must be a whole component.");
+            var expression = new StringBuilder("\\A");
+            for (int i = 0; i < components.Length; i++)
+            {
+                string part = components[i];
+                bool last = i == components.Length - 1;
+                if (part == "**") expression.Append(last ? ".*" : "(?:[^/]+/)*");
+                else
+                {
+                    foreach (char character in part)
+                        expression.Append(character switch { '*' => "[^/]*", '?' => "[^/]", _ => Regex.Escape(character.ToString()) });
+                    if (!last) expression.Append('/');
+                }
+            }
+            expression.Append("\\z");
+            result.Add((new Regex(expression.ToString(), RegexOptions.CultureInvariant | RegexOptions.NonBacktracking), directoryOnly, components.Length == 1));
+        }
+        return result;
+    }
+
+    private IEnumerable<string> SearchPaths(string path, HashSet<string> visited,
+        List<(Regex Pattern, bool DirectoryOnly, bool NameOnly)> exclusions, string relative = "")
     {
         var files = Parent().Sandbox();
         if (!files.IsDirectory(path))
@@ -163,6 +202,9 @@ public sealed partial class Tool
                 // refuses; this catch applies only to discovered children.
                 continue;
             }
+            string childRelative = relative.Length == 0 ? name : relative + "/" + name;
+            if (exclusions.Any(rule => (!rule.DirectoryOnly || directory)
+                && rule.Pattern.IsMatch(rule.NameOnly ? name : childRelative))) continue;
             if (directory)
             {
                 // Preserve full-access search's existing no-directory-links
@@ -172,7 +214,7 @@ public sealed partial class Tool
                 {
                     continue;
                 }
-                foreach (string file in SearchPaths(entry, visited))
+                foreach (string file in SearchPaths(entry, visited, exclusions, childRelative))
                 {
                     yield return file;
                 }
@@ -196,12 +238,13 @@ public sealed partial class Tool
         {
             throw new ArgumentException("context_lines must be nonnegative.");
         }
+        var exclusions = SearchExclusions(args);
         var pattern = new Regex(String(args, "pattern"));
         var result = new StringBuilder();
         var visited = new HashSet<string>(StringComparer.Ordinal);
         string path = String(args, "path");
         bool recursive = Parent().Sandbox().IsDirectory(path);
-        foreach (var file in SearchPaths(path, visited))
+        foreach (var file in SearchPaths(path, visited, exclusions))
         {
             var lineList = new List<string>();
             try

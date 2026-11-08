@@ -3,12 +3,13 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using Ensemble;
 
+if (args.Length == 1 && args[0] == "search-exclude") return await SearchExcludeChecks.Run();
 if (args.Length == 1 && args[0] == "read-lines") return await ReadLineChecks.Run();
 if (args.Length == 1 && args[0] == "library") return LibraryChecks.Run();
 if (args.Length == 1 && args[0] is "log-write" or "log-read") return LogChecks.Run(args[0]);
 if (args.Length != 0)
 {
-    Console.Error.WriteLine("Expected no arguments (metadata), library, read-lines, log-write, or log-read.");
+    Console.Error.WriteLine("Expected no arguments (metadata), library, read-lines, search-exclude, log-write, or log-read.");
     return 2;
 }
 

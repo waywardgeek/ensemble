@@ -194,6 +194,34 @@ internal static class ToolTests
                 path = file,
                 pattern = "absent"
             })).IsError, "no matches is success");
+            var tree = Path.Combine(directory, "exclusions");
+            string[] paths = ["keep.cs", ".hidden", ".git/config", "node_modules/vendor.js",
+                "nested/node_modules/vendor.js", "src/generated/code.cs", "other/generated/code.cs",
+                "src/a.min.js", "root.min.js", "src/test1.cs", "src/test12.cs", "src/Keep.CS", "node_modules.txt"];
+            foreach (string relative in paths)
+            {
+                string target = Path.Combine(tree, relative);
+                Directory.CreateDirectory(Path.GetDirectoryName(target)!);
+                File.WriteAllText(target, "scope-marker " + relative + "\n");
+            }
+            async Task<string[]> Scope(object arguments)
+            {
+                var answer = await Call("search_files", arguments);
+                Check(!answer.IsError && answer.SearchEvidence is not null, "search exclusion result has evidence");
+                return answer.SearchEvidence!.Lines.Select(line => Path.GetRelativePath(tree, line.Path).Replace('\\', '/')).Order().ToArray();
+            }
+            Check((await Scope(new { path = tree, pattern = "scope-marker" })).SequenceEqual(paths.Order()), "omitted exclusions include dotfiles and dependencies");
+            Check((await Scope(new { path = tree, pattern = "scope-marker", exclude = Array.Empty<string>() })).SequenceEqual(paths.Order()), "empty exclusions preserve inclusive search");
+            string[] ignored = [".git/", "node_modules/", "src/generated/", "*.min.js", "src/test?.cs"];
+            string[] remaining = ["keep.cs", ".hidden", "other/generated/code.cs", "src/test12.cs", "src/Keep.CS", "node_modules.txt"];
+            Check((await Scope(new { path = tree, pattern = "scope-marker", exclude = ignored })).SequenceEqual(remaining.Order()), "name globs, relative paths, question mark and directory pruning");
+            Check((await Scope(new { path = tree, pattern = "scope-marker", exclude = new[] { "**/*.min.js", "**/generated/" } })).Length == paths.Length - 4, "double-star matches root and nested paths");
+            Check((await Scope(new { path = tree, pattern = "scope-marker", exclude = new[] { "*.cs" } })).Contains("src/Keep.CS"), "glob matching is case sensitive");
+            Check((await Scope(new { path = Path.Combine(tree, ".hidden"), pattern = "scope-marker", exclude = new[] { "*" } })).SequenceEqual(new[] { ".hidden" }), "explicit file bypasses exclusions");
+            Check((await Scope(new { path = tree, pattern = "scope-marker", exclude = new[] { "*" } })).Length == 0, "all excluded is successful empty search");
+            foreach (object invalid in new object[] { new[] { "" }, new[] { "../outside" }, new[] { "/absolute" }, new[] { "a/**b" }, new[] { "[ab]" }, new[] { "!keep" }, new[] { "a\\b" }, new[] { "a//b" }, new[] { new string('x', 257) }, Enumerable.Repeat("x", 65).ToArray(), new object[] { 1 }, "*.cs" })
+                Check((await Call("search_files", new { path = tree, pattern = "scope-marker", exclude = invalid })).IsError, "invalid exclusion refuses");
+
             Directory.CreateDirectory(Path.Combine(directory, "zzz"));
             var listing = Text(await Call("list_directory", new
             {

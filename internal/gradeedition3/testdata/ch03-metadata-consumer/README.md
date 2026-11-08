@@ -100,3 +100,13 @@ for the larger assertions so a Job observation limit cannot hide the result.
 
 This mode adds no historical points. It certifies neither GUI formatting nor
 whole-Chapter3 acceptance. The other modes retain their existing check counts.
+
+## Search exclusion mode
+
+Run `search-exclude` and require exit0, `contract: chapter3-search-exclude-v1`,
+`passed: true`, and all7 named checks. Public Tool execution against disposable
+files checks default hidden/Git-ignored inclusion, empty lists, directory/name
+patterns, root-relative paths, whole-component double-star, direct-file override
+and malformed-glob refusal. No provider, Git process or repository is accessed.
+This is a bounded search-scope supplement, not GUI or whole-chapter certification,
+and it adds no historical points.

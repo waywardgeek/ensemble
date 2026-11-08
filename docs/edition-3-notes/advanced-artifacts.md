@@ -1229,3 +1229,30 @@ the fixture basename rather than the removed suffix. No diff algorithm change.
 Final Job782 passed: clean GuiTests and installable GUI builds, desktop/phone
 compact/pairing/state/directory/file/search checks, fixture joined. Candidate
 renderer bytes verified against source. Not installed; no release regeneration.
+
+### Search presentation accepted; explicit search exclusions
+
+Bill accepted the search artifact. He asked about hidden/Git-ignored files;
+source inspection confirmed neither was skipped. He chose optional exclusions
+rather than automatic Git semantics. Keep a small glob array: absent/empty means
+current inclusive behavior, basename patterns match at any depth, slash paths
+are root-relative, trailing slash prunes directories. Support *, ?, whole-component
+** with case-sensitive slash-separated matching; validate bounded strings/list
+before traversal and refuse unsupported syntax. Direct files bypass exclusions.
+Sandbox authority and renderer presentation remain unchanged. Bill suggested
+regex as an alternative, then agreed to keep it simple with globs. Chapter3
+teaches this at original construction; the skill/schema expose it. Native
+real-tool cases and four Sandbox groups passed; broader checks underway. A
+public-API search-exclude consumer adds a separate seven-check receipt without
+changing historical scores.
+
+Final search-scope verification: focused tool group and four Sandbox groups
+passed; Job794 completed core380/0, default GUI suite (including real evidence
+projection), clean GuiTests and installable GUI builds. Public outside-assembly
+consumer passed all7 checks; independently built against older installed Dev
+assembly it failed at empty-preserves-default after default inclusion passed,
+detecting the unsupported exclude argument. No installed process changed.
+Chapter3 prose hard check fails only three pre-existing unchanged em-dash lines;
+new diff whitespace passes. Candidate skill bytes match source. No renderer
+change or new browser styling acceptance implied. Logs: search-exclude-* in
+the existing isolated verification workspace.

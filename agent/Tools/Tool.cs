@@ -141,6 +141,8 @@ public sealed partial class Tool
                 Field("path", "string", "File or directory path.", true);
                 Field("pattern", "string", "Regular expression.", true);
                 Field("context_lines", "integer", "Nonnegative context radius, default 0.");
+                Field("exclude", "array", "Optional case-sensitive globs for discovered entries; absent/empty includes all. Name-only patterns match at any depth; / paths are relative to search root; trailing / prunes directories. Supports *, ?, whole-component **; max 64 patterns, 256 chars each. No gitignore processing. Explicit file requests bypass exclusions.");
+                properties["exclude"]!["items"] = new JsonObject { ["type"] = "string" };
                 break;
             case ToolKind.RunCommand:
                 name = "run_command";

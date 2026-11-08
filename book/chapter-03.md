@@ -461,7 +461,7 @@ while a missing field or `null` is not one.
 | `run_command` | `command` string | fresh blocking shell; report stdout, stderr and exit code separately; optional `cwd` string applies only to that call |
 | `read_file` | `path` string | `start_line`, `end_line` integers: one-based inclusive range; `max_bytes` integer caps selected source bytes before `N: ` line prefixes and reports truncation |
 | `edit_file` | `path`, `old_text`, `new_text` strings | declare the mismatch/ambiguity policy discussed in §3.5 |
-| `search_files` | `path`, `pattern` strings | `context_lines` integer, default 0; matching lines use `path:line:text`, context lines `path-line-text`; merge overlapping or adjacent windows and separate groups with `--` |
+| `search_files` | `path`, `pattern` strings | `context_lines` integer, default 0; optional `exclude` glob array (see below); matching lines use `path:line:text`, context lines `path-line-text`; merge overlapping or adjacent windows and separate groups with `--` |
 | `write_file` | `path`, `content` strings | `overwrite` boolean permits replacement; `append` boolean preserves existing bytes and adds content without requiring overwrite |
 | `list_directory` | `path` string | list the immediate entries, rather than recursively filling the response |
 
@@ -475,6 +475,35 @@ Keep these choices visible in the tool descriptions so the model can use them.
 matches, or multiple matches (including overlapping sites), with no write.
 Name the path and tell the model to read and choose an exact unique anchor.
 Refusal is not a miniature automatic patcher.
+
+Search scope should be explicit. Add an optional `exclude` array, for example:
+
+```json
+{"path":".","pattern":"TODO","exclude":[".git/","node_modules/","*.min.js"]}
+```
+
+Omitting the array or passing `[]` preserves inclusive recursive search, including
+dotfiles. Do not silently read `.gitignore`. Patterns without slashes match entry
+names at any depth; patterns containing slashes match paths relative to the
+requested root. A trailing `/` matches directories only and prunes their entire
+subtree. An explicitly requested file remains searchable despite exclusions.
+
+Keep the glob language small: `*` matches zero or more characters within a path
+component, `?` matches one, and a whole-component `**` matches zero or more
+components. Use `/` separators and case-sensitive matching on every platform.
+For example, `src/generated/` prunes that particular subtree, while
+`**/generated/` prunes generated directories at any depth. These are globs for
+file selection; `pattern` remains the regex for file contents.
+
+Validate the complete list before traversal: at most 64 strings, each 1–256
+characters. Refuse absolute paths, empty or dot/dot-dot components, backslashes,
+control characters, bracket/brace classes, negation and embedded double-stars.
+Compile the supported patterns once into non-backtracking matchers; do not
+implement Git's ignore precedence or add another configuration system. Apply
+exclusions to discovered entries before descending or opening their contents.
+Sandbox checks still own filesystem authority. Exclusions control search scope,
+not security. Test omitted and empty lists, dotfiles, nested directory pruning,
+relative paths, wildcard names, direct-file override and malformed patterns.
 
 Some Gemini replies attach opaque signatures to visible text as well as calls.
 Keep each signature attached to its original part, serialize it with provenance,
