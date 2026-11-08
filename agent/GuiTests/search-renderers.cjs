@@ -29,9 +29,13 @@ assert(!['8088', '8089', '8090'].includes(new URL(base).port));
                 ] };
                 add('search-result', evidence); add('search-legacy', null); add('search-error', evidence, true);
                 add('search-empty', { lines: [], total_lines: 0 });
+                add('search-complete', { total_lines: 2, lines: [
+                    { path: '/first/main.go', number: 1, text: 'hit', matches: [{start: 0, length: 3}] },
+                    { path: '/second/main.go', number: 2, text: 'hit', matches: [{start: 0, length: 3}] }
+                ] });
             });
             const result = page.locator('[data-part-id="search-result"]');
-            assert.deepEqual(await result.locator('.search-path').allTextContents(), ['/odd:<img>\nfile', '/second']);
+            assert.deepEqual(await result.locator('.search-path').allTextContents(), ['odd:<img>\nfile', 'second']);
             assert.deepEqual(await result.locator('.file-line-number').allTextContents(), ['8', '9', '14', '2']);
             assert.deepEqual(await result.locator('mark').allTextContents(), ['hit', 'hit', '[zero-width match]', 'hit']);
             assert.equal(await result.locator('.search-gap').count(), 1);
@@ -40,13 +44,19 @@ assert(!['8088', '8089', '8090'].includes(new URL(base).port));
             assert.equal(await result.locator('img, script').count(), 0);
             assert.equal(await result.locator('details > pre').textContent(), 'Unchanged raw grep text');
             for (const id of ['search-legacy', 'search-error']) assert.equal(await page.locator(`[data-part-id="${id}"] .preview`).textContent(), 'Unchanged raw grep text');
-            assert.match(await page.locator('[data-part-id="search-empty"] .search-preview').textContent(), /0 returned/);
+            assert.match(await page.locator('[data-part-id="search-empty"] .search-preview').textContent(), /No matches/);
             assert(await page.evaluate(() => {
                 const card = cards.get('search-result'); const preview = card.node.querySelector('.search-preview');
                 const summary = card.node.querySelector('.preview'); summary.focus();
                 if (document.activeElement !== summary) throw Error('Focus precondition failed');
                 render(card); return card.node.querySelector('.search-preview') === preview && document.activeElement === summary;
             }));
+            const complete = page.locator('[data-part-id="search-complete"] .search-preview');
+            assert.equal(await complete.locator(':scope > p').count(), 0, 'No routine count paragraph');
+            assert.deepEqual(await complete.locator('.search-path').allTextContents(), ['main.go', 'main.go']);
+            assert.equal(await complete.locator('.search-file').count(), 2, 'Same basename must not merge file groups');
+            assert.deepEqual(await complete.locator('.search-path').evaluateAll(nodes => nodes.map(n => [n.title, n.getAttribute('aria-label')])),
+                [['/first/main.go', '/first/main.go'], ['/second/main.go', '/second/main.go']]);
             assert.deepEqual(errors, []);
             await page.close();
             console.log(`PASS search renderer ${width}: groups, spans, line numbers, gaps, zero width, truncation, safe text, fallback, raw output and focus`);

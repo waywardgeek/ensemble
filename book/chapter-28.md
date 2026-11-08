@@ -264,7 +264,10 @@ Search results require a different shape from a contiguous source excerpt. They
 may contain several context windows, gaps and matches within one line. The tool
 captures the .NET regular expression engine's UTF-16 spans while producing its
 existing textual result. The browser groups by recorded path and highlights
-those spans. It does not rerun the expression with JavaScript semantics.
+those spans. Show only each basename in the heading, with its full path in the
+hover tooltip and accessible label. Files sharing a basename remain separate
+groups. Omit routine match/context totals; retain explicit truncation notices
+and a concise no-matches message. It does not rerun the expression with JavaScript semantics.
 
 A line with no spans is context. A span of length zero is a genuine zero-width
 match and needs a visible boundary indicator. Bounds apply to complete lines

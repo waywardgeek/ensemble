@@ -3,11 +3,12 @@ export default function searchFiles(document, preview, directory, file, evidence
     if (!evidence) return null;
     const root = document.createElement("div");
     root.className = "search-preview file-preview";
-    const summary = document.createElement("p");
-    summary.textContent = evidence.lines.length < evidence.total_lines
-        ? `Truncated display: ${evidence.lines.length} of ${evidence.total_lines} returned match/context lines; ${evidence.total_lines - evidence.lines.length} omitted.`
-        : `${evidence.total_lines} returned match/context lines.`;
-    root.append(summary);
+    if (evidence.lines.length < evidence.total_lines || evidence.total_lines === 0) {
+        const summary = document.createElement("p");
+        summary.textContent = evidence.total_lines === 0 ? "No matches."
+            : `Truncated display: ${evidence.lines.length} of ${evidence.total_lines} returned match/context lines; ${evidence.total_lines - evidence.lines.length} omitted.`;
+        root.append(summary);
+    }
     const groups = new Map();
     for (const line of evidence.lines) {
         let group = groups.get(line.path);
@@ -16,7 +17,9 @@ export default function searchFiles(document, preview, directory, file, evidence
             section.className = "search-file";
             const heading = document.createElement("p");
             heading.className = "search-path";
-            heading.textContent = line.path;
+            heading.textContent = line.path.split(/[\\/]/).at(-1) || line.path;
+            heading.title = line.path;
+            heading.setAttribute("aria-label", line.path);
             const pre = document.createElement("pre");
             pre.className = "file-source";
             section.append(heading, pre); root.append(section);

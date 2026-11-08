@@ -1256,3 +1256,17 @@ Chapter3 prose hard check fails only three pre-existing unchanged em-dash lines;
 new diff whitespace passes. Candidate skill bytes match source. No renderer
 change or new browser styling acceptance implied. Logs: search-exclude-* in
 the existing isolated verification workspace.
+
+### Search heading cleanup after acceptance
+
+Bill requested only the basename, not a routine returned-match/context count
+and full-path paragraph. Search headings now share read/write/edit's native
+full-path hover tooltip and accessible label. Group identity remains full path;
+two main.go files must stay separate. Remove complete-result totals, retain
+truncation/omission warnings, and say No matches for empty results. Chapter28
+teaches this where grouped search is constructed. Tests cover both viewport
+widths, duplicate basenames, full-path metadata and retained truncation.
+
+Job806 passed final desktop/phone compact/pairing/state/directory/file/search
+checks and clean GuiTests/GUI distribution builds; fixture joined. Packaged
+search renderer bytes match source. Candidate not installed. Logs search-title-*.
