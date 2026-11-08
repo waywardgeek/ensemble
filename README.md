@@ -4,6 +4,37 @@ Ensemble is the coding agent built from *The Art of Building AI Coding Agents*,
 Bill Cox's executable teaching book. **Edition 3 is the current edition:** the
 application is C# 14 / .NET 10, developed inside Ensemble with Cadence.
 
+## Development-Driven Specifications, not Spec-Driven Development
+
+**Build the code and the specification together. Development earns the spec.**
+The goal is not to write a detailed plan up front and hand it to an AI, or to
+vibe-code a system and document its source afterward. The goal is to become the
+expert by pair-programming with the AI, then preserve that expertise in a form
+another agent can execute.
+
+Bill's workflow is concrete:
+
+1. Discuss the design, then draft just the next chapter's **TL;DR and exercises**.
+2. Pair-program the implementation. Steer the AI in real time, try ideas, correct
+   mistakes, and record what was unclear and why each important decision was made.
+3. Once the implementation passes the exercise graders, use those notes to write
+   the chapter's body: the construction process, lessons, tradeoffs and reasons,
+   not a tour of the finished source.
+4. Give a fresh student agent the chapter and graders to test whether the teaching
+   is sufficient to reconstruct the implementation. Feed what that attempt reveals
+   back into the chapter.
+
+The result is an **executable specification**: a codebook that transfers the
+judgment needed to build the system, not merely a list of desired features.
+Ensemble V2 executed this book to build V3; Bill and Cadence then worked inside V3
+to improve both the agent and the teaching. Individual chapters retain their
+[documented verification limits](book/README.md#what-completion-means).
+
+The human's expertise grows during development instead of depending on a final
+inspection of unfamiliar generated code. The code is an output; the reusable
+asset is the knowledge needed to build it again. **Don't just document what to
+build. Teach how and why to build it that way. You cannot learn all of that up front.**
+
 ## Start here
 
 - [Read the book](book/README.md), [chapter guide](book/chapters.md), or
@@ -66,7 +97,7 @@ in place of `dotnet` when launching the terminal client too.
 
 Choose your own data directory, workspace, funding configuration and unused port
 for a real launch. Do not replace a running host just to refresh source. The GUI
-embeds its assets at build time. See [the crossover chapter](book/chapter-28.md)
+embeds its assets at build time. See [the crossover chapter](book/chapter-29.md)
 and the source README for application behavior and qualified test evidence.
 
 `make test` runs the C# regression executable and root Go tooling tests;
