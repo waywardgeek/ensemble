@@ -141,8 +141,8 @@ because the command-line renderer wrote a PDF but exited nonzero on teardown.
 Outputs are the assembled Markdown, EPUB, coverless **Print Interior.pdf**, and
 **The Art of Building AI Coding Agents.pdf** with the cover for free reading.
 `interior-print.html` is the intermediate print input. Existing cover artwork is
-reused as requested. The current coverless interior is **563 pages at 7 × 10
-inches**; the covered reading PDF is **564 pages**. The reading PDF is for the
+reused as requested. The current coverless interior is **535 pages at 7 × 10
+inches**; the covered reading PDF is **536 pages**. The reading PDF is for the
 website, not the KDP interior upload. A print cover wrap is separate and must be
 sized for the final interior and selected paper.
 

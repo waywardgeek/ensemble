@@ -1378,3 +1378,17 @@ his overall approval of the current codebook, not just this chapter. It does not
 upgrade bounded tests or partial student reconstruction into independent full-book
 certification, and does not authorize a push, website deployment or KDP upload.
 The verified local release remains ready for Bill’s publication decision.
+
+### Hardcover pagination adjustment
+
+Bill reported a550-page ceiling for7x10 hardcover and requested10pt print body.
+Changed only body CSS10.5->10pt and the matching measured-font expectation;
+code remains10pt, geometry/margins/headings/tables unchanged. Isolated build
+/private/tmp/cadence-print-10pt.auuyEv completed exit0:535-page interior,536-page
+covered copy,7x10 geometry, measured10pt body/min10pt code,33TOC references and
+137reading links verified. Fourteen publication tests pass; six figure objects
+retained and representative diff/caption page inspected. Copied both PDFs and
+print HTML with hash equality, backed up previous files; EPUB and assembled
+manuscript byte-identical to HEAD. README counts updated. No publication/upload.
+Half a point saved28pages without removing content or shrinking code. KDP preview
+and final hardcover acceptance remain Bill’s publication step.

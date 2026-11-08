@@ -54,7 +54,7 @@ def page_texts(pdf: Path) -> list[str]:
     return out.split("\f")
 
 
-def check_type_size(pdf: Path, expected_body: float = 10.5, expected_code: float = 10) -> None:
+def check_type_size(pdf: Path, expected_body: float = 10, expected_code: float = 10) -> None:
     """Check printed type, since correct CSS does not prevent Chrome shrinking it.
 
     Count characters rather than spans so short headings and page numbers
