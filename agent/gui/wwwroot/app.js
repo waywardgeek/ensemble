@@ -6,7 +6,9 @@ const cards = new Map();
 const toolTranscript = document.querySelector("#tool-transcript");
 let jobSessions = null;
 import(new URL("./job-sessions.js", document.currentScript.src).href).then(module => {
-    jobSessions = module.createJobSessions(toolTranscript);
+    jobSessions = module.createJobSessions(toolTranscript, fetch, () => {
+        for (const card of cards.values()) if (card.kind === "tool_result") queueCardRender(card);
+    });
     if (socket?.readyState === WebSocket.OPEN && !selectionPending)
         for (const card of cards.values()) if (card.kind === "tool_result") jobSessions.observe(card);
 }).catch(() => { /* Recorded cards remain usable without continuing views. */ });
@@ -342,7 +344,9 @@ function completePresentation(card) {
 }
 // Human output is independent of the immutable model observation in card.text.
 function loadResultWindow(card) {
-    if (card.windowRequested || card.kind !== "tool_result" || !Number.isSafeInteger(card.job?.handle)) return;
+    // Continuing commands have one fetch owner, including late module startup.
+    if (jobSessions?.owns(card)) { card.windowController?.abort(); return; }
+    if (card.windowRequested || card.kind !== "tool_result" || card.status === "error" || !Number.isSafeInteger(card.job?.handle)) return;
     if (completePresentation(card)) return;
     card.windowRequested = true;
     const controller = new AbortController();
@@ -694,6 +698,7 @@ function render(card) {
         if (!body.parentElement) card.node.append(body);
     } else {
         const result = card.kind === "tool_result";
+        const sessionOutput = result ? jobSessions?.output(card) : null;
         let details = card.node.querySelector(":scope > details");
         if (!details) {
             details = document.createElement("details");
@@ -702,7 +707,8 @@ function render(card) {
             details.append(summary, document.createElement("pre"));
             card.node.append(details);
         }
-        details.hidden = result;
+        details.hidden = result && !sessionOutput;
+        details.querySelector("summary").textContent = result ? "Recorded observation" : "Expand complete received payload";
         const pre = details.querySelector("pre:not(.edit-change)");
         if (pre.textContent !== card.text) pre.textContent = card.text;
         pre.className = card.toolName === "search_files" ? "search-results" : "tool-output";
@@ -725,46 +731,63 @@ function render(card) {
                 details.ontoggle = () => { preview.hidden = details.open; };
             }
             const clipped = card.text.slice(0, 1400).split("\n").slice(0, 18).join("\n");
-            const previewText = result ? (card.windowText ?? receivedTail(card.text)) : clipped + (clipped.length < card.text.length ? "\n… (bounded preview)" : "");
-            const renderer = card.kind === "tool_result" && card.status !== "error"
-                ? (window.EnsembleToolRenderers?.[card.toolName] ||
-                    (["list_directory", "read_file", "search_files", "write_file", "edit_file"].includes(card.toolName)
-                        ? window.EnsembleArtifactRenderers?.[card.toolName] : null)) : null;
-            const defaultRenderer = window.EnsembleArtifactRenderers?.tool_default;
-            if (card.previewText !== previewText || card.previewDefaultRenderer !== defaultRenderer || card.previewRenderer !== renderer || card.previewDirectoryListing !== card.directoryListing || card.previewFileEvidence !== card.fileEvidence || card.previewSearchEvidence !== card.searchEvidence) {
-                let content = null;
-                if (typeof renderer === "function") {
-                    try { content = renderer(document, previewText, card.directoryListing, card.fileEvidence, card.searchEvidence); }
-                    catch { /* A presentation failure must not hide the recorded result. */ }
+            const previewText = result ? (jobSessions?.owns(card) ? receivedTail(card.text) : (card.windowText ?? receivedTail(card.text))) : clipped + (clipped.length < card.text.length ? "\n… (bounded preview)" : "");
+            if (sessionOutput) {
+                if (card.previewSessionOutput !== sessionOutput) {
+                    const link = document.createElement("button");
+                    link.type = "button";
+                    link.className = "btn btn-sm btn-outline-secondary session-output-link";
+                    link.textContent = `View Job ${card.job.handle} output`;
+                    link.onclick = () => {
+                        if (!currentCard(card) || jobSessions?.output(card) !== sessionOutput) return;
+                        sessionOutput.focus({ preventScroll: true });
+                        sessionOutput.scrollIntoView({ block: "nearest" });
+                    };
+                    preview.replaceChildren(link);
+                    card.previewSessionOutput = sessionOutput;
                 }
-                if ((!(content instanceof HTMLElement) || content.isConnected) && typeof defaultRenderer === "function") {
-                    try { content = defaultRenderer(document, previewText); }
-                    catch { /* The final literal fallback remains independent of custom code. */ }
+            } else {
+                const renderer = card.kind === "tool_result" && card.status !== "error"
+                    ? (window.EnsembleToolRenderers?.[card.toolName] ||
+                        (["list_directory", "read_file", "search_files", "write_file", "edit_file"].includes(card.toolName)
+                            ? window.EnsembleArtifactRenderers?.[card.toolName] : null)) : null;
+                const defaultRenderer = window.EnsembleArtifactRenderers?.tool_default;
+                if (card.previewSessionOutput || card.previewText !== previewText || card.previewDefaultRenderer !== defaultRenderer || card.previewRenderer !== renderer || card.previewDirectoryListing !== card.directoryListing || card.previewFileEvidence !== card.fileEvidence || card.previewSearchEvidence !== card.searchEvidence) {
+                    let content = null;
+                    if (typeof renderer === "function") {
+                        try { content = renderer(document, previewText, card.directoryListing, card.fileEvidence, card.searchEvidence); }
+                        catch { /* A presentation failure must not hide the recorded result. */ }
+                    }
+                    if ((!(content instanceof HTMLElement) || content.isConnected) && typeof defaultRenderer === "function") {
+                        try { content = defaultRenderer(document, previewText); }
+                        catch { /* The final literal fallback remains independent of custom code. */ }
+                    }
+                    if (!(content instanceof HTMLElement) || content.isConnected) {
+                        content = document.createElement("pre");
+                        content.textContent = previewText;
+                    }
+                    preview.replaceChildren(content);
+                    if (card.windowText !== undefined && !completePresentation(card) &&
+                        (card.directoryListing || card.fileEvidence || card.searchEvidence)) {
+                        const label = document.createElement("p");
+                        label.textContent = "Retained output tail (plain text)";
+                        const tail = document.createElement("pre");
+                        tail.className = "tool-output";
+                        tail.textContent = card.windowText;
+                        preview.append(label, tail);
+                    }
+                    card.previewSessionOutput = null;
+                    card.previewText = previewText;
+                    card.previewRenderer = renderer;
+                    card.previewDefaultRenderer = defaultRenderer;
+                    card.previewDirectoryListing = card.directoryListing;
+                    card.previewFileEvidence = card.fileEvidence;
+                    card.previewSearchEvidence = card.searchEvidence;
                 }
-                if (!(content instanceof HTMLElement) || content.isConnected) {
-                    content = document.createElement("pre");
-                    content.textContent = previewText;
-                }
-                preview.replaceChildren(content);
-                if (card.windowText !== undefined && !completePresentation(card) &&
-                    (card.directoryListing || card.fileEvidence || card.searchEvidence)) {
-                    const label = document.createElement("p");
-                    label.textContent = "Retained output tail (plain text)";
-                    const tail = document.createElement("pre");
-                    tail.className = "tool-output";
-                    tail.textContent = card.windowText;
-                    preview.append(label, tail);
-                }
-                card.previewText = previewText;
-                card.previewRenderer = renderer;
-                card.previewDefaultRenderer = defaultRenderer;
-                card.previewDirectoryListing = card.directoryListing;
-                card.previewFileEvidence = card.fileEvidence;
-                card.previewSearchEvidence = card.searchEvidence;
             }
             preview.hidden = result ? false : details.open;
             preview.tabIndex = 0;
-            preview.setAttribute("aria-label", "Scrollable tool output");
+            preview.setAttribute("aria-label", sessionOutput ? "Continuing output reference" : "Scrollable tool output");
             if (result) {
                 let windowNotice = card.node.querySelector(":scope > .output-window-notice");
                 if (!windowNotice) {
@@ -773,7 +796,7 @@ function render(card) {
                     card.node.insertBefore(windowNotice, details);
                 }
                 windowNotice.textContent = card.windowNotice || (new TextEncoder().encode(card.text).length > 65536 && card.windowText === undefined ? "Latest 64 KiB of the received observation; retained output not yet available." : "");
-                windowNotice.hidden = !windowNotice.textContent;
+                windowNotice.hidden = !!jobSessions?.owns(card) || !windowNotice.textContent;
                 loadResultWindow(card);
             }
         }

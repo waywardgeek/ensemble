@@ -371,10 +371,21 @@ records whose origin is explicitly `run_command` create this view. Legacy record
 without an origin stay ordinary observations instead of being guessed into a
 session.
 
-Historical call/result cards remain intact. The session is an additional view
-of retained output. When a wait or input observation explicitly foregrounds it,
-the GUI moves the existing node to the bottom of Tools. Background output updates
-that node where it is. Neither action reruns the command.
+Historical calls and results remain intact, but preserving history does not
+require displaying the same output twice. Once an identified session has usable
+output, successful command, wait and input results show a compact link to that
+session, with their immutable text available in a closed Recorded observation
+disclosure. Errors remain visible. A missing origin, failed session fetch or
+unavailable session restores ordinary recorded output rather than hiding it.
+
+When a wait or input observation explicitly foregrounds the session, the GUI
+moves its existing node to the bottom of Tools. Background polling updates that
+node where it is, without a model wait call or a second per-observation fetch.
+Neither action reruns the command. The model still receives each observation's
+output and status: it cannot see the human's browser. If the session module loads
+late, it takes over outstanding ordinary output fetches without changing the
+recorded text. Replay resets the association; links must validate the current
+card, Agent, Job and originating call before focusing a session.
 
 ### Separate the human window from the model cursor
 

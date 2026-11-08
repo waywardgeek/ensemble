@@ -1270,3 +1270,33 @@ widths, duplicate basenames, full-path metadata and retained truncation.
 Job806 passed final desktop/phone compact/pairing/state/directory/file/search
 checks and clean GuiTests/GUI distribution builds; fixture joined. Packaged
 search renderer bytes match source. Candidate not installed. Logs search-title-*.
+
+### One visible output owner for continuing commands
+
+Bill requested removing duplicated wait output because the continuing Job card
+already moves forward on explicit wait/input and updates in the background.
+Successful run/wait/input observations now link to the identified available
+session and expose immutable raw text in a closed Recorded observation disclosure.
+Agent+handle+origin remain the lookup identity. Errors retain ordinary output.
+Model results, History, Job status and cursors are unchanged. The session is the
+only window-fetch owner; late module availability aborts an ordinary fetch.
+Missing/failed session output restores recorded text, not an older human tail.
+Background polling updates without moving the node or requiring a model wait.
+
+First isolated desktop/phone browser pass succeeded and host joined. Subsequent
+review tightened late-load fallback and error retention, so final-byte rerun is
+required. Tests cover single initial fetch, automatic background progress without
+movement, wait/input links, raw disclosure, identity separation, error retention,
+failed fetch recovery, selection/focus and reset/stale response behavior.
+Chapter28 teaches this distinction where continuing output is constructed.
+
+Final Job8 completed exit0: final-byte desktop/phone session and existing compact,
+pairing/state/directory/file/search browser checks passed, fixture joined; default
+GUI suite and clean GuiTests/installable GUI builds passed. Candidate embedded
+GUI assembly matches browser-tested assembly. Initial loose-wwwroot byte check
+failed because those scripts are embedded, before note/queue writes; corrected
+to the actual packaging boundary. Chapter28 hard prose checks pass with existing
+advisory types. Tests use actual page synthetic observations and HTTP replies,
+not live-provider or installed-human acceptance. Server Job-window/core behavior
+unchanged; no fresh core suite claimed. Logs: session-observations-* in the
+existing isolated workspace. Not installed.

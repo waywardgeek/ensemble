@@ -1,7 +1,23 @@
 // Owns only a page's continuing views, never Jobs or their model-observation cursor.
-export function createJobSessions(pane, request = fetch) {
+export function createJobSessions(pane, request = fetch, changed = () => {}) {
     const sessions = new Map();
     let generation = 0;
+    function keyFor(card) {
+        const job = card.job;
+        if (card.status === "error" || !["run_command", "wait_for_job", "send_input"].includes(card.toolName) ||
+            job?.origin_tool !== "run_command" || typeof job.origin_call_id !== "string" || !job.origin_call_id ||
+            typeof card.agent !== "string" || !Number.isSafeInteger(job.handle) || job.handle <= 0) return null;
+        return JSON.stringify([card.agent, job.handle, job.origin_call_id]);
+    }
+    function output(card) {
+        const session = sessions.get(keyFor(card));
+        return session?.available && session.node.isConnected ? session.output : null;
+    }
+    function availability(session, available) {
+        if (session.available === available) return;
+        session.available = available;
+        changed();
+    }
     function reset() {
         generation++;
         for (const session of sessions.values()) {
@@ -10,6 +26,7 @@ export function createJobSessions(pane, request = fetch) {
             session.node.remove();
         }
         sessions.clear();
+        changed();
     }
     function selected(node) {
         const selection = window.getSelection();
@@ -73,9 +90,12 @@ export function createJobSessions(pane, request = fetch) {
                 typeof value.data !== "string" || value.data.length > 87384 || value.rolled_out !== (value.start > 0) ||
                 typeof value.status !== "string") throw new Error("Invalid output window");
             paint(session, value);
+            availability(session, true);
         } catch (error) {
-            if (epoch === generation && session.node.isConnected && !controller.signal.aborted)
-                session.notice.textContent = "Live output unavailable; recorded observations remain below. Refresh to retry.";
+            if (epoch === generation && session.node.isConnected) {
+                availability(session, false);
+                session.notice.textContent = "Live output unavailable; showing recorded observations. Refresh to retry.";
+            }
         } finally {
             clearTimeout(deadline);
             if (session.controller === controller) session.controller = null;
@@ -95,9 +115,8 @@ export function createJobSessions(pane, request = fetch) {
     });
     function observe(card, foreground = false) {
         const job = card.job;
-        if (job?.origin_tool !== "run_command" || typeof job.origin_call_id !== "string" || !job.origin_call_id ||
-            typeof card.agent !== "string" || !Number.isSafeInteger(job.handle) || job.handle <= 0) return;
-        const key = JSON.stringify([card.agent, job.handle, job.origin_call_id]);
+        const key = keyFor(card);
+        if (key === null) return;
         let session = sessions.get(key);
         if (!session) {
             const node = document.createElement("section");
@@ -132,5 +151,5 @@ export function createJobSessions(pane, request = fetch) {
         clearTimeout(session.timer);
         refresh(session);
     }
-    return { observe, reset };
+    return { observe, reset, output, owns: card => keyFor(card) !== null };
 }
