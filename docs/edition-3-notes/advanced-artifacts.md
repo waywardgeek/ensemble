@@ -1300,3 +1300,20 @@ advisory types. Tests use actual page synthetic observations and HTTP replies,
 not live-provider or installed-human acceptance. Server Job-window/core behavior
 unchanged; no fresh core suite claimed. Logs: session-observations-* in the
 existing isolated workspace. Not installed.
+
+### Continuing output usability: compact header
+
+Bill confirmed one continuing output works and requested the same header cleanup.
+Use Job N completed/running; remove normal byte-count/terminal paragraph. Keep
+technical details in output title/aria-label, a concise visible rollover warning,
+and Retry only after failed fetching. Recovery clears error metadata even when
+bytes are unchanged. Hidden-pane deferral schedules another check even for a
+completed Job so removing the permanent refresh button cannot strand its first
+fetch. Pane resize persistence was separately queued and not implemented.
+
+Final Job17 passed desktop/phone session and surrounding compact/pairing/state/
+directory/file/search browser checks; fixture joined. Clean GuiTests and GUI
+distribution builds; candidate GUI assembly matches browser-tested assembly.
+Tests verify compact running/completed headings, hidden normal count/retry,
+rollover notice, visible failure retry and metadata recovery with unchanged
+bytes. Logs session-title-*; candidate not installed.

@@ -387,6 +387,13 @@ late, it takes over outstanding ordinary output fetches without changing the
 recorded text. Replay resets the association; links must validate the current
 card, Agent, Job and originating call before focusing a session.
 
+Keep the session heading compact: `Job 1 completed` or its actual current state.
+Do not spend a paragraph on routine byte counts and terminal implementation
+limits. Put those details in the output tooltip and accessible label. Show a
+short warning when earlier output rolls out, and a Retry control only when
+fetching fails. Clearing a fetch error must update those notices even when the
+returned bytes have not changed.
+
 ### Separate the human window from the model cursor
 
 Joining observation strings cannot reliably reconstruct output: those strings

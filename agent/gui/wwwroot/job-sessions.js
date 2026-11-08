@@ -34,12 +34,20 @@ export function createJobSessions(pane, request = fetch, changed = () => {}) {
         for (let i = 0; i < selection.rangeCount; i++) if (selection.getRangeAt(i).intersectsNode(node)) return true;
         return false;
     }
+    function label(session, status) {
+        session.label.textContent = `Job ${session.handle} ${status === "done" ? "completed" : status}`;
+    }
     function paint(session, value) {
         session.latest = value;
+        session.notice.textContent = value.rolled_out ? "Earlier output rolled out; latest 64 KiB shown." : "";
+        session.notice.hidden = !value.rolled_out;
+        session.output.title = `Output bytes ${value.start}–${value.end}. Terminal log, not an interactive terminal.`
+            + (value.rolled_out ? " Earlier output remains on disk. Styling resets at the window boundary; partial control fragments may appear." : "");
+        session.output.setAttribute("aria-label", "Continuing command output. " + session.output.title);
+        session.status = value.status;
+        label(session, value.status);
         const renderer = window.EnsembleArtifactRenderers?.command;
         if (session.renderedStart === value.start && session.renderedData === value.data && session.renderer === renderer) {
-            session.status = value.status;
-            session.label.textContent = `Command session · Job ${session.handle} · ${value.status}`;
             return;
         }
         if (selected(session.output)) {
@@ -63,11 +71,7 @@ export function createJobSessions(pane, request = fetch, changed = () => {}) {
         session.renderedStart = value.start;
         session.renderedData = value.data;
         session.output.scrollTop = atBottom ? session.output.scrollHeight : oldTop;
-        session.notice.textContent = value.rolled_out
-            ? `Earlier output rolled out; retained on disk. Showing bytes ${value.start}–${value.end}. Styling resets at this boundary; partial control fragments may appear.`
-            : `Showing ${value.end} output bytes. Terminal log, not an interactive terminal.`;
-        session.status = value.status;
-        session.label.textContent = `Command session · Job ${session.handle} · ${value.status}`;
+
     }
     async function refresh(session) {
         if (session.controller || !session.node.isConnected) return;
@@ -75,8 +79,9 @@ export function createJobSessions(pane, request = fetch, changed = () => {}) {
         const controller = new AbortController();
         session.controller = controller;
         const deadline = setTimeout(() => controller.abort(), 10000);
+        let deferred = false;
         try {
-            if (document.hidden || pane.getClientRects().length === 0) return;
+            if (document.hidden || pane.getClientRects().length === 0) { deferred = true; return; }
             const url = new URL("./jobs/window", document.baseURI);
             url.searchParams.set("agent", session.agent);
             url.searchParams.set("handle", session.handle);
@@ -90,16 +95,19 @@ export function createJobSessions(pane, request = fetch, changed = () => {}) {
                 typeof value.data !== "string" || value.data.length > 87384 || value.rolled_out !== (value.start > 0) ||
                 typeof value.status !== "string") throw new Error("Invalid output window");
             paint(session, value);
+            session.retry.hidden = true;
             availability(session, true);
         } catch (error) {
             if (epoch === generation && session.node.isConnected) {
                 availability(session, false);
-                session.notice.textContent = "Live output unavailable; showing recorded observations. Refresh to retry.";
+                session.notice.textContent = "Live output unavailable; recorded observations shown.";
+                session.notice.hidden = false;
+                session.retry.hidden = false;
             }
         } finally {
             clearTimeout(deadline);
             if (session.controller === controller) session.controller = null;
-            if (epoch === generation && session.node.isConnected && session.status === "running")
+            if (epoch === generation && session.node.isConnected && (session.status === "running" || deferred))
                 session.timer = setTimeout(() => refresh(session), 1000);
         }
     }
@@ -131,11 +139,13 @@ export function createJobSessions(pane, request = fetch, changed = () => {}) {
             const retry = document.createElement("button");
             retry.type = "button";
             retry.className = "btn btn-sm btn-outline-primary";
-            retry.textContent = "Refresh output";
-            session = { node, label, notice, output, agent: card.agent, handle: job.handle, origin: job.origin_call_id, status: job.status };
+            retry.textContent = "Retry output";
+            retry.hidden = true;
+            session = { node, label, notice, output, retry, agent: card.agent, handle: job.handle, origin: job.origin_call_id, status: job.status };
             retry.onclick = () => { clearTimeout(session.timer); refresh(session); };
-            label.textContent = `Command session · Job ${job.handle}`;
-            notice.textContent = "Recorded observations remain separate; loading the bounded output window…";
+            label.textContent = `Job ${job.handle}`;
+            notice.textContent = "";
+            notice.hidden = true;
             node.append(label, notice, output, retry);
             pane.append(node);
             sessions.set(key, session);
