@@ -1216,3 +1216,16 @@ Staged whitespace checking identified two trailing spaces in upstream base.js
 (lines2 and204). Retained intentionally to preserve byte-identical vendoring;
 authored files pass whitespace checks separately. The first commit command
 stopped before commit at this check, not during a build or test.
+
+### Unified diff acceptance: basename only
+
+Bill inspected the installed unified diff and accepted it conditional on removing
+“ · replacement diff (old/new)” from the visible title. Retain the comparison
+extent and old/new explanation in the tooltip and accessible label. Basename
+and any meaningful partial-line position remain. Regression requires exact
+basename title and retained accessible explanation; figure readiness now checks
+the fixture basename rather than the removed suffix. No diff algorithm change.
+
+Final Job782 passed: clean GuiTests and installable GUI builds, desktop/phone
+compact/pairing/state/directory/file/search checks, fixture joined. Candidate
+renderer bytes verified against source. Not installed; no release regeneration.

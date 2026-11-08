@@ -25,7 +25,6 @@ export function fileDiff(document, evidence) {
     const root = document.createElement("div");
     root.className = "file-preview file-diff";
     const title = fileTitle(document, evidence);
-    title.textContent += " · replacement diff (old/new)";
     root.append(title);
     title.title += "; applied replacement only, not a whole-file diff; columns are old/new line numbers";
     title.setAttribute("aria-label", title.title);

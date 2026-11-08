@@ -58,7 +58,7 @@ assert(output && shared);
   }
   await capture(page.locator('[data-part-id="figure-directory"] .directory-preview'),'directory',/notes <draft>/);
   await capture(page.locator('[data-part-id="figure-search"] .search-preview'),'search',/3 omitted/);
-  await capture(page.locator('[data-part-id="figure-edit"] .file-preview'),'replacement',/replacement diff/);
+  await capture(page.locator('[data-part-id="figure-edit"] .file-preview'),'replacement',/Report\.cs/);
   await page.waitForFunction(()=>document.querySelector('.terminal-output')?.textContent.includes('24 passed'));
   assert.equal(await page.locator('.job-session').count(),1);
   await capture(page.locator('.job-session'),'command',/Earlier output rolled out/);

@@ -241,7 +241,7 @@ show clearly labeled before/after excerpts and explain why there is no unified
 diff. Never present a prefix comparison as a complete patch. Mark missing final
 newlines explicitly, including when only that boundary changed.
 
-Keep ordinary file headings compact: a basename, with the full path available
+Keep file headings compact, including edits: a basename, with the full path available
 in its tooltip and accessible label. Append positions fit beside the basename,
 for example `sample.go · appended at 4:17`. The numbered source supplies ordinary
 line positions without a repeated paragraph. One outer result preview owns
