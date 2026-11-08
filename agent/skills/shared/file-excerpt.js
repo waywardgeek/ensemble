@@ -7,16 +7,22 @@ export function fileExcerpt(document, evidence, operations) {
     const title = document.createElement("p");
     title.className = "file-name";
     title.textContent = evidence.path.split(/[\\/]/).at(-1) || evidence.path;
-    title.title = evidence.path;
-    title.setAttribute("aria-label", evidence.path);
+    const partial = evidence.start_column > 1;
+    const append = evidence.operation === "append";
+    let description = evidence.path;
+    if (append || partial) {
+        const action = append ? (evidence.content.text.length ? "appended" : "empty append") : "partial line";
+        title.textContent += ` · ${action} at ${evidence.start_line}:${evidence.start_column}`;
+        description += `; ${action} at line ${evidence.start_line}, column ${evidence.start_column} (UTF-16)`;
+    }
+    title.title = description;
+    title.setAttribute("aria-label", description);
     root.append(title);
     const source = /\.(cs|js|mjs|cjs|ts|tsx|jsx|py|go|java|c|h|cpp|hpp|rs|json|sh)$/i.test(evidence.path);
     function section(label, excerpt) {
-        if (label || evidence.start_column > 1) {
+        if (label) {
             const heading = document.createElement("p");
-            const position = evidence.start_column > 1
-                ? `Partial first line: line ${evidence.start_line}, column ${evidence.start_column} (UTF-16)` : "";
-            heading.textContent = [label, position].filter(Boolean).join(" — ");
+            heading.textContent = label;
             root.append(heading);
         }
         if (new TextEncoder().encode(excerpt.text).length < excerpt.total_bytes) {
@@ -42,7 +48,9 @@ export function fileExcerpt(document, evidence, operations) {
             number.className = "file-line-number";
             number.textContent = String(evidence.start_line + index);
             const code = document.createElement("code");
-            if (source) highlight(code, text);
+            // A mid-line fragment can start inside a string or comment. Without
+            // the preceding source, literal display is more faithful than guessed tokens.
+            if (source && !partial) highlight(code, text);
             else code.textContent = text;
             row.append(number, code);
             pre.append(row);

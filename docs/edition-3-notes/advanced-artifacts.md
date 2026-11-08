@@ -1143,3 +1143,24 @@ browser checks passed, host joined, and installable GUI build passed. Logs use
 library, model-result change, live installation, or publication update. Optional
 wrap and clean-copy controls remain a separate agreed follow-up, not implemented
 by this layout correction.
+
+### Append-view usability: precise position without a paragraph
+
+Bill's real Dev append succeeded and showed the correct continued line, but the
+separate partial-line paragraph was visually excessive. Combine basename and
+position as `sample.go · appended at 4:17`; retain the full path and explicit
+line/UTF-16-column explanation in the tooltip and accessible label. Empty append
+says empty append, not that content was written. Partial positions for other
+operations also use the title once; Removed/Inserted labels remain separate.
+Job controls/status and recorded tool text are unchanged.
+
+The screenshot also exposed misleading standalone lexical coloring of a fragment
+that begins inside a string. Captured evidence lacks preceding lexical context:
+render mid-line excerpts literally rather than guess token state. Ordinary
+whole-line source excerpts retain the existing small lexical formatter, not a
+claim of full language parsing. Desktop/phone actual-page synthetic-frame tests
+check the compact title, full accessible position, one heading paragraph, exact
+fragment text and absence of guessed highlighting, alongside existing scrolling,
+read/edit/search/directory and focus/pairing checks. Fixture joined; GUI builds
+passed with zero warnings/errors. Logs: `append-layout-*` in the existing
+verification workspace. Candidate not yet installed; human acceptance separate.
