@@ -1365,3 +1365,8 @@ Lesson: completion records must distinguish accepted installed usability, bounde
 reconstruction, synthetic illustrations and publication checks instead of allowing
 an old disclaimer to erase demonstrated human use. Chapter is closed at this
 bounded implementation/teaching milestone; Bill retains final reading/publication.
+
+Bill subsequently reviewed the completed Chapter28 and said “The chapter LGTM.”
+This closes human editorial acceptance as well as the previously accepted runtime
+and usability. Publication/upload remains a separate decision; no new verification
+or release rebuild is needed for this acceptance-only record.
