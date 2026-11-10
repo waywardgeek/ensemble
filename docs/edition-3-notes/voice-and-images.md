@@ -2057,3 +2057,16 @@ Bill's screenshot showed the prior placement merely transferred excess height to
 ### Full-width bubbles beneath transparent playback
 
 Bill accepted the compact name layout visually, then rejected the prose gutter. Removed the48px message margin; the name still reserves icon space. Playback background/border are explicitly transparent at rest, with hover/focus behavior retained. Its44px target can intentionally overlap prose: transparent paint does not make clicks pass through, a tradeoff explained in chat. Eight updated geometry/playback cases and four contrast cases pass; GUI build clean. No install/restart; visual acceptance of this adjustment pending.
+
+## Queued accessibility request: composer spoken label matches visible prompt
+
+Bill reports hearing "Send message to Cadence" for the chat input while its
+visible prompt says "Ask Cadence anything". He requests the spoken accessible
+name match the visible wording exactly: "Ask Cadence anything".
+
+Inspect the actual composer label/aria-label/placeholder ownership before editing.
+Apply the selected Agent's name consistently to both visible and accessible text;
+verify initial selection and Agent switching do not retain a stale name. Check the
+browser accessibility name, then obtain Bill's screen-reader acceptance. This is
+queued, not implemented or live-verified. No restart or deployment follows from
+this note.
