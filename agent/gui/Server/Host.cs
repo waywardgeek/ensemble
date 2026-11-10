@@ -75,7 +75,8 @@ public static partial class Gui
     {
         cancellation.ThrowIfCancellationRequested();
         int port = options.Port;
-        ArgumentOutOfRangeException.ThrowIfLessThan(options.HistoryEventLimit, 1);
+        ArgumentOutOfRangeException.ThrowIfLessThan(options.ChatHistoryEventLimit, 1);
+        ArgumentOutOfRangeException.ThrowIfLessThan(options.ToolHistoryEventLimit, 1);
         string? publicOrigin = ValidatePublicOrigin(options.PublicOrigin);
         if (port is < 1 or > 65535)
         {
@@ -239,7 +240,7 @@ public static partial class Gui
             if (captures.TryGetValue(selected, out var cached) && cached.Snapshot.Sequence == snapshot.Sequence
                 && ReferenceEquals(cached.Snapshot.Context, snapshot.Context))
                 return cached;
-            var projection = Project(snapshot, AddressOf(selected), options.HistoryEventLimit);
+            var projection = Project(snapshot, AddressOf(selected), options.ChatHistoryEventLimit, options.ToolHistoryEventLimit);
             // A completed response retires its previews even when a mid-turn
             // cut removes the corresponding final tool cards from Context.
             long ended = snapshot.Events.LastOrDefault(e =>

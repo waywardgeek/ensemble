@@ -4,14 +4,25 @@ export function createJobSessions(pane, request = fetch, changed = () => {}) {
     let generation = 0;
     function keyFor(card) {
         const job = card.job;
-        if (card.status === "error" || !["run_command", "wait_for_job", "send_input"].includes(card.toolName) ||
-            job?.origin_tool !== "run_command" || typeof job.origin_call_id !== "string" || !job.origin_call_id ||
+        if (card.status === "error" || typeof job?.origin_tool !== "string" || !job.origin_tool ||
+            ![job.origin_tool, "wait_for_job", "send_input"].includes(card.toolName) ||
+            card.workProduct || card.directoryListing || card.fileEvidence || card.searchEvidence ||
+            card.parts?.some(part => part.type !== "text") ||
+            typeof job.origin_call_id !== "string" || !job.origin_call_id ||
             typeof card.agent !== "string" || !Number.isSafeInteger(job.handle) || job.handle <= 0) return null;
-        return JSON.stringify([card.agent, job.handle, job.origin_call_id]);
+        const key = JSON.stringify([card.agent, job.handle, job.origin_call_id]);
+        // Short completed tools retain their specialized result presentation.
+        // A running Job or an explicit wait starts a continuing output view.
+        return sessions.has(key) || job.status === "running" || job.origin_tool === "run_command" ||
+            ["wait_for_job", "send_input"].includes(card.toolName) ? key : null;
     }
     function output(card) {
         const session = sessions.get(keyFor(card));
         return session?.available && session.node.isConnected ? session.output : null;
+    }
+    function container(card) {
+        const session = sessions.get(keyFor(card));
+        return session?.available && session.node.isConnected ? session.observations : null;
     }
     function availability(session, available) {
         if (session.available === available) return;
@@ -53,7 +64,7 @@ export function createJobSessions(pane, request = fetch, changed = () => {}) {
         session.notice.hidden = !value.rolled_out;
         session.output.title = `Output bytes ${value.start}–${value.end}. Terminal log, not an interactive terminal.`
             + (value.rolled_out ? " Earlier output remains on disk. Styling resets at the window boundary; partial control fragments may appear." : "");
-        session.output.setAttribute("aria-label", "Continuing command output. " + session.output.title);
+        session.output.setAttribute("aria-label", "Continuing Job output. " + session.output.title);
         session.status = value.status;
         label(session, value.status);
         const renderer = window.EnsembleArtifactRenderers?.command;
@@ -99,7 +110,7 @@ export function createJobSessions(pane, request = fetch, changed = () => {}) {
             if (!response.ok) throw new Error("Output window unavailable");
             const value = await response.json();
             if (epoch !== generation || !session.node.isConnected) return;
-            if (value.handle !== session.handle || value.origin_call_id !== session.origin || value.origin_tool !== "run_command" ||
+            if (value.handle !== session.handle || value.origin_call_id !== session.origin || value.origin_tool !== session.originTool ||
                 value.encoding !== "base64" || !Number.isSafeInteger(value.start) || !Number.isSafeInteger(value.end) ||
                 value.start < 0 || value.end < value.start || value.end - value.start > 65536 ||
                 typeof value.data !== "string" || value.data.length > 87384 || value.rolled_out !== (value.start > 0) ||
@@ -151,12 +162,18 @@ export function createJobSessions(pane, request = fetch, changed = () => {}) {
             retry.className = "btn btn-sm btn-outline-primary";
             retry.textContent = "Retry output";
             retry.hidden = true;
-            session = { node, label, notice, output, retry, agent: card.agent, handle: job.handle, origin: job.origin_call_id, status: job.status };
+            const observations = document.createElement("details");
+            observations.className = "job-observations";
+            const summary = document.createElement("summary");
+            summary.textContent = "Recorded observations";
+            observations.append(summary);
+            session = { node, label, notice, output, retry, observations, agent: card.agent,
+                handle: job.handle, origin: job.origin_call_id, originTool: job.origin_tool, status: job.status };
             retry.onclick = () => { clearTimeout(session.timer); refresh(session); };
             label.textContent = `Job ${job.handle}`;
             notice.textContent = "";
             notice.hidden = true;
-            node.append(label, notice, output, retry);
+            node.append(label, notice, output, retry, observations);
             pane.append(node);
             sessions.set(key, session);
         }
@@ -171,5 +188,5 @@ export function createJobSessions(pane, request = fetch, changed = () => {}) {
         clearTimeout(session.timer);
         refresh(session);
     }
-    return { observe, reset, retain, output, owns: card => keyFor(card) !== null };
+    return { observe, reset, retain, output, container, owns: card => keyFor(card) !== null };
 }

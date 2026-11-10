@@ -64,6 +64,17 @@ not install controls, account routes, or a browser relay.
 
 ## Outside-consumer verification
 
+Chat and Tools each retain 100 displayed events by default. Set
+`ChatHistoryEventLimit` and `ToolHistoryEventLimit` independently in `GuiOptions`;
+the compatible `HistoryEventLimit` initializer sets both. Mixed response parts
+can leave one pane while remaining in the other. This does not trim History.
+
+Continuing Job views include background workflow Jobs, using the recorded
+operation name even when no assistant call card exists. Wait/input observations
+move the existing output node to the bottom; successful observations live inside
+its collapsed history. Errors and unavailable readback retain visible recorded
+results. History and model call/result identities are unchanged.
+
 The separate `GuiTests` executable consumes public APIs only. Publish it into an
 owned temporary directory, then execute it from an owned empty working directory:
 

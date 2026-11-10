@@ -592,6 +592,8 @@ function renderPairLink(card) {
             // objects even when the new transcript reuses the same wire IDs.
             const counterpart = card.kind === "tool_call" ? card.latestResult : card.callCard;
             if (!currentCard(card) || !currentCard(counterpart)) return;
+            const observations = counterpart.node.closest(".job-observations");
+            if (observations) observations.open = true;
             counterpart.node.tabIndex = -1;
             counterpart.node.focus({ preventScroll: true });
             counterpart.node.scrollIntoView({ block: "nearest" });
@@ -640,9 +642,10 @@ function render(card) {
     const pane = artifact ? toolTranscript : transcript;
     const savedScrollTop = pane.scrollTop;
     const reading = pane.contains(document.activeElement) || [...cards.values()].some(
-        item => item.node.parentElement === pane && cardHasSelection(item));
+        item => pane.contains(item.node) && cardHasSelection(item));
     const nearBottom = !reading && pane.scrollHeight - pane.scrollTop - pane.clientHeight < 90;
-    if (card.node.parentElement !== pane) pane.append(card.node);
+    const container = card.kind === "tool_result" ? jobSessions?.container(card) || pane : pane;
+    if (card.node.parentElement !== container) container.append(card.node);
     const prose = ["text", "thinking", "reasoning_summary"].includes(card.kind);
     const keepBody = prose && card.node.querySelector(":scope > .message");
     if (!keepBody && !artifact) card.node.replaceChildren();
@@ -1114,6 +1117,7 @@ function handle(frame) {
         card.kind = "tool_result";
         card.parts = frame.parts || [];
         card.job = frame.job;
+        card.toolName = frame.name;
         card.workProduct = frame.is_error ? null : frame.work_product;
         card.directoryListing = frame.is_error ? null : frame.directory_listing;
         card.fileEvidence = frame.is_error ? null : frame.file_evidence;
@@ -1144,6 +1148,9 @@ function handle(frame) {
     } else render(card);
     if (card.kind === "tool_result") jobSessions?.observe(card,
         ["wait_for_job", "send_input"].includes(card.toolName));
+    // Once a continuing view exists, keep each immutable observation inside its
+    // collapsed history instead of adding another output card to the pane.
+    if (card.kind === "tool_result" && jobSessions?.container(card)) render(card);
     if (card.callCard) renderPairLink(card.callCard);
     narrate(card);
 }

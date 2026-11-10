@@ -153,6 +153,19 @@ text; replay reconstructs the same card, not a duplicate. Repeated final frames
 are idempotent. The server and browser both reject resurrection of completed
 content by stale chunks.
 
+Chat and Tools need separate display windows. Each defaults to 100 contributing
+events; tool traffic must not evict conversation, nor chat evict tool output.
+Count a mixed event once per pane and select its parts independently. Keep
+state/lifecycle replay bounded too, while deriving final state from all facts.
+Display eviction is presentation policy, never deletion from saved History.
+
+Continuing Job output has a different identity from each recorded observation.
+A `wait_for_job` result updates and foregrounds the same output view; its audit
+record does not require another top-level output card. Preserve the recorded
+operation name even for background MCP results without an assistant call card.
+Chapter 29 develops this continuing view, and the Chapter 30 field notes record
+the workflow case that exposed the original command-only restriction.
+
 ### Keep the mount-local identity distinct
 
 An empty `agent_id` can identify the original unnamed Agent borrowed by a GUI

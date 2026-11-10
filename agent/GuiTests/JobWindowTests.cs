@@ -97,9 +97,10 @@ internal static class JobWindowTests
                 using var response = await Get(refusal.Item1, refusal.Item2, refusal.Item3);
                 Check(response.StatusCode == refusal.Item4, "window ownership/guard and download distinction");
             }
+            var completion = owner.DispatchAsync(new ToolCallPart("wait", owner.Configuration().Target(), "wait_for_job",
+                JsonSerializer.SerializeToElement(new { handle, ai_callback_delay = 1800, ai_callback_pattern = "END", max_output_bytes = 32 })), deadline.Token);
             release.SetResult();
-            var final = await owner.DispatchAsync(new ToolCallPart("wait", owner.Configuration().Target(), "wait_for_job",
-                JsonSerializer.SerializeToElement(new { handle, ai_callback_delay = 2, ai_callback_pattern = "END", max_output_bytes = 32 })), deadline.Token);
+            var final = await completion;
             Check(JsonCodec.Text(final.Parts).Contains("UNOBSERVED") && JsonCodec.Text(final.Parts).Contains("END"),
                 "human window did not consume model cursor");
             Console.WriteLine("PASS Job window: bounded bytes, origin, ownership, guards, running download refusal, independent cursor");

@@ -1,5 +1,69 @@
 # GUI history window and Agent switching
 
+## November 10: workflow output identity, wait duration and separate pane limits
+
+A read-only 16-second socket sample found two Python drivers returning separate
+MCP observations about every three seconds for Cadence Jobs 32 and 48. Both came
+from spawn_sub_agent, remained running and repeatedly reported 91 bytes without
+new output. Each ToolObserved event had a new sequence and therefore a new card.
+The 100-event display cap did not prevent churn and let Tools displace Chat.
+
+The first source attempt filtered identical background reports. Bill clarified
+that wait_for_job must move the existing output to the bottom. That attempt was
+removed: suppressing duplicate events did not repair continuing output identity.
+The existing browser session code only admitted run_command origins. Background
+MCP results also lacked the assistant call card from which it derived tool names.
+
+The final candidate carries recorded operation names independently of call cards.
+Running Jobs and waits can establish continuing output views for any recorded
+origin, including spawn_sub_agent and ask_agent. Successful plain observations
+live inside the same view's collapsed history; wait/input moves that existing DOM
+node. Errors, rich evidence, missing identity and unavailable readback preserve
+ordinary result presentation. Origin validation, Agent separation, bounded Job
+readback and observation cursors remain intact. No audit event is discarded.
+
+ChatHistoryEventLimit and ToolHistoryEventLimit default independently to 100.
+The legacy HistoryEventLimit initializer configures both. Projection counts an
+event once in each pane to which it contributes; mixed prose/tool responses can
+retain their parts independently. State/lifecycle notices have a bounded tail
+while final Agent state still reduces all facts. Display-window eviction never
+changes saved History or the model's working context.
+
+The fiction helper now supplies `ai_callback_delay: 1800` for subsequent Job waits.
+This is a maximum observation duration, not a sleep: output, completion, attention
+and the existing hint behavior can wake it earlier. The human supervisor's
+separate twenty-minute observation policy is unchanged. Existing Python processes
+have not reloaded this edit, and no installed workflow package was replaced.
+
+Verification uses `/tmp/ensemble-poll-card-fix/bin`, empty test workspaces, fake
+providers and owned loopback ports. Builds have zero warnings/errors. Projection
+checks cover background names without call cards, asymmetric pane limits, mixed
+responses, bounded lifecycle replay and compatibility. Socket checks send 150 tool
+results without evicting 100 chat events, then 125 chat messages without evicting
+100 tool events. The broader GUI consumer passes. Real-browser tests cover 150
+workflow waits reusing one output node, grouping, movement, completion, fallback,
+eviction and Agent isolation. Existing command tests pass at 1280/390 widths,
+including focus, selection, background stability, raw observations and retries;
+the parent/child history-window regression passes. Final browser hosts join cleanly.
+An earlier browser fixture hit its timeout after old selectors treated newly
+collapsed observations as visible; the tests now inspect those disclosed records
+explicitly. This was test adaptation to the requested presentation change.
+
+The Job window test uses a 1800-second observation and completes on Job completion
+within its 45-second test deadline. The Python adapter's nine checks pass, and all
+86 Python tests pass after correcting an existing recovery assertion: searching
+for bare c2 matched random run IDs, not just chapter 2. Deterministic run IDs c2…
+and ab… reproduced the false failure/pass; the assertion now matches -c2-.
+Initial test dependency metadata pointed at an obsolete cache; refreshing solely
+from existing local NuGet packages resolved SkiaSharp without a download.
+
+Chapter 30 records these lessons and required next-execution checks. Chapters 7
+and 29 explain the resulting GUI behavior. No live installation, restart, model
+request or workflow mutation occurred. Browser refresh alone cannot apply the
+server projection or reload already-running Python code.
+
+## Earlier installed history-window repair
+
 Bill reported an unresponsive V3 browser and tool cards crossing between parent
 and child views on November9. The running Cadence trace contained one replay with
 31,488 frames and 9,349 card identities. The prior projection serialized the full

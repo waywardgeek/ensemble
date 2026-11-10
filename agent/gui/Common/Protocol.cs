@@ -71,6 +71,7 @@ public static partial class Gui
     // Replay and live durable delivery use this exact same projection.
     public static partial Projection Project(HistorySnapshot snapshot, string agentID);
     public static partial Projection Project(HistorySnapshot snapshot, string agentID, int eventLimit);
+    public static partial Projection Project(HistorySnapshot snapshot, string agentID, int chatEventLimit, int toolEventLimit);
     // Merge authoritative reduced entries with retained lifecycle diagnostics.
     // Synthesized display facts are local projections, never appended to History.
     private static partial ImmutableArray<Event> DisplayFacts(HistorySnapshot snapshot);

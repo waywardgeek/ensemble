@@ -1,3 +1,16 @@
+# Current boundary: workflow output reuse and separate pane limits in source
+
+Bill traced repeated Cadence cards to three-second workflow Job observations.
+The GUI candidate now retains operation names on background MCP results, reuses
+continuing output for child/workflow Jobs, and moves the same output node on
+wait/input. Recorded observations remain inside that view. Chat and Tools have
+independent 100-event defaults, so tool traffic cannot displace conversation.
+The fiction helper now waits up to 1800 seconds, with normal early wake behavior.
+The scratch candidate builds cleanly; GUI/socket, desktop/mobile/browser and 86
+Python checks pass. Chapter 30 records the diagnosis and next-execution checks;
+see [evidence and limits](edition-3-notes/gui-history-window.md).
+Source only: no installation, host restart or running-workflow mutation occurred.
+
 # Current boundary: GUI history window and Agent-switch repair installed
 
 Bill reported browser overload and parent/child tool-card mixing. The GUI now

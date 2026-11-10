@@ -25,5 +25,12 @@ public sealed record GuiOptions(int Port = 8090, string? AssetsDirectory = null,
     string? PublicOrigin = null, string? RendererDirectory = null)
 {
     // Presentation only: neither durable History nor model context is trimmed.
-    public int HistoryEventLimit { get; init; } = 100;
+    public int ChatHistoryEventLimit { get; init; } = 100;
+    public int ToolHistoryEventLimit { get; init; } = 100;
+    // Preserve callers that supplied a single limit: apply it to each pane.
+    public int HistoryEventLimit
+    {
+        get => ChatHistoryEventLimit;
+        init { ChatHistoryEventLimit = value; ToolHistoryEventLimit = value; }
+    }
 }
