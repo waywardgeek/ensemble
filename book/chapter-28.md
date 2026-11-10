@@ -1,801 +1,609 @@
-# Chapter 28: Advanced Artifacts
+# Chapter 28: Running Local Models
 
-A readable tool result lets the human check the Agent's work while it is still
-useful to intervene. Raw output remains necessary evidence, but asking a person
-to reconstruct a file edit or a continuing command from text fragments makes
-supervision harder than it needs to be. This chapter gives presentation its own
-editable code without giving it ownership of the work it describes.
+> **Local-model integration accepted in ordinary GUI use.** Bill created a
+> separate MiMo Agent, received a reply and observed a tool call with its result.
+> This establishes the requested local-model support, not general coding quality.
+> Deterministic routing, streaming and lifecycle evidence remains separate: the
+> public runner passes 136 named checks but is ungraded, with incomplete coverage.
+> The next external usage review is for Julien's larger GPU setup, not another
+> MiMo coding trial.
 
-> **Verification boundary.** The implementation has bounded local verification.
-> One isolated student attempt exercised the directory slice and informed the
-> teaching; one editorial review followed. Neither establishes reconstruction of
-> the full chapter. Bill accepted the installed file/search views and continuing
-> output through hands-on use, including rollover and a real debugger session.
-> Figures use synthetic fixtures; these checks do not establish all-platform
-> or screen-reader acceptance. The [development notes](../docs/edition-3-notes/advanced-artifacts.md)
-> retain detailed evidence and verification limits.
+## TL;DR: Specification Brief
 
-## TL;DR
+Add an explicitly configured local inference route to the existing Agent and
+Engine. Offer its models in the ordinary model selector without changing the
+current selection automatically. Local inference is another transport destination,
+not another agent architecture.
 
-Package readable renderer modules beside skills, with shared helpers under
-`skills/shared`. A skill's `renderers:` mapping associates tool names with relative
-JavaScript entries; it neither grants tools nor approves browser execution.
-Explicit packaging determines which shipped assets the GUI serves. Installed
-source and short API notes let an Agent adapt presentation without a checkout
-or loading every helper into its model context.
-
-Keep recorded content, identity, call/result pairing and lifecycle in their
-existing owners. Renderers receive bounded presentation inputs. Capture directory,
-file and search evidence during the operation; retain it through History and
-replay separately from model-facing text. Missing evidence means unavailable
-metadata, not an empty successful operation. Success presentation requires a
-successful result. Detailed shapes and bounds appear in
-[Implementation reference](#implementation-reference).
-
-Provide directory, read, write, exact-edit and search previews; a configurable
-default for other tools; shared prose rendering for chat and readable thinking;
-and a terminal-log renderer for continuing commands. Preview functions return
-detached elements. Prose and command functions update a supplied body in place.
-The GUI retains a final literal-text fallback outside the customization chain.
-
-Correlate a continuing command by its actual Agent, Job and recorded originating
-call. Preserve each historical observation independently. Explicit wait/input
-observations foreground the same session node; background polling does not move
-it. Fetch the latest 64 KiB through an owned read-only output window, independent
-of the model cursor. Mark rollover and reset terminal styling at that boundary.
-Preserve unchanged DOM, selection and scroll, and reject stale responses after
-replay or Agent changes. A finished observation does not imply a finished Job.
-
-Approval applies to an immutable version containing the entry and all declared
-executable dependencies. Stage is inert; Try live executes only in the current
-page; Keep saves the accepted version; reload discards an unaccepted trial.
-Retain a previous version and shipped-only recovery. Compare the expected
-accepted version when saving so stale tabs cannot silently overwrite a choice.
-Selections are shared across Agent views, independent per renderer.
-
-Approved code runs with page authority. Review and supervision do not contain
-it. Safe helpers treat output as data, but cannot constrain malicious approved
-JavaScript. The implemented approval keys are `list_directory`, `read_file`,
-`write_file`, `edit_file`, `search_files`, `tool_default`, `prose`, and `command`.
-Additional registered tools, including MCP tools, have namespaced approval choices
-shared by exact tool name across Agents. Without an accepted specialized renderer,
-they use the configurable default. Discovery itself never executes renderer code.
-Iframe isolation and a general extension installer remain outside this chapter.
-
-Demonstrate that Artifact identity does not require a card through a standalone
-inline dice fixture. Its host supplies recorded facts; revealing their explanation
-never rolls again. Workflows and multi-agent orchestration belong to the Puffin
-codebook, not this implementation increment.
+- Select the model, endpoint, wire surface and funding policy together. A local
+  model name must never travel to the cloud endpoint inherited from its parent.
+- Use the existing OpenAI-compatible Chat Completions path where the server
+  actually supports it. Do not build an Ollama-specific adapter merely because
+  the server has a native API too.
+- Keep local requests credential-free. Do not borrow an API key, subscription
+  bearer or account header. Failure never authorizes a cloud fallback.
+- Make configured local models available through normal model selection and
+  child creation. Do not impose a child-only restriction. Selecting a small model
+  does not make a large existing conversation fit it.
+- Distinguish the model's advertised context maximum, the server's loaded context,
+  and the Agent's working-context policy. Last-request usage is not a preflight
+  token count or a guarantee that the next request will fit.
+- Preserve canonical calls, call IDs and correlated results. JSON printed in
+  ordinary text is not a tool call and grants no execution authority.
+- Keep buffered and streaming behavior consistent across rendering, endpoint
+  selection and response parsing. Preserve ordinary cancellation and ownership.
+- Report measured token usage when present; missing usage remains unknown. Local
+  inference is not proof of zero operating cost or a known cloud-equivalent price.
+- Separate deterministic protocol tests from actual-model usefulness and human
+  acceptance. A model listing's tool-support label is not an end-to-end test.
 
 ## In plain words
 
-A tool result is part of the conversation between a person and an Agent. Its
-presentation determines how much work the person must do to understand what
-happened. A directory listing should look like a directory listing. A change to
-a source file should make the changed lines easy to find. A debugger session
-should remain a session while the Agent asks it another question.
+Moving inference to another computer does not move the Agent there. Ensemble still
+owns the conversation, tools, Jobs, permissions and saved history. The model server
+receives a request and returns an answer or a structured request to use a tool.
+Ensemble decides whether that tool is granted and records its result before asking
+for the next answer.
 
-Consider a user asking for directories to stand apart from other entries. When
-presentation is embedded in GUI special cases, changing that display requires
-finding and modifying the application. With a skill-owned renderer, the Agent starts from the skill that provides the listing,
-reads the renderer and its interface, and changes that presentation. A second
-Agent using the same tool gets the same improved display. The original directory
-result remains available even if the custom renderer fails.
+A model dropdown therefore chooses more than a spelling. If a parent uses a cloud
+subscription and its child selects a local model, retaining the parent's endpoint
+or bearer is wrong. The local route must be explicitly available, and selecting it
+must select the correct destination without carrying cloud credentials across.
+The same rule applies when a human changes an idle Agent's model in the GUI.
 
-The small example establishes the extension mechanism. It should also establish
-how the human can understand the change: which renderer was selected, which data
-it received, and what the new code does with it. The Agent can explain those facts
-while the user still has a chance to steer. A natural-language formatting request
-is a programming request with a human reviewing the result.
+Small models are useful for bounded work, but a successful arithmetic example does
+not show that they can manage a large system prompt, extensive memory and dozens of
+tool declarations. Start with a small task and a modest tool set. Measure the loaded
+context and GPU placement rather than assuming the advertised model maximum fits
+in video memory. Raising a working-context setting does not enlarge the server's
+allocation, and a handoff cannot remove all fixed prompt overhead.
 
-### Reuse a helper without reading a library
+The first live trial made a useful distinction. One coding model printed an object
+that looked like a function call inside ordinary answer text. A newer package
+returned a real `tool_calls` array, accepted a result with the matching call ID,
+and answered the question. Only the second exchange demonstrated the structured
+protocol we need. Neither exchange alone demonstrated reliable agentic coding.
 
-A renderer that needs Markdown can reuse the supplied safe rendering module.
-The Agent needs to know the helper's inputs, outputs and important restrictions. It usually
-has no reason to read the parser's implementation. A short library index points
-to that information; detailed source is available when the task needs it.
+A later integrated Ensemble trial returned a correct small Python function but
+made no tool call despite an explicit request to use its one declared tool. It
+used short primary instructions, not the normal primary skill. The function
+passed six reviewed local cases; requested tool use did not pass. Record both
+outcomes rather than treating successful generation as successful tool use.
 
-The browser can load a parser as an executable dependency while the model knows
-only where to find its API documentation. That separation keeps useful code
-available without spending context on every library in the installation. The
-same packaging idea serves a Python helper used by several tools or a Go package
-used by workflow executables. Each language keeps its ordinary execution model.
+A subsequent small-primary-skill trial captured a real structured call and its
+correlated result, but also exposed default recall overhead and a capture-fixture
+error. A fresh Agent is not automatically an auxiliary-inference-free Agent:
+explicitly configure recall when isolating prompt and tool overhead. Keep observed
+protocol success separate from an error-free experiment or a causal skill claim.
 
-### A dice total is enough of an Artifact
+A final authorized trial used a small primary skill and exactly the original six
+tools, with all memory bands and automatic recall disabled. MiMo read the supplied
+cases and test script, observed an ordinary missing-file result, wrote the
+implementation, and ran the fixed test script. Four model requests produced five
+tool results; all six cases passed without changing the supplied files or inputs.
+The process and relay joined cleanly, with no retry or cloud fallback.
 
-Bill's Homebrew-VTT example makes the visual requirement concrete. The application
-has a chat pane, and a dice tool's result belongs in that conversation. For
-example, a result could appear as “Attack: 23.” Clicking it reveals
-“d20: 17 + proficiency: 3 + ability: 3.” The fixture uses a native disclosure,
-opened with Enter or Space after keyboard focus and by tapping on touch devices.
+The largest reported request used 1912 input and 291 output tokens, 2203 total,
+within the loaded 4096-token context. Cached input is already included in that
+input figure. Only read_file, write_file and run_command were exercised; granting
+six tools does not certify all six. This demonstrates one useful integrated task,
+not general coding reliability or that the normal full skill fits this allocation.
 
-That display needs the recorded calculation and a small interaction. It does not
-need to resemble a source-code card. Revealing the explanation also must not roll
-again. The Artifact's identity and content let the renderer explain the event;
-the chosen shape makes it useful in that application. Shared UI helpers should
-make ordinary displays easy without imposing a universal card template.
+## What the live GUI check accepted
 
-### Foreground the work that already exists
+Julien, whose nine PRs informed earlier integration work, requested local-model
+support for his own GPU setup. Bill's small MiMo installation was sufficient to
+check that capability; it was not intended to become his coding model.
 
-Suppose the Agent starts a debugger, receives a prompt, then turns to a source
-file. A later `send_input` addresses that same running process. The human should
-see the debugger log return to the bottom of the Tools pane and continue
-displaying output. Input still travels through the tool; the view adds no terminal
-input widget or full-screen debugger emulation. Starting a new visual snapshot for every
-interaction forces the reader to assemble the session mentally.
+After explicit host registration, Bill created a separate Agent with the
+`local-coding` primary skill and disabled all memory bands and automatic recall.
+MiMo answered a greeting through the GUI. Bill then requested a directory listing
+and confirmed that an actual tool call returned results. The final answer was
+verbose, ignored the requested brief confirmation and speculated about directory
+names. Record that model behavior, but do not turn it into failure of the runtime
+integration. Bill explicitly accepted the local-model test as successful.
 
-History still records the individual operations. Sending input, waiting for
-output and receiving a result are different facts with their own identities.
-The continuing Artifact is a view assembled from those facts and the Job's
-retained output. It does not own the process or turn an observation into proof
-that the process exited. Reopening the browser must preserve that distinction.
+Cadence initially proposed another coding task. That was scope drift: the question
+was whether Ensemble could use a local model and execute its tools, not whether a
+small model could code well. No further MiMo trial is needed. The pasted transcript
+and Bill's observation do not independently certify visible token-by-token
+streaming, every tool, or all failure paths; those limits do not erase the success.
 
-A busy process can produce more output than either the reader or the model needs
-at once. The human gets a scrolling window of the latest 64 KiB, with a visible
-indication of older retained output. The model gets the bounded observation it
-requested. Reading more in the browser should not consume the next model
-observation or make every model request carry the display buffer.
+For another host, use the [local-model evaluation guide](../docs/local-model-evaluation.md).
+It supplies an explicit configuration example and a short feedback checklist for
+Julien or another operator. Coding usefulness is optional and belongs to the
+operator's selected model, hardware and task. The integration has one architecture;
+it does not require everyone to use MiMo, Ollama or Bill's serving limit.
 
-File operations need a similar respect for what happened. Appending text to an
-existing file does not make its first displayed line line 1. If the previous
-last line had no newline, the append may continue that line. The renderer needs
-facts captured by the operation; reading the file later could describe another
-edit entirely. Attractive line numbers are useful only when they identify the
-right lines.
+## 27.1 Start with a verified server
 
-### Choose trust deliberately
+The initial target is Windows-native Ollama on a separate laptop, not an assumed
+WSL installation. Inspect the installed server version, GPU, model package and
+loaded model before recommending changes. A package can require a particular
+server version or parser. Parameter count, quantization, projector size and runtime
+context all affect memory use.
 
-Bill supervises the code being written for his installation and has chosen to
-run approved renderers directly in the page. This makes inline interaction and
-ordinary DOM integration available without an iframe boundary. The choice also
-means the renderer is trusted application code. Watching its development helps
-review it; it does not technically prevent that code from accessing the page.
+Verify in layers:
 
-A downloaded skill needs an explicit trust decision before its JavaScript runs.
-Until then, the host can show the ordinary readable result. Even approved code
-must handle result text as data: a malicious filename should remain a filename.
-An isolated renderer mode may be useful later, but that is a separate security
-and integration feature. The first directory display should not require building
-an untrusted-extension platform.
+1. A local version request establishes that the API server is running.
+2. A small local inference request establishes that the model can answer.
+3. The loaded-model report establishes GPU placement and allocated context for
+   that configuration, not every possible request.
+4. A structured tool call and correlated result establish a basic protocol round
+   trip. No arbitrary model-supplied program needs to run for this test.
+5. A version request from the Ensemble host establishes network reachability,
+   not inference quality or authorization to expose the service publicly.
 
-## Teach the renderer what actually happened
+A saved listener setting is not a running listener. On Windows, changing a user
+variable does not update an existing server process. Closing its window may leave
+its tray process running. Inspect the listening address, stop the owning server
+normally, relaunch it with the intended setting and verify again.
 
-Keep the surrounding controls smaller than the content. A result header can say
-“list_directory result · Job 1 completed,” with labeled download, paired-call and speech icons on that
-same line. Show local time and observation duration together; retain the full
-recorded timestamp and duration meaning in accessible descriptions. A running
-snapshot still says “running when observed,” not that the process is running now.
+Ollama's local API should not be treated as an authenticated public service. For a
+trusted-LAN experiment, restrict inbound access to the Ensemble host and the
+required port. Inspect existing allowances: adding a narrow firewall rule does not
+cancel a broader rule. Do not forward the port through the router or weaken the
+Ensemble GUI's independent origin/authentication boundary. DHCP address changes
+can invalidate address-based rules; a reservation or an authenticated tunnel is a
+separate operational choice.
 
-Result bodies scroll rather than requiring payload expansion. Where complete
-structured evidence is available, show it directly. Otherwise fetch the latest
-64 KiB of owned Job output independently of the model cursor. Preserve incomplete
-structured facts and label the additional plain-text tail; do not parse that tail
-to invent missing entries or positions. A failed fetch leaves the recorded
-observation visible with an explicit notice. Ordinary cards fetch once; the
-continuing command view described below owns live updates. Speech and durable
-history retain the original observation, not the fetched presentation window.
+See the [Ollama FAQ](https://docs.ollama.com/faq) for current listener instructions
+and its [OpenAI compatibility documentation](https://docs.ollama.com/openai) for
+the supported protocol. These sources can change; verify the installed combination.
 
-Start with a directory listing. Splitting its text at newlines appears to produce
-one entry per line, until a filename contains a newline. A trailing slash can be
-a useful display convention, but it is a poor replacement for a recorded type.
-The renderer should not have to reverse-engineer the tool's prose.
+## 27.2 Integrate the existing owners
 
-The operation already enumerates entries. At that point it can record each name
-as an individual string and any kind it actually established. The native listing
-confirms directories; other entries remain `unknown`. A failed directory check
-does not prove that an entry is a regular file: it may have disappeared. The
-renderer gives confirmed directories a textual label and leaves uncertain kinds
-uncertain. HTML-looking names become text nodes.
+The Agent remains the owner of scheduling, configuration and History. Engine
+consumes a frozen request and returns immutable results. The GUI projects the
+selected route and available choices; it does not own credentials or a second
+transcript. Child creation and restoration must resolve the same explicit route
+as ordinary model selection.
 
-This evidence travels beside the ordinary result through Job completion and
-History serialization. The model still receives its bounded textual observation.
-The human preview has its own bound and a total count, so it can say how much of
-the listing it displays. An empty recorded list can be shown as empty; an old
-record with no evidence falls back to its text. Those are different inputs.
+Common now declares the configured graph: Ensemble strongly owns `ModelVendor`
+objects and `ModelAuthentication` bindings; a vendor owns `ModelEndpoint` objects,
+and each endpoint owns its `Model` offerings. The existing `Vendor` enum remains
+wire/serialization compatibility vocabulary during integration. A configured
+Ollama vendor is not the OpenAI vendor merely because its endpoint uses the
+`ChatCompletions` surface.
 
-Capturing during execution also settles replay. If the directory changes after
-the tool returns, the old Artifact must continue to describe the old operation.
-A renderer that refreshes the directory to improve its display has silently
-changed the evidence under review.
+An offering has a local configuration ID and a separate provider-facing model
+name. The same wire model name through two endpoints denotes two offerings.
+`ModelIdentity` qualifies that local ID with its vendor and endpoint IDs. It is a
+credential-free value, not another owner or a provider-facing routing name.
+Provenance can retain this identity alongside the exact wire model and surface:
+opaque material from a different offering must not match merely because both
+servers use the same model name. Legacy provenance remains readable but cannot
+match an explicitly configured offering. Invalid present identities refuse rather
+than silently becoming legacy data. Request projection and response capture carry
+this value; configured construction and child restoration attach the live Model
+relationship. The public Model-object selector changes that relationship through
+the existing Agent mailbox; the ordinary dropdown submits the same qualified
+identity.
+Endpoint addresses exclude embedded credentials, query strings and fragments.
+New credential-bearing endpoints require HTTPS except literal loopback fixtures;
+public OAuth and Codex retain their additional existing endpoint restrictions.
 
-![Four entries: README.md, src and tests labeled directory, and literal notes <draft>.txt.](figures/advanced-artifacts/directory.png){style="display: block;"}<!-- Caption follows; retain descriptive alt without a duplicate figure caption. -->
+Inference transport does not automatically follow redirects or retain response
+cookies. Otherwise the first funding mode could leave hidden routing or cookie
+authority on an Engine later used for a different model. A redirect is an error
+at the configured endpoint, not permission to send the request elsewhere. Public
+OAuth's existing bounded401 renewal remains on the same frozen endpoint, account
+and request body; it is not a general inference retry or funding fallback.
 
-*Directory preview with synthetic recorded entries. Names remain literal, and confirmed directories carry a text label.*
+An authentication binding is an explicit choice: no credential, an owned API key,
+a reference to the public OAuth credential owner and account label, or a reference
+to the independent Codex credential owner. It does not copy a renewable token into
+a Model. Endpoints and bindings maintain both ends of their weak relationship.
+Destroying a credential owner detaches its bindings; replacing that owner does not
+silently reconnect them. Destroying a binding invalidates dependent endpoints
+without destroying their model objects or changing their funding kind. Ordinary
+root destruction finishes Agent work before removing models and credential owners.
 
-### Positions belong to the operation
+Constructors validate before publishing relationships. Duplicate IDs within an
+owning collection refuse without replacing an existing endpoint or model. A
+membership snapshot is not an editable collection. Removing a relationship clears
+the back-reference without destroying the detached object; destruction recursively
+removes strong children. These operations are tested separately from transport.
 
-A source excerpt needs a starting line, not a browser guess. An append needs more:
-if the old content ends halfway through line 8, the new content begins on line 8,
-at the next column. Adding a newline at the end of the inserted text terminates
-that line; it does not mean content was written on the following empty line.
+The internal request projection freezes the offering's wire name, surface,
+capabilities and serving context while preserving Agent instructions and security
+policy. It references the selected authentication binding instead of copying its
+API key. Explicit unauthenticated funding emits no credential headers; it is not
+an empty-key attempt or permission to discover cloud credentials. Streaming and
+media checks use the frozen capabilities rather than guessing from a model name.
+A Model also owns an immutable, credential-free `ModelRequestPolicy`. Reasoning,
+streaming suppression, explanation enforcement, deferred tools, result stubbing
+and cache options come from that selected offering, not the previously selected
+route. Instructions, tool-round limits and security boundaries stay with the Agent.
+Model construction validates options against its surface and capabilities before
+adding endpoint membership. Feature-required explanations cannot be disabled by
+policy. Request projection turns an explicit reasoning summary `off` into an
+omitted provider field; returning to the offering restores its declared options.
 
-The write implementation scans the existing content through the same opened
-handle used for append, then seeks to its end and writes. Positions use one-based
-lines and UTF-16 columns, matching the runtime's string indexing. It reports the
-written range to the model as well as supplying evidence for the GUI. A useful
-fact should not be hidden from the Agent merely because the GUI can display it.
-This same-handle sequence does not promise protection from unrelated concurrent
-writers.
+Default working-context limits use the configured serving allocation when known.
+An explicit policy also includes the qualified offering identity. Two endpoints
+serving the same wire model may have different allocations, so their policies
+must not overwrite each other. Legacy policies keep their original wire-name
+identity and do not silently apply to newly configured offerings. Settings
+round trips preserve that distinction; malformed identities refuse rather than
+becoming legacy rows.
+Recall and compression preserve the binding; an unresolved judge-model override
+refuses rather than silently changing the route.
 
-Prepare and validate presentation metadata before changing a file. Otherwise a
-successful mutation could be followed by a metadata-validation exception and
-reported as a failed tool. Attach success evidence only after the write and its
-flush/disposal succeed. Empty content reports no written content. A refused
-exact edit remains a refusal, regardless of how attractive its proposed diff
-would have looked.
+Ensemble resolves a saved `ModelIdentity` by following its current vendor,
+endpoint and model ownership. There is no second lookup registry and no fallback
+by wire name. A detached or missing offering is unavailable. Ordinary child
+registrations retain the legacy version1 shape for legacy configurations;
+configured children use version2 with a required qualified identity. When no explicit
+Agent preference is present, restore
+validates identities before constructing children, and checks the saved wire name
+against the resolved offering. It preserves conversation and pause state, not
+credentials or interrupted effects. A legacy child record under a configured
+parent refuses because that record cannot identify the original route safely.
 
-For an exact replacement, record the removed anchor and inserted text at the
-applied position. Bill found that separate **Removed** and **Inserted** blocks
-made nearby changes difficult to compare: the reader had to find each changed
-line twice. Render a unified replacement diff instead. Interleave unchanged
-context, `−` removed lines and `+` inserted lines, with old/new line-number
-columns. Show three context lines around each change and label omitted unchanged
-runs. The comparison covers the applied replacement, not necessarily the whole
-file. Never reread mutable files to reconstruct operation-time evidence.
+Peer launch records follow the same identity rule. A configured peer saves its
+qualified offering alongside the launch model name; a legacy peer keeps the
+original four-field record. These are launch choices, not a second store of the
+running Agent's mutable selection. Without an explicit Agent preference, restoration
+resolves the entire launch set before starting any peer, checks each wire name, and
+refuses missing offerings
+without substituting the host's route or funding. Invalid present identities do
+not become legacy records.
 
-Use the locally bundled jsdiff 9.0.0 `diffLines` implementation, retaining its
-BSD-3-Clause license. Its three-module dependency chain belongs to the edit
-renderer's exact-version review package, not a page-global library. Compare only
-complete captured segments, at most 32 KiB each. Bound comparison with
-`maxEditLength: 256` and `timeout: 25`. The timeout is cooperative, not a hard
-browser execution deadline. If comparison aborts or either segment is truncated,
-show clearly labeled before/after excerpts and explain why there is no unified
-diff. Never present a prefix comparison as a complete patch. Mark missing final
-newlines explicitly, including when only that boundary changed.
+A failed peer restoration must not take down the GUI after the initial Agent has
+started. Keep the saved files and show the stopped peers in recovery controls.
+`SavedPeers` reads the durable registry without inventing live Agents.
+`RestorePeerAsync` retries one stopped peer; an explicit recovery offering is
+validated and saved in that peer's own settings before startup. Preserve sibling
+memory, recall and working-context policies and the saved conversation. Refuse
+recovery of a running peer. If startup later fails, retain the human's saved choice
+for retry and report the failure. After a successful repair, ordinary restoration
+uses that peer's own selection on the next restart. Never guess a payer from an
+old wire-name-only record or from the mounted Agent's newly selected model.
 
-Keep file headings compact, including edits: a basename, with the full path available
-in its tooltip and accessible label. Append positions fit beside the basename,
-for example `sample.go · appended at 4:17`. The numbered source supplies ordinary
-line positions without a repeated paragraph. One outer result preview owns
-vertical and horizontal scrolling; do not nest another height-limited source
-scroller. Preserve source layout without wrapping by default.
+A configured Agent holds a weak selection link to its actual Model, and the
+Model maintains the reverse membership. Agent construction attaches both ends
+before creating Engine; partial construction rolls them back. Destroying a Model
+clears these weak links without destroying Agents or their conversations. A lost
+selection refuses new rendering and inference, never reverting to a legacy route.
+Engine admission validates the graph before incrementing its active-send guard.
 
-The source highlighter is a lexer chosen by suffix; unknown suffixes remain
-literal. A mid-line fragment may begin inside a string or comment, so display
-it literally rather than guess the missing lexical context. Identify the partial
-line and its UTF-16 column. Numbering and colors help reading, but the underlying
-captured text remains unchanged; presentation gutters are not edit anchors.
+`SetModelAsync(Model)` selects a configured offering only between turns, including
+absence of direct Engine sends. It rejects a foreign root before acquiring its
+graph lock. Under ingress and the owning graph gate, it validates the candidate,
+saves the qualified identity in the persistent Agent's own `settings.json`, then
+updates both membership ends and the frozen configuration. Transient Agents have
+no implicit settings file. Failed saving leaves the old selection intact. A successful switch retains Engine and conversation, and resets
+the last-request context measurement. An explicit valid choice can recover an
+Agent whose old Model was removed; no automatic substitution occurs. The legacy
+string overload still preserves its route and cannot invent a configured offering.
 
-![Unified replacement excerpt at line 19, with old/new line numbers and minus/plus markers.](figures/advanced-artifacts/replacement.png){style="display: block;"}<!-- Caption follows; retain descriptive alt without a duplicate figure caption. -->
+An optional `selected_offering` in Agent settings is the explicit current choice.
+It contains only the strict vendor/endpoint/model identity. Memory, recall and
+working-context saves preserve it, and model saves preserve those sibling policies.
+Read the preference through the actual Sandbox before attaching the selected Model
+and constructing Engine. Sandbox creation needs the Agent's filesystem security
+policy, not permission to send inference; do not weaken route admission to break
+that construction dependency.
 
-*Unified replacement diff from synthetic operation evidence. The basename keeps the heading compact; minus/plus markers distinguish removed and inserted text without relying on color.*
+On child and peer restoration, a present preference takes precedence over the
+legacy launch choice, even if the old offering no longer exists. Validate every
+immediate saved preference before fleet startup effects, then resolve again during
+construction. A malformed or unavailable preference refuses; it never falls back
+to the launch record. When absent, the strict legacy rules above remain in force.
+Selecting a configured model commits one Agent settings file, not a claimed atomic
+transaction across that file and the child or peer launch registry.
 
-### Search captures spans once
+Global settings belong to the application, not to any Agent. The host supplies
+`~/.en/settings.json` to the root-owned `GlobalSettings` object. Its `BindApiKey`
+operation creates ordinary `ModelAuthentication` bindings from the existing
+`openai_api_key`, `anthropic_api_key` and `gemini_api_key` fields; it does not expose
+those values in model choices. A missing key supplies no binding, not another
+vendor's key. The library never searches an implicit credential location.
 
-Search results require a different shape from a contiguous source excerpt. They
-may contain several context windows, gaps and matches within one line. The tool
-captures the .NET regular expression engine's UTF-16 spans while producing its
-existing textual result. The browser groups by recorded path and highlights
-those spans. Show only each basename in the heading, with its full path in the
-hover tooltip and accessible label. Files sharing a basename remain separate
-groups. Omit routine match/context totals; retain explicit truncation notices
-and a concise no-matches message. It does not rerun the expression with JavaScript semantics.
+The `model_funding_defaults` object maps configured vendor IDs to authentication
+binding IDs. `RememberFunding(Model)` saves that reference without changing an
+Agent. `ResolveModel(vendor, name)` follows the approved graph and remembered
+funding. Without a saved choice, only one configured offering is unambiguous.
+Missing or ambiguous saved funding refuses, even when another key is usable. An
+unrelated unavailable offering must not hide a valid explicitly remembered choice.
 
-A line with no spans is context. A span of length zero is a genuine zero-width
-match and needs a visible boundary indicator. Bounds apply to complete lines
-and their spans together: if a line cannot fit, omit it and report the omission
-rather than display it with some matches mysteriously missing. Showing all
-returned lines still does not prove every file was readable; recursive search
-retains its existing best-effort behavior for inaccessible files.
+Read the bounded global document freshly under a cooperative writer lock before
+updating it. Preserve unrelated settings and credential values, write a private
+temporary file, flush it, and replace the destination. Malformed input or lock/I/O
+failure is not permission to reset the file. A global-default save and an Agent
+selection save are separate operations, not one filesystem transaction: their
+acknowledgments must distinguish a saved Agent choice from an unsaved global
+default. In the GUI, list each vendor/model once. A model choice carries only
+vendor ID and wire model name, and resolves the current funding preference again
+when the action executes. Do not freeze an earlier menu lookup into routing
+authority. Refuse conflicting selection forms.
 
-![Search lines grouped under two basenames, with line numbers, match and context labels, and three omitted lines.](figures/advanced-artifacts/search.png){style="display: block;"}<!-- Caption follows; retain descriptive alt without a duplicate figure caption. -->
+Settings → AI saves a funding choice when the dropdown changes, with a per-vendor
+pending, saved or failure message. A refused save restores the last acknowledged
+choice; there is no extra Save button. The separate default-funding action names
+an approved binding through an existing offering; the browser never supplies a key or token
+path. Missing or ambiguous funding sends the human to Settings, rather than adding
+another copy of the model to the picker. Model selection and peer creation do not
+rewrite funding defaults. Changing a default does not retarget existing Agents;
+select the model again to apply it. A failed funding save reports that operation's
+failure without changing an Agent.
 
-*Grouped search from synthetic evidence. Recorded spans identify matches; the notice distinguishes displayed lines from all returned lines.*
+The GUI reads a credential-free `ModelSelectionStatus`, not the inference-validating
+configuration getter. Under the same ingress-to-graph lock order, this snapshot
+lists configured offerings and their local policy compatibility, funding description
+and serving context. Availability is not a network health check or proof of account
+entitlement. Unknown serving context remains unknown. Legacy name-only choices
+retain their fixed-route semantics; configured choices carry a separate strict
+identity object, never a renamed provider model.
 
-## Keep the presentation code available
+An unavailable selection remains visible after reconnect. Even recreating an
+offering with the same IDs does not reconnect a lost Agent link automatically.
+The picker marks the current model unavailable and permits an explicit
+valid selection after funding is corrected. The server resolves the chosen
+identity again and calls the same Model selector; displayed status is never a send or selection grant.
 
-The useful unit of discovery is a short API description. An Agent changing line
-number styling needs to find `file-excerpt.js`, learn what positions mean, and
-inspect the relevant implementation. It does not need the Markdown parser's
-source in every model request.
+Documentary persistence has a different purpose from inference admission. It can
+save the last frozen configuration and retained conversation after a Model is
+removed, without acquiring credentials or granting another request. During root
+shutdown, closing admission must not block the Agents' final History saves.
 
-Build the shared ownership before adding renderer metadata. Create
-`skills/file-reading/SKILL.md` as a dependency skill owning `read_file`,
-`list_directory` and `search_files`. In `ensemble`, `full` and `local-coding`,
-add `file-reading` to the existing dependencies and remove those three duplicate
-tool declarations. Preserve every other dependency, tool and loadable skill.
-The dependency loader activates this owner first and only once. Check each
-primary's effective enabled-tool set before and after: this is an ownership
-refactoring, not permission to give a small local model more tools.
+**Integration boundary:** synthetic HTTP checks exercise the internal projection,
+including the exact headers and captured provenance. Configured child registration
+and restoration, weak selection membership and saving after Model loss have
+focused coverage. Per-offering working-context persistence and effective-policy
+isolation and qualified peer launch/restoration have focused coverage too.
+Public Model switching has focused loopback routing and failed-save coverage.
+The ordinary dropdown has real-socket and actual-page offering-switch/recovery
+coverage. Host file loading and explicit launch-return routing have process/socket
+coverage. Configured public OAuth has loopback 401-renewal/refusal coverage;
+configured Codex has synthetic grant-reread and owner-loss coverage. Configured
+Chat Completions has real-loopback SSE tool-round-trip coverage, including partial
+argument barriers, immediate interruption, provider-stream failure and fresh-turn
+recovery. These use an explicitly streaming, uncatalogued no-auth offering. They
+are not independent grader credit or live MiMo acceptance; do not infer an
+installed MiMo offering from these owned fixtures.
 
-Make the directory slice the first executable checkpoint. Capture and validate
-its evidence, carry it through the Job and durable codec, and test clipped text,
-empty success, missing evidence and provider exclusion. Then add the renderer
-mapping, explicit packaged asset and literal fallback. Validate discovery without
-executing JavaScript; separately load the reviewed shipped module and exercise
-its DOM. This is a useful partial implementation, not completion of approval,
-other evidence types or continuing sessions.
+### Host-owned model configuration
 
-The installed layout makes that sequence ordinary:
+The host, not the model picker, controls endpoint and authentication configuration.
+Load its strict document before constructing Agents or restoring the fleet. GUI
+selection uses only the resulting approved graph. Do not put credential values or
+token-file paths in this document: each endpoint names an authentication binding
+already constructed by the host under the same Ensemble root.
 
-```text
-skills/
-  file-reading/
-    SKILL.md
-    renderers/              directory, read, search; README.md
-  code-tools/
-    SKILL.md
-    renderers/              write and edit entries
-  shared/
-    README.md               helper index
-    file-excerpt.js
-    file-diff.js
-    jsdiff/                 pinned comparison modules, license and provenance
-    source-code.js
-    markdown.js
-    markdown-parser.js
-    tool-default.js
-    command-output.js
-    terminal-output.js
-    inline-dice.js
-    inline-dice.html
+`Ensemble.LoadModelConfiguration` accepts at most 1 MiB of strict UTF-8 JSON. Version 1
+has `version` and `vendors`; each vendor has `id`, `label` and `endpoints`. An endpoint
+has `id`, `address`, `surface`, `authentication` and `models`. Surface spellings are
+`messages`, `chat_completions`, `responses` and `generate_content`. Each model has
+`id`, `name`, `label` and `features`, with optional `serving_context_tokens`
+and `request_policy`.
+Features require an explicit `stream` boolean. Optional media and reasoning lists,
+context capacity and policy flags default conservatively, not from name guesses.
+Advertised `context_window` and serving capacity remain separate token values.
+
+The optional `request_policy` object accepts boolean `disable_streaming`,
+`require_tool_explanation`, `deferred_tools`, `stub_tool_results` and
+`cache_breakpoints`, plus string `prompt_cache_key`, `reasoning_effort` and
+`reasoning_summary`. Omitted booleans are false. Empty reasoning options choose
+validated `medium` and `auto` defaults only for a Responses offering declaring
+reasoning support; otherwise they remain absent. Summary `off` explicitly omits
+that field for a supported offering. Unsupported options refuse instead of being
+silently ignored. Deferred tools and block-cache options require Messages; prompt
+cache keys require an OpenAI-compatible surface. These are explicit host assertions,
+not provider discovery or guarantees that caching will occur.
+
+Unknown or duplicate fields, invalid types and unresolved bindings refuse. The
+whole document is bounded to 32 vendors, 64 endpoints and 256 models. Parsing precedes
+graph publication; construction and rollback hold the existing graph gate. A late
+failure removes every newly created subtree and detaches its binding memberships,
+without destroying the borrowed authentication owners. Existing vendors and Agent
+selections cannot be overwritten by a load. This is additive startup configuration,
+not a live graph editor or an implicit model switch.
+
+The GUI host accepts `--model-config PATH` or `EN_MODEL_CONFIG`; the command-line
+option wins. Relative paths resolve after the host's explicit workspace option.
+It opens one file handle, bounds both initial size and subsequent reads to 1 MiB,
+and loads the graph before constructing the initial Agent or restoring the fleet.
+Missing, malformed or unresolved configuration refuses startup; there is no empty
+configuration fallback. Omitting this model-document option preserves the initial
+launch path but does not disable the global credential catalog.
+
+Before constructing Agents, open `--global-settings PATH`, then
+`EN_GLOBAL_SETTINGS`, or the default `~/.en/settings.json`, in that precedence.
+Only true file absence supplies empty global settings. Use the existing curated
+model names and exact capability table to register available API bindings:
+`openai-api`, `anthropic-api`, and `gemini-api`, under matching vendor IDs and
+endpoint ID `api`. Provider names remain unchanged; stable model IDs replace dots
+with underscores to satisfy the configured-ID grammar. Key presence is not an
+entitlement or health check. Never contact providers merely to populate choices.
+
+Keep curated recommendations and route requirements consistent. Subscription
+routes require streaming, so an omitted streaming declaration can disable a
+previously selectable model even when its credential owner is healthy. Sol has an
+explicit text-streaming declaration; it makes no claim about media, reasoning
+options, context capacity or account entitlement. Test curated subscription choices
+through the actual host catalog, not only the legacy wire-name selector. Report
+invalid capabilities or request policy as a configuration problem, not as missing
+authentication; never expose raw credential exceptions in the GUI.
+
+These additive offerings do not reconstruct or replace the initial launch policy.
+Ollama remains a separate explicitly configured vendor, not automatic LAN discovery.
+
+An explicitly supplied Codex credential owner also registers OpenAI's `codex`
+endpoint and `openai-codex` binding, even without a model document. An explicitly
+supplied `--credentials-dir` may coexist with Codex: its selected public OAuth
+account registers endpoint `chatgpt` and binding `openai-chatgpt`. No token is
+copied between stores and enumeration does not renew credentials or send inference.
+These share the OpenAI vendor with the API offering, so Settings can present API
+key, Codex OAuth and ChatGPT OAuth while the model picker lists Astra once. A
+model's reasoning policy must not be copied onto a different model that has no
+verified reasoning support. Startup still retains the explicitly selected launch
+payer; adding a route does not select it or rewrite a funding default.
+
+The host also supplies two binding names when loading a model document:
+
+- `none` is explicitly unauthenticated, suitable for a restricted local endpoint.
+- `launch` uses the payer selected by the existing launch options: the supplied
+  API key, the actual public OAuth owner and account, or the actual Codex owner.
+  An API launch without a key does not create this binding. `--billing none`
+  makes it explicitly unauthenticated instead; an ambient API key is ignored.
+
+The document cannot name another token file or discover another account. Loading
+also does not select an offering or reconstruct the initial Configuration: launch
+reasoning, caching, funding and other policy remain unchanged. Choosing a configured
+offering subsequently uses the normal configured-model projection.
+
+When the launch binding exists, the host reserves vendor `host-launch`, endpoint
+`launch` and model `launch` for the explicit **Return to launch** choice. It uses
+the actual launch endpoint, binding, features and immutable request policy. A file
+cannot replace that reserved vendor. A keyless API launch has no return offering;
+it does not acquire an unauthenticated substitute. Initial selection is still
+legacy. Explicit return uses the new qualified identity, so old opaque legacy
+provenance does not automatically become eligible for replay. Conversation remains,
+but identical routing alone is not permission to migrate opaque provenance.
+
+The library boundary has strict-decoding and rollback tests. The actual host has
+process/socket checks for loaded choices, retained initial selection and funding,
+flag precedence, explicit no-auth, missing funding and invalid-file refusals before
+Agent construction. Run the scoped check against an already-built GUI executable:
+
+```sh
+python3 agent/GuiTests/model-host.py ABS_DOTNET ABS_GUI_DLL NEW_EVIDENCE_DIRECTORY
+python3 agent/GuiTests/model-launch-wire.py ABS_DOTNET ABS_GUI_DLL ANOTHER_NEW_DIRECTORY
+python3 agent/GuiTests/peer-recovery-host.py ABS_DOTNET ABS_GUI_DLL RECOVERY_DIRECTORY
 ```
 
-The shared directory is source and documentation, not an activatable skill.
-Other languages can use ordinary shared files there when a concrete tool needs
-them; this implementation introduces no cross-language loader. Browser imports
-and model reads are separate operations with separate purposes.
+These POSIX checks use isolated homes and synthetic keys and join their hosts.
+The startup check makes no inference request. The wire check makes exactly three
+requests to its owned loopback provider and deliberately returns buffered JSON.
+The recovery check starts the actual host three times, repairs legacy peers through
+guarded GUI routes and verifies durable selections without inference. None of these
+checks certifies live subscription renewal, live Ollama behavior or installation.
 
-The GUI embeds an explicit list of reviewed assets and fingerprints them when
-mapping its routes. It does not serve any arbitrary file placed beside a skill.
-The shipped-package download comes from those embedded sources, not an optional
-mutable asset override. A source edit on disk therefore does not silently change
-a running page. Customization uses the versioned trial mechanism below.
+The construction-point changes belong alongside configuration and transport,
+model selection, child ownership, persistence and accounting. This capstone joins
+those contracts. The independent public runner currently checks buffered tools,
+streamed tools and tool-shaped prose through public APIs and owned HTTP:
 
-The existing `app.js` is a classic script. Load renderer ES modules with dynamic
-`import()` from the fingerprinted asset location; do not add static imports to
-the classic entry point. A successful C# build does not check this browser
-contract. A small isolated browser fixture can intercept its requests and supply
-known result facts, then assert literal hostile-looking filenames, omission
-labels and fallback. Installed Playwright does not imply an installed browser:
-use an explicitly approved installed executable or report that check unavailable,
-rather than downloading one silently. Test actual host asset delivery separately;
-an intercepted module fixture does not establish integration.
-
-Prose needs its complete dependency chain too. Its package contains the renderer,
-lexer and locally pinned Markdown parser adapter, with the parser's license.
-Depending on an invisible page-global parser would leave the reviewed package
-incomplete. Chat and supplied readable thinking use the same prose entry; this
-changes presentation, not which thinking content a provider makes available.
-
-## One continuing command, several recorded observations
-
-Consider a command that prints a prompt and waits for input. The initial
-`run_command` observation can return while the process remains alive. Later,
-`send_input` has its own call ID and result. Replacing that call ID with the
-original command's ID would damage correlation; giving every observation a new
-terminal view would make the human assemble the session manually.
-
-The Job already retains its originating call. Its snapshots now expose that
-origin separately from the current observation's identity. The browser uses the
-Agent address, Job handle and original call ID to find one session node. Only
-records whose origin is explicitly `run_command` create this view. Legacy records
-without an origin stay ordinary observations instead of being guessed into a
-session.
-
-Historical calls and results remain intact, but preserving history does not
-require displaying the same output twice. Once an identified session has usable
-output, successful command, wait and input results show a compact link to that
-session, with their immutable text available in a closed Recorded observation
-disclosure. Errors remain visible. A missing origin, failed session fetch or
-unavailable session restores ordinary recorded output rather than hiding it.
-
-When a wait or input observation explicitly foregrounds the session, the GUI
-moves its existing node to the bottom of Tools. Background polling updates that
-node where it is, without a model wait call or a second per-observation fetch.
-Neither action reruns the command. The model still receives each observation's
-output and status: it cannot see the human's browser. If the session module loads
-late, it takes over outstanding ordinary output fetches without changing the
-recorded text. Replay resets the association; links must validate the current
-card, Agent, Job and originating call before focusing a session.
-
-Keep the session heading compact: `Job 1 completed` or its actual current state.
-Do not spend a paragraph on routine byte counts and terminal implementation
-limits. Put those details in the output tooltip and accessible label. Show a
-short warning when earlier output rolls out, and a Retry control only when
-fetching fails. Clearing a fetch error must update those notices even when the
-returned bytes have not changed.
-
-### Separate the human window from the model cursor
-
-Joining observation strings cannot reliably reconstruct output: those strings
-may contain head/tail clipping, omitted bytes or already-seen text. The GUI uses
-a separate read-only endpoint. It resolves the actual owner's Job, opens that
-Job's output file through its Sandbox, and reads a bounded tail ending at the
-snapshot's published byte count. The browser supplies identity, never a path.
-
-The response transports bytes as base64 with start/end offsets and recorded
-origin. Reading this stream leaves the model's observation cursor untouched.
-The model can request a small report while the human inspects a larger window.
-Earlier output remains on disk. The existing browser download is for completed
-Jobs and is limited to 16 MiB; larger output needs local access to the owned file.
-
-A page reset aborts fetches, clears timers and advances a generation. A response
-that arrives afterward must match the live generation and session origin before
-it can paint. Reconnect rebuilds associations from recorded facts and can fetch
-the current tail of an available owned Job. It cannot recover a destroyed Job
-or reconstruct an exact old terminal screen. Historical observations remain
-readable when live output is unavailable.
-
-### A terminal log has a smaller contract than a terminal
-
-The shipped decoder handles basic SGR colors and bold/reset formatting. Cursor
-movement, terminal hyperlinks and other terminal commands have no application
-effect. Carriage-return progress is presented as log lines rather than emulated
-screen overwrites. There is no interactive editor, clipboard command or terminal
-emulation layer hidden in the display.
-
-A 64 KiB tail can start inside a UTF-8 character or an escape sequence. The decoder
-drops a leading UTF-8 continuation prefix and defers an incomplete trailing code
-point. It starts styling afresh for each snapshot. If the opening escape byte
-has rolled out, the remaining characters are ambiguous; the notice warns that
-partial control fragments may appear. Guessing them away could delete genuine
-output. A bounded log cannot reconstruct terminal state whose bytes it discarded.
-
-The GUI caches unchanged windows so polling does not repeatedly replace their
-spans. If the human selects output, a changed snapshot waits until selection
-clears, including when that snapshot is final and polling has stopped. Focus and
-scroll position govern tail following. The same bounded snapshot can be repainted
-after a renderer change without another fetch. Custom code receives a copy of
-the decoded byte buffer: mutation followed by an exception must not corrupt the
-literal fallback's input.
-
-![One command session with a 64 KiB rolling-window notice, progress lines and a build summary.](figures/advanced-artifacts/command.png){style="display: block;"}<!-- Caption follows; retain descriptive alt without a duplicate figure caption. -->
-
-*Continuing command view from synthetic observations and a synthetic 64 KiB response. The displayed test count is illustrative data, not an Ensemble test receipt.*
-
-### A real debugger, one session
-
-Bill tested the continuing view with a Go Tower of Hanoi program and Delve.
-The program began with `hanoi(4, "A", "B", "C")`; its parameters were the disk
-count, source peg, spare peg and destination peg. Each nonzero invocation assigned
-`remaining := disks - 1`, then called `hanoi(remaining, from, to, spare)` before
-moving its own disk. Build with optimizations and inlining disabled
-(`go build -gcflags='all=-N -l'`) so the debugger can expose those frames.
-
-Cadence started Delve through `run_command`, stopped before the first recursive
-call and used `step` to enter each of the next two frames. At the third invocation,
-after its local assignment, Delve reported `disks = 2`, `from = "A"`,
-`spare = "B"`, `to = "C"` and `remaining = 1`. The stack showed three `hanoi`
-frames above `main`. Breakpoints, stepping, variable inspection and exit all
-used the same Job. Bill could follow the session without assembling a new output
-card for every input.
-
-Bill also suggested using `ai_callback_pattern: "\\(dlv\\)"` on input
-observations: the next debugger prompt is a useful synchronization point, rather
-than always waiting the default delay. The prompt means the debugger is ready
-for another command, not that the debuggee has completed. Delve was explicitly
-exited and the Job's terminal result collected. This exercise demonstrates the
-interactive path; it does not certify every debugger or terminal application.
-
-## Review code, try it, then keep it
-
-A request such as “make directories easier to distinguish” starts a small code
-change. The Agent can obtain the shipped package, read its entry and helpers,
-change the relevant presentation, and explain the result. Reading or staging
-that package does not execute it.
-
-The settings panel separates the next decisions:
-
-1. Select the output type and stage the candidate source package.
-2. Review its files, including imported helpers.
-3. **Try live** to approve this exact candidate for the current page.
-4. Inspect existing and newly arriving output, then **Keep** if it is useful.
-5. Use **Revert** or reload to discard an unaccepted trial. Roll back an accepted
-   version when needed; use shipped-only recovery to bypass custom imports.
-
-A trial is page memory, never a persisted startup preference. Keep records an
-accepted content hash and retains the previous accepted choice. Each output type
-has independent selections shared across Agent views. The panel allows one active
-trial at a time so switching types cannot lose track of an unaccepted experiment.
-
-The store hashes the entry and declared files together. Editing a helper creates
-a new version requiring review. Promotion compares the accepted version the page
-observed with the current durable selection, under a cooperating-writer lock.
-A stale tab receives a refusal instead of silently replacing another decision.
-Save failure leaves the selection unchanged. If a response is lost after a save,
-the page cannot infer whether acceptance happened; refresh and inspect rather
-than automatically repeating the mutation.
-
-![Staged directory renderer with Try live available, Keep disabled, inert-stage status, source disclosure and shipped-only recovery.](figures/advanced-artifacts/approval.png){style="display: block;"}<!-- Caption follows; retain descriptive alt without a duplicate figure caption. -->
-
-*Actual approval controls with an inert synthetic candidate. Open the source disclosure to review code before Try live; Keep remains unavailable until a trial.*
-
-### An unfamiliar tool is still a tool
-
-Suppose Bill connects an MCP tool named `remote_weather`. Its result should not
-need a new GUI build before he can customize its presentation. The host reads the
-actual registered Tool objects across its Agents and offers **Tool: remote_weather**
-in the same approval panel. It does not connect a server, enable a skill or fetch
-JavaScript merely to populate that list. Reload discovers later registrations.
-
-There is a subtle identity trap here. An MCP tool can be named `command`, but
-that name must not select the continuing terminal renderer. Additional tools use
-separate approval keys: `tool-` plus the lowercase SHA-256 of the exact UTF-8 name.
-The browser keeps their render functions in a separate tool-name map. The eight
-shipped presentation choices remain unchanged. Same-name tools across Agents
-share a choice; this is not proof that two servers use compatible output formats.
-
-Bill stages a package and reviews its executable helpers exactly as before. There
-is no fabricated shipped package for the new tool. Its renderer receives bounded
-preview text, which may be an incomplete JSON document, and only whatever optional
-evidence the operation actually supplied. If it cannot render those facts faithfully,
-it declines and the default takes over. Never reread a resource or repeat the tool
-just to make its result prettier.
-
-If the tool disappears before approval, the request refuses. If it is absent at
-page load, its saved choice remains on disk but is not imported. Already approved
-code in an open page remains until reload; presentation permission is not tool
-execution permission. These deliberately separate lifetimes keep customization
-from becoming another tool-grant mechanism.
-
-### Approval is trust, not containment
-
-Approved JavaScript runs inside the application page. It can access conversations,
-change controls and issue page-authorized requests. The Agent's filesystem and
-process sandbox does not follow that code into the browser. Supervised development
-provides review and detection, not a browser security boundary.
-
-Version hashes prove which declared bytes are being served. They do not prove
-that those bytes contain no external imports or network behavior. Review must
-account for that authority. The loader serves declared snapshot files, but ordinary
-JavaScript can do more than import them.
-
-Safe shipped helpers still matter: filenames use text nodes, Markdown disables
-raw HTML, links are restricted, and remote images become escaped placeholders.
-These properties keep hostile result data from becoming executable content through
-the helpers. They do not make malicious approved code safe. An import can perform
-side effects before throwing; a fallback cannot undo them. Reload clears trial
-module state, not arbitrary damage. Shipped-only recovery avoids loading accepted
-custom code when the defect survives Keep.
-
-## An Artifact without a card
-
-Bill's dice example separates identity from the visual container. In the shipped
-standalone fixture, the chat host retains a synthetic record ID and immutable
-facts: an attack total of 23 from a recorded 17, proficiency 3 and ability 3.
-`inline-dice.js` returns a native disclosure whose summary shows the total. Opening
-it reveals the terms. There is no random source or reroll callback.
-
-The renderer checks that bounded integer terms sum to the recorded total. A
-mismatch refuses to the host's raw-record fallback rather than inventing a repaired
-calculation. Native disclosure supplies keyboard and touch behavior without a
-second interaction framework. The example uses a visible focus outline and a
-44-pixel-high target; labels and arithmetic carry meaning without color.
-
-This fixture is distributed source, explicitly opened through a local static
-server. It is not registered in Ensemble's page, does not add a dice tool, and
-does not change Tools-pane routing. Its lesson transfers to another host: retain
-the original event and identity while choosing a shape appropriate to that
-conversation.
-
-![Attack: 23 expanded inline to d20 17 plus proficiency 3 plus ability 3, between chat sentences.](figures/advanced-artifacts/inline-dice.png){style="display: block;"}<!-- Caption follows; retain descriptive alt without a duplicate figure caption. -->
-
-*The distributed inline fixture, opened with its synthetic recorded result. Revealing the arithmetic does not roll again.*
-
-## Implementation reference
-
-### Declarations and invocation
-
-A tool skill declares relative JavaScript entries in its existing front matter:
-
-```yaml
-renderers:
-  list_directory: renderers/list-directory.js
+```sh
+go run ./cmd/grade-edition3 --scope local-models -executable-only -json \
+  -dotnet "$DOTNET" "$CANDIDATE_RUNTIME_DIRECTORY"
 ```
 
-Reject duplicate tool names, absolute/traversal entries and non-JavaScript files.
-Metadata grants neither tools nor execution. Shipped source still uses explicit
-host packaging; this declaration is not downloaded-module activation. Additional
-registered tools use the guarded name-discovery endpoint and explicit approval
-flow described above, not arbitrary skill-directory serving.
+Supply an existing .NET 10 SDK and a directory containing Ensemble.dll. The runner
+builds its own outside-assembly consumer offline, with isolated home/work paths,
+strict named receipts and an outer process deadline. It awards no chapter points.
+The compiled grader exits 3 when these probes pass but chapter coverage remains
+incomplete, 1 for probe failure, and 2 for setup/API-build failure. A `go run`
+wrapper may translate the nonzero process status. See the
+[consumer contract](../internal/gradeedition3/testdata/local-models-consumer/README.md)
+for exact inputs, deadlines and containment limits. Current coverage also includes
+atomic configuration-load refusal, inherited child identity, paused conversation
+restoration through fresh owners, missing-route refusal and Model-loss behavior.
+Real conversation meters keep no-auth dollar cost unknown while preserving usage.
+A real executing-tool barrier additionally checks cancellation and joined Agent
+shutdown while preserving an independent sibling. A buffered response without
+usage must retain unknown input counts and cost. Incomplete streamed calls remain
+non-executable after interruption or provider error; the same Agent must support
+a fresh turn without replaying orphan tool messages. Separate writer/reader
+processes check clean restart from actual child files, exact offering identity,
+paused conversation and no replayed request. Preference checks exercise actual
+Agent/global settings, ambiguity and failed-save refusal without fallback. The
+separate-process reader restores saved Agent choices despite a stale launch record,
+an absent old endpoint and a different usable global default. The 136 named checks
+do not certify all four exercises: crash recovery, broader lifecycle/refusal behavior and general
+live usefulness remain open. The bounded coding trial above is separate evidence,
+not an increase in deterministic grader points.
 
-Each renderer entry is an ES module whose **default export** is the rendering
-function: `export default function render(...)`. The signatures below describe
-three separate entry contracts:
+### Creating an Agent from approved choices
 
-```javascript
-// Tool previews: return a detached HTML element.
-render(document, boundedText, directoryEvidence, fileEvidence, searchEvidence)
-// Chat and readable thinking: synchronously update the supplied body.
-render(parent, text, allowCopy)
-// Continuing command output: synchronously update the supplied body.
-render(parent, bytes, rolledOut)
-```
+The Create Agent dialog uses model and primary-skill dropdowns, not internal-name
+text fields. It lists each vendor/model once and resolves default funding at
+creation time, just like the main picker. Missing or ambiguous funding points to
+Settings → AI. Defaults explicitly inherit the mounted Agent's actual model and
+primary skill; inheritance does not consult a newer global funding default.
 
-A missing, throwing, inapplicable, invalid or already-connected tool-preview result
-falls through to `tool_default`, then to host literal text. Prose and command
-renderers have their own literal host fallback. None owns the card, raw text,
-speech, status, call/result links, polling or Job lifetime. The host schedules
-updates and defers them during selection. Renderer changes invalidate the relevant
-presentation cache, not recorded facts.
+The host supplies the approved model graph and parsed primary-skill templates.
+Listing a skill grants no tools; normal skill startup still owns activation and
+cancellation. The public API also accepts an explicit qualified offering, mutually
+exclusive with a legacy model name or vendor/model preference. Invalid choices
+leave the registry and live ownership unchanged. Neither ordinary selection nor
+creation changes the application's funding default.
 
-### Recorded presentation inputs
+Saved agents that did not start have a Restore control. The same model picker can
+save a corrected selection and retry that peer, or retry its saved choice unchanged.
+The GUI remains usable while browser-dependent startup waits for its own relay.
+Test the actual HTTP guard, durable recovery and restart separately from menu
+rendering; a populated menu alone does not prove those operations.
 
-Directory evidence is `{total_entries, entries: [{name, kind}]}`. Retain at most
-256 entries and 32 KiB of UTF-8 names. Kinds are `directory`, `file` or `unknown`;
-the current native operation leaves non-directories unknown. Report omitted
-entries from the total; absence of evidence invokes text fallback.
+## Exercises and evidence limits
 
-File evidence is `{operation, path, start_line, start_column, content, removed}`.
-Each excerpt is `{text, total_bytes}` with at most 32 KiB of UTF-8 text. Positions
-are one-based, columns measured in UTF-16 code units. `removed` belongs only to
-edits. Reads describe the requested, byte-capped read; they do not certify unseen
-file content. Empty excerpts have no invented written line. A shorter excerpt
-than its recorded total must be marked as truncated.
+These are reproducible learning and review contracts, not a claim of exhaustive
+certification. Use isolated homes and owned loopback fake providers for
+deterministic checks. The public runner's 136 checks provide bounded coverage and
+remain ungraded. Bill's accepted GUI check is separate human evidence, not a
+substitute for those checks or a new point award.
 
-Search evidence is `{lines, total_lines}`. Each line has `{path, number, text,
-matches}`, each match `{start, length}` in zero-based UTF-16 units. Retain at most
-256 complete lines, 32 KiB of path-plus-text UTF-8 bytes, and 256 spans per line.
-Stop before a line that cannot fit. Count omitted returned lines, not presumed
-unread files or matching occurrences.
+### Exercise 1: Select a route without borrowing funding
 
-Validate bounded evidence before retaining it and attach it only to successful
-observations. Keep it optional in durable serialization for old records. Job
-observation delivery retains the evidence independently of text clipping and
-emits it once. Provider request normalization and redaction omit presentation
-metadata; the model-facing write range remains ordinary result text.
+Configure a cloud route and one explicit local route. Select the local model in
+the normal GUI and for a child Agent. Verify the exact destination, model and
+Chat Completions surface at an owned fake server. Assert that no cloud credential
+or account header reaches that server and that the parent's selection is unchanged
+by its child's choice. Refuse selection during admitted work without changing
+configuration. Verify restoration resolves the intended route; an unavailable
+route must not silently become a cloud request.
 
-### Versioned source and output transport
+Add two configured fundings for the same vendor/model. With no remembered default,
+refuse ambiguity. Choose funding in Settings, then select the model in both
+the picker and Create Agent. Verify that each model appears once. Change the
+default and verify existing Agents stay on their explicit offerings. Remove the remembered binding and prove no alternate
+route is substituted. Hold the global writer lock: a funding save must refuse
+and preserve global bytes, while model selection does not attempt a global write.
+Restore each persistent Agent from its own saved offering, not the newer global
+default; preserve its memory, recall and working-context settings.
 
-A staged source request is `{"entry":"relative.js","files":{"relative.js":"source"}}`.
-The selected renderer identity joins it in the stored package. Require an existing
-entry, one to 64 declared JavaScript files, safe relative paths, valid source text,
-and both source and encoded-package size bounds of 1 MiB. Hash the canonical
-package and verify its identity on reopen. Never accept a changed file under an
-old approved version.
+### Exercise 2: Complete the tool conversation
 
-`/renderers/shipped?renderer=NAME` downloads inert embedded source. Selection,
-package, stage, accept and rollback operations reuse the existing guarded host.
-Mutation requires the origin and `X-Ensemble-Renderer: 1` guard. Promotion is
-renderer-specific and compares the expected accepted hash. Storage belongs to
-the GUI host, independently of Agent settings; hosts without configured renderer
-storage remain shipped-only. The [installed API note](../agent/skills/file-reading/renderers/README.md)
-describes each shipped dependency package.
+Return a structured function call with a unique ID. Execute only an explicitly
+granted harmless tool, record its result, and send that result with the matching
+ID. Require the final answer to consume the result. Repeat with a tool-shaped JSON
+string inside ordinary content and prove that no tool executes. Exercise buffered
+and streaming responses with fragmented argument text; fragments cannot authorize
+execution before the call is complete.
 
-`/jobs/window?agent=ADDRESS&handle=HANDLE` requires the existing same-origin/site
-checks and `X-Ensemble-Output: 1`. Its response is `{handle, status, start, end,
-rolled_out, encoding, data, origin_call_id, origin_tool}`. Encoding is `base64`;
-start is `max(0, end - 65536)` at the published snapshot. Refuse a shorter file,
-foreign ownership or a download request on this endpoint. The GUI validates
-identity, offsets, lengths and generation before painting. Live polling pauses
-when its page or pane is hidden; reset cancels its observations without cancelling
-the underlying Job.
+### Exercise 3: Fail and cancel honestly
 
-Test the transport boundary as well as the renderer. During Bill's hands-on
-review, real reads fell back to plain text even though tool-evidence tests and
-synthetic browser tests passed. Display reconstruction had omitted the evidence
-when rebuilding result events from retained conversation entries. A regression
-must carry actual dispatched read, directory and search evidence through GUI
-projection, including snapshot-only replay. Then test the browser presentation.
-Neither side alone proves the information survives between them.
+Use controlled server barriers to interrupt an in-flight request and destroy its
+owning Agent. Verify cancellation and joined cleanup without replaying tool effects.
+Exercise connection refusal, malformed responses and server shutdown. Preserve
+recorded outcomes and report failure without contacting a fallback provider. A
+quiet network wait is not evidence of completed work.
 
-## Take it for a spin
+### Exercise 4: Measure limits and usefulness separately
 
-Use an isolated instance with disposable files. Start with a directory containing
-a subdirectory and an HTML-looking filename, then inspect a read beginning partway
-through a source file. Compare an exact replacement's unified diff
-with its captured before/after text, including separated changes and a missing
-final newline. Run a controlled process that prints, waits for input and
-prints again; inspect its continuing output alongside the separate observations.
+Check reported input/output usage, missing usage and unknown pricing with fixtures.
+For live integration acceptance, use a short conversation and a harmless granted
+tool on a small controlled fixture. Confirm the actual call and result in Actions;
+do not require coding quality to prove that local inference is supported. Record
+server/model versions and configured serving context. Stop once the agreed
+integration goal is met.
 
-In Speech & Display settings, select a shipped renderer, download its package and
-make a small presentation change. Stage it, review the source, Try live, and
-reload before Keep. The reload should restore the accepted or shipped version.
-Repeat with Keep, then exercise rollback and shipped-only recovery. These steps
-change reviewed browser code; use a controlled candidate and preserve a recovery
-route before experimenting.
+An operator who wants to evaluate coding usefulness may separately choose one
+bounded task on their own model and hardware. Include prompt and tool overhead,
+correctness and practical latency. Do not infer capacity from parameter count or
+extrapolate a small success into general competence. Report deterministic checks,
+integration acceptance and optional model-quality evaluation separately.
 
-Serve the installed `skills/shared` directory with a local static HTTP server and
-open `inline-dice.html`. No package installation is needed. Open the explanation
-by keyboard and touch and compare it with the supplied record. This is a synthetic
-example rather than a transcript of a real game.
+Junien's [PR 3](https://github.com/waywardgeek/ensemble/pull/3) supplies the
+sleeping-inference-machine use case, and
+[PR 6](https://github.com/waywardgeek/ensemble/pull/6) highlights explicit streaming
+policy. Wake-on-LAN remains optional and separately authorized.
 
-The implementation checks separate the evidence layers. Native tool tests exercise
-captured facts and durable codecs. HTTP tests exercise owned output windows and
-per-renderer approval. Actual-page browser fixtures supply controlled facts and
-check rendering, interaction, fallback and replay. Distribution checks compare
-copied source bytes and run the standalone fixture without a repository checkout.
-These tests do not constitute a real-provider end-to-end session, screen-reader
-acceptance, or proof that a fresh student can reconstruct this chapter. Detailed
-commands and outcomes remain in the development notes rather than a claimed
-chapter-wide certification score.
+The [closeout plan](../docs/edition-3-notes/first-book-closeout-plan.md) separates
+synthetic verification, real-target trials and human acceptance. This chapter does
+not authorize model downloads, listener changes or an inference campaign merely
+by being loaded as task material.
 
-## Exercises
-
-These exercises apply the implementation reference. Local regression tests are
-available, but there is no independent chapter grader or completed reconstruction
-claim for this increment. Use local fixtures and isolated application
-instances; publication, live-service changes and paid inference are not required.
-
-### 1. Make a directory listing useful
-
-Implement the first skill-owned renderer for `list_directory`. Use a small
-fixture containing files, directories and a name containing HTML-like characters.
-Keep the displayed entries faithful to the tool result and distinguish directories
-without relying on color alone. Change the format in response to a short human
-request, then explain the files changed and show the result.
-
-At this checkpoint, edit the reviewed shipped renderer and rebuild/reload the
-isolated host, or demonstrate the change in an isolated module fixture. The
-versioned trial panel comes later. Keep fixture evidence distinct from host
-integration.
-
-Demonstrate the readable fallback when no custom renderer is supplied and when
-custom rendering fails. Use the renderer declaration and preview interface in
-the reference section. Keep the existing tool's execution and access rules.
-
-### 2. Package the renderers and discover their helpers
-
-Move the existing Artifact rendering code into the agreed skill structure,
-including chat/readable thinking and the default presentation. Factor common
-Markdown and code-display helpers into the shared library area. Keep host
-transport, authoritative identity and tool authority with their existing owners.
-
-From a disposable distribution directory with no repository checkout, locate the
-renderer source, discover a helper through its concise documentation, and use it
-from two renderers. Verify that ordinary model requests do not acquire every
-library's source code. Include a small inline dice-result fixture with an
-explanation accessible by click, keyboard and touch. No Homebrew-VTT deployment
-or React migration is required.
-
-### 3. Show file contents and changes at their real positions
-
-Add suffix-based code highlighting and line numbers for reads and writes, plus
-unified replacement diffs for successful exact edits. Compare two changes
-separated by unchanged lines; verify old/new numbers, explicit gaps and a change
-to the final newline. Require clearly labeled before/after fallback for truncated
-evidence or an exhausted comparison budget. Use a file read starting partway down
-the file, an ordinary write, an append after a trailing newline, and an append
-to an unterminated line. Show the resulting line numbers and the actual edited
-region. Keep a readable presentation for an unknown suffix.
-
-Make a refused edit and a failed write visibly unsuccessful. Partially generated
-write arguments may be displayed as proposed content, but must not be labeled as
-a completed write. Show that the presentation preserves the original result and
-that the comparison
-extent is labeled accurately. Explain the metadata captured by
-the operation rather than infer historical positions from a later file read.
-
-### 4. Group search results without losing their meaning
-
-Render matches from several files with file grouping, line numbers, highlighted
-matches and the returned context. Exercise adjacent matches and a bounded result.
-Preserve returned content and make truncation explicit. Include markup-like text
-in a match to check that display remains data. The renderer must not silently
-rerun the search or open extra files merely to decorate the result.
-
-### 5. Keep one command session in view
-
-Use a controlled local process that emits colored output, accepts input and stays
-alive across multiple observations. Render its supported ANSI output in one
-continuing Artifact. Call `wait_for_job`, then `send_input`, and verify that the
-same presentation is foregrounded at the bottom of the Tools pane. Background
-output alone must not continually move it there. Avoid duplicating terminal echo.
-
-Generate more than 64 KiB. Check the bounded tail display, UTF-8 boundary handling,
-explicit styling reset, an older-output indication, and retained output on disk. Keep the model's smaller observation limit unchanged. While reading
-older visible output, test selection, focus and scroll preservation. Reconnect
-and verify the continuing view without restarting the process or duplicating
-output. History must retain the distinct calls and observations, with final Job
-state separate from each observation's completion.
-
-### 6. Exercise trust and fallback on the actual page
-
-Present an unapproved renderer and verify that it remains unexecuted while the
-safe result is readable. Then deliberately Try a controlled fixture and
-exercise its renderer. Verify that reload discards the trial, Keep survives reload,
-rollback restores the prior selection, and shipped-only recovery bypasses custom
-code. Change a helper and require a new version; refuse stale or cross-renderer
-promotion without changing the saved selection. Treat filenames, search text, Markdown and command escape
-sequences as data even in this trusted mode. Check that content alone cannot
-request a tool action, remote image fetch or executable markup through the
-provided safe helpers.
-
-Record the trust boundary honestly: in-page approved JavaScript has application
-privileges. These checks establish the selected helper and approval behavior,
-not isolation from malicious approved code. Review the useful rendered examples
-with the human before closing the increment. Do not expand this exercise into
-iframe implementation or a universal extension-security certification.
-
-Next: [Crossing Over to Ensemble](chapter-29.md).
+Next: [Advanced Artifacts](chapter-29.md).

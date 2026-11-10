@@ -292,7 +292,7 @@ keep its existing provenance and replay assertions.
 
 A tool result can carry more than readable text. Keep immutable delivery metadata
 separate from its prose, and preserve it through the Agent's recorded event and
-result projections. Chapter 26 uses this seam for work-product offers: an opaque
+result projections. Chapter 27 uses this seam for work-product offers: an opaque
 ID, display filename and size when offered accompany a successful result. A path
 or URL-looking string in ordinary prose cannot create that metadata or authorize
 a download. Error results cannot advertise a successful offer.
@@ -305,7 +305,7 @@ observation notices; a running report has no completed offer yet.
 
 Provider rendering consumes the ordinary description, not the opaque download
 identifier. Retained metadata is a description, not restored live authority.
-Chapter 26 constructs the owning Agent's live offer collection, the offer tool
+Chapter 27 constructs the owning Agent's live offer collection, the offer tool
 and download integration after the Sandbox and browser boundaries exist. None of
 those live download capabilities is part of this chapter's six-tool exercise.
 

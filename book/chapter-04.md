@@ -540,10 +540,10 @@ The end-to-end delayed structured-result exercise belongs in
 MCP and browser inspection are available. There, a controlled remote peer supplies
 a real delayed result and the browser exposes its presentation. Preserve ordered
 parts and error status through completed observation without flattening them to
-diagnostic output. Chapter 26 separately tests work-product delivery descriptions
+diagnostic output. Chapter 27 separately tests work-product delivery descriptions
 and live download authority; generic MCP content does not establish either.
 
-Chapter 26 supplies the HTTP transfer integration, not this chapter. Such a
+Chapter 27 supplies the HTTP transfer integration, not this chapter. Such a
 transfer is not another tool observation or a new background Job. It has its own
 explicit lifetime, owned by the offering Agent and joined before that Agent's
 Sandbox is destroyed. Request cancellation stops that transfer; it does not erase

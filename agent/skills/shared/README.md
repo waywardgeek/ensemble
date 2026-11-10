@@ -1,4 +1,4 @@
-# Shared presentation helpers
+# Shared skill helpers
 
 This directory is shared source, not an activatable skill and not a tool grant.
 The GUI explicitly packages reviewed files; directory presence does not execute
@@ -63,3 +63,7 @@ parser or a Homebrew-VTT integration. A real host must supply its own durable
 identity, recorded result and lifecycle. Merely opening an explanation changes
 neither those facts nor tool execution. The example needs no shared card template,
 heading, status row or Tools pane, and executes only when explicitly opened.
+
+`ensemble_mcp.py` provides ordinary and reverse-calling Python MCP skill tools.
+Read [the Python API](python-mcp.md) before its implementation. Copy this helper
+inside the executable skill sandbox; directory presence is not activation.

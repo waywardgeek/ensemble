@@ -20,7 +20,7 @@ class FigureMarkup(HTMLParser):
 
 class ChapterFigureTests(unittest.TestCase):
     def test_explicit_captions_preserve_image_alternatives(self):
-        chapter = Path(__file__).with_name('chapter-28.md')
+        chapter = Path(__file__).with_name('chapter-29.md')
         html = subprocess.check_output(
             ['pandoc', '--from=markdown', '--to=html', str(chapter)], text=True)
         parsed = FigureMarkup()

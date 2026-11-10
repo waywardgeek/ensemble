@@ -1,7 +1,7 @@
 # Edition 3: C# inside Ensemble
 
-This edition includes the completed Chapter 25, Voice and Images, and the
-current Chapter 29 crossover requirements, alongside Goals and the
+This edition includes the completed Chapter 26, Voice and Images, and the
+current Chapter 30 crossover requirements, alongside Goals and the
 optional Codex-backed path. Bill directed the architecture; Cadence
 implemented, exercised and reviewed the C# work personally inside Ensemble.
 
@@ -19,16 +19,15 @@ Historical foundation checks alone were not that human acceptance. The optional 
 completed after Gateway and Goals, and its historical `ch24` endpoint intentionally
 contains that foundation. Earlier endpoints are not renamed or overwritten.
 
-The local publication artifacts (assembled Markdown, EPUB, print interior and
-covered reading PDF) now include all 30 chapters, 00–29: Advanced Artifacts is
-Chapter 28 and Crossing Over remains the closing chapter. Gateway, Connections,
-Agenda, Puffin and their active notes live in [the Puffin book](../puffin-book/README.md).
-The release checks cover EPUB navigation and embedded figures, print typography,
-contents destinations, page labels and reading-copy links. These are local
-release candidates awaiting Bill's publication decision, not a new whole-book
-execution grade, installed usability acceptance or KDP preview approval.
-Historical partial and ungraded exercise results retain their limits; see the
-[chapter guide](chapters.md).
+The working manuscript now has 31 chapter slots, 00–30. Workflows is Chapter 21
+and is under development; Advanced Artifacts is Chapter 29 and Crossing Over is
+Chapter 30. The assembled Markdown follows this working manuscript.
+
+The existing EPUB and PDFs remain the completed 30-chapter release, 00–29, before
+the Workflows insertion. They have not been rebuilt or newly verified for this
+change. Historical partial and ungraded exercise results retain their limits.
+Gateway, Connections, Agenda and Puffin remain in
+[the Puffin book](../puffin-book/README.md). See the [chapter guide](chapters.md).
 
 The companion publication is available under [companion/](companion/README.md).
 
@@ -40,7 +39,7 @@ human-led creation method and distinguishes it from historical execution runs.
 Begin with the TL;DR, plain-language explanation and exercises; develop the
 implementation with the human before writing the detailed chapter body.
 
-[Advanced Artifacts](chapter-28.md) is based on bounded local implementation and
+[Advanced Artifacts](chapter-29.md) is based on bounded local implementation and
 tests. One isolated student attempt exercised the directory slice and informed
 teaching improvements, followed by one editorial review. It was not a complete
 chapter reconstruction. Six figures use authorized isolated synthetic browser
@@ -60,15 +59,16 @@ endpoints, archived evidence, or executable grader flags to match the book.
 | 18 | Sandbox | 19 / `ch19` |
 | 19 | Ensemble | 20 / `ch20` |
 | 20 | Managing the swarm | 21 / `ch21` |
-| 21 | Memory | 22 / `ch22` |
-| 22 | Recall | 23 / `ch23` |
-| 23 | Codex/cache | 24 / `ch24` |
-| 24 | Goals | 27 / `ch27` |
-| 25 | [Voice and Images](chapter-25.md) | External media grader remains `-ch 26`; scopes pass 100/100 with documented limits. |
-| 26 | [Artifacts and Actions](chapter-26.md) | Integration draft; named artifact grade70/100, work products ungraded; further student campaigns deferred |
-| 27 | [Running Local Models](chapter-27.md) | Implemented with bounded evidence; public119 ungraded, human usability pending |
-| 28 | [Advanced Artifacts](chapter-28.md) | Implemented and human-reviewed; directory-slice student feedback, one editorial review, and continuing-session usability |
-| 29 | Crossover | Active source in `agent/`; no numbered snapshot |
+| 21 | Workflows | In development; no preserved endpoint or completed grader |
+| 22 | Memory | 22 / `ch22` |
+| 23 | Recall | 23 / `ch23` |
+| 24 | Codex/cache | 24 / `ch24` |
+| 25 | Goals | 27 / `ch27` |
+| 26 | [Voice and Images](chapter-26.md) | External media grader remains `-ch 26`; scopes pass 100/100 with documented limits. |
+| 27 | [Artifacts and Actions](chapter-27.md) | Integration draft; named artifact grade70/100, work products ungraded; further student campaigns deferred |
+| 28 | [Running Local Models](chapter-28.md) | Implemented with bounded evidence; public119 ungraded, human usability pending |
+| 29 | [Advanced Artifacts](chapter-29.md) | Implemented and human-reviewed; directory-slice student feedback, one editorial review, and continuing-session usability |
+| 30 | Crossover | Active source in `agent/`; no numbered snapshot |
 
 Gateway's preserved endpoint remains `solutions/ch26`; its historical graders
 and [current persistence evidence](../puffin-book/notes/gateway-complete-state.md)
@@ -79,7 +79,7 @@ unrelated chapters. Earlier editions and their chapter numbering are unchanged.
 
 ## What completion means
 
-Chapter 25 contains its TL;DR, In Plain Words, implementation contracts, and
+Chapter 26 contains its TL;DR, In Plain Words, implementation contracts, and
 externally graded exercises. Its four media scopes pass 100/100. The native
 host-screen scope verifies default and explicit primary-display captures through
 delayed Jobs and byte-identical new-turn replay without recapture. This does not
@@ -96,7 +96,7 @@ with zero cache reuse in three public requests. The integrated C# Codex path the
 completed three identical-body requests with cached input of 3,456, zero and
 3,456 tokens out of 3,641 each. This is two hits and one miss, not guaranteed
 savings or a billing measurement. No further live exercise is needed for this
-book boundary. See Chapter 23 for the separate earlier probe and its unknown
+book boundary. See Chapter 24 for the separate earlier probe and its unknown
 attempt. Live renewal/revocation, GUI inference and audible/human accessibility
 remain outside these results.
 

@@ -1,7 +1,7 @@
 # Chapters
 
-This book builds a coding collaborator. Chapter 25's four external media scopes
-pass 100/100 with documented limits; Chapter 29 retains crossover acceptance.
+This book builds a coding collaborator. Chapter 26's four external media scopes
+pass 100/100 with documented limits; Chapter 30 retains crossover acceptance.
 Gateway and the connected personal-system subjects now live in
 [the Puffin book](../puffin-book/README.md). See the [edition guide](README.md)
 for historical endpoint and grader mappings. This split does not declare the
@@ -29,19 +29,26 @@ remaining closeout work complete.
 - [Chapter 18: The Sandbox](chapter-18.md)
 - [Chapter 19: The Ensemble](chapter-19.md)
 - [Chapter 20: Managing the Swarm](chapter-20.md)
-- [Chapter 21: Forgetting on Purpose](chapter-21.md)
-- [Chapter 22: Auto-Recall](chapter-22.md)
-- [Chapter 23: While the Cache Is Broken](chapter-23.md)
-- [Chapter 24: Goals](chapter-24.md)
-- [Chapter 25: Voice and Images](chapter-25.md)
-- [Chapter 26: Artifacts and Actions](chapter-26.md) (integration teaching; partial grading)
-- [Chapter 27: Running Local Models](chapter-27.md) (implemented; bounded verification)
-- [Chapter 28: Advanced Artifacts](chapter-28.md)
-- [Chapter 29: Crossing Over to Ensemble](chapter-29.md)
+- [Chapter 21: Workflows](chapter-21.md) (in development)
+- [Chapter 22: Forgetting on Purpose](chapter-22.md)
+- [Chapter 23: Auto-Recall](chapter-23.md)
+- [Chapter 24: While the Cache Is Broken](chapter-24.md)
+- [Chapter 25: Goals](chapter-25.md)
+- [Chapter 26: Voice and Images](chapter-26.md)
+- [Chapter 27: Artifacts and Actions](chapter-27.md) (integration teaching; partial grading)
+- [Chapter 28: Running Local Models](chapter-28.md) (implemented; bounded verification)
+- [Chapter 29: Advanced Artifacts](chapter-29.md)
+- [Chapter 30: Crossing Over to Ensemble](chapter-30.md)
 - [Epilogue: What we can rebuild](epilogue.md)
 - [A note from Bill](note-from-bill.md)
 
-## First-book closeout work
+## Current development
+
+Workflows is now Chapter 21, after Managing the Swarm. The fiction-writer example
+is under development; later manuscript chapters shift by one. The completed
+PDF/EPUB release has not been regenerated for this new chapter.
+
+## Prior first-book closeout work
 
 - **Local models:** configured routing, funding, selection and tool conversations
   are implemented. Public119 checks remain ungraded; one isolated six-tool MiMo
@@ -62,9 +69,6 @@ requirements:
 - **Possible deeper artifact work, beyond the agreed usability closeout.**
   Renderers, addressable bytes, the content-addressed store that ch15 Q3
   needs, and sandboxed untrusted renderers.
-- **Workflows.** AI Native ch9-10: a skill is advice, a workflow is a
-  program; then workflows the agent writes for itself. Also where the ch5
-  three-agent exercise and the wake-once check were deferred.
 - Message board for agents to collaborate.
 - Auto-healing: a bug detection triggers a coding agent with exact logs and instructions to create reporo and if done, then repair.
 - Android and/or iPhone apps to interact with agents.  In particular, I want to remotely code via my phone, listing at high speed, talking to control the agent, so I can code while I mountain bike through the hills on fire roads.

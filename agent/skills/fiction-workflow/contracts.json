@@ -1,0 +1,164 @@
+{
+  "spawn_sub_agent": {
+    "type": "object",
+    "properties": {
+      "agent_id": {
+        "type": "string",
+        "description": "Unique direct child ID."
+      },
+      "task": {
+        "type": "string",
+        "description": "Delegated task."
+      },
+      "model": {
+        "type": "string",
+        "description": "Optional compatible same-provider model."
+      },
+      "submit_schema": {
+        "type": "object",
+        "description": "Optional complete bounded submission schema; validated before child creation."
+      },
+      "ai_callback_delay": {
+        "type": "number",
+        "description": "Seconds before waking; default 3, zero immediate. Does not cancel."
+      },
+      "ai_callback_pattern": {
+        "type": "string",
+        "description": "Regex matching only fresh output."
+      },
+      "max_output_bytes": {
+        "type": "integer",
+        "description": "Positive inline report cap; default 16384. Full output stays on disk."
+      }
+    },
+    "required": [
+      "agent_id",
+      "task"
+    ],
+    "additionalProperties": false
+  },
+  "ask_agent": {
+    "type": "object",
+    "properties": {
+      "agent_id": {
+        "type": "string",
+        "description": "Direct owned child ID."
+      },
+      "content": {
+        "type": "string",
+        "description": "Nonempty message for this child."
+      },
+      "ai_callback_delay": {
+        "type": "number",
+        "description": "Seconds before waking; default 3, zero immediate. Does not cancel."
+      },
+      "ai_callback_pattern": {
+        "type": "string",
+        "description": "Regex matching only fresh output."
+      },
+      "max_output_bytes": {
+        "type": "integer",
+        "description": "Positive inline report cap; default 16384. Full output stays on disk."
+      }
+    },
+    "required": [
+      "agent_id",
+      "content"
+    ],
+    "additionalProperties": false
+  },
+  "get_submission": {
+    "type": "object",
+    "properties": {
+      "agent_id": {
+        "type": "string",
+        "description": "Direct owned child ID, not a qualified tree address."
+      },
+      "ai_callback_delay": {
+        "type": "number",
+        "description": "Seconds before waking; default 3, zero immediate. Does not cancel."
+      },
+      "ai_callback_pattern": {
+        "type": "string",
+        "description": "Regex matching only fresh output."
+      },
+      "max_output_bytes": {
+        "type": "integer",
+        "description": "Positive inline report cap; default 16384. Full output stays on disk."
+      }
+    },
+    "required": [
+      "agent_id"
+    ],
+    "additionalProperties": false
+  },
+  "shutdown_agent": {
+    "type": "object",
+    "properties": {
+      "agent_id": {
+        "type": "string",
+        "description": "Direct child ID."
+      },
+      "ai_callback_delay": {
+        "type": "number",
+        "description": "Seconds before waking; default 3, zero immediate. Does not cancel."
+      },
+      "ai_callback_pattern": {
+        "type": "string",
+        "description": "Regex matching only fresh output."
+      },
+      "max_output_bytes": {
+        "type": "integer",
+        "description": "Positive inline report cap; default 16384. Full output stays on disk."
+      }
+    },
+    "required": [
+      "agent_id"
+    ],
+    "additionalProperties": false
+  },
+  "wait_for_job": {
+    "type": "object",
+    "properties": {
+      "handle": {
+        "type": "integer",
+        "description": "Existing job handle."
+      },
+      "ai_callback_delay": {
+        "type": "number",
+        "description": "Seconds before waking; default 3, zero immediate. Does not cancel."
+      },
+      "ai_callback_pattern": {
+        "type": "string",
+        "description": "Regex matching only fresh output."
+      },
+      "max_output_bytes": {
+        "type": "integer",
+        "description": "Positive inline report cap; default 16384. Full output stays on disk."
+      }
+    },
+    "required": [
+      "handle"
+    ],
+    "additionalProperties": false
+  },
+  "agents_status": {
+    "type": "object",
+    "properties": {
+      "ai_callback_delay": {
+        "type": "number",
+        "description": "Seconds before waking; default 3, zero immediate. Does not cancel."
+      },
+      "ai_callback_pattern": {
+        "type": "string",
+        "description": "Regex matching only fresh output."
+      },
+      "max_output_bytes": {
+        "type": "integer",
+        "description": "Positive inline report cap; default 16384. Full output stays on disk."
+      }
+    },
+    "required": [],
+    "additionalProperties": false
+  }
+}

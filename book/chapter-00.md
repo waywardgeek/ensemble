@@ -6,8 +6,8 @@
 are preserved from the first edition's October 2026 account. They describe that
 work, not fresh measurements of today's products or of the C# implementation.
 The third-edition foundation and working V3 crossover have been accepted for
-daily use. Chapter 25 covers multimedia with 100/100 external media points and
-explicit platform limits. Chapter 26 retains the crossover acceptance
+daily use. Chapter 26 covers multimedia with 100/100 external media points and
+explicit platform limits. Chapter 30 retains the crossover acceptance
 requirements. Gateway and the connected personal-system work now belong in
 the separate [Puffin book](../puffin-book/README.md).*
 
@@ -190,7 +190,7 @@ not evidence of this edition's replacement readiness.
 The earlier second edition was built with Codex under Bill's direction. The C#
 third edition was built inside Ensemble. That closes the development loop, but
 does not by itself establish that the replacement is ready for daily use. The
-current crossover exercise in Chapter 26 requires an actual usable application,
+current crossover exercise in Chapter 30 requires an actual usable application,
 a safe trial, and the human's acceptance before promotion. That exercise is
 ongoing; implementation completion is not crossover acceptance.
 

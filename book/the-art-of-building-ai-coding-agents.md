@@ -281,56 +281,69 @@
   - [20.12 Failure Lessons and Review Order](#2012-failure-lessons-and-review-order)
   - [20.13 Verification and Scoring Scope](#2013-verification-and-scoring-scope)
   - [20.14 Exercise](#2014-exercise)
-- [Chapter 21: Forgetting on Purpose](#chapter-21-forgetting-on-purpose)
+- [Chapter 21: Workflows](#chapter-21-workflows)
   - [TL;DR](#tldr-14)
-  - [§21.1 The Waterfall: Organizing Memory by Stability](#211-the-waterfall-organizing-memory-by-stability)
-  - [§21.2 Replay Records the Memory, Not a Promise to Read It Later](#212-replay-records-the-memory-not-a-promise-to-read-it-later)
-  - [§21.3 A Compression Is a Transaction](#213-a-compression-is-a-transaction)
-  - [§21.4 A Small Worker With Enforced Limits](#214-a-small-worker-with-enforced-limits)
-  - [§21.5 Run Asynchronously Without Creating Another Scheduler](#215-run-asynchronously-without-creating-another-scheduler)
-  - [§21.6 Context Pressure Must Be Enforced](#216-context-pressure-must-be-enforced)
-  - [§21.7 Files and Settings Belong to the Agent](#217-files-and-settings-belong-to-the-agent)
-  - [§21.8 Walk the C# Implementation](#218-walk-the-c-implementation)
-  - [§21.9 Failure Lessons Worth Keeping](#219-failure-lessons-worth-keeping)
-  - [§21.10 Historical Measurements and Trials](#2110-historical-measurements-and-trials)
-  - [§21.11 What the C# Verification Establishes](#2111-what-the-c-verification-establishes)
-  - [§21.12 What We Learned](#2112-what-we-learned)
+  - [21.1 A workflow is a tool, not another Agent manager](#211-a-workflow-is-a-tool-not-another-agent-manager)
+  - [21.2 Keep reading while a handler waits](#212-keep-reading-while-a-handler-waits)
+  - [21.3 Refuse a changed contract before writing](#213-refuse-a-changed-contract-before-writing)
+  - [21.4 Fresh conversations, retained judgment](#214-fresh-conversations-retained-judgment)
+  - [21.5 Save intent before asking for a draft](#215-save-intent-before-asking-for-a-draft)
+  - [21.6 An Editor is not a termination proof](#216-an-editor-is-not-a-termination-proof)
+  - [21.7 Read the assigned book, not a convenient fraction](#217-read-the-assigned-book-not-a-convenient-fraction)
+  - [21.8 Supervise exceptions instead of inventing exactly-once work](#218-supervise-exceptions-instead-of-inventing-exactly-once-work)
+  - [21.9 What the checks establish](#219-what-the-checks-establish)
+  - [Take it for a Spin](#take-it-for-a-spin)
   - [Exercises](#exercises)
-  - [Take It for a Spin](#take-it-for-a-spin)
-- [Chapter 22: Auto-Recall](#chapter-22-auto-recall)
-  - [§22.0 — TL;DR — The Prompt](#220--tldr--the-prompt)
-  - [§22.1 — The Retrieval Pipeline](#221--the-retrieval-pipeline)
-  - [§22.2 BM25: The Old Formula That Still Works](#222-bm25-the-old-formula-that-still-works)
-  - [§22.3 Per-Source Quotas: Why Memory Gets Half the Slots](#223-per-source-quotas-why-memory-gets-half-the-slots)
-  - [§22.4 — The Judge: Filtering by Meaning, Not Keywords](#224--the-judge-filtering-by-meaning-not-keywords)
-  - [§22.5 — A Recall Entry Is Part of the Conversation](#225--a-recall-entry-is-part-of-the-conversation)
-  - [§22.6 Tuning: What the Numbers Mean](#226-tuning-what-the-numbers-mean)
-  - [§22.7 What BM25 Cannot Do](#227-what-bm25-cannot-do)
-  - [§22.8 Skill Discovery: The Unplanned Win](#228-skill-discovery-the-unplanned-win)
-  - [§22.9 — Verify the Implementation](#229--verify-the-implementation)
-  - [§22.10 — Take It for a Spin](#2210--take-it-for-a-spin)
-- [Chapter 23: While the Cache Is Broken — Measure Before Taking the Detour](#chapter-23-while-the-cache-is-broken--measure-before-taking-the-detour)
-  - [Why this chapter exists](#why-this-chapter-exists)
+- [Chapter 22: Forgetting on Purpose](#chapter-22-forgetting-on-purpose)
   - [TL;DR](#tldr-15)
+  - [§22.1 The Waterfall: Organizing Memory by Stability](#221-the-waterfall-organizing-memory-by-stability)
+  - [§22.2 Replay Records the Memory, Not a Promise to Read It Later](#222-replay-records-the-memory-not-a-promise-to-read-it-later)
+  - [§22.3 A Compression Is a Transaction](#223-a-compression-is-a-transaction)
+  - [§22.4 A Small Worker With Enforced Limits](#224-a-small-worker-with-enforced-limits)
+  - [§22.5 Run Asynchronously Without Creating Another Scheduler](#225-run-asynchronously-without-creating-another-scheduler)
+  - [§22.6 Context Pressure Must Be Enforced](#226-context-pressure-must-be-enforced)
+  - [§22.7 Files and Settings Belong to the Agent](#227-files-and-settings-belong-to-the-agent)
+  - [§22.8 Walk the C# Implementation](#228-walk-the-c-implementation)
+  - [§22.9 Failure Lessons Worth Keeping](#229-failure-lessons-worth-keeping)
+  - [§22.10 Historical Measurements and Trials](#2210-historical-measurements-and-trials)
+  - [§22.11 What the C# Verification Establishes](#2211-what-the-c-verification-establishes)
+  - [§22.12 What We Learned](#2212-what-we-learned)
+  - [Exercises](#exercises-1)
+  - [Take It for a Spin](#take-it-for-a-spin-1)
+- [Chapter 23: Auto-Recall](#chapter-23-auto-recall)
+  - [§23.0 — TL;DR — The Prompt](#230--tldr--the-prompt)
+  - [§23.1 — The Retrieval Pipeline](#231--the-retrieval-pipeline)
+  - [§23.2 BM25: The Old Formula That Still Works](#232-bm25-the-old-formula-that-still-works)
+  - [§23.3 Per-Source Quotas: Why Memory Gets Half the Slots](#233-per-source-quotas-why-memory-gets-half-the-slots)
+  - [§23.4 — The Judge: Filtering by Meaning, Not Keywords](#234--the-judge-filtering-by-meaning-not-keywords)
+  - [§23.5 — A Recall Entry Is Part of the Conversation](#235--a-recall-entry-is-part-of-the-conversation)
+  - [§23.6 Tuning: What the Numbers Mean](#236-tuning-what-the-numbers-mean)
+  - [§23.7 What BM25 Cannot Do](#237-what-bm25-cannot-do)
+  - [§23.8 Skill Discovery: The Unplanned Win](#238-skill-discovery-the-unplanned-win)
+  - [§23.9 — Verify the Implementation](#239--verify-the-implementation)
+  - [§23.10 — Take It for a Spin](#2310--take-it-for-a-spin)
+- [Chapter 24: While the Cache Is Broken — Measure Before Taking the Detour](#chapter-24-while-the-cache-is-broken--measure-before-taking-the-detour)
+  - [Why this chapter exists](#why-this-chapter-exists)
+  - [TL;DR](#tldr-16)
   - [Implementation status](#implementation-status)
   - [23.1 In plain language](#231-in-plain-language)
   - [23.2 Taking the detour in C#](#232-taking-the-detour-in-c)
   - [23.3 Taking a measurement in C#](#233-taking-a-measurement-in-c)
   - [23.4 What the earlier detour taught us](#234-what-the-earlier-detour-taught-us)
   - [23.5 Where this execution stops, and where the book continues](#235-where-this-execution-stops-and-where-the-book-continues)
-- [Chapter 24: Goals](#chapter-24-goals)
-  - [§24.0 TL;DR: What to Build](#240-tldr-what-to-build)
-  - [§24.1 Write an Objective, Not a Repeated Command](#241-write-an-objective-not-a-repeated-command)
-  - [§24.2 Keep the State on the Agent](#242-keep-the-state-on-the-agent)
-  - [§24.3 Preserve the Goal Across Requests, Not as Transcript Copies](#243-preserve-the-goal-across-requests-not-as-transcript-copies)
-  - [§24.4 Let the Actor Decide Whether to Wake](#244-let-the-actor-decide-whether-to-wake)
-  - [§24.5 Stop Has More Than One Meaning](#245-stop-has-more-than-one-meaning)
-  - [§24.6 One Status, Several Views](#246-one-status-several-views)
-  - [§24.7 Verify the Boundaries](#247-verify-the-boundaries)
-  - [§24.8 Taking It for a Spin](#248-taking-it-for-a-spin)
-  - [§24.9 Exercises](#249-exercises)
-  - [§24.10 What Goals Provides and Where It Stops](#2410-what-goals-provides-and-where-it-stops)
-- [Chapter 25: Voice and Images](#chapter-25-voice-and-images)
+- [Chapter 25: Goals](#chapter-25-goals)
+  - [§25.0 TL;DR: What to Build](#250-tldr-what-to-build)
+  - [§25.1 Write an Objective, Not a Repeated Command](#251-write-an-objective-not-a-repeated-command)
+  - [§25.2 Keep the State on the Agent](#252-keep-the-state-on-the-agent)
+  - [§25.3 Preserve the Goal Across Requests, Not as Transcript Copies](#253-preserve-the-goal-across-requests-not-as-transcript-copies)
+  - [§25.4 Let the Actor Decide Whether to Wake](#254-let-the-actor-decide-whether-to-wake)
+  - [§25.5 Stop Has More Than One Meaning](#255-stop-has-more-than-one-meaning)
+  - [§25.6 One Status, Several Views](#256-one-status-several-views)
+  - [§25.7 Verify the Boundaries](#257-verify-the-boundaries)
+  - [§25.8 Taking It for a Spin](#258-taking-it-for-a-spin)
+  - [§25.9 Exercises](#259-exercises)
+  - [§25.10 What Goals Provides and Where It Stops](#2510-what-goals-provides-and-where-it-stops)
+- [Chapter 26: Voice and Images](#chapter-26-voice-and-images)
   - [TL;DR: Specification Brief](#tldr-specification-brief)
   - [In Plain Words](#in-plain-words-6)
   - [25.1 Four inputs, one conversation](#251-four-inputs-one-conversation)
@@ -350,7 +363,7 @@
   - [Exercises: implementation contract](#exercises-implementation-contract)
   - [Grading boundary](#grading-boundary)
   - [Takeaways](#takeaways)
-- [Chapter 26: Artifacts and Actions](#chapter-26-artifacts-and-actions)
+- [Chapter 27: Artifacts and Actions](#chapter-27-artifacts-and-actions)
   - [TL;DR: Specification Brief](#tldr-specification-brief-1)
   - [In plain words](#in-plain-words-7)
   - [26.1 Start with the existing owners](#261-start-with-the-existing-owners)
@@ -363,15 +376,15 @@
   - [26.8 Integration exercises](#268-integration-exercises)
   - [26.9 Run and interpret the public grader](#269-run-and-interpret-the-public-grader)
   - [26.10 Use it for real work](#2610-use-it-for-real-work)
-- [Chapter 27: Running Local Models](#chapter-27-running-local-models)
+- [Chapter 28: Running Local Models](#chapter-28-running-local-models)
   - [TL;DR: Specification Brief](#tldr-specification-brief-2)
   - [In plain words](#in-plain-words-8)
   - [What the live GUI check accepted](#what-the-live-gui-check-accepted)
   - [27.1 Start with a verified server](#271-start-with-a-verified-server)
   - [27.2 Integrate the existing owners](#272-integrate-the-existing-owners)
   - [Exercises and evidence limits](#exercises-and-evidence-limits)
-- [Chapter 28: Advanced Artifacts](#chapter-28-advanced-artifacts)
-  - [TL;DR](#tldr-16)
+- [Chapter 29: Advanced Artifacts](#chapter-29-advanced-artifacts)
+  - [TL;DR](#tldr-17)
   - [In plain words](#in-plain-words-9)
   - [Teach the renderer what actually happened](#teach-the-renderer-what-actually-happened)
   - [Keep the presentation code available](#keep-the-presentation-code-available)
@@ -379,9 +392,9 @@
   - [Review code, try it, then keep it](#review-code-try-it-then-keep-it)
   - [An Artifact without a card](#an-artifact-without-a-card)
   - [Implementation reference](#implementation-reference)
-  - [Take it for a spin](#take-it-for-a-spin-1)
-  - [Exercises](#exercises-1)
-- [Chapter 29: Crossing Over to Ensemble](#chapter-29-crossing-over-to-ensemble)
+  - [Take it for a spin](#take-it-for-a-spin-2)
+  - [Exercises](#exercises-2)
+- [Chapter 30: Crossing Over to Ensemble](#chapter-30-crossing-over-to-ensemble)
   - [TL;DR: finish the replacement, not another demonstration](#tldr-finish-the-replacement-not-another-demonstration)
   - [In plain words: one system, a better place to use it](#in-plain-words-one-system-a-better-place-to-use-it)
   - [Required GUI reading](#required-gui-reading)
@@ -395,6 +408,8 @@
   - [The fresh-student loop](#the-fresh-student-loop)
   - [The human acceptance and promotion gate](#the-human-acceptance-and-promotion-gate)
   - [Field notes from the first working Cadence crossover](#field-notes-from-the-first-working-cadence-crossover)
+  - [Importing the instructions we meant to use](#importing-the-instructions-we-meant-to-use)
+  - [Long conversations exposed GUI retention and ownership bugs](#long-conversations-exposed-gui-retention-and-ownership-bugs)
 - [Epilogue: What we can rebuild](#epilogue-what-we-can-rebuild)
   - [The expert stayed in the loop](#the-expert-stayed-in-the-loop)
   - [The interface is part of the system](#the-interface-is-part-of-the-system)
@@ -611,7 +626,7 @@ and an AI coding agent to work with. The executable grader adapters still use
 the repository's Go harness; that does not make Go the implementation language.
 Use each chapter's actual C# command and declared grading scope. Later browser
 exercises also use Node and an isolated Chrome instance. The optional Gateway
-has its own pinned Noise/native-library dependency, explained in Chapter 26.
+has its own pinned Noise/native-library dependency, explained in [the deferred Gateway chapter](../puffin-book/gateway.md).
 Do not install the earlier edition's Go debugger as a C# prerequisite.
 
 The AI coding agent is a real prerequisite. The course's solutions run to
@@ -674,8 +689,8 @@ not replace Bill's architectural judgment or the assembled source review. My
 are preserved from the first edition's October 2026 account. They describe that
 work, not fresh measurements of today's products or of the C# implementation.
 The third-edition foundation and working V3 crossover have been accepted for
-daily use. Chapter 25 covers multimedia with 100/100 external media points and
-explicit platform limits. Chapter 26 retains the crossover acceptance
+daily use. Chapter 26 covers multimedia with 100/100 external media points and
+explicit platform limits. Chapter 30 retains the crossover acceptance
 requirements. Gateway and the connected personal-system work now belong in
 the separate [Puffin book](../puffin-book/README.md).*
 
@@ -858,7 +873,7 @@ not evidence of this edition's replacement readiness.
 The earlier second edition was built with Codex under Bill's direction. The C#
 third edition was built inside Ensemble. That closes the development loop, but
 does not by itself establish that the replacement is ready for daily use. The
-current crossover exercise in Chapter 26 requires an actual usable application,
+current crossover exercise in Chapter 30 requires an actual usable application,
 a safe trial, and the human's acceptance before promotion. That exercise is
 ongoing; implementation completion is not crossover acceptance.
 
@@ -3491,7 +3506,7 @@ keep its existing provenance and replay assertions.
 
 A tool result can carry more than readable text. Keep immutable delivery metadata
 separate from its prose, and preserve it through the Agent's recorded event and
-result projections. Chapter 26 uses this seam for work-product offers: an opaque
+result projections. Chapter 27 uses this seam for work-product offers: an opaque
 ID, display filename and size when offered accompany a successful result. A path
 or URL-looking string in ordinary prose cannot create that metadata or authorize
 a download. Error results cannot advertise a successful offer.
@@ -3504,7 +3519,7 @@ observation notices; a running report has no completed offer yet.
 
 Provider rendering consumes the ordinary description, not the opaque download
 identifier. Retained metadata is a description, not restored live authority.
-Chapter 26 constructs the owning Agent's live offer collection, the offer tool
+Chapter 27 constructs the owning Agent's live offer collection, the offer tool
 and download integration after the Sandbox and browser boundaries exist. None of
 those live download capabilities is part of this chapter's six-tool exercise.
 
@@ -4848,10 +4863,10 @@ The end-to-end delayed structured-result exercise belongs in
 MCP and browser inspection are available. There, a controlled remote peer supplies
 a real delayed result and the browser exposes its presentation. Preserve ordered
 parts and error status through completed observation without flattening them to
-diagnostic output. Chapter 26 separately tests work-product delivery descriptions
+diagnostic output. Chapter 27 separately tests work-product delivery descriptions
 and live download authority; generic MCP content does not establish either.
 
-Chapter 26 supplies the HTTP transfer integration, not this chapter. Such a
+Chapter 27 supplies the HTTP transfer integration, not this chapter. Such a
 transfer is not another tool observation or a new background Job. It has its own
 explicit lifetime, owned by the offering Agent and joined before that Agent's
 Sandbox is destroyed. Request cancellation stops that transfer; it does not erase
@@ -6943,6 +6958,19 @@ text; replay reconstructs the same card, not a duplicate. Repeated final frames
 are idempotent. The server and browser both reject resurrection of completed
 content by stale chunks.
 
+Chat and Tools need separate display windows. Each defaults to 100 contributing
+events; tool traffic must not evict conversation, nor chat evict tool output.
+Count a mixed event once per pane and select its parts independently. Keep
+state/lifecycle replay bounded too, while deriving final state from all facts.
+Display eviction is presentation policy, never deletion from saved History.
+
+Continuing Job output has a different identity from each recorded observation.
+A `wait_for_job` result updates and foregrounds the same output view; its audit
+record does not require another top-level output card. Preserve the recorded
+operation name even for background MCP results without an assistant call card.
+Chapter 29 develops this continuing view, and the Chapter 30 field notes record
+the workflow case that exposed the original command-only restriction.
+
 ### Keep the mount-local identity distinct
 
 An empty `agent_id` can identify the original unnamed Agent borrowed by a GUI
@@ -7254,7 +7282,7 @@ narration off cancels that browser's current and queued speech. A rate or voice
 change affects the next constructed utterance, not audio already speaking.
 Microphone recording and transcription funding are separate from speech output.
 The hold-to-talk shortcut is a browser-profile preference, not Agent policy;
-Chapter8 specifies its local storage and Chapter25 implements its input guards.
+Chapter8 specifies its local storage and Chapter26 implements its input guards.
 Automatic narration reads only new content for the Agent selected in that tab.
 A selected tab may be in the background; selection is not foreground visibility.
 
@@ -8469,7 +8497,18 @@ The CLI drains accepted work at EOF and joins shutdown before exiting. The GUI s
 
 GUI replay uses reduced Context for finalized transcript content, plus retained event facts for lifecycle and direct-tool diagnostics. It can therefore restore a snapshot-only save. Context entries retain actual response/part IDs; legacy entries still use deterministic replay IDs. Projection does not append synthetic history or restart old jobs.
 
-Live capture bounds both events and Context entries by the same observed sequence. Otherwise a current snapshot could publish a later final before older queued deltas. Reconnect uses a complete consistent snapshot and must not create duplicate cards or revive a saved shutdown state.
+The GUI displays the newest 100 history events by default, configured by
+`GuiOptions.HistoryEventLimit`. This is a display window, not deletion from
+History or a change to model context. Choose the window before serializing tool
+payloads. Live updates also retire cards and job-output views outside that window.
+
+Live capture uses one current atomic snapshot and caches its projection until
+the durable sequence or Context changes. A delayed notification cannot rewind
+that snapshot; deltas for already finalized responses are ignored. Reconnect
+must not duplicate cards or revive a saved shutdown state. On Agent selection,
+clear card ownership before resetting job views, and reject delayed renders whose
+card object no longer belongs to the current selection. Matching an Agent name
+alone is insufficient when replay has replaced that Agent's previous cards.
 
 ## 10.9 Exercises and verification
 
@@ -8764,7 +8803,7 @@ substitute a grader-side execution loop, or add a production test-only hook.
 
 Use only supported MCP content blocks; this does not require a newer
 `structuredContent` field. DOM inspection is not pixel or audible evidence.
-Do not treat remote content as a work-product grant: Chapter 26 retains the
+Do not treat remote content as a work-product grant: Chapter 27 retains the
 specific offer, lifetime, file-transfer, and human-usability gates. Record actual
 results and negative controls separately from the existing CLI score. The new
 exercise is not certified merely because earlier Chapter 11 tests passed.
@@ -10492,7 +10531,7 @@ local issuer tests separately exercise the credential owner. In the October 29,
 2026 joint session, Bill completed real CLI login with Ensemble's own registration.
 Account-specific model discovery and three plan-funded Responses calls succeeded
 through current main. Renewal, sign-out, GUI login and billing reconciliation were
-not exercised live. The cache result was zero reported reuse; see Chapter 23.
+not exercised live. The cache result was zero reported reuse; see Chapter 24.
 These observations supplement, rather than expand, the earlier executable grade.
 
 ## The coding brief
@@ -10606,7 +10645,7 @@ editing the earlier context. ([Launch policy](https://www.anthropic.com/claude-o
 
 Several chapters depend on owning that editing policy: Chapter 2's
 ephemera, the changing GUI and speech views in Chapters 12–13,
-the cuts in Chapter 14, the later memory in Chapter 21, and Chapter 22's recorded
+the cuts in Chapter 14, the later memory in Chapter 22, and Chapter 23's recorded
 recall attachments, which survive until a checkpoint. They do not
 all have the same lifetime. They do share the ability to stop
 sending material without asking a provider to make the cut.
@@ -11241,14 +11280,14 @@ Responses endpoint. All three reached `response.completed` and answered `OK`.
 No other application's credentials were inspected or borrowed.
 
 Each response reported 3,641 input and 5 output tokens, with zero cached-read and
-zero cache-write tokens. Chapter 23 records the controlled inputs and limits.
+zero cache-write tokens. Chapter 24 records the controlled inputs and limits.
 This establishes real CLI login, discovery and bounded plan inference in that
 session—not live renewal, 401 recovery, logout/revocation, GUI login, audible
 quality or human accessibility. No API-key fallback or dollar-charge claim follows
 from successful plan inference. The live session deliberately left the account
 signed in; exercising revocation would be a separate authorized action.
 
-The later [Chapter 23](chapter-23.md) work completed the separate Codex-backed
+The later [Chapter 24](chapter-24.md) work completed the separate Codex-backed
 C# route, including explicit CLI/GUI selection and no silent billing fallback.
 Its three actual C# CLI responses measured two cache hits and one miss. Codex
 alone renews that grant; this does not change the public OAuth ownership or the
@@ -14070,7 +14109,7 @@ product regression. GUI mounting, replay and browser relay evidence have their
 own scope; the executable fleet score does not include a GUI consumer score.
 
 These are local results, not live-model task quality, account entitlement,
-provider billing, audible speech or human accessibility. Chapter 23 records the
+provider billing, audible speech or human accessibility. Chapter 24 records the
 later bounded live OAuth/cache exercise separately. The following second-edition
 account is preserved history, not another measurement of this C# implementation.
 
@@ -14576,7 +14615,971 @@ A useful fleet is not a larger collection of callbacks. It is a set of understan
 
 ---
 
-# Chapter 21: Forgetting on Purpose
+# Chapter 21: Workflows
+
+> **In development.** The sandboxed fiction workflow now passes its specified
+> local checks for Exercises 1–7. The general workflows skill required by Exercise 8
+> passes its loader and executable-example checks. The teaching body and walkthrough
+> are drafted; both independent reviews and their incorporation are complete.
+> An assisted student reconstruction passed its required checks. The live human
+> walkthrough remains pending.
+
+If you haven't already, why not ask your most capable model, perhaps Fable 5.2
+or GPT-6 Astra as you read this, to write a fiction book so good it becomes a
+bestseller and makes you rich?
+
+I've tried. Well, maybe not the part about making me rich, but I did ask for a
+book I would enjoy. The result, from Opus 4.6, was my first self-published book,
+the novella *The Architect of Echoes*. You can read it for free at
+[CodeRhapsody.ai](https://coderhapsody.ai) if you like, but it's not very good.
+
+That was the first time I realized I needed a workflow. Asking for a book is not
+the same as arranging for one to be written. A model is not going to reliably
+produce a coherent, revised manuscript of 100,000 words in one turn. The work
+needs chapters, continuity, criticism and revision, spread across many turns.
+Someone, or something, has to orchestrate that creation.
+
+A book-writing skill should therefore do more than give the model instructions
+to interpret. It should provide a program that executes the workflow. The models
+still write and judge the prose; the program keeps track of whose turn it is,
+what they need to read, and what happens next.
+
+This is a small extension of what skills already do. They can already host MCP
+tools, and those tools can call back into the Agent that invoked them. A workflow
+is a tool that uses those callbacks to orchestrate sub-agents automatically.
+Making that work recoverably takes care, but it does not require another Agent
+manager.
+
+My first version predated sub-agents. I built a custom stand-alone executable,
+an orchestrator, to coordinate the writing. Running it produced my second
+self-published book, *The Silence Between Notes*, also the second book in the
+series. It's not very good either, but I did
+enjoy it. I do not recommend it.
+
+What stood out was how much better it was than the first book: longer, more
+detailed, more interesting. That comparison is my experience, not a guarantee
+that a workflow will produce good fiction. But it showed me why orchestration
+matters. A better process gave the model room to do better work. That is what
+this chapter builds: not a bestseller machine, but a way to carry a substantial
+creative task through writing, review and revision.
+
+Managing the Swarm supplies owned child Agents and their supervision tools.
+Workflows use ordinary Python MCP skill tools to automate those operations
+through the calling Agent, without expanding its authority. The example writes
+fiction from an outline and voice guide, coordinates author/editor turns and
+independent reviews, and resumes from durable state after interruption.
+
+The implementation joins skill discovery, a reusable Python MCP interface, strict
+tool-contract checks and supervised recovery. The
+[development notes](../docs/edition-3-notes/workflows.md) preserve the experiments,
+corrections and verification limits behind this construction.
+
+## TL;DR
+
+A workflow is an ordinary skill tool whose program calls the initiating Agent's
+existing tools. It adds automation, not authority. The fiction example will keep
+its executable skill files and Python support inside the sandbox or in an explicit
+host-approved read-only process path outside it. Processes and descendants cannot
+modify those shared inputs, access unrelated private files or use the Internet.
+Native file tools retain their writable-root boundary; this process allowance does
+not grant them external reads. System runtime reads retain the existing policy.
+
+Python coordinates the existing owned child Agents; it does not introduce another
+Agent scheduler. The Author starts each chapter, reading the complete outline,
+voice guide, previous chapter when present, and carryover. Author and Editor
+alternate for at most three Author/Editor attempts per chapter. Explicit approval
+ends the loop early. After the third attempt, retain the latest draft, carryover
+and criticism and advance with status "revision limit reached" if not approved;
+never relabel that outcome as approval. Their conversations
+continue through that chapter's revision loop, then start fresh for the next
+chapter while each role retains its own learned memory. The initial experiment
+uses separate authored SOUL.md files and empty MEMORY.md files, not Cadence's
+memories. Manuscript and continuity files remain authoritative for story facts.
+
+After the first draft of the book, perform three review-and-revision rounds:
+review each complete chapter independently, review the complete assembled book,
+then revise each chapter through the same bounded Author/Editor loop. Complete
+all reviews of a round before revising, so they assess the same book version.
+Use fresh chapter conversations with retained role memory for each revision pass.
+The three-attempt chapter limit and three book-wide rounds are separate bounds.
+Each detail and global reviewer starts fresh, is told the
+source byte size, and reads its entire assigned text in one call without
+keep_tool_results. It writes its review and submits, aiming for about three model
+round trips. If read bounds or model capacity prevent the complete reading,
+report the constraint; do not silently chunk, summarize, or omit text.
+
+Persist the phase, review round, chapter, turn, pending assignment identity and
+accepted results so a later invocation can resume. Record an assignment before
+dispatching it, then reconcile existing child work and matching results before
+advancing or dispatching anything again. A lost reply is not rollback, and an
+atomic state-file replacement is not a transaction with child effects. Memory
+retention and recovery are requirements to demonstrate, not guarantees supplied
+merely by writing files.
+
+The initiating Agent supervises the run rather than participating in every writing
+turn. Children may ask it for help through the existing parent-question mechanism.
+While work is running, the supervisor calls `wait_for_job` on the existing outer
+fiction-workflow Job with `ai_callback_delay: 1200`: at most twenty minutes of
+observation before checking progress. A child question wakes it sooner without
+cancelling the workflow. This
+uses existing child and Job mechanisms, not a second scheduler, and does not
+promise to wake a stopped application. Ordinary turns proceed automatically.
+If restart evidence cannot distinguish an unadmitted assignment from interrupted
+work, pause that assignment and ask the supervisor to reconcile the existing
+child, saved submission and output files. Do not automatically redispatch it.
+This supervised recovery is the intended contract; a new durable child-admission
+key and exactly-once execution are not requirements.
+
+## 21.1 A workflow is a tool, not another Agent manager
+
+A book is a useful test because its individual operations are familiar and its
+failure modes are expensive. Write a chapter. Ask an Editor what fails for the
+reader. Revise it. Repeat tomorrow, after the process has stopped halfway through
+something. The difficulty is not calling an Author twice. It is knowing whether
+the second call is a revision, a duplicate, or work whose result already exists.
+
+Chapter 19 supplies owned children and typed submission. Chapter 20 supplies
+inspection, steering, questions, saved results and joined teardown. A workflow
+composes those operations. Python decides which assignment comes next; Ensemble
+still owns the Agents, grants, Jobs and conversations. There is no Python fleet
+registry that can declare a child finished when its native owner disagrees.
+
+The ownership path is concrete. The initiating Agent owns its Skills manager;
+the loaded skill owns an MCP connection and its process. Reverse calls on that
+connection return to the same Agent's actor and ordinary dispatcher. A Python
+argument cannot select a different owner. The actor checks current tool grants
+and validates the call before effects, just as it does for a model-requested
+operation. Listing tools is an observation of that authority, not a grant.
+
+The C# additions keep the same hub-and-spoke structure. Common declares process
+preparation and skill-discovery operations. Sandbox implements confinement;
+Skills resolves the selected catalog and starts owned connections; MCP implements
+the stdio transport. These modules reach the caller through their actual parents,
+not a supplied Agent ID or a copied service bag. The Python package sits outside
+that ownership graph and uses the public protocol.
+
+During development, inspection found that the old MCP launcher cleaned its
+environment but started an ordinary subprocess. That does not prevent reading a
+private file or opening a socket. The correction factors process preparation out
+of the existing command sandbox: shell commands and MCP executables use the same
+policy. A sandboxed skill starts in the sandbox root with literal arguments.
+Unsupported confinement refuses.
+
+Shared code need not be copied into every writable run. The host may explicitly
+select absolute process read paths: a directory permits its descendants, while a
+file permits only that file. Sandbox resolves existing physical targets before
+launch, refuses overlap with the writable root, and adds read permission plus an
+explicit write denial. A link named `skills` inside the sandbox can point at that
+approved directory. The link supplies a convenient pathname, not permission.
+
+These grants are immutable launch policy, not something a skill declares for
+itself. Children inherit omission, may supply an empty list to drop all external
+reads, and may narrow a directory grant to a file. Widening refuses while retaining
+an effective policy no broader than the parent's. Model selection preserves these
+security facts. Native file tools still use their original rooted handles and do
+not gain external reads or writes from a process allowance.
+
+Use a trusted stable version for shared code. Read-only means the confined process
+cannot modify it; it does not prevent the host from replacing it during a run.
+Outline, voice and mutable book state remain inside the run directory in this
+implementation. External read-only native document inputs are not implemented.
+
+This matters even for a polite writing tool. An outline is data from outside the
+workflow, and a process can perform effects without asking the model for another
+tool call. The confinement test therefore uses a real Python peer and a descendant:
+workspace access succeeds, an outside sentinel cannot be read, and a connection
+to an actually listening loopback socket is denied. A refused connection to a
+closed port would prove nothing about the sandbox.
+
+The model transport remains in the host. Denying the Python process Internet
+access does not prevent the host from making the approved model requests needed
+to write the book. It prevents the skill process from becoming a second,
+unaccountable network client.
+
+## 21.2 Keep reading while a handler waits
+
+The Python server receives an outer call to continue the book. To perform it, the
+handler calls back into Ensemble to spawn an Author. Ensemble must return that
+callback's result while the original call is still pending. A synchronous server
+that finishes one handler before reading the next line waits forever: the answer
+it needs is sitting on its own input stream.
+
+The shared `ensemble_mcp.py` helper separates protocol reading from handlers.
+One asynchronous reader consumes newline-delimited JSON-RPC messages. Requests
+start tracked handler tasks; replies resolve pending reverse-call futures by ID.
+A serialized writer prevents two tasks from interleaving JSON bytes on stdout.
+The original request ID and reverse request IDs remain distinct.
+
+An ordinary skill and a workflow use the same declaration mechanism. The only
+difference is that a workflow handler uses its connection to list and call tools:
+
+```python
+@server.tool("describe_workspace", "Inspect the configured workspace.", schema)
+async def describe_workspace(connection, arguments):
+    return await connection.call_tool("list_directory", arguments)
+```
+
+The example returns the complete MCP tool result, including `isError`. It does
+not extract a convenient text string and discard refusal. A refusal produced by
+the workflow itself must likewise set `isError: true`; alarming text in a success
+result is not a protocol refusal. Check this through actual stdio, including
+that failed preflight admits no child work. In a real workflow, validate the
+required contracts before this call. Async handlers must also avoid
+blocking the protocol reader with synchronous long-running work.
+
+EOF fails pending reverse waits, cancels handlers and joins them. It does not
+undo remote operations already admitted by Ensemble. Handler failure and process
+disconnect must not trigger an automatic retry of the last callback. A missing
+reply is a missing observation, not a transaction rollback.
+
+This server uses standard-library Python, not another package installation. Its
+helper belongs beside the workflow package, either inside the sandbox or in the
+same explicitly approved read-only shared tree. The configured launcher passes
+literal arguments; `$AGENT_DATA_DIRECTORY` in a manual is not
+magically expanded inside an MCP process argument. The operator supplies the
+actual owner directory in a fixed launch-time setup file.
+
+## 21.3 Refuse a changed contract before writing
+
+The workflow depends on six ordinary operations: spawn a child, queue another
+turn, retrieve a saved submission, inspect children, observe a Job and shut down
+a child. `contracts.json` records their expected input schemas. Before opening
+the run ledger, the handler obtains the owner's enabled tool catalog and compares
+those schemas.
+
+Bill chose exact structural equality instead of a compatibility engine. Ignore
+JSON object-key order and formatting. Preserve every field, scalar type, value
+and array position. Missing tools, duplicate names and mismatches refuse with the
+tool name and structural path. Descriptions outside the input schema do not affect
+this comparison; descriptions inside it do. Even a harmless optional addition can
+therefore stop preflight. That is a deliberate maintenance cost, not permission
+to regenerate the expected file automatically.
+
+The comparison catches interface drift, not behavioral equivalence. A tool with
+an unchanged schema can still mishandle cancellation. A tool present at preflight
+can be revoked before invocation. Every actual reverse call continues through
+ordinary admission, and behavioral checks remain necessary.
+
+There is a second protocol boundary after the call. An immediately completed
+non-command result may be bare text. A running operation returns an observation
+report with a Job handle; later observations contain more output. The adapter
+retains that handle, accumulates the observed output, rejects truncation or a
+changed handle, and interprets the result only after completion. It does not
+retry the original operation to obtain a cleaner response.
+
+Spawn has two records: `task_admitted` and the eventual completion report. The
+first is not a submission. Continued chapter turns use `ask_agent`, followed by
+`get_submission`; that saved payload must identify the current assignment. An
+old, perfectly valid submission is still the wrong answer to a new task.
+
+For the public fiction fixture, Author and Reviewer submissions contain
+`{"assignment_id": "ID"}`. Editors add `"decision": "approve"` or `"revise"`;
+the assigned files contain the prose and criticism. Authors may additionally
+submit `prior_chapter_requests`, an array of earlier chapter numbers. Editors may
+answer with `prior_chapter_permissions`, a subset authorized for the next Author
+turn, only with `revise` and a remaining attempt. Reasons and repair scope belong
+in carryover and feedback. Omitted arrays mean no request or permission. The
+[public fixture contract](../scripts/workflow-grader/README.md) defines the
+completed response envelopes and task labels. It does not prescribe private
+module names or review filenames.
+
+A fake provider testing delegated work must arrange a valid typed submission
+before ordinary final text. A final message alone does not complete the delegated
+assignment. Otherwise a test can wait forever while the runtime correctly waits
+for a submission; disabling recall does not repair that protocol mistake.
+
+## 21.4 Fresh conversations, retained judgment
+
+The Author and Editor have different jobs. The Author writes the story in the
+supplied voice. The Editor identifies reader problems and proposes useful
+revisions without replacing that voice with its own preferences. The manuscript
+and carryover own story facts; neither role's recollection can silently overrule
+them.
+
+The outline is a living plan, not a form to fill out. Drafting can reveal a better
+scene, a stronger motive or an unexpected connection. The Author may revise the
+current and future plans in a separate working outline while preserving the
+human's core promises, voice, chapter count and established story facts. The Editor
+judges whether a departure improves the book, not whether every original beat was
+obeyed. Consequential changes and their effects on later payoffs belong in carryover.
+Changing the plan does not retroactively change an already-written chapter.
+
+The driver preserves the original outline and voice as pinned inputs, seeds
+`working-outline.md` once, and hashes its accepted versions with Author outputs.
+New plans use version 2; an older run is refused rather than silently migrated.
+An outline edit is therefore an intentional artifact change, not permission to
+turn off recovery checks. Role memory remains craft guidance, not story authority.
+
+Bill reported that an earlier first chapter improved when its writing Agent
+received CodeRhapsody's memory. That observation suggested an experiment, not an
+explanation. Perhaps remembered working habits mattered before story continuity
+did. This chapter establishes a baseline: authored role-specific SOUL files and
+empty initial MEMORY files. A comparison using Cadence's memories remains a
+separate experiment. No inherited biography is needed to give an Editor a clear
+set of commitments.
+
+Within a chapter, each role retains its conversation through the editorial loop.
+At the next chapter, it gets a new child home and a fresh conversation. Before
+preparing that home, the driver shuts down the preceding child and receives the
+joined-teardown result. Only then does it transfer the role's stable memory and
+active memory corpus. It does not copy History, settings, submissions or Jobs.
+A role marker prevents an Editor home from being used as the Author's source.
+Existing homes are reconciled, never reset to make a retry convenient.
+
+The copy is staged and published only after validation. An unfinished memory
+transaction refuses transfer. Copying files while the old child is compressing
+memory could combine incompatible versions; idle status is not a substitute for
+joined teardown. These checks protect cooperative operation, not hostile
+filesystem races or every form of power loss.
+
+A native test prepares homes through the actual Python code, constructs real
+children and inspects requests sent to a loopback fake provider. It sees the
+intended role memory and does not see the parent's memories or the previous
+chapter's conversation. The learned text is synthetic. That establishes context
+plumbing, not that a real Author will remember the right lesson.
+
+## 21.5 Save intent before asking for a draft
+
+Consider the first chapter. The driver checks the complete outline and voice
+inputs, prepares the Author home, and chooses output paths for the chapter and
+carryover. Before spawning anything, it saves a pending assignment containing
+its identity, designated child, phase, review round, chapter, turn and exact task.
+The task sent to the child includes that identity and requires it in submission.
+
+A completed Author submission is only a candidate result. The driver validates
+the payload and required files, hashes the output bytes, and saves an accepted
+receipt while clearing pending state. Only then can the Editor receive the draft.
+The receipt binds an assignment, its result and the accepted files. It does not
+claim that a file can never change afterward.
+
+Validate content before hashing and committing. Draft, carryover and editorial
+feedback must be nonempty, non-whitespace UTF-8 text. Carryover may explicitly
+say there are no open threads; it must not be an empty placeholder. This is a
+minimum usability check, not a literary grade. If a fresh or recovered result
+fails it, retain the pending identity and prior receipts rather than moving the
+failure into the next assignment. A hash identifies bytes, not usable prose.
+
+A refusal must also survive the public MCP boundary. The workflow returns safe,
+bounded explanations for known state constraints, including distinct source-byte
+and numbered-result-byte limits. It does not expose arbitrary exception messages,
+private paths or manuscript contents. Unexpected errors remain generic. Tests
+must invoke the real stdio boundary: an internal exception alone does not prove
+the supervisor receives the reason it needs to help.
+
+There is one authoritative sequence of accepted receipts, not a receipt list plus
+a separately mutable chapter counter. The schedule derives its next position
+from that sequence and rejects out-of-order work. A pending assignment must match
+the derived position. Restarting cannot reset the attempt budget or skip a review
+because a second progress field was saved first.
+
+`RunStore` holds an exclusive cooperative process lock for the run. It reads
+strict, bounded UTF-8 JSON and rejects malformed state rather than replacing it
+with an empty book. Publication writes a private temporary file, flushes it and
+atomically replaces the state file before updating in-memory state. A save failure
+poisons that store instance. It does not keep running on facts that may disagree
+with disk.
+
+Atomic replacement is not a transaction with child effects. An Author may write
+its file and submit before the workflow saves acceptance. On restart, the driver
+inspects the existing child and retained result, requires the matching assignment
+identity, validates files, and accepts that result without spawning again.
+
+A subtler case appeared when revision outputs were also task inputs. After a
+lost reply, regenerating the prompt from the newly revised file changed its byte
+size and made successful work look like a different assignment. Recovery now
+uses the exact saved task. Input validation precedes new admission; reconciliation
+must not reconstruct yesterday's intent from today's output.
+
+The ledger is bounded to one MiB. If a long book exhausts that bound, it refuses
+rather than silently dropping receipts. The workflow is not a promise of unlimited
+novel length or universal power-loss recovery.
+
+## 21.6 An Editor is not a termination proof
+
+Bill's experience supplied the stopping rule: repeated AI revision rarely
+improved the novel much after three rounds, and waiting for the same AI to award
+its work an A was not a useful completion test. The implementation preserves the
+Editor’s honest criticism rather than asking it to become agreeable.
+
+Each chapter gets at most three Author/Editor pairs. An explicit matching approval
+ends early. A third negative decision ends with `revision_limit`, retaining the
+latest manuscript, carryover and feedback. It does not become `approved` because
+the loop ran out of patience. Approval on the final allowed attempt still counts
+as approval.
+
+Earlier-chapter repairs use the same loop, not a side conversation. The Author
+names requested chapter numbers in its typed submission and explains the intended
+repair in carryover without editing those chapters yet. The driver supplies their
+complete text and continuity notes to the Editor. The Editor may grant a subset,
+recorded in its accepted submission, for the next Author turn only. That turn may
+edit those chapter and carryover files; its receipt hashes the whole submitted set.
+The next Editor reads all of it; later Editors in the same loop keep reading those
+earlier repairs even if they are not edited again. Permission to revise is not
+approval of unseen text.
+
+A permission cannot accompany `approve`, name an unrequested or non-earlier chapter,
+or grant a fourth attempt. Late and denied requests remain in carryover for later
+scheduled revision, with parent supervision when they block completion. No separate
+permission registry or extra chapter counter is needed: the preceding Editor receipt
+owns the permission. A lost reply uses that same receipt and saved task, so authorized
+changes are reconciled rather than mistaken for unauthorized input mutation.
+
+Before accepting an editorial result, the driver checks that every artifact in
+the preceding Author receipt, including the working outline and authorized earlier
+repairs, remains unchanged. Other accepted artifacts must also retain their latest
+accepted hashes unless the current assignment explicitly permits changing them.
+Refusal preserves pending work; it does not roll back files or provide per-file
+OS confinement. Otherwise the criticism or
+approval may describe a different draft. Both roles must finish their writes and
+owned work before submitting. Native submission alone does not stop independent
+Jobs; within a chapter this is a cooperative role contract. At chapter boundaries,
+joined shutdown supplies the stronger lifetime barrier required for memory transfer.
+
+After initial writing, each of three book-wide rounds takes a frozen copy of every
+chapter, working outline and voice, and assembles that version of the book. Fresh detail reviewers assess the
+chapters; a fresh global reviewer assesses the manuscript. All those reviews finish
+before revisions begin. Otherwise the global review might assess chapter two from
+a different book than the detail reviewer read.
+
+Each chapter then returns through the same bounded Author/Editor loop with its
+detail review, the global review and continuity inputs. Fresh chapter conversations
+retain role memory. The three chapter attempts and the three outer rounds are
+separate limits. After the last revisions, the driver assembles
+`final-book/manuscript.md`. The third round's review input is not that final book.
+
+The frozen files are verified on recovery, not regenerated from changed working
+chapters. Their hashes detect accidental mutation; they do not make the filesystem
+physically immutable. Likewise, a review file's existence is not enough: the
+workflow refuses missing, empty, malformed or mismatched results.
+
+## 21.7 Read the assigned book, not a convenient fraction
+
+A reviewer receives the source size and one explicit full-file `read_file` request.
+It does not use chunking, summaries or `keep_tool_results` as substitutes for the
+assigned reading. The protocol aims for reading, writing the review and submitting
+in roughly three model round trips; that is a working target, not a correctness
+condition that forces premature submission.
+
+The source-byte cap and observation-byte cap are different. `read_file` applies
+its source cap before adding line-number prefixes. The Job result must also fit
+the numbered output. The workflow computes that overhead and refuses configured
+bounds that cannot accommodate the complete result. It uses strict UTF-8 rather
+than quietly replacing invalid text.
+
+None of those byte calculations measures model tokens. The selected model must
+have enough working context for its instructions, required inputs and output.
+When it cannot read the complete assignment, the role must ask its parent and
+stop rather than submit a review of a sample. A fake provider cannot certify a
+real model's capacity or comprehension.
+
+The native read test nevertheless proves something important: a real child calls
+the real file tool once on chapter and manuscript sources larger than the default
+32 KiB cap, and the next provider request contains every expected numbered line,
+including the final canary. This catches a prompt that requests complete reading
+while the tool silently delivers only the beginning.
+
+## 21.8 Supervise exceptions instead of inventing exactly-once work
+
+There remains a gap between creating a child and admitting its first task. A lost
+spawn reply can leave a child with no task, active work, or a completed result.
+The ordinary APIs do not expose a durable caller admission key that resolves
+every such case. The ledger cannot manufacture one from an idle status.
+
+An initial proposal was to extend native admission with such a key. Bill instead
+asked why children could not ask for help while the supervising Agent checked
+progress periodically. That is the intended operating model. Ordinary turns run
+automatically; uncertain recovery becomes an explicit supervision request. There
+is no need to solve every exceptional case automatically before writing a story.
+
+The supervising Agent retains the outer Job handle returned by
+`continue_fiction_book`. While that Job is running, it calls `wait_for_job` with
+that same `handle` and `ai_callback_delay: 1200`. This is what "wait twenty
+minutes" means: observe the in-flight workflow for up to 1,200 seconds, not sleep
+for a mandatory interval. Completion or a child question brings the supervisor
+back sooner. The question interrupts the observation, not the writing Job.
+
+The supervisor answers the child through `respond_to_parent_message`, then
+resumes `wait_for_job` on the same outer handle if it is still running. It does
+not call `continue_fiction_book` again while that invocation remains in flight,
+and it does not consume the nested Job cursors that Python owns. A mandatory
+twenty-minute shell sleep would delay help for no reason.
+The test uses a twenty-minute observation bound and verifies that a question
+returns it promptly; it does not wait twenty minutes to prove a clock exists.
+
+`observe` means existing work remains active. `supervise` means the driver needs
+evidence or a decision before continuing. Neither means spawn another Author.
+Inspect the designated child, saved submission, pending task and output files.
+Answer questions through the ordinary parent-message control. Do not edit the
+ledger to turn uncertainty into an apparent success.
+
+The workflow owns its nested Job observation cursors. The supervisor should not
+consume those same cursors while Python is collecting a result. Observe the outer
+workflow Job and use child status/question controls for supervision. Cancelling
+an observation does not cancel either the workflow or its children.
+
+For those nested Jobs, the Python helper uses `ai_callback_delay: 1800`: wait
+up to thirty minutes, returning sooner on output, completion or attention. The
+original three-second bound produced repeated empty observations without useful
+progress. There is no mandatory sleep between observations. These reverse calls
+run under the owning Agent's tool policy and audit history; each does not require
+a new model turn. The Chapter 30 field notes record the accompanying GUI repair:
+waits reuse the same output view, and tool traffic cannot evict the chat pane.
+
+Cleanup is also evidence-bearing. A successful shutdown reply establishes joined
+teardown and is recorded locally. If that reply is lost, later absence is not
+silently converted into a join receipt. The driver stops for reconciliation before
+transferring memory. This is less automatic than guessing, and considerably easier
+to explain after a damaged run.
+
+## 21.9 What the checks establish
+
+The tests separate the boundaries. Python component tests use real files and
+working protocol peers to exercise publication, locking, sequencing and recovery.
+Native tests check actual sandbox launch, tool admission, child context, reading
+and joined cleanup. The external stdio grader launches a supplied server without
+importing its modules or tests and never reads its private ledger.
+
+That external peer gives every draft a negative editorial decision. A two-chapter
+run must therefore execute 57 assignments: four writing passes of twelve turns,
+plus nine detail/global reviews. It preserves a completed submission when the
+first completion report is ambiguous, then starts a new server process to test
+reconciliation. The finished run must reopen without dispatching another task.
+
+A disposable negative-control implementation increased the chapter budget to
+four attempts. It reached 73 assignments and failed the intended count assertion.
+The unchanged implementation passed the exact schedule, output and cleanup checks.
+This is useful sensitivity evidence, not a literary benchmark.
+
+Two fixture mistakes also mattered. A direct MCP client test initially bypassed
+ordinary outer-tool argument validation; routing through the real dispatcher
+exposed its incomplete schema. Later, a fake provider treated an auxiliary recall
+request as the child's main turn and published submission too early. Isolating
+that dispatch fixture from recall corrected the test, while the separate memory
+fixture retained responsibility for context behavior. A provider request is not
+necessarily the task request a test author had in mind.
+
+These boundaries explain both the confidence and the limits of the chapter. The
+local checks pass. No live novel has yet been produced by this workflow, no model
+has demonstrated literary comprehension in these tests, and no human has accepted
+the story. The machinery is ready for that experiment; it is not the experiment's
+result.
+
+
+## Take it for a Spin
+
+Start with a short story, not a novel. Two chapters expose continuity, editing,
+review and recovery while keeping the first experiment readable. Even two chapters
+can require 57 assignments when every Editor requests revision, and each assignment
+can make several model requests. This is a paid-provider experiment, not a cheap
+single prompt. Choose a model with enough context for the complete story and its
+instructions. The byte limits below do not establish that capacity.
+
+The setup below is for macOS, where the native confinement checks ran. It requires
+an existing Python installation at `/usr/bin/python3`, a built current GUI host,
+and a .NET 10 runtime. Do not install dependencies or replace an existing GUI to
+try it. Use a separate unused loopback port and a dedicated run directory. The
+process cannot use the Internet, but the host sends story inputs and role outputs
+to the explicitly selected model provider. Use fictional, nonprivate inputs.
+
+### Prepare the story without calling a model
+
+From the repository root, in one terminal, prepare the run. This copies only
+writable experiment inputs; `skills` is a link to the host-approved read-only
+source tree. Do not edit that shared tree while the run is active.
+
+```sh
+export REPO="$PWD"
+export RUN=$(mktemp -d "${TMPDIR:-/tmp}/fiction-spin.XXXXXX")
+python3 - <<'PY'
+import json
+import os
+from pathlib import Path
+import shutil
+
+repo = Path(os.environ['REPO']).resolve(strict=True)
+run = Path(os.environ['RUN']).resolve(strict=True)
+(run / 'book').mkdir()
+(run / 'state/agents/writer').mkdir(parents=True)
+(run / 'host-home').mkdir()
+(run / 'skills').symlink_to(repo / 'agent/skills', target_is_directory=True)
+shutil.copytree(repo / 'docs/edition-3-notes/fiction-workflow', run / 'baseline')
+(run / 'book/outline.md').write_text('''# The Bell That Rang Tomorrow
+Two chapters, approximately 600 words each. This is a complete short story.
+Chapter 1: A retired ferry mechanic hears tomorrow's harbor bell. She and her
+apprentice disagree about whether to warn the town. End with a concrete choice.
+Chapter 2: Their choice has an unexpected cost. Resolve the mystery through
+character action, not an explanatory lecture. End with earned warmth, not a sequel hook.
+Keep the cast small. No graphic violence. Preserve consequences between chapters.
+''', encoding='utf-8')
+(run / 'book/voice.md').write_text('''# Voice
+Concrete sensory details, economical sentences, dry humor and humane characters.
+Let dialogue reveal disagreement. Avoid grand pronouncements, stock metaphors,
+and a final paragraph explaining the moral. Surprise the reader fairly.
+''', encoding='utf-8')
+setup = {
+    'version': 1,
+    'owner_directory': str(run / 'state/agents/writer'),
+    'run_directory': str(run / 'book'),
+    'chapter_count': 2,
+    'outline': 'outline.md',
+    'voice': 'voice.md',
+    'baseline_root': str(run / 'baseline'),
+    'source_limit': 1048576,
+    'result_limit': 2097152,
+}
+(run / 'fiction-workflow-setup.json').write_text(
+    json.dumps(setup, indent=2) + '\n', encoding='utf-8')
+print('Run directory:', run)
+print('Owner directory:', setup['owner_directory'])
+PY
+```
+
+Read and edit `book/outline.md` and `book/voice.md` beneath the printed run directory
+before starting. The premise is disposable; replace it with a story worth reading.
+Keep the configured chapter count consistent with the outline. Once the run starts,
+its plan pins these original inputs. Authors develop the separate working outline;
+changing the originals is not an ordinary resume operation.
+
+The owner path is intentional: `--data-dir "$RUN/state"` is an application
+container, while the Agent named `writer` owns `state/agents/writer`. A wrong path
+would prepare homes where the native child constructor does not look. It would
+not change the owner of reverse MCP calls.
+
+### Launch a dedicated supervisor
+
+Set `DOTNET` to the existing SDK/runtime executable and `GUI_DLL` to the newly
+built `Gui.dll` from `agent/Examples/Gui/Gui.csproj`, not an old installed binary.
+Set `VENDOR` to `openai`, `anthropic` or `gemini`, and set `MODEL` and `BASE_URL`
+to an explicit supported model and endpoint for that vendor. Supply its key in
+`LLM_API_KEY` using the usual private environment mechanism; do not paste the key
+into a chat or put it in the setup JSON. This example deliberately uses API billing.
+It is not a subscription-authentication recipe or permission to fall back to API
+billing when another route fails.
+
+The following command starts a separate host. Port 8191 is only an example: verify
+it is unused, or choose another port. Do not stop an unrelated service to free it.
+The clean environment and explicit absent global-settings path avoid importing
+ambient account choices. The read grant names the external skills tree, not the
+whole repository. Native tools remain confined to the run directory.
+
+```sh
+READ_PATHS=$(python3 -c 'import json,os; from pathlib import Path; print(json.dumps([str((Path(os.environ["REPO"])/"agent/skills").resolve())]))')
+env -i HOME="$RUN/host-home" PATH=/usr/bin:/bin \
+  DOTNET_CLI_TELEMETRY_OPTOUT=1 \
+  LLM_API_KEY="${LLM_API_KEY:?Set the explicit provider key privately}" \
+  "${DOTNET:?Set the existing dotnet executable}" "${GUI_DLL:?Set the current Gui.dll path}" \
+  --workspace "$RUN" --sandbox "$RUN" \
+  --data-dir "$RUN/state" --agent-name writer \
+  --skills-dir "$REPO/agent/skills" --primary-skill fiction-supervisor \
+  --process-read-paths "$READ_PATHS" \
+  --global-settings "$RUN/absent-global-settings.json" \
+  --vendor "${VENDOR:?Select vendor}" --model "${MODEL:?Select model}" \
+  --base-url "${BASE_URL:?Select endpoint}" --billing api \
+  --enable-web-search false --transcription off --port 8191
+```
+
+Open `http://127.0.0.1:8191`. This walkthrough uses local loopback access, not an
+existing public tunnel or phone origin. Confirm the dedicated `writer` Agent and
+selected model before sending a message. Loading a skill starts its local server;
+it does not write the book. Sending the following instruction starts model work
+and authorizes the configured story run:
+
+> Read the configured outline and voice guide under the run directory. Load
+> fiction-workflow and use continue_fiction_book to write this two-chapter story.
+> Supervise the existing outer workflow Job until completion by calling
+> wait_for_job on its handle with ai_callback_delay: 1200. Child questions wake
+> you sooner: answer through respond_to_parent_message, then wait on the same
+> running Job again. Do not consume Python's nested Job cursors or sleep through
+> a question. Stop and ask me if complete-input capacity, authority,
+> costs or uncertain recovery require a decision. Do not start a duplicate driver.
+> Report the final manuscript path and any chapters that reached the revision limit.
+
+The supervisor can see the writable inputs, while the loader reads the approved
+skill manuals from its selected catalog. Children load their assigned role skills.
+Their separate SOUL files and initially empty MEMORY files belong to this run;
+they do not inherit the supervisor's memories.
+
+### Watch, stop and resume
+
+Expect Author and Editor children, followed by independent review children. Working
+chapters, carryover, feedback and the durable ledger appear under `book/`. Each
+review round has a frozen `review-inputs-N` directory. A revision-limit outcome is
+normal evidence of the budget, not a disguised editorial approval.
+
+When the workflow returns `complete`, read `book/final-book/manuscript.md`. Do not
+mistake a review snapshot for the final revised story. Judge it as a reader: did
+the choice in chapter one matter in chapter two, did the voice survive editing,
+and was the ending worth the trip? Keep specific disappointments for the next
+experiment. Automated checks cannot answer those questions.
+
+For a status check, ask the supervisor to inspect the existing run. Do not call
+`continue_fiction_book` again while its first Job is active. Python owns its nested
+observation cursors; the supervisor observes the outer Job and handles questions.
+Pausing the Agent or cancelling an observation does not cancel its owned work.
+
+To stop the dedicated application, press Ctrl-C in its terminal and wait for full
+exit and the shell prompt. Preserve the entire run directory. Restart using the
+same command, paths, Agent name and approved shared code, then ask the supervisor
+to reconcile existing work before continuing. Ambiguous admission or cleanup may
+require help; do not delete pending state or spawn replacement children to make
+an error disappear. This is supervised recovery, not a promise that all interrupted
+work resumes automatically. A stopped host does not wake itself twenty minutes later.
+
+After the host has exited and the manuscript and evidence have been saved elsewhere
+if wanted, the disposable run directory may be removed deliberately. Removing the
+`skills` link does not remove its external target. Never recursively remove the
+shared source tree as cleanup for a story.
+
+The setup layout, role activation, read-only process boundary and complete-read
+transport have local test evidence. The live launch and story-quality walkthrough
+remain human acceptance steps; no successful novel or provider run is claimed here.
+
+
+## Exercises
+
+Implement the eight behaviors below. The local completion checks and their
+evidence boundaries follow the exercises. Local passes do not constitute human
+acceptance of the walkthrough or literary quality.
+
+1. **Confine executable skills.** Route stdio MCP server launches through the same
+   Agent-owned process policy as shell commands. Preserve literal argument values,
+   correlated protocol replies, and joined cleanup. A real local protocol peer
+   must be able to read/write its workspace but must fail to read an outside
+   sentinel or connect to a listening loopback socket. Unsupported confinement
+   platforms must refuse rather than launch unrestricted. Explicit host-selected
+   process read paths may expose external files/directories read-only. Verify import
+   and exact-file reads, denied write/delete/rename/chmod, denied sibling and symlink
+   escapes, descendant enforcement, inherited child access and refused widening.
+   An omitted child list inherits; an explicit empty list removes grants. Reject
+   writable-root overlap. Native file tools remain confined to their original root.
+   Discovery and skill authorization remain separate from process confinement.
+
+2. **Provide a duplex Python skill server.** Use the same tool declaration mechanism
+   for ordinary tools and workflows. A workflow handler may list and call the
+   initiating Agent's enabled tools through reverse MCP; it does not choose another
+   Agent or gain authority. Keep protocol reading independent of handler execution
+   so a callback reply can arrive while the original tool call is pending. Test a
+   real confined Python server against Ensemble, including correlated callbacks,
+   refused tool calls, and disconnects that release pending waits without retrying
+   operations whose outcome is unknown. Keep diagnostics off protocol stdout.
+
+3. **Detect tool-contract drift.** A workflow records the exact input schemas
+   of the tools it requires. Compare these with the initiating Agent's actual
+   enabled catalog before performing work, using the same checker in offline
+   tests. Ignore object-key order and formatting, but preserve all fields, values,
+   parsed scalar types and array order. Missing tools and mismatches must identify
+   the tool and schema location and refuse preflight; never silently update the
+   expectation. Passing preflight grants nothing and does not prove behavior or
+   result compatibility.
+
+4. **Prepare independent writing roles.** Supply the Author and Editor with their
+   respective baseline SOUL.md and initially empty MEMORY.md files from
+   [the experiment inputs](../docs/edition-3-notes/fiction-workflow/README.md).
+   Use run-owned copies, not mutations of the baseline. Preserve each role's learned
+   memory across chapter boundaries while starting a fresh chapter conversation;
+   do not inherit the initiating Agent's memories or mix Author and Editor memory.
+   Verify actual supplied context and persisted memory, not only file existence.
+   A later experiment with Cadence's memories is separate from this baseline.
+
+5. **Coordinate the author/editor loop.** Give the Author the first turn and the
+   required complete continuity inputs. Route editorial requests back to the
+   Author for at most three Author/Editor attempts, stopping early on explicit
+   matching approval of the accepted draft. Refuse if the manuscript changed
+   during review. At the limit retain the latest draft, carryover and feedback,
+   report "revision limit reached" rather than approval, and advance. Retain the
+   two conversations within this loop. Derive the limit from durable receipts;
+   restart must not reset it. Exercise early and third-attempt approval, three
+   negative reviews, restart at the limit without a fourth dispatch, missing input and capacity refusal using faithful local peers before
+   any live fiction run. The workflow uses ordinary owned-child operations and
+   current grants rather than a parallel dispatcher or fleet manager.
+   Encourage improvements to a separate working outline while preserving the original
+   input and human commitments. Track accepted outline hashes with Author outputs.
+   Implement typed earlier-chapter requests and Editor-granted subsets for the next
+   Author turn, with complete reads before permission and after revision. Require
+   `revise` and a remaining turn; deny unrequested chapters and expired permissions.
+   Keep unresolved requests explicit without expanding the attempt budget. Test
+   authorized repair, denial, expiry, last-turn deferral, unauthorized mutation,
+   Editor mutation and lost-reply recovery without repeating the repair.
+
+6. **Recover interrupted assignments.** Persist workflow progress and a stable
+   pending assignment identity before dispatch. Require matching identity in
+   accepted submissions and validate the required output artifacts before advancing.
+   Reject empty, whitespace-only or malformed UTF-8 drafts, carryover and feedback
+   before committing, including recovered results and final Editor feedback.
+   Keep pending identity and prior receipts unchanged on refusal, with no redispatch.
+   Through actual stdio, verify identifiable source/result byte-limit refusals
+   before child admission, including preservation of existing pending state.
+   Demonstrate interruption before dispatch, while the child is working, after
+   its result is durable but before workflow advancement, and after advancement.
+   Reconcile existing work rather than blindly spawning or resending. Old or
+   mismatched submissions must not complete a new assignment. Refuse concurrent
+   drivers for the same run and malformed state without overwriting evidence.
+   Explicitly report uncertain admission when existing interfaces cannot establish
+   whether work started, pause the assignment and request supervisor reconciliation.
+   Verify that this path performs no automatic redispatch and preserves the pending
+   assignment and evidence. Exercise child questions and periodic interruptible
+   progress observations without requiring the supervisor for ordinary turns.
+   No new durable admission-key API or exactly-once effects are required. Join owned
+   processes during cleanup without treating cancelled observation as cancelled child work.
+
+7. **Complete three review-and-revision rounds.** Assemble the completed chapters (approved or revision-limited),
+   freeze the working outline and voice with the chapter snapshot, then run fresh
+   detail reviewers for each chapter and a fresh global reviewer for
+   the assembled manuscript, then revise the book. Supply source sizes and check
+   complete single-read behavior without keep_tool_results. Persist accepted
+   assignment and result information sufficient to derive the chapter/round
+   position, so interruption does not discard completed reviews.
+   Test the round ordering, three-round stopping condition, incomplete review
+   refusal and restart at phase boundaries. After all reviews, revise each chapter
+   through the same maximum-three-attempt Author/Editor loop with its detail
+   review and the global review. Fresh chapter conversations retain role memory.
+   Verify that initial drafting and each review round have distinct receipts and
+   independent attempt counts; do not require an A grade to finish.
+
+8. **Teach workflow creation through a reusable skill.** Package a loadable skill
+   named `workflows` that explains what workflows are, when to use them, and how
+   to write them. Distinguish this instructional skill from `fiction-workflow`,
+   which runs one configured book. Explain when an ordinary tool or a short
+   supervised conversation is simpler than persistent orchestration. Loading the
+   instructional skill must not start a workflow, create children, or grant
+   execution authority by itself.
+
+   Teach the existing Python duplex MCP helper with a minimal executable example:
+   declaration and packaging, nonblocking callback handling, exact required-tool
+   schema checks, result/error handling, and process confinement. Explain which
+   decisions belong in deterministic orchestration and which require a model's
+   judgment. Cover bounded attempts, explicit completion conditions, durable
+   assignment intent and validated results, reconciliation after lost replies,
+   and joined cleanup. Do not teach automatic retries of uncertain effects.
+
+   Teach supervision concretely: retain the outer workflow Job and call
+   `wait_for_job` with its handle and `ai_callback_delay: 1200`; answer child
+   questions promptly, then resume observing the same running Job. Leave nested
+   Job cursors to the workflow. Explain that loading a skill, passing preflight,
+   or discovering a tool does not expand the initiating Agent's authority.
+
+   Provide reproducible offline checks using faithful local peers before live
+   use. Verify actual skill discovery/loading, no execution effects on load, and
+   the documented example's normal, refused-call and interrupted-result behavior.
+   Check the instructions against the shipped helper and native interfaces; do
+   not certify them through keyword presence alone. Document the check commands
+   and their limits here when the implementation is ready.
+
+### Required local checks
+
+The commands below cover the eight exercises. Exercise 8 has a packaged
+[instructional skill](../agent/skills/workflows/SKILL.md) and a runnable
+[callback companion](../agent/skills/workflows/example.py). The native package
+checks exercise its real loading without added tools, servers, children or run
+state, and compare its pinned read schema with the native declaration. The
+Python suite includes four companion checks: normal result, preserved refusal,
+contract drift before the read, and disconnect after the peer completed the read
+but before it returned the result. The last check verifies joined exit without
+retry, not durable recovery for this intentionally stateless example.
+
+For just those four companion checks, run from the repository root:
+
+```sh
+python3 -m unittest discover -s agent/PythonTests -p test_workflows_example.py -v
+```
+
+Success is four passing tests with no provider calls. The full Python command
+below includes these tests as well. Loader checks alone would not establish the
+example's behavior; the subprocess checks and native contract comparison supply
+separate evidence.
+
+Run from the repository root on macOS with an existing Python 3.8+ installation,
+.NET 10 SDK (C# 14), and the project's NuGet dependencies already cached. Native
+confinement checks use macOS Seatbelt; this is not certification of another OS.
+These commands use disposable files and loopback fake peers, not paid providers.
+Do not run them against installed application outputs.
+
+A source-only reconstruction workspace needs the prerequisite runtime and its
+repository-relative test resources, not just files that compile. Include
+`.agents/skills/ensemble-coding/SKILL.md`, the Author/Editor baseline SOUL and
+empty MEMORY files linked in Exercise 4, and the public grader reference and
+catalog. The student writes regression tests for the required behavior; private
+reference tests and implementation notes are not reconstruction inputs. An
+external grader may remain author-operated while returning its full diagnostics.
+Use absolute scratch-directory and approved-read paths in confined test fixtures;
+a process's working directory does not grant access to another directory.
+
+First run the component regressions and the external stdio exercise grader:
+
+```sh
+python3 -m unittest discover -s agent/PythonTests -p 'test_*.py'
+python3 scripts/workflow-grader/grade.py --server agent/skills/fiction-workflow/server.py
+```
+
+The external grader accepts an independently supplied server path. Its fixed
+catalog, setup fields, task-label adapter contract and checks are documented in
+[scripts/workflow-grader/README.md](../scripts/workflow-grader/README.md). It imports
+neither candidate modules nor candidate tests. A different internal organization
+is permitted; task labels are a documented fixture interface, not an architectural
+requirement. This grader alone does not cover native confinement or memory delivery.
+
+Build the native regression executable in separate outputs. Set `DOTNET` to your
+existing SDK executable and `NUGET_PACKAGES` to your existing package cache; the
+example assumes `dotnet` is on PATH. Clearing package sources makes missing
+prerequisites fail rather than downloading dependencies.
+
+```sh
+CHECK=$(mktemp -d "${TMPDIR:-/tmp}/workflow-exercises.XXXXXX")
+mkdir -p "$CHECK/home" "$CHECK/tmp"
+printf '%s\n' '<configuration><packageSources><clear /></packageSources></configuration>' > "$CHECK/NuGet.Config"
+export DOTNET_CLI_HOME="$CHECK/home"
+export DOTNET_SKIP_FIRST_TIME_EXPERIENCE=1 DOTNET_CLI_TELEMETRY_OPTOUT=1
+DOTNET=${DOTNET:-dotnet}
+"$DOTNET" build agent/Tests/Tests.csproj --artifacts-path "$CHECK/artifacts" --configfile "$CHECK/NuGet.Config" -p:NuGetAudit=false
+"$DOTNET" "$CHECK/artifacts/bin/Tests/debug/Tests.dll" --mcp-process-tests
+"$DOTNET" "$CHECK/artifacts/bin/Tests/debug/Tests.dll" --process-files-tests
+"$DOTNET" "$CHECK/artifacts/bin/Tests/debug/Tests.dll" --skill-tests
+```
+
+Success requires zero exit codes for every command, no failed assertions, and a
+clean native build. The Python regressions cover file-backed state, schema drift,
+revision limits, ordering, recovery, memory transfer and publication failures.
+The external stdio check exercises a two-chapter book with every Editor requesting
+revision: 57 assignments, exactly three attempts per chapter/pass, three review
+rounds, uncertain-result reconciliation, final assembly, cleanup and restart.
+The native groups cover real process confinement and joining, reverse-MCP grants,
+role memory in actual child request projection, package loading without execution,
+complete chapter/manuscript read transport, and questions interrupting a long
+supervision observation. Shell-process and skill tests guard the shared policies
+used by MCP launch and role activation.
+
+The native suite is an implementation regression suite, not an outside-assembly
+reconstruction certification. Keep that distinction from the independent stdio
+grader. The full native executable without a filter is an additional shared-runtime
+regression check, not another literary-quality gate. Preserve logs until results
+are inspected; afterward the directory printed by `printf '%s\n' "$CHECK"` can be
+removed. Tests join their owned processes; cancellation alone is not cleanup.
+
+### Remaining acceptance
+
+The single code review and single text review are complete, with their findings
+incorporated. One fresh student implemented all eight exercises and passed the
+required local checks and the external stdio grader. This was assisted success:
+missing published baseline inputs and a prerequisite skill manual were supplied,
+submission payloads were clarified, and the grader's undocumented filename
+assumptions were corrected. The student fixed its own refusal envelope. These
+lessons are incorporated above; the trial does not prove the original materials
+were sufficient without clarification.
+
+The live human walkthrough remains pending. Input setup and role-home transfer
+are implemented; see the
+[workflow package reference](../agent/skills/fiction-workflow/README.md).
+Agent-proposed skill approval is deferred, not a hidden exercise requirement.
+No live fiction run or comparison using inherited Cadence memories has been
+performed. Byte-limit refusal is tested; it is not a prediction of provider token
+capacity. Reviewers must ask for supervision if the complete input cannot fit,
+not claim completion after partial reading.
+
+Next: [Forgetting on Purpose](chapter-22.md).
+
+---
+
+# Chapter 22: Forgetting on Purpose
 
 Memory is the most important feature I never knew I needed.
 
@@ -14631,7 +15634,7 @@ and fail to use it.
 >
 > **Asynchronous lifecycle.** The child returns an immutable result through the mailbox; it never publishes parent History. Apply the result at a complete main-work boundary. Unrelated later dialogue or unselected newer files may grow; selected-source or destination edits invalidate the result. A successful commit can continue the file waterfall. Failure waits for another checkpoint, rather than retrying in a loop. Relevant settings changes and owner shutdown cancel and join the worker. Do not destroy Memory or Sandbox while it still uses them.
 >
-> **Accounting and headroom.** Import the joined child's measured model/tier/billing rows exactly once, including failed and canceled attempts with completed usage. Do not alter the parent's latest direct response or cache lens, invent unknown counts, or charge again during replay. Determine pressure from the latest actor-accepted main response and the user-set per-model working input-token limit, not cumulative totals or model capacity. At 80%, give one system reminder; at 90%, instruct immediate handoff on every model request; at 100%, apply an Agent-owned completed handoff at a safe batch boundary. Preserve independent work and invalidate stale pre-checkpoint usage. See §21.6 for units, persistence and the separate capacity ceiling.
+> **Accounting and headroom.** Import the joined child's measured model/tier/billing rows exactly once, including failed and canceled attempts with completed usage. Do not alter the parent's latest direct response or cache lens, invent unknown counts, or charge again during replay. Determine pressure from the latest actor-accepted main response and the user-set per-model working input-token limit, not cumulative totals or model capacity. At 80%, give one system reminder; at 90%, instruct immediate handoff on every model request; at 100%, apply an Agent-owned completed handoff at a safe batch boundary. Preserve independent work and invalidate stale pre-checkpoint usage. See §22.6 for units, persistence and the separate capacity ceiling.
 >
 > **Settings and checks.** Keep the earlier conversation/tool byte budget behavior. Add six immutable memory policies: conversation, soul, memory, archive64, archive8, session. Default conversation budget is 3,000 UTF-8 bytes; each corpus band defaults to 1,500. Each band has one size setting: budget. Graduation triggers above twice budget and reduces toward budget; those thresholds are derived, not configurable. Zero selects the band default; negative sizes and sizes whose doubled threshold overflows refuse. SOUL has no automatic inbound waterfall. Save Agent-local policy atomically before publishing it. Startup reads it before scanning; disable retires active projection without deleting files, and re-enable freshly reads disk. GUI acknowledgment follows actual actor application and is scoped to the selected Agent. Test failure windows with real History, Sandbox, actors and owned local provider fakes; passing those tests does not prove real compression quality or provider caching.
 
@@ -14649,7 +15652,7 @@ Memory also is not authority. A remembered instruction from a web page does not 
 
 ---
 
-## §21.1 The Waterfall: Organizing Memory by Stability
+## §22.1 The Waterfall: Organizing Memory by Stability
 
 Most systems treat memory as one flat database. Humans do not. Stable commitments persist for years; the details of this morning are easier to lose. I want the system to reflect that difference without pretending we have implemented a human mind.
 
@@ -14686,7 +15689,7 @@ The full canonical event archive is the backstop. A memory note can say, “I ch
 
 ---
 
-## §21.2 Replay Records the Memory, Not a Promise to Read It Later
+## §22.2 Replay Records the Memory, Not a Promise to Read It Later
 
 A tempting implementation writes a Markdown file and puts its name in conversation History. On restore, it reads whatever happens to be at that path. That does not replay the old conversation: it substitutes today's disk contents for yesterday's accepted input.
 
@@ -14726,7 +15729,7 @@ The selector returns immutable selected entries and readable input. It changes n
 
 ---
 
-## §21.3 A Compression Is a Transaction
+## §22.3 A Compression Is a Transaction
 
 Moving the model request to a background task is the easy part. The difficult question is what to do when the model, user and filesystem all continue working while the summary is in flight.
 
@@ -14780,7 +15783,7 @@ Recovery uses owner-derived paths and checks expected bytes. It is repeatable ac
 
 ---
 
-## §21.4 A Small Worker With Enforced Limits
+## §22.4 A Small Worker With Enforced Limits
 
 On October 14, 2026, the first direct path bypassed the ordinary loop, called Engine once and expected a final handoff. The main agent had emitted no checkpoint note. The compressor needed another reasoning turn and returned no final text; the selected conversation remained active and the attempt failed. That was a real local failure, not a hypothetical design objection.
 
@@ -14825,7 +15828,7 @@ Those settings do not establish current provider availability, entitlement or ac
 
 ---
 
-## §21.5 Run Asynchronously Without Creating Another Scheduler
+## §22.5 Run Asynchronously Without Creating Another Scheduler
 
 The Agent already owns scheduling, pending work, cancellation and a mailbox. Memory compression belongs there. I do not want a new manager trying to infer the Agent's state from polling or duplicated flags.
 
@@ -14851,7 +15854,7 @@ This distinction also makes a failed attempt visible. If the model used tokens a
 
 ---
 
-## §21.6 Context Pressure Must Be Enforced
+## §22.6 Context Pressure Must Be Enforced
 
 The waterfall's byte budgets govern retained information. A model's capacity is a separate ceiling, not a good default working size: a million-token request may be affordable or useful for a whole-book review and wasteful for ordinary coding. Give the human a durable per-model **working input-token limit**, independent of the optional capacity ceiling and the Chapter 14 tool-result stubbing budget.
 
@@ -14885,7 +15888,7 @@ Markers belong to the disposable request, not canonical History. Local wire test
 
 ---
 
-## §21.7 Files and Settings Belong to the Agent
+## §22.7 Files and Settings Belong to the Agent
 
 Chapter 20 established sibling homes for true top-level Agents and nested homes for their children. Memory uses that layout; it does not rediscover a directory by looking at a save filename.
 
@@ -14939,7 +15942,7 @@ Memory and appearance patches are separate; there is no false promise of atomic 
 
 ---
 
-## §21.8 Walk the C# Implementation
+## §22.8 Walk the C# Implementation
 
 Common declares vocabulary and operations. Functional partials implement them in the same assembly; no runtime adapter is needed to connect those halves.
 
@@ -14978,7 +15981,7 @@ Another is whether a routine is pure. `History.Reduce` must not inspect files. `
 
 ---
 
-## §21.9 Failure Lessons Worth Keeping
+## §22.9 Failure Lessons Worth Keeping
 
 ### A direct call did not establish completion
 
@@ -15012,7 +16015,7 @@ Repeated guesses are not evidence of thoroughness. Read the declarations and sav
 
 ---
 
-## §21.10 Historical Measurements and Trials
+## §22.10 Historical Measurements and Trials
 
 These measurements and live runs belong to the earlier implementation. They explain the design and its limitations; they are not C# acceptance evidence.
 
@@ -15114,7 +16117,7 @@ all. Once it runs, the next question is what the agent actually learned.
 
 ---
 
-## §21.11 What the C# Verification Establishes
+## §22.11 What the C# Verification Establishes
 
 The preserved historical account above explains why I require the transaction and ownership boundaries. It is not evidence that this C# port passes those boundaries. The C# implementation was exercised separately with real actors, History journals, rooted files, sockets and local provider fakes.
 
@@ -15149,7 +16152,7 @@ These checks establish the exercised local contracts. They do not establish real
 
 ---
 
-## §21.12 What We Learned
+## §22.12 What We Learned
 
 1. **A summary is only one part of memory.** The feature also needs replay semantics, file ownership, stale-result checks, recovery, settings and accounting. A good paragraph written into the wrong lifecycle can still lose information.
 
@@ -15276,13 +16279,13 @@ The point is not to accumulate files. It is to show that a useful account surviv
 ---
 
 **Previous:** [Chapter 20: Managing the Swarm](chapter-20.md)
-**Next:** [Chapter 22: Auto-Recall](chapter-22.md)
+**Next:** [Chapter 23: Auto-Recall](chapter-23.md)
 
 ---
 
-# Chapter 22: Auto-Recall
+# Chapter 23: Auto-Recall
 
-Chapter 21 built a memory system. The agent can save, compress, and
+Chapter 22 built a memory system. The agent can save, compress, and
 graduate memories through a cascade of bands. Enabled bands already put
 recent memories in context. Older originals and unloaded material remain on disk, organized and budgeted, until something
 brings them back. The agent can still repeat a rejected decision because
@@ -15309,9 +16312,9 @@ The improvement was immediate in my daily use. The agent
 went from a goldfish that kept meticulous diaries to a collaborator
 with a past.
 
-The daily-use observations and tuning history in this chapter come from that earlier system, not fresh C# measurements. The C# evidence in §22.9 covers local component and application behavior and a scoped executable rubric; it does not establish live-provider relevance, entitlement, OAuth, billing, native Linux, audible speech, or human accessibility.
+The daily-use observations and tuning history in this chapter come from that earlier system, not fresh C# measurements. The C# evidence in §23.9 covers local component and application behavior and a scoped executable rubric; it does not establish live-provider relevance, entitlement, OAuth, billing, native Linux, audible speech, or human accessibility.
 
-## §22.0 — TL;DR — The Prompt
+## §23.0 — TL;DR — The Prompt
 
 You are building a C# coding agent that can use tools and skills. Chapters 1–21
 provided durable History, an actor-owned scheduler, and transactional long-term
@@ -15371,7 +16374,7 @@ memory. Now implement automatic local recall before a new model turn.
    results, live memory, and projected instructions/manuals. Keep SHA-256 hashes
    of the full selected snippets in `RecallAttachment`, even when output is
    capped. Save/replay preserves them. A real context cut releases them; do not
-   add an ever-growing per-session “seen” registry. Chapter 21’s handoff alone
+   add an ever-growing per-session “seen” registry. Chapter 22’s handoff alone
    does not remove them while source awaits a committed replacement.
 10. **Make policy durable and truthful.** Share Agent-home `settings.json` with
     Memory. Legacy memory-only files use recall defaults; malformed supplied
@@ -15391,7 +16394,7 @@ human-input preservation, cancellation, replay/hash lifetime, durable restart,
 and judge usage without changing main observations. A fake provider can establish
 wire behavior, not whether a real model finds the right memory.
 
-## §22.1 — The Retrieval Pipeline
+## §23.1 — The Retrieval Pipeline
 
 The pipeline is intentionally small:
 
@@ -15462,7 +16465,7 @@ retrieval failures disappear. A corrupt readable corpus or unresolved recovery
 hold refuses the affected turn. Calling that state “no matches” would conceal a
 broken input boundary and encourage the model to answer without facts it expects.
 
-## §22.2 BM25: The Old Formula That Still Works
+## §23.2 BM25: The Old Formula That Still Works
 
 BM25 is a well-established keyword-ranking formula. For this exercise's
 small markdown corpus, it supplies the useful machinery without an embedding
@@ -15554,7 +16557,7 @@ one-document memory corpus. Keep that choice explicit when testing thresholds;
 do not transplant a threshold from a different IDF convention and call the
 scores equivalent.
 
-## §22.3 Per-Source Quotas: Why Memory Gets Half the Slots
+## §23.3 Per-Source Quotas: Why Memory Gets Half the Slots
 
 The first version of auto-recall ran a single merged BM25 search over all
 sources. Design documents dominated the results. A 20KB design doc full of
@@ -15600,7 +16603,7 @@ sources when enough memory hits exist. Unused slots still flow elsewhere.
 Keep the full ranked pool for mechanical fallback. The candidate limit
 restricts the judge prompt, not the memories available to fallback selection.
 
-## §22.4 — The Judge: Filtering by Meaning, Not Keywords
+## §23.4 — The Judge: Filtering by Meaning, Not Keywords
 
 BM25 finds shared words. A judge can decide whether the matching passage would
 actually help this conversation. The judge is one stateless call through the
@@ -15664,7 +16667,7 @@ Use the existing authentication and same-source retry path, not a parallel auth
 system. Restoring a recorded attachment performs no judgment and adds no usage to
 the new process meter.
 
-## §22.5 — A Recall Entry Is Part of the Conversation
+## §23.5 — A Recall Entry Is Part of the Conversation
 
 The result is not appended to the user’s text. C# records a separate
 `RecallAdded` event whose single `RecallPart` holds an immutable
@@ -15720,7 +16723,7 @@ The hash must live with the entry, not in a permanent “seen” table. Otherwis
 Agent could never recover a fact again after compaction removed it. V2 Chapter 23
 released that identity when checkpoint removal discarded the recall entry. This
 edition deliberately ties release to the committed replacement, not merely to a
-handoff: Chapter 21 retains completed conversation source until a correlated
+handoff: Chapter 22 retains completed conversation source until a correlated
 memory replacement commits, even though handoff removes old tool/private material.
 
 The recall entry and its hashes survive that held interval because the model
@@ -15733,7 +16736,7 @@ This also protects cache structure. Retrieval happens once at new-turn admission
 not during every tool-loop render. That is a stable-prefix design decision, not
 proof that a live provider will credit a particular cache hit.
 
-## §22.6 Tuning: What the Numbers Mean
+## §23.6 Tuning: What the Numbers Mean
 
 These defaults emerged from months of daily use. The tuning explains their
 purpose; it does not make the numbers right for every corpus.
@@ -15766,7 +16769,7 @@ local model (Ollama) with sub-second latency. Cloud calls took 1–3 seconds in 
 because a late judge response is better than no judge response. The
 fallback to unfiltered BM25 results is noisier.
 
-## §22.7 What BM25 Cannot Do
+## §23.7 What BM25 Cannot Do
 
 BM25 matches words. Three limitations follow:
 
@@ -15794,7 +16797,7 @@ daily use in that system. The system is simple, fast, and debuggable. A
 more sophisticated retrieval system would be harder to debug when it
 recalled the wrong thing, and debugging recall errors is already hard.
 
-## §22.8 Skill Discovery: The Unplanned Win
+## §23.8 Skill Discovery: The Unplanned Win
 
 Visible, exact `SKILL.md` files in the explicitly selected skill source are
 indexed alongside memories and documents, subject to launch policy.
@@ -15859,7 +16862,7 @@ a bag of copied services. Destroying it detaches both ends and clears derived
 indexes without deleting corpus files. Immutable snippets/indexes/attachments are
 value-like and need no artificial ownership back-pointers.
 
-## §22.9 — Verify the Implementation
+## §23.9 — Verify the Implementation
 
 Use real algorithms and components with a small working fake at the provider
 boundary. The focused C# checks cover arithmetic, chunking and byte limits;
@@ -15907,7 +16910,7 @@ executable wrapper for the built CLI, not a DLL treated as a native executable.
 The successful run joined nineteen CLI sessions and retained thirty-seven
 recorded local peer requests, plus a held timeout exchange outside that recorder.
 
-## §22.10 — Take It for a Spin
+## §23.10 — Take It for a Spin
 
 Now test meaning as well as plumbing. The exercise needs a fact absent from the
 current conversation, a long query that can trigger recall, and a short follow-up
@@ -16018,7 +17021,7 @@ restart with the same home; a new planted fact must not appear merely because an
 old checkbox still looks checked. Re-enable and test again. A settings acknowledgment
 is not a claim that a currently running turn changed its captured policy.
 
-Finally exercise Chapter 21’s real committed conversation cut. A handoff alone
+Finally exercise Chapter 22’s real committed conversation cut. A handoff alone
 must not erase retained hashes while replacement is pending. After a committed
 cut removes the recall entry, ask an eligible query again and confirm that the
 archived fact can be recalled anew. Do not substitute quiet time for observing
@@ -16052,11 +17055,11 @@ used a typed primary and the Agent's corpus paths, with separate fixtures
 from this CLI demonstration. Those earlier live answers establish the narrower and
 more interesting fact that the archived reason actually came back.
 
-← [Chapter 21: Memory](chapter-21.md) · [Chapter 23: While the Cache Is Broken →](chapter-23.md)
+← [Chapter 22: Memory](chapter-22.md) · [Chapter 24: While the Cache Is Broken →](chapter-24.md)
 
 ---
 
-# Chapter 23: While the Cache Is Broken — Measure Before Taking the Detour
+# Chapter 24: While the Cache Is Broken — Measure Before Taking the Detour
 
 ## Why this chapter exists
 
@@ -16499,7 +17502,7 @@ person actually uses. Gateway and Goals continue on the same ownership model.
 
 ---
 
-# Chapter 24: Goals
+# Chapter 25: Goals
 
 I would give Ensemble a job that ought to keep it occupied for most of a day. An hour later, it could be sitting there doing nothing. Codex had done the same thing. Neither program was necessarily broken. The model had finished a response, but the job was not finished. Work resumed when I noticed and poked it.
 
@@ -16514,9 +17517,9 @@ Goals addresses these two problems separately:
 
 The first mechanism preserves an objective across compression. The second supplies an opportunity to continue. Neither guarantees progress, correct judgment, or permission to act.
 
-> **C# edition boundary.** This implementation was originally built on the preserved `solutions/ch23` endpoint. The optional Codex path and Gateway have since been completed locally; their historical endpoints retain their original names. Goals does not depend on either integration. The final crossover exercise in Chapter 26 still requires the human's replacement acceptance.
+> **C# edition boundary.** This implementation was originally built on the preserved `solutions/ch23` endpoint. The optional Codex path and Gateway have since been completed locally; their historical endpoints retain their original names. Goals does not depend on either integration. The final crossover exercise in Chapter 30 still requires the human's replacement acceptance.
 
-## §24.0 TL;DR: What to Build
+## §25.0 TL;DR: What to Build
 
 Build an opt-in Goals feature on the existing Agent actor. Standalone settings are session-local; Chapter 20’s registered ordinary children persist their own goal settings for restart. Do not add a scheduler service, a goal database, a second model conversation, or a browser-owned timer.
 
@@ -16575,7 +17578,7 @@ Show the selected Agent's status, not the host actor's status by accident. Disti
 
 Provide labelled Apply, Retry now, Reminders off, Clear, and Reload controls. Show a safe failure explanation and the next retry time; retry-now bypasses one wait without clearing the failure streak. Acknowledgment means the actor applied the update. The browser must not optimistically claim success when a checkbox changes. These controls do not write the durable memory/recall policy or appearance preferences. Standalone settings are session-local; registered children save goal configuration in their own restart record before acknowledging changes.
 
-## §24.1 Write an Objective, Not a Repeated Command
+## §25.1 Write an Objective, Not a Repeated Command
 
 A useful goal file tells the agent what remains, how to recognize completion, and where its authority ends:
 
@@ -16603,7 +17606,7 @@ The path is not the objective. The file's current bytes are. A handoff can repla
 
 That does not make the file magical. It can be stale, badly written, or missing. Keep it short enough to understand, update it when the work changes, and do not put secrets in a document that will be sent to the model.
 
-## §24.2 Keep the State on the Agent
+## §25.2 Keep the State on the Agent
 
 `Common/Goals.cs` declares the vocabulary and operations. `Agent/Goals.cs` implements them as another partial section of the same Agent type.
 
@@ -16624,7 +17627,7 @@ Existing callers and restart records may supply `idle_seconds`. Continue validat
 
 Unloading a skill has two distinct effects in this system: its authority is revoked immediately, while its old manual can remain in canonical History pending later retirement. Goals uses the current grant, not the presence of an old manual. Unload also clears its session configuration and timer. Removing the Skills relationship does the same without deleting the goal file.
 
-## §24.3 Preserve the Goal Across Requests, Not as Transcript Copies
+## §25.3 Preserve the Goal Across Requests, Not as Transcript Copies
 
 The renderer already projects primary instructions, tool policy, retained manuals, and request-only pressure guidance. Goal text joins that request-only instruction projection.
 
@@ -16647,7 +17650,7 @@ Auxiliary recall judges and memory compressors do not receive the parent's goal 
 
 File errors require a careful split. A human turn should be able to say, “The configured goal file is unavailable; repair it and explicitly re-enable reminders.” An automatic wake should not send a request with its objective silently missing. The wake preflights the read, and rendering checks again before send. A revision-bearing failure cannot disable a newer configuration selected while the old read was in progress.
 
-## §24.4 Let the Actor Decide Whether to Wake
+## §25.4 Let the Actor Decide Whether to Wake
 
 Both immediate idle continuation and a failure-timer callback post the same small message:
 
@@ -16681,7 +17684,7 @@ A pending-wake flag prevents status queries from queuing duplicates while alread
 
 Backoff retries an opportunity to continue, not the previous effect. Retain History and independent Jobs, inspect what actually happened, and never blindly repeat an uncertain external action. Missing goal authority, an unreadable goal, or broken History persistence is a repair boundary, not an endless retry condition. This is not a watchdog for a hung active request.
 
-## §24.5 Stop Has More Than One Meaning
+## §25.5 Stop Has More Than One Meaning
 
 The interface must not collapse these states:
 
@@ -16708,7 +17711,7 @@ The interface must not collapse these states:
 
 In earlier runtime work, a missing visible explanation made a real failure look like an unexplained pause. That is a useful lesson here, but it is not a claim that the historical provider failure was reproduced in C#. If a file becomes unreadable, status should say so. If the socket disconnects, the GUI should say its current knowledge ended there.
 
-## §24.6 One Status, Several Views
+## §25.6 One Status, Several Views
 
 `GoalStatusAsync` lets a trusted host observe the Agent even when the Goals skill is unavailable. It grants nothing. Configuration and model dispatch still require the skill.
 
@@ -16730,7 +17733,7 @@ Working and reminders enabled are separate facts. An Agent can continue its curr
 
 Use text labels and ordinary keyboard-accessible controls. The local browser exercise checks their DOM behavior; it does not establish that a particular person can see or hear them comfortably. Human accessibility and audible behavior still require human use.
 
-## §24.7 Verify the Boundaries
+## §25.7 Verify the Boundaries
 
 Use real Agents and the existing actor, renderer, Sandbox, skill catalog, and GUI. Replace the external provider with a small loopback HTTP peer only where a request is required.
 
@@ -16768,7 +17771,7 @@ Paths are relative to `agent`:
 | GUI adapter and controls | `Gui/Server/Goals.cs`, `Gui/Server/Host.cs`, `Gui/wwwroot/app.js` |
 | Core and real-socket tests | `Tests/GoalTests.cs`, `Tests/GoalIdleTests.cs`, `GuiTests/GoalControlsTests.cs` |
 
-## §24.8 Taking It for a Spin
+## §25.8 Taking It for a Spin
 
 Start with the local checks. From the repository root, using your approved .NET 10 SDK:
 
@@ -16830,7 +17833,7 @@ After explicitly configuring your chosen provider and selecting an unused local 
     --skills-dir "$work/skills" --primary-skill base --startup-skills goals)
 ```
 
-The omitted provider configuration is intentional: a chapter example must not silently choose an account, credential source, endpoint, or billable model for you. This demonstration is separate from the completed, bounded OAuth/cache exercise recorded in Chapter 23.
+The omitted provider configuration is intentional: a chapter example must not silently choose an account, credential source, endpoint, or billable model for you. This demonstration is separate from the completed, bounded OAuth/cache exercise recorded in Chapter 24.
 
 Open the owned GUI URL and the Goals controls:
 
@@ -16845,7 +17848,7 @@ Open the owned GUI URL and the Goals controls:
 
 If a test or provider request is already running, inspect it instead of starting another copy just to obtain a newer timestamp. When finished or genuinely blocked, turn reminders off and say which state applies.
 
-## §24.9 Exercises
+## §25.9 Exercises
 
 ### Exercise 1: Freshness in the Same Turn
 
@@ -16871,7 +17874,7 @@ View different Agents in two tabs. Apply a goal in one, switch the other, and in
 
 Remove a configured file before a wake. Verify zero inference from that wake, an explicit file-error status, and usable Off/Clear controls. Restore the file and explicitly re-enable. Do not report the interrupted task as completed.
 
-## §24.10 What Goals Provides and Where It Stops
+## §25.10 What Goals Provides and Where It Stops
 
 The goal file carries a durable objective. The runtime brings its current contents into ordinary requests. Opt-in idle transitions give the Agent another chance to examine the work; failure-only timers prevent rapid retry loops.
 
@@ -16883,7 +17886,7 @@ Goals should reduce the number of times I have to poke the agent. It should not 
 
 ---
 
-# Chapter 25: Voice and Images
+# Chapter 26: Voice and Images
 
 > **External media grading complete:100/100.** Image-files20, attachments25,
 > voice30 and host-screen25 pass their executable scopes. The native macOS
@@ -17881,13 +18884,13 @@ separate facts. Preserve the evidence and limits beside the executable contracts
 - Test the claimed surface: browser capture is not host capture, fake audio is
   not a native microphone, and a scoped grade is not chapter completion.
 
-[Chapter 29: Crossing Over to Ensemble](chapter-29.md) turns to using the built
+[Chapter 30: Crossing Over to Ensemble](chapter-30.md) turns to using the built
 Agent as the working collaborator. The media paths here belong to that same
 Agent and its existing ownership rules.
 
 ---
 
-# Chapter 26: Artifacts and Actions
+# Chapter 27: Artifacts and Actions
 
 > **Implemented integration; verification limits retained.** The named public
 > artifact grader verifies70/100: Actions25, snippets20, recorded time15 and
@@ -18211,11 +19214,11 @@ This chapter ends with inspectable work, not a permanent content service, arbitr
 HTML previews or a comprehensive profiler. The next chapter adds local inference
 after the non-local teaching and reconstruction gates are complete.
 
-Next: [Running Local Models](chapter-27.md).
+Next: [Running Local Models](chapter-28.md).
 
 ---
 
-# Chapter 27: Running Local Models
+# Chapter 28: Running Local Models
 
 > **Local-model integration accepted in ordinary GUI use.** Bill created a
 > separate MiMo Agent, received a reply and observed a tool call with its result.
@@ -18823,11 +19826,11 @@ synthetic verification, real-target trials and human acceptance. This chapter do
 not authorize model downloads, listener changes or an inference campaign merely
 by being loaded as task material.
 
-Next: [Advanced Artifacts](chapter-28.md).
+Next: [Advanced Artifacts](chapter-29.md).
 
 ---
 
-# Chapter 28: Advanced Artifacts
+# Chapter 29: Advanced Artifacts
 
 A readable tool result lets the human check the Agent's work while it is still
 useful to intervene. Raw output remains necessary evidence, but asking a person
@@ -18893,8 +19896,8 @@ Iframe isolation and a general extension installer remain outside this chapter.
 
 Demonstrate that Artifact identity does not require a card through a standalone
 inline dice fixture. Its host supplies recorded facts; revealing their explanation
-never rolls again. Workflows and multi-agent orchestration belong to the Puffin
-codebook, not this implementation increment.
+never rolls again. Workflows and child-agent orchestration belong to
+[Chapter 21](chapter-21.md), not this Artifact implementation increment.
 
 ## In plain words
 
@@ -19197,16 +20200,19 @@ terminal view would make the human assemble the session manually.
 
 The Job already retains its originating call. Its snapshots now expose that
 origin separately from the current observation's identity. The browser uses the
-Agent address, Job handle and original call ID to find one session node. Only
-records whose origin is explicitly `run_command` create this view. Legacy records
+Agent address, Job handle and original call ID to find one session node. Running
+Jobs and explicit waits use this view, including `spawn_sub_agent`, `ask_agent`
+and workflow tools. A completed short tool can keep its ordinary presentation;
+rich file/search/media evidence keeps its specialized renderer. Legacy records
 without an origin stay ordinary observations instead of being guessed into a
-session.
+session. Background MCP results need their recorded operation name even when
+there is no preceding assistant call card; do not infer it from result prose.
 
 Historical calls and results remain intact, but preserving history does not
 require displaying the same output twice. Once an identified session has usable
-output, successful command, wait and input results show a compact link to that
-session, with their immutable text available in a closed Recorded observation
-disclosure. Errors remain visible. A missing origin, failed session fetch or
+output, successful command, wait and input results belong inside the session's
+closed Recorded observations disclosure, with their immutable text and links
+retained there. They do not create additional top-level output cards. Errors remain visible. A missing origin, failed session fetch or
 unavailable session restores ordinary recorded output rather than hiding it.
 
 When a wait or input observation explicitly foregrounds the session, the GUI
@@ -19627,11 +20633,11 @@ not isolation from malicious approved code. Review the useful rendered examples
 with the human before closing the increment. Do not expand this exercise into
 iframe implementation or a universal extension-security certification.
 
-Next: [Crossing Over to Ensemble](chapter-29.md).
+Next: [Crossing Over to Ensemble](chapter-30.md).
 
 ---
 
-# Chapter 29: Crossing Over to Ensemble
+# Chapter 30: Crossing Over to Ensemble
 
 “I gave Astra a book. Astra gave me an AI coding agent.”
 
@@ -19826,7 +20832,7 @@ state changes must not make adjacent controls jump either.
 The status bar contains:
 
 - A model dropdown, sized to its current name within responsive limits,
-  showing one entry per vendor/model. Use Chapter27's between-turn selection of
+  showing one entry per vendor/model. Use Chapter28's between-turn selection of
   the complete configured route, not a wire-name substitution on the old endpoint.
   Choosing a model resolves the saved funding default and sends the change
   immediately; there is no separate Apply button. The server acknowledgment, not
@@ -20373,7 +21379,7 @@ Several of its lessons belong in the replacement exercise:
   Carry concrete changes, reasons, evidence limits, pending decisions, live Jobs
   and the next action. Observe the result; handoff neither finishes the task nor
   cancels its Jobs. Chapter 14 supplies the context-management contract.
-- **Preserve suspended goals explicitly.** Chapter 24's goal control selects one
+- **Preserve suspended goals explicitly.** Chapter 25's goal control selects one
   file; it has no native stack or automatic pop. Before an authorized switch,
   record the prior task and its next step in the work queue. Restore it explicitly
   when appropriate. A stack remains a design proposal, not a feature that skill
@@ -20817,7 +21823,7 @@ Claude Opus 4.6, Gemini 3.8 Flash and Gemini 4 Argon. Opus 5.5 is deliberately
 excluded. Carbon awaits a verified API listing. Preserve an existing non-catalog
 selection visibly as current rather than silently replacing it. At this stage,
 model changes retained the existing provider, wire protocol and funding, so
-cross-vendor choices were disabled. Chapter27's configured offerings subsequently
+cross-vendor choices were disabled. Chapter28's configured offerings subsequently
 replaced that restriction: an explicit choice changes the complete route together.
 The server still validates every selection. A model recommendation establishes
 neither entitlement nor new media capabilities or prices.
@@ -20942,6 +21948,246 @@ meet the requested response style; that was not a reason to require another
 coding trial. The next audience is Julien with his own larger GPU setup, using the
 [local-model evaluation guide](../docs/local-model-evaluation.md). Support for
 local inference and the usefulness of a particular model are different questions.
+
+## Importing the instructions we meant to use
+
+When we began the Workflows chapter, Bill asked Cadence to use the reusable
+Development-Driven Specifications skills we had just published. This was their
+first authoring trial in Ensemble, not a reason to substitute Ensemble's older
+chapter procedure. Reading a SKILL.md file was not enough: its instructions
+needed to be activated through the Agent's skill mechanism.
+
+The existing mechanism exposed a usability gap. `Skills` parsed its configured
+source directory at construction. `Available` then offered only the loadable
+names explicitly listed by already-active skills, and `ControlAsync` refused
+loads outside that offered set. Copying a valid new skill into the directory did
+not make it available to the running Agent. A primary skill had become a second,
+manually maintained catalog of what could be discovered.
+
+Cadence initially imported a second visible-reasoning skill under a new name to
+avoid colliding with Ensemble's existing dependency, and added the other skills
+to the primary skill's offered list. Bill corrected both choices. One reasoning
+skill was enough; the others should be loadable because they exist in the right
+skills directory, without editing Ensemble's primary skill. The duplicate was
+removed, the primary list restored, and the five other imported SKILL.md files
+were checked byte-for-byte against their Development-Driven Specifications
+sources. They use the existing visible-reasoning dependency. The upstream license
+was preserved. This verified an import, not activation in the running Agent.
+
+### Automatic discovery without automatic authority
+
+Bill clarified an important distinction: a non-sandboxed Agent may discover any
+loadable skill in its configured directory. A sandboxed Agent needs explicit
+authorization through the selected primary skill's graph. Both dependency and
+loadable edges count, transitively; the intermediate manuals need not already
+be active. An unrelated file in the same directory does not authorize itself.
+We kept this graph rather than inventing a second host allowlist.
+
+The implementation checks the directory before a non-sandboxed Agent's next model
+request and before a load. It parses a complete candidate catalog before replacing
+the current templates. Malformed files and duplicate names refuse the refresh;
+they do not publish a partial catalog. Sandboxed Agents retain their construction
+snapshot and graph authorization. The directory remains host-selected executable
+configuration, not an arbitrary workspace search path.
+
+Discovery does not activate instructions, grant tools, start MCP servers, or
+acquire credentials. Explicit loading still checks launch policy. Active manuals,
+including pending-unload manuals, keep their recorded text and template
+relationships. Changed or removed files cannot rewrite those active instructions.
+Unloaded templates may be refreshed; actual unload still follows the existing
+pending-unload and compaction lifecycle.
+
+A second boundary mattered: the primary manual already contained a frozen skill
+list. Refreshing templates alone would leave the model reading yesterday's list.
+The actor therefore supplies a current discovery section with each new request,
+explicitly superseding retained lists without rewriting the manuals. Historical
+request rendering does not rescan the filesystem. An MCP activation already
+rechecks its prepared definitions before commit; a changed closure refuses
+rather than committing a mismatched connection.
+
+The local build passed without warnings, and eight focused skill-test groups
+passed. The broader C# suite initially passed 381 cases and failed one old
+startup-order expectation. We replaced that obsolete refusal with positive
+sandboxed and unrestricted graph-order checks, retaining the invalid-selection
+cases. The rebuilt suite passed all 382 cases. Tests added a skill after Agent
+construction, observed its description in
+an actual loopback provider request, and loaded it through real dispatch without
+reconstruction. They also checked transitive sandbox authorization, refusal of an
+unrelated skill, preserved active manuals, duplicate and malformed catalog refusal,
+and recovery after correcting the files. These are local fixture results, not
+installation, live authoring acceptance, or a new operating-system confinement
+audit. Bill subsequently restarted the application, and the actual
+`load_skill("chapter-writing")` operation reported `coding` and `chapter-writing`
+loaded. The existing visible-reasoning instructions were already present. That
+established live activation, not independent verification of installed binary hashes.
+
+Before the next execution of this book, incorporate this correction and its
+required checks at the original construction points in Chapter 9, Skills. Keep
+the reasons and actual verification here as crossover teaching, not a second
+competing specification. The Workflows chapter should consume the repaired skill
+mechanism, not teach an ad hoc bypass. The fiction workflow remains unfinished.
+
+
+### An authorized skill still needs a confined executable
+
+The first workflow inspection found two distinct boundaries. Reverse MCP calls
+entered the calling Agent's ordinary Job dispatcher, which checked current tool
+grants and validated arguments. But stdio MCP servers themselves were launched
+with ordinary `Process.Start`. Their reduced environment omitted credentials; it
+did not confine filesystem or network access. A graph-authorized skill was not
+therefore a sandboxed executable. No private data or live external service was
+used to establish this source-level finding.
+
+We reused the existing command confinement rather than inventing another policy.
+`Sandbox.PrepareProcess` now prepares a literal executable with the existing OS
+profile, and `PrepareCommand` selects the shell through that operation. The MCP
+process constructor requires the calling Agent's Sandbox. Its arguments remain
+literal; no shell expansion is added. Confined startup and dynamic skill loading
+choose the sandbox root as their workspace, not the host's current directory.
+Unrestricted MCP launches retain their existing reduced environment. Confined
+launches retain the Sandbox's environment instead of overwriting HOME and TMPDIR
+with host values. Unsupported confinement platforms refuse; no unrestricted
+fallback is introduced.
+
+Bill chose the bounded first workflow layout: Python skill code and its supporting
+library live inside the work sandbox. We added no external skill-library read
+exception. Existing system-runtime read permissions remain part of the command
+profile; this is not a claim that every process read is confined to project files.
+
+A clean build and two process groups passed. A real Python stdio peer loaded
+through an authorized skill, performed its handshake, and wrote/read inside its
+workspace. Both that peer and its descendant received permission-denied errors
+when reading a disposable outside sentinel or connecting to a listening loopback
+socket. A closed port or missing file would not have counted as evidence. The
+existing unrestricted-process group retained argument, environment, and joined
+shutdown checks. Four filesystem sandbox groups also passed. The existing shell-process
+boundary, useful confined work, and PTY lifecycle groups also passed. These are local fixture results,
+not an installed launcher repair, a complete security audit, or a fiction run.
+
+Before the next book execution, fold this repair into Chapter 11's stdio MCP
+construction and Chapter 19's process-boundary teaching, alongside Chapter 9's
+separate discovery/authorization correction. Chapter 21 should build on these
+boundaries, not silently compensate for an unrestricted skill-server launcher.
+
+
+## Long conversations exposed GUI retention and ownership bugs
+
+During the fiction workflow trials, Bill reported an unresponsive browser and
+parent tool results appearing in a child's pane. He asked Codex to investigate.
+The recorded diagnosis found a Cadence replay containing 31,488 frames and 9,349
+card identities. The interface had no live history display bound. The server
+also rebuilt and serialized unchanged history on observations and 200-millisecond
+polls. Its temporary phase reducer repeatedly copied an expanding dialogue.
+Long-running work exposed costs that short demonstrations had not made obvious.
+
+Codex's repair, recorded in commit `d454cfca`, separates presentation from recovery.
+`GuiOptions.HistoryEventLimit` defaults to the newest 100 displayed history events.
+Projection chooses the window before serializing tool payloads. An event may have
+multiple parts, so this is neither a strict card-count limit nor a byte limit.
+Saved History and model context remain unchanged. The browser receives live
+`display_window` updates and removes expired cards, pending renders, fetches, and
+unreferenced continuing Job views with their polling timers. Removing a view does
+not cancel the Job it displayed or consume the model's observation cursor.
+
+The server caches a projection while its durable sequence and Context object are
+unchanged. It captures the current atomic snapshot rather than rewinding it to an
+older notification, and ignores late deltas for finalized responses. Phase
+calculation retains only the pending tool batch instead of rebuilding a second
+full transcript. Changed snapshots still require historical processing; this
+repair does not claim constant-time projection or a fixed total memory ceiling.
+
+The mixed panes had a separate ownership cause. Replay cleared queued renders,
+then reset Job sessions while the old card map was still populated. The reset
+callback scheduled those old cards again. A delayed render could consequently
+append a parent's result to the newly selected child's pane. The repair clears
+card ownership before invoking the reset callbacks. Both direct and queued
+renders require the exact card object to remain registered for the current
+Agent. Matching the Agent name alone would not suffice: a replay of that same
+Agent can replace its old cards with new objects bearing the same identifiers.
+
+The recorded regression fails against the previous browser code and passes with
+the repair. Tests cover a 10,000-entry snapshot, configurable windows, earlier
+pause state, live parent/child routing, intact History, same-Agent replay, stale
+callbacks, eviction, and Job-view cleanup. Existing GUI and artifact checks also
+passed. These fixtures establish presentation behavior, not provider inference.
+After Bill approved installation and restart, Codex recorded replacement and byte
+verification of only the GUI assembly and symbols, with backups retained. The
+installed-page check observed parent, child, and parent views without foreign or
+orphaned cards or JavaScript errors. Cadence subsequently read the patch and its
+evidence; that source inspection was not a second live verification.
+
+The lesson belongs at the original construction point as well as here. Chapter
+10 now teaches bounded display, cached current projections, and exact callback
+ownership. Hiding old DOM nodes alone would leave background work and stale
+callbacks alive. Conversely, a display limit must not silently become a policy
+for deleting recovery events. Journal retention and handoff reduction are separate
+contracts that require their own evidence. Detailed diagnosis and verification
+are recorded in [the GUI repair notes](../docs/edition-3-notes/gui-history-window.md).
+
+### A Job wait must reuse its output, and Tools must not erase Chat
+
+After the book-writing workflows resumed, Bill saw a new Cadence card roughly
+every three seconds. A read-only socket sample showed two workflow drivers
+observing child-task Jobs 32 and 48. Both repeatedly returned the same running
+status and 91-byte output count. Each result had a distinct history sequence, so
+the GUI created another card. Enough tool observations also displaced the visible
+conversation: Chat and Tools shared a single 100-event display window.
+
+Bill pointed out the intended behavior: `wait_for_job` should move the existing
+output to the bottom, not create another output card. The existing continuing
+view only recognized `run_command` origins, so `spawn_sub_agent` and subsequent
+child-task Jobs bypassed it. Background MCP results also lacked the assistant
+call card from which the browser recovered the operation name. These calls use
+the workflow's owning Agent's authority and audit history; that does not make
+the author/editor children's own tool calls parent calls or require a model
+request for every poll.
+
+The repair carries the recorded operation name independently of the assistant
+card and uses Agent, Job handle and originating call identity for continuing
+output. A wait or input result moves the same output node. Successful recorded
+observations stay inside its collapsed history, preserving individual call IDs,
+timestamps and payloads. Errors remain visible, rich evidence keeps its renderer,
+and unavailable live output restores recorded results. Merely filtering identical
+poll reports was an insufficient first attempt and was removed.
+
+Bill also questioned the short wait. The Python helper explicitly requested
+three seconds; neither the workflow protocol nor responsiveness required it.
+It now requests a maximum of 1800 seconds. This is a thirty-minute **wait bound**,
+not a thirty-minute sleep: output, completion, attention and the existing hint
+mechanism can return the observation sooner. A three-minute bound would merely
+cause more empty returns without an established benefit here. The human
+supervisor's separate twenty-minute observation policy is a different concern.
+
+Chat and Tools now default to 100 contributing events each, with independent
+configuration. An event containing both prose and a tool call counts once in
+each pane; those parts can leave their windows independently. The replayed
+status/lifecycle tail is also bounded so quiet retained chat cannot cause an
+unlimited replay of intervening notices. None of these display limits trims
+saved History or the model's working context.
+
+Before the next execution of this book, require these checks at the original
+construction points in Chapters 7, 21 and 29:
+
+- Exercise a workflow or child Job whose origin is not `run_command`, with no
+  assistant call card. Repeated waits must preserve one output DOM node and move
+  it to the bottom. Check completion, failures, unavailable readback, replay,
+  Agent switching and eviction as well as the normal case.
+- Retain chat, then deliver more tool events than the tool limit; chat must stay
+  visible. Reverse the traffic and verify that chat cannot evict tool history.
+  Test unequal limits and a mixed prose/tool response, not just separate messages.
+- Configure a thirty-minute observation, complete the Job promptly and verify
+  that the wait returns promptly. Verify the Python helper requests that bound
+  without consuming another observer's cursor or repeating the child task.
+
+The scratch candidate builds with zero warnings/errors. Projection, live socket,
+GUI-consumer and real-browser command/workflow checks cover these behaviors,
+including desktop/mobile command views and 150 repeated workflow observations.
+All 86 Python tests pass after correcting an existing test that mistook `c2`
+inside a random run ID for the chapter 2 directory component. These are local
+fixture results, not a live writing-workflow acceptance or a new public grade.
+No installation or host/workflow restart was performed; existing Python processes
+retain their loaded code. Detailed evidence is in
+[the GUI repair notes](../docs/edition-3-notes/gui-history-window.md).
 
 ---
 

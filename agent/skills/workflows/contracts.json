@@ -1,0 +1,39 @@
+{
+  "read_file": {
+    "type": "object",
+    "properties": {
+      "path": {
+        "type": "string",
+        "description": "File path."
+      },
+      "start_line": {
+        "type": "integer",
+        "description": "First line, default or zero means 1."
+      },
+      "end_line": {
+        "type": "integer",
+        "description": "Last line, default or zero means end of file."
+      },
+      "max_bytes": {
+        "type": "integer",
+        "description": "Source UTF-8 byte cap after line selection, before line-number prefixes; default or zero means 32768. Truncation is reported; prefixes are not file content."
+      },
+      "ai_callback_delay": {
+        "type": "number",
+        "description": "Seconds before waking; default 3, zero immediate. Does not cancel."
+      },
+      "ai_callback_pattern": {
+        "type": "string",
+        "description": "Regex matching only fresh output."
+      },
+      "max_output_bytes": {
+        "type": "integer",
+        "description": "Positive inline report cap; default 16384. Full output stays on disk."
+      }
+    },
+    "required": [
+      "path"
+    ],
+    "additionalProperties": false
+  }
+}

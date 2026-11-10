@@ -272,7 +272,7 @@ substitute a grader-side execution loop, or add a production test-only hook.
 
 Use only supported MCP content blocks; this does not require a newer
 `structuredContent` field. DOM inspection is not pixel or audible evidence.
-Do not treat remote content as a work-product grant: Chapter 26 retains the
+Do not treat remote content as a work-product grant: Chapter 27 retains the
 specific offer, lifetime, file-transfer, and human-usability gates. Record actual
 results and negative controls separately from the existing CLI score. The new
 exercise is not certified merely because earlier Chapter 11 tests passed.

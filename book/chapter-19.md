@@ -833,7 +833,7 @@ product regression. GUI mounting, replay and browser relay evidence have their
 own scope; the executable fleet score does not include a GUI consumer score.
 
 These are local results, not live-model task quality, account entitlement,
-provider billing, audible speech or human accessibility. Chapter 23 records the
+provider billing, audible speech or human accessibility. Chapter 24 records the
 later bounded live OAuth/cache exercise separately. The following second-edition
 account is preserved history, not another measurement of this C# implementation.
 

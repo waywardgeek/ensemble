@@ -204,7 +204,7 @@ and an AI coding agent to work with. The executable grader adapters still use
 the repository's Go harness; that does not make Go the implementation language.
 Use each chapter's actual C# command and declared grading scope. Later browser
 exercises also use Node and an isolated Chrome instance. The optional Gateway
-has its own pinned Noise/native-library dependency, explained in Chapter 26.
+has its own pinned Noise/native-library dependency, explained in [the deferred Gateway chapter](../puffin-book/gateway.md).
 Do not install the earlier edition's Go debugger as a C# prerequisite.
 
 The AI coding agent is a real prerequisite. The course's solutions run to
