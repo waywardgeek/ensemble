@@ -172,12 +172,12 @@ internal static class CompressionTests
             Check(restored.History().LoadSave(replay) && restored.History().View().Compression?.Removal is not null
                 && restored.History().View().Dialogue.Any(entry => entry.Parts.Any(part => part is HandoffPart)),
                 "Journal-only held cut lost source/pending identity");
-            history.Save(new PersistenceOptions(path, RetainLog: 0));
+            history.Save(new PersistenceOptions(path));
             var heldSave = JsonCodec.ReadSave(File.ReadAllText(path));
-            Check(heldSave.Context!.Compression?.Removal?.TaskID == "task" && heldSave.Events.IsEmpty,
+            Check(heldSave.Context!.Compression?.Removal?.TaskID == "task" && !System.Text.Json.Nodes.JsonNode.Parse(File.ReadAllText(path))!.AsObject().ContainsKey("log"),
                 "Trimmed snapshot lost held removal");
             history.Append(Population(launch));
-            history.Save(new PersistenceOptions(path, RetainLog: 0));
+            history.Save(new PersistenceOptions(path));
             var saved = JsonCodec.ReadSave(File.ReadAllText(path));
             Check(saved.Context!.Compression?.Committed?.Text == "summary" && saved.Context.EnabledTools().Contains("read_file"),
                 "Snapshot lost committed receipt or authority");
@@ -185,7 +185,7 @@ internal static class CompressionTests
                 "Restore did not preserve committed-but-unfinalized receipt");
             // A retained outcome survives trimming; loading does not run recovery.
             history.Append(Finished(launch, CompressionState.Committed));
-            history.Save(new PersistenceOptions(path, RetainLog: 0));
+            history.Save(new PersistenceOptions(path));
             Check(restored.History().LoadSave(path) && restored.History().View().Compression is null
                 && restored.History().View().CompressionOutcome?.State == CompressionState.Committed,
                 "Final receipt/outcome did not survive save/load");

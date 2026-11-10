@@ -61,7 +61,7 @@ try
         "Offline rendering rotated actual-send captures.");
 
     // History preserves the conversation; it does not seed a new process meter.
-    agent.History().Save(new PersistenceOptions(save, RetainLog: 0));
+    agent.History().Save(new PersistenceOptions(save));
     var restored = new Agent(app, configuration, name: "restored");
     Require(restored.History().LoadSave(save), "Snapshot-only restore failed.");
     Require(restored.Engine().Render(restored.History().View()).ToJsonString().Contains("ANSWER_second")

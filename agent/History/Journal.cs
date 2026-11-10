@@ -20,122 +20,166 @@ public sealed partial class History
                 }
                 retained = events.ToImmutableArray();
             }
-            if (writerPath == destination)
+            // Stream the validated prefix, omitting only an uncommitted final
+            // suffix. Fresh startup facts may follow that prefix. Do not buffer
+            // a perpetual audit journal merely to reopen its append path.
+            IEnumerable<Event> Initial()
             {
-                throw new ArgumentException("Recovery journal must differ from the active diagnostic log");
+                long last = 0;
+                foreach (var fact in ReadJournal(destination))
+                {
+                    last = fact.Seq;
+                    yield return fact;
+                }
+                foreach (var fact in retained)
+                {
+                    if (fact.Seq > last)
+                    {
+                        yield return fact;
+                    }
+                }
             }
-            var existing = ReadJournal(destination);
-            long last = existing.IsEmpty ? 0 : existing[^1].Seq;
-            // Fresh construction may already have recorded a local primary skill.
-            // Include those facts too; after recovery the journal already contains
-            // its tail, and saved diagnostic events at/before last are not repeated.
-            var initial = existing.AddRange(retained.Where(value => value.Seq > last));
-            ReplaceFile(destination, JournalText(initial));
+            WriteJournal(destination, Initial());
             journalPath = destination;
         }
     }
 
-    private partial ImmutableArray<Event> ReadJournal(string path)
+    private partial IEnumerable<Event> ReadJournal(string path)
     {
-        byte[] bytes;
+        FileStream input;
         try
         {
-            bytes = Parent().Sandbox().ReadFile(path);
+            input = Parent().Sandbox().OpenFile(path, FileMode.Open, FileAccess.Read);
         }
         catch (FileNotFoundException)
         {
-            return [];
+            yield break;
         }
         catch (DirectoryNotFoundException)
         {
-            return [];
+            yield break;
         }
-        // A killed writer can leave an incomplete UTF-8 character or JSON value.
-        // Only newline-terminated records are committed. Ignore the final suffix,
-        // never a malformed complete record or an invalid earlier sequence.
-        int end = Array.LastIndexOf(bytes, (byte)'\n');
-        if (end != bytes.Length - 1)
+        using (input)
+        using (var buffered = new BufferedStream(input))
+        using (var record = new MemoryStream())
         {
-            Parent().Parent().Log("persistence: ignored an incomplete final journal record");
-        }
-        if (end < 0)
-        {
-            return [];
-        }
-        string text;
-        try
-        {
-            text = new UTF8Encoding(false, true).GetString(bytes, 0, end + 1);
-        }
-        catch (DecoderFallbackException error)
-        {
-            throw new InvalidDataException("Journal contains invalid UTF-8", error);
-        }
-        var facts = ImmutableArray.CreateBuilder<Event>();
-        using var reader = new StringReader(text);
-        string? line;
-        long last = 0;
-        while ((line = reader.ReadLine()) is not null)
-        {
-            Event fact;
-            try
+            var encoding = new UTF8Encoding(false, true);
+            long last = 0;
+            int next;
+            while ((next = buffered.ReadByte()) != -1)
             {
-                fact = JsonCodec.ReadEvent(line);
+                if (next != '\n')
+                {
+                    record.WriteByte((byte)next);
+                    continue;
+                }
+                Event fact;
+                try
+                {
+                    string line = encoding.GetString(record.GetBuffer(), 0, checked((int)record.Length));
+                    fact = JsonCodec.ReadEvent(line);
+                }
+                catch (Exception error) when (error is DecoderFallbackException or System.Text.Json.JsonException
+                    or FormatException or ArgumentException or InvalidOperationException or KeyNotFoundException)
+                {
+                    throw new InvalidDataException("Journal contains an invalid complete record", error);
+                }
+                if (fact.Seq <= 0 || (last != 0 && fact.Seq != last + 1))
+                {
+                    throw new InvalidDataException("Journal sequence is not contiguous");
+                }
+                record.SetLength(0);
+                last = fact.Seq;
+                yield return fact;
             }
-            catch (Exception error) when (error is System.Text.Json.JsonException or FormatException
-                or ArgumentException or InvalidOperationException or KeyNotFoundException)
+            // Decode only committed records. A torn final UTF-8 character is
+            // just as uncommitted as a torn JSON object. Earlier corruption is
+            // never excused by this rule.
+            if (record.Length != 0)
             {
-                throw new InvalidDataException("Journal contains an invalid complete record", error);
+                Parent().Parent().Log("persistence: ignored an incomplete final journal record");
             }
-            if (fact.Seq <= 0 || (last != 0 && fact.Seq != last + 1))
-            {
-                throw new InvalidDataException("Journal sequence is not contiguous");
-            }
-            facts.Add(fact);
-            last = fact.Seq;
         }
-        return facts.ToImmutable();
     }
 
-    private partial (Context Context, long Sequence) ReplayJournal(
-        Context context, long sequence, ImmutableArray<Event> journal)
+    private partial HistorySnapshot ReplayJournal(
+        Context context, long sequence, IEnumerable<Event> journal,
+        long latestHandoff, long previousHandoff)
     {
+        var retained = new List<Event>();
         foreach (var fact in journal)
         {
-            if (fact.Seq <= sequence)
+            if (fact.Seq > sequence)
             {
-                continue;
+                if (fact.Seq != sequence + 1)
+                {
+                    throw new InvalidDataException("Journal does not continue the selected snapshot");
+                }
+                context = Apply(context, fact);
+                sequence = fact.Seq;
             }
-            if (fact.Seq != sequence + 1)
+            if (fact.Kind == EventKind.HandoffRecorded && fact.Seq > latestHandoff)
             {
-                throw new InvalidDataException("Journal does not continue the selected snapshot");
+                previousHandoff = latestHandoff;
+                latestHandoff = fact.Seq;
+                retained.RemoveAll(value => value.Seq < previousHandoff);
             }
-            context = Apply(context, fact);
-            sequence = fact.Seq;
+            if (fact.Seq >= previousHandoff)
+            {
+                retained.Add(fact);
+            }
         }
-        return (context, sequence);
+        return new HistorySnapshot(retained.ToImmutableArray(), context, sequence, latestHandoff, previousHandoff);
     }
 
-    private static partial string JournalText(IEnumerable<Event> facts)
+    private partial void WriteJournal(string path, IEnumerable<Event> facts)
     {
-        var text = new StringBuilder();
-        foreach (var fact in facts)
+        var files = Parent().Sandbox();
+        string directory = Path.GetDirectoryName(path)!;
+        files.CreateDirectory(directory);
+        string temporary = Path.Combine(directory, "." + Path.GetFileName(path) + "." + Guid.NewGuid().ToString("N") + ".tmp");
+        try
         {
-            text.Append(JsonCodec.WriteEvent(fact));
-            text.Append('\n');
+            using (var output = files.OpenFile(temporary, FileMode.CreateNew, FileAccess.Write))
+            {
+                using (var writer = new StreamWriter(output, new UTF8Encoding(false), leaveOpen: true))
+                {
+                    foreach (var fact in facts)
+                    {
+                        writer.WriteLine(JsonCodec.WriteEvent(fact));
+                    }
+                    writer.Flush();
+                }
+                output.Flush(flushToDisk: true);
+            }
+            // Enumerating/validating the input and flushing the replacement both
+            // finish before publication. A failure leaves the old journal intact.
+            files.MoveFile(temporary, path);
         }
-        return text.ToString();
+        catch
+        {
+            try
+            {
+                files.DeleteFile(temporary);
+            }
+            catch (Exception cleanup) when (cleanup is IOException or UnauthorizedAccessException)
+            {
+                // Preserve the original error; a leftover temporary is not a
+                // recovery candidate.
+            }
+            throw;
+        }
     }
 
     private partial void TrimJournal(long backupSequence)
     {
-        if (journalPath is null)
+        if (journalPath is null || backupSequence == 0 || previousHandoff == 0)
         {
             return;
         }
-        // Keep enough to recover from the older, validated BACKUP. Cutting at the
-        // new primary would strand that backup if the primary were later damaged.
-        var suffix = ReadJournal(journalPath).Where(fact => fact.Seq > backupSequence);
-        ReplaceFile(journalPath, JournalText(suffix));
+        // Keep the preceding handoff itself and every fact needed to advance
+        // the validated backup. Neither requirement can weaken the other.
+        long cutoff = Math.Min(backupSequence, previousHandoff - 1);
+        WriteJournal(journalPath, ReadJournal(journalPath).Where(fact => fact.Seq > cutoff));
     }
 }

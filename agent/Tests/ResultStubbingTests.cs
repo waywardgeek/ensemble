@@ -145,7 +145,7 @@ internal static partial class ActorTests
                     {
                         owner.SetContextByteBudget(0);
                     }
-                    owner.StartPersistence(new PersistenceOptions(Path.Combine(directory, "save.json"), RetainLog: 0));
+                    owner.StartPersistence(new PersistenceOptions(Path.Combine(directory, "save.json")));
                     return owner;
                 }
                 var agent = Create();

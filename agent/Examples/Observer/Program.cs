@@ -45,7 +45,7 @@ try
     string? historyPath = Environment.GetEnvironmentVariable("CH07_AGENT_LOG");
     if (!string.IsNullOrEmpty(historyPath))
     {
-        agent.History().StartLog(historyPath);
+        throw new ArgumentException("CH07_AGENT_LOG was removed; event persistence uses a single recovery journal.");
     }
     clock.Start();
     observing = Observe(agent);

@@ -1,8 +1,12 @@
+using System.Collections.Immutable;
 using Microsoft.Win32.SafeHandles;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 
 namespace Ensemble;
+
+// Value-like resolved process policy. This owns no file handle or mutable tree.
+internal sealed record ProcessReadPath(string Path, bool Directory);
 
 /// <summary>Agent-owned filesystem boundary. An empty launch root retains full
 /// access. A confined owner retains a directory handle, not just a path prefix.
@@ -13,6 +17,7 @@ public sealed partial class Sandbox
     internal Agent? parent;
     private readonly object gate = new();
     private readonly string root;
+    private readonly ImmutableArray<ProcessReadPath> processReads;
     private SafeFileHandle? rootHandle;
     internal bool destroyed;
 
@@ -48,7 +53,13 @@ public sealed partial class Sandbox
     // Confined launches receive an allowlisted environment and inherited OS
     // filesystem/network policy; unsupported platforms refuse before execution.
     internal partial ProcessStartInfo PrepareCommand(string? directory);
+    // Prepare a literal executable under the same policy. The caller appends
+    // arguments and owns the process; this operation starts no running work.
+    internal partial ProcessStartInfo PrepareProcess(string executable, string? directory);
     private static partial string ProfileLiteral(string value);
+    private static partial ImmutableArray<ProcessReadPath> ResolveProcessReads(
+        ImmutableArray<string> paths, string writableRoot);
+    private static partial bool ContainsPath(string directory, string path);
     private static partial string ToolchainTemporaryDirectory();
 
     public partial void Destroy();

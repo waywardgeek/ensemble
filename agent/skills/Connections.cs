@@ -105,7 +105,7 @@ public sealed partial class Skills
                         }
                         else
                         {
-                            transport = new McpProcessTransport(server, workspace);
+                            transport = new McpProcessTransport(server, workspace, Parent().Sandbox());
                         }
                         try
                         {

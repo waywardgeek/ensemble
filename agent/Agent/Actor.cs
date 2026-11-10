@@ -1001,6 +1001,8 @@ public sealed partial class Agent
                 string body;
                 try
                 {
+                    string discovery = SkillManager()?.DiscoveryInstruction() ?? "";
+                    if (discovery.Length != 0) budgetInstruction += "\n\n" + discovery;
                     body = Engine().Render(requestContext, budgetInstruction, active.AutomaticGoal).ToJsonString();
                 }
                 catch

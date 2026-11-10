@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using Ensemble;
 using EnsembleGui;
 using Application = Ensemble.Ensemble;
@@ -25,17 +26,21 @@ try
     for (int i = 0; i < args.Length; i++)
     {
         string flag = args[i];
+        if (flag is "--event-log" or "--save-log" or "--archive-log")
+        {
+            throw new ArgumentException("Separate event logs and count retention were removed; use --audit to retain the recovery journal.");
+        }
         if (flag == "--safe")
         {
             flags["--safe-mode"] = "1";
             continue;
         }
-        if (flag is "--no-stream" or "--no-save" or "--gui-debug" or "--stub-tool-results" or "--cache-breakpoints")
+        if (flag is "--audit" or "--no-stream" or "--no-save" or "--gui-debug" or "--stub-tool-results" or "--cache-breakpoints")
         {
             flags[flag] = "1";
             continue;
         }
-        if (flag is not ("--global-settings" or "--model-config" or "--data-dir" or "--agent-name" or "--sandbox" or "--port" or "--public-origin" or "--gui-dir" or "--vendor" or "--model" or "--base-url" or "--workspace" or "--event-log" or "--settings" or "--skills-dir" or "--primary-skill" or "--startup-skills" or "--save" or "--save-log" or "--archive-log" or "--cache-lens" or "--prompt-cache-key" or "--surface" or "--billing" or "--transcription" or "--transcription-key-file" or "--account" or "--credentials-dir" or "--codex-auth-file" or "--reasoning-effort" or "--reasoning-summary" or "--safe-mode" or "--enable-web-search") || i + 1 >= args.Length)
+        if (flag is not ("--global-settings" or "--model-config" or "--data-dir" or "--agent-name" or "--sandbox" or "--process-read-paths" or "--port" or "--public-origin" or "--gui-dir" or "--vendor" or "--model" or "--base-url" or "--workspace" or "--settings" or "--skills-dir" or "--primary-skill" or "--startup-skills" or "--save" or "--cache-lens" or "--prompt-cache-key" or "--surface" or "--billing" or "--transcription" or "--transcription-key-file" or "--account" or "--credentials-dir" or "--codex-auth-file" or "--reasoning-effort" or "--reasoning-summary" or "--safe-mode" or "--enable-web-search") || i + 1 >= args.Length)
         {
             throw new ArgumentException("Unknown or incomplete GUI flag");
         }
@@ -68,6 +73,20 @@ try
         throw new ArgumentException("Transcription must be off or openai-api-key");
     string endpoint = Selected("--base-url", "LLM_BASE_URL");
     string sandboxRoot = Selected("--sandbox", "EN_SANDBOX_ROOT");
+    // Explicit host policy, not a skill-declared or model-selected exception.
+    // Keep null distinct from []: children inherit omission and may drop grants.
+    ImmutableArray<string>? processReadPaths = null;
+    string readPathJson = Selected("--process-read-paths", "EN_PROCESS_READ_PATHS");
+    if (readPathJson.Length != 0)
+    {
+        if (readPathJson.Length > 262144)
+        {
+            throw new ArgumentException("Process read path configuration is too large.");
+        }
+        string[] paths = System.Text.Json.JsonSerializer.Deserialize<string[]>(readPathJson)
+            ?? throw new ArgumentException("Process read paths must be a JSON array.");
+        processReadPaths = paths.ToImmutableArray();
+    }
     string dataDirectory = Selected("--data-dir", "EN_DATA_DIR");
     string agentName = Selected("--agent-name", "EN_AGENT_NAME");
     string storageBase = sandboxRoot.Length == 0 ? Directory.GetCurrentDirectory() : Path.GetFullPath(sandboxRoot);
@@ -150,7 +169,7 @@ try
         reasoningSummary: Selected("--reasoning-summary", "OPENAI_REASONING_SUMMARY"),
         safeMode: PolicyBoolean(Selected("--safe-mode", "EN_SAFE_MODE"), false),
         enableWebSearch: PolicyBoolean(Selected("--enable-web-search", "EN_ENABLE_WEB_SEARCH"), true),
-        sandboxRoot: sandboxRoot);
+        sandboxRoot: sandboxRoot, processReadPaths: processReadPaths);
     if (billing == BillingMode.ChatGptPlan && string.IsNullOrWhiteSpace(credentialsDirectory))
     {
         throw new ArgumentException("Plan billing requires --credentials-dir or EN_CREDENTIALS_DIR");
@@ -224,10 +243,9 @@ try
         _ = new CacheLens(agent.Engine(), cacheLensDirectory);
     }
     agent.InstallTools();
-    string log = Selected("--event-log", "CH02_LOG");
-    if (log.Length == 0)
+    if (Env("CH02_LOG").Length != 0 || Env("EN_SAVE_LOG").Length != 0 || Env("EN_ARCHIVE_LOG").Length != 0)
     {
-        log = Path.Combine(actorHome, "events.jsonl");
+        throw new ArgumentException("Legacy event-log environment options were removed; use --audit for the recovery journal.");
     }
     string skillsDirectory = Selected("--skills-dir", "EN_SKILLS_DIR");
     string primarySkill = Selected("--primary-skill", "EN_PRIMARY_SKILL");
@@ -257,18 +275,15 @@ try
     if (!flags.ContainsKey("--no-save") && Env("EN_DISABLE_SAVE") != "1")
     {
         string savePath = Selected("--save", "EN_SAVE_PATH");
-        string retention = Selected("--save-log", "EN_SAVE_LOG");
-        string archive = Selected("--archive-log", "EN_ARCHIVE_LOG");
-        agent.StartPersistence(new PersistenceOptions(savePath.Length == 0 ? Path.Combine(actorHome, "save.json") : savePath,
-            retention.Length == 0 ? -1 : int.Parse(retention, System.Globalization.CultureInfo.InvariantCulture),
-            archive.Length == 0 ? null : archive));
+        agent.StartPersistence(new PersistenceOptions(
+            savePath.Length == 0 ? Path.Combine(actorHome, "save.json") : savePath,
+            Audit: flags.ContainsKey("--audit")));
     }
     // Load durable state before replacing this Agent's previous diagnostics.
     // These legacy overrides affect only the root, not its children or peers.
     agent.StartDiagnostics(
         Env("CH06_API_LOG") is { Length: > 0 } apiPath ? apiPath : null,
         Env("CH07_GUI_LOG") is { Length: > 0 } guiPath ? guiPath : null);
-    agent.History().StartLog(log);
     // Shared GUI preferences belong to the application container. The reusable
     // GUI still borrows an Agent and accepts explicit caller-owned options.
     var guiOptions = new GuiOptions(

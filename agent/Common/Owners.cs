@@ -128,13 +128,15 @@ public sealed partial class History
     private Context context;
     // Sequence folded into context; retained log length is not sequence identity.
     private long foldedSequence;
+    // Recovery markers, not payload copies. Zero means no known boundary;
+    // missing legacy evidence must never authorize discarding journal records.
+    private long latestHandoff;
+    private long previousHandoff;
     // All writers share this gate. Disk work releases gate (the committed-view
     // lock), so readers can still see the previous complete snapshot.
     private readonly object saveGate = new();
     private string? journalPath;
     private bool appendFaulted;
-    private StreamWriter? writer;
-    private string? writerPath;
     internal bool destroyed;
 
     // Construct an empty log and context, then register with the owning Agent.
@@ -147,15 +149,10 @@ public sealed partial class History
     // Capture facts and their derived view together; neither can be mutated.
     public partial HistorySnapshot Snapshot();
 
-    // Start a versioned diagnostic log, first writing retained startup facts.
-    // This truncates the chosen file; save.json, not this log, is recovery state.
-    public partial void StartLog(string path);
-
     // Validate and reduce the whole input before replacing current state.
     // Loading is offline and is refused while an output log is active.
     public partial void Load(string path);
-    // Shared structural decoder. Archive saving additionally requires a complete
-    // prefix; ordinary diagnostic log loading keeps its existing gap tolerance.
+    // Offline legacy import preserves its historical gap tolerance.
     private partial ImmutableArray<Event> ReadLog(string path);
 
     // Write canonical events in order, not the derived or vendor-projected view.

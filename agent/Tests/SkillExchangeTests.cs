@@ -18,6 +18,7 @@ internal static partial class ActorTests
             var app = new Application(TextWriter.Null);
             try
             {
+                string frozenPrimary = "";
                 var server = Task.Run(async () =>
                 {
                     string primary = "";
@@ -33,7 +34,9 @@ internal static partial class ActorTests
                         Check(Has("read_file") && Has("load_skill"), "Eager declaration missing");
                         if (round == 0)
                         {
-                            primary = instructions;
+                            primary = frozenPrimary;
+                            Check(instructions.Contains("late-discovery: late discovery"),
+                                "A newly copied skill was not advertised in the real request");
                             Check(Has("write_file") == deferred, "Initial disabled schema contract wrong");
                             if (deferred)
                             {
@@ -91,6 +94,11 @@ internal static partial class ActorTests
                 var agent = new Agent(app, new Configuration(Vendor.Anthropic, "model-a",
                     $"http://127.0.0.1:{((IPEndPoint)listener.LocalEndpoint).Port}", deferredTools: deferred),
                     skillSpec: new SkillSpec(root, "root", new Dictionary<string, string> { ["WHO"] = "once" }));
+                frozenPrimary = agent.SkillManager()!.Active().Single(skill => skill.Primary).Body;
+                string late = Path.Combine(root, "late-discovery");
+                Directory.CreateDirectory(late);
+                File.WriteAllText(Path.Combine(late, "SKILL.md"),
+                    "---\nname: late-discovery\ndescription: late discovery\ntype: loadable\n---\nLATE");
                 string answer = await agent.SendAsync("Make the file").WaitAsync(deadline.Token);
                 Check(answer == "skill task complete", "Reliable final reply changed");
                 await server.WaitAsync(deadline.Token);

@@ -146,7 +146,7 @@ internal static partial class ActorTests
             Check(agent.History().Events().Any(fact => fact.Kind == EventKind.ToolReturned && JsonCodec.Text(fact.Parts).Contains(payload)),
                 "Canonical result lost");
             string save = Path.Combine(directory, "save.json");
-            agent.History().Save(new PersistenceOptions(save, RetainLog: 0));
+            agent.History().Save(new PersistenceOptions(save));
             var restored = new Agent(app, agent.Configuration());
             Check(restored.History().LoadSave(save), "Retained snapshot not restored");
             Check(restored.History().View().Dialogue.Sum(entry => entry.ToolBytes) == agent.History().View().Dialogue.Sum(entry => entry.ToolBytes),

@@ -1,3 +1,5 @@
+using System.Collections.Immutable;
+
 namespace Ensemble;
 
 public sealed partial class Sandbox
@@ -45,7 +47,28 @@ public sealed partial class Sandbox
                 }
             }
 
-            var effective = new Configuration(source, safeMode, webSearch, childRoot);
+            var childReads = processReads;
+            if (requested?.ProcessReadPaths is { } requestedReads)
+            {
+                try
+                {
+                    var candidates = ResolveProcessReads(requestedReads, childRoot);
+                    bool allowed = root.Length == 0 || candidates.All(candidate => processReads.Any(grant =>
+                        grant.Directory ? ContainsPath(grant.Path, candidate.Path)
+                            : !candidate.Directory && candidate.Path == grant.Path));
+                    if (!allowed)
+                    {
+                        throw new IOException("Child attempted to widen process reads.");
+                    }
+                    childReads = candidates;
+                }
+                catch (Exception error) when (error is IOException or UnauthorizedAccessException or ArgumentException)
+                {
+                    refusals.Add("Child process read paths exceed the inherited boundary.");
+                }
+            }
+            var paths = childReads.Select(grant => grant.Path).ToImmutableArray();
+            var effective = new Configuration(source, safeMode, webSearch, childRoot, paths);
             string? refusal = refusals.Count == 0 ? null : string.Join(" ", refusals);
             return (effective, refusal);
         }

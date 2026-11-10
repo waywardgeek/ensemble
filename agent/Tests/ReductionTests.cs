@@ -60,8 +60,8 @@ internal static class ReductionTests
             // Snapshot-tail and first-session journal replay share the owner path.
             string save = Path.Combine(directory, "save.json");
             var config = agent.Engine().SavedConfiguration(new Context());
-            File.WriteAllText(save, JsonCodec.WriteSave(new SaveDocument(new Context(), 0, config,
-                facts.Select((fact, index) => fact.Numbered(index + 1, DateTimeOffset.UnixEpoch)).ToImmutableArray())));
+            File.WriteAllText(save, PersistenceTests.LegacySave(new Context(), 0, config,
+                facts.Select((fact, index) => fact.Numbered(index + 1, DateTimeOffset.UnixEpoch)).ToImmutableArray()));
             Check(agent.History().LoadSave(save), "Save tail not loaded");
             File.Delete(save);
             File.Copy(path, save + ".journal.jsonl");

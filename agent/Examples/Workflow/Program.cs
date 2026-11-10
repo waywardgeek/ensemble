@@ -177,7 +177,6 @@ Agent Create(string name, string primary)
     var config = new Configuration(vendor, model, endpoint.ToString(), key, primaryInstructions: primary,
         disableStreaming: Environment.GetEnvironmentVariable("EN_DISABLE_STREAMING") == "1");
     var agent = new Agent(app, config, name: name);
-    agent.History().StartLog(logPath + "." + name + ".jsonl");
     return agent;
 }
 

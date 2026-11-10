@@ -578,7 +578,7 @@ Run it from an owned workspace, selecting a provider and model explicitly:
 dotnet run --project /path/to/Examples/Gui -- \
   --port 8097 --workspace /path/to/owned-work \
   --vendor anthropic --model SELECTED-MODEL --base-url PROVIDER-URL \
-  --event-log event.log
+  --save save.json
 ```
 
 Credentials come from the existing `LLM_API_KEY` environment contract, not from
@@ -591,7 +591,7 @@ Keep four kinds of evidence distinct:
 
 | Log | Contents |
 |---|---|
-| `event.log` / `--event-log` / `CH02_LOG` | canonical recorded facts |
+| `<save>.journal.jsonl` | canonical recorded facts; `--audit` preserves its available history |
 | `api.log` / `CH06_API_LOG` | existing sanitized request/payload trace |
 | `gui.log` / `CH07_GUI_LOG` | UTC timestamp, direction, and GUI JSON frame |
 | `debug.log` | ordinary application diagnostics |

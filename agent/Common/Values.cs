@@ -70,6 +70,10 @@ public sealed partial class Configuration
     // Requested launch boundary. Empty means full access. The Agent's Sandbox
     // opens and retains the effective physical root; model selection preserves it.
     public readonly string SandboxRoot;
+    // Value-like host policy for confined processes only. Null means inherit;
+    // an explicit empty list drops external reads. Native file tools stay rooted.
+    // Sandbox resolves existing physical targets before admitting any process.
+    public readonly ImmutableArray<string>? ProcessReadPaths;
     internal partial bool AllowsTool(string name);
     internal partial bool AllowsSkill(string name);
     // Explicit caller assertion of Anthropic block-cache support. Never inferred
@@ -122,13 +126,15 @@ public sealed partial class Configuration
         string reasoningSummary = "",
         bool safeMode = false,
         bool enableWebSearch = false,
-        string sandboxRoot = "");
+        string sandboxRoot = "",
+        ImmutableArray<string>? processReadPaths = null);
     // A fresh value for the same route. Resolve the new identity and reasoning
     // defaults afresh; never borrow opaque provenance from the old selection.
     public partial Configuration WithModel(string model);
-    // Copy an already validated value, replacing only the three security facts.
+    // Copy an already validated value, replacing only the security policy.
     // In particular, an explicit reasoning-summary "off" must remain off.
-    internal partial Configuration(Configuration source, bool safeMode, bool enableWebSearch, string sandboxRoot);
+    internal partial Configuration(Configuration source, bool safeMode, bool enableWebSearch, string sandboxRoot,
+        ImmutableArray<string>? processReadPaths = null);
     // Derive the replay identity from the configured vendor, surface, and exact model.
     public partial Provenance Target();
 }
@@ -351,4 +357,9 @@ public sealed partial class Context
 }
 
 // Value-like atomic read, not another authoritative transcript.
-public sealed record HistorySnapshot(ImmutableArray<Event> Events, Context Context, long Sequence = 0);
+public sealed record HistorySnapshot(
+    ImmutableArray<Event> Events,
+    Context Context,
+    long Sequence = 0,
+    long LatestHandoff = 0,
+    long PreviousHandoff = 0);

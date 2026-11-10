@@ -149,14 +149,9 @@ public sealed partial class Agent
             {
                 Memory().Stage(capture, result.Summary);
                 replacement = new MemoryEntry(launch.Destination, launch.ID, launch.Timestamp, result.Summary);
-                // Archive canonical events, not the lossy readable worker input,
-                // before replay removes any selected conversation source.
-                if (launch.Source is null)
-                {
-                    History().ArchiveMemory();
-                }
-                // Archival can take time. Recheck exact selected bytes after
-                // that I/O and immediately before publishing the held removal.
+                // Staging performs file I/O. Recheck the exact selected bytes
+                // immediately before publishing the held removal. Event recovery
+                // belongs to the journal, not a separate compression archive.
                 current = Memory().StillCurrent(capture, History().View());
             }
         }

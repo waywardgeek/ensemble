@@ -44,8 +44,10 @@ public sealed partial class McpProcessTransport : IMcpTransport
     private readonly Task stderrDrain;
     private readonly object gate = new();
     private Task? destruction;
-    // Workspace is explicit and applies only to this child process.
-    public partial McpProcessTransport(McpServerSpec specification, string workspace);
+    // The caller supplies its actual Agent-owned Sandbox for launch preparation;
+    // it is used transiently, not retained as another owner. Workspace is resolved
+    // through that boundary. This transport owns and joins the resulting process.
+    public partial McpProcessTransport(McpServerSpec specification, string workspace, Sandbox sandbox);
     public partial Task SendAsync(JsonElement message, CancellationToken cancellation = default);
     public partial Task<JsonElement?> ReceiveAsync(CancellationToken cancellation = default);
     public partial ValueTask DisposeAsync();

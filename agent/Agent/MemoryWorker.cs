@@ -54,8 +54,7 @@ public sealed partial class Agent
             child.ConfigureMemoryCompressor();
             _ = new Tool(child, ToolKind.Submit);
             child.StartPersistence(new PersistenceOptions(
-                Path.Combine(child.DataDirectory(), "save.json"), int.MaxValue));
-            child.History().StartLog(Path.Combine(child.DataDirectory(), "events.jsonl"));
+                Path.Combine(child.DataDirectory(), "save.json")));
             // The capture formatter includes the old curated destination when
             // merging into MEMORY.md. Do not repeat it as a second prompt block.
             string prompt = $"""

@@ -118,15 +118,15 @@ internal static class MemoryBandTests
             history.Append(Populate(Item(MemoryBand.Session, "first", 0, "private memory bytes")));
             history.Append(new Event(EventKind.MessageReceived, actor: Actor.Human, parts: [new TextPart("task")]));
             string path = Path.Combine(directory, "save.json");
-            history.Save(new PersistenceOptions(path, RetainLog: 0));
+            history.Save(new PersistenceOptions(path));
             var saved = JsonCodec.ReadSave(File.ReadAllText(path));
-            Check(saved.Events.IsEmpty && saved.Context!.Memories.Length == 1, "Trimmed save dropped memory projection");
+            Check(!JsonNode.Parse(File.ReadAllText(path))!.AsObject().ContainsKey("log") && saved.Context!.Memories.Length == 1, "Trimmed save dropped memory projection");
             Check(!saved.Configuration.GetRawText().Contains("private memory bytes"), "Memory entered configuration summary");
             var restored = new Agent(app, config);
             Check(restored.History().LoadSave(path), "Actual snapshot did not restore");
             Check(restored.History().View().Memories.Single().Text == "private memory bytes", "Snapshot memory changed");
             var newer = Populate(Item(MemoryBand.Session, "first", 0, "new text")).Numbered(saved.Sequence + 1, Epoch);
-            File.WriteAllText(path, JsonCodec.WriteSave(saved with { Events = [newer] }));
+            File.WriteAllText(path, PersistenceTests.LegacySave(saved.Context, saved.Sequence, saved.Configuration, [newer]));
             Check(restored.History().LoadSave(path) && restored.History().View().Memories.Single().Text == "new text", "Tail update lost or duplicated");
             var old = JsonNode.Parse(JsonCodec.WriteSave(saved))!;
             old["context"]!.AsObject().Remove("memories");

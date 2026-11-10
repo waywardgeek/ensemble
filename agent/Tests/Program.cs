@@ -81,6 +81,23 @@ static string Wire(Vendor vendor, Context context, string model = "model-a")
 }
 try
 {
+    if (args is ["--state-only-snapshot-tests"])
+    {
+        CheckCase("state-only snapshots and legacy tail recovery", PersistenceTests.Replay);
+        CheckCase("handoff recovery boundaries", PersistenceTests.HandoffBoundaries);
+        CheckCase("snapshot recovery and refusal nonmutation", PersistenceTests.Recovery);
+        CheckCase("legacy total reduction", ReductionTests.TotalReplay);
+        CheckCase("journal backup recovery", JournalTests.Recovery);
+        CheckCase("journal torn and invalid input", JournalTests.TornAndInvalid);
+        CheckCase("journal append poisoning", JournalTests.FailedAppend);
+        await AsyncCase("serialized snapshot writers", JournalTests.WriterSerialization);
+        CheckCase("single journal audit replay", JournalRetentionTests.Replay);
+        CheckCase("handoff retention and lagging backup", JournalRetentionTests.BackupBoundary);
+        CheckCase("sandbox snapshot and journal recovery", SandboxPersistenceTests.Replay);
+        CheckCase("sandbox persistence refusal", SandboxPersistenceTests.Refusals);
+        Console.WriteLine($"{passed} passed; {failures} failed");
+        return failures == 0 ? 0 : 1;
+    }
     if (args.Length == 0 || args is ["--model-transport-tests"])
     {
         await AsyncCase("Configured endpoint refuses inference redirects", MeterTests.ModelEndpointRedirects);
@@ -155,6 +172,20 @@ try
         Console.WriteLine($"{passed} passed, {failures} failed");
         return failures == 0 ? 0 : 1;
     }
+    if (args is ["--mcp-process-tests"])
+    {
+        await AsyncCase("MCP owned stdio process transport", McpTests.ProcessBoundary);
+        await AsyncCase("MCP confined process and descendant", McpTests.ConfinedProcess);
+        await AsyncCase("Python workflow reverse calls", McpTests.PythonWorkflow);
+        await AsyncCase("Fiction role memory and fresh child context", () => MeterTests.FictionRoleHomes(temp));
+        await AsyncCase("Native Python child assignments", () => MeterTests.FictionNativeAssignments(temp));
+        await AsyncCase("Packaged fiction workflow loading", () => McpTests.FictionPackage(temp));
+        await AsyncCase("Read-only shared process paths", () => McpTests.ReadOnlyProcessPaths(temp));
+        await AsyncCase("Read-only shared fiction package", () => McpTests.FictionPackage(temp, true));
+        await AsyncCase("Complete native reviewer reads", () => MeterTests.FictionCompleteReads(temp));
+        Console.WriteLine($"{passed} passed; {failures} failed");
+        return failures == 0 ? 0 : 1;
+    }
     if (args is ["--search-evidence-tests"] || args.Length == 0)
     {
         await AsyncCase("Search presentation evidence and bounded observation", () => SearchEvidenceTests.Run(temp));
@@ -177,6 +208,8 @@ try
     if (args is ["--skill-tests"] || args.Length == 0)
     {
         await AsyncCase("Chapter 9 transactional skills and capability gating", SkillTests.Capabilities);
+        await AsyncCase("Sandbox skill graph authorization", SkillTests.SandboxGraph);
+        await AsyncCase("Live skill discovery preserves active grants and manuals", SkillTests.LiveDiscovery);
         await AsyncCase("Chapter 9 parser, ownership and provider instruction placement", SkillTests.Projection);
         await AsyncCase("Chapter 9 real discovery exchanges and deferred references", ActorTests.SkillExchange);
         await AsyncCase("Native coding guidance discovery and instruction-only activation", SkillTests.NativeCodingGuidance);
@@ -364,7 +397,6 @@ try
         await AsyncCase("memory actor policy refusal", () => MeterTests.MemoryPolicyRefusal(temp));
         await AsyncCase("memory actor persisted recovery", () => MeterTests.MemoryActorRecovery(temp));
         await AsyncCase("memory actor recovery failure", () => MeterTests.MemoryRecoveryFailure(temp));
-        await AsyncCase("memory full canonical archive", () => MeterTests.MemoryCanonicalArchive(temp));
         if (args.Length != 0)
         {
             Console.WriteLine($"{passed} passed; {failures} failed");
@@ -981,8 +1013,8 @@ try
     CheckCase("Chapter 14 once-only result selection boundaries", ResultStubbingTests.Selection);
     await AsyncCase("Chapter 14 opt-in keep/stub actor and snapshot replay", ActorTests.OnceOnlyResultStubbing);
     await AsyncCase("Chapter 14 interrupted keep cannot veto recorded cuts", ActorTests.InterruptedKeep);
-    CheckCase("Chapter 14 full event archive and request-prefix replay", ArchiveTests.Replay);
-    CheckCase("Chapter 14 archive refusal preserves recovery and diagnostic files", ArchiveTests.Refusal);
+    CheckCase("single journal audit and handoff retention", JournalRetentionTests.Replay);
+    CheckCase("journal retention preserves a lagging backup", JournalRetentionTests.BackupBoundary);
     CheckCase("Chapter 14 handoff clears private replay data but preserves visible identities", CompactionTests.HandoffPrivacy);
     CheckCase("Chapter 14 historical redaction replay and cached bytes", CompactionTests.Selection);
     await AsyncCase("Chapter 14 retained results survive later requests and restart", ActorTests.ToolRetention);
@@ -993,6 +1025,14 @@ try
     await AsyncCase("Chapter 11 remote catalog registration is transactional", McpTests.RemoteRegistration);
     await AsyncCase("Chapter 11 MCP server frontmatter validation", McpTests.ServerSpecifications);
     await AsyncCase("Chapter 11 owned stdio process transport", McpTests.ProcessBoundary);
+    await AsyncCase("Chapter 21 confined MCP process and descendant", McpTests.ConfinedProcess);
+    await AsyncCase("Chapter 21 Python workflow reverse calls", McpTests.PythonWorkflow);
+    await AsyncCase("Chapter 21 role memory and fresh child context", () => MeterTests.FictionRoleHomes(temp));
+    await AsyncCase("Chapter 21 native Python child assignments", () => MeterTests.FictionNativeAssignments(temp));
+    await AsyncCase("Chapter 21 packaged workflow loading", () => McpTests.FictionPackage(temp));
+    await AsyncCase("Read-only shared process paths", () => McpTests.ReadOnlyProcessPaths(temp));
+    await AsyncCase("Read-only shared fiction package", () => McpTests.FictionPackage(temp, true));
+    await AsyncCase("Chapter 21 complete reviewer reads", () => MeterTests.FictionCompleteReads(temp));
     await AsyncCase("Chapter 11 fragmented WebSocket RPC and closure", McpTests.WebSocketBoundary);
     await AsyncCase("Chapter 11 browser registration and dynamic skill binding", McpTests.BrowserSkillBinding);
     await AsyncCase("Chapter 11 browser primary startup", McpTests.BrowserPrimaryStartup);
@@ -1206,10 +1246,10 @@ await AsyncCase("Chapter 3 tools and loop", () => ToolTests.Run(temp));
         try
         {
             var a = NewAgent(app);
-            a.History().StartLog(path);
             a.History().Append(new Event(EventKind.MessageReceived, actor: Actor.Human, parts: [new TextPart("question")]));
             a.History().Append(new Event(EventKind.RequestSent, from: Origin()));
             a.History().Append(new Event(EventKind.ResponseEnded, from: Origin(), parts: [new TextPart("answer")], usage: new Usage(1, 2, 3, 4)));
+            using (var output = new StreamWriter(path)) a.History().Dump(output);
             var b = NewAgent(app);
             b.History().Load(path);
             Check(a.Engine().Render(a.History().View()).ToJsonString() == b.Engine().Render(b.History().View()).ToJsonString(), "live equals replay");

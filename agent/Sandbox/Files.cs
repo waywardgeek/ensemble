@@ -32,6 +32,8 @@ public sealed partial class Sandbox
                 using var ancestors = rootHandle;
                 rootHandle = OpenDirectory(root.TrimStart('/'), false);
             }
+            processReads = ResolveProcessReads(
+                parent.DocumentaryConfiguration().ProcessReadPaths ?? [], root);
             parent.AddSandbox(this);
         }
         catch

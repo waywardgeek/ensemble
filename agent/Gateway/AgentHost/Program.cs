@@ -112,8 +112,6 @@ static async Task<int> Run(string[] arguments)
         persistence = new PersistenceOptions(Path.Combine(home, "session.save.json"));
         actor.StartPersistence(persistence);
         actor.StartDiagnostics();
-        // Restore and journal recovery must precede opening the event writer.
-        actor.History().StartLog(Path.Combine(home, "events.jsonl"));
         if (actor.SkillManager() is { } manager)
             await manager.InitializeAsync(cancellation.Token);
         saveOnExit = true;

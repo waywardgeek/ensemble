@@ -51,12 +51,12 @@ internal static class SkillTests
             string primary = manager.Active().Single().Body;
             Check(primary.Contains("PRIMARY-before") && !primary.Contains("$TOOLS"), "Primary was not rendered at construction");
             Check(agent.ToolEnabled("read_file") && !agent.ToolEnabled("write_file"), "Initial grants are wrong");
-            Check(manager.LoadableSkills().SequenceEqual(new[] { "broken", "cycle", "editing" }), "Progressive discovery is wrong");
+            Check(manager.LoadableSkills().SequenceEqual(new[] { "broken", "cycle", "editing", "extra" }), "Directory discovery is wrong");
             string target = Path.Combine(root, "effect.txt");
             var denied = await agent.DispatchAsync(Call("write_file", new { path = target, content = "no" }));
             Check(denied.IsError && !File.Exists(target), "Disabled tool had an effect");
             Check(!agent.History().Events().Any(value => value.Kind == EventKind.ToolStarted), "Refused tool claimed admission");
-            foreach (string name in new[] { "extra", "broken", "cycle", "unknown" })
+            foreach (string name in new[] { "broken", "cycle", "unknown" })
             {
                 var refused = await agent.DispatchAsync(Call("load_skill", new { name }));
                 Check(refused.IsError, "Invalid closure was accepted: " + name);
@@ -85,6 +85,98 @@ internal static class SkillTests
             // Redacting dialogue must not silently revoke persistent instructions.
             agent.History().Append(new Event(EventKind.Redacted, redactFrom: 1, redactTo: agent.History().Events().Last().Seq, level: Redaction.Dialogue));
             Check(manager.Active().Length == 3, "Dialogue redaction removed instruction facts");
+        }
+        finally
+        {
+            app.Destroy();
+            Directory.Delete(root, true);
+        }
+    }
+
+    public static async Task SandboxGraph()
+    {
+        string root = Fixture();
+        var app = new Application(TextWriter.Null);
+        try
+        {
+            string unrelated = Path.Combine(root, "unrelated");
+            Directory.CreateDirectory(unrelated);
+            File.WriteAllText(Path.Combine(unrelated, "SKILL.md"),
+                "---\nname: unrelated\ndescription: unrelated\ntype: loadable\ntools: write_file\n---\nUNRELATED");
+            var confined = new Agent(app,
+                new Configuration(Vendor.Anthropic, "model-a", "http://127.0.0.1:1", sandboxRoot: root),
+                skillSpec: new SkillSpec(root, "root"));
+            var manager = confined.SkillManager()!;
+            Check(manager.LoadableSkills().Contains("extra"), "Transitive graph member was hidden");
+            Check(!manager.LoadableSkills().Contains("unrelated"), "Unrelated skill escaped graph authorization");
+            Check((await confined.DispatchAsync(Call("load_skill", new { name = "unrelated" }))).IsError,
+                "Direct sandbox load bypassed graph authorization");
+            Check(!confined.ToolEnabled("write_file"), "Refused sandbox load granted a tool");
+            Check(!(await confined.DispatchAsync(Call("load_skill", new { name = "extra" }))).IsError,
+                "Transitive loadable required its offering manual to be active");
+            Check(!(await confined.DispatchAsync(Call("load_skill", new { name = "editing" }))).IsError
+                && manager.Active().Any(skill => skill.Name == "helper"),
+                "Authorized dependency failed to activate");
+            var unrestricted = new Agent(app,
+                new Configuration(Vendor.Anthropic, "model-a", "http://127.0.0.1:1"),
+                skillSpec: new SkillSpec(root, "root"));
+            Check(unrestricted.SkillManager()!.LoadableSkills().Contains("unrelated"),
+                "Unrestricted discovery incorrectly required graph membership");
+            Check(!(await unrestricted.DispatchAsync(Call("load_skill", new { name = "unrelated" }))).IsError,
+                "Unrestricted directory skill could not load");
+        }
+        finally
+        {
+            app.Destroy();
+            Directory.Delete(root, true);
+        }
+    }
+
+    public static async Task LiveDiscovery()
+    {
+        string root = Fixture();
+        var app = new Application(TextWriter.Null);
+        try
+        {
+            var agent = new Agent(app,
+                new Configuration(Vendor.Anthropic, "model-a", "http://127.0.0.1:1"),
+                skillSpec: new SkillSpec(root, "root"));
+            var sandboxed = new Agent(app,
+                new Configuration(Vendor.Anthropic, "model-a", "http://127.0.0.1:1", sandboxRoot: root),
+                skillSpec: new SkillSpec(root, "root"));
+            var manager = agent.SkillManager()!;
+            string primary = manager.Active().Single().Body;
+            string late = Path.Combine(root, "late");
+            Directory.CreateDirectory(late);
+            string path = Path.Combine(late, "SKILL.md");
+            string text = "---\nname: late\ndescription: late\ntype: loadable\n---\nLATE-ORIGINAL";
+            File.WriteAllText(path, text);
+            Check((await sandboxed.DispatchAsync(Call("load_skill", new { name = "late" }))).IsError,
+                "Sandbox discovered and authorized an unrelated late skill");
+            Check(!(await agent.DispatchAsync(Call("load_skill", new { name = "late" }))).IsError,
+                "New file required Agent reconstruction");
+            Check(manager.Active().Single(skill => skill.Primary).Body == primary,
+                "Discovery rerendered the primary manual");
+            File.WriteAllText(path, text.Replace("LATE-ORIGINAL", "LATE-CHANGED"));
+            Check(!(await agent.DispatchAsync(Call("load_skill", new { name = "extra" }))).IsError,
+                "Refresh after active template edit failed");
+            Check(manager.Active().Single(skill => skill.Name == "late").Body == "LATE-ORIGINAL",
+                "Refresh replaced active instructions");
+            string duplicate = Path.Combine(root, "duplicate");
+            Directory.CreateDirectory(duplicate);
+            File.WriteAllText(Path.Combine(duplicate, "SKILL.md"), text);
+            string[] catalog = manager.LoadableSkills().ToArray();
+            Check((await agent.DispatchAsync(Call("load_skill", new { name = "editing" }))).IsError,
+                "Duplicate names were accepted during refresh");
+            Check(manager.LoadableSkills().SequenceEqual(catalog) && !agent.ToolEnabled("write_file"),
+                "Failed refresh changed catalog or grants");
+            Directory.Delete(duplicate, true);
+            File.WriteAllText(path, "invalid skill file");
+            Check((await agent.DispatchAsync(Call("load_skill", new { name = "editing" }))).IsError,
+                "Malformed catalog was accepted");
+            File.WriteAllText(path, text);
+            Check(!(await agent.DispatchAsync(Call("load_skill", new { name = "editing" }))).IsError,
+                "Correcting the catalog did not recover loading");
         }
         finally
         {

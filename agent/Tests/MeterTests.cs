@@ -119,7 +119,7 @@ internal static partial class MeterTests
 
             string save = Path.Combine(root, "meter-save.json");
             agent.History().Append(new Event(EventKind.ResponseEnded, usage: new Usage(999, 0, 100, 9)));
-            agent.History().Save(new PersistenceOptions(save, RetainLog: 0));
+            agent.History().Save(new PersistenceOptions(save));
             var restored = new Agent(app, new Configuration(Vendor.Anthropic, "unpriced", listener.Prefixes.Single()));
             Check(restored.History().LoadSave(save), "saved history restored");
             Check(restored.Engine().Meter().Latest is null && restored.Engine().Meter().Totals.AllInput() == 0,

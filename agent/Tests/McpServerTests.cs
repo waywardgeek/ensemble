@@ -134,11 +134,12 @@ static partial class McpTests
         {
             Environment.SetEnvironmentVariable("ANTHROPIC_API_KEY", "dummy-never-forward");
             Environment.SetEnvironmentVariable("MCP_TEST_PRIVATE", "dummy-private");
+            var agent = new Agent(root, new Configuration(Vendor.Anthropic, "fake", "http://127.0.0.1:1"));
             bool startupRefused = false;
             try
             {
                 await using var invalid = new McpProcessTransport(
-                    new McpServerSpec("missing", "stdio", "/no-such-mcp-server", []), directory);
+                    new McpServerSpec("missing", "stdio", "/no-such-mcp-server", []), directory, agent.Sandbox());
             }
             catch (System.ComponentModel.Win32Exception)
             {
@@ -147,9 +148,8 @@ static partial class McpTests
             Check(startupRefused, "Missing server executable was not refused");
             var specification = new McpServerSpec("peer", "stdio", "/usr/bin/python3",
                 ["-u", "peer.py", "two words", "$HOME;*.txt", ""]);
-            var agent = new Agent(root, new Configuration(Vendor.Anthropic, "fake", "http://127.0.0.1:1"));
             var manager = new Mcp(agent);
-            var transport = new McpProcessTransport(specification, directory);
+            var transport = new McpProcessTransport(specification, directory, agent.Sandbox());
             var client = new McpClient(manager, "peer", transport);
             await client.ConnectAsync().WaitAsync(TimeSpan.FromSeconds(10));
             var inspected = await client.RequestAsync("inspect", J("{}")).WaitAsync(TimeSpan.FromSeconds(8));
@@ -174,9 +174,10 @@ static partial class McpTests
 
             // EOF is a connection failure, not a fabricated reply. Destruction
             // must also join a child that exited naturally before cleanup.
-            var second = new McpClient(new Mcp(new Agent(root,
-                new Configuration(Vendor.Anthropic, "fake", "http://127.0.0.1:1"))), "exit-peer",
-                new McpProcessTransport(specification, directory));
+            var secondAgent = new Agent(root,
+                new Configuration(Vendor.Anthropic, "fake", "http://127.0.0.1:1"));
+            var second = new McpClient(new Mcp(secondAgent), "exit-peer",
+                new McpProcessTransport(specification, directory, secondAgent.Sandbox()));
             await second.ConnectAsync().WaitAsync(TimeSpan.FromSeconds(10));
             await Fails(second.RequestAsync("exit", J("{}")));
             await second.DestroyAsync().WaitAsync(TimeSpan.FromSeconds(10));

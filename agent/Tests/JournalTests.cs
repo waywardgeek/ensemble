@@ -58,13 +58,13 @@ internal static class JournalTests
             var source = Agent(app).History();
             source.StartJournal(path);
             source.Append(Message("one"));
-            source.Save(new PersistenceOptions(path, 0));
+            source.Save(new PersistenceOptions(path));
             source.Append(Message("two"));
-            source.Save(new PersistenceOptions(path, 0));
+            source.Save(new PersistenceOptions(path));
             source.Append(Message("three"));
-            Check(source.Events().Length == 1, "Diagnostic trimming fixture failed");
+            Check(source.Events().Length == 3, "Events trimmed before a handoff boundary exists");
             var facts = File.ReadAllLines(journal).Select(JsonCodec.ReadEvent).ToArray();
-            Check(facts.Select(fact => fact.Seq).SequenceEqual([2L, 3L]), "Journal cut at primary instead of backup");
+            Check(facts.Select(fact => fact.Seq).SequenceEqual([1L, 2L, 3L]), "Journal trimmed without a handoff boundary");
             Check(JsonCodec.ReadSave(File.ReadAllText(path + ".bak")).Sequence == 1, "Wrong backup boundary");
             var primary = Agent(app).History();
             Check(primary.LoadSave(path) && Text(primary) == "one|two|three", "Primary replay omitted or doubled journal");
@@ -74,12 +74,11 @@ internal static class JournalTests
             Check(backup.LoadSave(path) && Text(backup) == "one|two|three", "Backup cannot recover through journal");
             backup.StartJournal(path);
             Check(backup.Append(Message("four")).Seq == 4, "Recovered append reused sequence");
-            backup.Save(new PersistenceOptions(path, 0));
+            backup.Save(new PersistenceOptions(path));
             Check(JsonCodec.ReadSave(File.ReadAllText(path + ".bak")).Sequence == 1, "Damaged primary overwrote backup");
             var replay = Agent(app).History();
             Check(replay.LoadSave(path) && Text(replay) == "one|two|three|four", "Repaired primary duplicated journal");
-            Refuses(() => backup.Save(new PersistenceOptions(path, 0, journal)));
-            Refuses(() => backup.StartLog(journal));
+            Refuses(() => backup.Save(new PersistenceOptions(path + ".other")));
         }
         finally
         {
@@ -202,7 +201,7 @@ internal static class JournalTests
                 await release.Task;
                 output.Write(previous);
             });
-            Task save = Task.Run(() => history.Save(new PersistenceOptions(path, 0)));
+            Task save = Task.Run(() => history.Save(new PersistenceOptions(path)));
             await opened.Task.WaitAsync(TimeSpan.FromSeconds(5));
             var snapshot = await Task.Run(history.Snapshot).WaitAsync(TimeSpan.FromSeconds(2));
             Check(snapshot.Sequence == 2 && Text(history) == "one|two", "Committed reader blocked or changed during save");

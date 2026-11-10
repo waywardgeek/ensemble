@@ -4,7 +4,7 @@ using System.Text.Json;
 using Ensemble;
 using Application = Ensemble.Ensemble;
 
-internal static class ArchiveTests
+internal static class JournalRetentionTests
 {
     private static void Check(bool value, string message)
     {
@@ -52,15 +52,15 @@ internal static class ArchiveTests
     private static string View(History history)
     {
         return JsonCodec.WriteSave(new SaveDocument(history.View(), history.Snapshot().Sequence,
-            history.Parent().Engine().SavedConfiguration(history.View()), []));
+            history.Parent().Engine().SavedConfiguration(history.View())));
     }
 
     public static void Replay()
     {
         string directory = DirectoryForTest();
         string path = Path.Combine(directory, "save.json");
-        string archive = Path.Combine(directory, "archive.jsonl");
-        var policy = new PersistenceOptions(path, 0, archive);
+        string archive = path + ".journal.jsonl";
+        var policy = new PersistenceOptions(path, Audit: true);
         var app = new Application(TextWriter.Null);
         try
         {
@@ -92,7 +92,7 @@ internal static class ArchiveTests
             Request();
             Record(new Event(EventKind.ResponseEnded, parts: [new TextPart("finished")]));
             history.Save(policy);
-            Check(history.Events().IsEmpty, "Zero diagnostic retention was not exercised");
+            Check(history.Events().Length == original.Count, "History trimmed before a handoff boundary");
 
             Record(new Event(EventKind.Redacted, redactFrom: response.Seq, redactTo: original[^1].Seq,
                 level: Redaction.Result, reason: "archive regression"));
@@ -103,10 +103,9 @@ internal static class ArchiveTests
             Request();
             Record(new Event(EventKind.ResponseEnded, parts: [new TextPart("after handoff")]));
             history.Save(policy);
-            Check(File.ReadAllText(archive) == Log(original), "Archive changed or omitted canonical events");
+            Check(File.ReadAllText(archive) == string.Concat(original.Select(fact => JsonCodec.WriteEvent(fact) + "\n")), "Archive changed or omitted canonical events");
             Check(!View(history).Contains("ORIGINAL-TOOL-BYTES"), "Working Context was not actually reduced");
-            Check(!File.ReadAllText(path + ".journal.jsonl").Contains("ORIGINAL-TOOL-BYTES"),
-                "Fixture did not trim the journal past the original payload");
+            Check(File.ReadAllText(archive).Contains("ORIGINAL-TOOL-BYTES"), "Audit lost original payload");
 
             var replay = Agent(app);
             replay.History().Load(archive);
@@ -125,120 +124,76 @@ internal static class ArchiveTests
             Check(reconstructed[1].Contains("ORIGINAL-TOOL-BYTES") && !reconstructed[2].Contains("ORIGINAL-TOOL-BYTES"),
                 "Replay did not distinguish full and stubbed request windows");
 
-            // A zero-log restart has only its recovery suffix in memory. Earlier
-            // facts now come from the archive, not invented snapshot messages.
+            // Audit restart reuses the same journal, never a second archive.
             var restored = Agent(app).History();
             Check(restored.LoadSave(path), "Snapshot-only restart failed");
             restored.StartJournal(path);
             original.Add(restored.Append(Message("after restart")));
             restored.Save(policy);
-            Check(File.ReadAllText(archive) == Log(original), "Restart lost the archived prefix or duplicated its suffix");
+            Check(File.ReadAllText(archive) == string.Concat(original.Select(fact => JsonCodec.WriteEvent(fact) + "\n")), "Restart lost the archived prefix or duplicated its suffix");
             replay.History().Load(archive);
             Check(View(replay.History()) == View(restored), "Restart archive replay differs");
         }
         finally
         {
             app.Destroy();
+            Directory.Delete(directory, recursive: true);
         }
     }
 
-    public static void Refusal()
+    public static void BackupBoundary()
     {
-        string directory = DirectoryForTest();
-        string path = Path.Combine(directory, "save.json");
-        string archive = Path.Combine(directory, "archive.jsonl");
-        var policy = new PersistenceOptions(path, 0, archive);
-        var app = new Application(TextWriter.Null);
-        try
+        foreach (bool audit in new[] { false, true })
         {
-            var history = Agent(app).History();
-            history.StartJournal(path);
-            var first = history.Append(Message("first"));
-            history.Save(policy);
-            var second = history.Append(Message("second"));
-            history.Save(policy);
-            var third = history.Append(Message("third"));
-            string primary = File.ReadAllText(path);
-            string backup = File.ReadAllText(path + ".bak");
-            string journal = File.ReadAllText(path + ".journal.jsonl");
-            string goodArchive = File.ReadAllText(archive);
-            string view = View(history);
-            var diagnostics = history.Events();
-            var conflict = new Event(EventKind.MessageReceived, seq: second.Seq, time: second.Time,
-                actor: Actor.Human, parts: [new TextPart("CONFLICTING-PRIVATE-CONTENT")]);
-            var future = Message("future").Numbered(third.Seq + 1, DateTimeOffset.UtcNow);
-            foreach (string invalid in new[]
-            {
-                Log([second]), // Missing prefix, even though the journal has this fact.
-                Log([first, conflict]), // Same sequence, different canonical bytes.
-                Log([first, second, third, future]), // Not this History's current boundary.
-                "{\"log_version\":999}\n",
-                "{\"log_version\":1}\nnot-json\n"
-            })
-            {
-                File.WriteAllText(archive, invalid);
-                Refuses(() => history.Save(policy));
-                Check(File.ReadAllText(archive) == invalid, "Rejected archive was overwritten");
-                Check(File.ReadAllText(path) == primary && File.ReadAllText(path + ".bak") == backup &&
-                    File.ReadAllText(path + ".journal.jsonl") == journal, "Archive refusal changed recovery files");
-                Check(View(history) == view && history.Events().SequenceEqual(diagnostics), "Archive refusal trimmed live state");
-            }
-            byte[] invalidUtf8 = [.. Encoding.UTF8.GetBytes("{\"log_version\":1}\n{\"type\":\""), 0xff];
-            File.WriteAllBytes(archive, invalidUtf8);
-            Refuses(() => history.Save(policy));
-            Check(File.ReadAllBytes(archive).SequenceEqual(invalidUtf8) && File.ReadAllText(path) == primary,
-                "Malformed UTF-8 was repaired or published silently");
-            File.WriteAllText(archive, goodArchive);
-            // The archive is published first. A later snapshot failure may leave
-            // it ahead of the primary, but must not trim the journal or live log.
-            File.Move(path + ".bak", path + ".bak.held");
-            Directory.CreateDirectory(path + ".bak");
+            string directory = DirectoryForTest();
+            string path = Path.Combine(directory, "save.json");
+            string journal = path + ".journal.jsonl";
+            var app = new Application(TextWriter.Null);
             try
             {
-                Refuses(() => history.Save(policy));
-                Check(File.ReadAllText(archive) == Log([first, second, third]), "Archive did not precede backup rotation");
-                Check(File.ReadAllText(path) == primary && File.ReadAllText(path + ".journal.jsonl") == journal,
-                    "Later save failure changed primary or trimmed recovery journal");
-                Check(history.Events().SequenceEqual(diagnostics), "Later save failure trimmed diagnostics");
+                var history = Agent(app).History();
+                var policy = new PersistenceOptions(path, Audit: audit);
+                history.StartJournal(path);
+                history.Append(Message("original"));
+                history.Save(policy); // Backup will deliberately lag the handoff window.
+                history.Append(new Event(EventKind.HandoffRecorded, parts: [new HandoffPart("first")]));
+                history.Append(Message("between"));
+                var preceding = history.Append(new Event(EventKind.HandoffRecorded, parts: [new HandoffPart("second")]));
+                history.Append(Message("recent"));
+                history.Append(new Event(EventKind.HandoffRecorded, parts: [new HandoffPart("third")]));
+                history.Append(Message("latest"));
+                Check(history.Events()[0].Seq == preceding.Seq, "Live events exceed the two-handoff window");
+                history.Save(policy);
+                var lines = File.ReadAllLines(journal).Select(JsonCodec.ReadEvent).ToArray();
+                Check(lines[0].Seq == (audit ? 1 : 2), "Journal lost the lagging backup suffix");
+                string expected = View(history);
+                File.WriteAllText(path, "damaged primary");
+                var recovered = Agent(app).History();
+                Check(recovered.LoadSave(path) && View(recovered) == expected, "Backup recovery lost state");
+                Check(recovered.Events()[0].Seq == preceding.Seq, "Restart loaded audit prefix into working History");
+                recovered.StartJournal(path);
+                recovered.Save(policy); // Invalid primary must not displace the old backup.
+                Check(JsonCodec.ReadSave(File.ReadAllText(path + ".bak")).Sequence == 1, "Invalid primary replaced backup");
+                recovered.Save(policy); // Now the backup can advance and permit the working cutoff.
+                lines = File.ReadAllLines(journal).Select(JsonCodec.ReadEvent).ToArray();
+                Check(lines[0].Seq == (audit ? 1 : preceding.Seq), "Wrong handoff/audit journal cutoff");
+                foreach (string snapshot in new[] { path, path + ".bak" })
+                {
+                    using var json = JsonDocument.Parse(File.ReadAllText(snapshot));
+                    Check(!json.RootElement.TryGetProperty("log", out _), "Snapshot duplicates event data");
+                }
+                Check(!File.Exists(Path.Combine(directory, "events.jsonl"))
+                    && !Directory.Exists(Path.Combine(directory, "archive")), "Duplicate event output exists");
+                // Enabling audit late preserves what remains; it cannot invent a deleted prefix.
+                string before = File.ReadAllText(journal);
+                recovered.Save(policy with { Audit = true });
+                Check(File.ReadAllText(journal) == before, "Audit rewrote retained journal");
             }
             finally
             {
-                Directory.Delete(path + ".bak");
-                File.Move(path + ".bak.held", path + ".bak");
+                app.Destroy();
+                Directory.Delete(directory, recursive: true);
             }
-            history.Save(policy);
-            Check(File.ReadAllText(archive) == Log([first, second, third]), "Valid archive could not continue after refusals");
-
-            // Starting a full archive late cannot conjure the prefix removed by
-            // both diagnostic and backup-floor journal retention.
-            string late = Path.Combine(directory, "late.jsonl");
-            Refuses(() => history.Save(policy with { ArchivePath = late }));
-            Check(!File.Exists(late), "Incomplete archive was published as full history");
-
-            // Direct snapshot saves have no active journal; this is also explicit
-            // refusal rather than a dialogue-only export masquerading as replay.
-            string directPath = Path.Combine(directory, "direct.json");
-            var direct = Agent(app).History();
-            direct.Append(Message("no longer retained"));
-            direct.Save(new PersistenceOptions(directPath, 0));
-            string directSnapshot = File.ReadAllText(directPath);
-            Refuses(() => direct.Save(new PersistenceOptions(directPath, 0, late)));
-            Check(File.ReadAllText(directPath) == directSnapshot && !File.Exists(late), "Snapshot-only gap changed files");
-
-            string log = Path.Combine(directory, "active.jsonl");
-            var logging = Agent(app).History();
-            logging.StartLog(log);
-            logging.Append(Message("still writable"));
-            string before = File.ReadAllText(log);
-            Refuses(() => logging.Save(new PersistenceOptions(log)));
-            Refuses(() => logging.Save(new PersistenceOptions(Path.Combine(directory, "log-save.json"), 0, log)));
-            Check(File.ReadAllText(log) == before, "Save replaced an active diagnostic log");
-            logging.Append(Message("after refusal"));
-            Check(File.ReadAllText(log).Contains("after refusal"), "Refusal broke the diagnostic writer");
-        }
-        finally
-        {
-            app.Destroy();
         }
     }
 }

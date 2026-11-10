@@ -5,23 +5,21 @@ namespace Ensemble;
 
 public sealed partial class McpProcessTransport
 {
-    public partial McpProcessTransport(McpServerSpec specification, string workspace)
+    public partial McpProcessTransport(McpServerSpec specification, string workspace, Sandbox sandbox)
     {
         ArgumentNullException.ThrowIfNull(specification);
         if (specification.Transport != "stdio" || string.IsNullOrWhiteSpace(specification.Command))
         {
             throw new ArgumentException("A process transport requires a stdio command", nameof(specification));
         }
-        string directory = Path.GetFullPath(workspace);
-        var start = new ProcessStartInfo(specification.Command)
-        {
-            WorkingDirectory = directory,
-            UseShellExecute = false,
-            RedirectStandardInput = true,
-            RedirectStandardOutput = true,
-            RedirectStandardError = true,
-            CreateNoWindow = true
-        };
+        ArgumentNullException.ThrowIfNull(sandbox);
+        // Use the same OS boundary as run_command, but do not invoke a shell.
+        // ArgumentList preserves each protocol-server argument literally.
+        var start = sandbox.PrepareProcess(specification.Command, workspace);
+        start.RedirectStandardInput = true;
+        start.RedirectStandardOutput = true;
+        start.RedirectStandardError = true;
+        start.CreateNoWindow = true;
         foreach (string argument in specification.Arguments.IsDefault ? [] : specification.Arguments)
         {
             start.ArgumentList.Add(argument);
@@ -29,13 +27,18 @@ public sealed partial class McpProcessTransport
         // An allowlist is safer than guessing every provider's credential name.
         // No model key, endpoint, custom variable, or inherited shell startup
         // hook belongs in a skill server's process environment.
-        start.Environment.Clear();
-        foreach (string name in new[] { "PATH", "HOME", "TMPDIR", "TMP", "TEMP", "LANG", "LC_ALL" })
+        // Confined launches must retain the Sandbox's sanitized HOME, TMPDIR,
+        // PATH and environment. Never restore host values over that boundary.
+        if (sandbox.Root().Length == 0)
         {
-            string? value = Environment.GetEnvironmentVariable(name);
-            if (value is not null)
+            start.Environment.Clear();
+            foreach (string name in new[] { "PATH", "HOME", "TMPDIR", "TMP", "TEMP", "LANG", "LC_ALL" })
             {
-                start.Environment[name] = value;
+                string? value = Environment.GetEnvironmentVariable(name);
+                if (value is not null)
+                {
+                    start.Environment[name] = value;
+                }
             }
         }
         process = new Process { StartInfo = start };

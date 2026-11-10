@@ -150,7 +150,7 @@ internal static class WorkProductTests
             var call = new ToolCallPart(result.CallID, config.Target(), "offer_work_product", JsonSerializer.SerializeToElement(new { path }));
             var context = new Context([new Entry(1, Actor.Agent, [call]), new Entry(2, Actor.Tool, [result])]);
             var savedConfig = JsonSerializer.SerializeToElement(new { model = "fixture", vendor = "anthropic", system_prompt = "", tools = Array.Empty<object>() });
-            var restored = JsonCodec.ReadSave(JsonCodec.WriteSave(new SaveDocument(context, 2, savedConfig, []))).Context!;
+            var restored = JsonCodec.ReadSave(JsonCodec.WriteSave(new SaveDocument(context, 2, savedConfig))).Context!;
             Check(((ToolResultPart)restored.Dialogue[1].Parts[0]).WorkProduct?.ID == offer.ID, "Snapshot lost offer description");
             string provider = agent.Engine().Render(restored).ToJsonString();
             static bool HasOfferMetadata(JsonElement value) => value.ValueKind switch

@@ -88,12 +88,12 @@ internal static class RecallReplayTests
         {
             first.History().Append(new Event(EventKind.MessageReceived, actor: Actor.Human, parts: [new TextPart("original prompt")]));
             first.History().Append(Added(original));
-            first.History().Save(new PersistenceOptions(path, 0));
+            first.History().Save(new PersistenceOptions(path));
             Check(restored.History().LoadSave(path), "snapshot load failed");
             Check(Attachment(restored.History().View()).Text == original.Text
                 && Attachment(restored.History().View()).Hashes.SequenceEqual(original.Hashes), "snapshot lost recall");
             var save = JsonCodec.ReadSave(File.ReadAllText(path));
-            Check(save.Events.IsEmpty && save.Context is not null, "test did not isolate snapshot codec");
+            Check(!System.Text.Json.Nodes.JsonNode.Parse(File.ReadAllText(path))!.AsObject().ContainsKey("log") && save.Context is not null, "test did not isolate snapshot codec");
 
             // Start a second file before attachment, then load its durable journal
             // without a clean save. This tests the other half of crash replay.
@@ -102,8 +102,8 @@ internal static class RecallReplayTests
             var recovered = new Agent(app, Config);
             try
             {
-                Check(!journal.StartPersistence(new PersistenceOptions(tailPath, 0)), "empty fixture unexpectedly restored a save");
-                journal.History().Save(new PersistenceOptions(tailPath, 0));
+                Check(!journal.StartPersistence(new PersistenceOptions(tailPath)), "empty fixture unexpectedly restored a save");
+                journal.History().Save(new PersistenceOptions(tailPath));
                 journal.History().Append(Added(original));
                 Check(recovered.History().LoadSave(tailPath), "journal load failed");
                 Check(Attachment(recovered.History().View()).Hashes.SequenceEqual(original.Hashes),

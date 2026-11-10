@@ -151,7 +151,7 @@ internal static partial class MeterTests
             var first = MemoryAgent(app, home, listener.Prefixes.Single());
             var capture = PrepareMemoryRecovery(first, home, commit);
             string path = Path.Combine(home, "save.json");
-            first.History().Save(new PersistenceOptions(path, RetainLog: 0));
+            first.History().Save(new PersistenceOptions(path));
             app.Destroy();
             app = new Application(TextWriter.Null);
             try
@@ -173,58 +173,6 @@ internal static partial class MeterTests
             }
             finally { app.Destroy(); }
         }
-    }
-
-    public static Task MemoryCanonicalArchive(string directory)
-    {
-        string home = Path.Combine(directory, "memory-canonical-archive");
-        var app = new Application(TextWriter.Null);
-        try
-        {
-            var agent = MemoryAgent(app, home, "http://127.0.0.1:1");
-            var history = agent.History();
-            history.Append(new Event(EventKind.MessageReceived, actor: Actor.Human,
-                parts: [new TextPart("original source")]));
-            history.Append(new Event(EventKind.ResponseEnded, actor: Actor.Agent,
-                parts: [new TextPart("visible answer", from: agent.Configuration().Target(),
-                    opaque: JsonSerializer.SerializeToElement(new { private_replay = "EXACT_PRIVATE_BYTES" }))]));
-            history.Append(new Event(EventKind.HandoffRecorded, parts: [new HandoffPart("checkpoint")]));
-            Check(history.View().Dialogue.SelectMany(entry => entry.Parts).OfType<TextPart>()
-                .All(part => part.Opaque is null), "Fixture handoff did not strip opaque material");
-            history.ArchiveMemory();
-            string archive = Path.Combine(home, "archive/events.jsonl");
-            var lines = File.ReadAllLines(archive).Skip(1).ToArray();
-            Check(lines.SequenceEqual(history.Events().Select(JsonCodec.WriteEvent)), "Archive replaced canonical events with reduced text");
-            Check(File.ReadAllText(archive).Contains("EXACT_PRIVATE_BYTES", StringComparison.Ordinal),
-                "Archive lost private canonical source");
-            history.Append(new Event(EventKind.MessageReceived, actor: Actor.Human,
-                parts: [new TextPart("later source")]));
-            history.ArchiveMemory();
-            string complete = File.ReadAllText(archive);
-            Check(File.ReadAllLines(archive).Length == history.Events().Length + 1, "Archive append duplicated a prefix");
-            string save = Path.Combine(home, "save.json");
-            history.Save(new PersistenceOptions(save, RetainLog: 0));
-            app.Destroy();
-            app = new Application(TextWriter.Null);
-            agent = MemoryAgent(app, home, "http://127.0.0.1:1");
-            agent.History().LoadSave(save);
-            agent.History().ArchiveMemory();
-            Check(File.ReadAllText(archive) == complete, "Archive failed to bridge a retained snapshot");
-            File.Delete(archive);
-            bool refused = false;
-            try { agent.History().ArchiveMemory(); }
-            catch (InvalidDataException) { refused = true; }
-            Check(refused && !File.Exists(archive), "Missing canonical history was silently reconstructed");
-            agent.StartPersistence(new PersistenceOptions(save));
-            string before = File.ReadAllText(save);
-            File.CreateSymbolicLink(archive, save);
-            bool aliasRefused = false;
-            try { agent.History().ArchiveMemory(); }
-            catch (ArgumentException) { aliasRefused = true; }
-            Check(aliasRefused && File.ReadAllText(save) == before, "Archive alias overwrote the active primary");
-        }
-        finally { app.Destroy(); }
-        return Task.CompletedTask;
     }
 
     public static async Task MemoryRecoveryFailure(string directory)

@@ -39,12 +39,63 @@ internal static class PersistenceTests
         return new Agent(app, new Configuration(vendor, model, "http://127.0.0.1:1", "SECRET-KEY"));
     }
 
+    // Manufacture historical input explicitly: production WriteSave must never
+    // regain an event-list parameter merely to support a compatibility fixture.
+    internal static string LegacySave(Context? context, long sequence, JsonElement config, IEnumerable<Event> events)
+    {
+        var value = JsonNode.Parse(JsonCodec.WriteSave(new SaveDocument(context ?? new Context(), sequence, config)))!;
+        if (context is null)
+        {
+            value["context"] = null;
+        }
+        value["log"] = new JsonArray(events.Select(fact => JsonNode.Parse(JsonCodec.WriteEvent(fact))).ToArray());
+        return value.ToJsonString();
+    }
+
     private static string ContextText(Context context)
     {
         // Compare the actual portable representation, including opaque JSON,
         // nullable usage, signatures, display identity and ephemeral state.
         var config = JsonSerializer.SerializeToElement(new { model = "x", vendor = "anthropic", system_prompt = "", tools = Array.Empty<object>() });
-        return JsonNode.Parse(JsonCodec.WriteSave(new SaveDocument(context, 1000, config, [])))!["context"]!.ToJsonString();
+        return JsonNode.Parse(JsonCodec.WriteSave(new SaveDocument(context, 1000, config)))!["context"]!.ToJsonString();
+    }
+
+    public static void HandoffBoundaries()
+    {
+        string path = Path.Combine(DirectoryForTest(), "save.json");
+        var app = new Application(TextWriter.Null);
+        try
+        {
+            var source = Agent(app).History();
+            source.StartJournal(path);
+            var first = source.Append(new Event(EventKind.HandoffRecorded, parts: [new HandoffPart("first")]));
+            source.Append(new Event(EventKind.AgentPaused));
+            var second = source.Append(new Event(EventKind.HandoffRecorded, parts: [new HandoffPart("second")]));
+            source.Save(new PersistenceOptions(path));
+            var saved = JsonCodec.ReadSave(File.ReadAllText(path));
+            Check(saved.LatestHandoff == second.Seq && saved.PreviousHandoff == first.Seq,
+                "State-only snapshot lost handoff boundaries");
+            var third = source.Append(new Event(EventKind.HandoffRecorded, parts: [new HandoffPart("third")]));
+            var restored = Agent(app).History();
+            Check(restored.LoadSave(path), "Handoff snapshot did not restore");
+            var snapshot = restored.Snapshot();
+            Check(snapshot.LatestHandoff == third.Seq && snapshot.PreviousHandoff == second.Seq,
+                "Journal replay did not advance both handoff boundaries");
+            var legacy = JsonCodec.ReadSave(LegacySave(source.View(), third.Seq,
+                saved.Configuration, source.Events()));
+            Check(legacy.LatestHandoff == third.Seq && legacy.PreviousHandoff == second.Seq,
+                "Legacy decoding did not recover folded handoff markers");
+            var malformed = JsonNode.Parse(File.ReadAllText(path))!;
+            malformed["previous_handoff"] = second.Seq;
+            Refuses(() => JsonCodec.ReadSave(malformed.ToJsonString()));
+            malformed["previous_handoff"] = 0;
+            malformed["latest_handoff"] = saved.Sequence + 1;
+            Refuses(() => JsonCodec.ReadSave(malformed.ToJsonString()));
+        }
+        finally
+        {
+            app.Destroy();
+        }
     }
 
     public static void RecordedTime()
@@ -55,7 +106,7 @@ internal static class PersistenceTests
             seq: 1, time: original, actor: Actor.Human, parts: [new TextPart("retained")]));
         Check(context.Dialogue.Single().Time == original, "Reduction lost recorded time");
         var config = JsonSerializer.SerializeToElement(new { model = "x", vendor = "anthropic", system_prompt = "", tools = Array.Empty<object>() });
-        var saved = JsonNode.Parse(JsonCodec.WriteSave(new SaveDocument(context, 1, config, [])))!;
+        var saved = JsonNode.Parse(JsonCodec.WriteSave(new SaveDocument(context, 1, config)))!;
         var restored = JsonCodec.ReadSave(saved.ToJsonString()).Context!.Dialogue.Single();
         Check(restored.Time == original && restored.Time.Value.Offset == original.Offset,
             "Snapshot changed recorded time or offset");
@@ -80,7 +131,7 @@ internal static class PersistenceTests
             callID: "timed", parts: [new TextPart("result")], observationDuration: measured);
         var timed = History.Reduce(context, returned);
         Check(timed.Dialogue.Last().ObservationDuration == measured, "Reduction dropped duration");
-        var roundtrip = JsonCodec.ReadSave(JsonCodec.WriteSave(new SaveDocument(timed, 2, config, [])));
+        var roundtrip = JsonCodec.ReadSave(JsonCodec.WriteSave(new SaveDocument(timed, 2, config)));
         Check(roundtrip.Context!.Dialogue.Last().ObservationDuration == measured, "Snapshot rounded duration");
         Check(returned.Numbered(3, later).ObservationDuration == measured, "Numbering dropped duration");
         Refuses(() => new Event(EventKind.ToolReturned, callID: "negative", observationDuration: TimeSpan.FromTicks(-1)));
@@ -121,7 +172,7 @@ internal static class PersistenceTests
             string original = File.ReadAllText(path);
             Check(!original.Contains("SECRET-KEY") && !original.Contains("127.0.0.1"), "Runtime secrets leaked");
             var document = JsonCodec.ReadSave(original);
-            Check(document.Sequence == captured.Sequence && document.Events.Length == 4, "Wrong snapshot boundary");
+            Check(document.Sequence == captured.Sequence && !JsonNode.Parse(original)!.AsObject().ContainsKey("log"), "Wrong snapshot boundary");
             var restored = Agent(app);
             Check(restored.History().LoadSave(path), "Save not loaded");
             Check(ContextText(restored.History().View()) == expected, "Snapshot log applied twice or values lost");
@@ -129,28 +180,37 @@ internal static class PersistenceTests
             // A real additional event follows the snapshot boundary. Earlier
             // diagnostic events must be skipped, while this one is applied once.
             var tail = new Event(EventKind.HintReceived, actor: Actor.Human, seq: captured.Sequence + 1, parts: [new TextPart("tail")]);
-            File.WriteAllText(path, JsonCodec.WriteSave(document with { Events = document.Events.Add(tail) }));
+            File.WriteAllText(path, LegacySave(document.Context, document.Sequence, document.Configuration, captured.Events.Add(tail)));
             restored.History().LoadSave(path);
             Check(ContextText(restored.History().View()) == ContextText(History.Reduce(captured.Context, tail)), "Tail replay differs");
             Check(restored.History().View().Dialogue.Last().Actor == Actor.Human, "Hint changed its recorded role");
             Check(restored.History().Append(new Event(EventKind.AgentPaused)).Seq == tail.Seq + 1, "Append identity regressed");
 
-            File.WriteAllText(path, JsonCodec.WriteSave(document with { Context = null, Sequence = 0 }));
+            // Migrating an old primary must not carry its duplicate event array
+            // into the backup, or lose the tail folded during legacy decoding.
+            restored.History().Save(new PersistenceOptions(path));
+            string migratedBackup = File.ReadAllText(path + ".bak");
+            var backup = JsonCodec.ReadSave(migratedBackup);
+            Check(!JsonNode.Parse(migratedBackup)!.AsObject().ContainsKey("log"),
+                "Backup retained the legacy event array");
+            Check(backup.Sequence == tail.Seq
+                && ContextText(backup.Context) == ContextText(History.Reduce(captured.Context, tail)),
+                "Backup migration lost the legacy recovery tail");
+
+            File.WriteAllText(path, LegacySave(null, 0, document.Configuration, captured.Events));
             restored.History().LoadSave(path);
             Check(ContextText(restored.History().View()) == expected, "Log-only replay differs");
 
-            foreach (int keep in new[] { 0, 2, -1 })
+            foreach (bool audit in new[] { false, true })
             {
                 source.History().LoadSave(path);
-                string retainedPath = Path.Combine(directory, "retain-" + keep + ".json");
-                string archive = Path.Combine(directory, "archive-" + keep + ".jsonl");
-                source.History().Save(new PersistenceOptions(retainedPath, keep, archive));
+                string retainedPath = Path.Combine(directory, "audit-" + audit + ".json");
+                source.History().Save(new PersistenceOptions(retainedPath, Audit: audit));
                 var retained = JsonCodec.ReadSave(File.ReadAllText(retainedPath));
-                Check(retained.Events.Length == (keep < 0 ? 4 : keep), "Wrong diagnostic retention");
+                Check(!JsonNode.Parse(File.ReadAllText(retainedPath))!.AsObject().ContainsKey("log"), "Snapshot duplicated events");
                 restored.History().LoadSave(retainedPath);
                 Check(ContextText(restored.History().View()) == expected, "Retention changed context");
                 Check(restored.History().Append(new Event(EventKind.AgentPaused)).Seq == 5, "Retention reset sequence");
-                Check(File.ReadAllText(archive).Contains("answer"), "Archive lost saved dialogue");
             }
 
             // Snapshot filtering keeps the surviving part's parser identity.
@@ -160,13 +220,13 @@ internal static class PersistenceTests
                 .WithDisplay(2, [3, 5]));
             source.History().Append(new Event(EventKind.Redacted, redactFrom: mixed.Seq,
                 redactTo: mixed.Seq, level: Redaction.Tool));
-            source.History().Save(new PersistenceOptions(path, 0));
+            source.History().Save(new PersistenceOptions(path));
             restored.History().LoadSave(path);
             var filtered = restored.History().View().Dialogue.Last();
             Check(filtered.PartIDs.SequenceEqual([3]) && filtered.Parts is [TextPart], "Redaction mismatched display IDs");
             source.History().Append(new Event(EventKind.Redacted, redactFrom: 1,
                 redactTo: mixed.Seq, level: Redaction.Summary, parts: [new TextPart("durable summary")]));
-            source.History().Save(new PersistenceOptions(path, 0));
+            source.History().Save(new PersistenceOptions(path));
             restored.History().LoadSave(path);
             Check(restored.History().View().Dialogue is [{ Parts: [TextPart { Text: "durable summary" }] }],
                 "Summary did not survive snapshot-only restoration");
@@ -218,7 +278,8 @@ internal static class PersistenceTests
             negative["as_of"] = -1;
             malformed.Add(negative);
             var duplicate = Variant();
-            duplicate["log"]!.AsArray().Add(duplicate["log"]![0]!.DeepClone());
+            var legacyFact = JsonNode.Parse(JsonCodec.WriteEvent(new Event(EventKind.AgentPaused, seq: 1)))!;
+            duplicate["log"] = new JsonArray(legacyFact.DeepClone(), legacyFact.DeepClone());
             malformed.Add(duplicate);
             var missing = Variant();
             missing.Remove("context");
@@ -232,7 +293,7 @@ internal static class PersistenceTests
             var badTail = Variant();
             badTail["as_of"] = 0;
             badTail["context"] = null;
-            badTail["log"]!.AsArray().RemoveAt(0);
+            badTail["log"] = new JsonArray(JsonNode.Parse(JsonCodec.WriteEvent(new Event(EventKind.AgentPaused, seq: 2))));
             malformed.Add(badTail);
             foreach (var bad in malformed)
             {
@@ -242,15 +303,13 @@ internal static class PersistenceTests
                 Check(ContextText(restored.History().View()) == live && File.ReadAllText(path) == bytes, "Failed load mutated state");
             }
             File.WriteAllText(path, second);
-            Refuses(() => restored.History().Save(new PersistenceOptions(path, 0, path)));
-            Refuses(() => restored.History().Save(new PersistenceOptions(path, 0, path + ".bak")));
-            Check(File.ReadAllText(path) == second, "Archive alias touched recovery data");
-            string blockedArchive = Path.Combine(directory, "blocked");
-            File.WriteAllText(blockedArchive, "not a directory");
+            string blocked = Path.Combine(directory, "blocked");
+            File.WriteAllText(blocked, "not a directory");
             long count = restored.History().Events().Length;
-            Refuses(() => restored.History().Save(new PersistenceOptions(path, 0, Path.Combine(blockedArchive, "archive"))));
-            Check(File.ReadAllText(path) == second && restored.History().Events().Length == count, "Failed save trimmed or published");
-            Check(!File.Exists(path + ".bak"), "Archive failure rotated backup");
+            Refuses(() => restored.History().Save(new PersistenceOptions(Path.Combine(blocked, "save.json"))));
+            Check(File.ReadAllText(path) == second && restored.History().Events().Length == count,
+                "Failed save changed existing state");
+            Check(!File.Exists(path + ".bak"), "Unrelated failed save rotated backup");
         }
         finally
         {
@@ -268,15 +327,15 @@ internal static class PersistenceTests
         {
             var first = new Agent(app, new Configuration(Vendor.Anthropic, "model-a", "http://127.0.0.1:1"),
                 skillSpec: new SkillSpec(root, "root", new Dictionary<string, string> { ["WHO"] = "old" }));
-            Check(!first.StartPersistence(new PersistenceOptions(path, 0)), "Fresh startup claimed recovery");
+            Check(!first.StartPersistence(new PersistenceOptions(path)), "Fresh startup claimed recovery");
             var manager = first.SkillManager()!;
             var origin = first.Configuration().Target();
             var load = await first.DispatchAsync(new ToolCallPart("load", origin, "load_skill", JsonSerializer.SerializeToElement(new { name = "editing" })));
             var unload = await first.DispatchAsync(new ToolCallPart("unload", origin, "unload_skill", JsonSerializer.SerializeToElement(new { name = "editing" })));
             Check(!load.IsError && !unload.IsError, "Runtime fixture did not activate and mark skill");
-            first.History().Save(new PersistenceOptions(path, 0));
-            Check(first.SkillManager()!.Pending("editing") && first.History().Events().IsEmpty,
-                "Diagnostic retention erased pending unload state");
+            first.History().Save(new PersistenceOptions(path));
+            Check(first.SkillManager()!.Pending("editing"),
+                "Saving erased pending unload state");
             var rawRestore = Agent(app);
             rawRestore.History().LoadSave(path);
             Check(rawRestore.History().View().Dialogue.SelectMany(entry => entry.Parts)
@@ -305,7 +364,7 @@ internal static class PersistenceTests
             second.History().Append(new Event(EventKind.Redacted, redactFrom: 1,
                 redactTo: summaryEnd, level: Redaction.Summary,
                 parts: [new TextPart("resumed conversation summary")]));
-            second.History().Save(new PersistenceOptions(path, 0));
+            second.History().Save(new PersistenceOptions(path));
             var summarized = JsonCodec.ReadSave(File.ReadAllText(path));
             Check(summarized.Context!.Dialogue.Select(entry => entry.Seq).Distinct().Count()
                 == summarized.Context.Dialogue.Length, "Summary collided with a preserved skill identity");

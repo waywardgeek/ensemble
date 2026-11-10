@@ -6,32 +6,6 @@ namespace Ensemble;
 
 public sealed partial class History
 {
-    internal partial void ArchiveMemory()
-    {
-        var sandbox = Parent().Sandbox();
-        string directory = sandbox.Resolve(Path.Combine(Parent().DataDirectory(), "archive"));
-        string path = sandbox.Resolve(Path.Combine(directory, "events.jsonl"));
-        lock (saveGate)
-        {
-            if (appendFaulted)
-            {
-                throw new IOException("Cannot archive after an uncertain History append");
-            }
-            string? primary = journalPath is null ? null : journalPath[..^".journal.jsonl".Length];
-            if (writerPath == path || journalPath == path
-                || (primary is not null && (path == primary || path == primary + ".bak")))
-            {
-                throw new ArgumentException("Memory archive conflicts with active History files");
-            }
-            // Validate the whole prefix before even creating the archive folder.
-            // A retained snapshot cannot invent canonical facts already pruned
-            // without an older archive or recovery journal to supply them.
-            string text = ArchiveText(path, Snapshot());
-            sandbox.CreateDirectory(directory);
-            ReplaceFile(path, text);
-        }
-    }
-
     private partial ImmutableArray<Event> ReadLog(string path)
     {
         // Invalid UTF-8 must not silently become replacement characters in a
@@ -83,76 +57,4 @@ public sealed partial class History
         return loaded.ToImmutableArray();
     }
 
-    private partial string ArchiveText(string path, HistorySnapshot snapshot)
-    {
-        ImmutableArray<Event> archived;
-        try
-        {
-            archived = ReadLog(path);
-        }
-        catch (FileNotFoundException)
-        {
-            archived = [];
-        }
-        catch (DirectoryNotFoundException)
-        {
-            archived = [];
-        }
-
-        // An existing archive must itself be a full prefix. Do not conceal its
-        // corruption merely because another source happens to fill a missing line.
-        long expected = 0;
-        foreach (var value in archived)
-        {
-            if (value.Seq != ++expected)
-            {
-                throw new InvalidDataException("Archive is not a complete event prefix");
-            }
-        }
-
-        // These are temporary algorithm values, not another mutable History.
-        // Canonical serialization compares all event fields, including private
-        // provider replay material that working-context reduction may discard.
-        var lines = new SortedDictionary<long, string>();
-        void Include(IEnumerable<Event> source)
-        {
-            foreach (var value in source)
-            {
-                if (value.Seq > snapshot.Sequence)
-                {
-                    throw new InvalidDataException("Archive source extends beyond current History");
-                }
-                string line = JsonCodec.WriteEvent(value);
-                if (lines.TryGetValue(value.Seq, out string? previous) && previous != line)
-                {
-                    throw new InvalidDataException($"Archive sources disagree at sequence {value.Seq}");
-                }
-                lines[value.Seq] = line;
-            }
-        }
-
-        Include(archived);
-        if (journalPath is not null)
-        {
-            Include(ReadJournal(journalPath));
-        }
-        Include(snapshot.Events);
-
-        var text = new StringBuilder();
-        text.AppendLine("{\"log_version\":1}");
-        expected = 0;
-        foreach (var (sequence, line) in lines)
-        {
-            if (sequence != ++expected)
-            {
-                throw new InvalidDataException("Complete event archive unavailable: historical events are missing");
-            }
-            text.AppendLine(line);
-        }
-        if (expected != snapshot.Sequence)
-        {
-            throw new InvalidDataException("Complete event archive unavailable: historical events are missing");
-        }
-        return text.ToString();
-    }
 }

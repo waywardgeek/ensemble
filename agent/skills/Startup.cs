@@ -4,8 +4,8 @@ namespace Ensemble;
 
 public sealed partial class Skills
 {
-    // Resolve in host-supplied order: a later selection can be offered by an earlier
-    // one. The prospective name set is algorithmic only; History remains the sole
+    // Resolve in host-supplied order, independently of offer activation order.
+    // The prospective name set is algorithmic only; History remains the sole
     // active-state authority. Nothing is published until the whole batch validates.
     private partial List<SkillDefinition> ResolveStartup()
     {
@@ -76,7 +76,12 @@ public sealed partial class Skills
             var values = initialVariables
                 ?? throw new InvalidOperationException("Primary startup has no construction snapshot.");
             var manager = Parent().EnsureMcp();
-            string workspace = Directory.GetCurrentDirectory();
+            // Confined servers start inside their owner's boundary, never in
+            // the host's potentially unrelated current directory.
+            string sandboxRoot = Parent().Sandbox().Root();
+            string workspace = sandboxRoot.Length == 0
+                ? Directory.GetCurrentDirectory()
+                : sandboxRoot;
             // The actor keeps processing reverse calls and shutdown while the
             // worker prepares. Commit returns to this same actor before grants.
             initialization = Task.Run(() => PrepareAsync(primaryName, additions, values,

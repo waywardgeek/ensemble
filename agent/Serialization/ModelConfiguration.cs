@@ -52,6 +52,7 @@ public sealed partial class Configuration
         SafeMode = policy.SafeMode;
         EnableWebSearch = policy.EnableWebSearch;
         SandboxRoot = policy.SandboxRoot;
+        ProcessReadPaths = policy.ProcessReadPaths;
         DisableStreaming = requestPolicy.DisableStreaming;
         RequireToolExplanation = requestPolicy.RequireToolExplanation;
         DeferredTools = requestPolicy.DeferredTools;

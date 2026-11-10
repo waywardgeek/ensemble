@@ -88,8 +88,11 @@ static async Task<int> Run(string[] args)
         string savePath = Env("EN_SAVE_PATH");
         string dataDirectory = Env("EN_DATA_DIR");
         string agentName = Env("EN_AGENT_NAME");
-        string archivePath = Env("EN_ARCHIVE_LOG");
-        string saveLog = Env("EN_SAVE_LOG");
+        bool audit = false;
+        if (Env("EN_ARCHIVE_LOG").Length != 0 || Env("EN_SAVE_LOG").Length != 0)
+        {
+            throw new ArgumentException("Legacy event-log retention options were removed; use --audit for the recovery journal.");
+        }
         bool guiDebug = false;
         bool cacheBreakpoints = Env("EN_CACHE_BREAKPOINTS") == "1";
         string cacheLensDirectory = Env("EN_CACHE_LENS_DIR");
@@ -212,25 +215,21 @@ static async Task<int> Run(string[] args)
             {
                 guiDebug = true;
             }
-            else if (args[index] is "--save" or "--save-log" or "--archive-log")
+            else if (args[index] == "--audit")
             {
-                string flag = args[index];
+                audit = true;
+            }
+            else if (args[index] is "--save-log" or "--archive-log" or "--event-log")
+            {
+                throw new ArgumentException("Separate event logs and count retention were removed; use --audit.");
+            }
+            else if (args[index] == "--save")
+            {
                 if (++index == args.Length)
                 {
                     throw new ArgumentException("Missing persistence option value");
                 }
-                if (flag == "--save")
-                {
-                    savePath = args[index];
-                }
-                else if (flag == "--save-log")
-                {
-                    saveLog = args[index];
-                }
-                else
-                {
-                    archivePath = args[index];
-                }
+                savePath = args[index];
             }
             else if (args[index] is "--skills-dir" or "--primary-skill" or "--startup-skills")
             {
@@ -429,16 +428,17 @@ static async Task<int> Run(string[] args)
         if (persistenceEnabled)
         {
             string selectedPath = savePath.Length == 0 ? Path.Combine(actorHome, "save.json") : savePath;
-            int retained = saveLog.Length == 0 ? -1 : int.Parse(saveLog, System.Globalization.CultureInfo.InvariantCulture);
-            agent.StartPersistence(new PersistenceOptions(selectedPath, retained,
-                archivePath.Length == 0 ? null : archivePath));
+            agent.StartPersistence(new PersistenceOptions(selectedPath, Audit: audit));
         }
         if (ownedDiagnostics)
         {
             string tracePath = Env("CH06_API_LOG");
             agent.StartDiagnostics(apiPath: tracePath.Length == 0 ? null : tracePath);
         }
-        agent.History().StartLog(log);
+        if (Env("CH02_LOG").Length != 0)
+        {
+            throw new ArgumentException("CH02_LOG is now only an offline import path; use --audit for live journal retention.");
+        }
         await agent.SkillManager()!.InitializeAsync();
         // The initial actor remains host-configured. Persistent peers restore
         // their own conversations and registered descendants under current authority.

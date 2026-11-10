@@ -120,3 +120,62 @@ with exactly100 display events and100 cards (dispatch/state updates are counted
 separately). The installed-page browser check observed parent100, child25,
 parent100 cards, with no foreign/orphaned nodes or JavaScript errors. Page refresh
 loads the newly versioned browser assets. No inference was submitted by verification.
+
+## Follow-up: journal retention investigation
+
+Bill stated the intended event-retention boundary is the second-most-recent
+micro_handoff. Read-only source and live-file inspection found a different current
+contract. Agent.ApplyHandoff records HandoffRecorded and starts memory compression,
+without saving/rotating snapshots. Normal actor shutdown calls History.Save. Save
+rotates a validated primary into backup, writes the new primary, then retains
+journal events strictly newer than the validated backup sequence; without a valid
+backup it retains the entire journal. Chapter14 currently teaches that contract.
+
+PersistenceOptions defaults RetainLog to -1, and the GUI uses -1 when --save-log /
+EN_SAVE_LOG is absent. This retains all diagnostic events in each snapshot. The
+observed Cadence primary was 289920980 bytes at sequence107477 with107477 log events
+starting at1; backup289930789 bytes at107475 also began at1. Both contained198
+handoff events, latest two at82583 and86657. The journal sample was331342 bytes,
+147 complete events107476..107622 and no handoffs. Thus the small journal did not
+mean old event payloads had been discarded: they remained in snapshots. The
+primary log began around byte1720944; most snapshot bytes were the retained log.
+These are sampled file facts, not a claim about a later live request or heap size.
+
+No live retention files or runtime policy were modified. Cutting the journal at
+a handoff without a compatible recovery snapshot could strand backup recovery.
+A handoff-based policy must define snapshot anchors, saved diagnostic retention,
+in-memory event retention, and optional archive retention together. Source review
+is not an implementation or crash-recovery test of that proposed policy.
+
+## Implemented follow-up: state-only snapshots and one journal
+
+The preceding measurements describe the pre-change implementation. New snapshots
+and rotated backups now contain self-contained Context, sequence/configuration,
+and two handoff sequence markers, not an event array. Legacy snapshot/log input
+is reduced at the decoding boundary. The duplicate History writer and automatic
+full-event archive are removed, including the archive prerequisite for memory
+compression; compression trace references now name the worker's existing journal.
+
+Normal journal retention preserves both the preceding handoff and the suffix
+needed by the validated backup. Audit defaults off; `--audit` preserves the same
+journal rather than opening another archive. Journal reading/replacement streams
+records rather than allocating the whole file. Handoffs checkpoint after their
+companion results. Old event-log/count-retention/archive options explicitly refuse.
+
+Verification before Bill's reported rebuild/restart: core389 passed/0 failed;
+focused persistence/retention12 and memory-runtime6 passed; GUI, CLI, relevant
+examples and GUI tests built, and three focused GUI groups plus the independent
+persistence example passed. Gateway restore was blocked by an uncached libsodium
+package; no package was downloaded. These are recorded prior checks, not a claim
+that the later commit operation reran every test or verified installed bytes.
+
+Remaining design work: two handoffs are a logical window, not a hard resident
+memory bound. History still holds/copies an event list, and child-output cursors
+can assemble unbounded output. A bounded resident cache, disk-backed paged reads,
+explicit expiration and intra-event cursor semantics remain unresolved. Audit
+also needs a finite disk-retention policy; startup still scans/rewrites the
+journal. Do not describe this increment as lifetime-bounded Agent storage.
+
+During commit preparation the assembled Markdown was regenerated from all31
+current chapter bodies, preserving Codex's newer workflow and crossover repairs
+that a stale assembled copy would otherwise have removed.

@@ -40,7 +40,18 @@ static partial class McpTests
                     "Startup invented a tool exchange");
                 agent.Destroy();
             }
-            foreach (var selection in new[] { new[] { "extra", "editing" }, new[] { "editing", "missing" },
+            foreach (bool confined in new[] { false, true })
+            {
+                var agent = new Agent(root,
+                    new Configuration(Vendor.Anthropic, "fake", "http://127.0.0.1:1",
+                        sandboxRoot: confined ? directory : ""),
+                    skillSpec: new SkillSpec(directory, "root", StartupSkills: ["extra", "editing"]));
+                Check(agent.SkillManager()!.Active().Select(skill => skill.Name)
+                    .SequenceEqual(new[] { "root", "extra", "helper", "editing" }),
+                    "Graph-authorized startup incorrectly depended on offer activation order");
+                agent.Destroy();
+            }
+            foreach (var selection in new[] { new[] { "editing", "missing" },
                 new[] { "broken" }, new[] { "cycle" }, new[] { "helper" }, new[] { "root" }, new[] { "" } })
             {
                 var agent = new Agent(root, new Configuration(Vendor.Anthropic, "fake", "http://127.0.0.1:1"));

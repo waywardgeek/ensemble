@@ -157,11 +157,36 @@ public sealed partial class Skills
             .OfType<SkillPart>().ToImmutableArray();
     }
 
+    private partial HashSet<string> AuthorizedSkills()
+    {
+        if (Parent().Configuration().SandboxRoot.Length == 0)
+        {
+            return definitions.Keys.ToHashSet(StringComparer.Ordinal);
+        }
+        var authorized = new HashSet<string>(StringComparer.Ordinal);
+        void Visit(string name)
+        {
+            if (!authorized.Add(name) || !definitions.TryGetValue(name, out var definition))
+            {
+                return;
+            }
+            foreach (string related in definition.Depends.Concat(definition.Loadable))
+            {
+                Visit(related);
+            }
+        }
+        Visit(primaryName);
+        return authorized;
+    }
+
     private partial ImmutableArray<string> Available(IEnumerable<string> activeNames)
     {
         var active = activeNames.ToHashSet(StringComparer.Ordinal);
-        return active.SelectMany(name => definitions[name].Loadable)
-            .Where(name => !active.Contains(name) && Parent().Configuration().AllowsSkill(name)).Distinct(StringComparer.Ordinal)
+        var authorized = AuthorizedSkills();
+        return definitions.Values.Where(skill => skill.Type == SkillType.Loadable)
+            .Select(skill => skill.Name)
+            .Where(name => !active.Contains(name) && authorized.Contains(name)
+                && Parent().Configuration().AllowsSkill(name))
             .Order(StringComparer.Ordinal).ToImmutableArray();
     }
 
@@ -249,11 +274,12 @@ public sealed partial class Skills
         var visiting = new HashSet<string>(StringComparer.Ordinal);
         var visited = new HashSet<string>(StringComparer.Ordinal);
         var ordered = new List<SkillDefinition>();
+        var authorized = AuthorizedSkills();
         void Visit(string current, bool root)
         {
             // Refuse before preparing dependencies or external clients, even if
             // an earlier session recorded a successful activation of this skill.
-            if (!Parent().Configuration().AllowsSkill(current))
+            if (!authorized.Contains(current) || !Parent().Configuration().AllowsSkill(current))
             {
                 throw new InvalidDataException("Skill is disabled by launch policy: " + current);
             }
@@ -371,6 +397,7 @@ public sealed partial class Skills
 
     internal partial Task<ToolResultPart> ControlAsync(ToolCallPart call, CancellationToken cancellation)
     {
+        if (call.Name == "load_skill") RefreshCatalog();
         string name = call.Args.GetProperty("name").GetString()!;
         string message;
         IEnumerable<string> discovered = [];
@@ -396,7 +423,12 @@ public sealed partial class Skills
                     {
                         values = variables.ToImmutableDictionary(StringComparer.Ordinal);
                     }
-                    string workspace = Directory.GetCurrentDirectory();
+                    // Confined servers start inside their owner's boundary, never in
+                    // the host's potentially unrelated current directory.
+                    string sandboxRoot = Parent().Sandbox().Root();
+                    string workspace = sandboxRoot.Length == 0
+                        ? Directory.GetCurrentDirectory()
+                        : sandboxRoot;
                     // Preparation cannot publish History. Commit returns through the mailbox.
                     return Task.Run(async () =>
                     {

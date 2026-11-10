@@ -2,13 +2,13 @@
 
 ## TL;DR
 
-Give an Agent a durable conversation without giving yesterday’s configuration authority over today’s runtime. Save one reduced Context, its `as_of` event sequence, a credential-free description of effective configuration, and an optional diagnostic log. Validate a complete candidate before replacing live state or a save file. On restart, load the snapshot, fold only the newer tail, and number new events above the recovered boundary.
+Give an Agent a durable conversation without giving yesterday’s configuration authority over today’s runtime. Save one reduced Context, its `as_of` event sequence, a credential-free description of effective configuration, and two handoff sequence markers. Validate a complete candidate before replacing live state or a save file. On restart, load the snapshot, fold only the newer tail, and number new events above the recovered boundary.
 
 The C# endpoint is `solutions/ch10`. It uses the existing Agent → History relationship. There is no second transcript, persistence service bag, or replacement actor loop.
 
 ## 10.1 In plain language
 
-Think of a snapshot as a notebook whose contents have already incorporated events through page number N. Keeping copies of those old events beside the notebook is useful for diagnosis, but reading them into the notebook again would duplicate the conversation.
+Think of a snapshot as a notebook whose contents have already incorporated events through page number N. The snapshot needs no second copy of those events. Reading already-folded events into the notebook again would duplicate the conversation.
 
 An event newer than N is different: it has not yet been incorporated and must be applied once. If the snapshot is absent, start with an empty notebook and replay the complete event log instead. If the log is absent, the snapshot must still stand on its own.
 
@@ -21,22 +21,23 @@ A backup is another candidate, not permission to ignore validation. A corrupt pr
 Common declares the shared vocabulary; functional modules provide the bodies:
 
 - `Common/Persistence.cs` declares immutable `PersistenceOptions` and `SaveDocument`, plus the operations on Agent, History, Engine, and JsonCodec.
-- `History/Persistence.cs` owns capture, replay, candidate selection, replacement, and diagnostic retention.
+- `History/Persistence.cs` owns capture, replay, candidate selection, and replacement.
 - `Serialization/Persistence.cs` owns the neutral JSON format and validation.
 - `Engine/Persistence.cs` projects effective configuration without credentials or endpoints.
-- `Agent/Persistence.cs` performs startup loading and arms automatic saving. The existing actor’s joined shutdown performs the save.
+- `Agent/Persistence.cs` performs startup loading and arms automatic saving. The actor saves after completed handoffs and joined shutdown.
 - CLI and GUI composition roots choose paths and policies. Core code does not read environment variables or standard input.
 
-`PersistenceOptions` is value-like. It contains paths and a retention count, not a service, owner, or mutable conversation. It needs no parent back-pointer.
+`PersistenceOptions` is value-like. It contains a snapshot path and an audit flag, not a service, owner, or mutable conversation. It needs no parent back-pointer.
 
-A save has exactly these four top-level fields:
+A new save has these top-level fields:
 
 ```json
 {
   "context": {},
   "as_of": 42,
   "config": {},
-  "log": []
+  "latest_handoff": 40,
+  "previous_handoff": 20
 }
 ```
 
@@ -48,32 +49,16 @@ The empty objects above are schematic, not valid complete Context or configurati
 
 `config` documents the effective vendor, model, system prompt, and normalized tool declarations. Engine derives it through the existing request projection, using only the captured skill instruction entries. Keys, authorization headers, provider endpoints, and unrelated runtime settings are not configuration fields in the save. Conversation text is still private user data; excluding credentials from configuration does not make a session file public.
 
-`log` contains canonical events retained for diagnosis and, when needed, newer tail replay. It is not a second mutable conversation authority.
+`latest_handoff` and `previous_handoff` are sequence markers, not event payloads. Zero means no known boundary. They preserve the working-history cutoff across restart. New snapshots have no `log` field, and `SaveDocument` has no event collection.
 
 ## 10.3 Capture and replay
 
-`History.Snapshot()` obtains Events, Context, and Sequence under the same short lock. All three describe one committed instant. Readers never copy an unsynchronized list, and a save does not hold that lock across filesystem I/O.
+`History.Snapshot()` captures working Events, Context, sequence, and handoff markers under one short lock for observers. Saving captures only Context and scalar metadata; it does not copy the working event collection.
 
-The loader validates a candidate into local values before publishing anything:
+The loader validates each candidate locally before publishing anything. New snapshots are self-contained. For compatibility, the decoder accepts an old embedded `log`: it checks event shapes and increasing sequences, skips facts already folded into Context, and reduces only a contiguous newer tail. A legacy log-only document must begin at sequence one. Decoding returns the same state-only `SaveDocument`, not a retained legacy event array.
 
-1. Decode the document and required fields.
-2. Validate Context entries, usage, phases, display identities, and event shapes.
-3. Require strictly increasing positive event sequences.
-4. If Context exists, start with it and skip events at or below `as_of`.
-5. Fold each newer event in sequence. A gap in the required tail is an error, not an invitation to manufacture missing state.
-6. If Context is `null`, fold the complete log from empty Context instead. The complete log must start at event 1.
-7. Set the new numbering boundary to the larger of the saved `as_of` and the replayed sequence.
-8. Publish the recovered Context, retained events, and sequence together.
+Recovery then streams the separate journal, folding only events newer than the selected snapshot and retaining the recent working window for GUI facts. Context, sequence, markers, and working events are published together only after validation succeeds. A failed load leaves live state and disk bytes unchanged. `Agent.StartPersistence` enforces startup before actor admission; Chapter 14 details journal recovery and corruption handling.
 
-A failed load leaves the prior live state and file bytes unchanged. Loading is a startup operation, before opening an output event log or accepting actor work. `Agent.StartPersistence` enforces that startup boundary. The lower-level History operations are also available for explicit import/testing by a caller that owns the startup sequence.
-
-There are three useful equivalent representations:
-
-| Representation | Context | Log |
-|---|---|---|
-| Snapshot plus diagnostics | Complete through N | May include events ≤ N |
-| Snapshot plus tail | Complete through N | Includes required events > N |
-| Log-only | `null` | Complete from event 1 |
 
 Each retained Entry carries its optional recorded time and observation duration.
 Serialize the time with its offset and the duration as exact nonnegative ticks.
@@ -83,27 +68,24 @@ uses its own recorded fact time. This does not extend diagnostic retention:
 discarded direct-tool or lifecycle diagnostics are still discarded, not copied
 into a second permanent timing log.
 
-A snapshot-only save is the first row with an empty log. It must restore both conversation and future numbering correctly.
+A snapshot without any journal must still restore conversation and future numbering correctly; it cannot restore discarded lifecycle or direct-tool facts that are absent from Context.
 
 ## 10.4 Safe replacement and recovery
 
-History serializes save operations with a save lock distinct from its short state lock. An append can continue while a captured candidate is being written. A later append is not part of that candidate and must not be removed during its diagnostic trimming.
+History serializes appends and saves through its save gate, distinct from the short state lock. Readers can still observe the last committed state during disk I/O.
 
 Saving follows this order:
 
-1. Normalize and validate the save/archive paths. The archive cannot be the primary or its `.bak` file.
-2. Capture one coherent snapshot and derive its credential-free configuration.
-3. Build the selected diagnostic suffix and validate the serialized candidate by decoding and replaying it.
-4. If enabled, write the dialogue archive from that captured Context.
-5. Read and validate the previous primary before rotating it into `save.json.bak`. Never promote corrupt primary bytes over a good backup.
-6. Write the new primary through a same-directory temporary file, flush its contents, and replace the destination.
-7. Only after successful publication, trim the captured diagnostic prefix in live History. Preserve every event appended after the capture.
+1. Normalize the save path and capture Context, sequence, and handoff markers.
+2. Derive credential-free configuration and validate the state-only candidate.
+3. Validate the old primary before rotating it into backup. Re-encode its recovered state, rather than copying legacy embedded-log bytes. Never replace a valid backup with corrupt primary data.
+4. Write the new primary through a same-directory temporary, flush, and replace the destination.
+5. Unless audit is enabled, trim the journal only where both the validated backup and preceding-handoff boundary permit it.
 
-Temporary files are cleaned up on failure. Same-directory replacement avoids publishing a partially written JSON document. This is not a claim that every filesystem or power failure preserves all metadata; the chapter does not implement a write-ahead journal or directory-fsync recovery protocol.
+Temporary files are cleaned up on failure. Replacement avoids publishing partially written JSON, but is not a directory-fsync or hardware power-loss guarantee. Chapter 14 explains journal-before-publication ordering and backup-anchored recovery.
 
-Startup tries the primary and backup independently. Missing files allow a new session only when neither candidate exists. Parse, replay, access, or shape failures are reported safely; corrupt file contents are not copied into diagnostics. Successful backup recovery reports its saved sequence. It does not claim to recover events that were never durably saved.
+Startup tries primary and backup independently with their required journal suffixes. Missing snapshots permit journal-only recovery only from sequence one, or a fresh session when no history exists. Invalid candidates never authorize overwriting recovery data with an empty conversation.
 
-If both candidates fail, construction/startup is refused and saving is not armed. Do not “repair” an unreadable save by silently overwriting it with an empty conversation.
 
 ### Persist descriptions, not live file grants
 
@@ -111,7 +93,7 @@ Work-product metadata on a retained successful result survives snapshot and even
 roundtrips as ordinary immutable data. Do not serialize the Agent's live offer
 collection, file streams or active transfers. Loading a description must never
 reopen its path, register its ID, or create download authority. A new Agent with
-the same display name is still a new lifetime. Chapter 26 tests retained offer
+the same display name is still a new lifetime. Chapter 27 tests retained offer
 metadata alongside explicit refusal by the replacement live owner.
 
 ## 10.5 Reapply the current runtime
@@ -134,23 +116,14 @@ values rather than reviving their flags. Yesterday’s dynamically loaded skill 
 
 Hints retain their recorded actor. In particular, a human hint is not a skill instruction or a system message. Anthropic’s broad user projection can conceal a role error that OpenAI exposes, so cross-vendor restoration tests must check actual roles, not only whole-request text.
 
-## 10.6 Retention and the optional archive
+## 10.6 One working window and one journal
 
-`RetainLog` has three meanings:
+History retains working events from the second-most-recent handoff, including that handoff itself. Before two handoffs are known, it conservatively retains the available prefix. This is an event-history window, not a fixed-byte ceiling: a long interval between handoffs can still be large. Context remains self-contained and is never reconstructed from missing old payloads.
 
-- negative: retain all available diagnostic events;
-- zero: retain none;
-- positive N: retain the newest N diagnostic events.
+`PersistenceOptions.Audit` defaults to false. Normal saves may truncate the single recovery journal only after both the working-history boundary and validated backup permit it. Audit simply disables that truncation. It allocates no additional event collection and creates no second log or archive. Replay validates records incrementally and retains the same bounded working window in either mode; perpetual audit stays disk-only.
 
-A newly opened diagnostic event log writes the retained/bootstrap prefix, not
-a fabricated complete event history. After retention, use the save document—not
-a standalone truncated event log—to recover the full conversation.
+Enabling audit later preserves only the history still available. It cannot manufacture an earlier missing prefix from reduced Context. Memory compression does not create or require a full-event archive. Explicit offline log import remains available, but is not an automatic writer or an additional persistence authority.
 
-This controls diagnostics, not conversation. Context, usage, redaction state, and `as_of` are always saved. Retention applies to both the saved diagnostic array and the corresponding captured prefix in memory. It never renumbers events or recreates previously discarded diagnostics.
-
-An optional `ArchivePath` receives a dialogue-only JSONL projection from Context before trimming. It excludes runtime skill instruction entries and is not a recovery authority. It is neither the primary event log nor Chapter 14’s full archive/journal design. Rewriting that projection preserves the current reduced conversation, including summaries and redactions; it does not promise to retain removed raw material forever.
-
-The archive, primary, and backup are not one multi-file atomic transaction. If a later primary write fails, the archive may already be newer. Live diagnostics are still untrimmed, and primary recovery follows the validated primary/backup contract. Do not load the derivative archive as a substitute save.
 
 ## 10.7 Public C# usage
 
@@ -171,10 +144,7 @@ try
     _ = new Skills(agent, new SkillSpec(skillsDirectory, primarySkill));
 
     bool resumed = agent.StartPersistence(
-        new PersistenceOptions(savePath, RetainLog: 200));
-
-    // This writes the restored/bootstrap diagnostic prefix before new facts.
-    agent.History().StartLog(eventLogPath);
+        new PersistenceOptions(savePath));
 
     // Accept messages through the same actor API as earlier chapters.
     await agent.FlushAsync();
@@ -194,16 +164,15 @@ Shutdown first joins the owned work and destroys Jobs while History remains atta
 
 ## 10.8 CLI and GUI behavior
 
-Both applications default to `save.json` in their working directory. Use a distinct directory or explicit path for each independent session.
+Both applications default to `save.json` in their Agent data directory. Use a distinct directory or explicit path for each independent session.
 
 | CLI/GUI option | Environment fallback | Meaning |
 |---|---|---|
 | `--save PATH` | `EN_SAVE_PATH` | Primary save; backup is `PATH.bak` |
-| `--save-log N` | `EN_SAVE_LOG` | Diagnostic retention; default `-1` |
-| `--archive-log PATH` | `EN_ARCHIVE_LOG` | Optional dialogue projection |
+| `--audit` | None | Keep the single journal without truncation; default off |
 | `--no-save` | `EN_DISABLE_SAVE=1` | Disable automatic load/save |
 
-Explicit options override the corresponding environment defaults. The library reads none of these variables. Invalid numeric values or unusable save candidates fail startup rather than silently selecting another session.
+Explicit options override the corresponding environment defaults. The library reads none of these variables. Obsolete `--event-log`, `--save-log`, and `--archive-log` requests or unusable save candidates fail startup rather than silently selecting another session.
 
 The CLI drains accepted work at EOF and joins shutdown before exiting. The GUI saves after its owned host lifetime ends and shutdown completes. A force kill cannot run that code; this chapter does not promise to recover unsaved work after `SIGKILL`.
 

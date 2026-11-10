@@ -106,7 +106,7 @@ public sealed partial class Memory
         string hash = JsonCodec.MemoryFingerprint(source, destination, id, conversation, sources, previous);
         string taskID = Guid.NewGuid().ToString("N");
         var launch = new CompressionLaunch(taskID, source, destination, id, now, hash, from, to,
-            sources.Select(entry => entry.ID), "children/compress-" + taskID + "/events.jsonl");
+            sources.Select(entry => entry.ID), "children/compress-" + taskID + "/save.json.journal.jsonl");
         return new MemoryCapture(launch, conversation, sources, previous);
     }
 

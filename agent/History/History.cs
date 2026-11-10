@@ -35,46 +35,9 @@ public sealed partial class History
         lock (gate)
         {
             ObjectDisposedException.ThrowIf(destroyed, this);
-            return new HistorySnapshot(events.ToImmutableArray(), context, foldedSequence);
+            return new HistorySnapshot(events.ToImmutableArray(), context, foldedSequence, latestHandoff, previousHandoff);
         }
     }
-    public partial void StartLog(string path)
-    {
-        lock (saveGate)
-        lock (gate)
-        {
-            ObjectDisposedException.ThrowIf(destroyed, this);
-            if (writer is not null)
-            {
-                throw new InvalidOperationException("Output log already open");
-            }
-
-            var files = Parent().Sandbox();
-            string destination = files.Resolve(path);
-            if (destination == journalPath)
-            {
-                throw new ArgumentException("Diagnostic log must not replace the recovery journal");
-            }
-            var opened = new StreamWriter(files.OpenFile(destination, FileMode.Create, FileAccess.Write), new UTF8Encoding(false));
-            try
-            {
-                opened.WriteLine("{\"log_version\":1}");
-                foreach (var fact in events)
-                {
-                    opened.WriteLine(JsonCodec.WriteEvent(fact));
-                }
-                opened.Flush();
-                writer = opened;
-                writerPath = destination;
-            }
-            catch
-            {
-                opened.Dispose();
-                throw;
-            }
-        }
-    }
-
     public partial Event Append(Event value)
     {
         lock (saveGate)
@@ -94,20 +57,14 @@ public sealed partial class History
             string line = JsonCodec.WriteEvent(next);
             try
             {
-                // The journal is the recovery authority; the diagnostic writer is
-                // secondary. Flush closes the process-crash window, not a promise
-                // about loss of power. No reader sees this fact until both succeed.
+                // Flush the sole recovery journal before publishing the fact.
+                // This closes the process-crash window, not a power-loss promise.
                 if (journalPath is not null)
                 {
                     using var output = Parent().Sandbox().OpenFile(journalPath, FileMode.Append, FileAccess.Write);
                     using var journal = new StreamWriter(output, new UTF8Encoding(false));
                     journal.WriteLine(line);
                     journal.Flush();
-                }
-                if (writer is not null)
-                {
-                    writer.WriteLine(line);
-                    writer.Flush();
                 }
             }
             catch
@@ -122,6 +79,12 @@ public sealed partial class History
                 events.Add(next);
                 context = reduced;
                 foldedSequence = next.Seq;
+                if (next.Kind == EventKind.HandoffRecorded)
+                {
+                    previousHandoff = latestHandoff;
+                    latestHandoff = next.Seq;
+                    events.RemoveAll(fact => fact.Seq < previousHandoff);
+                }
                 parent?.Publish(new Observation(ObservationKind.EventRecorded, next.Seq, Fact: next));
             }
             return next;
@@ -134,7 +97,7 @@ public sealed partial class History
         lock (gate)
         {
             ObjectDisposedException.ThrowIf(destroyed, this);
-            if (writer is not null || journalPath is not null)
+            if (journalPath is not null)
             {
                 throw new InvalidOperationException("Cannot replace active History writers");
             }
@@ -144,15 +107,24 @@ public sealed partial class History
             var loaded = ReadLog(path);
             var view = new Context();
             long previous = 0;
+            long latest = 0;
+            long preceding = 0;
             foreach (var value in loaded)
             {
                 view = Apply(view, value);
                 previous = value.Seq;
+                if (value.Kind == EventKind.HandoffRecorded)
+                {
+                    preceding = latest;
+                    latest = value.Seq;
+                }
             }
             events.Clear();
-            events.AddRange(loaded);
+            events.AddRange(loaded.Where(fact => fact.Seq >= preceding));
             context = view;
             foldedSequence = previous;
+            latestHandoff = latest;
+            previousHandoff = preceding;
         }
     }
 
@@ -180,18 +152,9 @@ public sealed partial class History
             }
 
             destroyed = true;
-            try
-            {
-                writer?.Dispose();
-            }
-            finally
-            {
-                writer = null;
-                writerPath = null;
-                parent?.RemoveHistory(this);
-                events.Clear();
-                context = new Context();
-            }
+            parent?.RemoveHistory(this);
+            events.Clear();
+            context = new Context();
         }
     }
 

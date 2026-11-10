@@ -3,19 +3,21 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 namespace Ensemble;
 
-/// <summary>Value-like file policy, not a service or owner. Negative retention
-/// keeps all diagnostics, zero keeps none, and positive values keep the newest N.
-/// StartPersistence adds a sibling .journal.jsonl for per-event crash recovery.
-/// ArchivePath preserves a complete canonical event log for historical replay.
-/// Missing earlier events cannot be synthesized from a reduced snapshot.
-/// A null policy on a library Agent opts out of automatic lifecycle persistence;
-/// explicit History.Save still writes a snapshot without activating a journal.</summary>
-public sealed record PersistenceOptions(string Path, int RetainLog = -1, string? ArchivePath = null);
+/// <summary>Value-like snapshot and journal policy. Audit keeps the same journal
+/// untruncated on disk; it never enlarges working History in memory. Default
+/// retention keeps the preceding handoff window and the validated backup suffix.
+/// A null Agent policy opts out of lifecycle persistence; explicit Save alone
+/// does not activate a journal.</summary>
+public sealed record PersistenceOptions(string Path, bool Audit = false);
 
-/// <summary>Immutable decoded save candidate. Context is already folded through
-/// Sequence; Events may include older diagnostic facts as well as a newer tail.</summary>
-public sealed record SaveDocument(Context? Context, long Sequence, JsonElement Configuration,
-    ImmutableArray<Event> Events);
+/// <summary>Value-like self-contained recovery snapshot. No event collection is
+/// retained here. Legacy input is validated and folded at the decoding boundary.</summary>
+public sealed record SaveDocument(
+    Context Context,
+    long Sequence,
+    JsonElement Configuration,
+    long LatestHandoff = 0,
+    long PreviousHandoff = 0);
 
 public sealed partial class Agent
 {
@@ -35,9 +37,6 @@ public sealed partial class History
     // All path resolution and file operations reach Sandbox through this History's
     // Agent parent. Relative paths are rooted there; no second root is retained.
     public partial void Save(PersistenceOptions options);
-    // Preserve the complete canonical event stream before conversation retirement.
-    // Uses the existing archive merge/validation, not reduced compressor input.
-    internal partial void ArchiveMemory();
     internal partial PersistenceOptions NormalizePersistence(PersistenceOptions options);
     // Validate primary and backup independently. Publish only a complete replay.
     // Replay the sibling journal exactly once beyond the chosen snapshot. Returns
@@ -49,17 +48,14 @@ public sealed partial class History
     // Activate crash recovery after successful load, before runtime reconfiguration.
     // This is owned by the existing lifecycle, not a second persistence service.
     internal partial void StartJournal(string path);
-    private partial ImmutableArray<Event> ReadJournal(string path);
-    private partial (Context Context, long Sequence) ReplayJournal(
-        Context context, long sequence, ImmutableArray<Event> journal);
+    private partial IEnumerable<Event> ReadJournal(string path);
+    private partial HistorySnapshot ReplayJournal(
+        Context context, long sequence, IEnumerable<Event> journal,
+        long latestHandoff = 0, long previousHandoff = 0);
     private partial void TrimJournal(long backupSequence);
-    private static partial string JournalText(IEnumerable<Event> facts);
+    private partial void WriteJournal(string path, IEnumerable<Event> facts);
     private partial SaveDocument ReadSaveFile(string path);
-    private partial (Context Context, long Sequence) ReplaySave(SaveDocument document);
     private partial void ReplaceFile(string path, string text);
-    // Stage a complete archive before trimming. Sources must agree on overlaps;
-    // a missing prefix is an error, not permission to invent historical events.
-    private partial string ArchiveText(string path, HistorySnapshot snapshot);
 }
 
 public sealed partial class Engine

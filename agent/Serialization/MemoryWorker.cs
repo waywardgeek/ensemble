@@ -18,6 +18,6 @@ public sealed partial class Configuration
             promptCacheKey: PromptCacheKey, surface: Surface, billing: Billing,
             account: Account, reasoningEffort: ReasoningEffort,
             reasoningSummary: ReasoningSummary, safeMode: true,
-            enableWebSearch: false, sandboxRoot: SandboxRoot);
+            enableWebSearch: false, sandboxRoot: SandboxRoot, processReadPaths: ProcessReadPaths);
     }
 }

@@ -8,8 +8,14 @@ public sealed partial class Sandbox
 {
     internal partial ProcessStartInfo PrepareCommand(string? directory)
     {
+        return PrepareProcess("/bin/sh", directory);
+    }
+
+    internal partial ProcessStartInfo PrepareProcess(string executable, string? directory)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(executable);
         string working = Resolve(string.IsNullOrEmpty(directory) ? "." : directory);
-        var start = new ProcessStartInfo("/bin/sh")
+        var start = new ProcessStartInfo(executable)
         {
             WorkingDirectory = working,
             UseShellExecute = false
@@ -102,6 +108,21 @@ public sealed partial class Sandbox
               (literal "/private") (literal "/private/var") (literal "/private/var/select"))
             """);
         profile.Append("\n(allow file-read* file-write* (subpath ").Append(ProfileLiteral(root)).Append(") )\n");
+        foreach (var grant in processReads)
+        {
+            string predicate = grant.Directory ? "subpath" : "literal";
+            string target = "(" + predicate + " " + ProfileLiteral(grant.Path) + ")";
+            profile.Append("(allow file-read* ").Append(target).Append(")\n");
+            // Explicitly deny mutation even if another runtime allowance overlaps.
+            profile.Append("(deny file-write* ").Append(target).Append(")\n");
+            for (string? ancestor = Path.GetDirectoryName(grant.Path);
+                ancestor is not null && ancestor != "/";
+                ancestor = Path.GetDirectoryName(ancestor))
+            {
+                profile.Append("(allow file-read-metadata (literal ")
+                    .Append(ProfileLiteral(ancestor)).Append("))\n");
+            }
+        }
         // Git resolves cwd component by component. Ancestor metadata permits
         // traversal without granting directory listings or sibling file reads.
         for (string? ancestor = Path.GetDirectoryName(root); ancestor is not null && ancestor != "/";
@@ -116,7 +137,7 @@ public sealed partial class Sandbox
         start.FileName = "/usr/bin/sandbox-exec";
         start.ArgumentList.Add("-p");
         start.ArgumentList.Add(profile.ToString());
-        start.ArgumentList.Add("/bin/sh");
+        start.ArgumentList.Add(executable);
         return start;
     }
 

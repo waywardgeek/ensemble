@@ -875,21 +875,26 @@ Current CLI and GUI accept `--data-dir DIR` / `EN_DATA_DIR` for the Ensemble
 container and `--agent-name NAME` / `EN_AGENT_NAME` for the initial actor (default
 `root`). Explicit flags override environment values. The container defaults to the
 sandbox root when configured, otherwise the working directory; relative explicit
-containers use that same base. Default saves, event logs and diagnostics belong
+containers use that same base. Default saves, recovery journals and diagnostics belong
 under `agents/<name>/`, and default Job output is its `jobs/` directory. GUI
 preferences default to `settings.json` in the shared Ensemble container, not a
 personal user-profile store. Explicit path options retain their meanings.
 
 Use `--save PATH` for an independent conversation path or `--no-save` to disable
-History persistence. Neither changes the actor home or disables all file output. `--save-log N` selects all (negative),
-none (zero), or the newest N diagnostic events. `--archive-log PATH` optionally
-writes a complete event archive before trimming; `History.Load` can replay it.
-The recovery journal is independent of this optional archive. Environment fallbacks are `EN_SAVE_PATH`, `EN_SAVE_LOG`,
-`EN_ARCHIVE_LOG`, and `EN_DISABLE_SAVE=1`.
+History persistence. Neither changes the actor home or disables all file output.
+`--audit` keeps the same recovery journal without truncation; it defaults off.
+Snapshots contain Context and recovery metadata, not event arrays. Working events
+remain bounded by the preceding handoff even with audit enabled. Normal journal
+trimming also preserves the validated backup's required suffix. No separate
+`events.jsonl` or archive is created. The removed `--event-log`, `--save-log`, and
+`--archive-log` options refuse explicitly. Current environment fallbacks are
+`EN_SAVE_PATH` and `EN_DISABLE_SAVE=1`.
 
 Library callers explicitly call `Agent.StartPersistence` before actor admission.
-Construct current skills first, load/reconfigure next, then open the diagnostic
-log. StartLog writes the restored/bootstrap prefix before recording new events.
+Construct current skills first, then load/reconfigure and activate the recovery
+journal. Completed handoffs checkpoint the self-contained snapshot.
+
+
 Shutdown joins work, records completion and saves before logical destruction.
 Current runtime configuration overrides saved skill grants, not ordinary historic
 system messages. The next primary/skill bodies come from today's explicit inputs.
@@ -911,7 +916,7 @@ I/O and reverse work, and removes both directions of these relationships.
 
 `Skills/Connections.cs` prepares connections off-actor and commits one validated
 activation on the actor. Discovery never grants unlisted tools. Construct Skills,
-load persistence, open the diagnostic log, then await `Skills.InitializeAsync`
+load persistence and its recovery journal, then await `Skills.InitializeAsync`
 before user work. For a server-backed GUI primary, start the listener first;
 `RequiresBrowserStartup()` distinguishes a WebSocket dependency from stdio-only
 startup, which must not wait for a browser. Failed startup cannot overwrite a

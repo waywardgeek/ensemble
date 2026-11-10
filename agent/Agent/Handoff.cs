@@ -27,6 +27,12 @@ public sealed partial class Agent
         // clear the staged note or pretend that reduction succeeded.
         Record(new Event(EventKind.HandoffRecorded, parts: [pendingHandoff]));
         pendingHandoff = null;
+        // The handoff is already durable and companion results are paired.
+        // Clear staging before checkpoint I/O: a save failure must not repeat it.
+        if (persistence is not null)
+        {
+            History().Save(persistence);
+        }
         AcknowledgeMemoryPressure();
         StartMemoryCompression(includeConversation: true);
     }

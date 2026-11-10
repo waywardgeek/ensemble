@@ -63,7 +63,7 @@ internal static class SkillAuthorityTests
                 Check(agent.ToolEnabled("read_file") && manager.Source("read_file")?.Skill == "root",
                     "Shared grant was revoked");
                 Check(agent.ToolEnabled("list_directory"), "Independent dependency was revoked");
-                Check(!manager.LoadableSkills().Contains("extra"), "Pending manual still offered a child");
+                Check(manager.LoadableSkills().Contains("extra"), "Unload incorrectly removed directory discovery");
                 var denied = await agent.DispatchAsync(Call(agent, "write_file", new { path = target, content = "after" }));
                 Check(denied.IsError && File.ReadAllText(target) == "before", "Revoked writer had an effect");
 
@@ -81,7 +81,7 @@ internal static class SkillAuthorityTests
 
                 // Snapshot-only persistence has no pending event to consult.
                 string save = Path.Combine(root, vendor + "-save.json");
-                agent.History().Save(new PersistenceOptions(save, RetainLog: 0));
+                agent.History().Save(new PersistenceOptions(save));
                 var replay = new Agent(app, new Configuration(vendor, "model-a", "http://127.0.0.1:1"));
                 replay.InstallTools();
                 Check(replay.History().LoadSave(save), "Snapshot not restored");

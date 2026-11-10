@@ -9,7 +9,7 @@ if (args.Length != 1 || Directory.Exists(args[0]))
 }
 Directory.CreateDirectory(args[0]);
 string path = Path.Combine(args[0], "save.json");
-var policy = new PersistenceOptions(path, RetainLog: 0);
+var policy = new PersistenceOptions(path);
 
 var firstRoot = new Ensemble.Ensemble(Console.Error);
 try
@@ -32,7 +32,8 @@ finally
 }
 
 var saved = JsonCodec.ReadSave(File.ReadAllText(path));
-if (!saved.Events.IsEmpty || saved.Context is null)
+using var savedJson = System.Text.Json.JsonDocument.Parse(File.ReadAllText(path));
+if (savedJson.RootElement.TryGetProperty("log", out _) || saved.Context is null)
 {
     throw new InvalidOperationException("Snapshot-only policy was not honored");
 }

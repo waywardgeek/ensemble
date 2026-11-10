@@ -89,12 +89,25 @@ public static partial class JsonCodec
 
     public static partial string WriteSave(SaveDocument document)
     {
+        // New snapshots contain state, never another copy of the event journal.
+        // Legacy tails must be reduced before writing, not silently discarded.
+        if (document.Context is null)
+        {
+            throw new ArgumentException("Snapshot writing requires folded Context");
+        }
+        if (document.Sequence < 0 || document.LatestHandoff < 0
+            || document.LatestHandoff > document.Sequence || document.PreviousHandoff < 0
+            || (document.PreviousHandoff != 0 && document.PreviousHandoff >= document.LatestHandoff))
+        {
+            throw new ArgumentException("Invalid snapshot handoff boundaries");
+        }
         return new JsonObject
         {
-            ["context"] = document.Context is null ? null : WriteContext(document.Context),
+            ["latest_handoff"] = document.LatestHandoff,
+            ["previous_handoff"] = document.PreviousHandoff,
+            ["context"] = WriteContext(document.Context),
             ["as_of"] = document.Sequence,
-            ["config"] = JsonNode.Parse(document.Configuration.GetRawText()),
-            ["log"] = new JsonArray(document.Events.Select(value => JsonNode.Parse(WriteEvent(value))).ToArray())
+            ["config"] = JsonNode.Parse(document.Configuration.GetRawText())
         }.ToJsonString(new JsonSerializerOptions { WriteIndented = true }) + "\n";
     }
 
@@ -113,6 +126,13 @@ public static partial class JsonCodec
             {
                 throw new FormatException("Negative snapshot sequence");
             }
+            long latest = root.TryGetProperty("latest_handoff", out var latestValue) ? latestValue.GetInt64() : 0;
+            long preceding = root.TryGetProperty("previous_handoff", out var precedingValue) ? precedingValue.GetInt64() : 0;
+            if (latest < 0 || latest > sequence || preceding < 0
+                || (preceding != 0 && preceding >= latest))
+            {
+                throw new FormatException("Invalid snapshot handoff boundaries");
+            }
             var rawContext = root.GetProperty("context");
             Context? context = rawContext.ValueKind == JsonValueKind.Null ? null : ReadContext(rawContext, sequence);
             var config = root.GetProperty("config");
@@ -130,19 +150,48 @@ public static partial class JsonCodec
                     throw new FormatException("Invalid saved tool declaration");
                 }
             }
-            var events = ImmutableArray.CreateBuilder<Event>();
+            // Old snapshots may carry diagnostics before the boundary and a
+            // recovery tail after it. Validate their order, but never retain a
+            // second event array. Only the tail contributes to restored state.
+            long boundary = context is null ? 0 : sequence;
+            long folded = boundary;
             long previous = 0;
-            foreach (var raw in root.GetProperty("log").EnumerateArray())
+            Context restored = context ?? new Context();
+            if (root.TryGetProperty("log", out var legacyLog))
             {
-                var fact = ReadEvent(raw.GetRawText());
-                if (fact.Seq <= previous)
+                foreach (var raw in legacyLog.EnumerateArray())
                 {
-                    throw new FormatException("Saved log sequences must increase strictly");
+                    var fact = ReadEvent(raw.GetRawText());
+                    if (fact.Seq <= previous)
+                    {
+                        throw new FormatException("Saved log sequences must increase strictly");
+                    }
+                    previous = fact.Seq;
+                    // A legacy log can establish missing markers, including
+                    // handoffs already folded into Context. Never duplicate one
+                    // already recorded by modern snapshot metadata.
+                    if (fact.Kind == EventKind.HandoffRecorded && fact.Seq > latest)
+                    {
+                        preceding = latest;
+                        latest = fact.Seq;
+                    }
+                    if (fact.Seq <= boundary)
+                    {
+                        continue;
+                    }
+                    if (fact.Seq != checked(folded + 1))
+                    {
+                        throw new FormatException("Legacy save tail is incomplete");
+                    }
+                    restored = History.Reduce(restored, fact);
+                    folded = fact.Seq;
                 }
-                previous = fact.Seq;
-                events.Add(fact);
             }
-            return new SaveDocument(context, sequence, config.Clone(), events.ToImmutable());
+            if (context is null && (folded == 0 || folded < sequence))
+            {
+                throw new FormatException("Save has no complete recovery state");
+            }
+            return new SaveDocument(restored, folded, config.Clone(), latest, preceding);
         }
         catch (Exception ex) when (ex is JsonException or InvalidOperationException or KeyNotFoundException
             or ArgumentException or OverflowException)

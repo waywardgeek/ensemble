@@ -318,22 +318,22 @@ internal static class MemoryDiskTests
         try
         {
             var agent = new Agent(app, config, dataDirectory: home);
-            agent.StartPersistence(new PersistenceOptions(save, RetainLog: 0));
+            agent.StartPersistence(new PersistenceOptions(save));
             capture = Graduation(agent, home);
             Launch(agent, capture);
             agent.Memory().Stage(capture, "durable accepted result");
             Commit(agent, capture, "durable accepted result");
-            agent.History().Save(new PersistenceOptions(save, RetainLog: 0));
+            agent.History().Save(new PersistenceOptions(save));
             // Destroy never finalizes a receipt implicitly or erases the corpus.
             app.Destroy();
             app = new Application(TextWriter.Null);
             agent = new Agent(app, config, dataDirectory: home);
             Check(agent.History().LoadSave(save), "Saved History did not restore");
-            agent.StartPersistence(new PersistenceOptions(save, RetainLog: 0));
+            agent.StartPersistence(new PersistenceOptions(save));
             Check(agent.History().View().Compression?.Committed?.Text == "durable accepted result", "Restart lost committed replay receipt");
             Refuses(() => agent.Memory().Scan(agent.History().View(), MemoryBand.Session));
             Finish(agent);
-            agent.History().Save(new PersistenceOptions(save, RetainLog: 0));
+            agent.History().Save(new PersistenceOptions(save));
             Check(agent.History().View().Memories.Count(entry => entry.Band == MemoryBand.Archive8) == 1,
                 "Recovery duplicated accepted replacement");
             Check(File.ReadAllText(Path.Combine(home, "bucket-0", capture.Launch.ID + ".md")) == "durable accepted result",

@@ -14,6 +14,6 @@ public sealed partial class Configuration
             BaseUrl, ApiKey, primaryInstructions: instructions,
             disableStreaming: DisableStreaming, cacheBreakpoints: false,
             surface: Surface, billing: Billing, account: Account,
-            safeMode: true, enableWebSearch: false, sandboxRoot: SandboxRoot);
+            safeMode: true, enableWebSearch: false, sandboxRoot: SandboxRoot, processReadPaths: ProcessReadPaths);
     }
 }

@@ -16,7 +16,7 @@ LLM_API_KEY=... dotnet run --project Examples/Gui -- \
 
 `LLM_VENDOR`, `LLM_MODEL`, and `LLM_BASE_URL` supply flag defaults. Credentials
 remain in `LLM_API_KEY`, not the page or CLI arguments. Other flags are
-`--event-log PATH`, `--gui-dir PATH`, `--settings PATH`, and `--no-stream`.
+`--save PATH`, `--audit`, `--gui-dir PATH`, `--settings PATH`, and `--no-stream`.
 
 Use an owned workspace and port. The host binds loopback only, validates the Host
 header, and rejects foreign WebSocket origins. This is a trusted local tool UI,
@@ -74,8 +74,7 @@ saved browser preferences, and a fake cannot establish provider cache acceptance
 
 ## Evidence and logs
 
-Working-directory logs are `event.log`, `api.log`, `gui.log`, and `debug.log`.
-`--event-log`/`CH02_LOG`, `CH06_API_LOG`, and `CH07_GUI_LOG` override the first three.
+Canonical events use only `<save>.journal.jsonl`. API, GUI, and debug traces are separate diagnostics, not recovery authorities. `CH06_API_LOG` and `CH07_GUI_LOG` override the API and GUI trace paths.
 GUI log records are timestamped `>` received and `<` sent JSON frames. API/GUI
 tracing redacts the configured key, but conversation and tool output may still
 be sensitive. Keep logs out of source endpoints and public repositories.
@@ -149,13 +148,14 @@ human-accessibility claim.
 
 ## Conversation persistence
 
-By default the host restores `save.json` before listening and saves after joined
-shutdown. Use `--save PATH`, `--save-log N`, `--archive-log PATH`, or `--no-save`
-to select persistence policy; environment fallbacks match the CLI. Chapter 14 adds
-an independent `<save>.journal.jsonl`: force kill does not run shutdown saving,
-but validated snapshot-plus-journal replay recovers committed facts. Invalid
-candidates cannot overwrite good recovery files. The optional archive is full
-event history, not reconstructed dialogue. Settings remain in their separate file.
+By default the host restores `save.json` in the Agent home before listening and
+saves after completed handoffs and joined shutdown. Use `--save PATH`, `--audit`,
+or `--no-save`. Audit is off by default; enabling it preserves the same
+`<save>.journal.jsonl` without truncation, not a second event file. Both modes keep
+only the recent working event window in memory. Normal truncation preserves the
+preceding handoff and the validated backup's recovery suffix. Invalid candidates
+cannot overwrite good recovery files. Settings remain in their separate file.
+
 
 Snapshot-only restart restores finalized cards from reduced Context, including
 stable response/part IDs. Retained events add lifecycle/direct-tool diagnostics;

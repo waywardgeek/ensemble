@@ -8,18 +8,16 @@ internal static class SandboxPersistenceTests
         InWorkspace((app, inside, outside) =>
         {
             var source = Agent(app, inside).History();
-            // This first assertion is the regression baseline: an owned History
-            // must not truncate an outside diagnostic destination.
-            Refuses(() => source.StartLog(Path.Combine(outside, "diagnostic.jsonl")));
-            Check(!File.Exists(Path.Combine(outside, "diagnostic.jsonl")), "Outside log was created");
+            // The sole journal must remain inside the owning sandbox.
+            Refuses(() => source.StartJournal(Path.Combine(outside, "save.json")));
+            Check(!Directory.EnumerateFileSystemEntries(outside).Any(), "Outside journal was created");
             Directory.CreateDirectory(Path.Combine(inside, "state"));
             Directory.CreateSymbolicLink(Path.Combine(inside, "alias"), Path.Combine(inside, "state"));
             source.StartJournal("alias/save.json");
-            source.StartLog("alias/diagnostic.jsonl");
             source.Append(Message("one"));
-            source.Save(new PersistenceOptions("alias/save.json", 0, "alias/archive.jsonl"));
+            source.Save(new PersistenceOptions("alias/save.json"));
             source.Append(Message("two"));
-            source.Save(new PersistenceOptions("alias/save.json", 0, "alias/archive.jsonl"));
+            source.Save(new PersistenceOptions("alias/save.json"));
             source.Append(Message("three"));
             string path = Path.Combine(inside, "state", "save.json");
             Check(JsonCodec.ReadSave(File.ReadAllText(path + ".bak")).Sequence == 1, "Wrong rooted backup");
@@ -30,13 +28,8 @@ internal static class SandboxPersistenceTests
             var backup = Agent(app, inside).History();
             Check(backup.LoadSave("state/save.json") && Text(backup) == "one|two|three",
                 "Rooted backup/journal recovery failed");
-            var archive = Agent(app, inside).History();
-            archive.Load("alias/archive.jsonl");
-            Check(Text(archive) == "one|two", "Rooted archive replay failed");
-            var log = Agent(app, inside).History();
-            log.Load("state/diagnostic.jsonl");
-            Check(Text(log) == "one|two|three", "Rooted diagnostic replay failed");
-            Refuses(() => source.Save(new PersistenceOptions("state/save.json", 0, "alias/save.json.bak")));
+            Check(!File.Exists(Path.Combine(inside, "state", "archive.jsonl"))
+                && !File.Exists(Path.Combine(inside, "state", "diagnostic.jsonl")), "Duplicate event file created");
             Check(!Directory.EnumerateFiles(Path.Combine(inside, "state"), "*.tmp").Any(),
                 "Successful replacement retained temporary files");
 
@@ -64,13 +57,11 @@ internal static class SandboxPersistenceTests
             {
                 Refuses(() => history.Save(new PersistenceOptions(path)));
                 Refuses(() => history.LoadSave(path));
-                Refuses(() => history.StartLog(path));
                 Refuses(() => history.Load(path));
                 Refuses(() => history.StartJournal(path));
-                Refuses(() => history.Save(new PersistenceOptions("safe.json", 0, path)));
                 Check(Text(history) == "committed", "Refusal changed committed History");
             }
-            Check(!File.Exists(Path.Combine(inside, "safe.json")), "Rejected archive changed recovery file");
+            Check(!File.Exists(Path.Combine(inside, "safe.json")), "Rejected path changed recovery file");
 
             // Every sibling is independently opened through the boundary. A
             // previously validated primary must not authorize a swapped backup.
@@ -129,7 +120,7 @@ internal static class SandboxPersistenceTests
         {
             action();
         }
-        catch (IOException)
+        catch (Exception error) when (error is IOException or InvalidDataException)
         {
             return;
         }

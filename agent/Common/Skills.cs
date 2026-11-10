@@ -54,7 +54,7 @@ public sealed partial class Skills
     internal Agent? parent;
     internal bool destroyed;
     // Host-selected documentation provenance. It is not Agent file-tool authority.
-    // Templates remain immutable even when recall observes newer manuals on disk.
+    // Active templates stay pinned; unrestricted discovery replaces unloaded ones.
     private readonly string sourceDirectory;
     private Microsoft.Win32.SafeHandles.SafeFileHandle? recallRoot;
     private readonly string primaryName;
@@ -64,7 +64,7 @@ public sealed partial class Skills
     private ImmutableDictionary<string, string>? initialVariables;
     private Task? initialization;
     private readonly object gate = new();
-    private readonly Dictionary<string, SkillDefinition> definitions;
+    private Dictionary<string, SkillDefinition> definitions;
     private readonly Dictionary<string, string> variables;
     // Only referenced auth-env values; never manual variables or saved context.
     private readonly Dictionary<string, string> mcpCredentials = new(StringComparer.Ordinal);
@@ -111,7 +111,7 @@ public sealed partial class Skills
     public partial void RegisterVariable(string name, string value);
     // Read immutable activation facts from History, including pending manuals.
     public partial ImmutableArray<SkillPart> Active();
-    // Progressive discovery: offered by active manuals and not already active.
+    // Current catalog filtered by launch policy and sandbox graph authorization.
     public partial ImmutableArray<string> LoadableSkills();
     /// <summary>Parsed primary templates only; enumeration grants no tools.</summary>
     public partial ImmutableArray<PrimarySkillChoice> PrimaryChoices();
@@ -131,6 +131,10 @@ public sealed partial class Skills
     private partial List<SkillDefinition> Resolve(string name, bool initial, IEnumerable<string>? preceding = null);
     // Validate the whole ordered startup selection before any instruction publication.
     private partial List<SkillDefinition> ResolveStartup();
+    // Sandbox authorization follows both edge kinds from the selected primary.
+    private partial HashSet<string> AuthorizedSkills();
+    private partial void RefreshCatalog();
+    internal partial string DiscoveryInstruction();
     private partial ImmutableArray<string> Available(IEnumerable<string> activeNames);
     private partial string Render(string body, IEnumerable<string> tools, IEnumerable<string> available,
         IReadOnlyDictionary<string, string>? values = null);

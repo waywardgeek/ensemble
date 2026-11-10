@@ -14,11 +14,14 @@ internal static partial class ActorTests
         var app = new Application(TextWriter.Null);
         Task? server = null;
         int requests = 0;
+        string directory = Path.Combine(Path.GetTempPath(), "handoff-checkpoint-" + Guid.NewGuid().ToString("N"));
+        string savePath = Path.Combine(directory, "save.json");
         try
         {
             var agent = new Agent(app, new Configuration(Vendor.Anthropic, "model-a",
                 $"http://127.0.0.1:{((IPEndPoint)listener.LocalEndpoint).Port}"));
             agent.InstallTools();
+            agent.StartPersistence(new PersistenceOptions(savePath));
             server = Task.Run(async () =>
             {
                 // A bounded adversarial peer models the ambiguity: a future-tense
@@ -59,12 +62,19 @@ internal static partial class ActorTests
                 "Handoff continuation repeated the checkpoint instead of resuming work");
             Check(agent.History().Events().Count(fact => fact.Kind == EventKind.HandoffRecorded) == 1,
                 "Continuation recorded duplicate handoffs");
+            var checkpoint = JsonCodec.ReadSave(File.ReadAllText(savePath));
+            long handoffSequence = agent.History().Events().Single(fact => fact.Kind == EventKind.HandoffRecorded).Seq;
+            Check(checkpoint.Sequence == handoffSequence && checkpoint.LatestHandoff == handoffSequence,
+                "Completed handoff did not checkpoint before continuation/shutdown");
+            Check(checkpoint.Context!.Dialogue.SelectMany(entry => entry.Parts).OfType<HandoffPart>()
+                .Single().Text == "Next: inspect the replay test.", "Checkpoint did not persist reduced Context");
         }
         finally
         {
             deadline.Cancel();
             listener.Stop();
             app.Destroy();
+            if (Directory.Exists(directory)) Directory.Delete(directory, recursive: true);
             if (server is not null)
             {
                 try { await server; }
@@ -95,7 +105,7 @@ internal static partial class ActorTests
                     await release.Task.WaitAsync(cancellation);
                     return "companion completed";
                 }, waitForCompletion: true);
-            // A successful replacement retires older active notes, not canonical events.
+            // A successful replacement retires older active notes and bounds working events.
             // Until companion results are durable, the old note remains active.
             agent.History().Append(new Event(EventKind.HintReceived, actor: Actor.System,
                 parts: [new TextPart("ordinary system instructions")]));
@@ -131,6 +141,11 @@ internal static partial class ActorTests
                         Check(!messages.Contains("\"tool_use\"") && !messages.Contains("\"tool_result\""), "Handoff retained tool traffic");
                         if (round == 1)
                         {
+                            var paired = agent.History().Events();
+                            long firstNote = paired.Single(fact => fact.Kind == EventKind.HandoffRecorded
+                                && fact.Parts.OfType<HandoffPart>().Any(note => note.Text == "first replacement")).Seq;
+                            Check(paired.Single(fact => fact.Kind == EventKind.ToolReturned && fact.CallID == "companion").Seq < firstNote,
+                                "Companion result recorded after reduction");
                             await ReplyJson(stream, new
                             {
                                 content = new object[] { new { type = "tool_use", id = "note-2", name = "micro_handoff", input = new { text = "newest replacement" } } },
@@ -156,22 +171,21 @@ internal static partial class ActorTests
             await Task.WhenAll(server, turn).WaitAsync(deadline.Token);
             Check(await turn == "handoff complete", "Turn did not finish");
             var events = agent.History().Events();
-            long firstNote = events.Single(fact => fact.Kind == EventKind.HandoffRecorded
-                && fact.Parts.OfType<HandoffPart>().Any(note => note.Text == "first replacement")).Seq;
-            Check(events.Single(fact => fact.Kind == EventKind.ToolReturned && fact.CallID == "companion").Seq < firstNote,
-                "Companion result recorded after reduction");
+            Check(events.First().Kind == EventKind.HandoffRecorded
+                && events.First().Parts.OfType<HandoffPart>().Single().Text == "first replacement",
+                "Working history did not begin at preceding handoff");
             var context = agent.History().View();
             Check(context.Dialogue.SelectMany(entry => entry.Parts).OfType<HandoffPart>().Select(note => note.Text)
                 .SequenceEqual(["newest replacement"]),
                 "Active context did not retain only the newest checkpoint");
             Check(JsonCodec.Text(context.Dialogue.SelectMany(entry => entry.Parts)).Contains("ordinary system instructions"),
                 "Ordinary system content lost");
-            Check(events.Count(fact => fact.Kind == EventKind.HandoffRecorded) == 3, "Canonical history lost older notes");
+            Check(events.Count(fact => fact.Kind == EventKind.HandoffRecorded) == 2, "Working history did not retain exactly two handoffs");
 
             var invalid = new ToolCallPart("invalid-note", agent.Configuration().Target(), "micro_handoff",
                 JsonSerializer.SerializeToElement(new { text = "   " }));
             Check((await agent.DispatchAsync(invalid)).IsError, "Blank handoff accepted");
-            Check(agent.History().Events().Count(fact => fact.Kind == EventKind.HandoffRecorded) == 3,
+            Check(agent.History().Events().Count(fact => fact.Kind == EventKind.HandoffRecorded) == 2,
                 "Failed handoff caused reduction");
             var direct = new ToolCallPart("direct-note", agent.Configuration().Target(), "micro_handoff",
                 JsonSerializer.SerializeToElement(new { text = "direct replacement" }));
@@ -211,6 +225,8 @@ internal static class HandoffTests
         {
             var agent = new Agent(app, new Configuration(Vendor.OpenAI, "model-a", "http://127.0.0.1:1"));
             var history = agent.History();
+            string save = Path.Combine(directory, "save.json");
+            agent.StartPersistence(new PersistenceOptions(save, Audit: true));
             history.Append(new Event(EventKind.SkillLoaded, parts: [new SkillPart("manual", "retained manual", ["write_file"], pending: true)]));
             history.Append(new Event(EventKind.MessageReceived, actor: Actor.Human, parts: [new TextPart("dialogue")]));
             string[] mediaTypes = ["image/png", "audio/wav", "video/mp4", "application/pdf"];
@@ -223,17 +239,18 @@ internal static class HandoffTests
             }
             history.Append(new Event(EventKind.HandoffRecorded, parts: [new HandoffPart("RETIRED_CHECKPOINT_MARKER")]));
             history.Append(new Event(EventKind.HandoffRecorded, parts: [new HandoffPart("CURRENT_CHECKPOINT_MARKER")]));
-            // Handoff reduces context, not canonical events. Save below explicitly
-            // requests zero retained diagnostics, so check events before that save.
-            if (history.Events().SelectMany(fact => fact.Parts).OfType<BlobPart>().Count() != 8)
-                throw new Exception("Handoff erased canonical media");
-            if (history.Events().Where(fact => fact.Kind == EventKind.HandoffRecorded).Count() != 2)
-                throw new Exception("Handoff erased canonical checkpoint events");
+            // Raw media is retained on disk only when audit is requested.
+            // The resident window begins at the preceding handoff.
+            if (history.Events().SelectMany(fact => fact.Parts).OfType<BlobPart>().Any())
+                throw new Exception("Working history retained media before its handoff boundary");
+            if (history.Events().Count(fact => fact.Kind == EventKind.HandoffRecorded) != 2)
+                throw new Exception("Working history lost recent handoffs");
+            var diskFacts = File.ReadLines(save + ".journal.jsonl").Select(JsonCodec.ReadEvent).ToArray();
+            if (diskFacts.SelectMany(fact => fact.Parts).OfType<BlobPart>().Count() != 8)
+                throw new Exception("Audit journal lost original media");
             var replayed = new Agent(app, agent.Configuration());
-            foreach (var fact in history.Events())
-                replayed.History().Append(fact);
-            string save = Path.Combine(directory, "save.json");
-            history.Save(new PersistenceOptions(save, RetainLog: 0));
+            replayed.History().Load(save + ".journal.jsonl");
+            history.Save(new PersistenceOptions(save, Audit: true));
             var restored = new Agent(app, agent.Configuration());
             if (!restored.History().LoadSave(save)) throw new Exception("Handoff save absent");
             var context = restored.History().View();

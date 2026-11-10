@@ -231,27 +231,20 @@ internal static partial class MeterTests
                 var context = agent.History().View();
                 bool sourceRetained = context.Dialogue.SelectMany(entry => entry.Parts).OfType<TextPart>()
                     .Any(text => text.Text.Contains("ORIGINAL_CONVERSATION_FACT"));
+                Check(context.CompressionOutcome!.State == CompressionState.Committed && !sourceRetained,
+                    "Conversation replacement depended on an optional event archive");
+                var memory = context.Memories.Single(entry => entry.Band == MemoryBand.Session);
+                Check(memory.Text == "CONVERSATION_MEMORY"
+                    && File.ReadAllText(Path.Combine(home, "memory", memory.ID + ".md")) == memory.Text,
+                    "Conversation memory not promoted");
+                // No audit archive is created, and an unrelated old path must not
+                // become a prerequisite for retiring successfully committed input.
+                Check(!Directory.Exists(Path.Combine(home, "archive")),
+                    "Conversation compression created a duplicate event archive");
                 if (blockArchive)
                 {
-                    Check(context.CompressionOutcome!.State == CompressionState.Failed && sourceRetained,
-                        "Failed archive retired conversation source");
-                    Check(!context.Memories.Any(entry => entry.Text == "CONVERSATION_MEMORY")
-                        && !File.Exists(Path.Combine(home, ".memory-stage.json")), "Failed preparation exposed a candidate");
-                    await agent.WorkStatusAsync();
-                    Check(agent.History().Events().Count(e => e.Kind == EventKind.CompressionLaunched) == 1,
-                        "Archive failure retried before another checkpoint");
-                }
-                else
-                {
-                    Check(context.CompressionOutcome!.State == CompressionState.Committed && !sourceRetained,
-                        "Conversation replacement did not commit");
-                    var memory = context.Memories.Single(entry => entry.Band == MemoryBand.Session);
-                    Check(memory.Text == "CONVERSATION_MEMORY"
-                        && File.ReadAllText(Path.Combine(home, "memory", memory.ID + ".md")) == memory.Text,
-                        "Conversation memory not promoted");
-                    string archive = File.ReadAllText(Path.Combine(home, "archive/events.jsonl"));
-                    Check(archive.Contains("ORIGINAL_CONVERSATION_FACT") && archive.Contains("CANONICAL_OPAQUE_ENVELOPE")
-                        && archive.Contains("micro_handoff"), "Archive substituted reduced compressor input for canonical events");
+                    Check(File.ReadAllText(Path.Combine(home, "archive")) == "Fixture blocks directory creation",
+                        "Conversation compression touched the unrelated archive path");
                 }
             }
             finally { app.Destroy(); }

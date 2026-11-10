@@ -121,7 +121,7 @@ internal static partial class ActorTests
                 await agent.FlushAsync(deadline.Token);
                 Check(history.Events().Count(fact => fact.Reason == "manual tool clear") == 1, "Empty repeat manufactured another cut");
                 string save = Path.Combine(directory, "save.json");
-                history.Save(new PersistenceOptions(save, RetainLog: 0));
+                history.Save(new PersistenceOptions(save));
                 var restored = new Agent(app, agent.Configuration());
                 Check(restored.History().LoadSave(save), "Clear snapshot absent");
                 var parts = restored.History().View().Dialogue.SelectMany(entry => entry.Parts).ToArray();
