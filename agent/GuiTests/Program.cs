@@ -77,6 +77,11 @@ if (args is ["--configured-model-tests"])
     await ConfiguredModelTests.RunAsync();
     return;
 }
+if (args is ["--history-window-tests"])
+{
+    await HistoryWindowTests.RunAsync();
+    return;
+}
 if (args is ["--job-window-tests"])
 {
     await JobWindowTests.RunAsync();
@@ -558,6 +563,7 @@ finally
     }
 }
 await ArtifactEvidenceTests.RunAsync();
+await HistoryWindowTests.RunAsync();
 await HandoffProjectionTests.RunAsync();
 await PeerControlsTests.RunAsync();
 await ImageControlsTests.RunAsync();

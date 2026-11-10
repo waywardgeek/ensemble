@@ -543,6 +543,7 @@ function flushCardRenders() {
     }
 }
 function queueCardRender(card) {
+    if (cards.get(card.id) !== card || card.agent !== agentID) return;
     pendingCardRenders.add(card);
     if (cardRenderTimer === null) cardRenderTimer = setTimeout(flushCardRenders, 50);
 }
@@ -630,6 +631,9 @@ function renderRecordedTiming(card) {
     } else elapsed?.remove();
 }
 function render(card) {
+    // Timers and Job callbacks may outlive a replay or display-window eviction.
+    // They must never reinsert a former Agent's card into the current pane.
+    if (cards.get(card.id) !== card || card.agent !== agentID) return;
     if (cardHasSelection(card)) { queueCardRender(card); return; }
     pendingCardRenders.delete(card);
     const artifact = ["tool_call", "tool_result", "blob"].includes(card.kind);
@@ -968,6 +972,22 @@ function handle(frame) {
         return;
     }
     if (frame.type !== "replay" && frame.agent_id != null && frame.agent_id !== agentID) return;
+    if (frame.type === "display_window") {
+        const retained = new Set(frame.part_ids);
+        for (const [id, card] of cards) {
+            if (retained.has(id)) continue;
+            card.workProductController?.abort();
+            card.windowController?.abort();
+            pendingCardRenders.delete(card);
+            card.node.remove();
+            cards.delete(id);
+            if (card.callCard) card.callCard.latestResult = null;
+            if (card.latestResult) card.latestResult.callCard = null;
+        }
+        jobSessions?.retain(cards.values());
+        for (const card of cards.values()) renderPairLink(card);
+        return;
+    }
     if (frame.type === "goal_status" || frame.type === "goal_updated") {
         if (goalSelectionPending) return;
         goalDirty = false;
@@ -1010,9 +1030,9 @@ function handle(frame) {
         cardRenderTimer = null;
         pendingCardRenders.clear();
         for (const card of cards.values()) { card.workProductController?.abort(); card.windowController?.abort(); }
-        jobSessions?.reset();
-        for (const card of cards.values()) card.windowController?.abort();
         cards.clear();
+        // reset() notifies remaining cards; clear ownership before that callback.
+        jobSessions?.reset();
         transcript.replaceChildren();
         toolTranscript.replaceChildren();
         for (const event of frame.data.events || []) handle(event);

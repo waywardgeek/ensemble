@@ -209,7 +209,18 @@ The CLI drains accepted work at EOF and joins shutdown before exiting. The GUI s
 
 GUI replay uses reduced Context for finalized transcript content, plus retained event facts for lifecycle and direct-tool diagnostics. It can therefore restore a snapshot-only save. Context entries retain actual response/part IDs; legacy entries still use deterministic replay IDs. Projection does not append synthetic history or restart old jobs.
 
-Live capture bounds both events and Context entries by the same observed sequence. Otherwise a current snapshot could publish a later final before older queued deltas. Reconnect uses a complete consistent snapshot and must not create duplicate cards or revive a saved shutdown state.
+The GUI displays the newest 100 history events by default, configured by
+`GuiOptions.HistoryEventLimit`. This is a display window, not deletion from
+History or a change to model context. Choose the window before serializing tool
+payloads. Live updates also retire cards and job-output views outside that window.
+
+Live capture uses one current atomic snapshot and caches its projection until
+the durable sequence or Context changes. A delayed notification cannot rewind
+that snapshot; deltas for already finalized responses are ignored. Reconnect
+must not duplicate cards or revive a saved shutdown state. On Agent selection,
+clear card ownership before resetting job views, and reject delayed renders whose
+card object no longer belongs to the current selection. Matching an Agent name
+alone is insufficient when replay has replaced that Agent's previous cards.
 
 ## 10.9 Exercises and verification
 

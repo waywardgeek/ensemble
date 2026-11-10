@@ -70,6 +70,7 @@ public static partial class Gui
     private static partial Model ResolvePreferredModel(Agent agent, System.Text.Json.JsonElement preference);
     // Replay and live durable delivery use this exact same projection.
     public static partial Projection Project(HistorySnapshot snapshot, string agentID);
+    public static partial Projection Project(HistorySnapshot snapshot, string agentID, int eventLimit);
     // Merge authoritative reduced entries with retained lifecycle diagnostics.
     // Synthesized display facts are local projections, never appended to History.
     private static partial ImmutableArray<Event> DisplayFacts(HistorySnapshot snapshot);

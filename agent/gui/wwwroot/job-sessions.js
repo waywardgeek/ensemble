@@ -28,6 +28,16 @@ export function createJobSessions(pane, request = fetch, changed = () => {}) {
         sessions.clear();
         changed();
     }
+    function retain(cards) {
+        const keys = new Set(Array.from(cards, keyFor));
+        for (const [key, session] of sessions) {
+            if (keys.has(key)) continue;
+            clearTimeout(session.timer);
+            session.controller?.abort();
+            session.node.remove();
+            sessions.delete(key);
+        }
+    }
     function selected(node) {
         const selection = window.getSelection();
         if (!selection || selection.isCollapsed) return false;
@@ -161,5 +171,5 @@ export function createJobSessions(pane, request = fetch, changed = () => {}) {
         clearTimeout(session.timer);
         refresh(session);
     }
-    return { observe, reset, output, owns: card => keyFor(card) !== null };
+    return { observe, reset, retain, output, owns: card => keyFor(card) !== null };
 }

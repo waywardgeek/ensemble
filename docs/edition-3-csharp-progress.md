@@ -1,3 +1,15 @@
+# Current boundary: GUI history window and Agent-switch repair installed
+
+Bill reported browser overload and parent/child tool-card mixing. The GUI now
+limits displayed history to 100 events by default, evicts live cards and Job views,
+rejects stale renders after selection/replay, and caches unchanged projections.
+The regression reproduces old parent-card resurrection and passes with the fix.
+GUI/socket/browser checks pass against the installed core and host dependencies;
+see [findings and evidence](edition-3-notes/gui-history-window.md).
+Bill approved installation and restart. The installed GUI serves exactly100
+displayed history events; a real browser switched parent/child/parent with no
+foreign or orphaned cards and no page errors. Engine and host binaries are unchanged.
+
 # Current boundary: local-model integration accepted; external usage review next
 
 Bill accepted ordinary GUI MiMo support: separate Agent, memory/recall disabled,

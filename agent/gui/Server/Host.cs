@@ -75,6 +75,7 @@ public static partial class Gui
     {
         cancellation.ThrowIfCancellationRequested();
         int port = options.Port;
+        ArgumentOutOfRangeException.ThrowIfLessThan(options.HistoryEventLimit, 1);
         string? publicOrigin = ValidatePublicOrigin(options.PublicOrigin);
         if (port is < 1 or > 65535)
         {
@@ -128,6 +129,7 @@ public static partial class Gui
         // One reader and preview buffer per viewed conversation. A tab switch
         // never makes two readers compete for the Agent's lossy observation queue.
         var previews = new Dictionary<Agent, Dictionary<string, JsonObject>>();
+        var captures = new Dictionary<Agent, (HistorySnapshot Snapshot, Projection Projection)>();
         var observers = new Dictionary<Agent, Task>();
         JsonObject? latestTree = null;
         using var stopping = CancellationTokenSource.CreateLinkedTokenSource(
@@ -228,20 +230,16 @@ public static partial class Gui
             observers.Add(selected, Task.Run(() => Observe(selected)));
         }
 
-        (HistorySnapshot Snapshot, Projection Projection) Capture(Agent selected, long? through = null)
+        (HistorySnapshot Snapshot, Projection Projection) Capture(Agent selected)
         {
             var partials = previews[selected];
             var snapshot = selected.History().Snapshot();
-            if (through is long sequence)
-            {
-                snapshot = snapshot with
-                {
-                    Events = snapshot.Events.Where(e => e.Seq <= sequence).ToImmutableArray(),
-                    Context = new Context(snapshot.Context.Dialogue.Where(entry => entry.Seq <= sequence)),
-                    Sequence = Math.Min(snapshot.Sequence, sequence)
-                };
-            }
-            var projection = Project(snapshot, AddressOf(selected));
+            // Polling and individual stream chunks normally see unchanged durable
+            // history. Do not serialize the same transcript on every wake-up.
+            if (captures.TryGetValue(selected, out var cached) && cached.Snapshot.Sequence == snapshot.Sequence
+                && ReferenceEquals(cached.Snapshot.Context, snapshot.Context))
+                return cached;
+            var projection = Project(snapshot, AddressOf(selected), options.HistoryEventLimit);
             // A completed response retires its previews even when a mid-turn
             // cut removes the corresponding final tool cards from Context.
             long ended = snapshot.Events.LastOrDefault(e =>
@@ -254,8 +252,15 @@ public static partial class Gui
                     partials.Remove(key);
                 }
             }
-            return (snapshot, projection);
+            return captures[selected] = (snapshot, projection);
         }
+
+        JsonObject DisplayWindow(Agent selected, Projection projection) => new()
+        {
+            ["type"] = "display_window", ["agent_id"] = AddressOf(selected),
+            ["part_ids"] = new JsonArray(projection.FinalIDs.Concat(previews[selected].Keys)
+                .Select(id => (JsonNode?)JsonValue.Create(id)).ToArray())
+        };
 
         JsonObject Replay(Agent selected, Projection projection) => new()
         {
@@ -283,12 +288,9 @@ public static partial class Gui
                     }
                     lastMeterWire[selected] = meterWire;
                 }
-                long? through = observation?.Fact?.Seq;
-                if (observation?.Kind == ObservationKind.PartDelta)
-                {
-                    through = observation.ResponseID;
-                }
-                var (snapshot, projection) = Capture(selected, through);
+                // A delayed notification cannot rewind the display. Capture the
+                // latest durable state; finalized responses suppress late deltas.
+                var (snapshot, projection) = Capture(selected);
                 long latest = snapshot.Sequence;
                 foreach (var (socket, peer) in peers.ToArray())
                 {
@@ -316,6 +318,7 @@ public static partial class Gui
                     }
                     if (latest > peer.Cursor)
                     {
+                        Queue(socket, peer.Queue, DisplayWindow(selected, projection));
                         Queue(socket, peer.Queue, State(selected, projection));
                         peer.Cursor = latest;
                     }
@@ -369,26 +372,37 @@ public static partial class Gui
 
         async Task Observe(Agent selected)
         {
-            while (!stopping.IsCancellationRequested)
+            try
             {
-                using var wait = CancellationTokenSource.CreateLinkedTokenSource(stopping.Token);
-                wait.CancelAfter(TimeSpan.FromMilliseconds(200));
-                Observation? observation = null;
-                try
+                while (!stopping.IsCancellationRequested)
                 {
-                    observation = await selected.WaitAsync(_ => true, wait.Token);
-                }
-                catch (OperationCanceledException) when (!stopping.IsCancellationRequested)
-                {
-                    // Recover durable facts even if every progress wake-up was dropped.
-                }
-                catch (ChannelClosedException) { return; }
-                catch (ObjectDisposedException) { return; }
-                if (!stopping.IsCancellationRequested &&
-                    (observation is null || observation.Kind is ObservationKind.EventRecorded or ObservationKind.PartDelta))
-                {
-                    try { Broadcast(selected, observation); }
+                    using var wait = CancellationTokenSource.CreateLinkedTokenSource(stopping.Token);
+                    wait.CancelAfter(TimeSpan.FromMilliseconds(200));
+                    Observation? observation = null;
+                    try
+                    {
+                        observation = await selected.WaitAsync(_ => true, wait.Token);
+                    }
+                    catch (OperationCanceledException) when (!stopping.IsCancellationRequested)
+                    {
+                        // Recover durable facts even if every progress wake-up was dropped.
+                    }
+                    catch (ChannelClosedException) { return; }
                     catch (ObjectDisposedException) { return; }
+                    if (!stopping.IsCancellationRequested &&
+                        (observation is null || observation.Kind is ObservationKind.EventRecorded or ObservationKind.PartDelta))
+                    {
+                        try { Broadcast(selected, observation); }
+                        catch (ObjectDisposedException) { return; }
+                    }
+                }
+            }
+            finally
+            {
+                lock (gate)
+                {
+                    captures.Remove(selected);
+                    previews[selected].Clear();
                 }
             }
         }

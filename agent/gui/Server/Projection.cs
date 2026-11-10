@@ -95,8 +95,18 @@ public static partial class Gui
         return facts.OrderBy(fact => fact.Seq).ToImmutableArray();
     }
 
-    public static partial Projection Project(HistorySnapshot snapshot, string agentID)
+    public static partial Projection Project(HistorySnapshot snapshot, string agentID) => Project(snapshot, agentID, 100);
+
+    public static partial Projection Project(HistorySnapshot snapshot, string agentID, int eventLimit)
     {
+        ArgumentOutOfRangeException.ThrowIfLessThan(eventLimit, 1);
+        var facts = DisplayFacts(snapshot);
+        // Count displayed history events, not stream chunks or state changes.
+        // Decide the window before serializing payloads, including large tools.
+        long first = facts.Where(fact => fact.Kind is EventKind.MessageReceived or EventKind.HintReceived
+            or EventKind.ResponseEnded or EventKind.ToolReturned or EventKind.ToolObserved
+            or EventKind.ErrorOccurred or EventKind.TurnInterrupted or EventKind.JobKilled or EventKind.AgentShutdown)
+            .TakeLast(eventLimit).FirstOrDefault()?.Seq ?? snapshot.Sequence;
         var frames = ImmutableArray.CreateBuilder<JsonObject>();
         var ids = ImmutableHashSet.CreateBuilder<string>();
         var calls = new Dictionary<string, string>(StringComparer.Ordinal);
@@ -105,7 +115,7 @@ public static partial class Gui
         bool paused = false;
         bool shutdown = false;
         var context = new Context();
-        foreach (var fact in DisplayFacts(snapshot))
+        foreach (var fact in facts)
         {
             // DisplayFacts combines the authoritative retained transcript with
             // diagnostics, not a complete replayable History. Reduce only turn
@@ -116,6 +126,12 @@ public static partial class Gui
                 or EventKind.TurnInterrupted or EventKind.TurnEnded or EventKind.ErrorOccurred)
             {
                 context = History.Reduce(context, fact);
+                // Phase reduction needs only the current tool batch. Retaining
+                // every old message here copies a growing transcript per event.
+                if (context.Phase != Phase.ToolsPending)
+                    context = new Context(phase: context.Phase);
+                else if (fact.Kind == EventKind.ResponseEnded)
+                    context = new Context(context.Dialogue.TakeLast(1), phase: context.Phase);
             }
             if (fact.Kind == EventKind.RuntimeConfigured)
             {
@@ -138,13 +154,15 @@ public static partial class Gui
                 : paused ? "paused" : context.Phase.ToString().ToLowerInvariant();
             if (next != state)
             {
-                frames.Add(new JsonObject
-                {
-                    ["type"] = "state_changed", ["agent_id"] = agentID, ["seq"] = fact.Seq,
-                    ["from"] = state, ["to"] = next
-                });
+                if (fact.Seq >= first)
+                    frames.Add(new JsonObject
+                    {
+                        ["type"] = "state_changed", ["agent_id"] = agentID, ["seq"] = fact.Seq,
+                        ["from"] = state, ["to"] = next
+                    });
                 state = next;
             }
+            if (fact.Seq < first) continue;
             if (fact.Kind is EventKind.MessageReceived or EventKind.HintReceived or EventKind.ResponseEnded)
             {
                 if (fact.Kind == EventKind.ResponseEnded)

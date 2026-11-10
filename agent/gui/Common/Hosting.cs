@@ -22,4 +22,8 @@ namespace EnsembleGui;
 // operation-owned aggregate trace for embedding/tests, not the normal host mode.
 public sealed record GuiOptions(int Port = 8090, string? AssetsDirectory = null,
     string SettingsPath = "settings.json", string? TracePath = null, string BasePath = "",
-    string? PublicOrigin = null, string? RendererDirectory = null);
+    string? PublicOrigin = null, string? RendererDirectory = null)
+{
+    // Presentation only: neither durable History nor model context is trimmed.
+    public int HistoryEventLimit { get; init; } = 100;
+}

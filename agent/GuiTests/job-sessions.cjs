@@ -69,8 +69,9 @@ assert(!['8088','8089','8090'].includes(new URL(base).port));
    assert.equal(await page.locator('[data-part-id="input"] .preview').textContent(),'View Job 77 output');
    assert(await page.evaluate(()=>{
     const card=cards.get('wait'), agent=card.agent, job=card.job;
+    const before=card.node.innerHTML;
     card.agent='different-agent'; render(card);
-    const otherAgent=!card.node.querySelector('.session-output-link');
+    const otherAgent=jobSessions.output(card)===null && card.node.innerHTML===before;
     card.agent=agent; card.job={...job,origin_call_id:'different-origin'}; render(card);
     const otherOrigin=!card.node.querySelector('.session-output-link');
     card.job=job; render(card);
