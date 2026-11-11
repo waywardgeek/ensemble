@@ -6,6 +6,10 @@ application is C# 14 / .NET 10, developed inside Ensemble with Cadence.
 
 ## Development-Driven Specifications, not Spec-Driven Development
 
+[![Code is disposable. Knowledge compounds. Start the five-slide presentation.](https://raw.githubusercontent.com/waywardgeek/dev-driven-specs/main/presentation/slide-01.png)](https://coderhapsody.ai/presentation)
+
+**[Start the five-slide presentation](https://coderhapsody.ai/presentation)** · [Download PowerPoint](https://github.com/waywardgeek/dev-driven-specs/blob/main/presentation/development-driven-specifications.pptx)
+
 **Build the code and the specification together. Development earns the spec.**
 The goal is not to write a detailed plan up front and hand it to an AI, or to
 vibe-code a system and document its source afterward. The goal is to become the
