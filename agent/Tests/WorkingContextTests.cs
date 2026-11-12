@@ -111,6 +111,8 @@ internal static class WorkingContextTests
 
     public static void Values()
     {
+        Check(Engine.LookupModel(Vendor.OpenAI, "gpt-6-astra", out var astraFeatures)
+            && astraFeatures.ContextWindow == 1_050_000, "Astra advertised context window");
         var astra = new WorkingContextLimit(Vendor.OpenAI, "gpt-6-astra", 250_000, 1_000_000);
         var small = new WorkingContextLimit(Vendor.OpenAI, "small", 250);
         var review = new WorkingContextLimit(Vendor.OpenAI, "review", 750_000, 1_000_000);

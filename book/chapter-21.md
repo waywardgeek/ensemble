@@ -1,11 +1,9 @@
 # Chapter 21: Workflows
 
-> **In development.** The sandboxed fiction workflow now passes its specified
-> local checks for Exercises 1–7. The general workflows skill required by Exercise 8
-> passes its loader and executable-example checks. The teaching body and walkthrough
-> are drafted; both independent reviews and their incorporation are complete.
-> An assisted student reconstruction passed its required checks. The live human
-> walkthrough remains pending.
+> **Implemented and exercised.** The local checks, independent code and text
+> reviews, and assisted student reconstruction are complete. A supervised live
+> novel run completed 30 chapters and its first revision pass before Bill chose
+> to stop and read it. See the acceptance section for recovery lessons and limits.
 
 If you haven't already, why not ask your most capable model, perhaps Fable 5.2
 or GPT-6 Astra as you read this, to write a fiction book so good it becomes a
@@ -556,6 +554,12 @@ can require 57 assignments when every Editor requests revision, and each assignm
 can make several model requests. This is a paid-provider experiment, not a cheap
 single prompt. Choose a model with enough context for the complete story and its
 instructions. The byte limits below do not establish that capacity.
+The packaged driver spawns new global reviewers with a 700,000-token working
+input limit, persisted before their first task. This keeps whole-book review
+separate from ordinary chapter-role limits; it does not change models or funding,
+or prove complete inputs will fit. Known model capacity must permit the setting.
+Existing pending reviewers are reconciled without redispatch or silent retuning.
+
 
 The setup below is for macOS, where the native confinement checks ran. It requires
 an existing Python installation at `/usr/bin/python3`, a built current GUI host,
@@ -938,7 +942,7 @@ regression check, not another literary-quality gate. Preserve logs until results
 are inspected; afterward the directory printed by `printf '%s\n' "$CHECK"` can be
 removed. Tests join their owned processes; cancellation alone is not cleanup.
 
-### Remaining acceptance
+### Acceptance and live-use limits
 
 The single code review and single text review are complete, with their findings
 incorporated. One fresh student implemented all eight exercises and passed the
@@ -949,13 +953,38 @@ assumptions were corrected. The student fixed its own refusal envelope. These
 lessons are incorporated above; the trial does not prove the original materials
 were sufficient without clarification.
 
-The live human walkthrough remains pending. Input setup and role-home transfer
-are implemented; see the
+Bill and Cadence subsequently used the packaged workflow for a 30-chapter novel.
+The selected run completed its initial draft and all 30 first-pass revisions.
+During the second round of chapter reviews, Bill chose to stop polishing and read
+the book for personal enjoyment. The supervisor cancelled the outer Job, stopped
+the workflow server, cancelled and joined the remaining reviewer, and preserved
+the drafts, feedback and incomplete ledger. A separate reading copy was assembled
+from the hash-verified first-pass chapters. This is a deliberate stop, not a
+three-round completion receipt or an editorial approval of the unfinished review.
+
+The live run required supervision. Failed provider turns and tool-admission
+refusals interrupted progress; a submitted child also needed explicit driver
+reconciliation after a human interruption. Recovery preserved the original
+assignment and inspected saved outputs before continuing. A refused observation
+did not prove the underlying read failed. Only a verified terminal refusal with
+no source delivered justified an explicitly bounded replacement read. Quiet work,
+source-byte totals and a saved draft were not evidence of failure, token overflow
+or completed review, respectively.
+
+Whole-book input also exposed the difference between advertised capacity and an
+Agent's working-token limit. New global reviewers now request their larger limit
+before their first task; existing reviewers and other chapter roles are not
+silently retuned. Complete-input capacity still requires supervision when blocked.
+These results demonstrate useful supervised operation, not unattended reliability,
+universal provider capacity, literary quality, or completion of every review round.
+The fixed schedule is a workflow contract, not a reason to override a human's
+changed purpose: stopping preserves evidence rather than manufacturing success.
+
+Input setup and role-home transfer are implemented; see the
 [workflow package reference](../agent/skills/fiction-workflow/README.md).
 Agent-proposed skill approval is deferred, not a hidden exercise requirement.
-No live fiction run or comparison using inherited Cadence memories has been
-performed. Byte-limit refusal is tested; it is not a prediction of provider token
-capacity. Reviewers must ask for supervision if the complete input cannot fit,
-not claim completion after partial reading.
+Byte-limit refusal is tested; it is not a prediction of provider token capacity.
+Reviewers must ask for supervision if the complete input cannot fit, not claim
+completion after partial reading.
 
 Next: [Forgetting on Purpose](chapter-22.md).

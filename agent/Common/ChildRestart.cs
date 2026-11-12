@@ -26,6 +26,6 @@ public sealed partial class Agent
         Configuration? selection = null, JsonElement? completion = null);
     private partial ChildRestartState? ReadChildRestart(string id);
     private partial Task<Agent> CreateChildCoreAsync(string childID, string? model,
-        JsonElement? submitSchema, ChildRestartState? restart, CancellationToken cancellation, bool waitForBrowser = false);
+        JsonElement? submitSchema, ChildRestartState? restart, CancellationToken cancellation, bool waitForBrowser = false, long? workingContextTokens = null);
     private partial Task RestoreChildGoalAsync(ChildRestartState restart, CancellationToken cancellation);
 }

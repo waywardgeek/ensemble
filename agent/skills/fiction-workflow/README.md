@@ -82,6 +82,15 @@ submission. The returned payload is only a validation candidate: no artifact is
 accepted and no pending assignment cleared here. Lost replies, malformed output
 and cancellation never trigger redispatch. Resume through read-only reconciliation.
 
+New global (whole-book) reviewers request `working_context_tokens: 700000` at
+spawn. Native child creation validates this against known serving/advertised
+capacity and persists the exact-route policy before admitting the first task.
+Chapter reviewers, Authors and Editors omit this option and retain ordinary
+settings. A pending reviewer is reconciled, not recreated or silently retuned;
+its supervisor must resolve any existing capacity block. The limit is input
+tokens, not a claim that source bytes fit or that reading was complete. Model
+selection and funding are unchanged.
+
 Role-home preparation, exact tool-schema preflight and sole-driver ownership are
 caller responsibilities. Subsequent turns retain the original child submission
 schema. The adapter bounds complete output to one MiB in both bare and wrapped

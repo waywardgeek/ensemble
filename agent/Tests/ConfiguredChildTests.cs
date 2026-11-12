@@ -31,7 +31,19 @@ internal static class ConfiguredChildTests
         {
             Model model = Configure(app);
             var parent = new Agent(app, new Configuration(policy, model), dataDirectory: home);
-            Agent child = await parent.CreateChildAsync("local", cancellation: deadline.Token);
+            bool refused = false;
+            try
+            {
+                await parent.CreateChildAsync("too-large", workingContextTokens: 700_000);
+            }
+            catch (ArgumentOutOfRangeException)
+            {
+                refused = true;
+            }
+            Check(refused && parent.Children().IsEmpty,
+                "Serving capacity must refuse oversized child policy before ownership changes.");
+            Agent child = await parent.CreateChildAsync("local", cancellation: deadline.Token,
+                workingContextTokens: 3000);
             await child.PostAsync(new AgentInput(InputKind.Pause));
             child.History().Append(new Event(EventKind.MessageReceived, actor: Actor.Human,
                 parts: [new TextPart("Keep this conversation without replaying an inference.")]));
@@ -54,7 +66,12 @@ internal static class ConfiguredChildTests
             var parent = new Agent(app, policy, dataDirectory: home);
             await parent.RestoreChildrenAsync(deadline.Token);
             Agent child = parent.FindChild("local")!;
+            await child.SetMemorySettingsAsync(child.MemorySettings());
             Configuration restored = child.Configuration();
+            Check(child.WorkingContextStatus().WorkingTokens == 3000
+                && child.WorkingContextStatus().CapacityTokens == 4096
+                && child.WorkingContextLimits().Single().Offering == model.Identity(),
+                "Child restart lost its exact-offering working policy.");
             Check(restored.Offering == model.Identity() && restored.BaseUrl == "http://127.0.0.1:1"
                 && restored.Billing == BillingMode.None && restored.ApiKey.Length == 0,
                 "Restoration preserves the configured route and explicit unauthenticated funding.");

@@ -3,11 +3,12 @@ namespace Ensemble;
 public sealed partial class Agent
 {
     public partial Task<Agent> CreateChildAsync(string childID, string? model,
-        System.Text.Json.JsonElement? submitSchema, CancellationToken cancellation)
-        => CreateChildCoreAsync(childID, model, submitSchema, null, cancellation);
+        System.Text.Json.JsonElement? submitSchema, CancellationToken cancellation, long? workingContextTokens)
+        => CreateChildCoreAsync(childID, model, submitSchema, null, cancellation,
+            workingContextTokens: workingContextTokens);
 
     private partial async Task<Agent> CreateChildCoreAsync(string childID, string? model,
-        System.Text.Json.JsonElement? submitSchema, ChildRestartState? restart, CancellationToken cancellation, bool waitForBrowser)
+        System.Text.Json.JsonElement? submitSchema, ChildRestartState? restart, CancellationToken cancellation, bool waitForBrowser, long? workingContextTokens)
     {
         cancellation.ThrowIfCancellationRequested();
         // Snapshot values before admission: no Skills -> Agent lock-order reversal.
@@ -31,6 +32,12 @@ public sealed partial class Agent
         {
             inherited = inherited.WithModel(model);
         }
+        // Validate against the actual child route before creating files or membership.
+        // This is a working-input policy, not a change of model or funding.
+        WorkingContextLimit? contextLimit = workingContextTokens is long tokens
+            ? new WorkingContextLimit(inherited.Vendor, inherited.Model, tokens,
+                inherited.ServingContextTokens ?? inherited.Features.ContextWindow, inherited.Offering)
+            : null;
         var bootstrap = SkillManager()?.CaptureBootstrap();
         Agent? child = null;
         try
@@ -85,6 +92,12 @@ public sealed partial class Agent
                     await child.EnsureMcp().WaitForBrowserAsync(cancellation).ConfigureAwait(false);
                 }
                 await skills.InitializeAsync(cancellation);
+            }
+            if (contextLimit is not null)
+            {
+                // Persist before returning a ready child: the caller cannot admit
+                // its first task under the old default, and restart keeps the limit.
+                await child.SetWorkingContextLimitAsync(contextLimit, persist: true, cancellation: cancellation);
             }
             cancellation.ThrowIfCancellationRequested();
             lock (child.ingress)

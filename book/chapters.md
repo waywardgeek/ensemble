@@ -29,7 +29,7 @@ remaining closeout work complete.
 - [Chapter 18: The Sandbox](chapter-18.md)
 - [Chapter 19: The Ensemble](chapter-19.md)
 - [Chapter 20: Managing the Swarm](chapter-20.md)
-- [Chapter 21: Workflows](chapter-21.md) (in development)
+- [Chapter 21: Workflows](chapter-21.md)
 - [Chapter 22: Forgetting on Purpose](chapter-22.md)
 - [Chapter 23: Auto-Recall](chapter-23.md)
 - [Chapter 24: While the Cache Is Broken](chapter-24.md)
@@ -42,11 +42,14 @@ remaining closeout work complete.
 - [Epilogue: What we can rebuild](epilogue.md)
 - [A note from Bill](note-from-bill.md)
 
-## Current development
+## Revision 2 closeout
 
-Workflows is now Chapter 21, after Managing the Swarm. The fiction-writer example
-is under development; later manuscript chapters shift by one. The completed
-PDF/EPUB release has not been regenerated for this new chapter.
+Workflows is Chapter 21, after Managing the Swarm. Its implementation, bounded
+external grading, assisted reconstruction exercise and supervised live use are
+complete within the limits recorded in the chapter. The selected novel reached
+all 30 first-pass revisions before Bill chose to stop and read it; that is not
+completion of the workflow's three-round schedule. The manuscript has 31 chapters,
+00–30. Publication artifacts are verified separately from source completion.
 
 ## Prior first-book closeout work
 

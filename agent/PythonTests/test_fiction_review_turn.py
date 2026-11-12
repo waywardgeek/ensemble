@@ -21,6 +21,7 @@ class ReviewPeer:
         self.root = root
         self.payload = None
         self.admissions = 0
+        self.spawn_arguments = []
         self.lose_reply = False
         self.change_source = False
         self.report = "Specific criticism of the fixture passage."
@@ -34,6 +35,7 @@ class ReviewPeer:
         if name != "spawn_sub_agent":
             raise AssertionError("Unexpected child operation: " + name)
         self.admissions += 1
+        self.spawn_arguments.append(arguments)
         pending = json.loads((self.root / "state.json").read_text())["pending"]
         self.payload = {"assignment_id": pending["id"]}
         (self.root / "review.md").write_text(self.report, encoding="utf-8")
@@ -95,6 +97,22 @@ class ReviewTurnTests(unittest.IsolatedAsyncioTestCase):
             with RunStore(directory) as store:
                 self.assertEqual((await self.advance(peer, store))["action"], "reviewed")
             self.assertEqual(peer.admissions, 1)
+
+    async def test_only_global_review_requests_large_working_context(self):
+        for phase, chapter in (("detail_review", 1), ("global_review", 0)):
+            with tempfile.TemporaryDirectory() as directory, RunStore(directory) as store:
+                peer = self.seed(directory)
+                peer.lose_reply = True
+                self.assertEqual((await self.advance(peer, store, phase=phase,
+                                                    chapter=chapter))["action"], "supervise")
+                arguments = peer.spawn_arguments[0]
+                if phase == "global_review":
+                    self.assertEqual(arguments["working_context_tokens"], 700_000)
+                else:
+                    self.assertNotIn("working_context_tokens", arguments)
+                self.assertEqual((await self.advance(peer, store, phase=phase,
+                                                    chapter=chapter))["action"], "reviewed")
+                self.assertEqual(peer.admissions, 1)
 
     async def test_changed_source_keeps_pending(self):
         with tempfile.TemporaryDirectory() as directory, RunStore(directory) as store:

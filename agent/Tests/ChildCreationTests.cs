@@ -24,7 +24,7 @@ internal static class ChildCreationTests
                 parts: [new TextPart("parent-only dialogue")]));
             // Templates are already parsed; children must not reread this directory.
             Directory.Delete(manuals, recursive: true);
-            var child = await parent.CreateChildAsync("writer", model: "model-b");
+            var child = await parent.CreateChildAsync("writer", model: "model-b", workingContextTokens: 700_000);
             string childHome = Path.Combine(parent.DataDirectory(), "children", "writer");
             Check(child.DataDirectory() == childHome && child.Jobs().OutputDirectory == Path.Combine(childHome, "jobs"),
                 "Child state/output paths do not follow parent ownership");
@@ -41,6 +41,8 @@ internal static class ChildCreationTests
                 parts: [new TextPart("child-owned dialogue")]));
             child.PublishSubmission("old completion");
             var grandchild = await child.CreateChildAsync("writer");
+            Check(grandchild.WorkingContextStatus().WorkingTokens == 250_000,
+                "Ordinary children inherited the review-only working limit");
             Check(grandchild.SkillManager()!.Active().Any(s => s.Body.Contains("inherited")),
                 "Child variables share parent mutation");
             Check(grandchild.DataDirectory() == Path.Combine(childHome, "children", "writer")
@@ -49,6 +51,14 @@ internal static class ChildCreationTests
             Check(parent.FindChild("writer") is null && File.Exists(Path.Combine(childHome, "save.json")),
                 "Destruction failed to detach or retain conversation");
             var restored = await parent.CreateChildAsync("writer");
+            await restored.SetMemorySettingsAsync(restored.MemorySettings());
+            Check(restored.WorkingContextLimits().Any(limit => limit.Model == "model-b"
+                    && limit.WorkingTokens == 700_000)
+                && restored.WorkingContextStatus().WorkingTokens == 250_000,
+                "Restore lost saved policy or applied it to a different model");
+            await restored.SetModelAsync("model-b");
+            Check(restored.WorkingContextStatus().WorkingTokens == 700_000,
+                "Selecting the original model did not recover its saved working limit");
             Check(Text(restored).Contains("child-owned dialogue") && restored.Submission() is null,
                 "Own History was not restored, or an old submission became new completion");
             Check(restored.SkillManager()!.Active().Any(s => s.Body.Contains("later")),
@@ -79,6 +89,9 @@ internal static class ChildCreationTests
             using var badSchema = JsonDocument.Parse("{\"type\":\"object\",\"unsupported\":true}");
             await Refuses(() => parent.CreateChildAsync("bad-schema", submitSchema: badSchema.RootElement));
             await Refuses(() => parent.CreateChildAsync("../escape"));
+            await Refuses(() => parent.CreateChildAsync("zero-context", workingContextTokens: 0));
+            await Refuses(() => parent.CreateChildAsync("over-context", model: "claude-3-haiku-20240307",
+                workingContextTokens: 700_000));
             using var cancelled = new CancellationTokenSource();
             cancelled.Cancel();
             await Refuses(() => parent.CreateChildAsync("cancelled", cancellation: cancelled.Token));

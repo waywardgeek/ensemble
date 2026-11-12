@@ -64,6 +64,7 @@ internal static partial class ActorTests
                 """);
             ToolResultPart early = await ChildCall(parent, "spawn_sub_agent", new {
                 agent_id = "worker", task = "CHILD_ONLY_TASK", model = "child-model", submit_schema = schema,
+                working_context_tokens = 700_000,
                 ai_callback_delay = 120, ai_callback_pattern = "never-match-this"
             }, deadline.Token);
             Check(!early.IsError && early.Job?.Status == "running" && JsonCodec.Text(early.Parts).Contains("worker"),
@@ -71,6 +72,11 @@ internal static partial class ActorTests
             Agent child = parent.FindChild("worker")!;
             Job spawn = parent.Jobs().Find(early.Job!.Handle);
             await entered.Task.WaitAsync(deadline.Token);
+            Check(child.WorkingContextStatus().WorkingTokens == 700_000
+                && parent.WorkingContextStatus().WorkingTokens == 250_000,
+                "Spawn limit was not installed before first inference or changed parent policy.");
+            Check(File.ReadAllText(Path.Combine(child.DataDirectory(), "settings.json")).Contains("700000"),
+                "Spawn context policy was not persisted before first inference.");
             AgentWorkStatus busy = await child.WorkStatusAsync(deadline.Token);
             Check(busy.Activity == AgentActivity.Busy && !busy.Submitted && busy.Failure is null,
                 "Running child status invented completion.");
@@ -141,6 +147,10 @@ internal static partial class ActorTests
             parent.StartPersistence(new PersistenceOptions(Path.Combine(work, "save.json")));
             foreach (object invalid in new object[] {
                 new { agent_id = "bad-task", task = " " },
+                new { agent_id = "zero-context", task = "work", working_context_tokens = 0 },
+                new { agent_id = "negative-context", task = "work", working_context_tokens = -1 },
+                new { agent_id = "fraction-context", task = "work", working_context_tokens = 1.5 },
+                new { agent_id = "string-context", task = "work", working_context_tokens = "700000" },
                 new { agent_id = "bad-schema", task = "work", submit_schema = new { type = "object", unsupported = true } },
                 new { agent_id = "../escape", task = "work" }
             })

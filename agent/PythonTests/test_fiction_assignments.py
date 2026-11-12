@@ -93,6 +93,15 @@ class AssignmentTests(unittest.IsolatedAsyncioTestCase):
                     self.assertIsNotNone(store.snapshot()["pending"])
                     self.assertEqual(store.snapshot()["accepted"], [])
 
+    async def test_invalid_context_policy_has_no_dispatch_effect(self):
+        for value in (0, -1, True, 1.5, "700000"):
+            with tempfile.TemporaryDirectory() as directory, RunStore(directory) as store:
+                peer = ChildPeer(Path(directory))
+                with self.assertRaises(StateError):
+                    await dispatch(peer, store, **self.options(), working_context_tokens=value)
+                self.assertIsNone(store.snapshot()["pending"])
+                self.assertEqual(peer.calls, [])
+
     async def test_missing_new_child_schema_has_no_effect(self):
         with tempfile.TemporaryDirectory() as directory, RunStore(directory) as store:
             peer = ChildPeer(Path(directory))

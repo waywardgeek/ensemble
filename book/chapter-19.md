@@ -349,7 +349,12 @@ fact the framework can verify.
 
 Seven tools form the fleet API:
 
-- `spawn_sub_agent` creates a child from a specification.
+- `spawn_sub_agent` creates a child from a specification. Its optional positive
+  `working_context_tokens` sets and saves the exact selected route's working-input
+  limit before the first task. Known serving capacity (or advertised model capacity
+  when serving capacity is unknown) bounds it. Omission preserves ordinary child
+  settings; the parent's working limit is not automatically inherited. Invalid
+  limits refuse before child construction, and initialization failure joins cleanup.
 - `join_agents` blocks until every listed child has submitted, returning
   each child's result.
 - `agents_status` lists live children and their current state.
@@ -378,7 +383,7 @@ The tool arguments are small:
 
 | Tool | Arguments |
 | --- | --- |
-| `spawn_sub_agent` | `agent_id`, `task`, optional `model` and `submit_schema` |
+| `spawn_sub_agent` | `agent_id`, `task`, optional `model`, `submit_schema`, and `working_context_tokens` |
 | `join_agents` | optional `agent_ids`; omitted means all current children |
 | `agents_status` | none |
 | `shutdown_agent` | `agent_id` |

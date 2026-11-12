@@ -9,7 +9,8 @@ from run_state import StateError
 
 
 async def dispatch(connection, store, *, child_id, phase, round_number,
-                   chapter, turn, task, new_child, submit_schema=None):
+                   chapter, turn, task, new_child, submit_schema=None,
+                   working_context_tokens=None):
     """Save intent, dispatch once, and return a matching validation candidate.
 
     A new child must have its role home prepared before this call. Existing
@@ -27,6 +28,11 @@ async def dispatch(connection, store, *, child_id, phase, round_number,
     if not new_child and submit_schema is not None:
         raise StateError("An existing child's submission schema cannot be replaced")
 
+    if working_context_tokens is not None:
+        if (not new_child or type(working_context_tokens) is not int
+                or working_context_tokens < 1):
+            raise StateError("Working context requires a positive token limit on a new child")
+
     assignment = store.prepare(child_id, phase, round_number, chapter, turn, task)
     # The saved task is the supplied instruction; this deterministic envelope
     # binds the actual turn to its durable assignment without another state copy.
@@ -37,11 +43,11 @@ async def dispatch(connection, store, *, child_id, phase, round_number,
         + task
     )
     if new_child:
-        payload = await spawn_result(connection, {
-            "agent_id": child_id,
-            "task": instruction,
-            "submit_schema": submit_schema,
-        })
+        arguments = {"agent_id": child_id, "task": instruction,
+                     "submit_schema": submit_schema}
+        if working_context_tokens is not None:
+            arguments["working_context_tokens"] = working_context_tokens
+        payload = await spawn_result(connection, arguments)
     else:
         response = await call_json(connection, "ask_agent", {
             "agent_id": child_id,

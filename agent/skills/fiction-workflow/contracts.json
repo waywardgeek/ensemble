@@ -29,6 +29,10 @@
       "max_output_bytes": {
         "type": "integer",
         "description": "Positive inline report cap; default 16384. Full output stays on disk."
+      },
+      "working_context_tokens": {
+        "type": "integer",
+        "description": "Optional positive working input-token limit; saved before the first task, bounded by known model capacity."
       }
     },
     "required": [

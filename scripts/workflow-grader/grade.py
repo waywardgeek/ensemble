@@ -234,6 +234,8 @@ async def grade(server, creative=False):
         assert not peer.tasks and not (root / "state.json").exists()
         print("PASS missing-contract refusal before work")
         interrupted = await invoke(server, setup, peer, catalog)
+        # Surface a stale public contract as a preflight error, not a JSON parse failure.
+        assert not interrupted.get("isError"), interrupted["content"]
         assert json.loads(interrupted["content"][0]["text"])["action"] == "supervise"
         assert len(peer.tasks) == 1
         completed = await invoke(server, setup, peer, catalog)

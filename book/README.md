@@ -19,13 +19,11 @@ Historical foundation checks alone were not that human acceptance. The optional 
 completed after Gateway and Goals, and its historical `ch24` endpoint intentionally
 contains that foundation. Earlier endpoints are not renamed or overwritten.
 
-The working manuscript now has 31 chapter slots, 00–30. Workflows is Chapter 21
-and is under development; Advanced Artifacts is Chapter 29 and Crossing Over is
-Chapter 30. The assembled Markdown follows this working manuscript.
-
-The existing EPUB and PDFs remain the completed 30-chapter release, 00–29, before
-the Workflows insertion. They have not been rebuilt or newly verified for this
-change. Historical partial and ungraded exercise results retain their limits.
+Third Edition, Revision 2 contains 31 chapters, 00–30, in the assembled
+Markdown, EPUB and PDFs. Workflows is Chapter 21, Advanced Artifacts is Chapter 29,
+and Crossing Over is Chapter 30. Workflows includes local checks, independent
+reviews, an assisted student reconstruction, and supervised live-use evidence.
+Historical partial and ungraded exercise results retain their limits.
 Gateway, Connections, Agenda and Puffin remain in
 [the Puffin book](../puffin-book/README.md). See the [chapter guide](chapters.md).
 
@@ -59,7 +57,7 @@ endpoints, archived evidence, or executable grader flags to match the book.
 | 18 | Sandbox | 19 / `ch19` |
 | 19 | Ensemble | 20 / `ch20` |
 | 20 | Managing the swarm | 21 / `ch21` |
-| 21 | Workflows | In development; no preserved endpoint or completed grader |
+| 21 | Workflows | Active source and external stdio grader; no preserved endpoint |
 | 22 | Memory | 22 / `ch22` |
 | 23 | Recall | 23 / `ch23` |
 | 24 | Codex/cache | 24 / `ch24` |
@@ -141,8 +139,8 @@ because the command-line renderer wrote a PDF but exited nonzero on teardown.
 Outputs are the assembled Markdown, EPUB, coverless **Print Interior.pdf**, and
 **The Art of Building AI Coding Agents.pdf** with the cover for free reading.
 `interior-print.html` is the intermediate print input. Existing cover artwork is
-reused as requested. The current coverless interior is **535 pages at 7 × 10
-inches**; the covered reading PDF is **536 pages**. The reading PDF is for the
+reused as requested. The current coverless interior is **561 pages at 7 × 10
+inches**; the covered reading PDF is **562 pages**. The reading PDF is for the
 website, not the KDP interior upload. A print cover wrap is separate and must be
 sized for the final interior and selected paper.
 

@@ -247,6 +247,7 @@ public sealed partial class Tool
                 Field("agent_id", "string", "Unique direct child ID.", true);
                 Field("task", "string", "Delegated task.", true);
                 Field("model", "string", "Optional compatible same-provider model.");
+                Field("working_context_tokens", "integer", "Optional positive working input-token limit; saved before the first task, bounded by known model capacity.");
                 Field("submit_schema", "object", "Optional complete bounded submission schema; validated before child creation.");
                 break;
             case ToolKind.ShutdownAgent:

@@ -22,12 +22,15 @@ public sealed partial class Agent
     /// <summary>Create a ready child beneath this Agent's data home.
     /// Inherits current configuration and parsed skill templates, not live grants
     /// or clients. Restores only the child's History before initialization. Does
-    /// not submit a task. Successful ordinary creation records restart registration.
+    /// not submit a task. An optional positive workingContextTokens policy is validated
+    /// against the selected route's known capacity and saved before returning the child;
+    /// omission preserves ordinary settings. Invalid policy refuses creation.
+    /// Successful ordinary creation records restart registration.
     /// Failed/cancelled creation destroys the child, retaining
     /// its files; callers may retry the same ID after cleanup has completed.</summary>
     public partial Task<Agent> CreateChildAsync(string childID, string? model = null,
         System.Text.Json.JsonElement? submitSchema = null,
-        CancellationToken cancellation = default);
+        CancellationToken cancellation = default, long? workingContextTokens = null);
     public partial Agent? AgentParent();
     public partial string? ChildID();
     internal static partial void ValidateChildID(string childID);

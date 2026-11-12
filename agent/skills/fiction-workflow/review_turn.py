@@ -110,7 +110,10 @@ async def advance_review(connection, store, *, phase, review_round, chapter,
         try:
             payload = await dispatch(connection, store, child_id=child_id,
                 phase=phase, round_number=review_round, chapter=chapter, turn=1,
-                task=task, new_child=True, submit_schema=REVIEW_SCHEMA)
+                task=task, new_child=True, submit_schema=REVIEW_SCHEMA,
+                # Whole-book evidence must survive the full review. Chapter roles
+                # retain their ordinary limits; pending work is reconciled above.
+                working_context_tokens=700_000 if phase == "global_review" else None)
         except (ObservationError, ConnectionError):
             return {"action": "supervise", "child_id": child_id,
                     "reason": "Review outcome uncertain; reconcile existing work"}

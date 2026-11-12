@@ -1,3 +1,24 @@
+# Current boundary: Workflows closeout and Third Edition, Revision 2
+
+Bill has closed the Workflows development increment and requested publication of
+this 31-chapter edition (00–30). Chapter 21 records the implemented contracts,
+independent reviews, assisted student reconstruction, and supervised live novel
+use. The novel completed its initial draft and first revision pass; Bill stopped
+later review to read it. No three-round completion is claimed.
+
+Release checks: 389 native tests, 88 Python workflow tests, 14 publishing tests,
+and the external stdio workflow grader passed. The optional spawn-time working
+limit is saved before first task admission; only global fiction reviewers request
+700,000 automatically. Existing workers and other roles are not retuned.
+
+Local release artifacts are rebuilt and verified: 31 chapters, 561 interior
+pages and 562 covered pages at 7 × 10 inches with 10-point body type. The EPUB
+spine order and representative rendered pages were checked; website PDF/EPUB
+copies match byte for byte. Public pushes/deployment and hardcover layout remain
+separate decisions. No installation or restart is part of this
+closeout. Historical boundaries below preserve their original evidence and limits;
+they are not instructions to resume superseded development campaigns.
+
 # Current boundary: PR integration closed; Local Models next
 
 The manuscript contains Chapters00–28. Adopted Artifacts/Actions changes and their
