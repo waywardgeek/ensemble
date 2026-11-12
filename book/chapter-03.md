@@ -138,13 +138,9 @@ description, and a schema for the arguments, and the model may then reply
 with a `tool_use` block naming one of them. Leave the declaration out and a
 real vendor never sends a tool call, so the loop below has nothing to do.
 
-Our fake is not a real vendor. It volunteers `tool_use` blocks whether or not
-you declared anything, which is convenient for grading and actively dangerous
-for learning: an agent that never declares its tools passes every loop check
-in this chapter and does nothing whatsoever against Anthropic. That is why
-`toolsdecl` exists as its own check. The fake cannot fail you for the missing
-declaration in the course of a session, so a check has to look for it
-directly.
+The scripted fake volunteers calls even without declarations, so `toolsdecl`
+checks the request explicitly. Section 3.7 explains how that generosity once
+hid a completely unusable agent behind a passing grade.
 
 The declaration is more evidence for Chapter 2's thesis, arriving for free.
 All three vendors accept the same three ideas and spell them differently, so
@@ -460,7 +456,7 @@ while a missing field or `null` is not one.
 | --- | --- | --- |
 | `run_command` | `command` string | fresh blocking shell; report stdout, stderr and exit code separately; optional `cwd` string applies only to that call |
 | `read_file` | `path` string | `start_line`, `end_line` integers: one-based inclusive range; `max_bytes` integer caps selected source bytes before `N: ` line prefixes and reports truncation |
-| `edit_file` | `path`, `old_text`, `new_text` strings | declare the mismatch/ambiguity policy discussed in §3.5 |
+| `edit_file` | `path`, `old_text`, `new_text` strings | exact unique nonempty anchor; refuse zero or multiple matches without writing (§3.5) |
 | `search_files` | `path`, `pattern` strings | `context_lines` integer, default 0; optional `exclude` glob array (see below); matching lines use `path:line:text`, context lines `path-line-text`; merge overlapping or adjacent windows and separate groups with `--` |
 | `write_file` | `path`, `content` strings | `overwrite` boolean permits replacement; `append` boolean preserves existing bytes and adds content without requiring overwrite |
 | `list_directory` | `path` string | list the immediate entries, rather than recursively filling the response |
@@ -570,14 +566,15 @@ secondarily capability, which means "how critical is it" was the wrong axis
 all along. The question is what the agent does when the tool is on the
 table, and the count answers that without anyone's opinion involved.
 
-## 3.5 The decision this chapter does not make
+## 3.5 Why exact unique anchors
 
 When `edit_file`'s anchor does not match the file, what happens?
 
-Three defensible answers. Refuse: report the mismatch, change nothing, let
-the model try again. Fuzzy-match: find the closest region within some window
-and apply there. Rewrite: fall back to replacing the whole file. This chapter
-teaches everything you need to decide and then does not decide.
+Three possible policies are refusal, fuzzy matching, and whole-file replacement.
+The first edition left that choice open. This C# exercise chooses refusal:
+require a nonempty exact anchor identifying one site, or change nothing and
+explain the mismatch. A tool should not silently turn a targeted edit into a
+different operation.
 
 The same question wears a second hat, and you should answer both. What
 happens when the anchor matches more than once? A student who refuses on zero
@@ -587,8 +584,8 @@ matches three places does not identify an edit site, so "succeeds
 ambiguously" is the inverse of a loud failure: no error, no signal, and the
 wrong hunk of the file rewritten.
 
-That failure is not invented for the exercise. CodeRhapsody's own `edit_file`
-has it. The exact-match path is a single string replacement with a count of
+That failure is not invented for the exercise. CodeRhapsody's `edit_file`
+had it when this account was written. The exact-match path is a single string replacement with a count of
 one and no uniqueness check, so an ambiguous anchor edits the first
 occurrence and reports success. Bill found it while writing this chapter,
 which is the only reason it is in the book. A tool called eleven thousand
@@ -602,14 +599,14 @@ The second-edition student chose exact unique anchors and found a smaller trap:
 overlapping edit sites. A count of non-overlapping occurrences answers a
 different question from “is this edit location unique?” The corrected tool
 refuses both sites, reports the count and leaves the file unchanged. This
-demonstrates the student's chosen policy, not a requirement to replace every
-other coherent policy with it.
+is part of the current exercise: count possible starting positions, including
+overlapping ones, rather than only non-overlapping replacements.
 
-The question is open in a way a riddle is not, and the proof is in
-CodeRhapsody's own code. Both answers ship. `edit_file` refuses on an
-exact-match failure. `replace_lines` deliberately fuzzy-searches within fifty
-lines of the line numbers you gave it. Same codebase, same author, opposite
-calls, and both have been in production for a year.
+Different tools can still make different promises. In the original account,
+CodeRhapsody's `edit_file` refused an exact-match failure, while `replace_lines`
+deliberately fuzzy-searched within fifty lines of the supplied line numbers.
+That alternative belongs in a separately declared contract, not an undocumented
+fallback in this exercise.
 
 The usage, though, is lopsided: 11,671 calls to `edit_file` against 385 to
 `replace_lines`. Thirty to one. The explanation is checkable, which is why
@@ -620,15 +617,12 @@ first. Anchors survive edits elsewhere in the file, so several can be fired
 at once. The tool is not worse. It is non-composable, and non-composable
 shows up in the log as thirty to one.
 
-What the grader checks is not which answer you chose. It checks that a
-choice was made, that the event log makes it legible, and that a failed edit
-returns to the model in a form it can act on. A refusal that does not say
-what it saw is half a loud failure: it declines to guess, and then costs a
-round trip to find out why.
-
-Paste this chapter into an assistant and ask it what to do. It will pick one
-of the three, confidently, and it cannot know which one you picked, and the
-rest of your implementation has to agree with yours.
+The historical grader checks that the policy is legible and a failed edit
+returns an actionable result; its score does not establish the stricter current
+policy. Add focused tests for empty, missing, repeated and overlapping anchors,
+requiring unchanged bytes on refusal. A refusal should name the path and explain
+that the model must read and choose an exact unique anchor. Declining to guess
+is useful only if the model can understand what to do next.
 
 ## 3.6 What you have now
 
@@ -846,24 +840,13 @@ that the call ran and was not a tool error.
 | `writeguard` | 5 | `write_file` on an existing planted file without `overwrite` is an error and the file is byte-identical; with `overwrite: true` it is replaced; a new file needs no flag |
 | `runcommand` | 15 | shell executes; stdout, stderr, and exit code returned |
 | `toolerror` | 15 | a failing or malformed tool call returns an error to the model as a `tool_result`; the agent does not crash and does not silently skip |
-| `editcontract` | 5 | the declined decision: a choice was made, it is legible in the log, and a failed edit is recoverable by the model |
+| `editcontract` | 5 | historical policy check: the choice is legible and a failed edit is recoverable; exact-uniqueness cases require focused tests |
 
-The weights, so they are not re-litigated. `toolerror` is 15 because
-returning a failure to the model rather than crashing is a genuinely
-separable skill and, as §3.2 said, the most common way an agent locks up.
-`editcontract` is 5 because any coherent answer passes; the points buy
-legibility, not judgement. `readtools` and `mutatetools` are two checks
-rather than six because a student who can implement one local file tool can
-implement all of them, and splitting points is for when a student can
-plausibly have one skill and not the other. `writeguard` is that case. The
-overwrite guard is a contract a student either wrote or did not, separable
-from being able to write a file at all, so it is graded apart from the happy
-path and funded from it. Its negative control is the new-file leg: a student
-who guards every `write_file` has not implemented the rule, they have broken
-the tool. `ch2parity` keeps its own ten points rather than folding into the
-rest, because this is the first chapter that could plausibly break Chapter
-2's work, and folding it would hide the one failure a student is most likely
-to cause and least likely to notice.
+The overwrite check needs both refusal and success controls: an existing file
+must remain unchanged without permission, an authorized overwrite must work,
+and a new file must need no flag. Refusing every write is not a correct guard.
+The historical `editcontract` score checks a legible policy, not all the current
+exact-uniqueness cases; test those separately as specified in §3.5.
 
 From the repository root, run:
 
@@ -976,12 +959,8 @@ because history accumulates. Tools are declared on every request, and not
 only the first. Results ride back in the next request rather than in a side
 channel.
 
-One thing will confuse you if nobody says it. The fake is scripted. It
-replies from a fixed sequence no matter what you type, so ask it to read
-`hello.txt` and it may cheerfully answer about `go.mod`. That is the point of
-§3.7: a fake proves your plumbing, not your prompting. It is also why the
-fake is kinder than reality, which is how the missing tool declaration scored
-a hundred.
+The fake follows its script regardless of your prompt. Ask for `hello.txt`
+and it may answer about `go.mod`; inspect the protocol, not its helpfulness.
 
 Live, against a real vendor, is where it does surprise you. Restore the live
 endpoint, discovered model and selected key before leaving the fake. From the

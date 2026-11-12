@@ -1,7 +1,10 @@
 <style>
-@page         { size: 7in 10in; margin: 0.75in 0.5in 0.75in 0.875in; }
-@page :left   { size: 7in 10in; margin: 0.75in 0.875in 0.75in 0.5in; }
-@page :right  { size: 7in 10in; margin: 0.75in 0.5in 0.75in 0.875in; }
+/* Give the body half a 14pt line more depth than the former 54pt footer
+   margin. Page-number baselines stay 24pt above the edge; the bottom 45pt
+   remains reserved and checked by build-print.py. Side gutters are unchanged. */
+@page         { size: 7in 10in; margin: 0.75in 0.5in 47pt 0.875in; }
+@page :left   { size: 7in 10in; margin: 0.75in 0.875in 47pt 0.5in; }
+@page :right  { size: 7in 10in; margin: 0.75in 0.5in 47pt 0.875in; }
 /* Footers and TOC references are stamped after Chrome pagination. */
 /* Page margins own the print measure; pandoc's screen padding must not narrow it. */
 html, body, a, a:visited { color: #000; }

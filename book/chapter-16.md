@@ -34,13 +34,10 @@ storage, PKCE login, signed identity validation, renewal, discovery and sign-out
 account controls; neither is another credential store. History records ordinary
 conversation and compatible opaque replay data, not OAuth secrets.
 
-The preserved reference endpoint has a scoped 70-point transport grade; signed
-local issuer tests separately exercise the credential owner. In the October 29,
-2026 joint session, Bill completed real CLI login with Ensemble's own registration.
-Account-specific model discovery and three plan-funded Responses calls succeeded
-through current main. Renewal, sign-out, GUI login and billing reconciliation were
-not exercised live. The cache result was zero reported reuse; see Chapter 24.
-These observations supplement, rather than expand, the earlier executable grade.
+The exercise separates the preserved endpoint's 70-point transport grade,
+credential-owner tests and the later joint live session. Those establish different
+boundaries; see the evidence account below rather than treating one as proof of all
+three.
 
 ## The coding brief
 
@@ -795,12 +792,8 @@ quality or human accessibility. No API-key fallback or dollar-charge claim follo
 from successful plan inference. The live session deliberately left the account
 signed in; exercising revocation would be a separate authorized action.
 
-The later [Chapter 24](chapter-24.md) work completed the separate Codex-backed
-C# route, including explicit CLI/GUI selection and no silent billing fallback.
-Its three actual C# CLI responses measured two cache hits and one miss. Codex
-alone renews that grant; this does not change the public OAuth ownership or the
-limits of this chapter's live exercise.
-
+[Chapter 24](chapter-24.md) covers the later Codex-owned route and its measured
+cache reuse. It does not change this chapter's public OAuth credential ownership.
 
 ## Taking it for a spin — historical evidence
 
@@ -865,9 +858,7 @@ Agent scheduler, Jobs, canonical History or tool loop. Common owns the shared
 vocabulary; Auth and Engine implement their respective operations. The GUI
 projects public state rather than owning a second account store.
 
-The preserved endpoint remains the original offline implementation boundary.
-The later joint session on current main adds observed CLI login, account-model
-discovery and three successful plan responses; it does not retroactively rerun
-that endpoint's tests. Live renewal/revocation, GUI login, audible quality, human
-accessibility and account billing remain unverified. A model name or an encrypted
-artifact is not permission; a green fake-provider grade is not a provider bill.
+The preserved endpoint's offline evidence and the later live session on current
+main remain separate records. Neither a model name nor an encrypted artifact is
+permission; neither a fake-provider grade nor a successful response establishes
+the provider's billing.

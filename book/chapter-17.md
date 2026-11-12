@@ -485,31 +485,18 @@ the server tried and reported a problem. An HTTP failure concerns the connection
 it may be a reachable server refusing authorization or quota,
 not an unreachable host.
 
-### Error quality as a selection criterion
+### What the short survey could not establish
 
-The tested ddgs failures returned one opaque
-36-character string: `Error executing tool extract_content`.
-The agent learns *that* it failed and never *why*. Firecrawl's
-errors carry specific diagnostics: `ERR_UNSAFE_PORT`, quota
-messages, JSON-RPC error codes. When choosing an MCP server,
-ask: does the agent learn enough from a failure to try
-something different?
+The opaque ddgs errors and the missing crawl4ai entry point above
+made failure diagnostics and actual package contents part of the
+selection criteria. Firecrawl's specific quota and RPC diagnostics
+helped the agent distinguish failures, but did not guarantee reliability:
+the keyless endpoint passed its initial tests and proved unreliable in
+sustained use. The keyed endpoint was chosen for the recorded live task.
 
-### Reliability and sample size
-
-The community tools illustrated a pattern worth remembering.
-Three manual tests suggested ddgs was fine. Fifteen showed 73%.
-crawl4ai's documentation described an MCP server; the installed
-package contained none. The keyless Firecrawl endpoint measured
-100% in initial testing but proved unreliable in sustained use.
-The keyed endpoint was the choice for the recorded live task.
-Neither its short initial streak nor the later successful task
-guarantees continued availability.
-
-A demo is not a deployment. Test with enough samples and enough
-time to catch intermittent failures.
-
-
+A demo is not a deployment. Test over enough calls and enough time to
+expose intermittent failures, and ask whether an error teaches the agent
+enough to choose a different next step.
 
 ---
 
@@ -522,37 +509,15 @@ The current design above implements the lesson directly with Common
 declarations and real object relationships, not by reproducing the old
 wrapper interfaces or internal-package layout.
 
-The following diagnosis is the first-edition status-tool story.
-Its old names and line numbers describe the source under audit,
-not defects to reintroduce in this implementation.
+**An architecture is a set of promises about how parts find each
+other.** Original Chapter 5 promised that every child held a back-pointer
+to its actual parent. The compiler did not enforce that promise. A
+constructor accepting copied dependencies compiled, and feature tests
+could pass without checking the real wiring.
 
-**An architecture is a set of promises about how parts find
-each other.** Original Chapter 5's promise was one sentence: every
-child holds a back-pointer to its actual parent. The
-consequence is that anything reachable from the root is
-reachable from anywhere in the tree, because every node can
-walk up to its parent.
-
-**The compiler does not enforce the promise.** A Go constructor that takes
-six dependencies instead of one back-pointer compiles without
-complaint. The original tests passed because they exercised
-the feature without establishing the real wiring. The feature ships. Sixteen
-more features ship after it.
-
-**Decay is what accumulates in the gap between stating a rule
-and checking it.** Each constructor that skips the back-pointer
-is a local decision that works. Taken together, they produce
-a tree where the plumbing exists but carries nothing, and
-closures run alongside it doing the actual work. The
-architecture becomes a comment: something that was true when
-it was written and has not been true since.
-
-**The symptom has a recognizable shape.** Somebody asks for
-something small and the answer is hard. Not hard because the
-feature is complex, but hard because the feature needs data
-that is three objects away with no path to reach it. That
-shape is the signal. This chapter is about learning to read it.
-
+The decay became visible when a small feature needed data three objects
+away and had no path to reach it. That shape of difficulty is a signal:
+look at the relationships before inventing another service.
 
 ## The symptom: a feature that should have been easy
 
@@ -578,14 +543,9 @@ not holding.
 
 ## The first diagnosis was wrong
 
-The investigating agent reported the `common` package's
-interface inventory: `CacheLens`, `CredentialProvider`, `Host`,
-`JobHandle`, `JobManager`, `Observer`, `Parser`, `Recaller`,
-`Renderer`, `SettingsSource`, `Skills`, `SnippetJudge`,
-`ToolRegistry`, `UsageSource`, `Vars`.
-**`Agent` and `Engine` were not among the reported names.** The conclusion
-was confident and well-cited: the hub is missing the interface
-for the one object that owns all the state.
+The investigating agent listed the `common` interfaces and reported that
+neither `Agent` nor `Engine` appeared. Its confident diagnosis: the hub
+was missing the interface for the object that owned the state.
 
 Bill's reply was one line: *"Wait, common has no Agent and no
 Engine interface? Chapter 5 says every constructor takes a
@@ -608,19 +568,8 @@ diagnosis were all true. The framing was not.
 
 ## The chain, and why a flat root kills it
 
-The old constructors show the intended chain:
-
-```go
-NewEngine(..., host common.Host)    // engine.go:113
-NewActor(eng, host)                 // actor.go:55
-NewJobs(host)                       // jobs.go:48
-NewFramework(host)                  // actor.go:763
-```
-
-Each takes a single back-pointer interface. Objects with
-children satisfy the interface by forwarding upward. The `Jobs`
-constructor carries a comment that explains why this is
-load-bearing rather than decorative:
+The old Engine, Actor, Jobs and Framework constructors took a
+`common.Host` back-pointer. Jobs documented the intended accounting path:
 
 > Usage delegates up the chain rather than embedding a counter
 > of its own. Embedding one here would compile and silently
@@ -628,80 +577,30 @@ load-bearing rather than decorative:
 > land in a local struct nobody reads, and the header would
 > under-report forever with nothing to indicate it.
 
-"With nothing to indicate it." That phrase is this whole
-chapter's subject.
-
-The chain terminates at a composition root that embeds a
-`UsageCounter`. Anything reachable from the root is reachable
-from anywhere in the tree. The promise original Chapter 5 made.
-
-**Why a flat root kills it.** In `cmd/main.go`, eleven objects
-are constructed side by side with no parent among them. When
-object A needs a fact owned by object B, the code resorts to handing it over directly, as a parameter or, when
-the value changes at runtime, as a closure.
-
-Line 675 is the decay compressed into one assignment:
+But the executable constructed eleven objects side by side, without the
+parent relationships that would make that path work. When one needed
+another's state, a closure bridged the gap:
 
 ```go
 hub.Model = func() string { return eng.Cfg.Model }
 ```
 
-Engine state needed somewhere that could not reach the engine,
-so a closure was stapled onto the struct after construction.
-It works. It serves exactly one consumer. It generalizes to
-nothing.
+The same pattern supplied changing settings to Engine. Six settings the
+GUI wrote were never applied: the missing relationships had already cost
+functionality, not merely architectural elegance.
 
-And it is not one line. It is a habit. Three more at lines
-432 through 441:
+Three source questions exposed the mismatch:
 
-```go
-eng.Target         = func() int { ... }
-eng.ToolRoundLimit = func() int { ... }
-eng.Bands          = func() common.BandConfig { ... }
-```
+- **Who calls the intended composition root?** `NewAgent` had no callers,
+  not even in tests. Its correctly parented construction path was dead code.
+- **What does the binary construct?** A second, flat composition root in
+  `cmd/main.go`; it imported the Agent package only for logging.
+- **Do later constructors follow the rule?** The original Engine/Actor/Jobs
+  spine did, while Hub, recall, settings and cache-lens additions accepted
+  copied dependencies or callbacks instead.
 
-`SettingsStore` cannot reach the engine, so the engine is
-handed closures that reach back into settings. An earlier audit
-found six dead settings, values the GUI writes that nothing
-ever applies. The same disease presenting a second time,
-proving the decay has already cost functionality, not merely
-taste.
-
-The `agent_status` tool would have been the fifth staple,
-except a tool has no struct to staple anything onto, which is
-why this particular feature is where the decay finally
-surfaced. One anomaly is an anecdote. Five is a pattern.
-
-## The measurements that found it
-
-Three source questions made the failure visible.
-
-**Who calls the composition root?** `NewAgent` at
-`agent.go:205` had zero callers. None. Not even a test. The
-clean composition root, the one that builds a proper tree with
-`jobs.NewJobs(a)`, `llm.NewEngine(..., a)`,
-`llm.NewActor(eng, a)`, was dead code. The binary never
-touched it.
-
-**What does the binary do instead?** `cmd/main.go` was 1,154
-lines that hand-built a second, flat composition root at
-`cliHost` (line 265), whose own comment called it "the
-composition root for the server." It imported the `agent`
-package only for `agent.Logger` and `agent.DefaultLogger`.
-
-**What do constructors take?** Split every `New*` in the tree
-by whether it accepts a back-pointer:
-
-| Honours the rule | Does not |
-|---|---|
-| `NewEngine`, `NewActor`, `NewFramework`, `NewJobs` | `NewHub` (six params, three agent-owned) |
-| | `cachelens.New` (dir, report func(string)) |
-| | `NewJudge` (the concrete `*Engine`) |
-| | `recall.New`, `NewSettingsStore` |
-
-In the original numbering, the left column is the Chapter 5
-and 6 spine. The right column contains later additions:
-the earlier Hub, skills, recall and cache-lens work. The later construction paths had stopped following the rule.
+The status tool was not missing arithmetic. It was the next consumer to
+encounter a relationship the running application had never established.
 
 ## The check that protected the vocabulary
 
@@ -781,45 +680,21 @@ the set under `h.mu`, unlocks, then closes the client's send
 channel. A client can be snapshotted, deleted, closed, and then
 sent to.
 
-Thirteen call sites send on a client's send channel. Eleven
-spell it `c.send`; two use `agentClient.send` and `cl.send`.
-Exactly one call site closes it. And every one of those
-thirteen senders contains this:
+The senders used a nonblocking `select` with a `default` case. That
+protects against a full channel, not a closed one: sending on a closed
+channel still panics.
 
-```go
-select {
-case c.send <- data:
-default:
-}
-```
+The repair separated data from completion. Leave the data channel open;
+stop the writer through a separate `done` signal, drain buffered messages
+and join it. Closing a data channel is not necessary for garbage collection.
 
-That `default` looks like protection. **It is not.** A
-`default` clause saves a sender from a full channel. It does
-nothing about a closed one. `send` on a closed channel panics
-regardless of the `select`, because the language specification
-says a closed channel is immediately ready: the send case is
-selected, not the `default`. The defensive-looking code offers
-zero defense against the failure that actually happens.
-
-The fix is ownership, coordinated lifetime. Nothing
-closes the send channel at all. The `writePump` goroutine stops
-on a separate `done` channel, drains any buffered messages, and
-exits. An unreferenced channel is garbage-collected whether or
-not it was closed, so closing it is not required for collection.
-
-Two regression tests passed with the bug restored, both false
-greens caught only by running the mutant. The first tore down
-64 clients in one goroutine; teardown finished before any
-sender was scheduled, so `Observe` saw an empty set and sent
-nothing. The second ran 5,000 rounds on a single client; the
-window between `Observe`'s unlock and its send is nanoseconds,
-and teardown never landed inside it.
-
-The historical test finally used a large snapshot: 2,000 clients, so the send loop
-itself becomes the window. `Observe` is still writing to early
-clients while teardown closes later ones. The useful principle is to arrange the relevant overlap
-and require the restored defect to fail. The particular client
-count is not a portable proof that every scheduler will expose it.
+Two regression tests stayed green with the defect restored. One completed
+teardown before any sender ran; another repeated a single-client race
+thousands of times without hitting the tiny overlap. The historical test
+finally used a 2,000-client snapshot: while observation sent to early
+clients, teardown could close later ones. The lesson is to arrange the
+causal overlap and require the restored defect to fail—not to treat that
+particular client count as a portable scheduling guarantee.
 
 The successful architecture check and the send-lifetime check
 answer different questions. A correct owner chain alone does not

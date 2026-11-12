@@ -178,10 +178,13 @@ The CLI drains accepted work at EOF and joins shutdown before exiting. The GUI s
 
 GUI replay uses reduced Context for finalized transcript content, plus retained event facts for lifecycle and direct-tool diagnostics. It can therefore restore a snapshot-only save. Context entries retain actual response/part IDs; legacy entries still use deterministic replay IDs. Projection does not append synthetic history or restart old jobs.
 
-The GUI displays the newest 100 history events by default, configured by
-`GuiOptions.HistoryEventLimit`. This is a display window, not deletion from
-History or a change to model context. Choose the window before serializing tool
-payloads. Live updates also retire cards and job-output views outside that window.
+Chat and Tools each display the newest 100 contributing events by default,
+configured independently by `GuiOptions.ChatHistoryEventLimit` and
+`ToolHistoryEventLimit`. The compatible `HistoryEventLimit` initializer sets
+both. These are display windows, not deletion from History or changes to model
+context. Choose each window before serializing payloads; a mixed event can leave
+one pane while remaining in the other. Live updates retire expired cards,
+job-output views, pending renders and polling timers without cancelling Jobs.
 
 Live capture uses one current atomic snapshot and caches its projection until
 the durable sequence or Context changes. A delayed notification cannot rewind
@@ -200,8 +203,8 @@ Use an owned directory, loopback fake provider, dummy key, and isolated browser 
 3. Compare snapshot-plus-log, snapshot-only, log-only, and older-snapshot/newer-tail representations. Require equal effective conversation and continuous event numbering. Include exact retained recorded times and observation durations; remove timing fields to test legacy unknown values, and reject malformed times or negative durations.
 4. Save opaque values, exact-number arguments, media locators, usage, redacted results, summaries, and display identities. Test the real codec and reducer, not a substitute persistence model.
 5. Corrupt primary alone, then both candidates. Isolate invalid cases so a valid backup cannot hide decoder rejection. Verify file and live-state nonmutation on refusal.
-6. Block an archive or replacement path. Require a visible failure, no false success, and no diagnostic trimming. Verify a corrupt primary is not rotated over the good backup.
-7. Exercise all retention modes and confirm snapshot-only restart works without the optional archive.
+6. Block the journal append or snapshot replacement path in separate fixtures. Require a visible failure and no false success. A failed append must poison further writes without publishing its event; failed snapshot replacement must not trim the recovery journal. Verify a corrupt primary is not rotated over the good backup.
+7. Exercise audit on and off. Require the same recent resident event window, an untruncated audit journal, and backup-safe trimming with audit off. Confirm snapshot-only restart restores Context without inventing missing historical events.
 8. Restart the real GUI, inspect visible restored cards and their IDs, submit a new prompt, and refresh. Confirm the saved shutdown does not disable the new session.
 
 The reusable executable Chapter 10 grade covers six CLI persistence checks for 85 points. Its C# `-executable-only` route excludes inherited Go checks and the old stdin-driven GUI probe. The GUI is a WebSocket host; its restart behavior is exercised separately through the actual host and an isolated browser, not credited as another stdin client.

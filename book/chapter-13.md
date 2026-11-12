@@ -60,7 +60,7 @@ const cause = humanTyping ||
 
 Human whitespace is still a draft. Programmatic input is not human typing, even when a later speech callback recomputes the cause. Send pause/unpause only when the combined cause changes. This avoids floods of pause commands and respects another tab's explicit override rather than continuously reasserting a private veto.
 
-Escape cancels speech even when the prompt contains a draft. It leaves that draft intact, so the typing cause can continue to hold the Agent paused. Stopping the voice and releasing the Agent are different operations.
+Escape and the stop-speech control cancel current and queued speech, retain the draft, and explicitly request that the selected Agent resume. Preserve the existing typing-edge baseline so the unchanged draft does not immediately reassert pause. This explicit human override is different from ordinary speech completion, which recomputes the combined pause cause.
 
 ## 13.3 A user who can only listen
 

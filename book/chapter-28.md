@@ -5,8 +5,6 @@
 > This establishes the requested local-model support, not general coding quality.
 > Deterministic routing, streaming and lifecycle evidence remains separate: the
 > public runner passes 136 named checks but is ungraded, with incomplete coverage.
-> The next external usage review is for Julien's larger GPU setup, not another
-> MiMo coding trial.
 
 ## TL;DR: Specification Brief
 
@@ -64,17 +62,12 @@ returned a real `tool_calls` array, accepted a result with the matching call ID,
 and answered the question. Only the second exchange demonstrated the structured
 protocol we need. Neither exchange alone demonstrated reliable agentic coding.
 
-A later integrated Ensemble trial returned a correct small Python function but
-made no tool call despite an explicit request to use its one declared tool. It
-used short primary instructions, not the normal primary skill. The function
-passed six reviewed local cases; requested tool use did not pass. Record both
-outcomes rather than treating successful generation as successful tool use.
-
-A subsequent small-primary-skill trial captured a real structured call and its
-correlated result, but also exposed default recall overhead and a capture-fixture
-error. A fresh Agent is not automatically an auxiliary-inference-free Agent:
-explicitly configure recall when isolating prompt and tool overhead. Keep observed
-protocol success separate from an error-free experiment or a causal skill claim.
+The integrated trials separated three questions: could the model write a correct
+function, would it actually call a declared tool, and was the experiment isolating
+the intended overhead? One function passed six local cases without the requested
+tool call. A later structured call exposed default recall overhead and a fixture
+error. A fresh Agent is not automatically free of auxiliary inference; configure
+recall explicitly when measuring prompt and tool overhead.
 
 A final authorized trial used a small primary skill and exactly the original six
 tools, with all memory bands and automatic recall disabled. MiMo read the supplied
@@ -115,7 +108,7 @@ Julien or another operator. Coding usefulness is optional and belongs to the
 operator's selected model, hardware and task. The integration has one architecture;
 it does not require everyone to use MiMo, Ollama or Bill's serving limit.
 
-## 27.1 Start with a verified server
+## 28.1 Start with a verified server
 
 The initial target is Windows-native Ollama on a separate laptop, not an assumed
 WSL installation. Inspect the installed server version, GPU, model package and
@@ -151,7 +144,7 @@ See the [Ollama FAQ](https://docs.ollama.com/faq) for current listener instructi
 and its [OpenAI compatibility documentation](https://docs.ollama.com/openai) for
 the supported protocol. These sources can change; verify the installed combination.
 
-## 27.2 Integrate the existing owners
+## 28.2 Integrate the existing owners
 
 The Agent remains the owner of scheduling, configuration and History. Engine
 consumes a frozen request and returns immutable results. The GUI projects the
@@ -596,7 +589,7 @@ correctness and practical latency. Do not infer capacity from parameter count or
 extrapolate a small success into general competence. Report deterministic checks,
 integration acceptance and optional model-quality evaluation separately.
 
-Junien's [PR 3](https://github.com/waywardgeek/ensemble/pull/3) supplies the
+Julien's [PR 3](https://github.com/waywardgeek/ensemble/pull/3) supplies the
 sleeping-inference-machine use case, and
 [PR 6](https://github.com/waywardgeek/ensemble/pull/6) highlights explicit streaming
 policy. Wake-on-LAN remains optional and separately authorized.

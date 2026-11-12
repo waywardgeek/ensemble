@@ -539,11 +539,9 @@ that dispatch fixture from recall corrected the test, while the separate memory
 fixture retained responsibility for context behavior. A provider request is not
 necessarily the task request a test author had in mind.
 
-These boundaries explain both the confidence and the limits of the chapter. The
-local checks pass. No live novel has yet been produced by this workflow, no model
-has demonstrated literary comprehension in these tests, and no human has accepted
-the story. The machinery is ready for that experiment; it is not the experiment's
-result.
+These checks establish the machinery's behavior, not literary comprehension.
+The later supervised novel run and its deliberate stopping point are described
+under Acceptance and live-use limits below.
 
 
 ## Take it for a Spin
@@ -718,8 +716,9 @@ if wanted, the disposable run directory may be removed deliberately. Removing th
 shared source tree as cleanup for a story.
 
 The setup layout, role activation, read-only process boundary and complete-read
-transport have local test evidence. The live launch and story-quality walkthrough
-remain human acceptance steps; no successful novel or provider run is claimed here.
+transport have local test evidence. This particular two-chapter walkthrough still
+requires human acceptance; the subsequent novel run described below does not
+certify this launch recipe or the quality of a new story.
 
 
 ## Exercises

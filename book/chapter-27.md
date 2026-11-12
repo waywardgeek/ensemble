@@ -49,14 +49,14 @@ Jobs own work that can outlive an observation. The Sandbox decides which files a
 Agent may open. The browser presents those facts and the human's controls. None
 of these responsibilities moves into a new artifact store.
 
-Junien's [snippet-copy contribution](https://github.com/waywardgeek/ensemble/pull/7),
+Julien's [snippet-copy contribution](https://github.com/waywardgeek/ensemble/pull/7),
 [timing contribution](https://github.com/waywardgeek/ensemble/pull/6) and
 [work-product contribution](https://github.com/waywardgeek/ensemble/pull/9) supplied
 requirements, tests and teaching that informed this development. Their Go code is
 not the current C# implementation. We retain the useful distinctions while using
 our existing C# owners and the bounded timing scope developed here.
 
-## 26.1 Start with the existing owners
+## 27.1 Start with the existing owners
 
 Read the construction points before joining them:
 
@@ -64,7 +64,7 @@ Read the construction points before joining them:
 | --- | --- |
 | [Chapter 2](chapter-02.md) | Immutable recorded values and retained Context |
 | [Chapter 3](chapter-03.md#preserve-typed-result-metadata) | Typed tool results rather than metadata parsed from prose |
-| [Chapter 4](chapter-04.md#completed-structured-results-carry-delivery-metadata) | Jobs and observations, including completed structured results |
+| [Chapter 4](chapter-04.md#looking-ahead-completed-structured-results) | Jobs and observations, including completed structured results |
 | [Chapter 7](chapter-07.md) | Browser projection, Markdown and stable controls |
 | [Chapter 9](chapter-09.md#installed-discoverable-and-granted) | Explicit skill authority |
 | [Chapter 10](chapter-10.md) | Save, restore and replay |
@@ -81,7 +81,7 @@ project the result and wait for a human click. The next provider request receive
 ordinary result content, not browser download authority. Replaying the recorded
 result renders a description without executing the tool again.
 
-## 26.2 A result is an observation
+## 27.2 A result is an observation
 
 Consider a batch with two calls. The first has been dispatched and is waiting for
 its foreground observation. The second is recorded but has not been dispatched.
@@ -105,7 +105,7 @@ Job, but its result can describe an existing Job. Preserve that typed observatio
 when recording History. Testing only the returned method value would miss a
 recording path that drops the metadata before the GUI sees it.
 
-## 26.3 Preserve the thing the reader is using
+## 27.3 Preserve the thing the reader is using
 
 Keep stable controls separate from changing payload presentation. Updating a
 status label should not replace an unchanged detail summary, download button or
@@ -124,7 +124,7 @@ navigation preserve an unsent draft and do not queue duplicate speech. Streamed
 narration advances independently of visual rerendering; replay is silent rather
 than a request to speak the conversation again.
 
-## 26.4 Copy the payload, not the preview
+## 27.4 Copy the payload, not the preview
 
 The [Chapter 7 copy contract](chapter-07.md#copy-the-logical-code-not-the-preview)
 uses the pinned Markdown parser's logical fence payload. It excludes opening and
@@ -148,7 +148,7 @@ card or create a fallback there. The already-requested clipboard write cannot be
 retracted merely by replacing the DOM. Fence the completion rather than claiming
 navigation canceled a write that the browser may already have performed.
 
-## 26.5 Keep recorded time distinct from elapsed work
+## 27.5 Keep recorded time distinct from elapsed work
 
 A fact's recorded timestamp belongs to History. Retained entries preserve it
 through filtering and persistence; snapshot-only projection must not substitute
@@ -169,7 +169,7 @@ these inspection fields: timing should not change the model's input. The public
 grader exercises four renderer surfaces offline and an actual fake Anthropic
 wire path; that is not four live-provider integrations or a full timing profiler.
 
-## 26.6 A work-product description is not a file grant
+## 27.6 A work-product description is not a file grant
 
 An ordinary pathname in prose grants nothing. Job-output downloads serve completed
 Job diagnostics under their own 16 MiB boundary. Work-product offers are separate:
@@ -199,7 +199,7 @@ Saving and restoring the description does not recreate the live mapping. After
 restart the old card may explain what was offered, but downloading requires a
 new live offer. Reusing an Agent name does not revive the destroyed Agent's grants.
 
-## 26.7 Own the transfer through cleanup
+## 27.7 Own the transfer through cleanup
 
 An admitted transfer owns its opened input stream and cancellation lifetime under
 the Agent. The HTTP destination is borrowed. Keep the transfer registered until
@@ -221,7 +221,7 @@ Only save the browser Blob after a complete allowed response and a final check
 that the original card and Agent are still current. Render refusal visibly;
 never convert an error response or partial transfer into an attachment.
 
-## 26.8 Integration exercises
+## 27.8 Integration exercises
 
 These are draft exercise contracts. The isolated pre-chapter reconstruction
 baseline still needs to be assembled and audited. Do not hand a student the completed
@@ -276,7 +276,7 @@ that refuses everything cannot pass. The deterministic running built-in offer
 case remains an open public-grader gate; a delayed custom text callback does not
 by itself verify that structured-result path.
 
-## 26.9 Run and interpret the public grader
+## 27.9 Run and interpret the public grader
 
 Build the candidate and grader using the repository's documented offline setup.
 Supply absolute paths to existing tools and a candidate runtime directory containing
@@ -310,7 +310,7 @@ as separate records. The [development evidence](../docs/edition-3-notes/artifact
 contains the individual runs, corrections and limits; the
 [closeout plan](../docs/edition-3-notes/first-book-closeout-plan.md) tracks remaining gates.
 
-## 26.10 Use it for real work
+## 27.10 Use it for real work
 
 Ask the agent for a small report. Read a previous tool result while new output
 arrives, copy a long snippet while preserving a draft, and deliberately download

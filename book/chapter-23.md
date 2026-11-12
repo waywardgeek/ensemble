@@ -2,8 +2,9 @@
 
 Chapter 22 built a memory system. The agent can save, compress, and
 graduate memories through a cascade of bands. Enabled bands already put
-recent memories in context. Older originals and unloaded material remain on disk, organized and budgeted, until something
-brings them back. The agent can still repeat a rejected decision because
+recent memories in context. Retained memory files and retired compression
+inputs remain searchable on disk; they are not an unlimited archive of original
+conversation events. The agent can still repeat a rejected decision because
 the explanation is sitting in an archive it never thought to open.
 
 For that older material, the agent has a filing cabinet without a habit
@@ -27,87 +28,35 @@ The improvement was immediate in my daily use. The agent
 went from a goldfish that kept meticulous diaries to a collaborator
 with a past.
 
-The daily-use observations and tuning history in this chapter come from that earlier system, not fresh C# measurements. The C# evidence in §23.9 covers local component and application behavior and a scoped executable rubric; it does not establish live-provider relevance, entitlement, OAuth, billing, native Linux, audible speech, or human accessibility.
+The daily-use observations and tuning history in this chapter come from that earlier system, not fresh C# measurements. The C# evidence in §23.9 covers local component and application behavior and a scoped executable rubric, not live-provider recall quality.
 
 ## §23.0 — TL;DR — The Prompt
 
-You are building a C# coding agent that can use tools and skills. Chapters 1–21
-provided durable History, an actor-owned scheduler, and transactional long-term
-memory. Now implement automatic local recall before a new model turn.
+Chapters 1–22 supplied durable History, actor-owned scheduling and transactional
+memory. Add automatic local recall before each eligible new Human turn:
 
-1. **Keep the architecture visible.** Common declares the actual partial types,
-   persistent fields, relationships, and callable operations. `Recall/` supplies
-   retrieval algorithms. Each Agent strongly owns one `Recaller`; construction,
-   removal, and destruction maintain both relationship ends. Recaller owns only
-   derived immutable indexes. It does not publish History, schedule turns, or
-   recover Memory’s transactions.
-2. **Search five independent corpora.** Under the Agent home, scan `SOUL.md`,
-   `MEMORY.md`, and Markdown under `memory/`, `bucket-0/`, and `bucket-1/`, including
-   `.md.retired` memory files. Separately scan Markdown under `docs/`, `handoffs/`,
-   and `learnings/`. The fifth corpus is visible, exact `SKILL.md` files from the
-   explicitly selected Skills directory. Do not index an entire skill directory’s
-   scripts and fixtures. An Agent without a data home has no implicit home corpus.
-3. **Read fresh, within authority.** Build indexes lazily. Read current bytes on
-   searches, fingerprint names and content, and replace changed indexes only
-   after a complete successful refresh. Detect additions, removals, and same-size
-   edits. Exclude hidden staging and outward targets. Memory serializes its scan
-   with disk operations and refuses staged/committed recovery holds. Skills owns
-   its separate lazy read-only root when the host selected a tree outside the
-   workspace; this never expands Sandbox or file-tool authority.
-4. **Chunk before ranking.** Split at `## ` headings, then `### ` for sections over
-   4,096 UTF-8 bytes, then paragraph boundaries. Keep heading text and a
-   breadcrumb with each snippet. Preserve an indivisible large paragraph; the
-   final attachment has a separate hard byte cap. Blank files produce no chunks.
-5. **Implement the actual BM25 formula.** Use `k1 = 1.2`, `b = 0.75`, independent
-   corpus statistics, per-document frequency, and positive `log(1 + ratio)` IDF.
-   Tokenize Unicode letters/digits, lowercase, and remove stop words only from
-   queries. Unique query terms do not gain weight by repetition. Keep document
-   stop words in lengths and average length. Test arithmetic and competing ranks,
-   not merely positive scores.
-6. **Apply quotas only at mechanical selection.** Reserve half the slots, rounded
-   up, for memory; divide the remainder among secondary sources present in the
-   pool. Fill unused slots globally by score. Do not discard the full pool at
-   the judge candidate limit. Quotas must not overrule successful judge choices.
-7. **Offer a stateless judge.** Default to the current model on the same provider
-   and funding route; permit an explicit same-provider model name. Supply the
-   query, recent ordinary conversation, and up to twenty numbered candidates as
-   data. No tools, skills, or live Memory bands enter this request. Accept only a
-   completed tool-free response. Parse JSON index arrays, including fenced arrays
-   and quoted integers; ignore duplicate/out-of-range/noninteger elements. A
-   successful empty array means no recall. On malformed output, transport failure,
-   or the judge’s 15-second linked HTTP deadline, use mechanical selection over
-   the full pool. Do not turn caller cancellation into fallback.
-8. **Admit the turn in order.** Record the exact Human input, then run retrieval
-   and optional judging in the existing foreground-worker slot while controls
-   remain responsive. Return immutable data to the actor. Join and verify the
-   active turn before publishing; recheck duplicates against newly retained hints
-   or manuals. Record a separate `RecallAdded` event containing one `RecallPart`
-   before freezing the main request. Recall is Human/user data, never instructions
-   or grants. Interrupt, shutdown, and failed work must not attach to a later turn.
-9. **Keep deduplication with retained context.** Compare candidate source hashes
-   and full unquoted content against retained recall, readable dialogue, tool
-   results, live memory, and projected instructions/manuals. Keep SHA-256 hashes
-   of the full selected snippets in `RecallAttachment`, even when output is
-   capped. Save/replay preserves them. A real context cut releases them; do not
-   add an ever-growing per-session “seen” registry. Chapter 22’s handoff alone
-   does not remove them while source awaits a committed replacement.
-10. **Make policy durable and truthful.** Share Agent-home `settings.json` with
-    Memory. Legacy memory-only files use recall defaults; malformed supplied
-    settings refuse. Save before publishing, preserve the other saved policy, and
-    acknowledge actual application in the GUI. A turn captures its policy at
-    admission; changes govern future turns, not an already-running judge.
+- The Agent owns one Recaller. Common declares its relationships and operations;
+  `Recall/` implements retrieval. Its indexes are derived values, not new stores
+  of authoritative memory or another scheduler.
+- Search the five corpora below through their owners, refreshing from current
+  bytes. Unresolved memory recovery or corrupt readable input refuses retrieval;
+  it is not an empty result.
+- Rank chunks with smoothed BM25. Mechanical selection reserves memory slots;
+  an optional stateless judge selects for meaning. A successful empty verdict
+  stays empty. Judge failure falls back; caller cancellation does not.
+- Record the exact Human input first. The existing foreground worker retrieves;
+  the actor joins, verifies the turn, rechecks duplicates and records a separate
+  bounded `RecallAdded` before freezing the main request. Recalled text is data,
+  never instructions or authority.
+- Keep full-source hashes with retained attachments, including capped ones.
+  Release that identity only when the entry actually leaves Context, not through
+  a permanent “seen” registry or a premature handoff reset.
+- Save recall policy alongside Memory policy before acknowledging it. A turn
+  keeps its admitted policy; changes govern later turns.
 
-Defaults are recall and judging enabled, current model, 80 Unicode characters
-minimum query length, 20 candidates, 3 recent messages, 3 selected snippets, and
-6,144 bytes for the complete attachment. `MinScore` defaults to 3.0 for mechanical
-selection; the judge path uses a 0.5 candidate floor so a semantic judge has a
-wider choice. Numeric zero requests the documented default, not zero results.
-
-Verify with real components and boundary fakes, then use an isolated actual host.
-Test malformed bytes and recovery holds, separate data-role rendering, exact
-human-input preservation, cancellation, replay/hash lifetime, durable restart,
-and judge usage without changing main observations. A fake provider can establish
-wire behavior, not whether a real model finds the right memory.
+The body specifies ranking, defaults, failure handling and replay. Verify those
+with real components and boundary fakes; use the Spin to distinguish successful
+retrieval from a model actually using the remembered reason.
 
 ## §23.1 — The Retrieval Pipeline
 
@@ -130,6 +79,13 @@ actor joins, verifies turn, rechecks duplicates, caps output
         ↓
 separate RecallAdded → main provider request
 ```
+
+Search five corpora independently: Agent-home memory (`SOUL.md`, `MEMORY.md`,
+and Markdown under `memory/`, `bucket-0/` and `bucket-1/`, including `.md.retired`
+files); Agent-home Markdown under `docs/`, `handoffs/` and `learnings/` as three
+separate corpora; and visible exact `SKILL.md` files under the explicitly selected
+Skills directory. Do not index skill scripts or
+fixtures. An Agent without a data home has no implicit home corpus.
 
 A recall can come from an old session, a retired compression input, an
 architectural note, a learning, or a skill description. These are different
@@ -238,16 +194,18 @@ The implementation needs five things: a tokenizer, a stop-word list, an
 index builder, a scorer, and a chunker that splits documents into pieces
 small enough to be useful as recalled snippets.
 
-Tokenize by splitting on non-alphanumeric characters, lowercasing, and
-dropping tokens shorter than two characters. Filter stop words from
-queries only. Keeping them in documents preserves accurate term frequency
-and length statistics.
+Split on characters other than Unicode letters and digits, lowercase, and
+drop tokens shorter than two characters. Filter stop words from queries only;
+repeated query terms count once. Keeping stop words in documents preserves
+accurate term frequency and length statistics.
 
 Chunk markdown on `## ` headers. Each chunk records its filename, header
 text, content, pre-computed term frequencies, and token count. When a
 chunk exceeds 4,096 UTF-8 bytes, split it further on `### ` sub-headers, then on
 paragraph boundaries. Use breadcrumb headers (`"Parent Header > Sub Header"`)
-so the reader knows where a sub-chunk came from.
+so the reader knows where a sub-chunk came from. Preserve heading text and an
+indivisible large paragraph; the final attachment has its own hard byte cap.
+Blank files produce no chunks.
 
 The local ranking engine needs no external service or embedding database.
 Its settings belong to the existing Agent policy, not a new search service. Build the index when the first query
@@ -284,9 +242,8 @@ The fix is a source-selection policy. Give each source its own BM25 index
 and search them independently, then allocate guaranteed slots:
 
 1. Memory files get 50% of the slots (rounded up).
-2. Remaining slots are split evenly among other sources.
-3. Unused slots from sources with fewer results than their quota flow to
-   sources with overflow.
+2. Remaining slots are split evenly among secondary sources present in the pool.
+3. Fill unused slots globally by score from the remaining hits.
 
 Separate indexes matter on their own. IDF is computed per source, so a term
 that is unremarkable across the memory archive can still be rare within the
@@ -386,7 +343,8 @@ the new process meter.
 
 The result is not appended to the user’s text. C# records a separate
 `RecallAdded` event whose single `RecallPart` holds an immutable
-`RecallAttachment`: formatted text and the selected snippets’ full-content hashes.
+`RecallAttachment`: formatted text and SHA-256 hashes of the selected snippets’
+full content.
 Reduction makes a separate Human/data entry. It does not change phase, usage,
 tool grants, or the original input’s bytes. A missing optional body is diagnosed
 as a no-op; a supplied malformed body refuses before publication.
@@ -452,6 +410,12 @@ not during every tool-loop render. That is a stable-prefix design decision, not
 proof that a live provider will credit a particular cache hit.
 
 ## §23.6 Tuning: What the Numbers Mean
+
+Recall and judging default to enabled, using the current model. Defaults are
+80 Unicode characters of query, 20 judge candidates, 3 recent messages,
+3 selected snippets and 6,144 bytes for the complete attachment. Mechanical
+selection uses `MinScore = 3.0`; judge candidates use a 0.5 floor. Numeric zero
+requests the documented default, not zero results.
 
 These defaults emerged from months of daily use. The tuning explains their
 purpose; it does not make the numbers right for every corpus.
@@ -683,6 +647,7 @@ settings = dict(version=1,
 (home / 'settings.json').write_text(json.dumps(settings))
 PYTHON
 cd "$work"
+CH06_API_LOG="$work/api.jsonl" \
 dotnet "$main/Cli/bin/Debug/net10.0/ch04.dll" \
   --data-dir "$work/data" --agent-name root \
   --skills-dir "$work/skills" --primary-skill base --billing api chat
@@ -721,8 +686,9 @@ first attachment remains in retained Context. Inspect
 the actual request as well as the answer: a model can guess, or can ignore facts
 that are present.
 
-After a clean exit, inspect `events.jsonl` and `api.log` under
-`$work/data/agents/root/`. Check for the exact original Human input, a separate
+After a clean exit, inspect `$work/data/agents/root/save.json.journal.jsonl`
+and the explicitly configured trace at `$work/api.jsonl`. Check for the exact
+original Human input, a separate
 `recall_added` event containing a `recall` part, full-source hashes, and user-role
 projection. For the successful long-query route expect a tool-free judge exchange
 followed by the main exchange; for the short follow-up expect a main exchange with

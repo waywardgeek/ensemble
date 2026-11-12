@@ -63,8 +63,10 @@ startup service or copied list of active capabilities.
 ## Validate the Whole Initial Batch
 
 Resolution begins with the primary and its dependencies. It then visits startup
-names in the host-supplied order. Each must name a loadable skill currently offered
-by the prospective active set. Thus an earlier selection may offer a later one.
+names in the host-supplied order. Each must name a loadable skill eligible under
+Chapter 9's catalog and launch-policy rules. A sandboxed selection must belong to
+the primary's transitive authorization graph; intermediate manuals need not
+already be active. An unrestricted selection uses the discovered catalog.
 A repeated name, or a selected loadable skill already included as a dependency,
 is activated only once. Missing names, wrong skill types, unavailable selections,
 and dependency cycles fail before publication.
@@ -213,7 +215,9 @@ building a test harness and using the real interface.
 
 ## What the wiring found
 
-The plumbing above is small because the preceding chapters already own the difficult lifetimes. A skill declares an MCP server. The registry connects when the skill loads and disconnects when it unloads. A browser tab exposes four tools over a WebSocket that was already there. The interesting part is what arrives the first time an agent can see a screen it did not render and press a button nobody told it about.
+The historical browser exposed four tools over its existing WebSocket. The
+interesting result was not the plumbing, but what happened when an agent could
+inspect a page it had not rendered and press a button nobody had described to it.
 
 The first-edition experiment ran on September 19 and 20, 2026. Its driver and transport arrived on the first day; four code repairs and three documentation commits followed the next afternoon. The retained [experience report](../docs/edition-2-notes/enhancement-12.md#historical-source-checks) supplies the account below. The ninety-eight-second outcome is that report's measurement, not a new run of this edition.
 
@@ -234,15 +238,17 @@ That restriction is the entire value of the driver. An agent with filesystem acc
 
 ### The human observer
 
-The protocol around these runs matters as much as the tooling, because it is what makes the results mean anything.
+Bill supervised the experiment, letting the driver inspect before supplying a
+diagnosis. Watching it miss a defect was evidence about its view; immediately
+pointing out the answer would erase that evidence. He still directed the work and
+identified a stale server holding the trial port. Withholding that operational
+help would have tested nothing useful.
 
-Bill Cox supervised the experiment, reading the reasoning as it streamed. The method was to let the driver inspect the interface before supplying a diagnosis. Watching it walk past a defect is useful evidence about the view it has; immediately pointing out the defect would erase that evidence.
-
-He did direct, and the distinction is worth drawing precisely. Direction covered what to test next, which binary to rebuild, and once, usefully, the observation that a stale server was still holding port 8084 while the freshly built binary bound to nothing and served no one. That is operational guidance, and withholding it would have wasted an hour proving nothing. Findings were different. The retained report also records a screenshot observation about truncation supplied by the human. That finding cannot be counted as an unaided discovery merely because the subsequent repair was automated.
-
-The reason to run it that way is that a supervisor who volunteers the answer cannot tell the difference between a tool that works and a tool that agrees. A supplied hint can make a successful report look like an independent discovery unless the assistance is recorded. To learn whether the snapshot is sufficient for a finding, let the observer attempt it before supplying the missing answer.
-
-This is the same discipline the book asks of a reader supervising an agent on live code, applied to the machinery itself. Keep the human assistance with the result so the next reader can tell which capability was exercised.
+The retained report attributes a truncation finding to Bill's screenshot
+observation and an unsafe rendering path to later source inspection. Neither
+becomes an unaided GUI discovery because an agent performed the repair. Keep the
+assistance with the result: a tool that agrees with a supplied diagnosis has not
+necessarily shown that it can discover the problem.
 
 ### The observer that froze what it watched
 
@@ -283,25 +289,11 @@ The second-edition student reproduced the self-input freeze in a real browser. M
 
 The missed path was `pace()`. On speech transitions it looked at the field's contents again, forgetting how the text got there. The input listener knew the event was programmatic; the later speech callback silently promoted that same text to human typing. Ignoring one event could not repair a second reader of the same mistaken signal.
 
-Keep the cause, rather than reconstructing it from the value. The browser MCP handler sends a marked event after setting the control:
-
-```javascript
-element.dispatchEvent(new CustomEvent("input", {
-  bubbles: true, detail: { mcp: true }
-}));
-element.dispatchEvent(new Event("change", { bubbles: true }));
-```
-
-The ordinary input listener preserves the actual cause:
-
-```javascript
-input.addEventListener("input", event => {
-  humanTyping = !event.detail?.mcp && input.value.length > 0;
-  pace();
-});
-```
-
-Speech and typing then combine as `speaking || humanTyping`. Successful submission clears `humanTyping` explicitly after clearing the field. Human whitespace still counts as typing; programmatic text does not acquire a human origin merely because a speech callback ran later.
+Keep the cause, rather than reconstructing it from the value. The marked-event
+protocol above lets the input listener retain `humanTyping`; speech callbacks use
+that fact instead of rereading the field as evidence of human intent. Successful
+submission clears it explicitly. Human whitespace counts as typing; programmatic
+text does not acquire a human origin when speech finishes.
 
 Pause remains Agent-wide. A browser sends automatic pause/unpause commands when its local causes change. If another tab explicitly unpauses, an unchanged local cause cannot immediately veto that command. The corrected native-browser check covers speech ending with programmatic text still present, genuine whitespace typing holding pause, explicit unpause from another tab, and a subsequent actual MCP submission. It also waits for the concluding speech to finish. The earlier passing check with speech disabled proved less than its author thought.
 
@@ -315,40 +307,17 @@ Chapter 4 predicted this in print. Section 4.8 is titled "Your agent drives a de
 
 The mechanism was a single synchronous read. `toolRunCommand` read the PTY inside the tool function, so the function could not return until the process closed its output. For `go build` that is correct and invisible. For a debugger sitting at a prompt it is fatal, and it is fatal in a way that disables the exact feature meant to rescue it: `ai_callback_pattern` is matched inside `Wait`, and `Wait` runs after the tool function returns. The escape hatch was behind the door it was supposed to open.
 
-The first-edition repair changed the lifetime: the tool function returned once the process was running, and a reader goroutine owned the PTY until exit. Its `DeferFinish` field told that dispatcher the job would finish itself. The following historical excerpt shows the handoff; it is not an API to add to the current implementation:
+The repair moved PTY reading into a goroutine and returned a Job handle while the
+process was still running. That worker retained the terminal, reaped the process
+and finished the Job. Chapter 4 teaches the current implementation of that lifetime;
+the old `DeferFinish` flag is not an API to add here.
 
-```go
-// The reader goroutine copies output from the PTY to the job until the
-// terminal closes, then reaps the process and finishes the job. It runs
-// independently of the dispatcher, so an interactive process that never
-// exits (dlv, python) does not block the model from getting a handle.
-job := c.Job
-c.DeferFinish = true
-go func() {
-    buf := make([]byte, 32*1024)
-    for {
-        n, rerr := f.Read(buf)
-        if n > 0 {
-            _, _ = job.Write(bytes.ReplaceAll(buf[:n], []byte("\r\n"), []byte("\n")))
-        }
-        if rerr != nil {
-            break
-        }
-    }
-    _ = f.Close()
-    werr := cmd.Wait()
-    // ... exit code extraction elided ...
-    job.Finish("", nil)
-}()
-```
-
-### Two dispatchers
-
-The experience report records the next surprise: the debugger worked, but the older Chapter 4 checks returned zero.
-
-The failure signature pointed in the wrong direction. Tool output came back as the empty string, and the capture file on disk held zero bytes. That reads as a broken output path, and an hour can be spent there. The actual fault was lifetime again. There were two tool dispatchers in that first-edition codebase: `Engine.Execute`, which serves chapters 3 and 4 through the older `Ask` path, and `Actor.dispatchTool`, which serves chapter 6 onward. Only the second had been taught about `DeferFinish`. The first still called `job.Finish` the instant the tool function returned, and `Finish` closes the capture file. The reader goroutine was writing correctly the whole time, into a file that had already been closed underneath it.
-
-The diagnostic detour is worth recording, because it cost more than the bug. Debug prints added to `Actor.dispatchTool` never appeared in the output, and the first explanation reached for was a stale build cache. It was not stale. The prints were in a function the failing tests never called. Silent debug output is evidence of the wrong code path at least as often as it is evidence of a bad build, and the cheaper check is to confirm which function runs before rebuilding anything.
+Then the older Chapter 4 checks returned zero. The debugger worked, but their
+capture files were empty. Two historical dispatchers served different exercise
+paths, and only one understood the new lifetime. The other closed the capture
+file as soon as the tool returned, while its reader was still writing. Debug prints
+in the repaired dispatcher never appeared because those tests never called it.
+Before blaming a stale build, establish which path actually runs.
 
 ### Ninety-eight seconds
 
@@ -372,19 +341,14 @@ if (s.temperature !== undefined) { /* update the input */ }
 
 An absent field is indistinguishable from an unchanged field, so the stale value stayed on screen. The same flaw meant `TTSEnabled: false` could never be transmitted, because false is empty. Turning speech off was unrepresentable on the wire.
 
-The deleted code had confessed. `SettingsStore.Apply` carried this comment:
+A test-only workaround even commented that `omitempty` skipped false, but left
+the conflicting representation intact. With no external consumers to preserve,
+the maintainer chose a complete-state broadcast and one merge path rather than
+another nearly identical settings type. Zero and false became explicit values.
 
-```go
-// Since omitempty skips false, we handle this via the raw patch.
-// For simplicity, always apply.
-```
-
-Someone met this bug, understood it precisely enough to describe it in one sentence, and routed around it instead of removing it. The method had no callers outside tests.
-
-There was a real choice about how far to take the repair. The cautious option preserves the existing wire format and introduces a second type for broadcasts, leaving the patch struct untouched, which costs nothing today and leaves two nearly identical structs for the next reader to confuse. The maintainer settled it in one line: the format has no external consumers, so make the code clean. The repair therefore dropped `omitempty` from every field, so a broadcast always carries complete state, and deleted `Apply` outright, leaving one merge path with defined semantics.
-
-
-A zero missing from a full snapshot would still be the defect. The corrected broadcast must carry `temperature: 0` and `tts_enabled: false` explicitly. A clamped value on disk, the value applied by the server, and the value shown by the client are separate observations. Chapter 8 now follows all three instead of treating a settings-file inspection as proof of the screen.
+A clamped value on disk, the applied server value and the value shown by the
+browser are separate observations. Chapter 8 now follows all three instead of
+treating a settings-file inspection as proof of the screen.
 
 ### The settings panel that does not exist
 
@@ -434,25 +398,32 @@ A loop closes here. The agent described in these chapters was built by following
 A book that produces a working program gets to be tested by the program it produces. This section is the first time that test came back with findings, and the findings were about the book.
 
 
-### Later Historical Browser Exercises
+### Later browser exercises and a mistaken correction
 
-The retained October 10, 2026 browser sessions used `claude-haiku-5-5`, `gpt-4o-mini` and `gemini-3.8-flash`. These are the models actually exercised, not a claim about today's catalog. The [live record](../docs/edition-2-notes/ch13.md#student-implementation-and-initial-review-submission) links the captured requests and real Chrome observations.
+The [October 10 live record](../docs/edition-2-notes/ch13.md#student-implementation-and-initial-review-submission)
+retains runs with Claude Haiku, GPT-4o mini and Gemini on the then-current source.
+Claude and Gemini changed the font and unloaded the skill. Claude incorrectly
+reported that tools remained available until compaction, although the final
+request showed them gone. We clarified the unload message: tool removal is
+immediate; instruction removal can remain pending.
 
-Claude Haiku and Gemini changed the effective font to 20, received the refreshed snapshot, and unloaded the skill. Claude then incorrectly said the MCP tools remained available until compaction. The old generic unload message encouraged that explanation; the final request already showed the tools gone. The implementation's message was clarified to separate immediate server removal from pending instruction removal. No paid repeat was needed merely to demonstrate revised wording.
+Both GPT-4o mini attempts failed the full task. A guided retry changed the setting
+and passed the script's GUI assertions, but then tried a nonexistent snapshot
+file and claimed it could not inspect state already present in its tool result.
+Working controls do not guarantee faithful model use. The supplied selector was
+assistance, and a prompt forbidding file access was weaker than the original
+observer's actual lack of file tools.
 
-Both GPT-4o mini attempts failed the full task. The first guessed `input[type='number']`, received a missing-selector error, then unloaded without repairing it. A guided second attempt supplied the observed `#font-size` selector and explained that it was a select. It changed the setting and unloaded, then tried `read_file` on `path/to/the/snapshot` despite the instruction forbidding file access. That nonexistent path failed, and the final response claimed the snapshot could not be inspected. The capture already contained the refreshed state.
+Those runs preceded the final speech correction; they are not a final-source live
+rerun or a font-persistence test. The current native-browser checks and Chapter 8's
+persistence exercise establish different things.
 
-The second attempt passed the script's GUI assertions. It remains a task failure. That distinction is especially useful here: working controls do not guarantee that a model will use them correctly or report their result faithfully. A guided selector is assistance, and a prompt restriction is weaker than the historical blind driver's actual absence of file tools.
-
-These live runs preceded the final native-speech correction and small manual/message corrections. They establish the recorded interaction and unload behavior on their captured source. The corrected speech path has its separate native-browser evidence; no final-source paid rerun is claimed. Likewise, a visibly effective font change is not a restart-persistence test. Chapter 8 supplies that separate check.
-
-### Checking the correction itself
-
-The first-edition chapter ended with a quotation-verification story. It said that “You know the client works because you can see it.” had been invented and appeared nowhere in the original settings chapter. The retained source contains those exact words, split across a newline. They are present even in the revision before this narrative was appended.
-
-A literal one-line search misses a wrapped sentence. That miss establishes a search result, not the sentence's absence. Read the surrounding paragraph or normalize whitespace before comparing the quotation. The supposed correction needed the same scrutiny as the original claim.
-
-The comparison with the phantom Settings panel remains useful, with a narrower conclusion: check the observable that supports the claim. For a tab, read selected state. For a quotation, compare the actual source text. For a successful tool, inspect its correlated result. A confident diagnosis can survive an inadequate check just as easily as the bug it diagnoses.
+Even a correction needs evidence. An earlier version of this account said the
+quotation “You know the client works because you can see it.” was invented. The
+source contained those exact words across a newline. A one-line search had missed
+them. For a quotation, read the actual paragraph; for a tab, inspect selected state;
+for a tool, inspect its correlated result. Confidence cannot repair a check that
+does not observe what it claims to establish.
 
 ## Exercise This Endpoint
 

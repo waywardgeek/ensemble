@@ -19,14 +19,10 @@ engineering requirement: test the current integration before implementing yester
 workaround. The measurements below explain why the earlier implementation took a
 detour. They do not establish that today's public OAuth cache is still broken.
 
-**C# execution status — October 29, 2026:** real Ensemble OAuth login and
-account-model discovery succeeded. Three completed public-route requests reported
-zero cached reads and writes. After the separately authorized comparison, the
-Codex-backed C# path was implemented in core, CLI and GUI. Its bounded actual-CLI
-check returned three correct answers with cache reads of **3,456, zero, and
-3,456** out of 3,641 input tokens. That supports the optional detour, with a
-measured miss—not a universal hit-rate or dollar-saving promise. Chapter16's
-public grant and renewal store remain separate.
+**C# execution status — October 29, 2026:** public login and model discovery
+succeeded. A separately authorized comparison justified the optional Codex-backed
+path now implemented in core, CLI and GUI. The measurements below include a
+real cache miss; they do not promise universal reuse or dollar savings.
 
 ## TL;DR
 
@@ -54,10 +50,8 @@ OAuth token to another endpoint.
 5. Require terminal completion before treating a response as successful. Safe
    credential failure tells the user to repair the Codex sign-in; it does not
    expose the path, token, parser exception or provider body in History.
-6. Verify boundaries with fakes, then make a bounded real application check.
-   The actual C# CLI returned `OK` three times with identical bodies: cache
-   reads were **3,456, zero, and 3,456** out of 3,641 input tokens. That proves
-   integrated reuse occurred, not that every request reuses its prefix.
+6. Verify boundaries with fakes, then measure reuse through the actual application
+   using the bounded procedure below. A successful answer alone is insufficient.
 
 Work in `agent`; the source-only reader endpoint is
 `solutions/ch24`. This optional integration was finished after Gateway
@@ -91,23 +85,18 @@ already accepted the absent-header stream shape. All three requests returned
 | Codex, temporary probe, two measured responses | 3,641 | 3,456 / 3,456 | 5 | 0 each |
 | Codex, integrated C# CLI, three completed requests | 3,641 | 3,456 / 0 / 3,456 | 5 | 0 each |
 
-The first probe attempt is additional, unmeasured traffic—not included in the
-second row's token totals. Each three-response C# series used 10,938 total
-reported tokens. In the Codex C# series, 6,912 were cached input, 4,011 were
-uncached input, and 15 were output. Two responses reused about 94.9% of input;
-one reused none. These are provider usage reports, **not a subscription invoice
-or a measurement of dollars saved**.
+The refused probe attempt is additional, unmeasured traffic, not part of the
+table's measured responses. The integrated Codex series reused about 94.9% of
+input twice and none once. These provider usage reports are not an invoice or
+a measurement of dollars saved.
 
-The wire payloads in all three comparisons were byte-identical: 21,438 UTF-8
-bytes, SHA-256
-`95eae405d65743e2b34b6cb3e03754ffea92e3b5c465a5bd95ed0cd8b1f6e756`.
-A documentary `request.json` has a trailing newline; the equality check uses the
-actual trace payload, not that file's bytes. The prompt was fixed harmless text,
-reasoning was low, summaries off, recall and memory disabled, and no tool was
-called. The body already used top-level instructions: no cross-route message
-conversion was necessary. The credential source, endpoint and HTTP headers
-changed. The C# process durations were roughly 4.0, 3.6 and 2.9 seconds, including
-startup—not a controlled latency comparison or time-to-first-token measurement.
+The wire bodies were byte-identical, using fixed harmless text, low reasoning,
+no summaries, recall, memory or tool calls. Credential source, endpoint and
+headers changed; the temporary probe also used Python rather than the C#
+application. The body already used top-level instructions. The
+[progress record](../docs/edition-3-csharp-progress.md) retains the detailed
+evidence locations. Process durations included startup and were not a controlled
+latency comparison.
 
 The public [inference guidance](https://developers.openai.com/siwc/token-sharing-open-source/models-and-inference)
 checked for this exercise specifies `https://api.openai.com/v1/responses`,
@@ -121,18 +110,14 @@ establish a universal hit rate, or explain an internal product decision.
 
 ## Implementation status
 
-The core, both host selectors, local failure checks, isolated GUI display, and
-bounded live C# path are implemented and verified. Six Codex-specific groups,
-20 public-auth groups, eight existing Responses groups, eight host checks, ten
-public-funding regression scenarios, and the final 310-group shared suite provide
-different evidence scopes; several overlap and must not be added into a claimed
-unique total. The shared build and both actual hosts build cleanly. There is no
-separate Chapter24 score. Live GUI inference, renewal/revocation, accessibility,
-subscription billing and general provider reliability are not established by
-these checks. See the [progress record](../docs/edition-3-csharp-progress.md)
-for retained failures, exact local evidence paths and final preservation status.
+The core, both host selectors, local failure checks, isolated GUI display and
+bounded live CLI path were verified. The final 310-group shared suite includes
+overlapping focused checks, not an additional independent total. There is no
+separate Chapter24 score. Live GUI inference, renewal/revocation and subscription
+billing were not established. The [progress record](../docs/edition-3-csharp-progress.md)
+retains failures and exact evidence locations.
 
-## 23.1 In plain language
+## 24.1 In plain language
 
 A coding agent may send thirty thousand tokens of instructions and working
 context on every turn. Most of that context stays the same while the agent
@@ -179,7 +164,7 @@ Jobs owns tool work. A justified transport change should not introduce a second
 agent loop or duplicate the credential store. Explicit funding remains explicit:
 a failed plan request never silently falls back to an API key.
 
-## 23.2 Taking the detour in C#
+## 24.2 Taking the detour in C#
 
 Keep two credential owners distinct. Chapter16's `Credentials` owns Ensemble's
 public registration, protected storage, selected account and renewal protocol.
@@ -305,7 +290,7 @@ request remains a frozen value passed to the existing Engine. The source split
 makes the shared contract inspectable in Common and the implementation inspectable
 in its responsible module, rather than hiding policy in UI glue.
 
-## 23.3 Taking a measurement in C#
+## 24.3 Taking a measurement in C#
 
 Do this with the account holder, not as an unattended credential-discovery task.
 Chapter 16 supplies the human `auth status`, `auth login` and `auth models`
@@ -370,7 +355,7 @@ probe is justified. Do not retry indefinitely or treat one small sample as proof
 that every public OAuth request is broken. If the test cannot run, write
 **untested**, not **fixed**, **broken**, or **passed**.
 
-## 23.4 What the earlier detour taught us
+## 24.4 What the earlier detour taught us
 
 The following is historical implementation evidence, not the C# exercise above.
 The Go adapter selected a separate `codex` connection, reread a human-selected
@@ -416,14 +401,13 @@ became visible because we measured the real tool loop. The reverse lesson matter
 just as much: once the supported route works, stop maintaining an unnecessary
 detour.
 
-## 23.5 Where this execution stops, and where the book continues
+## 24.5 Where this execution stops, and where the book continues
 
 The optional Codex path is working through the actual C# application. It remains
 a separate, explicitly selected grant using a backend that can change; it is not
-a replacement for the documented public OAuth contract. The public comparison
-reported no reuse; the integrated Codex check reported two hits and one miss.
-Keep both facts. A correct answer, a successful login and a plausible affinity
-header are each weaker evidence than the terminal usage record.
+a replacement for the documented public OAuth contract. A correct answer,
+successful login or plausible affinity header remains weaker evidence of reuse
+than terminal usage.
 
 Tests also establish the less visible behavior: paired rereads after replacement,
 malformed/duplicate/oversized-file refusal, safe cancellation and destruction,

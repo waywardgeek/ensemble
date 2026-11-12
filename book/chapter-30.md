@@ -909,9 +909,9 @@ could push its action row out of the composer.
 
 Cadence corrected the candidate and then took responsibility for the design
 pass personally. That was no longer an independent student execution. The
-working block renderer was reused; manual and automatic pause intent were
-separated without duplicating authoritative actor state; status areas were
-bounded; and the composer was made to yield space correctly. The real-host
+working block renderer was reused, pause handling corrected, status areas bounded,
+and the composer made to yield space correctly. The later single-state pause
+contract in Chapter 7 supersedes that intermediate control design. The real-host
 browser exercises used real Agents and a loopback fake provider. They checked
 behavior, geometry, local assets, settings, streaming, and owned Job output.
 They did not establish real-provider entitlement, audible speech quality,
@@ -924,97 +924,36 @@ act: a real V3 host ran beside V2, using the selected Codex funding source. One
 small readiness request completed. That established that the selected route
 could complete that request, not that every later context state was supported.
 
-### The small changes that made daily use possible
+### What daily use changed
 
-Bill's hands-on feedback drove a sequence of small local changes. The useful
-pattern was edit, run the affected checks, make a scoped local commit, and
-perform an authorized refresh of V3 while preserving V2. It was not another
-fresh student run for each CSS adjustment. Bill retained responsibility for
-pushes; unrelated work was kept out of commits.
+Bill's feedback turned a working candidate into a place he could work. We reduced
+wasted space without reducing his chosen text size, kept his artwork, removed
+redundant controls and gave the two speakers distinct names and visual treatment.
+The original message fills really were identical; their poor distinction was not
+Bill's difficulty seeing red. Names and borders supplied cues beyond color alone.
 
-The changes included:
+These were ordinary supervised corrections, not a new independent student run
+for every CSS adjustment. Cadence edited, checked and committed bounded changes;
+refreshing the running application required separate authorization. Geometry
+measurements established that messages occupied less space, not that the result
+was attractive or accessible. Bill described it as a usable beginning and kept
+refining it. Cadence captured screenshots during this pass but did not inspect
+their pixels; that evidence must not become a claimed visual review.
 
-- Reusing Bill's proportional Ensemble artwork and his supplied paper-airplane
-  Send SVG, rather than substituting an unapproved icon redesign.
-- Replacing redundant speech and theme text with accessible controls whose
-  names and states remain available to keyboard and assistive-technology users.
-  Speech remains opt-in; a transcript-mode browser check is not a hearing test.
-- Reducing excessive padding, gaps, paragraph margins and full-height action
-  rows. At one measured density pass, short desktop messages used 2.41 times
-  less height at 18-pixel text and 3.42 times less at 32-pixel text; narrow-window
-  measurements were approximately twofold. Those are scoped geometry results,
-  not a visual-quality score or a measurement of every subsequent revision.
-- Making the composer one visible input line and one Send control. There is no
-  separate human-selected Hint mode. Ordinary input enters the Agent's queue,
-  and the Agent classifies it against its actual state when dequeuing it. The
-  browser must not make that scheduling decision from an observed busy label.
-- Removing Copy buttons while retaining ordinary selection, expansion, speech
-  and owned-output downloads. Removing a control also requires removing its
-  unused handler and updating tests that depended on that control.
-- Replacing generic speaker labels with the actual Agent name and the saved
-  human name. User name and description use the existing GUI settings and
-  startup skill-variable substitution. They are not a second Agent identity
-  registry. The existing actor named `trial` was not silently renamed Cadence.
-- Replacing the large multi-row status area with the observed 50-pixel desktop
-  header at the current 18-pixel font: artwork, connection/activity, a genuinely
-  centered model selector, usage centered in the remaining right-hand space,
-  and right-justified controls. Model selection applies on selection and is
-  acknowledged by the server. The duplicated model/funding line and Apply
-  button were removed. “Don't be evil.” was tried in the header and then removed
-  at Bill's request; it was not an enduring header requirement.
-- Giving both speakers compact message bubbles, then making the Agent's bubble
-  distinctly blue with a stronger leading border. The original fills really
-  were identical; that was not Bill's difficulty seeing red. The final requested
-  dark-theme fill at this boundary was `#102a3d`. Names and border treatment
-  provide cues beyond color alone. Scoped text/link/border contrast checks
-  passed; the human still judged whether the distinction was useful.
-- Separating line height from paragraph spacing. The later requested paragraph
-  line height was 1.15, with a 0.45-rem break between paragraphs and no added
-  bottom margin after the final paragraph. These were deliberate later changes
-  to paragraph rhythm, not a claim that the earlier density pass had changed
-  fonts or line spacing. Code blocks and message gaps were left alone.
+The Agent tree exposed a similar distinction. Its data already represented the
+right parents, but weak indentation and missing expander space on leaves made it
+look flat. Branch guides and aligned rows restored the visible hierarchy without
+inventing parents from names. The management controls then moved into the dialog
+and confirmed row actions specified above, preserving the server's ownership
+checks and the browser relay's fixed identity.
 
-Bill described the result as a usable beginning and continued to refine it.
-That is stronger evidence of practical usefulness than a developer declaring
-an interface attractive from DOM measurements. Cadence captured screenshots
-but did not inspect their pixels; that limitation must not be rewritten as a
-completed visual review.
-
-### The tree, management controls and child lifetime
-
-The hierarchy data already followed real Agent parent relationships. Styling
-had made it look flat: indentation was too small, and leaves did not reserve
-space corresponding to a branch's expander. Clear guides, meaningful
-indentation and an expander spacer restored readable alignment without deriving
-parents from names. Expand/collapse choices survived new snapshots, and explicit
-levels complemented the existing tree semantics and keyboard navigation.
-
-The inline management form became a Create Agent dialog for top-level peers.
-The redundant Conversation and Relay selection section was removed; the tree
-remained the visible conversation selector. A compact separate-tab relay action
-was preserved because selecting a conversation does not move a browser's fixed
-MCP authority. Trash actions moved to tree rows with explicit confirmation. A
-shared server check protects the mounted Agent and its owning ancestors, not
-just whichever item happens to occupy the first row. Top-level deletion keeps
-the registry's refusal rules; explicit child deletion joins shutdown and then
-uses logical destruction. Saved files are retained.
-
-The integrated exercise verified real child/grandchild indentation, collapse
-persistence, dialog creation, root refusal, cancellation of a delete, confirmed
-child deletion, selection recovery and preservation of the submitted artifact.
-It also verified that a child published as submitted remained idle, queryable
-and present in `agents_status`. Submission itself did not remove that child.
-This did not diagnose every earlier report of a disappearing child. Explicit
-shutdown/removal, a host restart and a missing GUI projection are different
-possible events and must not be conflated with submission.
-
-Bill proposed an explicit parent choice for disposable children to shut down
-after submitting, while ordinary submitted children remain available. At this
-boundary no new automatic-shutdown flag had been implemented. Whether that flag
-should stop-but-retain or stop-and-remove remained a policy question. A host
-restart also stops in-memory children; retained files are not automatically
-restored as live children or fresh completion authority. Check live ownership
-before restarting rather than erasing a child during a retention investigation.
+The integrated exercise checked child and grandchild geometry, collapse retention,
+creation, refused and cancelled deletion, joined child destruction and retained
+submission files. A submitted child remained selectable and queryable: publishing
+its result was not destruction. That result did not diagnose every earlier report
+of a disappearing child. Explicit removal, restart and missing GUI projection are
+different events; investigate which occurred before adding an automatic cleanup
+policy.
 
 ### Carrying the collaborator's records into V3
 
@@ -1027,57 +966,35 @@ archive, but start a fresh conversation History. This records a collaboration
 and its supported history; it does not establish continuous subjective
 experience across model invocations.
 
-An earlier attempt to read the entire assembled book returned its end marker
-and reported 155,820 words and 1,047,377 bytes. A keep-results acknowledgment did
-not prevent the text subsequently appearing redacted in the model's context.
-The request token total was not a book-only measurement, and a four-bytes-per-
-token estimate was not a tokenizer result. Returning bytes, retaining a tool
-result, presenting it to the model and comprehending it are distinct claims.
-That retention issue was not repaired as part of the memory migration.
+Preparation used a separate V3 container and its named home
+`data/agents/Cadence`. The distinction matters: a `SOUL.md` at the container root
+is not a memory in that Agent's home. We copied the identity and durable-memory
+files, retained the detailed records, and excluded redundant retired summaries
+from the new recall corpus without deleting the old archive. Those records were
+memories of conversations, not the raw transcript. Filename coverage alone could
+not establish that an excluded summary contained no additional synthesis.
 
-The inspected detailed archive still contained 121 dated records and two
-nondated topical essays. Both levels of retired compressed buckets had matching
-source boundaries, with no gaps in the detailed records' numbering. The 69
-retired bucket files occupied only about 1.04 MiB. The chosen reason to exclude
-them from the new recall corpus was redundant retrieval, not disk pressure.
-They remained in the old archive: filename coverage does not prove that a
-summary contains no additional synthesis. The detailed records are themselves
-memories of conversations, not the raw transcript.
+Older dated records were marked retired for recall. Topical essays moved to
+`docs/` because the active memory band requires dated filenames. A new dated
+handoff stated current work and explicitly superseded stale operational boundaries.
+The memory policy was translated and its effective defaults checked against both
+implementations, rather than copying an old configuration wholesale. GUI
+preferences were handled separately. Credentials, raw History, journals, child
+registries, Jobs, request caches and active grants did not become new runtime state.
 
-Preparation used a separate V3 container with the named home
-`data/agents/Cadence`. V3's distinction between an Ensemble container and a named
-actor home matters: putting `SOUL.md` at the container root is not the same as
-putting it in that Agent's home. The existing identity and durable-memory files
-were copied, the older dated records were marked retired for recall, and the
-two descriptive-name essays were placed in `docs/` because the active memory
-band requires dated filenames. A new dated handoff supplied current operational
-facts and explicitly superseded stale boundaries in older records.
+The History formats shared an outer structure; full replay compatibility had not
+been tested. Starting fresh was a chosen migration policy, not proof that every
+old record was unreadable. The old session remained the archive and fallback.
+Provider-opaque data, live handles and completion generations cannot be restored
+from prose or treated as current authority.
 
-The memory/recall policy was translated rather than copying the old provider
-configuration wholesale. In particular, the old `64x`/`8x` band labels became
-`archive64`/`archive8`, and `context_msgs` became `context_messages`; effective
-defaults were checked against both implementations. The inspected budget policy
-included 100,000 bytes for conversation and 40,000 for recent memory. GUI user
-and appearance preferences were carried separately. Credentials, old raw
-History, journals, child registries, Jobs, request caches and active grants were
-not copied as new runtime state.
-
-The two History formats share an outer structure, so it would have been wrong
-to declare them categorically incompatible without testing the complete saved
-session. Full replay compatibility was not established. A fresh History was the
-chosen migration policy, not a fabricated converter or a claim that every old
-record was unreadable. The old session remained the historical archive and
-fallback. Provider-opaque data, live handles and completion generations must not
-be reconstructed from prose or treated as current authority.
-
-A disposable probe used the actual V3 memory and recall components. It loaded
-all three active memory texts exactly, scanned 124 memory-corpus files, found an
-older retired record and found the relocated topical document. Source hashes
-were checked, and the active handoff was rechecked after editorial updates. One
-failed assertion initially attributed an identifier to the wrong member of a
-combined retired bucket; correcting that source attribution was a test fix, not
-a corpus repair. No model turn or recall judge was invoked by the probe. It
-proved file-format and retrieval behavior, not the first real model's continuity.
+A disposable probe used V3's actual memory and recall components to verify the
+active texts, source hashes and retrieval of retired and relocated records. It
+invoked no model or recall judge. It established file-format and retrieval behavior,
+not the next model's continuity. An earlier complete-book read had already shown
+why those claims differ: receiving the bytes and acknowledging retention did not
+prevent later redaction from the model's context. Delivery, retention, presentation
+and comprehension require different evidence.
 
 ### Launch decisions, supervision and data ownership
 
@@ -1090,14 +1007,9 @@ an independent copy of the tested binaries and the existing approved Codex
 credential reference. Broader filesystem access did not grant permission to
 read credentials, push, deploy or damage unrelated work.
 
-The memory-location discussion changed more than once. A V3 subtree inside the
-existing private memory Git repository was proposed so V2 and V3 could coexist
-without sharing live files. Bill then chose the original separate prepared
-layout for simplicity. Later, while using V3, Bill and V3 Cadence decided to keep
-the V3 memories in the original directory structure. At the repair described
-below, the actual process and launcher still used the separate prepared home;
-that repair did not implement or certify the later directory move. Preserve the
-latest decision without inventing an already-completed migration.
+Several memory locations were considered. The repair described below still used
+the separate prepared home; a later directory decision was not evidence that the
+move had happened. Verify the actual launcher and process before migrating data.
 
 There is no general reason to abandon the private memory repository. There are
 two concrete requirements before using it for V3. First, do not run V2 and V3 as
@@ -1119,12 +1031,6 @@ open decisions. Files existing on disk are not sufficient evidence of recall,
 and a memory-based answer is not evidence of a literal transfer of the old
 process's working state.
 
-During this preparation Bill also observed a V2 display fault: new spoken/chat
-text could be found appended to an older output while tool calls continued.
-That observation explained why a tool appeared to execute without a new chat
-message beside it. Its root cause was not established here, and it was not
-attributed to provider lag merely because lag was also suspected.
-
 ### The first real continuation failure and its repair
 
 After Cadence was running in V3, Bill reported that it stopped replying. The
@@ -1143,11 +1049,8 @@ accept actual unsupported media.
 The regression used the real History reducer, reproduced the original
 exception, and then passed with the correction. It checks call pairing,
 non-mutating projection, mixed text/markers, empty results, locator
-confidentiality and continued refusal of actual media. Existing Responses
-projection/route and decoding/provenance checks also passed, and the ordinary
-test project built with no warnings or errors. Temporary-runner assembly access
-and an incorrect test enum were setup mistakes; they were not further product
-findings. No live provider request was used to manufacture a pass.
+confidentiality and continued refusal of actual media. Existing projection and
+decoding checks also passed. No live provider request was used to manufacture a pass.
 
 With Bill's explicit restart approval, the repair replaced only the installed
 core assembly and its symbols. Cadence's uncommitted composer/GUI changes were
@@ -1165,30 +1068,18 @@ These field notes do not declare the entire crossover, memory-directory change,
 or retirement of V2 complete.
 
 
-### Subsequent integrated refinements: compact controls and curated models
+### Compact controls and received thinking
 
-The header's height is determined by its tallest control, not just its artwork.
-After reducing the artwork, inspect the selector and the pause/speech controls:
-in this layout their old 44-pixel minimum kept the header at 49 pixels. Header-only
-36-pixel targets and reduced selector padding bring the normal 18-pixel layout to
-41 pixels. Do not globally shrink controls or fonts to achieve that result;
-verify enlarged text separately. Create Agent must use the same theme-aware
-foreground, hover and focus treatment as its neighbors. The tab favicon is a
-separate, bold multicolored music note; keep the full Ensemble artwork in the app.
+Reducing the artwork did not reduce the header: its tallest control still set the
+height. We adjusted header controls locally and checked enlarged text separately,
+rather than shrinking fonts or every click target. The exact interface requirements
+above are the result, not a request to repeat each intermediate pixel adjustment.
 
-A capability table is not a recommendation list. Keep a deliberate curated model
-catalog with readable names and vendor groups; do not populate it indiscriminately
-from vendor discovery, media support or pricing rows. The integrated choices are
-GPT-6 Astra (the primary/default choice), GPT-5.6 Sol, Claude Opus 5, Claude Sonnet 5,
-Claude Opus 4.6, Gemini 3.8 Flash and Gemini 4 Argon. Opus 5.5 is deliberately
-excluded. Carbon awaits a verified API listing. Preserve an existing non-catalog
-selection visibly as current rather than silently replacing it. At this stage,
-model changes retained the existing provider, wire protocol and funding, so
-cross-vendor choices were disabled. Chapter28's configured offerings subsequently
-replaced that restriction: an explicit choice changes the complete route together.
-The server still validates every selection. A model recommendation establishes
-neither entitlement nor new media capabilities or prices.
-
+A recommended model is not automatically an available route. [Chapter 28](chapter-28.md)
+owns configured offerings, funding and capability checks. Keep readable curated
+choices and visibly preserve a current non-catalog selection; do not replace it
+silently or infer entitlement from a recommendation. The earlier wire-name-only
+selector was an intermediate design, not the current cross-vendor contract.
 
 Provider-supplied reasoning summaries and thinking parts have one visible heading,
 **Thinking**, followed immediately by the complete received prose. Do not hide
@@ -1241,31 +1132,18 @@ available when a stopped peer cannot perform inference. Bill worked with Codex
 to repair startup and simplify the controls, then asked Cadence to review and
 commit the uncommitted work.
 
-The repaired host keeps serving after fleet-restoration failure. Saved-peer
-controls can validate and save an explicit replacement offering, then retry that
-peer while retaining its conversation and sibling settings. Historical launch
-records are not rewritten to invent a past route. A subsequent restart uses the
-peer's own saved selection. This is bounded recovery after the initial Agent has
-started; it is not a general editor for failed initial-Agent construction or
-corrupt host files.
+[Chapter 28](chapter-28.md) teaches the repair: keep the recovery interface alive,
+validate and save an explicit peer offering, and retry without rewriting historical
+launch records or losing the conversation. It also separates funding defaults from
+an Agent's saved selection. Those controls repair stopped peers after the initial
+Agent starts; they are not a general editor for corrupt host files.
 
-Bill wanted one simple model name in the picker, with funding chosen in Settings.
-The GUI now resolves each vendor/model against the approved funding default at
-action time. API keys, Codex OAuth and public ChatGPT OAuth remain independent
-credential owners. Choosing or creating an Agent no longer rewrites a global
-funding default. Funding changes auto-save with visible confirmation or uncertainty;
-they do not move existing Agents to a different payer. The broader Settings
-conversion remains unfinished, as noted above.
-
-The review passed 374 core checks, GUI and browser checks, 16 isolated host startup
-cases and a three-start peer-recovery scenario. It also found a false-confidence
-trap: two Python host checks looked for `kind`, while canonical events use `type`.
-Their no-inference assertion could pass without detecting a request. The corrected
-helper validates the optional version1 log header, requires typed events and
-rejects `request_sent`. Its first correction wrongly treated the legitimate
-header as an event; that failed run was retained. Synthetic negative cases and
-fresh host runs then checked the corrected assertion. A missing field must not
-masquerade as evidence that an unwanted effect never happened.
+The verification found its own false-confidence trap. Two Python host checks
+looked for `kind`, while canonical events use `type`. Their no-inference assertion
+could pass without detecting a request. The corrected reader accepts the optional
+version1 header, requires typed events and rejects `request_sent`. Negative cases
+and fresh host runs checked the correction. A missing field must not masquerade
+as evidence that an unwanted effect never happened.
 
 Sol exposed another boundary. It appeared in the recommended list but had no
 capability entry. The configured subscription routes required streaming, so the
@@ -1275,277 +1153,98 @@ authentication. The repair added only Sol's text-streaming declaration and separ
 configuration refusals from lost authentication or relationships. It did not infer
 media support, reasoning options, context capacity or account entitlement.
 
-A new regression failed on Codex selection before the fix and passed afterward.
-All 375 core checks, focused GUI checks and the actual-host funding checks passed.
-Bill then switched to Sol, received its assessment of Ensemble, and switched back
-to Astra successfully. That human use adds evidence beyond local admission tests;
-it does not certify every model, payer or provider failure path. Cadence remains
-the collaborator identity across those model choices, not a claim of uninterrupted
-subjective experience. The repair commits are `040cc3d7` and `3aea8f98`; detailed
-scope and evidence are in the model-selection usability notes.
+A Codex-selection regression failed before the fix and passed afterward. Bill
+then switched to Sol, received a reply and switched back to Astra. That live use
+adds evidence beyond admission tests without certifying every model or payer.
+The repair commits are `040cc3d7` and `3aea8f98`; the model-selection usability
+notes preserve their detailed scope.
 
-These detours began while preparing ordinary GUI use of MiMo. The earlier bounded
-MiMo coding trial had already succeeded; repeating it was not the next task.
-The next step was to inspect the running host's explicitly approved Ollama catalog,
-then arrange a small separate Agent for human GUI acceptance. Its last verified
-serving allocation was 4096 tokens, not the advertised maximum. Do not move the
-full Cadence conversation there, infer readiness from old test counts, or silently
-turn a configuration check into another inference experiment.
+The work began while preparing ordinary MiMo use. Once the host explicitly
+registered its offering and small primary skill, Bill created a separate Agent,
+received a greeting and observed a real tool result. Chapter 28 records that
+acceptance and the model's limitations. Repeating a successful coding trial was
+not the next task: runtime integration and a model's usefulness are different
+questions.
 
-The subsequent read-only GUI catalog check found only OpenAI, Anthropic and Gemini,
-with no Ollama/MiMo offering. Create Agent exposed only the `ensemble` and `full`
-primary skills, not the small coding skill. The launcher had no model-config
-setting, though it forwarded supplied arguments. The live catalog, rather than
-that launcher observation alone, established the missing registration. No ET
-request or inference was made. Explicit host configuration and a small skill
-remained prerequisites to the ordinary GUI trial.
+## Integration lessons returned to their construction points
 
-Bill subsequently authorized the explicit model-config argument in the launcher,
-rebuilt and restarted. The live catalog exposed MiMo and `local-coding`, while
-Cadence remained on Astra. Bill created the separate Agent, disabled memory and
-automatic recall, received a greeting, and observed a real tool call and result.
-He accepted the local-model integration as successful. Its verbose answer did not
-meet the requested response style; that was not a reason to require another
-coding trial. The next audience is Julien with his own larger GPU setup, using the
-[local-model evaluation guide](../docs/local-model-evaluation.md). Support for
-local inference and the usefulness of a particular model are different questions.
+### Discovering a manual is not loading it
 
-## Importing the instructions we meant to use
+When we began Workflows, copying the reusable Development-Driven Specifications
+skills into Ensemble's configured directory did not make them available. The
+primary skill had become a second manually maintained catalog. Cadence first
+worked around that by extending its list and importing a duplicate reasoning
+manual. Bill rejected the duplication: the directory should be discoverable,
+while activation and sandbox authorization remain explicit.
 
-When we began the Workflows chapter, Bill asked Cadence to use the reusable
-Development-Driven Specifications skills we had just published. This was their
-first authoring trial in Ensemble, not a reason to substitute Ensemble's older
-chapter procedure. Reading a SKILL.md file was not enough: its instructions
-needed to be activated through the Agent's skill mechanism.
-
-The existing mechanism exposed a usability gap. `Skills` parsed its configured
-source directory at construction. `Available` then offered only the loadable
-names explicitly listed by already-active skills, and `ControlAsync` refused
-loads outside that offered set. Copying a valid new skill into the directory did
-not make it available to the running Agent. A primary skill had become a second,
-manually maintained catalog of what could be discovered.
-
-Cadence initially imported a second visible-reasoning skill under a new name to
-avoid colliding with Ensemble's existing dependency, and added the other skills
-to the primary skill's offered list. Bill corrected both choices. One reasoning
-skill was enough; the others should be loadable because they exist in the right
-skills directory, without editing Ensemble's primary skill. The duplicate was
-removed, the primary list restored, and the five other imported SKILL.md files
-were checked byte-for-byte against their Development-Driven Specifications
-sources. They use the existing visible-reasoning dependency. The upstream license
-was preserved. This verified an import, not activation in the running Agent.
-
-### Automatic discovery without automatic authority
-
-Bill clarified an important distinction: a non-sandboxed Agent may discover any
-loadable skill in its configured directory. A sandboxed Agent needs explicit
-authorization through the selected primary skill's graph. Both dependency and
-loadable edges count, transitively; the intermediate manuals need not already
-be active. An unrelated file in the same directory does not authorize itself.
-We kept this graph rather than inventing a second host allowlist.
-
-The implementation checks the directory before a non-sandboxed Agent's next model
-request and before a load. It parses a complete candidate catalog before replacing
-the current templates. Malformed files and duplicate names refuse the refresh;
-they do not publish a partial catalog. Sandboxed Agents retain their construction
-snapshot and graph authorization. The directory remains host-selected executable
-configuration, not an arbitrary workspace search path.
-
-Discovery does not activate instructions, grant tools, start MCP servers, or
-acquire credentials. Explicit loading still checks launch policy. Active manuals,
-including pending-unload manuals, keep their recorded text and template
-relationships. Changed or removed files cannot rewrite those active instructions.
-Unloaded templates may be refreshed; actual unload still follows the existing
-pending-unload and compaction lifecycle.
-
-A second boundary mattered: the primary manual already contained a frozen skill
-list. Refreshing templates alone would leave the model reading yesterday's list.
-The actor therefore supplies a current discovery section with each new request,
-explicitly superseding retained lists without rewriting the manuals. Historical
-request rendering does not rescan the filesystem. An MCP activation already
-rechecks its prepared definitions before commit; a changed closure refuses
-rather than committing a mismatched connection.
-
-The local build passed without warnings, and eight focused skill-test groups
-passed. The broader C# suite initially passed 381 cases and failed one old
-startup-order expectation. We replaced that obsolete refusal with positive
-sandboxed and unrestricted graph-order checks, retaining the invalid-selection
-cases. The rebuilt suite passed all 382 cases. Tests added a skill after Agent
-construction, observed its description in
-an actual loopback provider request, and loaded it through real dispatch without
-reconstruction. They also checked transitive sandbox authorization, refusal of an
-unrelated skill, preserved active manuals, duplicate and malformed catalog refusal,
-and recovery after correcting the files. These are local fixture results, not
-installation, live authoring acceptance, or a new operating-system confinement
-audit. Bill subsequently restarted the application, and the actual
-`load_skill("chapter-writing")` operation reported `coding` and `chapter-writing`
-loaded. The existing visible-reasoning instructions were already present. That
-established live activation, not independent verification of installed binary hashes.
-
-Before the next execution of this book, incorporate this correction and its
-required checks at the original construction points in Chapter 9, Skills. Keep
-the reasons and actual verification here as crossover teaching, not a second
-competing specification. The Workflows chapter should consume the repaired skill
-mechanism, not teach an ad hoc bypass. The fiction workflow remains unfinished.
-
+[Chapter 9](chapter-09.md) now teaches the correction where the manager is built:
+atomic unrestricted refresh, construction-frozen sandbox graphs, immutable active
+manuals, and a current discovery instruction. Its exercises check both the next
+provider request and actual dispatch. Reading a file still does not activate it.
+After Bill restarted the application, the live loader reported the authoring
+skills loaded; that was evidence of activation, not verification of installed
+binary hashes or proof of successful book authorship. The later live fiction
+exercise and its deliberate stopping boundary are recorded in
+[Chapter 21](chapter-21.md).
 
 ### An authorized skill still needs a confined executable
 
-The first workflow inspection found two distinct boundaries. Reverse MCP calls
-entered the calling Agent's ordinary Job dispatcher, which checked current tool
-grants and validated arguments. But stdio MCP servers themselves were launched
-with ordinary `Process.Start`. Their reduced environment omitted credentials; it
-did not confine filesystem or network access. A graph-authorized skill was not
-therefore a sandboxed executable. No private data or live external service was
-used to establish this source-level finding.
+The first workflow inspection found that reverse MCP calls checked the Agent's
+tool grants, but the stdio server itself used ordinary process startup. Its
+reduced environment omitted credentials; it did not prevent outside file or
+network access. Authorization of the manual had been mistaken for confinement
+of its executable.
 
-We reused the existing command confinement rather than inventing another policy.
-`Sandbox.PrepareProcess` now prepares a literal executable with the existing OS
-profile, and `PrepareCommand` selects the shell through that operation. The MCP
-process constructor requires the calling Agent's Sandbox. Its arguments remain
-literal; no shell expansion is added. Confined startup and dynamic skill loading
-choose the sandbox root as their workspace, not the host's current directory.
-Unrestricted MCP launches retain their existing reduced environment. Confined
-launches retain the Sandbox's environment instead of overwriting HOME and TMPDIR
-with host values. Unsupported confinement platforms refuse; no unrestricted
-fallback is introduced.
+We reused the existing process boundary rather than inventing another sandbox.
+[Chapter 11](chapter-11.md) now carries the owning process policy into transport
+construction, and [Chapter 18](chapter-18.md) applies and tests the kernel profile
+for both commands and stdio servers. Real peers and descendants performed useful
+inside work and were denied access to an existing outside sentinel and a listening
+socket. These local checks were not a complete security audit. The initial
+all-inside-workspace layout later gained explicit read-only helper grants;
+[Chapter 21](chapter-21.md) owns that setup and its limits.
 
-Bill chose the bounded first workflow layout: Python skill code and its supporting
-library live inside the work sandbox. We added no external skill-library read
-exception. Existing system-runtime read permissions remain part of the command
-profile; this is not a claim that every process read is confined to project files.
+## Long conversations exposed costs that demos missed
 
-A clean build and two process groups passed. A real Python stdio peer loaded
-through an authorized skill, performed its handshake, and wrote/read inside its
-workspace. Both that peer and its descendant received permission-denied errors
-when reading a disposable outside sentinel or connecting to a listening loopback
-socket. A closed port or missing file would not have counted as evidence. The
-existing unrestricted-process group retained argument, environment, and joined
-shutdown checks. Four filesystem sandbox groups also passed. The existing shell-process
-boundary, useful confined work, and PTY lifecycle groups also passed. These are local fixture results,
-not an installed launcher repair, a complete security audit, or a fiction run.
+During the fiction trials, Bill reported an unresponsive browser and parent tool
+results appearing in a child's pane. Codex's recorded diagnosis found a replay
+with 31,488 frames and 9,349 card identities. Unchanged history was repeatedly
+serialized, and the page had no live display bound. Short demonstrations had
+not exercised the cost of an ordinary long-running collaboration.
 
-Before the next book execution, fold this repair into Chapter 11's stdio MCP
-construction and Chapter 19's process-boundary teaching, alongside Chapter 9's
-separate discovery/authorization correction. Chapter 21 should build on these
-boundaries, not silently compensate for an unrestricted skill-server launcher.
+The mixed panes had a different cause. Resetting Job sessions scheduled old cards
+again before their ownership map was cleared. A delayed render could append a
+parent result to a child's view. Checking the Agent name alone would not fix
+same-Agent replay, where a new card can reuse an old identifier. The repair
+requires the exact current card object as well as the selected Agent.
 
+[Chapter 10](chapter-10.md) teaches bounded projection, caching and callback
+ownership. Eviction must clean up fetches and timers, not merely hide DOM nodes.
+The recorded regression failed before the repair and passed afterward; Codex also
+recorded an authorized installed-page check. Cadence's subsequent source review
+was not a second live test. A display bound is neither journal deletion nor a
+fixed total-memory guarantee for an indefinitely running Agent.
 
-## Long conversations exposed GUI retention and ownership bugs
+### A wait should not produce another copy of the same output
 
-During the fiction workflow trials, Bill reported an unresponsive browser and
-parent tool results appearing in a child's pane. He asked Codex to investigate.
-The recorded diagnosis found a Cadence replay containing 31,488 frames and 9,349
-card identities. The interface had no live history display bound. The server
-also rebuilt and serialized unchanged history on observations and 200-millisecond
-polls. Its temporary phase reducer repeatedly copied an expanding dialogue.
-Long-running work exposed costs that short demonstrations had not made obvious.
+After the workflows resumed, Bill saw a new card roughly every three seconds.
+The drivers were observing the same child-task Jobs, but the continuing view
+recognized only command origins. Background MCP results also lacked the
+assistant call card from which the browser expected to recover the operation
+name. Filtering duplicate text was an insufficient first fix: distinct recorded
+observations still needed one continuing output view.
 
-Codex's repair, recorded in commit `d454cfca`, separates presentation from recovery.
-`GuiOptions.HistoryEventLimit` defaults to the newest 100 displayed history events.
-Projection chooses the window before serializing tool payloads. An event may have
-multiple parts, so this is neither a strict card-count limit nor a byte limit.
-Saved History and model context remain unchanged. The browser receives live
-`display_window` updates and removes expired cards, pending renders, fetches, and
-unreferenced continuing Job views with their polling timers. Removing a view does
-not cancel the Job it displayed or consume the model's observation cursor.
+[Chapter 29](chapter-29.md) now covers non-command Jobs and recorded operation
+names, preserving each observation while moving the same output node for an
+explicit wait. [Chapter 7](chapter-07.md) gives Chat and Tools independent windows
+so repeated tool traffic cannot erase the visible conversation.
+[Chapter 21](chapter-21.md) explains the helper's thirty-minute observation bound:
+it returns early for progress or attention rather than sleeping for thirty
+minutes. Observation frequency is not execution lifetime.
 
-The server caches a projection while its durable sequence and Context object are
-unchanged. It captures the current atomic snapshot rather than rewinding it to an
-older notification, and ignores late deltas for finalized responses. Phase
-calculation retains only the pending tool batch instead of rebuilding a second
-full transcript. Changed snapshots still require historical processing; this
-repair does not claim constant-time projection or a fixed total memory ceiling.
-
-The mixed panes had a separate ownership cause. Replay cleared queued renders,
-then reset Job sessions while the old card map was still populated. The reset
-callback scheduled those old cards again. A delayed render could consequently
-append a parent's result to the newly selected child's pane. The repair clears
-card ownership before invoking the reset callbacks. Both direct and queued
-renders require the exact card object to remain registered for the current
-Agent. Matching the Agent name alone would not suffice: a replay of that same
-Agent can replace its old cards with new objects bearing the same identifiers.
-
-The recorded regression fails against the previous browser code and passes with
-the repair. Tests cover a 10,000-entry snapshot, configurable windows, earlier
-pause state, live parent/child routing, intact History, same-Agent replay, stale
-callbacks, eviction, and Job-view cleanup. Existing GUI and artifact checks also
-passed. These fixtures establish presentation behavior, not provider inference.
-After Bill approved installation and restart, Codex recorded replacement and byte
-verification of only the GUI assembly and symbols, with backups retained. The
-installed-page check observed parent, child, and parent views without foreign or
-orphaned cards or JavaScript errors. Cadence subsequently read the patch and its
-evidence; that source inspection was not a second live verification.
-
-The lesson belongs at the original construction point as well as here. Chapter
-10 now teaches bounded display, cached current projections, and exact callback
-ownership. Hiding old DOM nodes alone would leave background work and stale
-callbacks alive. Conversely, a display limit must not silently become a policy
-for deleting recovery events. Journal retention and handoff reduction are separate
-contracts that require their own evidence. Detailed diagnosis and verification
-are recorded in [the GUI repair notes](../docs/edition-3-notes/gui-history-window.md).
-
-### A Job wait must reuse its output, and Tools must not erase Chat
-
-After the book-writing workflows resumed, Bill saw a new Cadence card roughly
-every three seconds. A read-only socket sample showed two workflow drivers
-observing child-task Jobs 32 and 48. Both repeatedly returned the same running
-status and 91-byte output count. Each result had a distinct history sequence, so
-the GUI created another card. Enough tool observations also displaced the visible
-conversation: Chat and Tools shared a single 100-event display window.
-
-Bill pointed out the intended behavior: `wait_for_job` should move the existing
-output to the bottom, not create another output card. The existing continuing
-view only recognized `run_command` origins, so `spawn_sub_agent` and subsequent
-child-task Jobs bypassed it. Background MCP results also lacked the assistant
-call card from which the browser recovered the operation name. These calls use
-the workflow's owning Agent's authority and audit history; that does not make
-the author/editor children's own tool calls parent calls or require a model
-request for every poll.
-
-The repair carries the recorded operation name independently of the assistant
-card and uses Agent, Job handle and originating call identity for continuing
-output. A wait or input result moves the same output node. Successful recorded
-observations stay inside its collapsed history, preserving individual call IDs,
-timestamps and payloads. Errors remain visible, rich evidence keeps its renderer,
-and unavailable live output restores recorded results. Merely filtering identical
-poll reports was an insufficient first attempt and was removed.
-
-Bill also questioned the short wait. The Python helper explicitly requested
-three seconds; neither the workflow protocol nor responsiveness required it.
-It now requests a maximum of 1800 seconds. This is a thirty-minute **wait bound**,
-not a thirty-minute sleep: output, completion, attention and the existing hint
-mechanism can return the observation sooner. A three-minute bound would merely
-cause more empty returns without an established benefit here. The human
-supervisor's separate twenty-minute observation policy is a different concern.
-
-Chat and Tools now default to 100 contributing events each, with independent
-configuration. An event containing both prose and a tool call counts once in
-each pane; those parts can leave their windows independently. The replayed
-status/lifecycle tail is also bounded so quiet retained chat cannot cause an
-unlimited replay of intervening notices. None of these display limits trims
-saved History or the model's working context.
-
-Before the next execution of this book, require these checks at the original
-construction points in Chapters 7, 21 and 29:
-
-- Exercise a workflow or child Job whose origin is not `run_command`, with no
-  assistant call card. Repeated waits must preserve one output DOM node and move
-  it to the bottom. Check completion, failures, unavailable readback, replay,
-  Agent switching and eviction as well as the normal case.
-- Retain chat, then deliver more tool events than the tool limit; chat must stay
-  visible. Reverse the traffic and verify that chat cannot evict tool history.
-  Test unequal limits and a mixed prose/tool response, not just separate messages.
-- Configure a thirty-minute observation, complete the Job promptly and verify
-  that the wait returns promptly. Verify the Python helper requests that bound
-  without consuming another observer's cursor or repeating the child task.
-
-The scratch candidate builds with zero warnings/errors. Projection, live socket,
-GUI-consumer and real-browser command/workflow checks cover these behaviors,
-including desktop/mobile command views and 150 repeated workflow observations.
-All 86 Python tests pass after correcting an existing test that mistook `c2`
-inside a random run ID for the chapter 2 directory component. These are local
-fixture results, not a live writing-workflow acceptance or a new public grade.
-No installation or host/workflow restart was performed; existing Python processes
-retain their loaded code. Detailed evidence is in
-[the GUI repair notes](../docs/edition-3-notes/gui-history-window.md).
+The integrated checks exercised repeated workflow observations, replay, Agent
+switching, eviction and command views. Their scope and failed approaches are
+preserved in the [GUI repair notes](../docs/edition-3-notes/gui-history-window.md).
+Those local checks did not themselves install a repair or restart a workflow.
+The practical lesson is to test the conversation the human will actually keep
+using, not just a fresh page with one successful command.

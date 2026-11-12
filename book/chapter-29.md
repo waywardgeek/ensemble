@@ -17,55 +17,26 @@ editable code without giving it ownership of the work it describes.
 
 ## TL;DR
 
-Package readable renderer modules beside skills, with shared helpers under
-`skills/shared`. A skill's `renderers:` mapping associates tool names with relative
-JavaScript entries; it neither grants tools nor approves browser execution.
-Explicit packaging determines which shipped assets the GUI serves. Installed
-source and short API notes let an Agent adapt presentation without a checkout
-or loading every helper into its model context.
+Package readable renderer modules beside skills, with shared helpers and short API
+notes. Discovery grants neither tools nor permission to execute JavaScript. The
+host retains recorded facts, call/result identity, controls and lifecycle; renderers
+present bounded copies and fall back to literal text when they cannot do so.
 
-Keep recorded content, identity, call/result pairing and lifecycle in their
-existing owners. Renderers receive bounded presentation inputs. Capture directory,
-file and search evidence during the operation; retain it through History and
-replay separately from model-facing text. Missing evidence means unavailable
-metadata, not an empty successful operation. Success presentation requires a
-successful result. Detailed shapes and bounds appear in
-[Implementation reference](#implementation-reference).
+Build file and search previews from evidence captured during the operation, not
+from rereading mutable resources. Give continuing Jobs one stable view while
+preserving their separate recorded observations and the model's independent output
+cursor. Provide a configurable default, shared prose rendering and a standalone
+inline dice fixture that reveals recorded arithmetic without rerolling.
 
-Provide directory, read, write, exact-edit and search previews; a configurable
-default for other tools; shared prose rendering for chat and readable thinking;
-and a terminal-log renderer for continuing commands. Preview functions return
-detached elements. Prose and command functions update a supplied body in place.
-The GUI retains a final literal-text fallback outside the customization chain.
+Review a version's entry and executable dependencies, Try it in page memory, then
+Keep it explicitly. Preserve rollback and shipped-only recovery. Approved code has
+full page authority: review is not containment, and fallback cannot undo arbitrary
+side effects. Iframe isolation and a general extension installer are not part of
+this increment.
 
-Correlate a continuing command by its actual Agent, Job and recorded originating
-call. Preserve each historical observation independently. Explicit wait/input
-observations foreground the same session node; background polling does not move
-it. Fetch the latest 64 KiB through an owned read-only output window, independent
-of the model cursor. Mark rollover and reset terminal styling at that boundary.
-Preserve unchanged DOM, selection and scroll, and reject stale responses after
-replay or Agent changes. A finished observation does not imply a finished Job.
-
-Approval applies to an immutable version containing the entry and all declared
-executable dependencies. Stage is inert; Try live executes only in the current
-page; Keep saves the accepted version; reload discards an unaccepted trial.
-Retain a previous version and shipped-only recovery. Compare the expected
-accepted version when saving so stale tabs cannot silently overwrite a choice.
-Selections are shared across Agent views, independent per renderer.
-
-Approved code runs with page authority. Review and supervision do not contain
-it. Safe helpers treat output as data, but cannot constrain malicious approved
-JavaScript. The implemented approval keys are `list_directory`, `read_file`,
-`write_file`, `edit_file`, `search_files`, `tool_default`, `prose`, and `command`.
-Additional registered tools, including MCP tools, have namespaced approval choices
-shared by exact tool name across Agents. Without an accepted specialized renderer,
-they use the configurable default. Discovery itself never executes renderer code.
-Iframe isolation and a general extension installer remain outside this chapter.
-
-Demonstrate that Artifact identity does not require a card through a standalone
-inline dice fixture. Its host supplies recorded facts; revealing their explanation
-never rolls again. Workflows and child-agent orchestration belong to
-[Chapter 21](chapter-21.md), not this Artifact implementation increment.
+The body teaches those mechanisms; the [implementation reference](#implementation-reference)
+specifies their interfaces and bounds. Workflow orchestration remains in
+[Chapter 21](chapter-21.md).
 
 ## In plain words
 
@@ -579,6 +550,11 @@ conversation.
 ## Implementation reference
 
 ### Declarations and invocation
+
+The built-in approval keys are `list_directory`, `read_file`, `write_file`,
+`edit_file`, `search_files`, `tool_default`, `prose`, and `command`. Additional
+registered tools use the namespaced keys described above. Each choice is shared
+across Agent views, not a separate per-Agent renderer.
 
 A tool skill declares relative JavaScript entries in its existing front matter:
 

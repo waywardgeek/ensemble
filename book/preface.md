@@ -1,62 +1,29 @@
 # Preface
 
-You are reading something that has never existed before: a
-self-evolving book. Chapter by graded chapter, it builds an AI coding
-agent. The agent it builds helps write the next edition. The next
-edition builds a better agent. The book and the agent feed each
-other, each generation of one improving the next generation of the
-other. As far as we know, this is the first time anyone has closed
-that loop. Chapter 0 explains the mechanism. The rest of the book is
-the proof. The second edition is the confirmation: those chapters were
-handed to an AI coding agent that had never seen the first
-implementation. It built the system, scored 100 on every grader, and
-the result improved the teaching.
+This book builds an AI coding agent, chapter by chapter, through executable
+exercises. The agent it builds helps write the next edition. We call that an
+**agentic codebook**: a technical book whose teaching can be reconstructed as
+working software, checked by graders and improved through use.
 
-We call this an **agentic codebook**: a technical book whose graded
-exercises produce a working program. This one is **closed-loop**: the
-program it builds helps produce the next edition of the book. The
-graders are its immune system. The mutation tests are its self-checks.
-The next language model is its next generation.
+This one closes the development loop. Other codebooks might build a fiction
+editing pipeline, an email triage system or a security monitor without becoming
+their own authoring tools. In either case, the lasting asset is the knowledge:
+what to build, why the design works, and how to detect the failures we learned
+to avoid. When technology changes, correct that teaching and test the next
+implementation. Chapter 0 explains the method and its limits.
 
-Not every agentic codebook needs to close the loop. An **open-loop**
-agentic codebook produces a program that serves a purpose outside the
-book's own authoring: a fiction editing pipeline, an email triage
-system, a security monitor. What makes it agentic is that it
-self-heals: when the technology changes, update the chapter, re-run the
-grader, and the LLM fixes the code. New requirements become new
-chapters. The expert's job shifts from writing code to writing
-specifications that survive regeneration.
-
-Projects built this way are fundamentally different from conventional
-software. A traditional codebase accumulates technical debt: corners
-cut to ship features, workarounds left in place because removing them
-would break something else, complexity that compounds until the next
-feature costs more than the last. An agentic codebook does not work
-that way. When the agent needs a new capability, you design a chapter
-or two. You write the contract and the grader. If you are not ready to
-build it yet, you wait. That wait is not debt. There is no mountain of
-accumulating bad code. The deferred work is a chapter not yet written,
-not a hack that needs to be unwound.
+That does not abolish technical debt. An unrecorded workaround can still be lost
+on the next reconstruction; an incorrect specification can reproduce the same
+mistake. The opportunity is to fix the cause in the teaching rather than carry
+an unexplained patch forever. Deferred work can remain an unwritten chapter
+instead of becoming a hurried mechanism the next feature must work around.
 
 ## Sixty billion dollars
 
-In July 2025 Windsurf, a company that made an AI coding agent, was valued
-at $2.4 billion. Not bought. One of the largest companies on earth hired its
-chief executive, a co-founder, and part of its research team, took a
-*non-exclusive* license to some of the technology, and left the company
-standing in the parking lot with its product, its customers, and its revenue.
-Cognition bought what remained three days later. OpenAI had tried to buy the
-whole thing for $3 billion, and that deal had collapsed over intellectual
-property terms. Two point four billion dollars, for a team you could fit in
-one conference room, and they did not take the code.
-
-I had been writing compilers and chip-design tools for forty years, and I had
-a fair idea what a coding agent was made of. I told my team I could write a
-better proof of concept than Windsurf in two weeks. My manager said: prove it.
-I did, and demoed it on 29 July. Then I spent a week deciding whether to keep
-it, deleted every line, and built it again properly. The second version
-reached parity with the commercial agents in about six weeks. I have used it
-for every line of code I have written since, including the code in this book.
+The price of commercial coding agents prompted Bill to build his own.
+Chapter 1 tells that story: a two-week challenge, a working demonstration, and
+the decision to throw the implementation away while keeping what it taught him.
+The larger question is what makes these tools valuable.
 
 Here is the number that book is about, with a yardstick. In October 2022 Elon
 Musk paid $44 billion for Twitter: a sixteen-year-old company with hundreds of
@@ -125,17 +92,18 @@ point. Skip the exercises until you are.
 
 ## How the chapters are built
 
-Every chapter opens with a page that says what to build: the data structures,
-the seam other code depends on, the handful of rules the grader will fail you
-on, and the decisions that are yours. That page is the chapter. If you read
-only the first page of every chapter, you can build every exercise. The rest
-of each chapter is detail and rationale for when you want it, and it is
-written for someone who reads slowly and wants every sentence to be worth the
-effort.
+The opening brief tells you what a chapter builds and identifies its central
+boundaries. Use it for orientation, not as a substitute for the chapter. The
+body explains the decisions and exact contracts; the exercise supplies the
+construction and verification work. Read all three before implementing. The
+prose is written for someone who reads slowly and wants every sentence to be
+worth the effort.
 
-The book I learned to program from, in a university library in 1980, was
-built this way. I read the first page of every chapter in under an hour and
-returned it. I could write BASIC.
+The book I learned to program from, in a university library in 1980, inspired
+that emphasis on a useful opening page. I read the first page of every chapter
+in under an hour and returned it. I could write BASIC. This system needs more
+than that quick orientation: the failure paths and ownership rules matter as
+much as the happy-path loop.
 
 The implementation chapters include exercises and local verification. The
 original graders start fake vendor servers, run your binary, and check what your
@@ -149,30 +117,6 @@ one chapter should not end your course. The reference is not a teaching toy;
 it is meant to be a globally competitive coding agent in its own right, and
 yours is meant to be at least as good. If the official solution is not a
 competitive coding agent on its own, I will have failed.
-
-## What no book has done before
-
-Every technical book ever written starts dying the day it ships. This
-one is designed to outlive every technology it describes.
-
-Hand these chapters to the next generation of language model. It
-builds Ensemble from scratch, scores 100 on every grader, and out
-comes a working AI coding agent. A better model, a better agent. Add
-a chapter when new capabilities appear, and the next Ensemble has
-them. At some point the Ensemble you built helps write the next
-chapter. The loop closes. The book renews itself.
-
-That was the first edition's claim. The second edition tested it. Codex
-built the entire implementation from the chapters and graders, chapter by
-chapter, without consulting the first edition's answers. The result was
-leaner code, real bugs found in the teaching, and grader corrections that
-no human review had caught. The loop works.
-
-When a compiler compiles itself we call it self-hosting. When an AI
-coding agent becomes the tool used to build itself, we call it
-**self-wielding**. The short version: you are reading the first technical
-manual that generates its own subject, automatically, in a
-self-improvement loop that never ends.
 
 ## What it costs
 

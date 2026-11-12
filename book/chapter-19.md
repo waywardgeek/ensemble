@@ -292,6 +292,12 @@ explicit schema get the default contract, not their parent's answer format.
 Configuration and templates may be immutable values; live clients, activation
 relationships and mutable variable collections must not be shared.
 
+The spawn tool's optional positive `working_context_tokens` sets and saves the
+exact selected route's working-input limit before the first task. Known serving
+capacity bounds it; when that is unknown, advertised model capacity supplies the
+bound. Omission preserves ordinary child settings, not the parent's working limit.
+Invalid limits refuse before construction; initialization failure joins cleanup.
+
 Creation failure joins cleanup and preserves files, permitting a same-ID retry
 after detachment. Successful admission leaves an independently owned child even
 if the spawn observer stops waiting. Recursive shutdown joins descendants and
@@ -347,26 +353,9 @@ child called `submit` with a conforming payload. Whether the work that
 payload describes is correct is a judgment the parent must make, not a
 fact the framework can verify.
 
-Seven tools form the fleet API:
-
-- `spawn_sub_agent` creates a child from a specification. Its optional positive
-  `working_context_tokens` sets and saves the exact selected route's working-input
-  limit before the first task. Known serving capacity (or advertised model capacity
-  when serving capacity is unknown) bounds it. Omission preserves ordinary child
-  settings; the parent's working limit is not automatically inherited. Invalid
-  limits refuse before child construction, and initialization failure joins cleanup.
-- `join_agents` blocks until every listed child has submitted, returning
-  each child's result.
-- `agents_status` lists live children and their current state.
-- `shutdown_agent` stops a child and removes it from the fleet.
-- `send_message_to_parent` blocks the child until the parent replies.
-- `respond_to_parent_message` delivers the parent's reply and unblocks
-  the child.
-- `submit` records the Agent's completed result.
-
-These seven names are the exercise. Additional fleet tools are outside this
-chapter. An omitted reply ID resolves the sole matching pending question; if
-there are several, require the ID rather than guessing which child to resume.
+The seven tools in §19.1 form this chapter's fleet API. Additional fleet controls
+belong to the next chapter. An omitted reply ID resolves the sole matching pending
+question; several questions require an explicit ID.
 
 `join_agents` is the fan-in, and it has one behavior beyond blocking
 that the rest of the fleet depends on: it returns early when a child

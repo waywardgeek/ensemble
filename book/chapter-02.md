@@ -296,8 +296,9 @@ Tuesday, and material you replay is bound to the surface that produced it.
 
 The whole chapter is keeping three nouns apart.
 
-**History** is an append-only log of events. What happened, in order, forever.
-It is the truth, and it is never edited.
+**History** is an append-only log of events: what happened, in order. This
+chapter retains the complete log; later chapters add snapshot and journal
+retention policies. Redaction changes the projection, not the recorded event.
 
 **Context** is the vendor-independent state you get by replaying that log from
 the beginning. It is derived, reconstructible, and disposable. Delete it and
@@ -1513,30 +1514,15 @@ The preserved historical endpoint predates this addition and stays frozen.
 | `ref-zerokind` | 2 | blob Ref kind zero is refused |
 | `ref-redaction` | 8 | original dumped facts remain intact while the redacted render removes content and retains a useful stub |
 
-The ones you cannot infer from the table:
+Two checks need explanation beyond the table. `session` awards no points but
+isolates a protocol failure that would otherwise produce several misleading
+failures. `seam-render` needs a producer-matching fixture: the main exhibit is
+Anthropic-authored, so rendering it to Gemini correctly withholds the signature
+and cannot test whether Gemini receives its own per-call replay material.
 
-- **`session` is worth zero and can still sink you.** Without it, one
-  unacknowledged directive fails four checks at once and you get four mysteries
-  instead of one cause.
-- **`ch1parity` protects the original conversation,** even while the
-  representation changes. The first edition's printed 25-point weight was
-  stale; the actual allocation is 10.
-- **`ephemera` grades the observable property and takes no position on
-  storage.** The intended reading: an ephemeral part *is recorded in the log*
-  and *never enters the dialogue*. Read it as "never reaches the log" and you
-  have broken `Context = replay(Log)`, because a pending ephemeral would need a
-  second, unlogged path into the context, and §2.6 allows exactly one. The
-  mechanism is §2.4's rule for free: an ephemeral arrives as an ordinary
-  `MessageReceived` with `Actor: System`, and the reducer decides it is pending
-  rather than dialogue. The capture site does not know, and cannot.
-- **`usage` is parsing work,** pulled out of `seam-parse` so that a student
-  who gets the shapes right and the arithmetic wrong is told which half
-  failed. The parse side outweighs the render side, 25 to 15, on purpose.
-- **`seam-render` includes the per-call replay property** because rendering
-  the right request shape and handing a model back its own opaque material are
-  the same skill on the same wire. It cost the grader a second fixture: the
-  main exhibit is Anthropic-authored, so rendering it to Gemini correctly
-  withholds the signature and proves nothing.
+The ephemera contract remains the one above: record the arrival, reduce it into
+the pending slot, and never add it to persistent dialogue. A passing wire check
+alone does not establish that internal ownership.
 
 ### What would still pass if you deleted this?
 
@@ -1562,9 +1548,6 @@ also survived the original grader. The corrected seam checks exercise capture
 as well as replay, and the interleaved-result case from Exhibit B. Exact Ref
 carryforward through the reducer remains a source-test and review obligation;
 a secret-free rendered stub alone cannot prove which locator survived inside.
-
-Use the compiled-executable invocation in **Build and grade the C# solution**
-above. The grader's source-directory mode applies to Go solutions, not C#.
 
 The revised table preserves 100 points. The old four-point URI-render check is
 removed from this chapter's scope and its points join the corrected redaction

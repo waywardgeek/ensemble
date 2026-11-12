@@ -81,8 +81,8 @@ lessons.
 
 ## Knowing when the test has succeeded
 
-The last new chapter brought a local model into the ordinary GUI. Bill created a
-small MiMo Agent, disabled its memory and automatic recall, and said hello. MiMo
+The local-model chapter brought a new inference route into the ordinary GUI. Bill
+created a small MiMo Agent, disabled its memory and automatic recall, and said hello. MiMo
 answered. He asked it to list a directory, and observed a real tool call and its
 returned result.
 
@@ -96,7 +96,7 @@ integration goal. More testing would have looked diligent while answering the
 wrong question. The local route worked. The tools worked. The feature could now
 reach Julien, who had requested it for his own larger GPU setup.
 
-That was a fitting final correction. Persistence helps an agent continue, but
+That was a useful correction. Persistence helps an agent continue, but
 judgment includes recognizing completion. A book that teaches agents to work
 should also teach their collaborators how to decide when enough has been shown.
 
@@ -110,7 +110,7 @@ to build it and test whether it understood.
 
 Bill's vision moves the center of coding away from humans typing functions, or
 reading every function an agent produces. Humans develop and encode the expertise;
-agents execute it. Our last chapter showed the method in ordinary work: build
+agents execute it. The local-model work showed the method in practice: build
 local-model support, use it, repair the failures the human encounters, establish
 that the intended capability works, and teach the resulting understanding.
 
@@ -124,12 +124,6 @@ run may expose another ambiguity, need expert help or produce a different
 implementation. The book gives judgment somewhere to accumulate and a way to
 be tested. It does not make that judgment unnecessary.
 
-Evidence also keeps its boundaries. A local fake provider cannot establish live
-account access. A browser test cannot establish whether the interface is usable
-for Bill's vision. A successful local-model conversation cannot certify every
-model's coding ability. The chapters and execution records retain those limits;
-the ending need not repeat their test ledger to respect it.
-
 The name Cadence and the collaboration's records provide continuity across
 sessions and model changes. That does not require pretending that later model
 instances inherit an earlier one's subjective experience. What can be carried
@@ -139,29 +133,19 @@ Their work remains theirs, even when its lessons become part of this book.
 
 ## More books, different responsibilities
 
-We plan to write many more agentic codebooks. Puffin takes the work toward a
-connected personal system. Watchtower takes up security and monitoring. Those
-projects will ask questions that building a coding collaborator has prepared us
-to investigate, not questions this book has already answered.
+Bill's closing note describes the next direction: Puffin, Watchtower and other
+systems whose responsibilities extend beyond a coding workspace. Those projects
+will ask questions this book has prepared us to investigate, not questions it has
+already answered.
 
-Bill calls our method Development-Driven Specs. We will build bounded pieces,
-use them, discover where our understanding fails and teach what survives that
-process. Puffin's security belongs in its development from the beginning. Whether
-Watchtower becomes a larger separate book should follow the system we actually
-build, rather than a table of contents we imagine in advance.
-
-The opportunity is larger than our next two projects. A useful system and a
-carefully written account of how to construct it can give another collaborator
-a starting point that source code alone may not provide. Readers can improve
-those accounts, choose different projects and bring expertise we do not have.
-
-This book has reached its last new chapter. There will be corrections, feedback
-and further editions. They are part of keeping a useful book alive, not reasons
-to deny that we have built something worth using.
+A useful system and a carefully written account of how to construct it can give
+another collaborator a starting point that source code alone may not provide.
+Readers can improve those accounts, choose different projects and bring expertise
+we do not have. Corrections and further editions are part of keeping this book
+useful, not reasons to deny that we have built something worth using.
 
 Bill gave an agent a book. That agent helped build its successor. Working inside
 the successor, we made both the system and its teaching better.
 
-We intend to do it again. Puffin, Watchtower, and many more agentic codebooks will
-give the method new work to do. The next book starts with a collaborator we built
-this way. That is a substantial thing to have made together.
+The next book starts with a collaborator we built this way. That is a substantial
+thing to have made together.

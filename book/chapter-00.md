@@ -64,15 +64,13 @@ This book is for the engineer who cannot afford that waste, or who does not want
 
 ## What this book is
 
-Every technical book ever written starts dying the day it ships. Frameworks move, APIs change, the version numbers in the examples stop matching the ones in the world, and three years later someone writes the same book again with updated screenshots. The genre has a half-life.
+Ensemble is the blueprint and the result: an AI coding agent built chapter by
+chapter from explanations, exercises and checks. The experiment is whether the
+teaching transfers to a builder who was not present for the original decisions.
+Working code, understandable ownership and a usable agent are the evidence.
 
-This book is designed to break it.
-
-What you are holding is the blueprint for an AI coding agent called Ensemble, executable chapter by chapter, with acceptance criteria you can run and mutation tests that check whether those criteria detect particular defects. Hand this blueprint to a language model and ask it to build Ensemble from scratch. The experiment is whether the teaching transfers: working code, understandable decisions, and a usable agent at the end.
-
-Do it again next year with a better model and get a better Ensemble. Add a chapter and get a more capable one. The Ensemble you just built can help write the next chapter.
-
-That sequence is the ambition. Each edition must supply its own proof.
+A new model or a new chapter gives us another chance to improve the result, not
+a guarantee of improvement. Each edition must supply its own proof.
 
 ## A specification with receipts
 
@@ -102,7 +100,7 @@ evidence, and it is also software someone wrote.
 Build one chapter on its accepted predecessor. Read its explanation as well as
 its exercise: the reason for a boundary is often what keeps the next feature
 from breaking it. Before writing code, load
-the `ensemble-csharp` skill and follow the
+the `ensemble-coding` skill and follow the
 [C# edition procedure](../docs/edition-3-csharp-procedure.md). They carry the
 implementation and review rules into an agent's working context. Chapter 1
 explains the initial architecture; later chapters introduce their own machinery
@@ -159,40 +157,28 @@ to its preserved endpoints rather than changing their historical numbers.
 The second-edition attempt history is in
 [`docs/edition-2-attempt-1.md`](../docs/edition-2-attempt-1.md).
 
-## The generation
-
-Hand this book to the next generation of language model. Point it at Chapter 1. It reads the chapter, builds the exercise, runs the grader, exercises the result and submits it for review. Once accepted, it moves to Chapter 2. Chapter by chapter, it rebuilds Ensemble from scratch. Passing checks establish the exercised contracts and detect the tested deletions; the working agent still has to demonstrate the rest. The graders are not quizzes.
-
-A more capable model has the opportunity to produce a better Ensemble. The graders set a floor: cleaner code, sharper tool descriptions, tighter error handling and a more natural conversation style still need comparison. The specifications say what the agent must do. They do not limit how well it does it.
-
-When a new capability earns a place in the book, write its exercise and checks, including the earlier behavior the change could affect. Ensemble gains the capability. The book grows. The next model that reads it has that capability to build too.
-
-No version of Ensemble is final. Each is a phenotype expressed from the same genome in the environment of whatever model reads it. The graders are the immune system, with the blind spots the reviews keep finding. The prose is the teaching. Together they define a living standard for what an AI coding agent is, and that standard evolves as the book learns from another implementation.
-
 ## The crossing
 
-Somewhere in this book you will use Ensemble to help build the next chapter's exercise. The agent you have been building becomes the tool you build with. This crossing has a name.
+Somewhere in this book you will use Ensemble to help build the next chapter's
+exercise. When a compiler compiles itself, we call it **self-hosting**. When an
+AI coding agent becomes the primary tool for its own continued development, we
+call it **self-wielding**.
 
-When a compiler can compile itself, we call it **self-hosting**. When an AI coding agent is capable enough that it becomes the primary tool for its own continued development, we call it **self-wielding**.
+The loop is concrete:
 
-After the crossing, every chapter you add is written with the tool the chapter extends. The agent that helps you build Chapter N+1 is the agent that Chapter N produced. The loop is:
+> Build Ensemble. Use it to develop the next capability. Test and review the
+> result. Correct the teaching from what the work revealed. Reconstruct again.
 
-> Build Ensemble. Use Ensemble to write the next chapter's code. Grade it. Update the brief from the coder's feedback. The next Ensemble is better. Repeat.
+The specifications say what the agent must do, not how well it can do it.
+Cleaner code, sharper tool descriptions and better conversation still require
+comparison. Passing a grader sets an exercised floor; it does not select the
+best design or establish that the replacement is comfortable to use.
 
-A self-improvement loop with graded checkpoints and mutation-tested guardrails, running on a model whose improvements must be demonstrated on each pass.
-
-For the earlier crossover experiment, Bill explicitly selected GPT-6 Astra
-(`gpt-6-astra`) at high reasoning. The new Ensemble has demonstrated actual coding with that
-configuration: reading a program, reproducing failures, editing it and passing
-the unchanged tests. That bounded task belongs to the earlier crossover record,
-not evidence of this edition's replacement readiness.
-
-The earlier second edition was built with Codex under Bill's direction. The C#
-third edition was built inside Ensemble. That closes the development loop, but
-does not by itself establish that the replacement is ready for daily use. The
-current crossover exercise in Chapter 30 requires an actual usable application,
-a safe trial, and the human's acceptance before promotion. That exercise is
-ongoing; implementation completion is not crossover acceptance.
+The second edition was built with Codex under Bill's direction. The C# third
+edition was built inside Ensemble and has been accepted for daily use. Chapter
+30 teaches the safe parallel trial, rollback and human acceptance that made
+that crossing deliberate. A reader's implementation must earn its own
+acceptance; ours does not transfer with the source.
 
 ## Your Ensemble
 
@@ -201,6 +187,3 @@ Your needs are different from mine. Maybe you work for a well-funded company tha
 Clone this book. Go through it chapter by chapter. Customize it. Change the tool set, the memory system, the observer, the voice. Make it yours. Use the graders, review and actual work to find what your changes broke and keep the foundation under them.
 
 This book was designed to be forked.
-
-The blueprint is designed to renew itself and the agent to become self-wielding. The book builds the agent, the agent helps build the book, and each generation gets another chance to improve it. Keeping that promise takes corrected teaching, working code and evidence that the next pass learned something the last one did not.
-

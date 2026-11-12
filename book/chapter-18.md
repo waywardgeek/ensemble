@@ -78,9 +78,9 @@ ignores the refusal**. Construction and lifetime ownership of any future child
 remain separate concerns.
 
 This is not whole-process isolation of Ensemble. Trusted skill/static assets and
-an explicitly selected credential store remain host inputs. Additional MCP
-servers, including stdio processes, are separately trusted extensions; they do
-not acquire the shell profile. The host's provider connection is not disabled.
+an explicitly selected credential store remain host inputs. Stdio MCP servers use the same process
+profile as commands; remote services and trusted in-process extensions are not
+confined merely because their tools enter through MCP. The host's provider connection is not disabled.
 Diagnostics mask known credentials before writing, but successful provider
 content is not silently rewritten. None of this detects arbitrary unknown
 secrets or defeats a privileged host changing mounts or the trusted runtime.
@@ -200,11 +200,31 @@ enforce it:
 | Enforcement | What it guards | Why it must be this one |
 |---|---|---|
 | Confined Sandbox operations (userspace) | `read_file`, `write_file`, `edit_file`, `list_directory`, `search_files` | These run in the trusted host process, outside the child process profile |
-| Seatbelt profile on the child process (kernel) | `run_command` and its entire descendant tree | The shell never calls our C# code, so the kernel has to |
+| Seatbelt profile on the child process (kernel) | Commands, stdio MCP servers, and their descendants | External executables do not call our file wrappers, so the kernel must enforce access |
 
 Neither half is redundant. Neither half is sufficient. Together they
 cover these file and command paths. Other tools still require their
 own authorization and trusted implementation.
+
+### Apply the process boundary to skill servers too
+
+`Sandbox.PrepareProcess` prepares a literal executable under the owned policy;
+`PrepareCommand` uses it to launch the shell. Chapter 11's stdio transport uses
+the same operation without a shell. Both primary startup and later skill loading
+must supply the calling Agent's Sandbox and rooted workspace. Preserve its
+allowlisted environment and join the server and descendants on teardown.
+
+Test a real authorized stdio peer that completes its handshake and works inside
+the root. Then have both it and a descendant try to read an existing disposable
+outside sentinel and connect to a listening loopback socket. A missing file or
+closed port would not prove confinement. Also test the unrestricted path and
+unsupported-platform refusal. These checks extend the historical endpoint grade;
+they are not implied by its command-only results.
+
+System-runtime reads remain permitted by the profile. Chapter 21 additionally
+explains explicit host-approved read-only helper paths, which do not grant native
+file-tool access or authorize a skill. Neither exception permits arbitrary
+outside writes or network access.
 
 ### The in-process half
 
@@ -258,7 +278,7 @@ Use the actual parent paths:
 Tool → Agent → Sandbox
 Engine → Agent → Sandbox             media and CacheLens captures
 Job → Jobs → Agent → Sandbox         retained output and readback
-History → Agent → Sandbox            primary, backup, journal, archive, logs
+History → Agent → Sandbox            primary, backup, recovery journal, logs
 ```
 
 A standalone `BlobRef` remains value-like. Its unconfined `Data()` convenience API
@@ -267,8 +287,8 @@ through its own parent; inline data decoding stays value-like. Unsupported media
 is refused before rendering or HTTP, as in earlier chapters.
 
 Persistence retains its existing flush, replacement, replay, and poisoning rules.
-Only the file access changes. Temporary replacement files, backups, journals,
-and archive reads all use the same owner. An append refusal cannot publish a
+Only the file access changes. Temporary replacement files, backups, and recovery
+journal writes and reads all use the same owner. An append refusal cannot publish a
 History event or reuse its sequence; destruction still detaches after a poisoned
 shutdown. Jobs likewise roots both the initial output writer and later reads.
 Protecting only creation would leave observation as another escape path.

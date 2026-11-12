@@ -39,27 +39,17 @@ and fail to use it.
 
 ## TL;DR
 
-> **Implement long-term memory in the C# system from Chapter 20.** Keep the existing owners, actor mailbox, canonical History, Sandbox and Engine meter. Do not add a manager, a second transcript, a second scheduler, or a callback interface to connect partial implementations.
+> **Build durable memory without adding another scheduler or transcript.** An Agent-owned Memory component turns completed conversation into session notes, then graduates older files through the 8x and 64x bands toward MEMORY. SOUL stays outside the automatic waterfall. Keep Chapter 14's byte-budget and journal-retention rules distinct from these memory policies.
 >
-> **Projection and replay.** Declare value-like `MemoryEntry`, `MemoryRetirement`, compression launch/receipt/outcome values, and immutable policies in Common. `Context.Memories` orders five bands from stable to recent: SOUL, MEMORY, 64x archive, 8x archive, session. Conversation follows them. `MemoryPopulated` records actual text; `MemoryRetired` records explicit identities, or an entire band. Reduction and snapshot/journal replay do no filesystem work and start no workers. Render retained memory as labeled user/data text, never system instructions or tool authority.
+> **A summary is a candidate, not a commit.** One restricted, owned child works from captured source while that source remains active. The parent actor validates the result, commits the replacement through History, and finishes recoverable file promotion. Failed or stale candidates must not erase source. Replay neither starts workers nor charges their usage again.
 >
-> **Checkpoints.** `micro_handoff` still removes old tool traffic, opaque replay and private reasoning from working context, not canonical History. Keep only the newest handoff note in active Context; canonical History retains prior handoff facts. The retained checkpoint closes the eligible conversation prefix, without keeping older notes in every request. Above the conversation byte budget, select a whole oldest completed prefix until the remainder fits, or no further complete prefix is available. Never select the unfinished tail, unresolved tool traffic or private replay. There is no T/4 threshold or minimum-two-checkpoint rule. Graduation of memory files, in contrast, requires at least two files.
+> **Keep authority and lifetime explicit.** Memory uses Agent → Sandbox for rooted files; the worker can only submit its result. Memory enters requests as attributed data, not instructions or tool grants. Cancellation and destruction join owned work before releasing its resources.
 >
-> **Ownership and files.** Each Agent owns a Memory component and reaches it through that relationship. Memory reaches rooted files through Agent → Sandbox. Derive paths from the Agent home: `SOUL.md`, `MEMORY.md`, `memory/`, `bucket-0/`, `bucket-1/`, and `archive/`. A worker never chooses a path. Strict dated/numeric identities, deterministic ordering and overlap checks govern active corpus files. Retired files remain on disk but do not re-enter active scans. Recover transactions before scanning. A library Agent without a home remains usable without implicit filesystem memory.
->
-> **One transaction.** At most one attempt belongs to an Agent. Journal `CompressionLaunched` before starting its child. Capture exactly selected source and prior destination bytes. Keep the old source visible while the child runs. On the actor, revalidate, stage a hidden candidate, archive canonical events for a conversation cut, then revalidate again. A task-correlated removal only becomes effective with the matching population. Preserve the committed receipt through idempotent file promotion and source retirement. Journal `CompressionFinished` afterward and release the receipt. C#'s successful terminal state is `Committed`, not a second state named `Finalized`. Replay cannot rebill usage or start compression. Explicitly correlated facts must never fall back to uncorrelated legacy behavior.
->
-> **Bounded worker.** Use an ordinary owned child with no inherited skills, no recursive memory, no file/shell/web tools, and only `submit`. Its exact parameter schema is an object with one required `memory` string and `additionalProperties:false`; do not append observation options. Enforce at most three Engine sends and three tool batches in the actor. Reject a multi-call batch before any call executes. Finish after accepted submission without a closing-prose request. Blank/whitespace output is a terminal failed candidate. Keep the child's canonical trace. Its prompt asks for a first-person continuation preserving facts, reasons, failures, uncertainty and unfinished work; attribute other speakers rather than inventing shared experience.
->
-> **Asynchronous lifecycle.** The child returns an immutable result through the mailbox; it never publishes parent History. Apply the result at a complete main-work boundary. Unrelated later dialogue or unselected newer files may grow; selected-source or destination edits invalidate the result. A successful commit can continue the file waterfall. Failure waits for another checkpoint, rather than retrying in a loop. Relevant settings changes and owner shutdown cancel and join the worker. Do not destroy Memory or Sandbox while it still uses them.
->
-> **Accounting and headroom.** Import the joined child's measured model/tier/billing rows exactly once, including failed and canceled attempts with completed usage. Do not alter the parent's latest direct response or cache lens, invent unknown counts, or charge again during replay. Determine pressure from the latest actor-accepted main response and the user-set per-model working input-token limit, not cumulative totals or model capacity. At 80%, give one system reminder; at 90%, instruct immediate handoff on every model request; at 100%, apply an Agent-owned completed handoff at a safe batch boundary. Preserve independent work and invalidate stale pre-checkpoint usage. See §22.6 for units, persistence and the separate capacity ceiling.
->
-> **Settings and checks.** Keep the earlier conversation/tool byte budget behavior. Add six immutable memory policies: conversation, soul, memory, archive64, archive8, session. Default conversation budget is 3,000 UTF-8 bytes; each corpus band defaults to 1,500. Each band has one size setting: budget. Graduation triggers above twice budget and reduces toward budget; those thresholds are derived, not configurable. Zero selects the band default; negative sizes and sizes whose doubled threshold overflows refuse. SOUL has no automatic inbound waterfall. Save Agent-local policy atomically before publishing it. Startup reads it before scanning; disable retires active projection without deleting files, and re-enable freshly reads disk. GUI acknowledgment follows actual actor application and is scoped to the selected Agent. Test failure windows with real History, Sandbox, actors and owned local provider fakes; passing those tests does not prove real compression quality or provider caching.
+> **Prove mechanics and fidelity separately.** Test replay, interruption recovery, source edits, settings, accounting and working-context limits with real components and local provider fakes. Then read real summaries and test recall under separately authorized provider use: correct replacement does not prove that a reason survived or was used.
 
 ### What This Means in Plain Language
 
-The conversation window is the agent's desk, not its entire memory. A handoff clears bulky working material from the desk and leaves a continuation note. Long-term memory takes older completed portions of that work, compresses them into a more durable account, and makes that account available next time. The original conversation remains in the archive.
+The conversation window is the agent's desk, not its entire memory. A handoff clears bulky working material from the desk and leaves a continuation note. Long-term memory takes older completed portions of that work, compresses them into a more durable account, and makes that account available next time. Original event retention follows the single-journal policy in Chapter 14; memory compression does not create a second archive.
 
 The five bands separate different rates of change. SOUL holds the most stable commitments. MEMORY holds a durable personal account. The 64x and 8x archives summarize progressively more recent periods. Session files preserve the freshest compressed work. Conversation is newer still. The ratios are a way of allocating detail, not a promise that every model response achieves exactly an eight-to-one reduction.
 
@@ -90,21 +80,21 @@ The names `bucket-0` and `bucket-1` are storage conventions, not new owners. The
 
 ### A budget is a trigger and a writing target
 
-The default conversation budget is 3,000 UTF-8 bytes; SOUL, MEMORY, archive64, archive8 and session each default to 1,500. A zero budget selects the applicable default, rather than disabling a band. High and low watermarks are always twice and once the resolved budget; they are internal derived thresholds, not additional settings. Disabling is a separate boolean, so “off” cannot be confused with “use the default.”
+Memory policies are immutable values declared in Common. Negative budgets and values whose doubled threshold would overflow refuse before changing policy. The default conversation budget is 3,000 UTF-8 bytes; SOUL, MEMORY, archive64, archive8 and session each default to 1,500. A zero budget selects the applicable default, rather than disabling a band. High and low watermarks are always twice and once the resolved budget; they are internal derived thresholds, not additional settings. Disabling is a separate boolean, so “off” cannot be confused with “use the default.”
 
 These are byte budgets, not token windows. The earlier Chapter 14 target and tool-result policies remain distinct. A main request can have substantial overhead from instructions, tool declarations and provider formatting; counting memory bytes alone cannot predict its token occupancy.
 
-For conversation, the selector counts readable dialogue and chooses whole oldest completed checkpoint segments. Handoff notes accompany the selected material but do not inflate its dialogue budget. It never cuts through the active tail merely to hit a numerical target. The first checkpoint with nothing eligible is a no-op.
+For conversation, the selector counts readable dialogue and chooses whole oldest completed checkpoint segments until the remainder fits the budget or no further complete prefix is available. Handoff notes accompany the selected material but do not inflate its dialogue budget. It never cuts through the active tail merely to hit a numerical target. The first checkpoint with nothing eligible is a no-op. Do not add a T/4 trigger or require two checkpoints; the two-file graduation rule below is a different operation.
 
 For file graduation, the band must exceed its high watermark. The selector takes at least two oldest files, adding complete files until the remaining source is at or below its low watermark, or all eligible files are selected. One oversized file does not satisfy the two-file rule. We need evidence of accumulated work before creating another summary layer, not an endless chain of summaries of a single file.
 
 The default compression target is guidance to the model, not a hard byte truncation. Cutting the returned string at the budget boundary would make an apparently successful memory out of a possibly unfinished explanation. Output validation, terminal-success checks and transaction validation are separate from the writing target.
 
-### Recency without throwing away history
+### Recency and original-event retention
 
 An eightfold coarsening gives a useful way to think about retention: keep the newest work in detail and older work at successively lower resolution. That is a design intuition, not a measured capacity or recall guarantee. File sizes vary, the prompt can retain an important detail at any age, and a poor summary can still lose information.
 
-The full canonical event archive is the backstop. A memory note can say, “I changed this design because cancellation was removing ownership before the worker joined.” Later, ordinary authorized file/search tools can recover the exact exchange. There is no new privileged `recall` instruction channel, and reading an archive still requires the existing tool grants and Sandbox access.
+A memory note can say, “I changed this design because cancellation was removing ownership before the worker joined.” The reason must survive in the note itself. With audit off, journal retention may later discard the original exchange; a summary cannot reconstruct its exact wording. Audit keeps the existing journal untruncated on disk, but enabling it later cannot restore discarded records. Authorized file/search tools can inspect retained records and memory files under ordinary grants and Sandbox access. Neither storage format creates a privileged instruction channel.
 
 ---
 
@@ -112,7 +102,7 @@ The full canonical event archive is the backstop. A memory note can say, “I ch
 
 A tempting implementation writes a Markdown file and puts its name in conversation History. On restore, it reads whatever happens to be at that path. That does not replay the old conversation: it substitutes today's disk contents for yesterday's accepted input.
 
-The C# model keeps those concerns separate. `MemoryEntry` is an immutable value with band, identity, UTC timestamp and exact text. `Context.Memories` orders these values by band, timestamp and ordinal identity. The identity is `(band, id)`, not an event sequence number and not a path granting filesystem authority.
+Common declares the value-like memory entries, retirements, compression launches, receipts and outcomes; functional partials implement their operations. The C# model keeps replay separate from file access. `MemoryEntry` is an immutable value with band, identity, UTC timestamp and exact text. `Context.Memories` orders these values by band, timestamp and ordinal identity. The identity is `(band, id)`, not an event sequence number and not a path granting filesystem authority.
 
 `MemoryPopulated` upserts that identity. `MemoryRetired` removes explicit identities, or a whole band when its ID list is empty. Snapshots retain the values. Journal replay uses the recorded bytes. Missing bodies follow the established diagnosed-no-op rules; malformed supplied bodies refuse. A duplicate memory identity in a snapshot is not silently resolved by filesystem order.
 
@@ -129,7 +119,7 @@ The compressor cannot preserve a reason that the acting model never expressed. A
 ### Keep the newest active checkpoint; preserve captured source until commit
 
 Chapter 14's newest-only rule still applies. Each successful handoff replaces all
-older active handoff notes, while canonical History preserves their facts. The
+older active handoff notes. Original events follow journal retention. The
 remaining ordinary dialogue through the newest checkpoint is a completed prefix
 that the selector can consider. Do not retain old notes in active Context merely
 to manufacture more segment boundaries. The unfinished tail remains ineligible.
@@ -168,7 +158,7 @@ The parent actor performs this sequence:
 2. Keep the selected source active while the child runs.
 3. Receive the joined child's immutable result through the mailbox. Account for its measured work once, even if the result is unusable.
 4. At a complete main-work boundary, verify the selected source and destination again.
-5. Write the hidden staged candidate and receipt. For a conversation cut, archive the full canonical events, not merely the readable compressor prompt.
+5. Write the hidden staged candidate and receipt. Event recovery uses the existing journal; there is no separate archive prerequisite.
 6. Revalidate after that I/O, immediately before publishing the cut.
 7. Record a task-correlated redaction or retirement. This holds a removal; it does not remove source yet.
 8. Record the matching `MemoryPopulated`. Reduction applies the held removal and installs the replacement in one context transition.
@@ -210,7 +200,7 @@ Giving that design unlimited calls would hide the missing completion boundary, n
 
 ### Use the owners already present
 
-`Agent.RunMemoryCompressorAsync` constructs an ordinary direct child with both its Ensemble and Agent parents. It does not call the ordinary inherited-skill bootstrap. The child's home is `children/compress-<task-id>/` beneath its parent. Its saved History, event log and submission remain available there after joined destruction; the launch records the real trace path.
+`Agent.RunMemoryCompressorAsync` constructs an ordinary direct child with both its Ensemble and Agent parents. It does not call the ordinary inherited-skill bootstrap. The child's home is `children/compress-<task-id>/` beneath its parent. Its state snapshot, recovery journal and submission remain available there after joined destruction; the launch records `save.json.journal.jsonl` as the trace path.
 
 The internal role is set before actor startup. It disables recursive memory and the ordinary context-byte compactor, selects safe/no-web policy, and installs only `submit`. Source text and existing destination text are supplied as data. There is no file path for the model to choose, no shell grant to exploit, and no parent-History callback.
 
@@ -227,7 +217,7 @@ The exact public schema is:
 }
 ```
 
-Do not add a regex to this schema to turn blank output into another model correction loop. The schema checks shape; the joined-result check rejects blank or whitespace-only memory as a terminal failed candidate. Wrong-type or forbidden-call responses can use the remaining bounded correction attempts.
+Do not append ordinary tool observation options to this restricted schema. Do not add a regex to this schema to turn blank output into another model correction loop. The schema checks shape; the joined-result check rejects blank or whitespace-only memory as a terminal failed candidate. Wrong-type or forbidden-call responses can use the remaining bounded correction attempts.
 
 The actor permits at most three Engine sends and three tool batches. It rejects a batch containing more than one call before dispatching any call. After the accepted submit result has been recorded, it ends the turn without asking the model for closing prose. Ordinary final text alone is not submission.
 
@@ -293,7 +283,7 @@ Measure the latest actor-accepted main response. Provider normalization must cou
 
 Do not fabricate a model tool call or grant an unauthorized tool. At 100%, use the Agent-owned handoff path after all finalized batch companions have truthful recorded outcomes. Prefer a supplied model-authored handoff if one is already staged; otherwise record an honest fallback explaining that no model-authored continuation note was supplied. Mark it as a **completed** checkpoint and continue normally. Do not turn this into the old 95% tool lockdown or a foreground wait for an independent compressor.
 
-The ordinary handoff reduction preserves visible conversation and reasoning and canonical History; private thinking, tool traffic and eligible media leave the working view. Independent Jobs retain their owners and continue. Recreate tool results deliberately when needed, not by automatically replaying effects. Existing bounded tool observations still protect against abrupt growth; this policy does not silently raise those bounds or rewrite the byte stubbing policy.
+The ordinary handoff reduction preserves visible conversation and reasoning in Context; private thinking, tool traffic and eligible media leave that working view. History retains the recent event window, and disk retention follows the audit policy. Independent Jobs retain their owners and continue. Recreate tool results deliberately when needed, not by automatically replaying effects. Existing bounded tool observations still protect against abrupt growth; this policy does not silently raise those bounds or rewrite the byte stubbing policy.
 
 After a successful checkpoint, discard its pre-cut usage measurement and reset the once-only reminder. Display unknown until a new main response reports usage, not zero and not the stale percentage. Model selection likewise clears the measurement while retaining the per-model settings. A changed working limit recomputes pressure from the latest valid measurement without restarting the Agent. Save settings before publishing them, preserve sibling memory/recall policy, and keep legacy byte settings in their original units.
 
@@ -317,7 +307,8 @@ Chapter 20 established sibling homes for true top-level Agents and nested homes 
 └── agents/
     └── root/
         ├── settings.json         # this Agent's durable memory policy
-        ├── save.json             # canonical conversation persistence
+        ├── save.json             # Context and scalar recovery state
+        ├── save.json.journal.jsonl # recovery events; audit controls retention
         ├── SOUL.md
         ├── MEMORY.md
         ├── memory/
@@ -326,12 +317,10 @@ Chapter 20 established sibling homes for true top-level Agents and nested homes 
         ├── bucket-0/
         │   └── 2026-01-01-1--2026-01-01-2.md
         ├── bucket-1/
-        ├── archive/
-        │   └── events.jsonl      # full canonical events, not reduced prose
         └── children/
             └── compress-<task-id>/
                 ├── save.json
-                ├── events.jsonl
+                ├── save.json.journal.jsonl
                 └── submit.md
 ```
 
@@ -370,7 +359,7 @@ Common declares vocabulary and operations. Functional partials implement them in
 | Immutable bands, policies, transaction and disk contracts | `Common/Memory*.cs`, `Common/Compression.cs` |
 | Value/strict JSON construction and configuration for the worker | `Serialization/Memory*.cs`, `Serialization/Compression.cs` |
 | Pure context reduction and safe conversation selection | `History/History.cs`, `History/Compression.cs`, `History/MemorySelection.cs` |
-| Canonical archive using existing History persistence | `History/Archive.cs` |
+| State-only snapshots and single recovery journal | `History/Persistence.cs`, `History/Journal.cs` |
 | Fresh corpus reads, capture, fingerprints, staging and recovery | `Memory/` |
 | Startup/policy reconciliation and durable operation | `Agent/Memory*.cs` |
 | Main-loop integration and complete-work boundaries | `Agent/Actor.cs`, `Agent/Handoff.cs`, `Agent/MemoryRuntime.cs` |
@@ -401,22 +390,6 @@ Another is whether a routine is pure. `History.Reduce` must not inspect files. `
 ---
 
 ## §22.9 Failure Lessons Worth Keeping
-
-### A direct call did not establish completion
-
-The historical one-call failure was not cured merely by moving code to another thread. It required a separate compressor prompt, a tiny tool surface and an enforced completion contract. C# uses the existing child/actor machinery without inheriting the parent's skill bootstrap.
-
-### A premature cut would lose the only active account
-
-Removing selected conversation immediately would leave a failed attempt without either the source or the promised memory in the next request. Keeping source active through matching population fixes that failure window. Staging a file alone is not a commit.
-
-### Replay reconstructed intention instead of accepted facts
-
-A launch is not a result. A filename is not recorded memory content. A serialized usage receipt is not permission to charge again. The replay model must retain those distinctions even when a save ends between two adjacent events.
-
-### Settings looked successful before they were applied
-
-A local form can look correct while the backend still runs the old policy. The durable operation and scoped acknowledgment establish the actual boundary. The restart check is separate: it must prove the next process loads that policy before its first request.
 
 ### A green worker test missed the exact schema
 
@@ -454,29 +427,16 @@ turns, 400 bytes of dialogue per turn, a conversation budget of
 | Memories written | 4 | 0 |
 | Cascade launches | 1 | 0 |
 
-Cascade launches per checkpoint: 0.10. The watermark gap works:
-nine of ten checkpoints find the band under budget and do nothing.
+One cascade in ten checkpoints shows the historical selector's behavior, not
+summarization quality. The 27-byte and 22-byte bands are fixed fake replies.
+Neither their sizes nor the tier names establish real compression ratios.
+Moreover, this test combined memory compression with the old Chapter 14 size-cut
+ladder; the current policy no longer silently cuts deliberately retained tool
+results by size. These are not measurements of that revised policy.
 
-These are the reference test's reported structural numbers. The conversation stays at 1,600
-bytes against 16,000 unbounded. Four memories were written. One fold
-fired. The historical reference combined the old Chapter 14 size-cut ladder
-with memory-band compression. The current retention contract removes that
-ladder: a deliberately kept tool result is not silently cut by size. Memory
-compression and explicit handoff remain separate mechanisms; these historical
-numbers are not a measurement of the revised policy.
-
-The band sizes are not a compression measurement, and printing them
-as one would be wrong. The compressor in this test is a fake that
-returns a short fixed string, so 27 bytes and 22 bytes are artifacts
-of the fake's reply length, not of any real summarization. The 2x,
-8x, and 64x compression targets in the design notes are inherited
-from the shipped system; the retained study does not measure whether they are right.
-Verifying them requires a real model, and nothing in this table
-should be cited as evidence for them.
-
-The earlier live sessions below measure actual text reduction with the direct
-compressor and expose what the short fixed summaries could not test. They do
-not measure the new background child's latency or memory quality.
+The live trials below test what fixed summaries cannot: whether facts and reasons
+survive and influence the answer. They predate the background worker, so they do
+not establish its latency or quality.
 
 ### What the live runs remembered
 
@@ -546,7 +506,7 @@ Other local exercises covered:
 
 - Pure memory ordering, population, retirement, snapshots and journal-only replay.
 - Selected-source and destination changes, hidden candidates, receipt validation and interrupted promotion/retirement boundaries.
-- Canonical archival retaining tool/private/opaque events that working-context handoff removes.
+- At that historical verification boundary, a separate canonical archive retained tool/private/opaque events. Chapter 14’s single-journal design supersedes that storage mechanism; those earlier checks do not certify current retention.
 - Worker limits, exact submit schema, blank results, JSON/SSE terminal refusal and joined cleanup.
 - Concurrent foreground work, safe-boundary commit, policy cancellation, failed saves and no duplicate imported usage.
 - Known-window pressure, unknown usage, responsive headroom waiting and cache-boundary placement.
@@ -581,7 +541,7 @@ These checks establish the exercised local contracts. They do not establish real
 
 4. **Fidelity includes reasons and uncertainty.** Preserve why a design changed, what failed, whose claim a result was, and what remains unverified. First-person prose is useful when grounded in the source, not when it manufactures continuity.
 
-5. **Runtime limits beat prompt requests.** The prompt asks for a handoff and bounded work. The actor enforces tool authority, request counts and headroom waiting. Unknown windows remain unknown rather than inheriting a convenient number from a test.
+5. **Runtime limits beat prompt requests.** The prompt asks for a handoff and bounded work. The actor enforces tool authority, request counts and the working-context thresholds. Missing usage stays unknown rather than inheriting a convenient number from a test.
 
 6. **The files remain inspectable.** Plain Markdown makes memory useful to people and ordinary search tools. Strict identities and receipts do not turn those files into privileged instructions.
 
@@ -689,7 +649,7 @@ find "$EN_DATA_DIR/agents/root/memory" \
 # Some directories do not exist until first use; that is not a failed scan.
 ```
 
-Read the live Markdown, the worker's `children/compress-*/events.jsonl`, and the parent events if event logging was enabled. Distinguish a launch, matching population, successful terminal outcome and retained failed attempt. `.retired` source files are not active memories. The canonical archive preserves the original material even when the request projection no longer sends it.
+Read the live Markdown and the parent and worker recovery journals (`save.json.journal.jsonl` and `children/compress-*/save.json.journal.jsonl`). Distinguish a launch, matching population, successful terminal outcome and retained failed attempt. `.retired` source files are not active memories. Audit-off journals may discard older records after checkpointing; enable audit at launch if this exercise needs a complete original trace. Do not mistake retained summaries for that trace.
 
 Finally, stop this owned host cleanly and restart it with the same explicit `EN_DATA_DIR` and launch configuration. Confirm the acknowledged settings and first request, not just the continued existence of Markdown files. To test corpus-only recovery separately, copy only live SOUL/MEMORY/session/archive Markdown into another fresh home; do not copy saves, receipts, retired files or child submissions.
 
@@ -697,5 +657,5 @@ The point is not to accumulate files. It is to show that a useful account surviv
 
 ---
 
-**Previous:** [Chapter 20: Managing the Swarm](chapter-20.md)
+**Previous:** [Chapter 21: Workflows](chapter-21.md)
 **Next:** [Chapter 23: Auto-Recall](chapter-23.md)

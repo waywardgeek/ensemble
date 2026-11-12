@@ -155,7 +155,16 @@ The host composition root calls `RestoreChildrenAsync`. Enumerate and validate o
 
 Restoring ownership is not replaying execution. Old HTTP requests, shell Jobs, queued tool calls, and observer handles are not restarted. Submitted children remain idle. Deliberately paused children remain paused. Explicit `shutdown_agent` and `kill_agent` retire restart registration while preserving saved work; ordinary host shutdown retains it.
 
-For registered children, goal file selection, enabled state and reminder interval now survive restart. A fresh timer begins only after restoration; there is no burst of missed reminders or immediate replay of an interrupted tool. The reminder tells the child to inspect saved results before continuing. Current skill authority and a fresh bounded goal-file read remain necessary. Missing authority or an unreadable goal leaves reminders off with an actionable diagnostic. A completed submission disables them durably. Standalone Agents retain their existing session-local goal contract.
+For registered children, goal file selection and enabled state survive restart.
+After reconstruction, an eligible idle child queues continuation immediately,
+with a fresh failure streak; it does not wait for a reminder interval. The saved
+legacy interval remains compatibility data, not scheduling policy. Chapter 25
+explains the failure-only backoff. Paused and submitted children do not resume
+automatically, and no interrupted tool is replayed. The reminder tells the child
+to inspect saved results before continuing. Current skill authority and a fresh
+bounded goal-file read remain necessary. Missing authority or an unreadable goal
+leaves reminders off with an actionable diagnostic. A completed submission
+disables them durably. Standalone Agents retain their session-local goal contract.
 
 This is a restart contract, not a promise that an interrupted external effect did or did not happen. Recovery must reconcile evidence. Existing children created before registration was implemented need an explicit migration from their known live state; do not guess registrations from arbitrary saved directories.
 
@@ -383,7 +392,7 @@ Implement and inspect the management layer through the existing owners:
 
 1. Declare lifecycle/work-phase values, ownership-tree snapshots, homes, peer operations, and child-output contracts in Common. Keep persistent state there and functional bodies in their responsible directories.
 2. Derive current activity from the actor, and accounting from Engine. Verify thinking, tool, waiting, paused, submitted-but-draining, idle failure, and shutdown boundaries without a duplicate scheduler flag.
-3. Give all top-level actors sibling homes. Separate those homes from History save paths. Persist strict immutable peer launch choices and ordinary child restart records. Restore registered descendants through real parents; exclude disposable helpers and unregistered historical directories. Test fresh reminder intervals, retained pause, current submission generations, malformed registration and explicit removal without replaying tools.
+3. Give all top-level actors sibling homes. Separate those homes from History save paths. Persist strict immutable peer launch choices and ordinary child restart records. Restore registered descendants through real parents; exclude disposable helpers and unregistered historical directories. Test fresh failure streaks and eligible immediate idle continuation, retained pause, current submission generations, malformed registration and explicit removal without replaying tools.
 4. Derive canonical addresses through actual parents. Keep global trusted GUI lookup separate from direct-child tool authority, including repeated local IDs and unnamed transient roots.
 5. Add the management tools and the real shipped grants. Test an owned success as well as cross-tree refusal. Demonstrate that cancelled observation leaves underlying work alive.
 6. Verify graceful shutdown versus kill with held real work. Do not assume a prompt acknowledgment proves completed teardown, and do not resume paused work as a side effect of waiting.
@@ -397,7 +406,7 @@ Implement and inspect the management layer through the existing owners:
 
 Use a fresh owned data directory and browser profile. Keep an existing working Ensemble and its browser untouched. Watch a child move through thinking, tool execution, and waiting; then switch between two conversations and confirm that messages and controls go to the selected one. Check that late old-view fragments do not contaminate the new transcript and that replay does not narrate old content.
 
-Create a named peer, choose its model and skill, close the application cleanly, and restore from the same directory. Confirm its own conversation survives and the initial actor remains separately host-configured. Include an ordinary child with an enabled goal, a paused child, a submitted child, and a nested child. Verify that the tree returns, only eligible enabled reminders resume after a fresh interval, and the others remain stopped. Explicitly remove a child, restart again, and verify that retained files do not revive it. Delete the peer and verify that it no longer restores while its saved data remains available for deliberate inspection.
+Create a named peer, choose its model and skill, close the application cleanly, and restore from the same directory. Confirm its own conversation survives and the initial actor remains separately host-configured. Include an ordinary child with an enabled goal, a paused child, a submitted child, and a nested child. Verify that the tree returns, only eligible enabled reminders resume immediately after restoration, and the others remain stopped. Explicitly remove a child, restart again, and verify that retained files do not revive it. Delete the peer and verify that it no longer restores while its saved data remains available for deliberate inspection.
 
 If a selected skill needs browser tools, open the explicit independent relay. Also try cancellation before the relay arrives and a headless launch against the same requirement. The first must join rollback; the second must refuse promptly by default.
 

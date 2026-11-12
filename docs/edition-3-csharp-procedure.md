@@ -1,3 +1,23 @@
+# Current boundary: editorial integration and print proportion
+
+The authorized editorial pass clarified current contracts, integrated prerequisite
+teaching and reduced repeated explanations and development bookkeeping. Quality,
+not length, is the criterion; the detailed failure stories and executable
+requirements remain. No runtime source or historical endpoints changed.
+
+The revised local Revision 2 artifacts contain all 31 chapters, with 539 interior
+pages and 540 covered pages at 7 × 10 inches. Body and code remain 10 point.
+At Bill’s request the body extends seven points farther down each page; the
+47-point bottom margin leaves the page numbers in their former position. The
+minimum measured text-to-number bounding-box gap is 15.5 points. Representative
+rendered pages, including the tightest footer, were inspected.
+
+All 14 publishing regressions pass. EPUB CRC/XML and chapter spine order,
+PDF type size, contents links, page labels and revision text were checked.
+The native/workflow results below belong to the preceding code closeout, not a
+new runtime campaign. Website PDF/EPUB copies match the revised book artifacts byte for byte.
+Push, deployment and KDP upload remain outside this local completion.
+
 # Current boundary: Workflows closeout and Third Edition, Revision 2
 
 Bill has closed the Workflows development increment and requested publication of

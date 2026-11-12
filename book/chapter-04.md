@@ -965,24 +965,13 @@ selector. Its globals check depended on variable names. Neither can establish
 those architectural properties. Keep the source findings alongside the runtime
 results; do not label a printed log line proof of ownership.
 
-The weights. `jobmodel` is 25 because it is the chapter, and because the
-common wrong answer, special-casing `run_command` instead of changing the
-dispatch site, passes a naive test and fails the moment a tool you do not own
-wedges. Both negative controls, the `read_file` legs in `jobmodel` and
-`bigoutput`, are measured load-bearing: delete either and the "it's a shell
-problem" student scores 100. `toollimits` is 10 because it grades three
-properties and a forward reference in one fixture. `debugger` is 5 rather
-than more because `sendinput` already grades the mechanism; the five points
-buy the proof that the mechanism reaches a real program. `shutdown` is 5
-because it is one behavior, and because without it the never-returning job is
-a leak the grader would otherwise have to hunt with `kill -0`.
+The non-shell controls matter: removing the `read_file` legs from `jobmodel`
+and `bigoutput` lets a shell-only implementation score 100. Uniform supervision
+must be tested with tools that do not look like processes.
 
 ### What would still pass if I deleted this?
 
-Same audit as the last three chapters: delete each protected behavior from
-the reference and confirm the score drops, and treat a row reading 100 → 100
-as the finding. One row was `killed-job-reported-as-done`, and it scored 100
-on the first run.
+The mutation audit found `killed-job-reported-as-done` still scoring 100.
 
 Here is how. The killed process died. Its goroutine ended the job as `done`
 with `exit_code -1`, and the waiter was told *job 1 done, exit_code -1 ...
@@ -993,16 +982,11 @@ very message that documents the failure. The fix is to grade structure:
 report must not claim `done`, `finished`, `completed`, `succeeded`, or an
 `exit_code`.
 
-Three more findings from this chapter's audit, each of them a shape you will
-meet in your own grader. Assert every mutation actually landed and changed
-bytes; this project has now been bitten three times, and the Chapter 4 rig
-refuses a regexp that matches other than once or whose replacement is a
-no-op. A mutant of a module with dependencies needs the dependency: the
-mutant `go.mod` carries the `creack/pty` require and the course `go.sum`, or
-the mutant fails to build and the failure is misread as detection. And treat
-a skipped check as a failed check. A `t.Skip` on an empty fixture is a
-vacuous pass with better manners, which is why `debugger` fails rather than
-skips when `dlv` is absent.
+Verify that each mutation changes the intended bytes, as Chapter 3 requires.
+Two additional controls matter here. A mutant must retain its dependencies:
+omitting `creack/pty` or the course `go.sum` makes a build failure look like
+successful defect detection. And a skipped check is not acceptance: `debugger`
+fails rather than skips when `dlv` is absent.
 
 The first-edition audit deliberately omitted two mutants, with the reason recorded.
 Pipes-for-PTY, because the textual change is too large for a regexp and the

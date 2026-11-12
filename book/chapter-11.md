@@ -99,7 +99,20 @@ mcp_servers:
 Use these tools for project notes. Read before replacing existing content.
 ```
 
-This is the supported front-matter subset, not arbitrary YAML. Server names, transport spelling, field types, and JSON string-array arguments are validated. Use literal argument elements; this is not a shell command string. The process inherits the configured working directory and a small credential-free environment, not the application's provider secrets. Stderr is drained separately from protocol stdout.
+This is the supported front-matter subset, not arbitrary YAML. Server names,
+transport spelling, field types, and JSON string-array arguments are validated.
+Use literal argument elements; this is not a shell command string. Stderr is
+drained separately from protocol stdout.
+
+Launch through the owning Agent's process policy, not a detached `Process.Start`
+helper. Unrestricted launches use the configured working directory and a small
+credential-free environment. When Chapter 18 introduces Sandbox, pass that real
+owner to `McpProcessTransport` and use `Sandbox.PrepareProcess`: confined startup
+and dynamic activation use the sandbox root and its sanitized environment.
+Do not overwrite its HOME or temporary-directory settings with host values.
+Unsupported confinement refuses rather than retrying unrestricted. Removing
+credentials from an environment is not filesystem or network isolation; a skill
+grant and a confined executable are separate requirements.
 
 For a browser server, the declaration is simply:
 

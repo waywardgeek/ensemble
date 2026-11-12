@@ -20,9 +20,9 @@ GUI, and separate public-API example use C# 14/.NET 10 without downloaded packag
 
 ### A constitution and a shelf of manuals
 
-The primary skill is the Agent's constitution. It says how to work and lists
-which additional manuals the Agent may request. A loaded manual supplies both
-instructions and the tools needed to follow them. Dependencies are supporting
+The primary skill is the Agent's constitution. It says how to work and, for a
+sandboxed Agent, roots the graph of manuals it may request. A loaded manual
+supplies both instructions and the tools needed to follow them. Dependencies are supporting
 manuals loaded automatically before the requested manual.
 
 There are two different questions:
@@ -76,7 +76,8 @@ Keep the existing hub-and-spoke organization:
   fields, and callable partial members.
 - `Skills/Parser.cs` implements the documented front-matter subset and value
   construction. `Skills/Skills.cs` implements catalog resolution, variable
-  rendering, activation, provenance, and pending removal.
+  rendering, activation, provenance, and pending removal. `Skills/Discovery.cs`
+  refreshes eligible catalog templates without rewriting active manuals.
 - `Agent/Skills.cs` implements complete two-way attachment and removal. The
   manager reaches History and the handler catalog through its actual Agent
   parent, not copied service references.
@@ -177,12 +178,32 @@ errors. Quoted scalars, flow arrays, and multiline YAML values are not part of
 the contract. The first closing `---` ends front matter; later separators remain
 literal body text. Empty lines and comment lines in front matter are ignored.
 
-Catalog syntax is checked at construction. Activation then validates the chosen
+Catalog syntax is checked at construction. Activation validates the chosen
 closure: missing dependencies, cycles, wrong primary placement, invalid offered
-names/types, or unknown handlers refuse the operation. A dependency is not
-independently discoverable unless an active manual explicitly offers it as a
-loadable skill; `dependency`-typed entries cannot be offered as loadable entries.
-A loadable manual may offer further manuals, making discovery progressive.
+names/types, or unknown handlers refuse the operation. Only `loadable`-typed
+manuals can be requested independently; a dependency loads through its owner.
+
+### Discovery is not activation
+
+An unrestricted Agent refreshes the host-selected skill directory before a new
+model request and before loading. Parse a complete candidate catalog, rejecting
+malformed files and duplicate names before replacing anything. Preserve both the
+recorded text and template relationships of active manuals, including pending
+unloads. An edited or deleted file cannot silently rewrite an activation.
+
+A sandboxed Agent instead keeps its construction-time catalog. Its primary roots
+an authorization graph: follow both `depends` and `loadable-skills` transitively.
+Intermediate manuals need not already be active. An unrelated file in the same
+directory does not authorize itself. In either mode, the host's launch policy
+still filters eligible loads; discovery neither grants tools nor starts servers.
+Chapter 18 supplies the operating-system confinement boundary.
+
+The primary's rendered `$SKILLS` list is a historical snapshot, not a second
+catalog to maintain by hand. Supply a current discovery instruction with each
+new request, explicitly superseding retained lists without rewriting the manuals.
+Historical request rendering must not rescan today's filesystem. When Chapter 11
+adds asynchronous MCP activation, revalidate its prepared definition closure
+before commit so a catalog change cannot publish a mismatched connection.
 
 Both `load_skill` and `unload_skill` are always enabled controls for a configured
 primary, even if it offers no additional manuals. They are not ordinary jobs.
@@ -212,8 +233,9 @@ activation, not a new conversation event.
 
 A successful load performs these steps on the Agent's actor:
 
-1. Require that an active skill currently offers the requested name. An already
-   active name is an idempotent success, including while pending unload.
+1. Refresh the catalog where permitted and require an eligible loadable name
+   under the discovery and launch rules above. An already active name is an
+   idempotent success, including while pending unload.
 2. Resolve dependencies first, checking the entire closure before publication.
 3. Calculate the prospective active names, grants, and discoverable manuals.
 4. Render all new bodies against that prospective snapshot.
@@ -382,6 +404,14 @@ small primary `read_file` and an offered writer skill `write_file`, with a
    instruction snapshots and control declarations must survive without HTTP.
 6. Repeat through the GUI. Expand the real tool-result cards, check the pending
    explanation, reload the page, and verify stable replay without duplicates.
+
+Add a valid skill after unrestricted Agent construction: its description must
+appear in the next actual provider request, and ordinary dispatch must load it.
+Test malformed and duplicate catalog refusal followed by recovery, unchanged
+active manuals after source edits, and sandbox graph authorization through an
+inactive intermediate manual. An unrelated sandbox skill must refuse. These
+current discovery checks extend the preserved endpoint; its historical grader
+score below does not certify them.
 
 Also test cycles, missing dependencies, unknown handlers, malformed metadata,
 idempotent loading, primary unload refusal, variable snapshot timing, two-Agent

@@ -1,87 +1,31 @@
 # Chapter 26: Voice and Images
 
-> **External media grading complete:100/100.** Image-files20, attachments25,
-> voice30 and host-screen25 pass their executable scopes. The native macOS
-> primary-display run verified both selector forms, delayed Jobs and full-image
-> replay without recapture. Provider, platform and human-use limits remain
-> explicit below; this score does not certify every device or failure race.
-> Speech output follows Chapter7's browser-local preferences and single
-> Agent-wide pause state.
-
 ## TL;DR: Specification Brief
 
-Extend the working GUI with push-to-talk input, pasted images, screenshots of the
-computer running the C# server, and Agent inspection of image files. Build on the media
-parts and capability checks from Chapter 5 and the file authority from Chapter 18;
-do not create a second conversation or media pipeline.
+Extend the existing GUI and media path with four inputs: hold-to-talk voice,
+pasted image attachments, inspection of Sandbox image files, and explicitly
+authorized capture of the server computer's whole display. Build on Chapter 5's
+media parts and Chapter 18's file authority, not a second conversation pipeline.
 
-- **Hold to talk; release to send.** Provide a press-and-hold microphone button
-  usable on a phone and a browser-profile-local keyboard shortcut, initially Off.
-  Offer F8 and Right Alt, with Right Alt available only where it does not interfere
-  with AltGr, input methods, or reserved shortcuts. Press starts an explicitly authorized
-  recording; release stops capture, transcribes it, and sends the resulting text
-  once through the normal message path. While the Agent is working, that message
-  follows the existing hint contract. Display recording, transcription, and
-  failure states, and provide cancellation. Empty or failed transcription sends
-  nothing. Lost focus, pointer cancellation, connection loss, or an agent switch
-  cancels uncommitted work rather than sending partial speech later. Cancellation
-  cannot retract a message already admitted. Late
-  callbacks must not submit it or redirect it to a newly selected Agent.
-- **Paste images into chat.** Accept image content from the clipboard, show a
-  preview with removal controls, and send it with the accompanying text when the
-  user presses Send. Preserve their order and the intended recipient. A preview
-  is not delivery to the Agent. Validate format, size, and image dimensions before
-  accepting the attachment; refusals leave the user's remaining draft intact.
-- **Resize oversized images safely.** Use a maintained image library to decode
-  and proportionally downsize images that exceed delivery dimensions or byte
-  limits, without enlarging small images or overwriting original files. Bound
-  source bytes, decoded pixels, frame count, and output bytes; reject unsafe or
-  malformed input before expensive processing. Preserve readable detail where
-  possible, report the resulting dimensions and any reduction, and refuse clearly
-  if a useful bounded image cannot be produced. Deliver the actual resized bytes,
-  not only resize metadata. Test this shared behavior for pasted images,
-  screenshots, and image-file inspection; provider-specific limits remain explicit.
-- **Capture the server computer.** Implement the C# equivalent of CodeRhapsody's
-  host-side `list_displays` and `screenshot` tools. Enumerate displays and their
-  bounds; capture one whole selected display (display zero when omitted) on the
-  machine running Ensemble. Return actual bounded PNG pixels through the existing
-  image-tool path, with capture and output dimensions, not just a filename or DOM
-  description. A request from a phone captures the server computer, not the phone.
-  This operation does not require a connected Chrome page or a browser sharing
-  picker. Require explicit host-screen tool authority and respect OS screen-
-  recording permission; refuse denied access, invalid bounds, unavailable displays,
-  and unsupported platforms clearly. Do not elevate privileges or bypass OS
-  permission. Capture only on request, not as background screen monitoring.
-- **Inspect an image file.** Provide an image-reading operation for an explicit
-  path, using the Agent's existing Sandbox and supported media representation.
-  Enforce file authority, format, and resource limits; report missing, forbidden,
-  or unsupported input honestly. The operation must deliver the image to the
-  selected model, rather than treat a path, browser-only preview, or textual
-  metadata as proof that the image was seen.
-- **Preserve the existing owners.** The browser owns microphone capture and
-  attachment composition; the server owns native screenshot capture and its
-  resource cleanup. The Agent owns tool authority, admission, and History; the
-  Engine renders supported media for
-  its provider. Keep media references and provenance in the established parts,
-  not base64 copies in ordinary transcript text. A model recommendation is not a
-  media capability declaration. Unsupported models or placements refuse clearly;
-  they must not silently discard an image, switch vendors, or change funding.
-- **Make permission and cleanup observable.** Stop microphone capture on release
-  or cancellation and show when it is active. Captured speech, pasted images,
-  screenshots, and image-file contents are private input, not material to collect
-  speculatively. Preserve secure-context requirements and the existing
-  authenticated-origin policy; do not weaken them to obtain capture access.
-  Transcription needs an explicitly selected service and funding policy; it must
-  not silently charge an API key when subscription funding cannot
-  perform the operation. Playback/capture cleanup must not leave an automatic
-  pause behind or undo a manual pause. Replays must not restart capture or send
-  another message.
+- **Deliver to the original recipient.** Release-to-send voice and image drafts
+  remain bound to their original Agent and connection. Late callbacks cannot
+  redirect input. Cancellation before admission sends nothing; an uncertain
+  acknowledgement is not permission to retry.
+- **Deliver pixels, not claims.** Share bounded preparation across image inputs,
+  preserve originals, and retain actual prepared bytes for replay. A preview,
+  filename or dimension report is not model delivery. Unsupported capabilities
+  refuse without switching vendors or funding.
+- **Keep acquisition and authority separate.** The browser owns microphone and
+  draft resources; the server owns native capture. Agent admission, History and
+  Engine rendering remain their existing owners' responsibilities. Host-screen
+  access requires its own grant and OS permission, not merely file or browser
+  access. Transcription uses an explicitly selected payer.
+- **Test each boundary.** The body specifies limits, cancellation, cleanup and
+  admission protocols. The four exercises provide separate executable scopes;
+  their fixtures do not replace native-device and human-use evidence.
 
 Before implementation, settle the transcription route, supported capture
-mechanism, resource limits, and authorized live tests with the human. Use local
-fixtures for deterministic input, cancellation, routing, and refusal checks.
-Those checks do not establish real microphone behavior, actual image delivery to
-a vendor, or phone usability; each needs evidence of its own.
+mechanism, resource limits and authorized live tests with the human.
 
 ## In Plain Words
 
@@ -128,7 +72,7 @@ symbol. It is whether the person's intended input reaches the intended Agent,
 with permission, once, and with a clear failure when it cannot. That boundary is
 what lets the same interaction remain trustworthy on a desktop or a phone.
 
-## 25.1 Four inputs, one conversation
+## 26.1 Four inputs, one conversation
 
 The new inputs should arrive at the conversation the person already understands.
 An image pasted beside a caption belongs to that message. A spoken sentence,
@@ -162,7 +106,7 @@ metadata, but it cannot stand in for the screenshot. Likewise, audio recording
 success is only the start of a voice operation. The intended Agent must eventually
 receive the transcript, or the operation must fail without sending it elsewhere.
 
-## 25.2 Put ownership where the lifetime lives
+## 26.2 Put ownership where the lifetime lives
 
 The browser owns the live microphone track, its audio context and worklet, and
 the buffers used to make a recording. Its image composer owns pending file
@@ -187,13 +131,20 @@ Agent does not inherit an old recording. A replacement socket does not inherit
 permission to resend an old commit. Destroying a resource owner cannot simply
 forget a task because its cancellation token was signalled.
 
+Captured speech and images are private input, not material to collect
+speculatively. Preserve secure-context requirements and authenticated-origin
+policy; do not weaken them to obtain capture access. Stop microphone capture on
+release or cancellation, and never restart capture or send a message during replay.
+Cleanup must not leave an automatic pause behind or undo a manual pause; explicit
+Stop speech/Escape resume follows Chapter 7's separate control contract.
+
 Use immutable values at the boundaries. Prepared images own their output bytes;
 validated voice audio owns a snapshot of its canonical WAV. Once admitted, these
 values do not depend on a browser array that can still change or an original file
 that might be removed. The provider renderer consumes the frozen request, not
 whatever happens to be on disk later.
 
-## 25.3 Prepare an image once, with bounded work
+## 26.3 Prepare an image once, with bounded work
 
 Image preparation is shared by attachments, image-file inspection, and host
 screenshots. This avoids three independent interpretations of orientation,
@@ -287,7 +238,7 @@ These limits bound accepted input and allocation; they are not isolation from
 bugs in native decoders, a process-wide concurrency budget, or a guarantee of
 readable small print. Keep those claims separate.
 
-## 25.4 Inspecting a file must deliver the file's pixels
+## 26.4 Inspecting a file must deliver the file's pixels
 
 `inspect_image` starts with ordinary tool authority and a supported image-result
 surface. Check the selected model's capability before reading the path. An
@@ -328,7 +279,7 @@ active context while retaining accompanying text according to that reducer's
 contract. It does not prove that the original GUI history or every retained log
 entry was deleted.
 
-## 25.5 Render the media the provider actually supports
+## 26.5 Render the media the provider actually supports
 
 The shared value is a typed image part. The wire encoding is provider-specific.
 Responses represents image-bearing function output as typed content alongside
@@ -354,7 +305,7 @@ bounded real-provider probe establishes something additional: that the selected
 API and model accept the representation. Neither result implies entitlement or
 support for a different model, streaming mode, or platform.
 
-## 25.6 An attachment draft belongs to one recipient
+## 26.6 An attachment draft belongs to one recipient
 
 The browser's image composer retains the text and images that the person is
 preparing. It provides previews, removal, and an explicit file-picker fallback to
@@ -386,7 +337,7 @@ it does not establish the underlying cause of the earlier failure. Retain the
 file picker as a useful explicit attachment path without declaring all Android
 clipboard behavior either broken or solved by that one observation.
 
-## 25.7 A screenshot of which computer?
+## 26.7 A screenshot of which computer?
 
 The screenshot requirement exposed a specification mistake. The first
 implementation captured the connected browser page with Chrome's sharing API.
@@ -448,20 +399,13 @@ agree with the selected display and supported scale. Each request captures one
 whole display, not a composite of several. Other operating systems refuse explicitly. These are current
 implementation limits, not claims of full cross-platform parity with CodeRhapsody.
 
-Permission preflight currently refuses denied access; it does **not** open an OS
-permission prompt automatically. Before the display-only simplification, an agreed
-macOS synthetic-window test verified the native backend and tool-delivery path. It
-exercised native capture through the real Agent tool, a running Job followed by
-collection, actual pixels in the local fake-provider request, and identical replay
-on the next human turn. It made one capture and four local provider requests.
-This is not a paid-provider interpretation test, other-platform acceptance, or
-proof of every permission-change race. The later whole-display external run used
-a newly agreed primary-display fixture and verified omitted and explicit-zero
-selection, distinct delayed Jobs and replay. That run establishes the changed
-selection contract; old rectangle-based evidence alone did not. Browser-page
-replay remains separate from host-screen acceptance.
+Permission preflight refuses denied access; it does not open an OS prompt
+automatically. Earlier synthetic-window testing exercised native acquisition,
+delayed-Job delivery and replay through a local fake provider. The later
+whole-display run verified the changed selector contract; its evidence and limits
+are collected in §26.13. Browser-page capture remains a separate feature.
 
-That native test caught a HiDPI assumption the synthetic metadata tests could not.
+The earlier native test caught a HiDPI assumption the synthetic metadata tests could not.
 A 640×360 logical rectangle produced 1280×720 pixels. `CGDisplayPixelsWide/High`
 reported 1920×1080, while the current display mode's pixel dimensions were
 3840×2160. Read backing dimensions from the copied display mode and release that
@@ -470,7 +414,7 @@ This matters before capture, because the source-pixel safety bound must include
 scaling. Verify the selected display's actual pixels as well as its dimensions;
 simply relaxing a failed dimension assertion is not acceptance.
 
-## 25.8 Make the recording format small enough to reason about
+## 26.8 Make the recording format small enough to reason about
 
 Bill specified hold, talk, and release to send, without an editable transcript or
 another Send press. That interaction does not require every audio container a
@@ -504,7 +448,7 @@ grant into background listening. It owns repeated releases and delayed finish
 callbacks. The page-level control adds pointer loss, blur, visibility, selection,
 and socket cancellation, plus the visible Cancel action.
 
-## 25.9 Keep the transcription payer explicit
+## 26.9 Keep the transcription payer explicit
 
 Transcription is a separate service operation from the Agent's chat inference.
 A running application with subscription-funded chat must not silently use an API
@@ -534,6 +478,8 @@ transcript bound. Missing usage remains unknown; supplied malformed usage refuse
 Token usage and duration usage are distinct, and neither is fabricated from the
 recording's duration.
 
+An empty or failed transcription admits no message.
+
 The single active request is a deliberate concurrency limit: simultaneous voice
 requests can receive a busy refusal rather than building an invisible paid queue.
 Cancellation invalidates delivery even if a transport returns late, and destruction
@@ -547,7 +493,7 @@ before a live test. Published rates are estimates for planning, not a measured
 bill. The accepted Dev test used an explicitly selected OpenAI key for
 transcription while retaining its existing chat funding.
 
-## 25.10 Separate readiness from commitment
+## 26.10 Separate readiness from commitment
 
 Bill's release-to-send requirement needs an admission protocol as well as a
 correct recorder and transcriber.
@@ -596,7 +542,7 @@ not proof of non-delivery. Do not retry that capture on a replacement socket.
 The person can inspect the original conversation. A new intentional recording is
 a new operation; an automatic replay of the old one is not.
 
-## 25.11 Cancellation must win before the next effect
+## 26.11 Cancellation must win before the next effect
 
 A state notification is a callback boundary. Tests exposed a race in which a
 listener cancelled the session during a state change, but execution continued to
@@ -630,7 +576,7 @@ that draft first. Keep visible recording, transcription, cancellation, failure,
 and uncertain-commit states; a person listening quickly still needs to know
 whether the recording has stopped and whether a message may already have arrived.
 
-## 25.12 Test the boundary you intend to claim
+## 26.12 Test the boundary you intend to claim
 
 Use deterministic fixtures to expose races, then use bounded native checks for
 the device and provider behavior those fixtures cannot establish.
@@ -669,7 +615,7 @@ from already-cached packages fixed that run without a runtime source change.
 Build state, source state, installed state, and live acceptance are separate facts.
 Do not hide a stale-manifest workaround inside a claim that the product was fixed.
 
-## 25.13 What is verified, and what remains open
+## 26.13 What is verified, and what remains open
 
 At this draft boundary, image-file inspection has local provider-wire and replay
 tests plus a bounded live test for the exact supported Gemini path. Desktop and
@@ -678,28 +624,23 @@ fake-provider tests, and the live Dev interaction has been accepted. Those facts
 do not establish every supported platform, every provider model, or every failure
 race.
 
-Host-screen tools are implemented in source with grant, safe-mode, argument,
-preparation, renderer, and fake-process cleanup tests. Native macOS acquisition,
-model-turn/delayed-Job delivery, and subsequent replay passed with an agreed
-synthetic window and a local fake provider. After simplifying the public tool to
-one display selector, Bill restarted the staged runtime and authorized a whole
-primary-display capture. The live `screenshot(display: 0)` call delivered actual
-3840-by-2160 pixels prepared to 2048-by-1152, with no window measurement, picker,
-or command-line workaround. Cadence inspected the returned GUI pixels. Omitted
-selection was only source-tested at that earlier boundary. The later external
-whole-display run below exercised both omitted selection and explicit zero.
-
-The shared implementation suite passed 339 groups with the child-restoration
-changes; those groups span the application and are not 339 independent multimedia
-acceptance tests. Installation, Bill's reported restart, and the successful live
-capture are separate observations. Neither the earlier synthetic-window test nor
-this earlier authorized display capture awarded the later external host-screen grade.
+Host-screen source tests cover grants, safe mode, arguments, preparation,
+rendering and fake-process cleanup. After the display-only simplification, Bill
+restarted the staged runtime and authorized primary-display capture. The live
+call returned 3840-by-2160 pixels prepared to 2048-by-1152, without a picker or
+command-line workaround; Cadence inspected the returned pixels.
 
 The **20-point image-files**, **25-point attachment**, **30-point voice**, and
-**25-point host-screen** external scopes now pass, totaling **100/100**. The native
-host run used the agreed synthetic primary display, both selector forms, distinct
-delayed Jobs and full-payload replay on a new turn without recapture. This completes
-the external point allocation, not every platform or human-use acceptance claim.
+**25-point host-screen** external scopes pass, totaling **100/100**. The native
+macOS host run used the agreed synthetic primary display, both omitted and
+explicit-zero selectors, distinct delayed Jobs and full-payload replay on a new
+turn without recapture. The other scopes retain their fake-provider, synthetic
+audio and browser boundaries. Other displays and platforms, native microphone
+reliability and every permission-change race are not certified by that score.
+
+The broad implementation suite passed 339 groups at the child-restoration
+boundary, not 339 independent media acceptance tests. That result, installation,
+the reported restart and live human acceptance are separate observations.
 
 Speech output now follows Chapter7's browser-local preferences and one Agent-wide
 pause state. A tab addresses only its selected Agent. Stop speech and Escape
@@ -708,12 +649,7 @@ from any device. Unchanged local activity cannot veto that resume. Disconnect
 does not invent resume, and reconnect does not reassert stale activity. This repair is separate evidence,
 not a substitute for the separate voice-input external grade.
 
-The external grading gates are now complete. Preserve the remaining platform
-and human-use limitations rather than treating the score as universal acceptance.
-A written chapter, an installed button, a passing fake-provider test, and a live
-human interaction each establish something different.
-
-## 25.14 Review and operate the feature deliberately
+## 26.14 Review and operate the feature deliberately
 
 Before native capture, agree on a synthetic display and arrange OS permission with
 the person at the host. Do not sweep a private desktop to discover whether access
@@ -743,13 +679,13 @@ be made to light up.
 ## Exercises: implementation contract
 
 These exercises extend the same Agent, History, Sandbox, and GUI. They do not
-ask for a parallel media service or a second conversation store. The proposed
+ask for a parallel media service or a second conversation store. The
 chapter allocation is 100 points. The image-files, attachments and voice commands
 below award separate 20-point, 25-point and 30-point scopes. None awards the
 host-screen scope by itself or certifies the entire chapter.
 The implementation's focused tests remain evidence, not external grades.
 
-### Exercise 25.1: Image-file delivery and replay (20 points)
+### Exercise 26.1: Image-file delivery and replay (20 points)
 
 Implement `inspect_image` as a skill-authorized tool. Read the selected file through
 its Agent's Sandbox, prepare a bounded PNG without changing the original, and
@@ -787,7 +723,7 @@ this delivery-and-replay scope. Sandbox escapes, resource ceilings, unsupported
 models, cancellation, and cross-provider correctness still require their focused
 implementation tests and review; this scope does not certify them by implication.
 
-### Exercise 25.2: Addressed image attachments (25 points)
+### Exercise 26.2: Addressed image attachments (25 points)
 
 Accept pasted images and explicit file selection into a removable preview draft.
 Keep accompanying text and image order, then send the whole message to the Agent
@@ -829,7 +765,7 @@ misdirected and duplicate-send mutants fail named gates. A phone-sized viewport
 checks layout, not native clipboard support. The command reports **25/25**, not
 100/100; image-file replay remains its separate scope.
 
-### Exercise 25.3: Hold, release, and send once (30 points)
+### Exercise 26.3: Hold, release, and send once (30 points)
 
 Connect the microphone button and configurable page-level shortcut to bounded
 recording and explicitly funded transcription. Release sends once through the
@@ -881,7 +817,7 @@ Four mutants expose extra confirmation, duplicate commit, wrong recipient and
 actual track leakage. The command reports **30/30** for this synthetic scope,
 not native microphone reliability, real-provider behavior or the host-screen grade.
 
-### Exercise 25.4: Host screenshots (25 points)
+### Exercise 26.4: Host screenshots (25 points)
 
 Implement `list_displays` and `screenshot` on the computer running the C# server.
 Support one optional display index, defaulting to display zero, and return prepared PNG pixels
@@ -971,17 +907,6 @@ permission checks and native cancellation: a returned error alone cannot prove
 that no OS side effect occurred. The native test verifies the selected colors on
 this display, not universal color-profile fidelity. Do not widen color tolerances
 merely to obtain a passing grade.
-
-## Grading boundary
-
-All four executable external scopes pass, totaling100/100: image-files20,
-attachments25, voice30 and host-screen25. The host scope has native macOS
-primary-display evidence; the others retain their documented fake-provider,
-synthetic audio and browser boundaries. Architecture review, other-platform
-acceptance and native microphone/phone reliability are not additional claims
-implied by that score. Building, staging, restarting and human acceptance remain
-separate facts. Preserve the evidence and limits beside the executable contracts.
-
 
 ## Takeaways
 
