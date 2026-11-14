@@ -1248,3 +1248,60 @@ preserved in the [GUI repair notes](../docs/edition-3-notes/gui-history-window.m
 Those local checks did not themselves install a repair or restart a workflow.
 The practical lesson is to test the conversation the human will actually keep
 using, not just a fresh page with one successful command.
+
+### A compatible wire format does not identify the provider
+
+The later Flint integration illustrates a smaller crossover boundary. OpenRouter
+exposes `recursive/flint-v1.0:free` through a Messages-compatible endpoint, but uses
+Bearer authentication rather than Anthropic's native `x-api-key` header. The
+configured offering therefore keeps OpenRouter's provider identity and its own
+`openrouter_api_key` binding while reusing the Messages renderer and parser.
+Neither an absent key nor a failed free route selects another provider or a paid
+model. Registration does not switch an existing Agent.
+
+A local HTTP fake checks the actual authentication headers and a streamed tool
+round trip: thinking and its signature survive into the follow-up request beside
+the correlated tool result. Those checks establish transport behavior, not live
+provider acceptance or model quality. The advertised context window is not
+measured account capacity. See the [GUI setup note](../agent/Examples/Gui/README.md#flint-through-openrouter)
+for the exact route and credential placement.
+
+The first installed trial exposed a configuration boundary that the transport
+tests had missed. The interactive launcher supplied an isolated `HOME`, so the
+host's default global-settings path differed from the human's shell-expanded
+`~/.en/settings.json`. Rebuilding, restarting, and refreshing could not make a
+key in the other file register an offering. Value-free diagnostics checked JSON
+validity and the presence of the exact top-level key; a small .NET probe confirmed
+that `UserProfile` followed the launcher's isolated home. With the human's
+approval, the launcher gained an explicit `--global-settings` path to the intended
+file, without copying credentials or changing existing Agent selections. After
+the human relaunched and refreshed, Flint appeared in the live picker. No separate
+vendor-order patch was necessary: the server enumerates registered offerings and
+the browser creates their vendor groups dynamically. Test the host's catalog
+projection as well as the provider transport; a passing adapter test cannot prove
+that the running application consumed the intended configuration.
+
+Bill selected Flint in a separate test Agent and reported a successful live reply.
+The inspected API log contained one request and a completed streamed response;
+a live tool-result continuation had not yet been demonstrated. The successful
+reply also exposed an audible defect: the interface repeatedly announced
+“Thinking.” Bill suggested checking whether the provider had returned multiple
+thinking blocks. Structural inspection of the response, without dumping request
+contents, found one thinking block with 131 deltas, followed by one answer-text
+block with 65 deltas. The GUI's speech queue prepended “Thinking:” to every
+thinking or reasoning-summary phrase. Provider blocks, streaming deltas, and
+speech phrases are different boundaries: the announcement belongs at the start
+of the thinking passage, not on each speech phrase. The repair moved announcement
+state beside each card's narration cursor, preserving the original speech source
+and leaving later sentences unprefixed. A focused regression failed on the old
+second-sentence label and passed after the change. A disposable real-browser
+check covered both thinking kinds across streaming updates and a final flush,
+queue drainage and pause release, and silent replay and mute behavior. Native
+audio was controlled in that check; installation and human listening were
+separate acceptance steps. Bill subsequently reported that the repair worked
+well in live use. The broader speech/pause suite still failed a distinct
+long-text-rendering assertion, so these focused passes were not reported as a
+full-suite pass. Human listening found a usability failure that successful
+inference and transport tests did not cover. Bill also judged Flint insufficient
+for his coding collaboration: successful integration and collaborator quality
+are separate outcomes, not interchangeable acceptance claims.

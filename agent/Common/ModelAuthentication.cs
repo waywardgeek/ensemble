@@ -4,6 +4,11 @@ namespace Ensemble;
 
 public enum ModelAuthenticationKind { None = 1, ApiKey, ChatGptPlan, Codex }
 
+/// <summary>API-key transport convention, independent of the message codec.
+/// ProtocolDefault preserves each codec's native header; Bearer supports
+/// compatible gateways without treating their credentials as another vendor's.</summary>
+public enum ApiKeyHeader { ProtocolDefault, Bearer }
+
 public sealed partial class Ensemble
 {
     private readonly List<ModelAuthentication> modelAuthentications = [];
@@ -41,13 +46,16 @@ public sealed partial class ModelAuthentication
     public readonly string ID;
     public readonly ModelAuthenticationKind Kind;
     public readonly string Account;
+    public readonly ApiKeyHeader KeyHeader;
 
     public partial ModelAuthentication(Ensemble parent, string id);
-    public partial ModelAuthentication(Ensemble parent, string id, string apiKey);
+    public partial ModelAuthentication(Ensemble parent, string id, string apiKey,
+        ApiKeyHeader keyHeader = ApiKeyHeader.ProtocolDefault);
     public partial ModelAuthentication(Ensemble parent, string id, Credentials credentials, string account);
     public partial ModelAuthentication(Ensemble parent, string id, CodexCredentials credentials);
     private partial ModelAuthentication(Ensemble parent, string id, ModelAuthenticationKind kind,
-        string apiKey, Credentials? planCredentials, CodexCredentials? codexCredentials, string account);
+        string apiKey, Credentials? planCredentials, CodexCredentials? codexCredentials, string account,
+        ApiKeyHeader keyHeader = ApiKeyHeader.ProtocolDefault);
     public partial Ensemble Parent();
     public partial Credentials? PlanCredentials();
     public partial CodexCredentials? CodexCredentials();

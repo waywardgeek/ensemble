@@ -23,7 +23,7 @@ internal static class GlobalSettingsTests
         Directory.CreateDirectory(Path.GetDirectoryName(path)!);
         File.WriteAllText(path, """
             {"openai_api_key":"synthetic-openai-key","anthropic_api_key":"synthetic-anthropic-key",
-             "gemini_api_key":"synthetic-gemini-key","future":{"retain":[1,"two",true]}}
+             "gemini_api_key":"synthetic-gemini-key","openrouter_api_key":"synthetic-router-key","future":{"retain":[1,"two",true]}}
             """);
         var root = new Application(TextWriter.Null);
         GlobalSettings settings;
@@ -43,6 +43,11 @@ internal static class GlobalSettingsTests
                 && anthropic.DiagnosticKey() == "synthetic-anthropic-key"
                 && gemini.DiagnosticKey() == "synthetic-gemini-key",
                 "Each global key creates its own real independent credential binding.");
+            var router = settings.BindOpenRouterApiKey("openrouter-api")!;
+            Check(router.DiagnosticKey() == "synthetic-router-key"
+                && router.KeyHeader == ApiKeyHeader.Bearer
+                && api.KeyHeader == ApiKeyHeader.ProtocolDefault,
+                "Gateway key and header convention remain independent of OpenAI credentials.");
             var vendor = new ModelVendor(root, "openai", "OpenAI");
             var firstEndpoint = new ModelEndpoint(vendor, "api", "http://127.0.0.1:1", Surface.ChatCompletions, api);
             var otherBinding = new ModelAuthentication(root, "other-api", "synthetic-other-key");
@@ -65,7 +70,8 @@ internal static class GlobalSettingsTests
             Check(JsonNode.DeepEquals(saved["future"], external["future"])
                 && saved["openai_api_key"]!.GetValue<string>() == "synthetic-openai-key"
                 && saved["anthropic_api_key"]!.GetValue<string>() == "synthetic-anthropic-key"
-                && saved["gemini_api_key"]!.GetValue<string>() == "synthetic-gemini-key",
+                && saved["gemini_api_key"]!.GetValue<string>() == "synthetic-gemini-key"
+                && saved["openrouter_api_key"]!.GetValue<string>() == "synthetic-router-key",
                 "Read-modify-replace preserves current unrelated fields and all credential values.");
             string original = File.ReadAllText(path);
             using (var held = new FileStream(path + ".lock", FileMode.Open, FileAccess.ReadWrite, FileShare.None))
@@ -113,11 +119,12 @@ internal static class GlobalSettingsTests
         {
             var absent = new GlobalSettings(root, path);
             Check(!Directory.Exists(directory) && absent.FundingDefaults().IsEmpty
-                && absent.BindApiKey(Vendor.Gemini, "missing") is null,
+                && absent.BindApiKey(Vendor.Gemini, "missing") is null
+                && absent.BindOpenRouterApiKey("missing-router") is null,
                 "Missing file reads do not create storage or borrow another credential.");
             absent.Destroy();
             Directory.CreateDirectory(directory);
-            foreach (string bad in new[] { "null", "{} {}", "{\"openai_api_key\":null}",
+            foreach (string bad in new[] { "null", "{} {}", "{\"openrouter_api_key\":42}", "{\"openai_api_key\":null}",
                 "{\"openai_api_key\":\"a\",\"openai_api_key\":\"b\"}",
                 "{\"model_funding_defaults\":null}", "{\"model_funding_defaults\":{\"openai\":null}}",
                 "{\"model_funding_defaults\":{\"openai\":\"bad/reference\"}}", new string(' ', 1024 * 1024 + 1) })
@@ -126,6 +133,19 @@ internal static class GlobalSettingsTests
                 Refuses(() => new GlobalSettings(root, path));
                 Check(root.GlobalSettings() is null && File.ReadAllText(path) == bad,
                     "Malformed settings refuse without ownership or repair.");
+            }
+            foreach (string valid in new[]
+            {
+                """{"openai_api_key":"not-a-router-key"}""",
+                """{"openai_api_key":"not-a-router-key","openrouter_api_key":"  "}"""
+            })
+            {
+                File.WriteAllText(path, valid);
+                var settings = new GlobalSettings(root, path);
+                Check(settings.BindOpenRouterApiKey("absent-router") is null
+                    && root.ModelAuthentications().IsEmpty,
+                    "Absent or blank OpenRouter keys never borrow an available OpenAI key.");
+                settings.Destroy();
             }
             File.WriteAllBytes(path, [0xff]);
             Refuses(() => new GlobalSettings(root, path));

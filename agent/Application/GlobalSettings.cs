@@ -67,6 +67,17 @@ public sealed partial class GlobalSettings
             Vendor.Gemini => "gemini_api_key",
             _ => throw new ArgumentException("No global API-key field for this vendor.", nameof(vendor))
         };
+        return BindApiKeyField(field, bindingID, ApiKeyHeader.ProtocolDefault);
+    }
+
+    public partial ModelAuthentication? BindOpenRouterApiKey(string bindingID)
+    {
+        return BindApiKeyField("openrouter_api_key", bindingID, ApiKeyHeader.Bearer);
+    }
+
+    private partial ModelAuthentication? BindApiKeyField(string field, string bindingID,
+        ApiKeyHeader keyHeader)
+    {
         ModelVendor.ValidateID(bindingID);
         lock (graphGate)
         {
@@ -75,7 +86,11 @@ public sealed partial class GlobalSettings
             string? key = document[field]?.GetValue<string>();
             // The binding owns the key. No key is exposed in the returned
             // preference map or copied into a Model or Agent settings file.
-            return string.IsNullOrWhiteSpace(key) ? null : new ModelAuthentication(root, bindingID, key);
+            if (string.IsNullOrWhiteSpace(key))
+            {
+                return null;
+            }
+            return new ModelAuthentication(root, bindingID, key, keyHeader);
         }
     }
 
@@ -212,7 +227,7 @@ public sealed partial class GlobalSettings
 
     private static partial void ValidateDocument(JsonObject document)
     {
-        foreach (string field in new[] { "openai_api_key", "anthropic_api_key", "gemini_api_key" })
+        foreach (string field in new[] { "openai_api_key", "anthropic_api_key", "gemini_api_key", "openrouter_api_key" })
             if (document.TryGetPropertyValue(field, out var node)
                 && (node is not JsonValue value || !value.TryGetValue<string>(out _)))
                 throw new InvalidDataException("Global API-key fields must be strings.");

@@ -4,6 +4,8 @@
 // PLAYWRIGHT_MODULE may identify an existing installation; no download is done.
 const { chromium } = require(process.env.PLAYWRIGHT_MODULE || 'playwright');
 const assert = require('node:assert/strict');
+// --thinking-only isolates narration from the broader rendering/pause campaign.
+const thinkingOnly = process.argv.includes('--thinking-only');
 const base = process.env.GUI_FIXTURE_URL || 'http://127.0.0.1:18202/assistant/';
 const target = new URL(base);
 assert.equal(target.hostname, '127.0.0.1', 'Use a disposable loopback fixture');
@@ -56,7 +58,7 @@ async function nativeSpeech() {
         await page.evaluate(() => { browserSpeech.select({ enabled: true, pause: true }); });
         return page;
     };
-    const state = (page, wanted) => page.waitForFunction(wanted => document.querySelector('#state').textContent === wanted, wanted);
+    const state = (page, wanted) => page.waitForFunction(wanted => acknowledgedState === wanted, wanted);
     let primary, observer;
     try {
         primary = await open(); observer = await open();
@@ -79,7 +81,7 @@ async function nativeSpeech() {
             catch (error) {
                 const actual = await primary.evaluate(() => ({ active: activeSpeech?.id,
                     speaking: testSpeech.speaking, pending: testSpeech.pending,
-                    state: document.querySelector('#state').textContent }));
+                    state: acknowledgedState }));
                 throw new Error('Speech did not settle: ' + JSON.stringify(actual), { cause: error });
             }
         };
@@ -89,10 +91,11 @@ async function nativeSpeech() {
         check(true, 'normal native completion releases the actual Agent pause');
 
         // Render and narrate actual provider-supplied thinking without an expander.
-        for (const kind of ['reasoning_summary', 'thinking']) {
+        if (!thinkingOnly) for (const kind of ['reasoning_summary', 'thinking']) {
             const visible = await primary.evaluate(kind => {
-                const card = { id: 'thinking-test', agent: 'captain', role: 'assistant', kind,
-                    text: 'I will check the actual inputs.', final: true, node: document.createElement('article') };
+                const card = cardFor('thinking-test-' + kind);
+                Object.assign(card, { role: 'assistant', kind,
+                    text: 'I will check the actual inputs.', final: true });
                 window.testThinkingCard = card;
                 render(card);
                 narrate(card);
@@ -110,14 +113,39 @@ async function nativeSpeech() {
             await state(observer, 'paused');
             await primary.evaluate(() => testSpeech.finish());
             await state(observer, 'idle');
-            const complete = await primary.evaluate(() => {
+            await primary.evaluate(() => {
                 testThinkingCard.text = 'Full thinking text. '.repeat(140) + 'VISIBLE_END';
                 render(testThinkingCard);
+            });
+            await primary.waitForFunction(() => {
                 const body = testThinkingCard.node.querySelector('.message').textContent;
-                testThinkingCard.node.remove();
                 return body.trimEnd().endsWith('VISIBLE_END') && body.length > 2000;
             });
-            check(complete, kind + ': complete text is rendered rather than a bounded preview');
+            await primary.evaluate(() => {
+                testThinkingCard.node.remove();
+                cards.delete(testThinkingCard.id);
+            });
+            check(true, kind + ': complete text is rendered rather than a bounded preview');
+        }
+        for (const kind of ['thinking', 'reasoning_summary']) {
+            await state(primary, 'idle'); await state(observer, 'idle');
+            const phrases = await primary.evaluate(kind => {
+                const card = { id: 'streamed-' + kind, role: 'assistant', kind, text: '', final: false };
+                narrate(card);
+                card.text = 'First sentence. Second sentence. ';
+                narrate(card);
+                card.text += 'Third sentence. Final tail';
+                narrate(card);
+                narrate(card, true);
+                card.final = true;
+                narrate(card);
+                return [testSpeech.current.text, ...speechQueue.map(item => item.text)];
+            }, kind);
+            assert.deepEqual(phrases, ['Thinking: First sentence.', 'Second sentence.', 'Third sentence.', 'Final tail']);
+            await state(observer, 'paused');
+            await primary.evaluate(() => { while (activeSpeech) testSpeech.finish(); });
+            await state(observer, 'idle');
+            check(true, kind + ': streamed sentences announce Thinking once and drain the speech pause');
         }
         const quietThinking = await primary.evaluate(() => {
             const card = () => ({ id: 'quiet-thinking', role: 'assistant', kind: 'reasoning_summary',
@@ -131,6 +159,10 @@ async function nativeSpeech() {
             return activeSpeech === null && speechQueue.length === 0;
         });
         check(quietThinking, 'thinking respects speech opt-out and silent history replay');
+        if (thinkingOnly) {
+            check(errors.length === 0, 'no browser exceptions or server error frames');
+            return;
+        }
 
 
         await speak();
@@ -160,7 +192,7 @@ async function nativeSpeech() {
 
         await speak();
         await primary.waitForTimeout(2700);
-        check(await observer.locator('#state').textContent() === 'paused', 'still-speaking native engine is not timed out');
+        check(await observer.evaluate(() => acknowledgedState) === 'paused', 'still-speaking native engine is not timed out');
         await primary.evaluate(() => testSpeech.finish()); await state(observer, 'idle');
 
         await speak();
@@ -185,31 +217,31 @@ async function nativeSpeech() {
         await primary.waitForFunction(() => activeSpeech?.id === 'next-item');
         await primary.evaluate(() => testOldUtterance.onend());
         check(await primary.evaluate(() => activeSpeech?.id === 'next-item'), 'old callback cannot settle the next utterance');
-        check(await observer.locator('#state').textContent() === 'paused', 'queue advancement retains the speech pause');
+        check(await observer.evaluate(() => acknowledgedState) === 'paused', 'queue advancement retains the speech pause');
         await primary.evaluate(() => testSpeech.finish()); await state(observer, 'idle');
 
         await speak();
         await observer.evaluate(() => send('unpause'));
         await primary.waitForTimeout(2700);
-        check(await observer.locator('#state').textContent() === 'idle', 'runtime Resume overrides continuing speech without stale reassertion');
+        check(await observer.evaluate(() => acknowledgedState) === 'idle', 'runtime Resume overrides continuing speech without stale reassertion');
         await primary.evaluate(() => testSpeech.finish()); await recovered();
 
         await speak();
         await primary.locator('#prompt').fill('An unfinished draft');
         await primary.evaluate(() => testSpeech.stopWithoutCallback());
         await recovered();
-        check(await observer.locator('#state').textContent() === 'paused', 'speech recovery preserves the typing pause');
+        check(await observer.evaluate(() => acknowledgedState) === 'paused', 'speech recovery preserves the typing pause');
         await primary.locator('#prompt').fill(''); await state(observer, 'idle');
 
         await speak(); await primary.evaluate(() => send('pause'));
         await primary.evaluate(() => testSpeech.stopWithoutCallback()); await recovered();
-        check(await observer.locator('#state').textContent() === 'idle', 'later speech-completion resume wins over earlier pause');
+        check(await observer.evaluate(() => acknowledgedState) === 'idle', 'later speech-completion resume wins over earlier pause');
         await primary.evaluate(() => send('unpause')); await state(observer, 'idle');
 
         await observer.evaluate(() => send('pause')); await state(primary, 'paused');
         await primary.evaluate(() => { speakText('foreign', 'Keep the other tab pause.'); testSpeech.stopWithoutCallback(); });
         await recovered();
-        check(await observer.locator('#state').textContent() === 'idle', 'speech completion sends ordinary Agent-wide resume');
+        check(await observer.evaluate(() => acknowledgedState) === 'idle', 'speech completion sends ordinary Agent-wide resume');
         await observer.evaluate(() => send('unpause')); await state(primary, 'idle');
 
         await observer.evaluate(() => selectAgent('captain/worker'));
@@ -236,7 +268,7 @@ async function nativeSpeech() {
         check(await primary.evaluate(() => testSuppressed && activeSpeech === null),
             'release precedes selection and outgoing late narration stays silent');
         await primary.evaluate(() => testOldUtterance.onend());
-        check(await observer.locator('#state').textContent() === 'paused', 'obsolete callback cannot resume the incoming agent');
+        check(await observer.evaluate(() => acknowledgedState) === 'paused', 'obsolete callback cannot resume the incoming agent');
         await observer.evaluate(() => send('unpause')); await state(primary, 'idle');
         await primary.evaluate(() => selectAgent('captain'));
         await primary.waitForFunction(() => agentID === 'captain' && !selectionPending);

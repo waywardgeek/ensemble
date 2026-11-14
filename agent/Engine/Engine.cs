@@ -112,7 +112,18 @@ public sealed partial class Engine
         switch (config.Vendor)
         {
             case Vendor.Anthropic:
-                if (config.Billing != BillingMode.None) request.Headers.Add("x-api-key", apiKey);
+                if (config.Billing != BillingMode.None)
+                {
+                    // Message format does not determine a gateway's authentication.
+                    if (config.Authentication?.KeyHeader == ApiKeyHeader.Bearer)
+                    {
+                        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", apiKey);
+                    }
+                    else
+                    {
+                        request.Headers.Add("x-api-key", apiKey);
+                    }
+                }
                 request.Headers.Add("anthropic-version", "2023-06-01");
                 break;
             case Vendor.OpenAI:

@@ -101,6 +101,8 @@ try
     if (args.Length == 0 || args is ["--model-transport-tests"])
     {
         await AsyncCase("Configured endpoint refuses inference redirects", MeterTests.ModelEndpointRedirects);
+        await AsyncCase("Messages gateway and native authentication headers", MeterTests.MessagesAuthentication);
+        await AsyncCase("OpenRouter Messages thinking and tool continuation", MeterTests.OpenRouterMessagesRoundTrip);
         await AsyncCase("Configured endpoint has no retained cookie authority", MeterTests.ModelEndpointCookies);
         await AsyncCase("Configured request projection and explicit authentication", MeterTests.ConfiguredProjection);
         await AsyncCase("Configured Chat SSE tool round trip", MeterTests.ConfiguredStreamingTools);

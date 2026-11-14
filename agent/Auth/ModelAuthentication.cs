@@ -86,8 +86,9 @@ public sealed partial class ModelAuthentication
     public partial ModelAuthentication(Ensemble parent, string id)
         : this(parent, id, ModelAuthenticationKind.None, "", null, null, "") { }
 
-    public partial ModelAuthentication(Ensemble parent, string id, string apiKey)
-        : this(parent, id, ModelAuthenticationKind.ApiKey, apiKey, null, null, "") { }
+    public partial ModelAuthentication(Ensemble parent, string id, string apiKey,
+        ApiKeyHeader keyHeader)
+        : this(parent, id, ModelAuthenticationKind.ApiKey, apiKey, null, null, "", keyHeader) { }
 
     public partial ModelAuthentication(Ensemble parent, string id, Credentials credentials, string account)
         : this(parent, id, ModelAuthenticationKind.ChatGptPlan, "",
@@ -98,7 +99,8 @@ public sealed partial class ModelAuthentication
             credentials ?? throw new ArgumentNullException(nameof(credentials)), "") { }
 
     private partial ModelAuthentication(Ensemble parent, string id, ModelAuthenticationKind kind,
-        string apiKey, Credentials? planCredentials, CodexCredentials? codexCredentials, string account)
+        string apiKey, Credentials? planCredentials, CodexCredentials? codexCredentials, string account,
+        ApiKeyHeader keyHeader)
     {
         ArgumentNullException.ThrowIfNull(parent);
         ModelVendor.ValidateID(id);
@@ -111,6 +113,11 @@ public sealed partial class ModelAuthentication
         {
             ModelVendor.ValidateLabel(account);
         }
+        if (!Enum.IsDefined(keyHeader))
+        {
+            throw new ArgumentOutOfRangeException(nameof(keyHeader));
+        }
+        KeyHeader = keyHeader;
         ID = id;
         Kind = kind;
         Account = account;

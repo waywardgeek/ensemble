@@ -209,19 +209,22 @@ function startSpeech() {
     }
     updatePauseCause();
 }
-function enqueueSpeech(id, text, source = "explicit") {
-    if (!text.trim()) return;
-    if (!transcriptSpeech && (!speech || !window.SpeechSynthesisUtterance)) return;
-    const label = source === "reasoning_summary" || source === "thinking" ? "Thinking: "
+function enqueueSpeech(id, text, source = "explicit", announceThinking = false) {
+    if (!text.trim()) return false;
+    if (!transcriptSpeech && (!speech || !window.SpeechSynthesisUtterance)) return false;
+    const thinking = source === "reasoning_summary" || source === "thinking";
+    const label = thinking && announceThinking ? "Thinking: "
         : source === "error" ? "Error: " : "";
     speechQueue.push({ id, text: label + text, source });
     updatePauseCause();
     startSpeech();
+    return true;
 }
 // Manual artifact reading and MCP speech use the same filter as narration.
 function speakText(id, text, source = "explicit") {
+    let announced = false;
     for (const phrase of speechPhrases(text, 0, true).phrases) {
-        enqueueSpeech(id, phrase, source);
+        if (enqueueSpeech(id, phrase, source, !announced)) announced = true;
     }
 }
 function cancelSpeech(update = true) {
@@ -285,7 +288,13 @@ function narrate(card, flush = false) {
     if (card.kind !== "text" && card.kind !== "thinking" && card.kind !== "reasoning_summary") return;
     const next = speechPhrases(card.text, card.narrated || 0, card.final || flush);
     card.narrated = next.offset;
-    for (const phrase of next.phrases) enqueueSpeech(card.id, phrase, card.kind);
+    // A provider part is one passage even when its sentences arrive in many
+    // deltas. Keep its announcement beside its cursor, not on each queue item.
+    for (const phrase of next.phrases) {
+        if (enqueueSpeech(card.id, phrase, card.kind, !card.speechAnnounced)) {
+            card.speechAnnounced = true;
+        }
+    }
 }
 function actionButton(label, action) {
     const button = document.createElement("button");

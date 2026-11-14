@@ -24,6 +24,32 @@ not an execution sandbox or remote deployment. Browser disconnection does not
 cancel work. Host termination explicitly closes connections and destroys the
 Agent graph; cooperative callbacks must honor cancellation to finish shutdown.
 
+## Flint through OpenRouter
+
+The GUI host registers **Flint v1.0 (free)** under **OpenRouter** when its global
+settings file (default `~/.en/settings.json`, overridden by `--global-settings`)
+contains a nonempty string field named `openrouter_api_key`. Add this field to the
+existing JSON object; preserve other credentials and preferences. Keep the real
+key private, outside source control. Do not put it in `openai_api_key` or an Agent's
+settings file. Missing credentials leave the offering absent, with no fallback.
+
+After building and restarting the host yourself, select the offering explicitly
+in the model picker. Registration does not change an existing Agent's selection.
+The exact wire name is `recursive/flint-v1.0:free`; no paid variant is substituted.
+The route uses `https://openrouter.ai/api/v1/messages`, the Messages wire codec,
+and OpenRouter's `Authorization: Bearer` header. Provider identity and credentials
+remain OpenRouter's, not Anthropic's, despite reuse of the Messages codec.
+
+The catalog declares text input, streaming and an advertised 262,144-token context
+window, not a measured serving capacity. Local fake-provider checks cover header
+isolation and streamed thinking/signature/tool-result continuation. They do not
+establish live Flint availability, model quality, rate limits, or account capacity.
+Free access still requires a key and is subject to OpenRouter's limits. Existing
+cost estimates may remain unknown; the `:free` route is not a metering guarantee.
+
+References: [Flint model page](https://openrouter.ai/recursive/flint-v1.0:free)
+and [OpenRouter Messages API](https://openrouter.ai/docs/api/api-reference/anthropic-messages/create-a-message).
+
 ## Interaction
 
 Enter sends a prompt, Shift+Enter inserts a newline, and Ctrl+Enter or Alt+H sends

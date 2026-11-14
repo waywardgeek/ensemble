@@ -191,6 +191,7 @@ try
     }
     var globalSettings = new GlobalSettings(app, globalSettingsPath);
     RegisterApiOfferings(app, globalSettings);
+    RegisterOpenRouterOfferings(app, globalSettings);
     RegisterSubscriptionOfferings(app, config, launchCodex, launchCredentials,
         accountSelection.Length != 0 ? accountSelection : savedAccount);
     string modelConfigurationPath = Selected("--model-config", "EN_MODEL_CONFIG");
@@ -486,6 +487,22 @@ static void RegisterApiOfferings(Application app, GlobalSettings settings)
                 recommendation.Label, features);
         }
     }
+}
+
+// A gateway has its own provider identity and credential even when it implements
+// another provider's wire format. Pin :free; there is no paid-route fallback.
+static void RegisterOpenRouterOfferings(Application app, GlobalSettings settings)
+{
+    ModelAuthentication? binding = settings.BindOpenRouterApiKey("openrouter-api");
+    if (binding is null)
+    {
+        return;
+    }
+    var vendor = new ModelVendor(app, "openrouter", "OpenRouter");
+    var endpoint = new ModelEndpoint(vendor, "api", "https://openrouter.ai/api/v1/messages",
+        Surface.Messages, binding);
+    _ = new Model(endpoint, "flint-v1_0-free", "recursive/flint-v1.0:free", "Flint v1.0 (free)",
+        new ModelFeatures(Media.None, Stream: true, ContextWindow: 262144));
 }
 
 // Subscription routes share the OpenAI vendor with API funding, so the picker

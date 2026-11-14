@@ -28,6 +28,11 @@ public sealed partial class GlobalSettings
     /// <summary>Create an ordinary root-owned API-key binding from the named
     /// vendor field. Missing/empty keys return null, never another vendor's key.</summary>
     public partial ModelAuthentication? BindApiKey(Vendor vendor, string bindingID);
+    /// <summary>Bind only openrouter_api_key using Bearer authentication.
+    /// Missing or empty credentials return null; no other provider is consulted.</summary>
+    public partial ModelAuthentication? BindOpenRouterApiKey(string bindingID);
+    private partial ModelAuthentication? BindApiKeyField(string field, string bindingID,
+        ApiKeyHeader keyHeader);
     public partial ImmutableDictionary<string, string> FundingDefaults();
     /// <summary>Persist the explicitly selected offering's vendor and funding
     /// binding ID. This does not select a Model or change any Agent.</summary>
