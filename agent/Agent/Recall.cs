@@ -40,7 +40,7 @@ public sealed partial class Agent
             // The actor serializes durable writes; Memory owns rooted disk I/O.
             var saved = Memory().ReadSettings();
             Memory().WriteSettings(new AgentSettings(saved?.Memory ?? MemorySettings(), message.RecallSettings!,
-                saved?.WorkingContext ?? WorkingContextLimits(), saved?.SelectedOffering));
+                saved?.WorkingContext ?? WorkingContextLimits(), saved?.SelectedOffering, saved?.DisplayName ?? DisplayName()));
             SetRecallSettings(message.RecallSettings!);
             message.Reply!.TrySetResult("");
         }

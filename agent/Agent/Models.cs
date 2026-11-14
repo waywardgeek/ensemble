@@ -94,7 +94,7 @@ public sealed partial class Agent
             // launch records remain readable; they are not a second commit point.
             var saved = Memory().ReadSettings();
             Memory().WriteSettings(new AgentSettings(saved?.Memory ?? MemorySettings(),
-                saved?.Recall ?? RecallSettings(), saved?.WorkingContext ?? WorkingContextLimits(), offering));
+                saved?.Recall ?? RecallSettings(), saved?.WorkingContext ?? WorkingContextLimits(), offering, saved?.DisplayName ?? DisplayName()));
         }
         else
         {

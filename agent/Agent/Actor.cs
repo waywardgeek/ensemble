@@ -412,6 +412,11 @@ public sealed partial class Agent
         {
             EnsureMemoryReady();
         }
+        if (message.Kind == MailKind.DisplayNameSettings)
+        {
+            ApplyDisplayName(message);
+            return;
+        }
         if (message.Kind == MailKind.WorkingContextSettings)
         {
             ApplyWorkingContextLimit(message);

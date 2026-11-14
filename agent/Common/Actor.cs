@@ -117,7 +117,7 @@ public sealed partial class Agent
     // Transient immutable transfer envelope. Completion sources belong to the
     // caller's request, not the persistent object graph. Exactly one terminal
     // result is published; cancelling a caller's wait never cancels its work.
-    private enum MailKind { Submit, Input, DirectTool, ReverseTool, RegisterMcpTools, CommitSkill, InitializeSkills, Delta, HttpDone, ToolDone, AutomaticDone, ControlDone, Flush, Shutdown, Wake, SelectModel, WorkStatus, IncomingQuestion, MemorySettings, MemoryDone, RecallDone, RecallSettings, GoalControl, GoalWake, GoalRefresh, GoalClear, GoalReadFailed, GoalStatus, WorkingContextSettings }
+    private enum MailKind { Submit, Input, DirectTool, ReverseTool, RegisterMcpTools, CommitSkill, InitializeSkills, Delta, HttpDone, ToolDone, AutomaticDone, ControlDone, Flush, Shutdown, Wake, SelectModel, WorkStatus, IncomingQuestion, MemorySettings, MemoryDone, RecallDone, RecallSettings, GoalControl, GoalWake, GoalRefresh, GoalClear, GoalReadFailed, GoalStatus, WorkingContextSettings, DisplayNameSettings }
     private sealed record Mail(MailKind Kind, ImmutableArray<Part> Parts = default,
         AgentInput? Input = null, ToolCallPart? Call = null, string? Model = null,
         TaskCompletionSource<string>? Reply = null,
@@ -129,7 +129,7 @@ public sealed partial class Agent
         TaskCompletionSource<GoalStatus>? GoalReply = null, long GoalGeneration = 0,
         GoalReadFailure? GoalFailure = null, bool AutomaticGoal = false, TimeSpan? ObservationDuration = null,
         WorkingContextLimit? WorkingContextLimit = null, bool PersistWorkingContext = false,
-        Model? ConfiguredModel = null);
+        Model? ConfiguredModel = null, string? DisplayName = null);
 
     // Human session control, not a model tool. Reject busy/queued work; retain
     // conversation, Engine, meter, lens, provider, surface and funding route.

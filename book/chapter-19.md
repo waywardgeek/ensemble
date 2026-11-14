@@ -272,6 +272,18 @@ not a second global name registry. The declared parent operations validate
 before mutation, establish both links before returning, and remove both links
 during destruction. No manager, copied service bag or callback factory is needed.
 
+Keep human-readable labels separate from these identities. An Agent may have an
+optional persistent display name, set through `SetDisplayNameAsync` or the GUI's
+Speech & Display settings. Save the label before publishing it; a failed save
+must not rename the live view. Other settings writes preserve it, and restart
+restores it. Blank clears the label and returns to the existing ID-based display.
+Labels need not be unique: tree and selector values, routing, ownership, and disk
+paths still use the original IDs. Render labels as literal text, keep full IDs
+available for disambiguation, and never guess which pieces of an existing ID to
+strip. This is presentation state, not a change to an Agent's instructions or
+identity. The GUI accepts a single-line label of at most 120 UTF-16 code units;
+the native operation enforces the same bound.
+
 `CreateChildAsync(id, model, submitSchema, cancellation)` constructs a ready
 child, not a running task. It derives Chapter 18's narrow-only policy, captures
 parsed skill templates and current values, creates independent Skills and MCP

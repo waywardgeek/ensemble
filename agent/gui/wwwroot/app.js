@@ -965,7 +965,8 @@ function showAgents() {
         if (row.key != null) option.value = row.key;
         option.disabled = row.key == null;
         const activity = [row.phase, row.tool, row.detail].filter(Boolean).join(" — ");
-        const label = row.key === "" ? "Original unnamed conversation" : row.key ?? row.id;
+        const label = row.display_name || (row.key === "" ? "Original unnamed conversation" : row.key ?? row.id);
+        option.title = row.key || row.id;
         option.textContent = `${label} — ${row.paused ? "paused" : row.state}${activity ? " — " + activity : ""}`;
         picker.append(option);
     }
@@ -979,7 +980,7 @@ function showAgents() {
     }
     picker.value = agentID ?? "";
     const selected = agentRows.find(row => row.key === agentID);
-    const name = selected?.id || agentID || "Original unnamed conversation";
+    const name = selected?.display_name || selected?.id || agentID || "Original unnamed conversation";
     const input = document.querySelector("#prompt");
     input.placeholder = `Ask ${name} anything…`;
     input.setAttribute("aria-label", `Message to ${name}`);
@@ -1427,6 +1428,7 @@ function applySettings() {
         const control = document.getElementById(id);
         return {control, value: settingControlValue(control)};
     });
+    document.querySelector("#agent-display-name").value = settings.display_name || "";
     document.querySelector("#human-name").value = settings.human_name || "";
     document.querySelector("#human-description").value = settings.human_description || "";
     browserTheme.seed(settings.theme);
@@ -1461,6 +1463,17 @@ function applySettings() {
     }
     updatePauseCause(); // Disabling speech pausing does not cancel the queue.
 }
+function saveDisplayName() {
+    const control = document.querySelector("#agent-display-name");
+    if (!control.reportValidity()) return;
+    control.value = control.value.trim();
+    patchSettings({display_name: control.value || null});
+}
+autosaveSettings([document.querySelector("#agent-display-name")], saveDisplayName);
+document.querySelector("#agent-name-settings").addEventListener("submit", event => {
+    event.preventDefault();
+    saveDisplayName();
+});
 document.querySelector("#user-settings").addEventListener("submit", event => {
     event.preventDefault();
     patchSettings({ human_name: document.querySelector("#human-name").value,
@@ -1678,7 +1691,7 @@ function renderAgentTree() {
             toggle.classList.add("tree-expand");
             toggle.dataset.toggleAgent = row.key;
             toggle.tabIndex = -1;
-            toggle.setAttribute("aria-label", `${expanded ? "Collapse" : "Expand"} ${row.id}`);
+            toggle.setAttribute("aria-label", `${expanded ? "Collapse" : "Expand"} ${row.display_name || row.id}`);
             line.append(toggle);
         } else {
             const spacer = document.createElement("span");
@@ -1694,7 +1707,7 @@ function renderAgentTree() {
         choose.title = `${row.key || row.id} · ${row.paused ? "paused" : row.state} · ${[row.phase, row.tool, row.detail].filter(Boolean).join(" — ")}`;
         const name = document.createElement("span");
         name.className = "tree-name";
-        name.textContent = row.id;
+        name.textContent = row.display_name || row.id;
         const state = document.createElement("span");
         state.className = "tree-state";
         state.textContent = [row.submitted ? "submitted" : "", row.paused ? "paused" : row.state].filter(Boolean).join(" · ");
@@ -1736,7 +1749,7 @@ function renderAgentTree() {
             remove.type = "button";
             remove.className = "btn tree-delete icon-button";
             remove.dataset.deleteAgent = row.key;
-            remove.setAttribute("aria-label", `Delete ${row.id}`);
+            remove.setAttribute("aria-label", `Delete ${row.display_name || row.id}`);
             remove.title = `Delete ${row.key}; saved files will remain`;
             remove.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18M9 6V3h6v3M5 6l1 15h12l1-15M10 10v7M14 10v7"/></svg>';
             line.append(remove);

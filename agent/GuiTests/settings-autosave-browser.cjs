@@ -35,6 +35,15 @@ assert(start >= 0 && end > start);
             control.dispatchEvent(new Event('input', {bubbles: true}));
             if (commit) control.dispatchEvent(new Event('change', {bubbles: true}));
         }, {id, value, commit});
+        await edit('agent-display-name', 'Reviewer');
+        assert.equal(await page.evaluate(() => sent.at(-1).settings.display_name), 'Reviewer');
+        await edit('agent-display-name', 'Music reviewer', false);
+        await page.evaluate(() => { settings.display_name = 'Reviewer'; applySettings(); });
+        assert.equal(await page.locator('#agent-display-name').inputValue(), 'Music reviewer');
+        await edit('agent-display-name', '');
+        assert.equal(await page.evaluate(() => sent.at(-1).settings.display_name), null);
+        await page.evaluate(() => { settings.display_name = null; applySettings(); });
+        assert.equal(await page.evaluate(() => settingsDrafts.has('agent-display-name')), false);
         await edit('memory-session-budget', 7000);
         assert.equal(await page.evaluate(() => sent.at(-1).settings.memory.session.budget), 7000);
         await edit('memory-session-budget', 8000, false);
@@ -71,6 +80,32 @@ assert(start >= 0 && end > start);
         assert.equal(await page.evaluate(() => notices.at(-1)), 'Not connected; settings were not saved.');
         await page.evaluate(() => { settingsDrafts.clear(); settings.memory.session.budget = 4000; applySettings(); });
         assert.equal(await page.locator('#memory-session-budget').inputValue(), '4000');
+        const showStart = source.indexOf('function showAgents()');
+        const showEnd = source.indexOf('function handle(', showStart);
+        const treeStart = source.indexOf('function renderAgentTree()');
+        const treeEnd = source.indexOf('\n}', treeStart) + 2;
+        assert(showStart >= 0 && showEnd > showStart && treeStart >= 0 && treeEnd > treeStart);
+        await page.addScriptTag({content: `
+            var agentRows = [
+                {key:'root/unique-one', id:'unique-one', display_name:'Reviewer <b>one</b>', state:'idle'},
+                {key:'root/unique-two', id:'unique-two', display_name:'Reviewer <b>one</b>', state:'idle'}];
+            var collapsedAgents = new Set(), selectedKey = null;
+            agentID = 'root/unique-one';
+            function selectAgent(key) { selectedKey = key; }
+            function actionButton(text, action) {
+                const button = document.createElement('button');
+                button.textContent = text; button.onclick = action; return button;
+            }
+        ` + source.slice(showStart, showEnd) + source.slice(treeStart, treeEnd) + '\nshowAgents();'});
+        assert.deepEqual(await page.locator('.tree-name').allTextContents(), ['Reviewer <b>one</b>', 'Reviewer <b>one</b>']);
+        assert.equal(await page.locator('.tree-name b').count(), 0);
+        assert.equal(await page.locator('#agent-choice option').nth(1).getAttribute('value'), 'root/unique-two');
+        assert.match(await page.locator('#prompt').getAttribute('placeholder'), /Reviewer <b>one<\/b>/);
+        assert.match(await page.locator('.tree-select').nth(1).getAttribute('title'), /root\/unique-two/);
+        await page.locator('.tree-select').nth(1).evaluate(button => button.click());
+        assert.equal(await page.evaluate(() => selectedKey), 'root/unique-two');
+        await page.evaluate(() => { agentRows[0].display_name = null; showAgents(); });
+        assert.equal(await page.locator('.tree-name').first().textContent(), 'unique-one');
         assert.deepEqual(errors, []);
         console.log('PASS autosave: all groups, delayed acknowledgment, draft/policy separation, invalid pair, model change, reload, disconnect');
     } finally { await browser.close(); }

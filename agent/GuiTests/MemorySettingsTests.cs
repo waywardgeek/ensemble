@@ -88,6 +88,14 @@ static class MemorySettingsTests
             Check((await Frame(second, "current_settings", token)).GetProperty("agent_id").GetString() == "peer",
                 "Peer selection not acknowledged");
             await Send(first, new { type = "update_settings", agent_id = "initial",
+                settings = new { display_name = "Fiction reviewer" } }, token);
+            var named = await Frame(first, "settings_updated", token);
+            Check(named.GetProperty("agent_id").GetString() == "initial"
+                && named.GetProperty("settings").GetProperty("display_name").GetString() == "Fiction reviewer"
+                && initial.Name == "initial" && initial.DisplayName() == "Fiction reviewer",
+                "Rename must acknowledge display label without changing identity");
+            Check(peer.DisplayName() is null, "Rename affected unrelated Agent");
+            await Send(first, new { type = "update_settings", agent_id = "initial",
                 settings = new { memory = new { soul = new { disabled = true },
                     conversation = new { budget = 4567 } } } }, token);
             var ack = await Frame(first, "settings_updated", token);
@@ -98,6 +106,9 @@ static class MemorySettingsTests
             using (var saved = JsonDocument.Parse(File.ReadAllText(settingsPath)))
                 Check(JsonCodec.ReadMemorySettings(saved.RootElement.GetProperty("memory")).Soul.Disabled,
                     "Acknowledged before durable save");
+            using (var savedName = JsonDocument.Parse(File.ReadAllText(settingsPath)))
+                Check(savedName.RootElement.GetProperty("display_name").GetString() == "Fiction reviewer",
+                    "Other settings save lost display name");
             Check(!File.Exists(Path.Combine(peer.DataDirectory(), "settings.json")), "Peer policy saved accidentally");
             await Send(second, new { type = "get_settings", agent_id = "peer" }, token);
             var other = await Frame(second, "current_settings", token, rejectUpdates: true);

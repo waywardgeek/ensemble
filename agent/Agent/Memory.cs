@@ -50,7 +50,7 @@ public sealed partial class Agent
             ReadMemoryChanges(message.MemorySettings!, startup: !memoryReady);
             var saved = Memory().ReadSettings();
             Memory().WriteSettings(new AgentSettings(message.MemorySettings!,
-                saved?.Recall ?? RecallSettings(), saved?.WorkingContext ?? WorkingContextLimits(), saved?.SelectedOffering));
+                saved?.Recall ?? RecallSettings(), saved?.WorkingContext ?? WorkingContextLimits(), saved?.SelectedOffering, saved?.DisplayName ?? DisplayName()));
             return true;
         }
         catch (Exception error) when (error is IOException or InvalidDataException or UnauthorizedAccessException
@@ -100,6 +100,7 @@ public sealed partial class Agent
         {
             SetRecallSettings(saved.Recall);
             RestoreWorkingContextLimits(saved.WorkingContext);
+            lock (ingress) { displayName = saved.DisplayName; }
         }
     }
 
@@ -136,6 +137,7 @@ public sealed partial class Agent
         {
             SetRecallSettings(startupSettings.Recall);
             RestoreWorkingContextLimits(startupSettings.WorkingContext);
+            lock (ingress) { displayName = startupSettings.DisplayName; }
         }
         message.Reply!.TrySetResult("");
     }

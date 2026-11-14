@@ -197,8 +197,15 @@
  <p id="voice-shortcut-help">While this page has focus, hold the selected key to talk; release to send. Right Alt is not used for AltGr or Apple Option. Modifier chords and open dialogs refuse capture. The microphone button works independently.</p>
  <label>Voice (this browser) <select class="form-select" id="voice"><option value="">Browser default</option></select></label>
  <p>Speech is opt-in using the header checkbox. Voice choices are provided by this browser.</p>
- </section><section class="settings-section" aria-labelledby="user-heading"><h2 id="user-heading">Shared user profile</h2>
- <form id="user-settings">
+ </section><section class="settings-section" aria-labelledby="agent-name-heading"><h2 id="agent-name-heading">Selected Agent</h2>
+ <form id="agent-name-settings">
+ <label for="agent-display-name">Selected Agent: display name</label>
+ <input class="form-control" id="agent-display-name" maxlength="120" autocomplete="off">
+ <p>A readable label only; the unique ID and saved files do not change. Leave blank to show the ID. Saves when you finish editing.</p>
+ <button class="btn btn-secondary" type="submit">Save display name</button>
+</form>
+</section><section class="settings-section" aria-labelledby="user-heading"><h2 id="user-heading">Shared user profile</h2>
+<form id="user-settings">
  <label for="human-name">Name</label><input class="form-control" id="human-name" maxlength="120" autocomplete="name">
  <label for="human-description">Description</label><textarea class="form-control" id="human-description" maxlength="2000" rows="3"></textarea>
  <button class="btn btn-secondary" type="submit">Save user</button>

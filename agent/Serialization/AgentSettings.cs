@@ -15,6 +15,8 @@ internal sealed partial record AgentSettings
         };
         if (SelectedOffering is { } offering)
             document["selected_offering"] = JsonCodec.WriteModelIdentity(offering);
+        if (DisplayName is not null)
+            document["display_name"] = Agent.NormalizeDisplayName(DisplayName);
         byte[] bytes = System.Text.Encoding.UTF8.GetBytes(document.ToJsonString());
         if (bytes.Length > 16 * 1024)
             throw new InvalidDataException("Agent settings exceed 16 KiB");
@@ -58,7 +60,7 @@ internal sealed partial record AgentSettings
                 throw new InvalidDataException("Duplicate Agent settings field");
             }
             bool hasSelection = root.TryGetProperty("selected_offering", out var selected);
-            var names = fields.Where(name => name != "selected_offering").Order(StringComparer.Ordinal).ToArray();
+            var names = fields.Where(name => name != "selected_offering" && name != "display_name").Order(StringComparer.Ordinal).ToArray();
             // Chapter 22's complete memory-only document remains readable.
             // Supplied recall is strict; null/malformed never means defaults.
             bool legacy = names.SequenceEqual(new[] { "memory", "version" });
@@ -73,7 +75,14 @@ internal sealed partial record AgentSettings
                 : JsonCodec.ReadRecallSettings(root.GetProperty("recall"));
             var limits = withContext ? JsonCodec.ReadWorkingContextLimits(root.GetProperty("working_context")) : [];
             var offering = hasSelection ? JsonCodec.ReadModelIdentity(selected) : null;
-            return new AgentSettings(memory, recall, limits, offering);
+            string? displayName = null;
+            if (root.TryGetProperty("display_name", out var label))
+            {
+                if (label.ValueKind != JsonValueKind.String)
+                    throw new InvalidDataException("Display name must be a string");
+                displayName = Agent.NormalizeDisplayName(label.GetString());
+            }
+            return new AgentSettings(memory, recall, limits, offering, displayName);
         }
     }
 }

@@ -34,6 +34,17 @@ internal static class WorkingContextTests
         try
         {
             var agent = Create();
+            Check(agent.DisplayName() is null, "Legacy/default Agent has no display label");
+            await agent.SetDisplayNameAsync("  Fiction reviewer  ");
+            Check(agent.DisplayName() == "Fiction reviewer" && agent.Name is null,
+                "Display name is normalized without renaming identity");
+            foreach (string invalid in new[] { "two\nlines", new string('x', 121) })
+            {
+                bool refused = false;
+                try { await agent.SetDisplayNameAsync(invalid); }
+                catch (ArgumentException) { refused = true; }
+                Check(refused && agent.DisplayName() == "Fiction reviewer", "Invalid name leaves label unchanged");
+            }
             await agent.SetWorkingContextLimitAsync(first, persist: true);
             await agent.SetWorkingContextLimitAsync(second, persist: true);
             await agent.SetWorkingContextLimitAsync(qualified, persist: true);
@@ -43,8 +54,24 @@ internal static class WorkingContextTests
             // Restore prevalidation reads through the existing Agent's Sandbox,
             // without constructing the destination Agent or another parser.
             var saved = AgentSettings.Read(agent.Sandbox(), Path.Combine(home, "settings.json"));
-            Check(saved is not null && saved.Recall.Disabled && saved.WorkingContext.Length == 3,
+            Check(saved is not null && saved.Recall.Disabled && saved.WorkingContext.Length == 3 && saved.DisplayName == "Fiction reviewer",
                 "Shared settings reader preserves the complete saved policy");
+            string settingsFile = Path.Combine(home, "settings.json");
+            string backupFile = settingsFile + ".test-backup";
+            File.Move(settingsFile, backupFile);
+            Directory.CreateDirectory(settingsFile);
+            try
+            {
+                bool refused = false;
+                try { await agent.SetDisplayNameAsync("Must not publish"); }
+                catch (Exception error) when (error is IOException or UnauthorizedAccessException) { refused = true; }
+                Check(refused && agent.DisplayName() == "Fiction reviewer", "Failed persistence must not publish label");
+            }
+            finally
+            {
+                Directory.Delete(settingsFile);
+                File.Move(backupFile, settingsFile);
+            }
             string probe = Path.Combine(home, "settings-probe.json");
             Check(AgentSettings.Read(agent.Sandbox(), probe) is null, "Only missing settings supply defaults");
             foreach (string invalid in new[] { "null", "{}", "{\"version\":1,\"version\":1}", new string(' ', 16 * 1024 + 1) })
@@ -59,6 +86,12 @@ internal static class WorkingContextTests
         {
             var restored = Create();
             await restored.SaveMemorySettingsAsync(new MemorySettings());
+            Check(restored.DisplayName() == "Fiction reviewer", "Display name survives restart and sibling save");
+            await restored.SetDisplayNameAsync(null);
+            Check(restored.DisplayName() is null, "Clearing label restores identity fallback");
+            var cleared = AgentSettings.Read(restored.Sandbox(), Path.Combine(home, "settings.json"));
+            Check(cleared!.DisplayName is null && cleared.WorkingContext.Length == 3,
+                "Clearing name is durable and preserves other policy");
             var limits = restored.WorkingContextLimits();
             Check(limits.Length == 3 && limits.Single(x => x.Model == first.Model && x.Offering is null).WorkingTokens == 250_000
                 && limits.Single(x => x.Model == second.Model).WorkingTokens == 750_000,

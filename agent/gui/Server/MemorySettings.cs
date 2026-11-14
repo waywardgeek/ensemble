@@ -9,6 +9,7 @@ public static partial class Gui
     private static partial JsonObject AgentSettings(Preferences preferences, Agent agent)
     {
         var result = Settings(preferences, agent.MaxToolRounds(), agent.ContextByteBudget());
+        result["display_name"] = agent.DisplayName();
         result["memory"] = JsonCodec.WriteMemorySettings(agent.MemorySettings());
         result["recall"] = JsonCodec.WriteRecallSettings(agent.RecallSettings());
         result["working_context"] = WorkingContextFrame(agent);

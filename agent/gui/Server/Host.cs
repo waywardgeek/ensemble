@@ -456,6 +456,7 @@ public static partial class Gui
                             // address. Other unnamed roots remain unaddressable.
                             ["key"] = node.Address ?? (ReferenceEquals(node.Agent, agent) ? "" : null),
                             ["id"] = node.Agent.ChildID() ?? node.Agent.Name ?? "(unnamed)",
+                            ["display_name"] = node.Agent.DisplayName(),
                             ["parent"] = parent,
                             ["state"] = status.Activity.ToString().ToLowerInvariant(),
                             ["paused"] = status.Paused,
@@ -745,11 +746,12 @@ public static partial class Gui
                                 bool memoryUpdate = patch.TryGetProperty("memory", out var memoryPatch);
                                 bool recallUpdate = patch.TryGetProperty("recall", out var recallPatch);
                                 bool contextUpdate = patch.TryGetProperty("working_context", out var contextPatch);
-                                if (memoryUpdate || recallUpdate || contextUpdate)
+                                bool nameUpdate = patch.TryGetProperty("display_name", out var namePatch);
+                                if (memoryUpdate || recallUpdate || contextUpdate || nameUpdate)
                                 {
-                                    // Policy and appearance have different owners/stores.
-                                    // A patch updates one policy section; never imply an
-                                    // atomic operation spanning appearance and Agent state.
+                                    // Agent settings and shared GUI preferences have different stores.
+                                    // Update one Agent section at a time; never imply an
+                                    // atomic operation spanning GUI preferences and Agent state.
                                     if (patch.EnumerateObject().Count() != 1)
                                     {
                                         throw new InvalidDataException("Agent policy sections must be updated separately");
@@ -761,7 +763,13 @@ public static partial class Gui
                                         // Once admitted, await the definite actor outcome even
                                         // if this tab disconnects. Observer cancellation cannot
                                         // roll back a durable settings replacement.
-                                        if (memoryUpdate)
+                                        if (nameUpdate)
+                                        {
+                                            if (namePatch.ValueKind is not (JsonValueKind.String or JsonValueKind.Null))
+                                                throw new InvalidDataException("Display name must be a string or null");
+                                            await selected.SetDisplayNameAsync(namePatch.GetString());
+                                        }
+                                        else if (memoryUpdate)
                                         {
                                             var desired = MergeMemorySettings(memoryPatch, selected.MemorySettings());
                                             await selected.SaveMemorySettingsAsync(desired);
