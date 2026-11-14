@@ -81,6 +81,16 @@ its result. Unknown counts or rates remain `unknown`; a new Engine has
 zero session totals but no latest response or meaningful hit rate. USD
 is labeled an estimate, never an invoice.
 
+The current tool also reads `Agent.WorkingContextStatus()` for the effective
+working input-token limit, the separate configured capacity ceiling, the last
+actor-accepted main-request input count, and its percentage of the working
+limit. Capacity is configuration, not a measured provider guarantee. These
+values are not session billing totals: direct Engine or auxiliary requests do
+not supply the main-context measurement, cached input is counted once, and a
+checkpoint makes the old measurement unknown rather than pretending it is zero.
+Use the Agent's existing projection instead of calculating a second policy in
+the status tool.
+
 **Model selection.** Expose `Agent.SetModelAsync(model)` as a human
 session control, not a model tool. Admit it through the actor mailbox
 only while idle: no active turn, admitted queued turn, foreground

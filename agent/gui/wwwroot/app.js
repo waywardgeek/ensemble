@@ -150,7 +150,7 @@ function setButtonIcon(button, symbol) {
 
 function readable(part) {
     if (!part) return "";
-    if (part.type === "text" || part.type === "thinking" || part.type === "reasoning_summary" || part.type === "handoff") return part.text || "";
+    if (part.type === "text" || part.type === "thinking" || part.type === "reasoning_summary" || part.type === "handoff" || part.type === "recall") return part.text || "";
     if (part.type === "tool_call") return `${part.name || "Tool"}\n${JSON.stringify(part.args || {}, null, 2)}`;
     if (part.type === "tool_result") return (part.parts || []).map(readable).join("\n");
     if (part.type === "blob") return `[${part.mime || "Media"} attachment]`;
@@ -1024,6 +1024,7 @@ function handle(frame) {
     if (frame.type === "replay") {
         if (agentID !== frame.agent_id) {
             workingContext = null;
+            settingsDrafts.clear();
             voiceControl?.cancel();
             cancelPageCapture("Page capture cancelled on Agent change.");
             cancelSpeech(false);
@@ -1068,7 +1069,7 @@ function handle(frame) {
         settings = frame.settings;
         applySettings();
         if (nameChanged) for (const card of cards.values()) render(card);
-        notice("");
+        notice(settingsDrafts.size ? "Settings received; unsaved edits remain in the form." : "");
         return;
     }
     if (frame.type === "agent_state" || frame.type === "state_changed") {
@@ -1370,10 +1371,31 @@ function sameWorkingContextModel(first, second) {
         && first?.offering?.endpoint === second?.offering?.endpoint
         && first?.offering?.model === second?.offering?.model;
 }
+// Drafts are presentation only: acknowledged settings remain the policy authority.
+const settingsDrafts = new Set();
+const contextSettingIDs = ["working-context-tokens", "context-capacity-tokens"];
+function forgetSettingsDrafts(ids) {
+    for (const id of ids) settingsDrafts.delete(id);
+}
+function settingControlValue(control) {
+    return control.type === "checkbox" ? control.checked : control.value;
+}
+function autosaveSettings(controls, save) {
+    for (const control of controls) {
+        control.addEventListener("input", () => settingsDrafts.add(control.id));
+        control.addEventListener("change", () => {
+            settingsDrafts.add(control.id);
+            save();
+        });
+    }
+}
 function showWorkingContext(value) {
     const modelChanged = !sameWorkingContextModel(workingContext, value);
     workingContext = value || null;
-    if (value && modelChanged) fillWorkingContextSettings(value);
+    if (value && modelChanged) {
+        forgetSettingsDrafts(contextSettingIDs);
+        fillWorkingContextSettings(value);
+    }
     renderControls();
 }
 function fillWorkingContextSettings(value) {
@@ -1383,7 +1405,7 @@ function fillWorkingContextSettings(value) {
     document.querySelector("#working-context-tokens").value = value.working_tokens ?? "";
     document.querySelector("#context-capacity-tokens").value = value.capacity_tokens ?? "";
 }
-document.querySelector("#save-working-context").onclick = () => {
+function saveWorkingContextSettings() {
     if (!workingContextForm) return;
     const working = Number(document.querySelector("#working-context-tokens").value);
     const capacityText = document.querySelector("#context-capacity-tokens").value;
@@ -1395,10 +1417,16 @@ document.querySelector("#save-working-context").onclick = () => {
     }
     patchSettings({ working_context: { ...workingContextForm,
         working_tokens: working, capacity_tokens: capacity } });
-};
+}
+document.querySelector("#save-working-context").onclick = saveWorkingContextSettings;
+autosaveSettings(contextSettingIDs.map(id => document.getElementById(id)), saveWorkingContextSettings);
 
 function applySettings() {
     if (!settings) return;
+    const drafts = [...settingsDrafts].map(id => {
+        const control = document.getElementById(id);
+        return {control, value: settingControlValue(control)};
+    });
     document.querySelector("#human-name").value = settings.human_name || "";
     document.querySelector("#human-description").value = settings.human_description || "";
     browserTheme.seed(settings.theme);
@@ -1425,6 +1453,11 @@ function applySettings() {
     for (const [band, policy] of Object.entries(settings.memory || {})) {
         document.querySelector(`#memory-${band}-enabled`).checked = !policy.disabled;
         document.querySelector(`#memory-${band}-budget`).value = policy.budget;
+    }
+    for (const {control, value} of drafts) {
+        if (settingControlValue(control) === value) settingsDrafts.delete(control.id);
+        else if (control.type === "checkbox") control.checked = value;
+        else control.value = value;
     }
     updatePauseCause(); // Disabling speech pausing does not cancel the queue.
 }
@@ -1513,8 +1546,11 @@ document.querySelector("#goal-retry").onclick = () => updateGoal({retry_now: tru
 document.querySelector("#goal-off").onclick = () => updateGoal({enabled: false});
 document.querySelector("#goal-clear").onclick = () => updateGoal({file: ""});
 document.querySelector("#goal-reload").onclick = () => send("get_goal");
-document.querySelector("#memory-settings-form").addEventListener("submit", event => {
-    event.preventDefault();
+function saveMemorySettings() {
+    if (!document.querySelector("#memory-settings-form").checkValidity()) {
+        notice("Complete the memory fields with values in their allowed ranges before saving.");
+        return;
+    }
     const memory = {};
     for (const band of ["conversation", "soul", "memory", "archive64", "archive8", "session"]) {
         const policy = {disabled: !document.querySelector(`#memory-${band}-enabled`).checked};
@@ -1527,10 +1563,12 @@ document.querySelector("#memory-settings-form").addEventListener("submit", event
         memory[band] = policy;
     }
     patchSettings({memory});
-});
-document.querySelector("#memory-settings-reload").onclick = () => send("get_settings");
-document.querySelector("#recall-settings-form").addEventListener("submit", event => {
-    event.preventDefault();
+}
+function saveRecallSettings() {
+    if (!document.querySelector("#recall-settings-form").checkValidity()) {
+        notice("Complete the recall fields with values in their allowed ranges before saving.");
+        return;
+    }
     const recall = {
         disabled: !document.querySelector("#recall-enabled").checked,
         disable_judge: !document.querySelector("#recall-judge-enabled").checked,
@@ -1546,8 +1584,20 @@ document.querySelector("#recall-settings-form").addEventListener("submit", event
         recall[field] = value;
     }
     patchSettings({recall});
-});
-document.querySelector("#recall-settings-reload").onclick = () => send("get_settings");
+}
+for (const [group, save] of [["memory", saveMemorySettings], ["recall", saveRecallSettings]]) {
+    const form = document.querySelector(`#${group}-settings-form`);
+    const controls = [...form.querySelectorAll("input, select")];
+    autosaveSettings(controls, save);
+    form.addEventListener("submit", event => {
+        event.preventDefault();
+        save();
+    });
+    document.querySelector(`#${group}-settings-reload`).onclick = () => {
+        forgetSettingsDrafts(controls.map(control => control.id));
+        send("get_settings");
+    };
+}
 document.querySelector("#font-size").onchange = event => browserDevice.select({ font: Number(event.target.value) });
 document.querySelector("#max-tool-rounds").onchange = event => patchSettings({ max_tool_rounds: Number(event.target.value) });
 document.querySelector("#context-target-bytes").onchange = event => patchSettings({ context_target_bytes: Number(event.target.value) });

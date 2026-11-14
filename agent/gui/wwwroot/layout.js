@@ -1,7 +1,23 @@
 "use strict";
-// Transient layout only: the server still owns Agent state and preferences.
+// Pane geometry belongs to this browser; the server still owns Agent state.
 const workspace = document.querySelector("#workspace");
 const minimumPanePixels = 160; // Enough to keep the composer and pane controls reachable.
+const paneStorageKey = "ensemble.panes.v1";
+function restorePaneWidths() {
+    try {
+        const widths = JSON.parse(localStorage.getItem(paneStorageKey));
+        if (!widths || !Number.isFinite(widths.left) || !Number.isFinite(widths.right)
+            || widths.left <= 0 || widths.right <= 0 || widths.left + widths.right >= 100) return;
+        for (const side of ["left", "right"])
+            document.documentElement.style.setProperty(`--${side}-width`, `${widths[side]}%`);
+    } catch { /* Missing, malformed or blocked storage keeps the CSS defaults. */ }
+}
+function savePaneWidths() {
+    if (document.body.classList.contains("compact")) return;
+    const widths = { left: panePercent("left"), right: panePercent("right") };
+    try { localStorage.setItem(paneStorageKey, JSON.stringify(widths)); }
+    catch { /* Resizing remains usable when durable storage is unavailable. */ }
+}
 const paneFor = side => document.querySelector(side === "left" ? "#left-pane" : "#tools-pane");
 function paneLimits(side) {
     const width = workspace.getBoundingClientRect().width;
@@ -43,6 +59,8 @@ function fitPanes() {
         describeSplitters();
     }
 }
+// Restore once; automatic window/font clamping must not overwrite the preference.
+restorePaneWidths();
 new ResizeObserver(fitPanes).observe(document.documentElement);
 new MutationObserver(fitPanes).observe(document.documentElement, { attributes: true, attributeFilter: ["style"] });
 fitPanes();
@@ -62,6 +80,7 @@ for (const side of ["left", "right"]) {
         resizePane(side, event.key === "Home" ? limits.minimum : event.key === "End" ? limits.maximum
             : panePercent(side) + (event.key === "ArrowRight" ? 2 : -2) * direction);
         describeSplitters();
+        savePaneWidths();
     };
     splitter.onpointerdown = event => {
         if (event.button === 0) splitter.setPointerCapture(event.pointerId);
@@ -74,6 +93,9 @@ for (const side of ["left", "right"]) {
         describeSplitters();
     };
     splitter.onpointerup = event => {
-        if (splitter.hasPointerCapture(event.pointerId)) splitter.releasePointerCapture(event.pointerId);
+        if (splitter.hasPointerCapture(event.pointerId)) {
+            splitter.releasePointerCapture(event.pointerId);
+            savePaneWidths();
+        }
     };
 }

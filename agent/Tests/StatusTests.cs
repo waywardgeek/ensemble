@@ -26,11 +26,26 @@ internal static partial class MeterTests
             }
 
             string empty = await Read(agent);
+            var context = agent.WorkingContextStatus();
             Check(empty == "model: gpt-4o\n"
+                + $"working context limit: {context.WorkingTokens} tokens\n"
+                + $"configured context capacity: {context.CapacityTokens?.ToString() ?? "unknown"} tokens (not measured capacity)\n"
+                + "last main-request input: unknown tokens\n"
+                + "working context occupancy: unknown\n"
                 + "last response: unknown in, unknown out, unknown cache read, unknown cache write\n"
                 + "session total: 0 in, 0 out, 0 cache read, 0 cache write\n"
                 + "cache hit rate: unknown\ncost: $0 (estimate)", "empty session uses the specified labels and unknown latest values");
             Check(agent.Engine().Meter().Latest is null, "status performs no inference and adds no usage");
+            await agent.SetWorkingContextLimitAsync(new WorkingContextLimit(
+                Vendor.OpenAI, "gpt-4o", 100_000, 200_000));
+            string configured = await Read(agent);
+            Check(configured.Contains("working context limit: 100000 tokens")
+                && configured.Contains("configured context capacity: 200000 tokens")
+                && configured.Contains("working context occupancy: unknown"),
+                "status reports the effective override separately from capacity and unknown usage");
+            Check(!(await Read(other)).Contains("working context limit: 100000 tokens"),
+                "working context policy remains isolated to its owning Agent");
+
 
             async Task Send(string model)
             {
@@ -55,6 +70,8 @@ internal static partial class MeterTests
             Check(status.Contains("cache hit rate: 16.7%")
                 && status.EndsWith("cost: $0.0003975 (estimate)")
                 && before.EstimatedUsd() == 0.0003975m, "derive mixed-model estimate and session hit rate");
+            Check(status.Contains("last main-request input: unknown tokens"),
+                "direct Engine usage does not invent actor context measurements");
             Check(ReferenceEquals(before.Latest, agent.Engine().Meter().Latest), "reading status never increments the meter");
             Check((await Read(other)).Contains("session total: 0 in, 0 out, 0 cache read, 0 cache write"), "Agent meters remain isolated");
 
@@ -106,6 +123,9 @@ internal static partial class MeterTests
             Check(report.Contains("last response: 100 in, 10 out, 20 cache read, 0 cache write")
                 && report.Contains("session total: 100 in, 10 out, 20 cache read, 0 cache write"),
                 "tool reads its requesting response before the final answer");
+            Check(report.Contains("last main-request input: 120 tokens")
+                && report.Contains($"working context limit: {agent.WorkingContextStatus().WorkingTokens} tokens"),
+                "status uses actor context snapshot and counts cached input once");
             await Reply(second, """
                 {"model":"gpt-4o-mini-2024-07-18","service_tier":"default",
                  "choices":[{"message":{"content":"Status delivered."}}],

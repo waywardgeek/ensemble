@@ -276,7 +276,7 @@ public sealed partial class Tool
                 break;
             case ToolKind.AgentStatus:
                 name = "agent_status";
-                description = "Report selected model, last completed response and session token counts, session cache hit rate, and estimated USD cost. Unknown counts or prices remain unknown; this is not a billing statement.";
+                description = "Report selected model, effective working-context limit and occupancy, configured capacity, last completed response and session token counts, session cache hit rate, and estimated USD cost. Unknown counts or prices remain unknown; this is not a billing statement.";
                 break;
             case ToolKind.KeepToolResults:
                 name = "keep_tool_results";

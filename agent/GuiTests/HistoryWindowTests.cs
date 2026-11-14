@@ -14,9 +14,32 @@ static class HistoryWindowTests
         if (!condition) throw new InvalidOperationException(message);
     }
 
+    private static void RecallContent()
+    {
+        const string text = "[Auto-recalled memories]\n> Exact supplied text <img src=x>\n> Second line.";
+        var part = new RecallPart(new RecallAttachment(text, [new string('a', 64)]));
+        var fact = new Event(EventKind.RecallAdded, seq: 1, parts: [part]);
+        var context = History.Reduce(new Context(), fact);
+        Check(JsonCodec.Text(context.Dialogue.Single().Parts) == text,
+            "Recall content changed when recorded in Context.");
+        foreach (var snapshot in new[] {
+            new HistorySnapshot([fact], context, 1),
+            new HistorySnapshot([], context, 1) })
+        {
+            var view = Gui.Project(snapshot, "parent", 1);
+            var frame = view.Frames.Single(item => item["type"]?.GetValue<string>() == "part_final");
+            Check(frame["part"]?["type"]?.GetValue<string>() == "recall"
+                && frame["part"]?["text"]?.GetValue<string>() == text
+                && frame["part"]?["role"]?.GetValue<string>() == "human"
+                && view.FinalIDs.SetEquals(["parent:e1:p0"]),
+                "Recall projection lost content, role or stable identity.");
+        }
+    }
+
     public static async Task RunAsync()
     {
         SeparatePaneWindows();
+        RecallContent();
         // Errors belong to the chat window, not the short-lived status tail.
         var failed = new HistorySnapshot([
             new Event(EventKind.ErrorOccurred, seq: 1, error: "Safe provider failure"),

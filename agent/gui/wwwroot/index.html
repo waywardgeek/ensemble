@@ -49,11 +49,12 @@
 </nav>
 <main id="workspace" data-pane="chat">
  <aside id="left-pane" aria-label="Agents">
- <h2 class="agents-heading" id="agents-tab">Agents</h2>
+ <div class="agents-heading"><h2 id="agents-tab">Agents</h2>
+ <button class="btn btn-secondary icon-button" id="peer-open" type="button" aria-label="Create Agent" title="Create Agent">+</button></div>
  <div class="agents-content"><section id="agents-panel" aria-labelledby="agents-tab" tabindex="0">
  <ul id="agent-tree" role="tree" aria-label="Agent hierarchy"></ul>
  <select id="agent-choice" hidden aria-hidden="true" tabindex="-1"></select>
- <div class="agent-toolbar"><button class="btn btn-secondary" id="peer-open" type="button">Create Agent</button>
+ <div class="agent-toolbar">
  <a id="relay-link" class="btn icon-button" target="_blank" rel="noopener noreferrer" aria-label="Open selected Agent in a separate relay tab" title="Open selected Agent in a separate relay tab" hidden>↗</a>
  <button class="btn btn-quiet" id="peer-cancel" type="button" hidden>Cancel creation</button></div>
  <div id="peer-notice" class="notice" role="status"></div>
@@ -121,6 +122,7 @@
  <label>Tool-result stubbing budget <input class="form-control" id="context-target-bytes" type="number" min="0" step="1000" value="400000"> UTF-8 bytes (0 = default, 400,000)</label>
 <fieldset id="working-context-settings"><legend>Per-model working context</legend>
 <p id="working-context-model"></p>
+<p>Valid changes save when you leave a field. Save can retry an unsaved edit.</p>
 <label>Working limit <input class="form-control" id="working-context-tokens" type="number" min="1" step="1"> input tokens</label>
 <label>Capacity ceiling <input class="form-control" id="context-capacity-tokens" type="number" min="1" step="1" placeholder="Unknown"> input tokens (blank = unknown)</label>
 <p>80%: one reminder. 90%: reminder on every model request. 100%: automatic completed handoff. Raise the working limit before a deliberate large review. These percentages use the last reported request, not a prediction; a capacity ceiling validates the setting but cannot guarantee the next request fits.</p>
@@ -223,6 +225,7 @@
 <section class="tab-pane" id="settings-memory-panel" role="tabpanel" aria-labelledby="settings-memory-tab" tabindex="0">
 <section class="settings-section" id="memory-settings"><h2 id="memory-heading">Selected Agent’s memory</h2>
 <form id="memory-settings-form">
+<p>Valid changes save when you leave a field or toggle a checkbox. Save can retry; Reload discards unsaved edits.</p>
 <p>Sizes are UTF-8 bytes, not tokens. Zero selects the band default. Disabling hides memory from requests but preserves files. Re-enabling reads current disk contents. Settings save in this Agent’s home, separately from appearance preferences.</p>
 <fieldset><legend>Conversation</legend>
 <label><input class="form-check-input" id="memory-conversation-enabled" type="checkbox"> Enabled</label>
@@ -256,6 +259,7 @@
 <section class="tab-pane" id="settings-recall-panel" role="tabpanel" aria-labelledby="settings-recall-tab" tabindex="0">
 <section class="settings-section" id="recall-settings"><h2>Selected Agent’s recall</h2>
 <form id="recall-settings-form">
+<p>Valid changes save when you leave a field or toggle a checkbox. Save can retry; Reload discards unsaved edits.</p>
 <p>Saved in this Agent’s settings, applied to future turns. An in-flight recall keeps its captured policy. Disabling recall does not delete files or remove earlier attachments.</p>
 <label><input class="form-check-input" id="recall-enabled" type="checkbox"> Recall enabled</label>
 <label><input class="form-check-input" id="recall-judge-enabled" type="checkbox"> Use model judge</label>

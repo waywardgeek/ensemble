@@ -290,7 +290,8 @@ body.compact #transcript { padding: .3rem; }
 #transcript .media { gap: .2rem; }
 #notice { padding-inline: .4rem; }
 /* Settings keep their controls/handlers, but no longer compete with the tree. */
-.agents-heading { margin: 0; padding: .3rem .4rem; font-size: 1rem; border-bottom: 1px solid var(--edge); }
+.agents-heading { display: flex; align-items: center; justify-content: space-between; gap: .25rem; padding: .3rem .4rem; border-bottom: 1px solid var(--edge); }
+.agents-heading h2 { margin: 0; font-size: 1rem; }
 .agents-content { flex: 1; min-height: 0; overflow: auto; }
 .settings-dialog { width: min(48rem, calc(100vw - 1rem)); max-width: none; height: min(42rem, calc(100dvh - 1rem)); max-height: none; padding: 0; overflow: hidden; background: var(--surface); color: var(--bs-body-color); border: 1px solid var(--control-edge); border-radius: .5rem; }
 .settings-dialog[open] { display: flex; flex-direction: column; }
