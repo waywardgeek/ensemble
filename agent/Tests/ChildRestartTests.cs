@@ -98,11 +98,28 @@ internal static partial class ActorTests
                 catch (Exception error) when (error is IOException or UnauthorizedAccessException) { refused = true; }
                 Check(refused && (await paused.GoalStatusAsync(deadline.Token)).IdleSeconds == 180,
                     "Failed durable update changed the live goal settings.");
+                bool deleteRefused = false;
+                try { await parent.DeleteChildAsync("paused", deadline.Token); }
+                catch (Exception error) when (error is IOException or UnauthorizedAccessException)
+                {
+                    deleteRefused = true;
+                }
+                Check(deleteRefused && parent.FindChild("paused") == paused,
+                    "Failed registration retirement removed the live child.");
             }
             finally
             {
                 Directory.Delete(statePath);
                 File.WriteAllBytes(statePath, priorState);
+            }
+            using (var cancelled = new CancellationTokenSource())
+            {
+                cancelled.Cancel();
+                bool refused = false;
+                try { await parent.DeleteChildAsync("paused", cancelled.Token); }
+                catch (OperationCanceledException) { refused = true; }
+                Check(refused && parent.FindChild("paused") == paused && File.Exists(statePath),
+                    "Cancelled deletion changed live membership or restart registration.");
             }
             Agent complete = parent.FindChild("complete")!;
             Check(complete.Submission() is not null && (await complete.WorkStatusAsync(deadline.Token)).Submitted,

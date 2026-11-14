@@ -209,7 +209,14 @@ static class PeerControlsTests
             await Expect("delete", "{\"name\":\"plain-peer\"}", HttpStatusCode.Conflict);
             Check(File.ReadAllText(registry) == committed && root.FindAgent("plain-peer") == plain,
                 "Refused deletion changed durable/live membership");
-            child.Destroy();
+            string childHome = child.DataDirectory();
+            Check(File.Exists(Path.Combine(childHome, "child.json")), "Child was not registered for restart");
+            await Expect("delete", JsonSerializer.Serialize(new { name = child.Address() }), HttpStatusCode.OK);
+            Check(plain.FindChild("worker") is null, "Deleted child retained live membership");
+            Check(File.Exists(Path.Combine(childHome, "save.json")), "Child deletion removed saved History");
+            Check(!File.Exists(Path.Combine(childHome, "child.json")), "Deleted child retained restart registration");
+            await plain.RestoreChildrenAsync(token);
+            Check(plain.FindChild("worker") is null, "Deleted child returned during restoration");
             string retainedHome = plain.DataDirectory();
             await Expect("delete", "{\"name\":\"plain-peer\"}", HttpStatusCode.OK);
             Check(root.FindAgent("plain-peer") is null && File.Exists(Path.Combine(retainedHome, "save.json")), "Deletion lost files or retained membership");

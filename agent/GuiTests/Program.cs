@@ -72,6 +72,11 @@ if (args is ["--configured-model-fixture", var fixtureDirectory])
     await ConfiguredModelTests.RunAsync(fixtureDirectory);
     return;
 }
+if (args is ["--peer-controls-tests"])
+{
+    await PeerControlsTests.RunAsync();
+    return;
+}
 if (args is ["--configured-model-tests"])
 {
     await ConfiguredModelTests.RunAsync();

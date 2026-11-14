@@ -31,6 +31,10 @@ public sealed partial class Agent
     public partial Task<Agent> CreateChildAsync(string childID, string? model = null,
         System.Text.Json.JsonElement? submitSchema = null,
         CancellationToken cancellation = default, long? workingContextTokens = null);
+    /// <summary>Retire an owned child's restart registration, cancel and join its
+    /// work, then detach it. Saved History and artifacts remain available. Once
+    /// teardown begins it is joined even if the observing caller cancels.</summary>
+    public partial Task DeleteChildAsync(string childID, CancellationToken cancellation = default);
     public partial Agent? AgentParent();
     public partial string? ChildID();
     internal static partial void ValidateChildID(string childID);

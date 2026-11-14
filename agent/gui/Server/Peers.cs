@@ -134,12 +134,9 @@ public static partial class Gui
                 }
                 if (target.AgentParent() is not null)
                 {
-                    // Explicit human deletion cancels and joins the owned subtree,
-                    // then detaches both ends of its relationships. It never edits
-                    // the top-level launch registry or deletes saved child files.
-                    token.ThrowIfCancellationRequested();
-                    await target.ShutdownAsync().ConfigureAwait(ConfigureAwaitOptions.SuppressThrowing);
-                    target.Destroy();
+                    // Retire restart registration as well as live membership;
+                    // saved child History/artifacts remain, but cannot auto-restore.
+                    await target.AgentParent()!.DeleteChildAsync(target.ChildID()!, token);
                 }
                 else
                 {
