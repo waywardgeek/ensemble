@@ -32,6 +32,7 @@ const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8')
         const heading = await page.locator('#agents-tab').boundingBox();
         const button = await create.boundingBox();
         assert(button.height >= 44 && Math.abs(button.y + button.height / 2 - heading.y - heading.height / 2) < 2);
+        assert(button.width >= 44 && button.width <= 46, "Create Agent must remain icon-sized, not fill the pane");
         await create.evaluate(el => el.addEventListener('click', () => window.createClicked = true));
         await create.focus(); await page.keyboard.press('Enter');
         assert(await page.evaluate(() => window.createClicked));
