@@ -17,6 +17,24 @@ static class HistoryWindowTests
     public static async Task RunAsync()
     {
         SeparatePaneWindows();
+        // Errors belong to the chat window, not the short-lived status tail.
+        var failed = new HistorySnapshot([
+            new Event(EventKind.ErrorOccurred, seq: 1, error: "Safe provider failure"),
+            new Event(EventKind.ToolObserved, seq: 2, callID: "background", parts: [new TextPart("output")]),
+            new Event(EventKind.ToolObserved, seq: 3, callID: "background", parts: [new TextPart("output")])
+        ], new Context(), 3);
+        var failureView = Gui.Project(failed, "parent", 1);
+        Check(failureView.FinalIDs.Contains("parent:e1:error"),
+            "Tool traffic displaced a retained chat error.");
+        var errorFrame = failureView.Frames.Single(frame => frame["kind"]?.GetValue<string>() == "error_occurred");
+        Check(errorFrame["part_id"]?.GetValue<string>() == "parent:e1:error"
+            && errorFrame["message"]?.GetValue<string>() == "Safe provider failure",
+            "Error replay lost its stable identity or sanitized message.");
+        var later = failed with { Events = [.. failed.Events,
+            new Event(EventKind.ErrorOccurred, seq: 4, error: "Later failure")], Sequence = 4 };
+        var laterView = Gui.Project(later, "parent", 1);
+        Check(!laterView.FinalIDs.Contains("parent:e1:error") && laterView.FinalIDs.Contains("parent:e4:error"),
+            "Errors bypassed the bounded chat window.");
         // Large snapshot-only histories must be bounded before JSON projection.
         var entries = Enumerable.Range(1, 10000).Select(i =>
             new Entry(i, Actor.Human, [new TextPart("message " + i)])).ToArray();

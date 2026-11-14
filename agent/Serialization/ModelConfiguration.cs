@@ -57,6 +57,7 @@ public sealed partial class Configuration
         RequireToolExplanation = requestPolicy.RequireToolExplanation;
         DeferredTools = requestPolicy.DeferredTools;
         StubsToolResults = requestPolicy.StubsToolResults;
+        ToolSchemas = requestPolicy.ToolSchemas;
         CacheBreakpoints = requestPolicy.CacheBreakpoints;
         PromptCacheKey = requestPolicy.PromptCacheKey;
         ReasoningEffort = requestPolicy.ReasoningEffort;

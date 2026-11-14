@@ -51,6 +51,7 @@ public sealed partial class Configuration
     // Frozen request facts. Configured offerings supply their own capabilities;
     // legacy construction resolves the catalog once, not separately per consumer.
     public readonly ModelFeatures Features;
+    public readonly ToolSchemaPolicy ToolSchemas;
     public readonly long? ServingContextTokens;
     public readonly ModelIdentity? Offering;
     internal readonly ModelAuthentication? Authentication;

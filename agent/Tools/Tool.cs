@@ -328,7 +328,7 @@ public sealed partial class Tool
         return (name, description, JsonSerializer.SerializeToElement(schema));
     }
 
-    public partial JsonObject Declaration(Vendor vendor)
+    public partial JsonObject Declaration(Vendor vendor, ToolSchemaPolicy policy)
     {
         var parameters = JsonCodec.Canonical(schema);
         // Observer options are projected, not added to the execution schema.
@@ -347,6 +347,11 @@ public sealed partial class Tool
             properties["ai_callback_delay"] = new JsonObject { ["type"] = "number", ["description"] = "Seconds before waking; default 3, zero immediate. Does not cancel." };
             properties["ai_callback_pattern"] = new JsonObject { ["type"] = "string", ["description"] = "Regex matching only fresh output." };
             properties["max_output_bytes"] = new JsonObject { ["type"] = "integer", ["description"] = "Positive inline report cap; default 16384. Full output stays on disk." };
+        }
+        if (!Enum.IsDefined(policy)) throw new ArgumentOutOfRangeException(nameof(policy));
+        if (policy == ToolSchemaPolicy.PatternLengthCompatibility)
+        {
+            ToolSchemaCompatibility.Project(parameters!.AsObject());
         }
         if (vendor == Vendor.Gemini)
         {
@@ -447,6 +452,9 @@ public sealed partial class Tool
                 throw new ArgumentException("Wrong argument type: " + arg.Name);
             }
         }
+        // Enforce the original constraints whose wire projection may be broader.
+        // This is model-independent, so switching offerings never weakens admission.
+        ToolSchemaCompatibility.Validate(schema, args);
         // In JSON Schema, omitting required means every property is optional.
         if (schema.TryGetProperty("required", out var requiredNames))
         {

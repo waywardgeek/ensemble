@@ -118,6 +118,8 @@ public static partial class Gui
                 if (fact.Parts.Any(part => !ToolPane(part))) chatEvents.Add(fact.Seq);
                 if (fact.Parts.Any(ToolPane)) toolEvents.Add(fact.Seq);
             }
+            else if (fact.Kind == EventKind.ErrorOccurred)
+                chatEvents.Add(fact.Seq);
             else if (fact.Kind is EventKind.ToolReturned or EventKind.ToolObserved)
                 toolEvents.Add(fact.Seq);
         }
@@ -266,12 +268,21 @@ public static partial class Gui
             }
             else if (fact.Kind is EventKind.ErrorOccurred or EventKind.TurnInterrupted or EventKind.JobKilled or EventKind.AgentShutdown)
             {
-                if (fact.Seq < statusFirst) continue;
-                frames.Add(new JsonObject
+                bool error = fact.Kind == EventKind.ErrorOccurred;
+                if (error ? !chatWindow.Contains(fact.Seq) : fact.Seq < statusFirst) continue;
+                var frame = new JsonObject
                 {
                     ["type"] = "lifecycle", ["agent_id"] = agentID, ["seq"] = fact.Seq,
                     ["kind"] = JsonNode.Parse(JsonCodec.WriteEvent(fact))!["type"]!.GetValue<string>(), ["message"] = fact.Error.Length == 0 ? fact.Reason : fact.Error
-                });
+                };
+                if (error)
+                {
+                    string id = $"{agentID}:e{fact.Seq}:error";
+                    frame["part_id"] = id;
+                    frame["recorded_at"] = fact.Time?.ToString("O");
+                    ids.Add(id);
+                }
+                frames.Add(frame);
             }
             else if (fact.Kind == EventKind.TurnEnded)
             {

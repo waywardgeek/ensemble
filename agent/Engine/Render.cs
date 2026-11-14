@@ -52,7 +52,7 @@ public sealed partial class Engine
             var declarations = new JsonArray();
             foreach (var tool in tools)
             {
-                var declaration = tool.Declaration(config.Vendor);
+                var declaration = tool.Declaration(config.Vendor, config.ToolSchemas);
                 if (config.Surface == Surface.Responses)
                 {
                     declaration = declaration["function"]!.DeepClone().AsObject();

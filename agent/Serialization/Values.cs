@@ -179,6 +179,7 @@ public sealed partial class Configuration
         DisableStreaming = source.DisableStreaming;
         DeferredTools = source.DeferredTools;
         StubsToolResults = source.StubsToolResults;
+        ToolSchemas = source.ToolSchemas;
         CacheBreakpoints = source.CacheBreakpoints;
         PromptCacheKey = source.PromptCacheKey;
         Surface = source.Surface;

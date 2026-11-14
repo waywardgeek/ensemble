@@ -502,7 +502,8 @@ static void RegisterOpenRouterOfferings(Application app, GlobalSettings settings
     var endpoint = new ModelEndpoint(vendor, "api", "https://openrouter.ai/api/v1/messages",
         Surface.Messages, binding);
     _ = new Model(endpoint, "flint-v1_0-free", "recursive/flint-v1.0:free", "Flint v1.0 (free)",
-        new ModelFeatures(Media.None, Stream: true, ContextWindow: 262144));
+        new ModelFeatures(Media.None, Stream: true, ContextWindow: 262144),
+        requestPolicy: new ModelRequestPolicy(toolSchemas: ToolSchemaPolicy.PatternLengthCompatibility));
 }
 
 // Subscription routes share the OpenAI vendor with API funding, so the picker

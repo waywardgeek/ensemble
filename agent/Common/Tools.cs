@@ -94,7 +94,7 @@ public sealed partial class Tool
     private static partial object ChildOutputValue(ChildOutput output);
     private partial Task<string> ChildOperationAsync(Job job, JsonElement args, CancellationToken cancellation);
     public partial string Name();
-    public partial JsonObject Declaration(Vendor vendor);
+    public partial JsonObject Declaration(Vendor vendor, ToolSchemaPolicy policy = ToolSchemaPolicy.Unchanged);
 
     // Receiver-bound: a different call name returns IsError without dispatch,
     // Job admission or History changes. Agent.DispatchAsync selects by name.

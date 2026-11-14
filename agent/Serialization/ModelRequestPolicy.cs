@@ -4,11 +4,13 @@ public sealed partial record ModelRequestPolicy
 {
     public partial ModelRequestPolicy(bool disableStreaming, bool requireToolExplanation,
         bool deferredTools, bool stubsToolResults, bool cacheBreakpoints,
-        string promptCacheKey, string reasoningEffort, string reasoningSummary)
+        string promptCacheKey, string reasoningEffort, string reasoningSummary, ToolSchemaPolicy toolSchemas)
     {
         ArgumentNullException.ThrowIfNull(promptCacheKey);
         ArgumentNullException.ThrowIfNull(reasoningEffort);
         ArgumentNullException.ThrowIfNull(reasoningSummary);
+        if (!Enum.IsDefined(toolSchemas)) throw new ArgumentOutOfRangeException(nameof(toolSchemas));
+        ToolSchemas = toolSchemas;
         DisableStreaming = disableStreaming;
         RequireToolExplanation = requireToolExplanation;
         DeferredTools = deferredTools;
@@ -49,6 +51,6 @@ public sealed partial record ModelRequestPolicy
         }
         return new ModelRequestPolicy(DisableStreaming,
             RequireToolExplanation || features.RequireToolExplanation, DeferredTools,
-            StubsToolResults, CacheBreakpoints, PromptCacheKey, effort, summary);
+            StubsToolResults, CacheBreakpoints, PromptCacheKey, effort, summary, ToolSchemas);
     }
 }

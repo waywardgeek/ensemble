@@ -21522,6 +21522,20 @@ inference and transport tests did not cover. Bill also judged Flint insufficient
 for his coding collaboration: successful integration and collaborator quality
 are separate outcomes, not interchangeable acceptance claims.
 
+Bill could hear the error but could not find it on the page. The browser narrated
+errors and wrote them to a transient notice, without creating a conversation
+card. The repair gives durable errors sequence-based card identities and counts
+them in the bounded chat window, so later tool traffic cannot erase them merely
+by advancing the status tail. Replay restores retained error cards silently;
+duplicate delivery neither duplicates the card nor repeats its speech. An
+expanded, explicitly labeled Error card renders the already-sanitized message as
+literal text, not provider markup. Local control refusals also appear, but are
+not invented History: an authoritative window refresh or replay can remove them.
+Projection/socket checks, the GUI consumer suite, and a disposable browser test
+covered identity, visibility, literal text, replay, Agent isolation, and eviction.
+These were source-level checks, not installation or human visual acceptance, and
+they did not authorize exposing raw provider bodies that may echo private data.
+
 ---
 
 # Epilogue: What we can rebuild

@@ -3,6 +3,7 @@
 // make finals, repeated frames, and metadata updates idempotent.
 const transcript = document.querySelector("#transcript");
 const cards = new Map();
+let localErrorSequence = 0;
 const toolTranscript = document.querySelector("#tool-transcript");
 let jobSessions = null;
 import(new URL("./job-sessions.js", document.currentScript.src).href).then(module => {
@@ -670,7 +671,8 @@ function render(card) {
     const title = heading.querySelector("strong") || document.createElement("strong");
     const argument = card.kind === "tool_call" ? Object.values(card.input || {}).find(value => typeof value === "string") : null;
     const summary = argument ? ` · ${argument.slice(0, 100)}` : "";
-    const kind = card.kind === "reasoning_summary" || card.kind === "thinking" ? "Thinking" : card.kind;
+    const kind = card.kind === "reasoning_summary" || card.kind === "thinking" ? "Thinking"
+        : card.kind === "error" ? "Error" : card.kind;
     // Labels are projections of this card, not invented people or timestamps.
     // Keep wire-level details in a tooltip while prose reads as conversation.
     const author = card.role === "human" ? (settings?.human_name || "Human")
@@ -699,7 +701,14 @@ function render(card) {
     if (!heading.parentElement) card.node.append(heading);
     // Supplied thinking is readable prose, not a hidden tool payload. Keep its
     // original kind/provenance; the friendly label does not invent hidden reasoning.
-    if (prose) {
+    if (card.kind === "error") {
+        // Diagnostics are visible literal text, never provider HTML or a hidden payload.
+        const body = document.createElement("div");
+        body.className = "message";
+        body.style.whiteSpace = "pre-wrap";
+        body.textContent = card.text;
+        card.node.append(body);
+    } else if (prose) {
         const body = keepBody || document.createElement("div");
         body.className = "message";
         const proseRenderer = window.EnsembleArtifactRenderers?.prose;
@@ -1084,10 +1093,19 @@ function handle(frame) {
         // arrive as error frames. Turn completion is not a second error source.
         const isError = frame.type === "error" || frame.kind === "error_occurred";
         if (isError) {
+            // Durable errors share the server's retained display identity. Control
+            // refusals are local and expire with the next authoritative window.
+            const id = frame.part_id || (frame.kind === "error_occurred"
+                ? `${agentID}:e${frame.seq}:error` : `local-error:${++localErrorSequence}`);
+            const alreadyShown = cards.has(id);
+            const card = cardFor(id);
+            Object.assign(card, { kind: "error", role: "system", final: true,
+                text: frame.message || "Request failed.", recordedAt: frame.recorded_at });
+            render(card);
             applySettings();
-            if (!replaying && browserSpeech.value.enabled) {
+            if (!alreadyShown && !replaying && browserSpeech.value.enabled) {
                 flushNarration();
-                speakText("error", frame.message || "Request failed.", "error");
+                speakText(id, card.text, "error");
             }
         }
         notice(frame.message || frame.kind);
