@@ -284,6 +284,24 @@ signatures on thought, text, and tool-call parts according to the existing
 provenance codec. Do not invent a uniform wrapper shape just for a streaming
 test; replay semantics, not a convenient fixture assertion, govern the value.
 
+### Provider rejection is not malformed transport
+
+An explicit provider error can arrive inside a valid HTTP 200 event stream.
+The shared Messages, Chat Completions and Gemini parser records one
+`ErrorOccurred` fact for that failure, with no final response or executable
+parts. Do not turn it into a `FormatException` merely because the request did
+not succeed. Broken JSON or invalid stream ordering remains a protocol failure;
+cancellation retains its separate control semantics.
+
+Remote error messages and even category strings can echo private request data.
+Use fixed local labels for recognized categories such as invalid request,
+authentication failure or rate limit; otherwise report a generic provider error.
+Never copy an arbitrary remote message into History or the GUI. Test both the
+safe classification and the effect boundary: rejection after a partial tool
+call must execute nothing, and a later fresh turn must not replay an orphan call.
+This distinction does not change the separate Responses terminal-completion
+rules or the non-streaming decoder.
+
 ### Arrival order is policy evidence
 
 The strict explanation policy asks whether substantive assistant text preceded

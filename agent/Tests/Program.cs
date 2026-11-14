@@ -100,6 +100,7 @@ try
     }
     if (args.Length == 0 || args is ["--model-transport-tests"])
     {
+        await AsyncCase("Explicit provider stream errors remain safe and distinct", StreamingTests.ProviderErrors);
         await AsyncCase("Configured endpoint refuses inference redirects", MeterTests.ModelEndpointRedirects);
         await AsyncCase("Messages gateway and native authentication headers", MeterTests.MessagesAuthentication);
         await AsyncCase("Offering tool-schema projection and pre-effect validation", ToolSchemaPolicyTests.RunAsync);

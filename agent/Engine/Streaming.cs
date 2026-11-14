@@ -110,6 +110,15 @@ public sealed partial class Engine
                             }
                             var frame = JsonNode.Parse(payload)?.AsObject()
                                 ?? throw new FormatException("Empty stream frame");
+                            // An explicit remote failure is valid protocol, not corrupt JSON.
+                            // Discard assembled parts: displayed tool fragments authorize no effects.
+                            bool providerError = vendor == Vendor.Anthropic
+                                ? String(frame, "type") == "error" : frame.ContainsKey("error");
+                            if (providerError)
+                            {
+                                return new ParsedResponse([new Event(EventKind.ErrorOccurred,
+                                    error: ProviderStreamError(frame))], []);
+                            }
                             switch (vendor)
                             {
                                 case Vendor.Anthropic:
@@ -180,6 +189,29 @@ public sealed partial class Engine
         }
     }
 
+    private static string ProviderStreamError(JsonObject frame)
+    {
+        // Never copy remote messages or arbitrary category strings into History/UI.
+        // Gateways can echo request data in either field; only fixed labels escape.
+        var detail = frame["error"] as JsonObject;
+        string? category = null;
+        foreach (string field in new[] { "type", "code", "status" })
+        {
+            if (detail?[field] is not JsonValue value || !value.TryGetValue<string>(out var name)) continue;
+            category = name switch
+            {
+                "invalid_request_error" or "invalid_argument" or "INVALID_ARGUMENT" => "invalid request",
+                "authentication_error" or "invalid_api_key" or "UNAUTHENTICATED" => "authentication failure",
+                "permission_error" or "permission_denied" or "PERMISSION_DENIED" => "permission denied",
+                "rate_limit_error" or "rate_limit_exceeded" or "RESOURCE_EXHAUSTED" => "rate limit",
+                "overloaded_error" or "server_error" or "api_error" or "UNAVAILABLE" or "INTERNAL" => "service unavailable",
+                _ => null
+            };
+            if (category is not null) break;
+        }
+        return "Provider reported an error" + (category is null ? "." : $" ({category}).");
+    }
+
     private static void TrackArrival(Chunk chunk, ref bool seenText, ref bool earlyTool)
     {
         if (chunk.Kind == ChunkKind.Reply && !string.IsNullOrWhiteSpace(chunk.Text))
@@ -232,10 +264,6 @@ public sealed partial class Engine
     private static void AccumulateAnthropic(StreamAssembly state, JsonObject frame, Action<Chunk> emit)
     {
         string type = String(frame, "type");
-        if (type == "error")
-        {
-            throw new FormatException("Provider stream error");
-        }
         if (type == "message_start")
         {
             CopyFields(Required(frame, "message").AsObject(), state.Root);
@@ -335,10 +363,6 @@ public sealed partial class Engine
 
     private static void AccumulateOpenAI(StreamAssembly state, JsonObject frame, Action<Chunk> emit)
     {
-        if (frame.ContainsKey("error"))
-        {
-            throw new FormatException("Provider stream error");
-        }
         if (frame["model"] is JsonNode model)
         {
             state.Root["model"] = model.DeepClone();
@@ -425,10 +449,6 @@ public sealed partial class Engine
 
     private static void AccumulateGemini(StreamAssembly state, JsonObject frame, Action<Chunk> emit)
     {
-        if (frame.ContainsKey("error"))
-        {
-            throw new FormatException("Provider stream error");
-        }
         foreach (string field in new[] { "modelVersion", "usageMetadata" })
         {
             if (frame[field] is JsonNode value)

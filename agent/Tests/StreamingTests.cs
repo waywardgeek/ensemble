@@ -24,6 +24,64 @@ internal static class StreamingTests
         };
     }
 
+    public static async Task ProviderErrors()
+    {
+        var app = new Application(TextWriter.Null);
+        try
+        {
+            foreach (var vendor in new[] { Vendor.Anthropic, Vendor.OpenAI, Vendor.Gemini })
+            {
+                var agent = new Agent(app, new Configuration(vendor, "synthetic-model", "http://127.0.0.1"));
+                foreach (var (category, expected) in new[]
+                {
+                    ("invalid_request_error", "invalid request"),
+                    ("authentication_error", "authentication failure"),
+                    ("permission_error", "permission denied"),
+                    ("rate_limit_error", "rate limit"),
+                    ("overloaded_error", "service unavailable"),
+                    ("PRIVATE-CATEGORY-CANARY", "")
+                })
+                {
+                    string frame = JsonSerializer.Serialize(new
+                    {
+                        type = "error",
+                        error = new { type = category, message = "PRIVATE-MESSAGE-CANARY" }
+                    });
+                    using var response = Response(Frame(frame));
+                    var parsed = await agent.Engine().ParseAsync(response);
+                    var fact = parsed.Events.Single();
+                    string message = "Provider reported an error" + (expected.Length == 0 ? "." : $" ({expected}).");
+                    Check(fact.Kind == EventKind.ErrorOccurred && fact.Error == message
+                        && parsed.PartIDs.IsEmpty, "Explicit provider error was mislabeled or leaked remote text.");
+                }
+                foreach (var (detail, label) in new[]
+                {
+                    ("{\"code\":\"rate_limit_exceeded\"}", "rate limit"),
+                    ("{\"code\":429,\"status\":\"RESOURCE_EXHAUSTED\"}", "rate limit"),
+                    ("{\"type\":\"PRIVATE-CATEGORY-CANARY\",\"status\":\"INVALID_ARGUMENT\"}", "invalid request")
+                })
+                {
+                    using var response = Response(Frame("{\"type\":\"error\",\"error\":" + detail + "}"));
+                    var parsed = await agent.Engine().ParseAsync(response);
+                    Check(parsed.Events.Single().Error == $"Provider reported an error ({label}).",
+                        "Native provider category fields were not safely classified.");
+                }
+                foreach (string error in new[] { "null", "[]", "42", "{\"type\":{}}" })
+                {
+                    using var response = Response(Frame("{\"type\":\"error\",\"error\":" + error + "}"));
+                    var parsed = await agent.Engine().ParseAsync(response);
+                    Check(parsed.Events.Single().Error == "Provider reported an error.",
+                        "Unknown error detail shape must not be copied or mistaken for stream corruption.");
+                }
+                using var malformed = Response(Frame("{malformed"));
+                var invalid = await agent.Engine().ParseAsync(malformed);
+                Check(invalid.Events.Single().Error?.StartsWith("Invalid provider stream:") == true,
+                    "Malformed JSON lost its distinct stream classification.");
+            }
+        }
+        finally { app.Destroy(); }
+    }
+
     public static async Task Parser()
     {
         using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(15));
