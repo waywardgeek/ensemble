@@ -1,0 +1,346 @@
+{
+  "schema": 1,
+  "source_revision": "1e609c5a3d7caa86fb2103d9c04f3052e59b78b6",
+  "reviewed_files": {
+    "agent/Agent/Agent.cs": "ed1793465b077edf060f934ce977352181bb6e8905c3915e0281119e4431d318",
+    "agent/Agent/Children.cs": "412d88a5866524578135bea4a8403f6924069887ff57f8aaa936f6a85a9a7bc1",
+    "agent/Agent/Questions.cs": "ce1daf6f7cc6f96553c6be4014962aa291cd2eea2d38dcbd75abdb5634da716e",
+    "agent/Agent/WorkProducts.cs": "ca78c7c6f5dbd4dc6272ba5239da9f26b09864a2657936d1f45f3a79f6051e04",
+    "agent/Application/Ensemble.cs": "379889637eff422825b8b22531c3514261a916d448f37252e01f04fb57b1d468",
+    "agent/Application/Models.cs": "d061002654990390fc94ffb358171743240595b176fad43da2cfe70a2de3f359",
+    "agent/Auth/ModelAuthentication.cs": "91dc152c2cd8aead293644475d512282fc19b5b0c0647c4708bf85aff2951f98",
+    "agent/Engine/Engine.cs": "dca12e867c78408272bc9121fc92dbc887f26b771354621157ae5110567ae4ee",
+    "agent/Jobs/Jobs.cs": "d6696718a6326d0c97f8e080cd5b99eca37fcfb2175562d73e7e0257ab6bae70",
+    "agent/Mcp/Browser.cs": "251dde239e0b2fc9ccccdc384a1bf5702b9f08efe44afb8d09aad4ddb091f7c5",
+    "agent/Mcp/Client.cs": "fc8d7e1ad87d7b5473f2fd560bcc879d1ddc292134eb8a9d4d4a90d724f4adff",
+    "agent/Mcp/Ownership.cs": "f24da27b481586ea0e5e4b4edd8e646c5db9b46b50d91a8f7afbbbcbade12040",
+    "agent/Mcp/ProcessTransport.cs": "8e970d591ce5ea7206d1045fab43efe4924d8f1877088a35845466a0fe0214e7",
+    "agent/Skills/Skills.cs": "0c1229a0bc09f93aa856951fc33fbee09284bb12bd1954a1aad17216bb9e0c60"
+  },
+  "relationships": [
+    {
+      "owner": "Ensemble",
+      "field": "agents",
+      "child": "Agent",
+      "back": "parent",
+      "kind": "strong",
+      "evidence": "agent/Application/Ensemble.cs:198",
+      "note": ""
+    },
+    {
+      "owner": "Ensemble",
+      "field": "modelVendors",
+      "child": "ModelVendor",
+      "back": "parent",
+      "kind": "strong",
+      "evidence": "agent/Application/Ensemble.cs:198",
+      "note": ""
+    },
+    {
+      "owner": "Ensemble",
+      "field": "modelAuthentications",
+      "child": "ModelAuthentication",
+      "back": "parent",
+      "kind": "strong",
+      "evidence": "agent/Application/Ensemble.cs:198",
+      "note": ""
+    },
+    {
+      "owner": "Ensemble",
+      "field": "credentials",
+      "child": "Credentials",
+      "back": "parent",
+      "kind": "strong",
+      "evidence": "agent/Application/Ensemble.cs:198",
+      "note": ""
+    },
+    {
+      "owner": "Ensemble",
+      "field": "codexCredentials",
+      "child": "CodexCredentials",
+      "back": "parent",
+      "kind": "strong",
+      "evidence": "agent/Application/Ensemble.cs:198",
+      "note": ""
+    },
+    {
+      "owner": "Ensemble",
+      "field": "globalSettings",
+      "child": "GlobalSettings",
+      "back": "parent",
+      "kind": "strong",
+      "evidence": "agent/Application/Ensemble.cs:198",
+      "note": ""
+    },
+    {
+      "owner": "Ensemble",
+      "field": "voiceTranscriber",
+      "child": "VoiceTranscriber",
+      "back": "parent",
+      "kind": "strong",
+      "evidence": "agent/Application/Ensemble.cs:198",
+      "note": ""
+    },
+    {
+      "owner": "Agent",
+      "field": "sandbox",
+      "child": "Sandbox",
+      "back": "parent",
+      "kind": "strong",
+      "evidence": "agent/Agent/Agent.cs:174",
+      "note": ""
+    },
+    {
+      "owner": "Agent",
+      "field": "history",
+      "child": "History",
+      "back": "parent",
+      "kind": "strong",
+      "evidence": "agent/Agent/Agent.cs:174",
+      "note": ""
+    },
+    {
+      "owner": "Agent",
+      "field": "jobs",
+      "child": "Jobs",
+      "back": "parent",
+      "kind": "strong",
+      "evidence": "agent/Agent/Agent.cs:174",
+      "note": ""
+    },
+    {
+      "owner": "Agent",
+      "field": "skills",
+      "child": "Skills",
+      "back": "parent",
+      "kind": "strong",
+      "evidence": "agent/Agent/Agent.cs:174",
+      "note": ""
+    },
+    {
+      "owner": "Agent",
+      "field": "engine",
+      "child": "Engine",
+      "back": "parent",
+      "kind": "strong",
+      "evidence": "agent/Agent/Agent.cs:174",
+      "note": ""
+    },
+    {
+      "owner": "Agent",
+      "field": "memory",
+      "child": "Memory",
+      "back": "parent",
+      "kind": "strong",
+      "evidence": "agent/Agent/Agent.cs:174",
+      "note": ""
+    },
+    {
+      "owner": "Agent",
+      "field": "recaller",
+      "child": "Recaller",
+      "back": "parent",
+      "kind": "strong",
+      "evidence": "agent/Agent/Agent.cs:174",
+      "note": ""
+    },
+    {
+      "owner": "Agent",
+      "field": "mcp",
+      "child": "Mcp",
+      "back": "parent",
+      "kind": "strong",
+      "evidence": "agent/Agent/Agent.cs:174",
+      "note": ""
+    },
+    {
+      "owner": "Agent",
+      "field": "tools",
+      "child": "Tool",
+      "back": "parent",
+      "kind": "strong",
+      "evidence": "agent/Agent/Agent.cs:174",
+      "note": ""
+    },
+    {
+      "owner": "Agent",
+      "field": "children",
+      "child": "Agent",
+      "back": "agentParent",
+      "kind": "strong",
+      "evidence": "agent/Agent/Children.cs:103",
+      "note": "Child Agents are also owned by Ensemble; this is not a tree."
+    },
+    {
+      "owner": "Agent",
+      "field": "outgoingQuestions",
+      "child": "AgentQuestion",
+      "back": "sender",
+      "kind": "strong",
+      "evidence": "agent/Agent/Questions.cs:167",
+      "note": "Either endpoint closes the question; both memberships detach."
+    },
+    {
+      "owner": "Agent",
+      "field": "incomingQuestions",
+      "child": "AgentQuestion",
+      "back": "recipient",
+      "kind": "strong",
+      "evidence": "agent/Agent/Questions.cs:167",
+      "note": "Either endpoint closes the question; both memberships detach."
+    },
+    {
+      "owner": "Agent",
+      "field": "workProductTransfers",
+      "child": "Agent.WorkProductTransfer",
+      "back": "parent",
+      "kind": "strong",
+      "evidence": "agent/Agent/WorkProducts.cs:126",
+      "note": "Close admission, cancel, join transfers; remove back-references on completion."
+    },
+    {
+      "owner": "Jobs",
+      "field": "children",
+      "child": "Job",
+      "back": "parent",
+      "kind": "strong",
+      "evidence": "agent/Jobs/Jobs.cs:418",
+      "note": ""
+    },
+    {
+      "owner": "Engine",
+      "field": "cacheLens",
+      "child": "CacheLens",
+      "back": "parent",
+      "kind": "strong",
+      "evidence": "agent/Engine/Engine.cs:262",
+      "note": ""
+    },
+    {
+      "owner": "ModelVendor",
+      "field": "endpoints",
+      "child": "ModelEndpoint",
+      "back": "parent",
+      "kind": "strong",
+      "evidence": "agent/Application/Models.cs:138",
+      "note": ""
+    },
+    {
+      "owner": "ModelEndpoint",
+      "field": "models",
+      "child": "Model",
+      "back": "parent",
+      "kind": "strong",
+      "evidence": "agent/Application/Models.cs:241",
+      "note": ""
+    },
+    {
+      "owner": "Model",
+      "field": "agents",
+      "child": "Agent",
+      "back": "selectedModel",
+      "kind": "weak",
+      "evidence": "agent/Application/Models.cs:311",
+      "note": "Removing the model detaches selections; it does not destroy Agents."
+    },
+    {
+      "owner": "ModelAuthentication",
+      "field": "endpoints",
+      "child": "ModelEndpoint",
+      "back": "authentication",
+      "kind": "weak",
+      "evidence": "agent/Auth/ModelAuthentication.cs:223",
+      "note": ""
+    },
+    {
+      "owner": "Credentials",
+      "field": "modelBindings",
+      "child": "ModelAuthentication",
+      "back": "planCredentials",
+      "kind": "weak",
+      "evidence": "agent/Auth/ModelAuthentication.cs:59",
+      "note": ""
+    },
+    {
+      "owner": "CodexCredentials",
+      "field": "modelBindings",
+      "child": "ModelAuthentication",
+      "back": "codexCredentials",
+      "kind": "weak",
+      "evidence": "agent/Auth/ModelAuthentication.cs:71",
+      "note": ""
+    },
+    {
+      "owner": "Mcp",
+      "field": "clients",
+      "child": "McpClient",
+      "back": "parent",
+      "kind": "strong",
+      "evidence": "agent/Mcp/Ownership.cs:121",
+      "note": ""
+    },
+    {
+      "owner": "Mcp",
+      "field": "browser",
+      "child": "McpBrowser",
+      "back": "parent",
+      "kind": "strong",
+      "evidence": "agent/Mcp/Ownership.cs:121",
+      "note": ""
+    },
+    {
+      "owner": "Skills",
+      "field": "clients",
+      "child": "McpClient",
+      "back": "skillOwner",
+      "kind": "strong",
+      "evidence": "agent/Skills/Skills.cs:117",
+      "note": ""
+    },
+    {
+      "owner": "McpBrowser",
+      "field": "client",
+      "child": "McpClient",
+      "back": "browserOwner",
+      "kind": "strong",
+      "evidence": "agent/Mcp/Browser.cs:153",
+      "note": ""
+    },
+    {
+      "owner": "McpClient",
+      "field": "tools",
+      "child": "Tool",
+      "back": "remote",
+      "kind": "strong",
+      "evidence": "agent/Mcp/Client.cs:373",
+      "note": ""
+    },
+    {
+      "owner": "McpClient",
+      "field": "transport",
+      "child": "IMcpTransport",
+      "back": null,
+      "kind": "strong",
+      "evidence": "agent/Mcp/Client.cs:373",
+      "note": "Owned external I/O boundary: disposal, not a modeled parent back-reference."
+    },
+    {
+      "owner": "McpBrowser",
+      "field": "transport",
+      "child": "IMcpTransport",
+      "back": null,
+      "kind": "strong",
+      "evidence": "agent/Mcp/Browser.cs:153",
+      "note": "Before claim the registration disposes transport; after claim it destroys its client instead."
+    },
+    {
+      "owner": "McpProcessTransport",
+      "field": "wire",
+      "child": "McpStreamTransport",
+      "back": null,
+      "kind": "strong",
+      "evidence": "agent/Mcp/ProcessTransport.cs:106",
+      "note": "Owned transport implementation; no model parent back-reference."
+    }
+  ]
+}

@@ -50,6 +50,8 @@ build. Teach how and why to build it that way. You cannot learn all of that up f
 - [Read the book](book/README.md), [chapter guide](book/chapters.md), or
   [assembled manuscript](book/the-art-of-building-ai-coding-agents.md).
 - [Current application source](agent/) and [human companion](book/companion/).
+- [Common data-structure diagrams](docs/common-diagrams/README.md) and the
+  [Chapter 0 class vocabulary](book/chapter-00.md#learn-the-systems-vocabulary).
 - [Preserved chapter solutions](solutions/README.md).
 - [Promotion and verification](docs/edition-3-promotion.md),
   [implementation evidence](docs/edition-3-csharp-progress.md).

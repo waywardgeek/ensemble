@@ -153,6 +153,9 @@ a call in an SDK.
 
 ### Give the loop owners before giving it features
 
+Chapter 0 introduces the whole-system ownership map and its class vocabulary.
+This chapter begins constructing the small core of that map.
+
 The first edition began with one client struct and sorted out ownership later.
 Its refactor chapter supplied a useful ambush: 5,047 lines of Go and no logger.
 Could a low-level helper reach

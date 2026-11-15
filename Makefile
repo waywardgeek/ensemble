@@ -5,7 +5,7 @@ DOTNET_PATH := $(shell command -v $(DOTNET) 2>/dev/null)
 GO ?= go
 CH ?= 1
 
-.PHONY: all build ensemble cli clean test test-csharp test-go test-legacy-go vet fmt lint-prose grade grade-dir fake fake-serve book ebook print
+.PHONY: all build ensemble cli clean test test-csharp test-go test-legacy-go vet fmt lint-prose grade grade-dir fake fake-serve book ebook print common-diagram
 all: build
 build: ensemble
 
@@ -57,3 +57,7 @@ ebook: book
 	scripts/build-ebook.sh
 print: book
 	python3 book/build-print.py
+
+# Source-only architecture diagrams; requires existing SDK, Python and Graphviz.
+common-diagram:
+	scripts/common-diagram/regenerate.sh "$(DOTNET)"

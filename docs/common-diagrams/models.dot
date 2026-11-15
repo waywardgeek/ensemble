@@ -1,0 +1,35 @@
+digraph Common {
+graph [rankdir=LR, bgcolor="white", pad=0.4, nodesep=0.30, ranksep=1.1, overlap=false, splines=spline, outputorder=edgesfirst, fontname="Helvetica", fontsize=20, labelloc=t];
+node [shape=box, style="rounded,filled", fontname="Helvetica", fontsize=14, margin="0.16,0.10", color="#617384", penwidth=1.2];
+edge [fontname="Helvetica", fontsize=10, arrowsize=1.25];
+label="Models, configuration and authentication\nHeavy blue: cascade-delete   |   Thin orange: weak   |   Gray: stored data\nOpen triangle: one slot (may be null)   |   Filled triangle: many   |   Arrows: parent / holder → child / value";
+"AgentObservation" [label="AgentObservation", fillcolor="#f3f5f6", tooltip="AgentObservation — agent/Common/Actor.cs:30"];
+"AuthLogin" [label="AuthLogin", fillcolor="#f3f5f6", tooltip="AuthLogin — agent/Common/AuthLogin.cs:7"];
+"CodexCredentials" [label="CodexCredentials", fillcolor="#e3effb", tooltip="CodexCredentials — agent/Common/Codex.cs:17"];
+"Configuration" [label="Configuration", fillcolor="#f3f5f6", tooltip="Configuration — agent/Common/MemoryWorker.cs:25"];
+"Credentials" [label="Credentials", fillcolor="#e3effb", tooltip="Credentials — agent/Common/Auth.cs:54"];
+"Ensemble" [label="Ensemble", fillcolor="#e3effb", tooltip="Ensemble — agent/Common/Actor.cs:32"];
+"Model" [label="Model", fillcolor="#e3effb", tooltip="Model — agent/Common/Models.cs:67"];
+"ModelAuthentication" [label="ModelAuthentication", fillcolor="#e3effb", tooltip="ModelAuthentication — agent/Common/ModelAuthentication.cs:37"];
+"ModelEndpoint" [label="ModelEndpoint", fillcolor="#e3effb", tooltip="ModelEndpoint — agent/Common/ModelAuthentication.cs:71"];
+"ModelFeatures" [label="ModelFeatures", fillcolor="#f3f5f6", tooltip="ModelFeatures — agent/Common/Media.cs:20"];
+"ModelIdentity" [label="ModelIdentity", fillcolor="#f3f5f6", tooltip="ModelIdentity — agent/Common/Models.cs:96"];
+"ModelRequestPolicy" [label="ModelRequestPolicy", fillcolor="#f3f5f6", tooltip="ModelRequestPolicy — agent/Common/ModelRequestPolicy.cs:8"];
+"ModelVendor" [label="ModelVendor", fillcolor="#e3effb", tooltip="ModelVendor — agent/Common/Models.cs:23"];
+"Ensemble" -> "ModelVendor" [id="rel1", color="#164f86", fontcolor="#164f86", penwidth=3.0, arrowhead=normal, label="modelVendors", tooltip="Ensemble.modelVendors → ModelVendor; strong; many; reverse: ModelVendor.parent", constraint=true];
+"Ensemble" -> "ModelAuthentication" [id="rel2", color="#164f86", fontcolor="#164f86", penwidth=3.0, arrowhead=normal, label="modelAuthentications", tooltip="Ensemble.modelAuthentications → ModelAuthentication; strong; many; reverse: ModelAuthentication.parent", constraint=true];
+"Ensemble" -> "Credentials" [id="rel3", color="#164f86", fontcolor="#164f86", penwidth=3.0, arrowhead=onormal, label="credentials", tooltip="Ensemble.credentials → Credentials; strong; one slot; reverse: Credentials.parent", constraint=true];
+"Ensemble" -> "CodexCredentials" [id="rel4", color="#164f86", fontcolor="#164f86", penwidth=3.0, arrowhead=onormal, label="codexCredentials", tooltip="Ensemble.codexCredentials → CodexCredentials; strong; one slot; reverse: CodexCredentials.parent", constraint=true];
+"ModelVendor" -> "ModelEndpoint" [id="rel22", color="#164f86", fontcolor="#164f86", penwidth=3.0, arrowhead=normal, label="endpoints", tooltip="ModelVendor.endpoints → ModelEndpoint; strong; many; reverse: ModelEndpoint.parent", constraint=true];
+"ModelEndpoint" -> "Model" [id="rel23", color="#164f86", fontcolor="#164f86", penwidth=3.0, arrowhead=normal, label="models", tooltip="ModelEndpoint.models → Model; strong; many; reverse: Model.parent", constraint=true];
+"ModelAuthentication" -> "ModelEndpoint" [id="rel25", color="#a74b00", fontcolor="#a74b00", penwidth=1.1, arrowhead=normal, label="endpoints", tooltip="ModelAuthentication.endpoints → ModelEndpoint; weak; many; reverse: ModelEndpoint.authentication", constraint=false];
+"Credentials" -> "ModelAuthentication" [id="rel26", color="#a74b00", fontcolor="#a74b00", penwidth=1.1, arrowhead=normal, label="modelBindings", tooltip="Credentials.modelBindings → ModelAuthentication; weak; many; reverse: ModelAuthentication.planCredentials", constraint=false];
+"CodexCredentials" -> "ModelAuthentication" [id="rel27", color="#a74b00", fontcolor="#a74b00", penwidth=1.1, arrowhead=normal, label="modelBindings", tooltip="CodexCredentials.modelBindings → ModelAuthentication; weak; many; reverse: ModelAuthentication.codexCredentials", constraint=false];
+"Configuration" -> "ModelFeatures" [id="rel103", color="#687682", fontcolor="#687682", penwidth=1.1, arrowhead=onormal, label="Features", tooltip="Configuration.Features → ModelFeatures; data; one slot; Stored type reference; no cascade-delete claim.", constraint=true];
+"Configuration" -> "ModelIdentity" [id="rel104", color="#687682", fontcolor="#687682", penwidth=1.1, arrowhead=onormal, label="Offering", tooltip="Configuration.Offering → ModelIdentity; data; one slot; Stored type reference; no cascade-delete claim.", constraint=true];
+"Configuration" -> "ModelAuthentication" [id="rel105", color="#687682", fontcolor="#687682", penwidth=1.1, arrowhead=onormal, label="Authentication", tooltip="Configuration.Authentication → ModelAuthentication; data; one slot; Stored type reference; no cascade-delete claim.", constraint=true];
+"Credentials" -> "AuthLogin" [id="rel113", color="#687682", fontcolor="#687682", penwidth=1.1, arrowhead=onormal, label="login", tooltip="Credentials.login → AuthLogin; data; one slot; Stored type reference; no cascade-delete claim.", constraint=true];
+"Ensemble" -> "AgentObservation" [id="rel118", color="#687682", fontcolor="#687682", penwidth=1.1, arrowhead=normal, label="observations", tooltip="Ensemble.observations → AgentObservation; data; many; Stored type reference; no cascade-delete claim.", constraint=true];
+"Model" -> "ModelFeatures" [id="rel163", color="#687682", fontcolor="#687682", penwidth=1.1, arrowhead=onormal, label="Features", tooltip="Model.Features → ModelFeatures; data; one slot; Stored type reference; no cascade-delete claim.", constraint=true];
+"Model" -> "ModelRequestPolicy" [id="rel164", color="#687682", fontcolor="#687682", penwidth=1.1, arrowhead=onormal, label="RequestPolicy", tooltip="Model.RequestPolicy → ModelRequestPolicy; data; one slot; Stored type reference; no cascade-delete claim.", constraint=true];
+}

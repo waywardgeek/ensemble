@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Ensemble Common — data relationships</title>
+<style>
+*{box-sizing:border-box}body{margin:0;color:#182b3c;background:#f4f6f8;font:16px system-ui,sans-serif}header{padding:16px 22px;background:#fff;border-bottom:1px solid #b6c4cf}h1{font-size:24px;margin:0 0 8px}p{margin:8px 0;line-height:1.5}.controls{display:flex;gap:12px;flex-wrap:wrap;align-items:end;margin-top:14px}label{display:flex;flex-direction:column;gap:4px;font-weight:600}button,select,input{font:inherit;min-height:44px;padding:8px;border:1px solid #8797a6;border-radius:5px;background:white;color:#182b3c}button{cursor:pointer}main{display:grid;grid-template-columns:minmax(0,1fr) 360px;height:calc(100vh - 225px);min-height:450px}#canvas{overflow:auto;background:white;padding:12px}#diagram{width:max-content}#diagram svg{display:block;height:auto;max-width:none}.node,.edge{transition:opacity .1s}.dim{opacity:.14}aside{overflow:auto;padding:18px;border-left:1px solid #b6c4cf}h2{font-size:20px;overflow-wrap:anywhere}h3{font-size:17px}code{overflow-wrap:anywhere}li{margin-bottom:12px;line-height:1.45}.legend{font-size:15px}.strong{color:#164f86;font-weight:800}.weak{color:#a74b00}.data{color:#53616d}small{display:block;line-height:1.5}a{color:#164f86}#status{font-size:14px}details{margin:14px 0}pre{white-space:pre-wrap;font-size:13px}summary{cursor:pointer;min-height:32px}@media(max-width:800px){main{display:block;height:auto}#canvas{height:60vh}aside{border-left:0;border-top:1px solid #b6c4cf}header{padding:12px}h1{font-size:21px}}
+</style></head><body>
+<header><h1>Ensemble Common: data relationships</h1>
+<p class="legend"><span class="strong">Heavy blue = cascade-delete</span> · <span class="weak">Thin orange = weak</span> · <span class="data">Gray = stored data, not an ownership claim</span><br>Open triangle = one slot, possibly null · Filled triangle = potentially many · Parent/holder → child/value</p>
+<div class="controls">
+<label>Diagram<select id="view"><option value="ownership">Lifecycle overview</option><option value="history">History and recorded data</option><option value="models">Models and authentication</option><option value="memory">Memory and recall</option><option value="tools">Tools, jobs and MCP</option><option value="all">All Common structures</option></select></label>
+<label>Find a type<input id="search" list="types" placeholder="Agent, History, Model…" autocomplete="off"><datalist id="types"></datalist></label>
+<button id="focus">Focus type</button><button id="clear">Clear focus</button><button id="minus" aria-label="Zoom out">−</button><button id="plus" aria-label="Zoom in">+</button><button id="fit">Fit width</button><button id="actual">100%</button>
+</div><p id="status" aria-live="polite"></p></header>
+<main><section id="canvas" aria-label="Scrollable relationship diagram" tabindex="0"><div id="diagram"></div></section><aside id="details" aria-label="Selected type and source details"></aside></main>
+<script type="application/json" id="graph-data">__GRAPH_DATA__</script>
+<script>
+'use strict';
+const data=JSON.parse(document.getElementById('graph-data').textContent);
+const view=document.getElementById('view');
+const diagram=document.getElementById('diagram');
+const canvas=document.getElementById('canvas');
+const search=document.getElementById('search');
+const panel=document.getElementById('details');
+let selected='';
+let scale=1;
+for(const name of Object.keys(data.types).sort()){
+  const option=document.createElement('option');
+  option.value=name;
+  document.getElementById('types').append(option);
+}
+function element(tag,text,parent){
+  const node=document.createElement(tag);
+  node.textContent=text;
+  parent.append(node);
+  return node;
+}
+function status(message=''){
+  document.getElementById('status').textContent=`${Object.keys(data.types).length} nonstatic Common types · ${data.edges.length} relationships · ${Math.round(scale*100)}% zoom${message?' · '+message:''}`;
+}
+function resize(value){
+  scale=Math.max(.08,Math.min(3,value));
+  const svg=diagram.querySelector('svg');
+  svg.style.width=`${svg.viewBox.baseVal.width*scale}px`;
+  status();
+}
+function fit(){
+  resize((canvas.clientWidth-30)/diagram.querySelector('svg').viewBox.baseVal.width);
+}
+function defaultPanel(){
+  panel.replaceChildren();
+  element('h2','Read the model',panel);
+  element('p','Select a type or click its box. The diagram highlights its immediate relationships; this panel shows the exact fields and source locations.',panel);
+  element('p','Ownership is reviewed against teardown code. Data links are extracted mechanically from stored declaration types; gray does not mean weak ownership. Back-references are listed, not drawn twice.',panel);
+  element('p','Framework types, primitives, enums, static helpers, computed properties, local variables and callback/deferred-result type arguments are not graph nodes or links. The inventory retains stored field types. Inheritance is labeled on boxes, not misrepresented as containment.',panel);
+  element('p','One slot may be optional or temporarily detached. Collection sizes are not runtime counts. Source inspection is not lifecycle test certification.',panel);
+  element('small','Source revision: '+data.revision,panel);
+  for(const [name,file] of [['SVG for this view',view.value+'.svg'],['PDF for this view',view.value+'.pdf'],['Text relationship list','relationships.md'],['Complete declaration inventory','inventory.json'],['Regeneration notes','README.md']]){
+    const p=element('p','',panel);
+    const a=element('a',name,p);
+    a.href=file;
+  }
+}
+function showDetails(name){
+  const t=data.types[name];
+  panel.replaceChildren();
+  element('h2',name,panel);
+  element('p',t.kind+(t.isAbstract?' · abstract':'')+(t.bases.length?' · base: '+t.bases.join(', '):''),panel);
+  element('h3','Relationships',panel);
+  const list=element('ul','',panel);
+  const related=data.edges.filter(e=>e.owner===name||e.child===name);
+  for(const e of related){
+    const li=element('li',`${e.owner}.${e.field} → ${e.child}`,list);
+    element('small',`${e.kind}; ${e.many?'many':'one slot'}${e.back?'; reverse: '+e.child+'.'+e.back:''}`,li);
+    element('small',`Common/${e.source.file}:${e.source.line}${e.evidence?' · teardown: '+e.evidence:''}`,li);
+    if(e.note) element('small',e.note,li);
+  }
+  if(!related.length) element('p','No Common-type stored references in this declaration.',panel);
+  const fields=element('details','',panel);
+  element('summary',`${t.fields.length} stored fields / properties`,fields);
+  for(const f of t.fields){
+    const p=element('p','',fields);
+    element('code',`${f.type} ${f.name}`,p);
+    element('small',`${f.source.file}:${f.source.line}${f.deferred?' · callback/deferred signature; not a direct data arrow':''}`,p);
+  }
+  const comments=element('details','',panel);
+  element('summary','Declaration comments and locations',comments);
+  for(const source of t.sources) element('small',`agent/Common/${source.file}:${source.line}`,comments);
+  for(const comment of t.comments) element('pre',comment,comments);
+}
+function highlight(){
+  const neighbors=new Set([selected]);
+  for(const e of data.edges){
+    if(e.owner===selected) neighbors.add(e.child);
+    if(e.child===selected) neighbors.add(e.owner);
+  }
+  for(const node of diagram.querySelectorAll('g.node')){
+    const name=node.querySelector('title').textContent;
+    node.classList.toggle('dim',!!selected&&!neighbors.has(name));
+  }
+  for(const edge of diagram.querySelectorAll('g.edge')){
+    const entry=data.edges[Number(edge.id.replace('rel',''))];
+    edge.classList.toggle('dim',!!selected&&entry&&entry.owner!==selected&&entry.child!==selected);
+  }
+  if(selected) showDetails(selected); else defaultPanel();
+}
+function render(){
+  diagram.innerHTML=data.svgs[view.value];
+  const svg=diagram.querySelector('svg');
+  svg.setAttribute('role','img');
+  svg.setAttribute('aria-label',view.options[view.selectedIndex].text+' relationship diagram; textual details available beside diagram');
+  for(const node of diagram.querySelectorAll('g.node')){
+    const name=node.querySelector('title').textContent;
+    node.style.cursor='pointer';
+    node.addEventListener('click',()=>focus(name));
+  }
+  fit();
+  highlight();
+}
+function focus(name){
+  if(!data.types[name]){status('Choose an exact type name from the suggestions');return;}
+  selected=name;
+  search.value=name;
+  if(!Array.from(diagram.querySelectorAll('g.node title')).some(t=>t.textContent===name)){
+    view.value='all';
+    render();
+  }
+  highlight();
+  resize(Math.max(scale,.75));
+  const node=Array.from(diagram.querySelectorAll('g.node')).find(n=>n.querySelector('title').textContent===name);
+  const bounds=node.getBoundingClientRect();
+  const viewport=canvas.getBoundingClientRect();
+  canvas.scrollLeft+=bounds.left-viewport.left-canvas.clientWidth/2+bounds.width/2;
+  canvas.scrollTop+=bounds.top-viewport.top-canvas.clientHeight/2+bounds.height/2;
+  status('Focused '+name);
+}
+view.addEventListener('change',()=>{selected='';search.value='';render();canvas.scrollTo(0,0);});
+document.getElementById('focus').addEventListener('click',()=>focus(search.value.trim()));
+search.addEventListener('keydown',e=>{if(e.key==='Enter')focus(search.value.trim());});
+document.getElementById('clear').addEventListener('click',()=>{selected='';search.value='';highlight();status();});
+document.getElementById('plus').addEventListener('click',()=>resize(scale*1.25));
+document.getElementById('minus').addEventListener('click',()=>resize(scale/1.25));
+document.getElementById('fit').addEventListener('click',fit);
+document.getElementById('actual').addEventListener('click',()=>resize(1));
+render();
+</script></body></html>

@@ -33,6 +33,21 @@ pre, code, div.sourceCode, pre *, code * {
 /* Pandoc defaults blockquotes to #606060: too faint on printed paper. */
 blockquote    { margin: 1em 2em; font-style: italic; color: #000; }
 blockquote *  { color: #000 !important; }
+/* The onboarding map is a real printed page, not a link to an online figure.
+   Keep the existing 7x10 geometry and full-width vector image. 610pt fits the
+   619pt body height; the adjacent legend stays with the diagram. */
+.ownership-plate {
+  break-before: page;
+  break-after: page;
+  break-inside: avoid;
+  height: 610pt;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.ownership-plate p { text-indent: 0; margin: 0 0 8pt; }
+.ownership-plate > p:first-child { font-size: 14pt; text-align: center; }
+.ownership-plate .ownership-map { display: block; width: 100%; height: auto; }
 /* Sidebars are framed callouts, not ordinary chapter subsections. Keep
    full-size black text, and permit long callouts to split across pages. */
 .print-sidebar {

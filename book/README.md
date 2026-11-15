@@ -7,6 +7,8 @@ implemented, exercised and reviewed the C# work personally inside Ensemble.
 
 - [Read the assembled book](the-art-of-building-ai-coding-agents.md).
 - [Chapter guide](chapters.md), [preface](preface.md), and [epilogue](epilogue.md).
+- [Ownership diagrams and class vocabulary](../docs/common-diagrams/README.md),
+  introduced with a full-page map in Chapter 0.
 - [Current C# source](../agent) and source-only chapter
   endpoints under [solutions](../solutions).
 - [Execution and evidence record](../docs/edition-3-csharp-progress.md) and

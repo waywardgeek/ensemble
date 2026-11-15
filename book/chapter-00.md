@@ -95,6 +95,111 @@ reviewer could accept the documented exception; the failed score stayed in the
 record. Other failures were real bugs and had to be fixed. A grader is useful
 evidence, and it is also software someone wrote.
 
+## Learn the system's vocabulary
+
+When an engineer joins Bill's team, the first assignment is to read the
+project's data-structure diagram and learn the classes in it. That gives the
+newcomer the vocabulary to converse with the team. Someone who knows what an
+Agent owns, what a Job outlives and what History records can ask a useful
+question before knowing how every method works.
+
+Start with the whole map. The diagram on the following page shows Ensemble's
+current lifecycle relationships, not just the first chapter's loop. The
+chapters build that system incrementally; seeing its vocabulary now does not
+add later capabilities to an earlier exercise.
+
+An arrow runs from a parent to its child. A heavy arrow means **strong
+ownership**: destroying the parent cascades into destroying the child, including
+cancelling and joining owned work. A thin arrow means a **weak relationship**:
+destruction detaches the link without destroying the related object. An outlined
+arrowhead means one child slot, possibly empty; a filled triangle means
+potentially many. Color reinforces these distinctions, but stroke weight and
+arrowhead shape remain usable in a black-and-white copy.
+
+A child may have several parents. The MCP client has incoming arrows from its
+manager, its granting skill manager and, for a browser connection, its browser
+registration. Those are three relationships to one object, not three copies.
+Back-references exist in the code but are not drawn as redundant reverse arrows.
+The Agent self-edge means that an Agent can own other Agents, not itself.
+
+<div class="ownership-plate">
+
+**Ensemble's ownership map**
+
+![Ensemble strongly owns Agents, model vendors, authentication bindings, credentials, global settings and voice transcription. Agents own services, child Agents, questions and transfers. MCP clients and tools have multiple strong parents; model selection and authentication bindings are weak relationships.](figures/common-ownership.svg){.ownership-map}<!-- The adjacent legend is the printed caption; retain descriptive alternative text. -->
+
+**Heavy blue:** cascade-delete ownership. **Thin orange:** weak relationship.<br />
+**Outlined triangle:** one slot, possibly empty. **Filled triangle:** many.
+
+Arrows point from parent to child. Parallel Agent-to-question arrows represent
+sender and recipient. WorkProductTransfer is nested inside Agent. The separate
+transport pair shows the process transport's owned stream transport.
+
+</div>
+
+### The names on the map
+
+Read these as responsibilities, not implementation recipes. Each name below
+appears in the diagram; later chapters teach its behavior and failure boundaries.
+
+<!-- common-ownership-classes:start -->
+
+**Application and execution**
+
+- **Ensemble**: The application root that owns Agents, provider configuration and shared host resources.
+- **Agent**: The conversation actor that owns scheduling, tools, services and any delegated child Agents.
+- **History**: The canonical event log and its derived context, updated before further model requests.
+- **Engine**: The provider boundary that renders requests, performs transport and returns immutable response facts.
+- **CacheLens**: The optional Engine-owned diagnostic that compares request prefixes without becoming conversation authority.
+- **Jobs**: The Agent-owned manager of independently running tool work and its observation handles.
+- **Job**: One admitted tool execution, its output, cancellation and joined completion.
+- **AgentQuestion**: A pending question held by both sender and recipient until answer or cancellation.
+- **Agent.WorkProductTransfer**: An Agent-owned file-copy lifetime that shutdown cancels and joins.
+
+**Capabilities and retained knowledge**
+
+- **Tool**: A callable operation owned by its Agent and, when remote, its MCP client.
+- **Skills**: The Agent-owned skill catalog and connection manager; History retains active instruction and grant facts.
+- **Sandbox**: The Agent's filesystem and process boundary, retaining the effective root and access policy.
+- **Memory**: The Agent-owned store that reads and stages durable memory records and settings.
+- **Recaller**: The Agent-owned corpus indexes used to retrieve relevant material for a turn.
+
+**Connections**
+
+- **Mcp**: The Agent-owned manager of MCP connections and the registered browser target.
+- **McpBrowser**: One browser registration, owning its transport and any client created by claiming it.
+- **McpClient**: One JSON-RPC connection, its correlated replies, reader, reverse calls and remote tools.
+- **IMcpTransport**: The owned, replaceable message-I/O boundary shared by the concrete MCP transports.
+- **McpProcessTransport**: A subprocess transport that owns and joins its process, protocol streams and stderr drain.
+- **McpStreamTransport**: The newline-delimited JSON-RPC transport that owns its supplied streams.
+
+**Models and host services**
+
+- **ModelVendor**: A configured provider identity that owns its service endpoints.
+- **ModelEndpoint**: A configured service address and wire protocol that owns its model offerings.
+- **Model**: One configured offering, with capabilities and weak links to the Agents selecting it.
+- **ModelAuthentication**: A root-owned authentication binding with weak links to endpoints and credential sources.
+- **Credentials**: The host's plan-account credential owner, including sign-in and token renewal work.
+- **CodexCredentials**: The host's Codex subscription credential owner, kept distinct from plan-account credentials.
+- **GlobalSettings**: The explicitly selected host settings file, not an Agent's private policy store.
+- **VoiceTranscriber**: The separately funded host transcription service with its own request lifetime.
+
+<!-- common-ownership-classes:end -->
+
+The map concentrates on live ownership. Immutable values such as Configuration,
+Event, Context and Usage carry facts without acquiring a parent back-reference
+for every holder. Garbage collection can reclaim those values; it cannot perform
+the cancellation, joining and two-way detachment required by the ownership graph.
+
+The repository keeps this map reproducible in `scripts/common-diagram/`.
+Roslyn extracts stored declarations from `agent/Common`; a reviewed relationship
+map supplies the cascade-delete semantics that field types alone cannot prove.
+The generator checks both ends of those relationships and refuses changed
+lifecycle evidence until it is reviewed. This is a design aid, not a substitute
+for testing destruction. The [companion diagrams](../docs/common-diagrams/README.md)
+include the complete stored-data graph, subsystem views and a searchable browser;
+the printed map and class guide above stand on their own.
+
 ## Working through this edition
 
 Build one chapter on its accepted predecessor. Read its explanation as well as
