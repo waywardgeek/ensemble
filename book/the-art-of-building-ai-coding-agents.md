@@ -923,12 +923,17 @@ primitive fields are outside this view.
 
 <!-- common-contents-classes:end -->
 
-The **model's context window** is a token budget, not another payload container.
+Ensemble's **Context** holds conversation state. The model's **context-window
+capacity** limits how much information it can process at once, measured in
+tokens. Ensemble also has a configurable **working limit** that can be lower
+than that capacity: it is the input-token threshold used to prompt a handoff.
+
 `WorkingContextLimit` stores the chosen per-model working limit and optional
 capacity ceiling. `WorkingContextStatus` reports the effective limits and latest
 accepted request's input measurement; unknown measurements stay unknown. These
-policy/status values are separate from the Context shown above. Context's Usage
-is accumulated recorded usage, not current window occupancy. Engine renders the
+policy/status values describe limits and measurements, rather than holding the
+conversation itself. Context's Usage is accumulated recorded usage, not the size
+of the current request. Engine renders the
 conversation with configuration and request instructions into a provider request;
 the serialized request, rather than a mutable live Context, goes to transport.
 
