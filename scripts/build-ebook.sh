@@ -127,7 +127,7 @@ fi
 # losing that flag silently ships a book with no figures.
 # No illustrations is valid; grep's no-match exit must not trip pipefail.
 refs=$({ grep -h -o '!\[[^]]*\]([^)]*)' "$FRONT" "$DERIVED" || true; } | wc -l | tr -d ' ')
-embedded=$(unzip -l "$OUT" | grep -ciE '\.(png|jpg|jpeg|gif)$' || true)
+embedded=$(unzip -l "$OUT" | grep -ciE '\.(png|jpg|jpeg|gif|svg)$' || true)
 if [ "$embedded" -ne "$((refs + 1))" ]; then
     echo "build-ebook: $refs images referenced plus 1 cover, but $embedded" >&2
     echo "build-ebook: embedded. Figures were dropped. Check --resource-path." >&2

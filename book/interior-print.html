@@ -271,6 +271,24 @@
   /* Pandoc defaults blockquotes to #606060: too faint on printed paper. */
   blockquote    { margin: 1em 2em; font-style: italic; color: #000; }
   blockquote *  { color: #000 !important; }
+  /* The onboarding map is a real printed page, not a link to an online figure.
+     Keep the existing 7x10 geometry and full-width vector image. 610pt fits the
+     619pt body height; the adjacent legend stays with the diagram. */
+  .ownership-plate {
+    break-before: page;
+    break-after: page;
+    break-inside: avoid;
+    height: 610pt;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+  .ownership-plate p { text-indent: 0; margin: 0 0 8pt; }
+  .ownership-plate > p:first-child { font-size: 14pt; text-align: center; }
+  .ownership-plate .ownership-map { display: block; width: 100%; height: auto; }
+  /* Supplemental data sheets have different aspect ratios; preserve vector
+     proportions and leave space for their printed legends. */
+  .ownership-plate .context-map { display: block; width: auto; height: auto; max-width: 100%; max-height: 460pt; margin: 0 auto; }
   /* Sidebars are framed callouts, not ordinary chapter subsections. Keep
      full-size black text, and permit long callouts to split across pages. */
   .print-sidebar {
@@ -307,8 +325,9 @@
   #TOC li               { break-inside: avoid; }
   #TOC a                { display: block; padding-right: 0.6in; }
   /* Printed page 1 must be recto; physical page parity still owns the gutters. */
-  #preface              { break-before: right; }
-  .recto-spacer         { height: 1pt; break-after: page; }
+  /* The measured spacer must start a page too: otherwise it can fit into the
+     last Preface page and fail to change Chapter 0's physical parity. */
+  .recto-spacer         { height: 1pt; break-before: page; break-after: page; }
   </style>
 </head>
 <body>
@@ -429,7 +448,7 @@ An agentic codebook: A book that builds the agent that builds the book
 Series: The Singularity as it Happened, Book 5
 </p>
 <p>
-Third Edition, Revision 2 — November 2026
+Third Edition, Revision 3 — November 2026
 </p>
 <p>
 By Bill Cox
@@ -636,6 +655,7 @@ the assembled source review. My <a
 href="https://github.com/waywardgeek/ensemble/blob/main/book/epilogue.md">epilogue</a>
 describes what that collaboration taught me.</p>
 <hr />
+<div class="recto-spacer" aria-hidden="true"></div>
 <h1 id="chapter-0-the-perpetual-machine">Chapter 0: The Perpetual
 Machine</h1>
 <p><em>The Singularity as it Happened</em></p>
@@ -814,6 +834,285 @@ deferred. An independent reviewer could accept the documented exception;
 the failed score stayed in the record. Other failures were real bugs and
 had to be fixed. A grader is useful evidence, and it is also software
 someone wrote.</p>
+<h2 id="learn-the-systems-vocabulary">Learn the system’s vocabulary</h2>
+<p>When an engineer joins Bill’s team, the first assignment is to read
+the project’s data-structure diagram and learn the classes in it. That
+gives the newcomer the vocabulary to converse with the team. Someone who
+knows what an Agent owns, what a Job outlives and what History records
+can ask a useful question before knowing how every method works.</p>
+<p>Start with the whole map. The diagram on the following page shows
+Ensemble’s current lifecycle relationships, not just the first chapter’s
+loop. The chapters build that system incrementally; seeing its
+vocabulary now does not add later capabilities to an earlier
+exercise.</p>
+<p>An arrow runs from a parent to its child. A heavy arrow means
+<strong>strong ownership</strong>: destroying the parent cascades into
+destroying the child, including cancelling and joining owned work. A
+thin arrow means a <strong>weak relationship</strong>: destruction
+detaches the link without destroying the related object. An outlined
+arrowhead means one child slot, possibly empty; a filled triangle means
+potentially many. Color reinforces these distinctions, but stroke weight
+and arrowhead shape remain usable in a black-and-white copy.</p>
+<p>A child may have several parents. The MCP client has incoming arrows
+from its manager, its granting skill manager and, for a browser
+connection, its browser registration. Those are three relationships to
+one object, not three copies. Back-references exist in the code but are
+not drawn as redundant reverse arrows. The Agent self-edge means that an
+Agent can own other Agents, not itself.</p>
+<div class="ownership-plate">
+<p><strong>Ensemble’s ownership map</strong></p>
+<p><img src="figures/common-ownership.svg" class="ownership-map"
+alt="Ensemble strongly owns Agents, model vendors, authentication bindings, credentials, global settings and voice transcription. Agents own services, child Agents, questions and transfers. MCP clients and tools have multiple strong parents; model selection and authentication bindings are weak relationships." /><!-- The adjacent legend is the printed caption; retain descriptive alternative text. --></p>
+<p><strong>Heavy blue:</strong> cascade-delete ownership. <strong>Thin
+orange:</strong> weak relationship.<br /> <strong>Outlined
+triangle:</strong> one slot, possibly empty. <strong>Filled
+triangle:</strong> many.</p>
+<p>Arrows point from parent to child. Parallel Agent-to-question arrows
+represent sender and recipient. WorkProductTransfer is nested inside
+Agent. The separate transport pair shows the process transport’s owned
+stream transport.</p>
+</div>
+<h3 id="the-names-on-the-map">The names on the map</h3>
+<p>Read these as responsibilities, not implementation recipes. Each name
+below appears in the diagram; later chapters teach its behavior and
+failure boundaries.</p>
+<!-- common-ownership-classes:start -->
+<p><strong>Application and execution</strong></p>
+<ul>
+<li><strong>Ensemble</strong>: The application root that owns Agents,
+provider configuration and shared host resources.</li>
+<li><strong>Agent</strong>: The conversation actor that owns scheduling,
+tools, services and any delegated child Agents.</li>
+<li><strong>History</strong>: The canonical event log and its derived
+context, updated before further model requests.</li>
+<li><strong>Engine</strong>: The provider boundary that renders
+requests, performs transport and returns immutable response facts.</li>
+<li><strong>CacheLens</strong>: The optional Engine-owned diagnostic
+that compares request prefixes without becoming conversation
+authority.</li>
+<li><strong>Jobs</strong>: The Agent-owned manager of independently
+running tool work and its observation handles.</li>
+<li><strong>Job</strong>: One admitted tool execution, its output,
+cancellation and joined completion.</li>
+<li><strong>AgentQuestion</strong>: A pending question held by both
+sender and recipient until answer or cancellation.</li>
+<li><strong>Agent.WorkProductTransfer</strong>: An Agent-owned file-copy
+lifetime that shutdown cancels and joins.</li>
+</ul>
+<p><strong>Capabilities and retained knowledge</strong></p>
+<ul>
+<li><strong>Tool</strong>: A callable operation owned by its Agent and,
+when remote, its MCP client.</li>
+<li><strong>Skills</strong>: The Agent-owned skill catalog and
+connection manager; History retains active instruction and grant
+facts.</li>
+<li><strong>Sandbox</strong>: The Agent’s filesystem and process
+boundary, retaining the effective root and access policy.</li>
+<li><strong>Memory</strong>: The Agent-owned store that reads and stages
+durable memory records and settings.</li>
+<li><strong>Recaller</strong>: The Agent-owned corpus indexes used to
+retrieve relevant material for a turn.</li>
+</ul>
+<p><strong>Connections</strong></p>
+<ul>
+<li><strong>Mcp</strong>: The Agent-owned manager of MCP connections and
+the registered browser target.</li>
+<li><strong>McpBrowser</strong>: One browser registration, owning its
+transport and any client created by claiming it.</li>
+<li><strong>McpClient</strong>: One JSON-RPC connection, its correlated
+replies, reader, reverse calls and remote tools.</li>
+<li><strong>IMcpTransport</strong>: The owned, replaceable message-I/O
+boundary shared by the concrete MCP transports.</li>
+<li><strong>McpProcessTransport</strong>: A subprocess transport that
+owns and joins its process, protocol streams and stderr drain.</li>
+<li><strong>McpStreamTransport</strong>: The newline-delimited JSON-RPC
+transport that owns its supplied streams.</li>
+</ul>
+<p><strong>Models and host services</strong></p>
+<ul>
+<li><strong>ModelVendor</strong>: A configured provider identity that
+owns its service endpoints.</li>
+<li><strong>ModelEndpoint</strong>: A configured service address and
+wire protocol that owns its model offerings.</li>
+<li><strong>Model</strong>: One configured offering, with capabilities
+and weak links to the Agents selecting it.</li>
+<li><strong>ModelAuthentication</strong>: A root-owned authentication
+binding with weak links to endpoints and credential sources.</li>
+<li><strong>Credentials</strong>: The host’s plan-account credential
+owner, including sign-in and token renewal work.</li>
+<li><strong>CodexCredentials</strong>: The host’s Codex subscription
+credential owner, kept distinct from plan-account credentials.</li>
+<li><strong>GlobalSettings</strong>: The explicitly selected host
+settings file, not an Agent’s private policy store.</li>
+<li><strong>VoiceTranscriber</strong>: The separately funded host
+transcription service with its own request lifetime.</li>
+</ul>
+<!-- common-ownership-classes:end -->
+<p>The map concentrates on live ownership. Immutable values such as
+Configuration, Event, Context and Usage carry facts without acquiring a
+parent back-reference for every holder. Garbage collection can reclaim
+those values; it cannot perform the cancellation, joining and two-way
+detachment required by the ownership graph.</p>
+<h3 id="the-context-is-part-of-the-vocabulary-too">The context is part
+of the vocabulary, too</h3>
+<p>The ownership map is only one sheet of the architecture. The
+conversation data matters just as much when discussing how an Agent
+works. Follow <strong>Agent → History → Context → Entry → Part</strong>
+on the next sheets. History keeps recorded events and the current
+Context; Context holds dialogue entries, and entries hold typed content
+parts. Context also holds one-request parts directly, memories,
+accumulated usage, execution phase and compression bookkeeping.</p>
+<p>An individual Context value is immutable, but History’s current state
+changes. Applying an event produces a replacement Context. Existing
+entries and payloads can be shared; this is not a deep copy of all the
+conversation text. The current reducer does copy collection references,
+and the memory constructor sorts and validates them. Immutability alone
+is not a claim of constant-time updates. History stages the replacement
+and flushes its journal before publishing it. Replaying recorded events
+reconstructs state; it does not rerun external tools.</p>
+<p>The next sheet includes snapshots and compression receipts because
+they retain references to this state. Its gray arrows are <strong>stored
+data references</strong>, not weak lifecycle relationships. Value-like
+objects need no reverse membership for every holder. The diagrams show
+relationships among their named types, not every primitive field or
+every supporting type in Common.</p>
+<div class="ownership-plate">
+<p><strong>Context and recorded changes</strong></p>
+<p><img src="figures/common-context.svg" class="context-map"
+alt="Agent owns History; History and HistorySnapshot retain Context and Events. Context contains Entries, Parts, memories, usage and compression receipts. Entries and Events retain Parts; compression receipts refer to selections, events, memories and usage records." /><!-- Printed legend follows; retain descriptive alternative text. --></p>
+<p><strong>Heavy blue:</strong> lifecycle ownership.
+<strong>Gray:</strong> stored data reference.<br /> <strong>Outlined
+triangle:</strong> one slot, possibly empty. <strong>Filled
+triangle:</strong> many.</p>
+<p>Arrows describe stored relationships, not event execution order. An
+Event can carry Parts directly; applying it updates History’s current
+Context. The Part box connects this sheet to the following contents
+sheet.</p>
+</div>
+<h3 id="the-names-on-the-context-sheet">The names on the context
+sheet</h3>
+<!-- common-context-classes:start -->
+<ul>
+<li><strong>Agent</strong>: The conversation actor that owns History and
+controls when requests and tools execute.</li>
+<li><strong>History</strong>: The owner of recorded events and the
+current Context, with journal-before-publication updates.</li>
+<li><strong>HistorySnapshot</strong>: A consistent read containing
+retained events, a Context and sequence/checkpoint metadata.</li>
+<li><strong>Context</strong>: An immutable conversation-state value that
+History replaces as events are applied.</li>
+<li><strong>Event</strong>: An immutable recorded fact whose kind and
+payload determine its effect on conversation state.</li>
+<li><strong>Entry</strong>: One dialogue contribution with its actor,
+sequence, timing and content Parts.</li>
+<li><strong>Part</strong>: The shared base type for a piece of dialogue,
+event or one-request content.</li>
+<li><strong>MemoryEntry</strong>: One retained memory record with its
+band, identity, timestamp and text.</li>
+<li><strong>Usage</strong>: Recorded token counters, including separate
+fresh input, cache writes, cache reads and output.</li>
+<li><strong>PendingCompression</strong>: A replayable receipt linking a
+compression launch to staged removal and replacement facts.</li>
+<li><strong>CompressionLaunch</strong>: The identity and exact source
+selection of a compression attempt, not a running worker.</li>
+<li><strong>CompressionOutcome</strong>: The last bounded compression
+result, including its state and documentary usage records.</li>
+<li><strong>MeterEntry</strong>: Token counts paired with the billing
+identity to which they belong.</li>
+<li><strong>UsageIdentity</strong>: The vendor, model, service tier and
+billing mode identifying a usage record.</li>
+</ul>
+<!-- common-context-classes:end -->
+<h3 id="what-goes-inside-a-conversation">What goes inside a
+conversation</h3>
+<p>Part is a base class, not a container that owns one instance of every
+variant. On the next sheet, dashed purple arrows point from a concrete
+variant to Part and mean <strong>is a kind of</strong>. They have no
+one/many meaning. Solid gray arrows keep the stored-reference notation.
+A ToolResultPart can itself contain Parts; that is real nesting,
+distinct from inheritance.</p>
+<div class="ownership-plate">
+<p><strong>Conversation contents</strong></p>
+<p><img src="figures/common-contents.svg" class="context-map"
+alt="Entry retains Parts. TextPart, ToolCallPart, ToolResultPart, OpaquePart, BlobPart, SkillPart, RecallPart, HandoffPart and RedactedPart are variants of Part. Their stored references include provenance, blob locators, recall text and tool-result metadata. ToolResultPart can contain nested Parts." /><!-- Printed legend follows; retain descriptive alternative text. --></p>
+<p><strong>Solid gray:</strong> stored reference; outlined triangle
+means one, filled means many.<br /> <strong>Dashed purple:</strong>
+subtype points to its base class; no multiplicity meaning.</p>
+<p>Metadata boxes represent recorded facts, not live Jobs or download
+permissions. This sheet shows the payload boundary; metadata’s internal
+helper records and primitive fields are outside this view.</p>
+</div>
+<h3 id="the-names-on-the-contents-sheet">The names on the contents
+sheet</h3>
+<!-- common-contents-classes:start -->
+<ul>
+<li><strong>Entry</strong>: One contribution whose Parts form its
+recorded content.</li>
+<li><strong>Part</strong>: The base vocabulary for the concrete content
+variants shown here.</li>
+<li><strong>TextPart</strong>: Text with optional provider provenance
+and opaque continuation metadata.</li>
+<li><strong>ToolCallPart</strong>: A requested operation with its call
+identity, name, arguments and provider provenance.</li>
+<li><strong>ToolResultPart</strong>: A correlated tool result containing
+Parts, an error flag and optional recorded metadata.</li>
+<li><strong>OpaquePart</strong>: Provider-owned JSON retained with
+provenance rather than interpreted as ordinary text.</li>
+<li><strong>BlobPart</strong>: A media reference with its MIME type and
+locator, not embedded live file ownership.</li>
+<li><strong>SkillPart</strong>: Recorded skill instructions, tool names
+and primary/pending grant state.</li>
+<li><strong>RecallPart</strong>: Retrieved context carried by a
+RecallAttachment.</li>
+<li><strong>HandoffPart</strong>: The retained continuation note from a
+context handoff.</li>
+<li><strong>RedactedPart</strong>: A stub describing removed content,
+its reason, original size and optional blob locator.</li>
+<li><strong>Provenance</strong>: The provider/model/wire-surface
+identity needed to interpret and safely replay content.</li>
+<li><strong>BlobRef</strong>: The kind and locator of referenced media,
+not authority to read arbitrary files.</li>
+<li><strong>RecallAttachment</strong>: The actual attached recall text
+and its source hashes.</li>
+<li><strong>JobInfo</strong>: A recorded observation of a Job, not the
+live running Job object.</li>
+<li><strong>WorkProductInfo</strong>: A recorded offered-file
+description, not a live download grant.</li>
+<li><strong>DirectoryListing</strong>: Bounded directory facts captured
+when the tool ran.</li>
+<li><strong>FileEvidence</strong>: Bounded file-operation facts used to
+display the actual read or change.</li>
+<li><strong>SearchEvidence</strong>: Bounded search matches and
+locations captured by the search operation.</li>
+</ul>
+<!-- common-contents-classes:end -->
+<p>Ensemble’s <strong>Context</strong> holds conversation state. The
+model’s <strong>context-window capacity</strong> limits how much
+information it can process at once, measured in tokens. Ensemble also
+has a configurable <strong>working limit</strong> that can be lower than
+that capacity: it is the input-token threshold used to prompt a
+handoff.</p>
+<p><code>WorkingContextLimit</code> stores the chosen per-model working
+limit and optional capacity ceiling. <code>WorkingContextStatus</code>
+reports the effective limits and latest accepted request’s input
+measurement; unknown measurements stay unknown. These policy/status
+values describe limits and measurements, rather than holding the
+conversation itself. Context’s Usage is accumulated recorded usage, not
+the size of the current request. Engine renders the conversation with
+configuration and request instructions into a provider request; the
+serialized request, rather than a mutable live Context, goes to
+transport.</p>
+<p>The repository keeps this map reproducible in
+<code>scripts/common-diagram/</code>. Roslyn extracts stored
+declarations from <code>agent/Common</code>; a reviewed relationship map
+supplies the cascade-delete semantics that field types alone cannot
+prove. The generator checks both ends of those relationships and refuses
+changed lifecycle evidence until it is reviewed. This is a design aid,
+not a substitute for testing destruction. The <a
+href="https://github.com/waywardgeek/ensemble/blob/main/docs/common-diagrams/README.md">companion
+diagrams</a> include the complete stored-data graph, subsystem views and
+a searchable browser; the printed maps and class guides above stand on
+their own.</p>
 <h2 id="working-through-this-edition">Working through this edition</h2>
 <p>Build one chapter on its accepted predecessor. Read its explanation
 as well as its exercise: the reason for a boundary is often what keeps
@@ -1057,6 +1356,9 @@ toggle in a product is not a call in an SDK.</p>
 </section>
 <h3 id="give-the-loop-owners-before-giving-it-features">Give the loop
 owners before giving it features</h3>
+<p>Chapter 0 introduces the whole-system ownership map and its class
+vocabulary. This chapter begins constructing the small core of that
+map.</p>
 <p>The first edition began with one client struct and sorted out
 ownership later. Its refactor chapter supplied a useful ambush: 5,047
 lines of Go and no logger. Could a low-level helper reach the
@@ -7154,6 +7456,24 @@ Preserve signatures on thought, text, and tool-call parts according to
 the existing provenance codec. Do not invent a uniform wrapper shape
 just for a streaming test; replay semantics, not a convenient fixture
 assertion, govern the value.</p>
+<h3 id="provider-rejection-is-not-malformed-transport">Provider
+rejection is not malformed transport</h3>
+<p>An explicit provider error can arrive inside a valid HTTP 200 event
+stream. The shared Messages, Chat Completions and Gemini parser records
+one <code>ErrorOccurred</code> fact for that failure, with no final
+response or executable parts. Do not turn it into a
+<code>FormatException</code> merely because the request did not succeed.
+Broken JSON or invalid stream ordering remains a protocol failure;
+cancellation retains its separate control semantics.</p>
+<p>Remote error messages and even category strings can echo private
+request data. Use fixed local labels for recognized categories such as
+invalid request, authentication failure or rate limit; otherwise report
+a generic provider error. Never copy an arbitrary remote message into
+History or the GUI. Test both the safe classification and the effect
+boundary: rejection after a partial tool call must execute nothing, and
+a later fresh turn must not replay an orphan call. This distinction does
+not change the separate Responses terminal-completion rules or the
+non-streaming decoder.</p>
 <h3 id="arrival-order-is-policy-evidence">Arrival order is policy
 evidence</h3>
 <p>The strict explanation policy asks whether substantive assistant text
@@ -13467,6 +13787,16 @@ answer that consumes its result. Unknown counts or rates remain
 <code>unknown</code>; a new Engine has zero session totals but no latest
 response or meaningful hit rate. USD is labeled an estimate, never an
 invoice.</p>
+<p>The current tool also reads <code>Agent.WorkingContextStatus()</code>
+for the effective working input-token limit, the separate configured
+capacity ceiling, the last actor-accepted main-request input count, and
+its percentage of the working limit. Capacity is configuration, not a
+measured provider guarantee. These values are not session billing
+totals: direct Engine or auxiliary requests do not supply the
+main-context measurement, cached input is counted once, and a checkpoint
+makes the old measurement unknown rather than pretending it is zero. Use
+the Agent’s existing projection instead of calculating a second policy
+in the status tool.</p>
 <p><strong>Model selection.</strong> Expose
 <code>Agent.SetModelAsync(model)</code> as a human session control, not
 a model tool. Admit it through the actor mailbox only while idle: no
@@ -15492,6 +15822,19 @@ child IDs are unique among siblings, not a second global name registry.
 The declared parent operations validate before mutation, establish both
 links before returning, and remove both links during destruction. No
 manager, copied service bag or callback factory is needed.</p>
+<p>Keep human-readable labels separate from these identities. An Agent
+may have an optional persistent display name, set through
+<code>SetDisplayNameAsync</code> or the GUI’s Speech &amp; Display
+settings. Save the label before publishing it; a failed save must not
+rename the live view. Other settings writes preserve it, and restart
+restores it. Blank clears the label and returns to the existing ID-based
+display. Labels need not be unique: tree and selector values, routing,
+ownership, and disk paths still use the original IDs. Render labels as
+literal text, keep full IDs available for disambiguation, and never
+guess which pieces of an existing ID to strip. This is presentation
+state, not a change to an Agent’s instructions or identity. The GUI
+accepts a single-line label of at most 120 UTF-16 code units; the native
+operation enforces the same bound.</p>
 <p><code>CreateChildAsync(id, model, submitSchema, cancellation)</code>
 constructs a ready child, not a running task. It derives Chapter 18’s
 narrow-only policy, captures parsed skill templates and current values,
@@ -25590,6 +25933,109 @@ Codex also recorded an authorized installed-page check. Cadence’s
 subsequent source review was not a second live test. A display bound is
 neither journal deletion nor a fixed total-memory guarantee for an
 indefinitely running Agent.</p>
+<h3
+id="lessons-reserved-for-the-next-edition-bounded-lifetime-and-communication">Lessons
+reserved for the next edition: bounded lifetime and communication</h3>
+<p>Bill subsequently described a more serious failure during the novel
+work: Ensemble exhausted available memory and the whole machine became
+unresponsive. He had to hold the power button to turn it off; reboot
+took longer while, in his account, the system repaired disk state. This
+is his report of the failure, not a heap-profile diagnosis of one proven
+allocation site. A host-wide failure is a safety boundary, not merely an
+inconvenient slow GUI. Bill expects Ensemble to manage a swarm
+potentially containing one hundred Agents.</p>
+<p>The current source still cannot promise bounded resident memory over
+an Agent’s lifetime. Removing duplicated logs and introducing a
+state-only saved checkpoint were useful repairs, but they did not finish
+that job. The important distinctions are these:</p>
+<ul>
+<li>History retains an event collection separately from its current
+Context. When a handoff is recorded, it removes events older than the
+preceding handoff. Before the second handoff, nothing is removed by this
+rule. Neither the interval nor the payload bytes have a fixed
+bound.</li>
+<li>Handoff reduction removes tool traffic, opaque reasoning, media and
+older checkpoint notes from active Context. Ordinary conversation prose
+remains. Memory compression is a separate mechanism; a token-pressure
+reminder is not a process-memory budget.</li>
+<li>HistorySnapshot is a consistent in-memory read, not the saved
+checkpoint. It copies event references and shares the immutable Context.
+Readers can keep removed events and their payloads reachable after
+History evicts them. Garbage collection preserves those references
+correctly; it does not supply a retention policy or guarantee immediate
+reclamation.</li>
+<li>Saving writes a state-only SaveDocument. The disk journal has its
+own retention boundary, preserving recovery from the validated backup;
+audit mode suppresses disk trimming. Disk retention does not require
+retaining the same event population in RAM.</li>
+<li>Child-output observation currently snapshots the child’s retained
+events and constructs output text from them. A monitoring path
+reconstructs text from cursor zero on repeated checks. Bounding the
+browser display does not bound these server-side arrays, strings or
+retained payloads.</li>
+</ul>
+<p>These findings came from the append/reduction, snapshot, journal,
+persistence, pressure and child-output implementations. They establish
+mechanisms and missing bounds, not the measured contribution of each to
+the reported crash. The earlier passing tests did not establish safe
+one-hundred-Agent, indefinite-lifetime use.</p>
+<p>Bill chose to leave this technical debt in V3 rather than start
+another runtime refactor. Preserve the lessons for the next
+reconstruction. His intended recent GUI history is a few hundred events,
+independent of when a model calls micro_handoff. A count limit alone is
+insufficient because one event may carry a large result. Context, active
+work, communication buffers, snapshots and temporary copies also need
+explicit lifetime and size reasoning. A future synthetic swarm check
+should demonstrate a memory plateau under sustained activity, including
+large results and slow readers, without risking the working host or
+spending provider inference to generate load.</p>
+<p>The communication boundary needs its own correction. An Event is a
+recorded fact used to update state and support recovery; it should not
+double as the mechanism by which another Agent receives information. V3
+returns an explicit ChildOutput value, but constructs it by scanning
+internal history. That wrapper does not remove the dependency. The next
+design should use explicit communication types and operations with clear
+ownership, delivery and retention semantics. Reuse the actual questions,
+answers, submissions and status vocabulary where appropriate; do not
+replace the history scan with a second unlimited message transcript.
+Recording communication for recovery is distinct from delivering it.</p>
+<p>Several decisions remain open: which communications require durable
+delivery, what consuming or acknowledging them means, how a slow
+receiver is handled, where large output belongs, and what count, byte
+and aggregate swarm budgets apply. Explicit expiry of old observation
+output was proposed but not accepted as a contract. Do not silently lose
+unread output, retain everything forever, or claim that a new channel
+guarantees exactly-once effects. Those choices need human judgment
+before implementation and exercises can be specified.</p>
+<p>The architecture diagrams in Chapter 0 exposed this debt by making
+the objects and their relationships discussable. A lifecycle-only map
+omitted Context and its value types, even though those names are
+essential to a new engineer’s vocabulary. The printed context and
+content sheets now accompany that map. Immutable Context values do not
+mean the Agent’s state never changes: reduction creates a replacement
+and History publishes it. Nor does immutability imply a deep copy of all
+text. V3 shares payload objects but copies collection references and
+reorders memories during reduction. In-place mutation was discussed and
+deliberately left unchanged; snapshot isolation and
+journal-before-publication would need explicit replacements if a later
+design chooses mutation.</p>
+<h3 id="v4-is-a-design-discussion-not-an-execution-order">V4 is a design
+discussion, not an execution order</h3>
+<p>Bill does not plan another book execution for several weeks. V4’s
+language is undecided, including whether to use an existing language or
+develop one such as Lyric. C# partial declarations, garbage collection
+and the current library stack are V3 choices, not proof that the next
+edition should keep them. Conversely, changing languages does not decide
+ownership, retention or communication for us. Evaluate candidates
+against those requirements and the practical cost of mature protocol
+libraries, tooling, interoperability and teaching a fresh builder.</p>
+<p>Before the next execution, return these lessons to the chapters that
+introduce Context/events, persistence, context reduction and Agent
+communication. Resolve the open contracts, then update their
+explanations, exercises and meaningful checks together. Record where
+each crossover lesson was incorporated. This section is a durable record
+of debt and design questions, not an implemented V4 specification, a new
+V3 acceptance gate, or permission to begin a language project.</p>
 <h3 id="a-wait-should-not-produce-another-copy-of-the-same-output">A
 wait should not produce another copy of the same output</h3>
 <p>After the workflows resumed, Bill saw a new card roughly every three
@@ -25619,6 +26065,86 @@ repair notes</a>. Those local checks did not themselves install a repair
 or restart a workflow. The practical lesson is to test the conversation
 the human will actually keep using, not just a fresh page with one
 successful command.</p>
+<h3 id="a-compatible-wire-format-does-not-identify-the-provider">A
+compatible wire format does not identify the provider</h3>
+<p>The later Flint integration illustrates a smaller crossover boundary.
+OpenRouter exposes <code>recursive/flint-v1.0:free</code> through a
+Messages-compatible endpoint, but uses Bearer authentication rather than
+Anthropic’s native <code>x-api-key</code> header. The configured
+offering therefore keeps OpenRouter’s provider identity and its own
+<code>openrouter_api_key</code> binding while reusing the Messages
+renderer and parser. Neither an absent key nor a failed free route
+selects another provider or a paid model. Registration does not switch
+an existing Agent.</p>
+<p>A local HTTP fake checks the actual authentication headers and a
+streamed tool round trip: thinking and its signature survive into the
+follow-up request beside the correlated tool result. Those checks
+establish transport behavior, not live provider acceptance or model
+quality. The advertised context window is not measured account capacity.
+See the <a
+href="https://github.com/waywardgeek/ensemble/blob/main/agent/Examples/Gui/README.md#flint-through-openrouter">GUI
+setup note</a> for the exact route and credential placement.</p>
+<p>The first installed trial exposed a configuration boundary that the
+transport tests had missed. The interactive launcher supplied an
+isolated <code>HOME</code>, so the host’s default global-settings path
+differed from the human’s shell-expanded
+<code>~/.en/settings.json</code>. Rebuilding, restarting, and refreshing
+could not make a key in the other file register an offering. Value-free
+diagnostics checked JSON validity and the presence of the exact
+top-level key; a small .NET probe confirmed that
+<code>UserProfile</code> followed the launcher’s isolated home. With the
+human’s approval, the launcher gained an explicit
+<code>--global-settings</code> path to the intended file, without
+copying credentials or changing existing Agent selections. After the
+human relaunched and refreshed, Flint appeared in the live picker. No
+separate vendor-order patch was necessary: the server enumerates
+registered offerings and the browser creates their vendor groups
+dynamically. Test the host’s catalog projection as well as the provider
+transport; a passing adapter test cannot prove that the running
+application consumed the intended configuration.</p>
+<p>Bill selected Flint in a separate test Agent and reported a
+successful live reply. The inspected API log contained one request and a
+completed streamed response; a live tool-result continuation had not yet
+been demonstrated. The successful reply also exposed an audible defect:
+the interface repeatedly announced “Thinking.” Bill suggested checking
+whether the provider had returned multiple thinking blocks. Structural
+inspection of the response, without dumping request contents, found one
+thinking block with 131 deltas, followed by one answer-text block with
+65 deltas. The GUI’s speech queue prepended “Thinking:” to every
+thinking or reasoning-summary phrase. Provider blocks, streaming deltas,
+and speech phrases are different boundaries: the announcement belongs at
+the start of the thinking passage, not on each speech phrase. The repair
+moved announcement state beside each card’s narration cursor, preserving
+the original speech source and leaving later sentences unprefixed. A
+focused regression failed on the old second-sentence label and passed
+after the change. A disposable real-browser check covered both thinking
+kinds across streaming updates and a final flush, queue drainage and
+pause release, and silent replay and mute behavior. Native audio was
+controlled in that check; installation and human listening were separate
+acceptance steps. Bill subsequently reported that the repair worked well
+in live use. The broader speech/pause suite still failed a distinct
+long-text-rendering assertion, so these focused passes were not reported
+as a full-suite pass. Human listening found a usability failure that
+successful inference and transport tests did not cover. Bill also judged
+Flint insufficient for his coding collaboration: successful integration
+and collaborator quality are separate outcomes, not interchangeable
+acceptance claims.</p>
+<p>Bill could hear the error but could not find it on the page. The
+browser narrated errors and wrote them to a transient notice, without
+creating a conversation card. The repair gives durable errors
+sequence-based card identities and counts them in the bounded chat
+window, so later tool traffic cannot erase them merely by advancing the
+status tail. Replay restores retained error cards silently; duplicate
+delivery neither duplicates the card nor repeats its speech. An
+expanded, explicitly labeled Error card renders the already-sanitized
+message as literal text, not provider markup. Local control refusals
+also appear, but are not invented History: an authoritative window
+refresh or replay can remove them. Projection/socket checks, the GUI
+consumer suite, and a disposable browser test covered identity,
+visibility, literal text, replay, Agent isolation, and eviction. These
+were source-level checks, not installation or human visual acceptance,
+and they did not authorize exposing raw provider bodies that may echo
+private data.</p>
 <hr />
 <h1 id="epilogue-what-we-can-rebuild">Epilogue: What we can rebuild</h1>
 <p><em>By Cadence, writing inside Ensemble.</em></p>

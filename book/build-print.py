@@ -4,7 +4,8 @@
 Chrome does not implement target-counter(). Reserve a TOC number column in CSS,
 render, resolve its links, and stamp references without changing layout.
 A second render adds a blank front-matter page only when measured parity needs it.
-Front matter is unnumbered; the Preface begins Arabic page 1 on a recto page.
+Title/contents pages are unnumbered; Preface starts Roman i.
+Chapter 0 begins Arabic page 1 on a recto page.
 """
 import os, re, subprocess, sys, tempfile
 from collections import Counter
@@ -146,16 +147,45 @@ def margins(index: int, page_width: float = 504) -> tuple[float, float]:
     return (63, page_width - 36) if index % 2 == 0 else (36, page_width - 63)
 
 
+def chapter_zero_entry(entries: list[tuple[str, str]]) -> tuple[str, str]:
+    """Find the numbered body start by its chapter number, not a mutable title."""
+    matches = [(href, strip_tags(raw)) for href, raw in entries
+               if re.match(r"^Chapter 0(?:\b|:)", strip_tags(raw))]
+    if len(matches) != 1:
+        sys.exit("FATAL: expected exactly one Chapter 0 contents entry")
+    return matches[0]
+
+
+def printed_number(index: int, preface: int, first: int) -> str:
+    """Convert a zero-based physical index to its printed front/body number."""
+    if index < preface - 1:
+        return ""
+    if index >= first - 1:
+        return str(index - first + 2)
+    remaining = index - preface + 2
+    roman = []
+    for value, letters in ((1000, "m"), (900, "cm"), (500, "d"), (400, "cd"),
+                           (100, "c"), (90, "xc"), (50, "l"), (40, "xl"),
+                           (10, "x"), (9, "ix"), (5, "v"), (4, "iv"), (1, "i")):
+        count, remaining = divmod(remaining, value)
+        roman.append(letters * count)
+    return "".join(roman)
+
+
 def finish_pagination(pdf: Path, entries: list[tuple[str, str]],
                       mapping: dict[str, int],
                       page_size: tuple[float, float] = (504, 720)) -> tuple[int, list]:
     """Stamp the reserved TOC column and footers; do not reflow any content."""
     page_width, page_height = page_size
-    first = mapping.get("Preface")
-    if first is None or entries[0][0] != "preface":
+    preface = mapping.get("Preface")
+    _, chapter_title = chapter_zero_entry(entries)
+    first = mapping.get(chapter_title)
+    if preface is None or not entries or entries[0][0] != "preface":
         sys.exit("FATAL: Preface must be the first numbered contents entry")
+    if first is None or first <= preface:
+        sys.exit("FATAL: Chapter 0 must follow the Preface")
     if first % 2 != 1:
-        sys.exit("FATAL: Preface must begin on a physical right-hand page")
+        sys.exit("FATAL: Chapter 0 must begin on a physical right-hand page")
     if not GEORGIA.is_file():
         sys.exit(f"FATAL: missing pagination font {GEORGIA}")
     font = pymupdf.Font(fontfile=str(GEORGIA))
@@ -172,7 +202,7 @@ def finish_pagination(pdf: Path, entries: list[tuple[str, str]],
             # Only front-matter links are TOC links. Chrome may produce several
             # rectangles for a wrapped anchor, so stamp once at its last line.
             hits = []
-            for i in range(first - 1):
+            for i in range(preface - 1):
                 for link in doc[i].get_links():
                     if link.get("nameddest") == href:
                         resolved, _, _ = doc.resolve_link("#" + href)
@@ -194,7 +224,7 @@ def finish_pagination(pdf: Path, entries: list[tuple[str, str]],
             if not spans:
                 sys.exit(f"FATAL: cannot locate TOC text baseline for {title}")
             baseline = max(span["origin"][1] for span in spans)
-            number = str(mapping[title] - first + 1)
+            number = printed_number(target, preface, first)
             right = margins(i, page_width)[1]
             width = font.text_length(number, fontsize=10.5)
             if max(span["bbox"][2] for span in spans) > right - width - 8:
@@ -204,9 +234,9 @@ def finish_pagination(pdf: Path, entries: list[tuple[str, str]],
                              fontname="PrintGeorgia", fontsize=10.5, color=(0, 0, 0))
             stamped.append((i, pymupdf.Rect(right - 43, baseline - 10.5,
                                           right + 1, baseline + 3), number, target))
-        for i in range(first - 1, len(doc)):
+        for i in range(preface - 1, len(doc)):
             page = doc[i]
-            number = str(i - first + 2)
+            number = printed_number(i, preface, first)
             left, right = margins(i, page_width)
             width = font.text_length(number, fontsize=10)
             page.insert_font(fontname="PrintGeorgia", fontfile=str(GEORGIA))
@@ -214,6 +244,7 @@ def finish_pagination(pdf: Path, entries: list[tuple[str, str]],
                              fontname="PrintGeorgia", fontsize=10, color=(0, 0, 0))
         doc.set_page_labels([
             {"startpage": 0, "prefix": "", "style": ""},
+            {"startpage": preface - 1, "prefix": "", "style": "r", "firstpagenum": 1},
             {"startpage": first - 1, "prefix": "", "style": "D", "firstpagenum": 1},
         ])
         doc.save(pending, deflate=True)
@@ -222,12 +253,12 @@ def finish_pagination(pdf: Path, entries: list[tuple[str, str]],
 
 
 def check_pagination(pdf: Path, first: int, stamped: list,
-                     page_size: tuple[float, float] = (504, 720)) -> None:
+                     page_size: tuple[float, float] = (504, 720), *, preface: int) -> None:
     page_width, page_height = page_size
     with pymupdf.open(pdf) as doc:
         for i, page in enumerate(doc):
             footer = page.get_text(clip=pymupdf.Rect(0, page_height - 45, page_width, page_height)).strip()
-            expected = "" if i < first - 1 else str(i - first + 2)
+            expected = printed_number(i, preface, first)
             if footer != expected or page.get_label() != expected:
                 sys.exit(f"FATAL: footer/page label mismatch on physical page {i + 1}")
             for block in page.get_text("dict")["blocks"]:
@@ -240,8 +271,9 @@ def check_pagination(pdf: Path, first: int, stamped: list,
             actual = doc[i].get_text(clip=rect).strip()
             if actual != expected or doc[target].get_label() != expected:
                 sys.exit(f"FATAL: TOC number/destination mismatch on physical page {i + 1}")
-    print(f"  verified: {len(stamped)} TOC references, black text, unnumbered front matter")
-    print(f"  Preface: physical page {first}, printed page 1")
+    print(f"  verified: {len(stamped)} TOC references, black text, Roman front matter")
+    print(f"  Preface: physical page {preface}, printed page i")
+    print(f"  Chapter 0: physical page {first}, printed page 1")
 
 
 def clean_html(html: str) -> str:
@@ -270,7 +302,7 @@ def clean_html(html: str) -> str:
     )
 
     # Contents length changes as chapters change. Do not insert an unconditional
-    # blank page: main measures the Preface position before choosing a spacer.
+    # blank page: main measures Chapter 0 before choosing a spacer.
     anchor = '<h1 id="preface">'
     if html.count(anchor) != 1:
         sys.exit("FATAL: expected exactly one Preface heading")
@@ -278,18 +310,18 @@ def clean_html(html: str) -> str:
 
 
 
-def recto_preface_html(html: str, preface_page: int) -> str:
-    """Add a real blank page only for a measured verso Preface.
+def recto_chapter_html(html: str, chapter_page: int, href: str) -> str:
+    """Add a real blank page only for a measured verso Chapter 0.
 
     Chrome treats break-before:right like an ordinary page break. A fixed
     spacer therefore works for one contents length and fails for another.
     The caller rerenders once and verifies the resulting physical page parity.
     """
-    if preface_page % 2 == 1:
+    if chapter_page % 2 == 1:
         return html
-    anchor = '<h1 id="preface">'
+    anchor = f'<h1 id="{href}">'
     if html.count(anchor) != 1 or 'class="recto-spacer"' in html:
-        sys.exit("FATAL: expected one Preface and no existing recto spacer")
+        sys.exit("FATAL: expected one Chapter 0 and no existing recto spacer")
     spacer = '<div class="recto-spacer" aria-hidden="true"></div>\n'
     return html.replace(anchor, spacer + anchor, 1)
 
@@ -419,7 +451,8 @@ def main() -> None:
     missing = [t for t in titles if t not in mapping]
     if missing:
         sys.exit(f"FATAL: headings never matched a page: {missing[:5]}")
-    recto_html = recto_preface_html(html, mapping["Preface"])
+    chapter_href, chapter_title = chapter_zero_entry(entries)
+    recto_html = recto_chapter_html(html, mapping[chapter_title], chapter_href)
     if recto_html != html:
         print("render: add measured recto spacer and verify layout")
         src.write_text(recto_html)
@@ -431,7 +464,7 @@ def main() -> None:
     first, stamped = finish_pagination(pdf, entries, mapping)
     if build_map(pdf, titles) != mapping:
         sys.exit("FATAL: page stamping changed heading locations")
-    check_pagination(pdf, first, stamped)
+    check_pagination(pdf, first, stamped, preface=mapping["Preface"])
     check_type_size(pdf)
     n = subprocess.run(["pdfinfo", str(pdf)], capture_output=True, text=True).stdout
     print("\n" + "\n".join(l for l in n.splitlines() if l.startswith(("Pages", "Page size"))))

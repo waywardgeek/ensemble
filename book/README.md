@@ -21,7 +21,7 @@ Historical foundation checks alone were not that human acceptance. The optional 
 completed after Gateway and Goals, and its historical `ch24` endpoint intentionally
 contains that foundation. Earlier endpoints are not renamed or overwritten.
 
-Third Edition, Revision 2 contains 31 chapters, 00–30, in the assembled
+Third Edition, Revision 3 contains 31 chapters, 00–30, in the assembled
 Markdown, EPUB and PDFs. Workflows is Chapter 21, Advanced Artifacts is Chapter 29,
 and Crossing Over is Chapter 30. Workflows includes local checks, independent
 reviews, an assisted student reconstruction, and supervised live-use evidence.
@@ -141,10 +141,12 @@ because the command-line renderer wrote a PDF but exited nonzero on teardown.
 Outputs are the assembled Markdown, EPUB, coverless **Print Interior.pdf**, and
 **The Art of Building AI Coding Agents.pdf** with the cover for free reading.
 `interior-print.html` is the intermediate print input. Existing cover artwork is
-reused as requested. The current coverless interior is **539 pages at 7 × 10
-inches**; the covered reading PDF is **540 pages**. The bottom body margin is 47 points,
+reused as requested. The current coverless interior is **555 pages at 7 × 10
+inches**; the covered reading PDF is **556 pages**. The bottom body margin is 47 points,
 reclaiming half a 14-point line from
 the former footer space; page-number baselines remain 24 points above the edge.
+The Preface uses lowercase Roman page numbers. Chapter 0 starts on a right-hand
+page numbered 1; contents references and PDF page labels use the same numbering.
 The reading PDF is for the website, not the KDP interior upload. A print cover
 wrap is separate and must be
 sized for the final interior and selected paper.

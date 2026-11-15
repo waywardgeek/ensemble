@@ -53,13 +53,13 @@ class PrintBuildTests(unittest.TestCase):
         self.assertIn('Actual prose', clean)
 
     def test_measured_recto_spacer_preserves_already_correct_layout(self):
-        html = '<h1 id="preface">Preface</h1><p>Unchanged prose</p>'
-        self.assertEqual(build.recto_preface_html(html, 5), html)
-        repaired = build.recto_preface_html(html, 4)
+        html = '<h1 id="chapter-0-introduction">Chapter 0: Introduction</h1><p>Unchanged prose</p>'
+        self.assertEqual(build.recto_chapter_html(html, 5, "chapter-0-introduction"), html)
+        repaired = build.recto_chapter_html(html, 4, "chapter-0-introduction")
         self.assertEqual(repaired.count('class="recto-spacer"'), 1)
         self.assertTrue(repaired.endswith(html))
         with self.assertRaises(SystemExit):
-            build.recto_preface_html(repaired, 4)
+            build.recto_chapter_html(repaired, 4, "chapter-0-introduction")
 
     def test_missing_preface_is_rejected(self):
         with self.assertRaises(SystemExit):
@@ -86,39 +86,53 @@ class PrintBuildTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             pdf = Path(tmp) / 'fixture.pdf'
             doc = pymupdf.open()
-            for _ in range(5):
+            for _ in range(7):
                 doc.new_page(width=504, height=720)
             page = doc[0]
             page.insert_text((63, 100), 'Preface', fontsize=10.5)
             page.insert_text((63, 115), 'A wrapped title', fontsize=10.5)
             doc[4].insert_text((63, 100), 'Preface', fontsize=18)
+            doc[6].insert_text((63, 100), 'Chapter 0: Introduction', fontsize=18)
             target = doc[4].xref
             doc.xref_set_key(doc.pdf_catalog(), 'Names',
-                             f'<< /Dests << /Names [(preface) [{target} 0 R /XYZ 0 666 0]] >> >>')
+                             f'<< /Dests << /Names [(chapter-0-introduction) [{doc[6].xref} 0 R /XYZ 0 666 0] (preface) [{target} 0 R /XYZ 0 666 0]] >> >>')
             for rect in [pymupdf.Rect(63, 88, 115, 103), pymupdf.Rect(63, 103, 150, 118)]:
                 page.insert_link({'kind': pymupdf.LINK_GOTO, 'page': 4, 'from': rect})
             page = doc.reload_page(page)
             for link in page.get_links():
                 doc.xref_set_key(link['xref'], 'A', '<< /S /GoTo /D (preface) >>')
+            page.insert_text((63, 145), 'Chapter 0: Introduction', fontsize=10.5)
+            page.insert_link({'kind': pymupdf.LINK_GOTO, 'page': 6,
+                              'from': pymupdf.Rect(63, 133, 180, 148)})
+            page = doc.reload_page(page)
+            for link in page.get_links():
+                if link.get('page') == 6:
+                    doc.xref_set_key(link['xref'], 'A', '<< /S /GoTo /D (chapter-0-introduction) >>')
             doc.save(pdf)
             doc.close()
-            first, stamps = build.finish_pagination(pdf, [('preface', 'Preface')], {'Preface': 5})
-            self.assertEqual(first, 5)
-            self.assertEqual(len(stamps), 1)
-            build.check_pagination(pdf, first, stamps)
+            first, stamps = build.finish_pagination(pdf, [('preface', 'Preface'),
+                ('chapter-0-introduction', 'Chapter 0: Introduction')],
+                {'Preface': 5, 'Chapter 0: Introduction': 7})
+            self.assertEqual(first, 7)
+            self.assertEqual(len(stamps), 2)
+            build.check_pagination(pdf, first, stamps, preface=5)
             with pymupdf.open(pdf) as result:
                 self.assertEqual(result.resolve_link('#preface')[0], 4)
                 self.assertEqual(result[0].get_label(), '')
-                self.assertEqual(result[4].get_label(), '1')
+                self.assertEqual(result[4].get_label(), 'i')
+                self.assertEqual(result[5].get_label(), 'ii')
+                self.assertEqual(result[6].get_label(), '1')
                 # A gray quote must fail the final printed-color check.
                 result[4].insert_text((63, 140), 'Gray quote', color=(.4, .4, .4))
                 result.saveIncr()
             with self.assertRaises(SystemExit):
-                build.check_pagination(pdf, first, stamps)
+                build.check_pagination(pdf, first, stamps, preface=5)
 
-    def test_verso_preface_is_rejected(self):
+    def test_verso_chapter_zero_is_rejected(self):
         with self.assertRaises(SystemExit):
-            build.finish_pagination(Path('unused'), [('preface', 'Preface')], {'Preface': 4})
+            build.finish_pagination(Path('unused'), [('preface', 'Preface'),
+                ('chapter-0-introduction', 'Chapter 0: Introduction')],
+                {'Preface': 3, 'Chapter 0: Introduction': 6})
 
 
 if __name__ == '__main__':

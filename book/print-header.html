@@ -87,6 +87,7 @@ blockquote *  { color: #000 !important; }
 #TOC li               { break-inside: avoid; }
 #TOC a                { display: block; padding-right: 0.6in; }
 /* Printed page 1 must be recto; physical page parity still owns the gutters. */
-#preface              { break-before: right; }
-.recto-spacer         { height: 1pt; break-after: page; }
+/* The measured spacer must start a page too: otherwise it can fit into the
+   last Preface page and fail to change Chapter 0's physical parity. */
+.recto-spacer         { height: 1pt; break-before: page; break-after: page; }
 </style>
