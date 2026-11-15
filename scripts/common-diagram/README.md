@@ -1,7 +1,7 @@
 # Common data-relationship diagrams
 
 This source-only tool turns `agent/Common/*.cs` into browsable diagrams and the
-full-page ownership map in Chapter 0. It does not build or run Ensemble.
+full-page ownership and conversation-data maps in Chapter 0. It does not build or run Ensemble.
 
 ## Generate
 
@@ -18,7 +18,7 @@ The extractor uses Roslyn from that SDK with NuGet package sources cleared.
 
 Outputs are intentionally checked in under `docs/common-diagrams/`; readers
 should not need the generator to see the architecture. The compact vector figure
-is `book/figures/common-ownership.svg`. Regeneration does not assemble or publish
+and supplemental context/contents figures are in `book/figures/common-*.svg`. Regeneration does not assemble or publish
 the book. After an intentional manuscript change, run `make book` separately.
 
 ## Responsibility and evidence
@@ -43,8 +43,8 @@ The inventory's own hashes prevent rendering against stale declarations.
 Both ends of a modeled relationship are checked; duplicate reverse arrows are
 suppressed. A shared child remains one node. One slot may be optional; a collection
 means potentially many. Callback signatures and deferred Task result types do not
-become containment arrows. Inheritance is labeled on boxes rather than confused
-with ownership. External framework types, enums, static helpers, computed
+become containment arrows. Inheritance is labeled on ordinary view boxes; the contents sheet uses distinctly
+dashed subtype-to-base arrows, never ownership arrows. External framework types, enums, static helpers, computed
 properties and locals do not become graph nodes. The complete inventory includes
 transient helper structures as well as live model objects: this is a source type
 map, not a heap snapshot or a claim that every field is serialized to disk.
@@ -67,7 +67,7 @@ Extraction checks use a small independent C# fixture and deliberate invalid
 relationship/fingerprint inputs. Browser checks exercise the actual generated
 viewer with HTTP(S) blocked. The print check renders Chapter 0 with the real
 7-by-10-inch stylesheet into `.build/`, checks every class bullet and diagram
-edge, verifies the dedicated page, and measures labels at least 10pt (0.1pt
+edge, verifies each dedicated page, and measures labels at least 10pt (0.1pt
 rendering tolerance). It also checks EPUB XML and exact figure inclusion. Its PDF, EPUB and page image
 are proofs, not released artifacts.
 
@@ -75,3 +75,9 @@ The Chapter 0 map preserves all reviewed lifecycle edges, wraps long names and
 omits field labels. The adjacent class guide is handwritten teaching: its exact
 node coverage is checked rather than replaced with generated comments. The
 printed vocabulary must remain complete even when a reader cannot follow links.
+
+`context-views.json` selects the types and layout for the two supplemental print
+sheets. Stored arrows are derived from the same declaration graph; subtype arrows
+are derived from parsed base classes. This selection is not another ownership
+registry. Context state and its Part vocabulary belong in the printed onboarding
+material even though value-like records have no explicit destruction lifecycle.

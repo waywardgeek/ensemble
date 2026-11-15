@@ -1,0 +1,49 @@
+{
+  "context": {
+    "title": "Context and recorded changes",
+    "types": [
+      "Agent",
+      "History",
+      "HistorySnapshot",
+      "Context",
+      "Event",
+      "Entry",
+      "Part",
+      "MemoryEntry",
+      "Usage",
+      "PendingCompression",
+      "CompressionLaunch",
+      "CompressionOutcome",
+      "MeterEntry",
+      "UsageIdentity"
+    ],
+    "inheritance": false,
+    "rankdir": "TB"
+  },
+  "contents": {
+    "title": "Conversation contents",
+    "types": [
+      "Entry",
+      "Part",
+      "TextPart",
+      "ToolCallPart",
+      "ToolResultPart",
+      "OpaquePart",
+      "BlobPart",
+      "SkillPart",
+      "RecallPart",
+      "HandoffPart",
+      "RedactedPart",
+      "Provenance",
+      "BlobRef",
+      "RecallAttachment",
+      "JobInfo",
+      "WorkProductInfo",
+      "DirectoryListing",
+      "FileEvidence",
+      "SearchEvidence"
+    ],
+    "inheritance": true,
+    "rankdir": "LR"
+  }
+}

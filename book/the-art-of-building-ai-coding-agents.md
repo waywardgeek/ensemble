@@ -815,6 +815,123 @@ Event, Context and Usage carry facts without acquiring a parent back-reference
 for every holder. Garbage collection can reclaim those values; it cannot perform
 the cancellation, joining and two-way detachment required by the ownership graph.
 
+### The context is part of the vocabulary, too
+
+The ownership map is only one sheet of the architecture. The conversation data
+matters just as much when discussing how an Agent works. Follow
+**Agent → History → Context → Entry → Part** on the next sheets. History keeps
+recorded events and the current Context; Context holds dialogue entries, and
+entries hold typed content parts. Context also holds one-request parts directly,
+memories, accumulated usage, execution phase and compression bookkeeping.
+
+An individual Context value is immutable, but History's current state changes.
+Applying an event produces a replacement Context. Existing entries and payloads
+can be shared; this is not a deep copy of all the conversation text. The current
+reducer does copy collection references, and the memory constructor sorts and
+validates them. Immutability alone is not a claim of constant-time updates.
+History stages the replacement and flushes its journal before publishing it.
+Replaying recorded events reconstructs state; it does not rerun external tools.
+
+The next sheet includes snapshots and compression receipts because they retain
+references to this state. Its gray arrows are **stored data references**, not
+weak lifecycle relationships. Value-like objects need no reverse membership for
+every holder. The diagrams show relationships among their named types, not every
+primitive field or every supporting type in Common.
+
+<div class="ownership-plate">
+
+**Context and recorded changes**
+
+![Agent owns History; History and HistorySnapshot retain Context and Events. Context contains Entries, Parts, memories, usage and compression receipts. Entries and Events retain Parts; compression receipts refer to selections, events, memories and usage records.](figures/common-context.svg){.context-map}<!-- Printed legend follows; retain descriptive alternative text. -->
+
+**Heavy blue:** lifecycle ownership. **Gray:** stored data reference.<br />
+**Outlined triangle:** one slot, possibly empty. **Filled triangle:** many.
+
+Arrows describe stored relationships, not event execution order. An Event can
+carry Parts directly; applying it updates History's current Context. The Part
+box connects this sheet to the following contents sheet.
+
+</div>
+
+### The names on the context sheet
+
+<!-- common-context-classes:start -->
+
+- **Agent**: The conversation actor that owns History and controls when requests and tools execute.
+- **History**: The owner of recorded events and the current Context, with journal-before-publication updates.
+- **HistorySnapshot**: A consistent read containing retained events, a Context and sequence/checkpoint metadata.
+- **Context**: An immutable conversation-state value that History replaces as events are applied.
+- **Event**: An immutable recorded fact whose kind and payload determine its effect on conversation state.
+- **Entry**: One dialogue contribution with its actor, sequence, timing and content Parts.
+- **Part**: The shared base type for a piece of dialogue, event or one-request content.
+- **MemoryEntry**: One retained memory record with its band, identity, timestamp and text.
+- **Usage**: Recorded token counters, including separate fresh input, cache writes, cache reads and output.
+- **PendingCompression**: A replayable receipt linking a compression launch to staged removal and replacement facts.
+- **CompressionLaunch**: The identity and exact source selection of a compression attempt, not a running worker.
+- **CompressionOutcome**: The last bounded compression result, including its state and documentary usage records.
+- **MeterEntry**: Token counts paired with the billing identity to which they belong.
+- **UsageIdentity**: The vendor, model, service tier and billing mode identifying a usage record.
+
+<!-- common-context-classes:end -->
+
+### What goes inside a conversation
+
+Part is a base class, not a container that owns one instance of every variant.
+On the next sheet, dashed purple arrows point from a concrete variant to Part
+and mean **is a kind of**. They have no one/many meaning. Solid gray arrows keep
+the stored-reference notation. A ToolResultPart can itself contain Parts; that
+is real nesting, distinct from inheritance.
+
+<div class="ownership-plate">
+
+**Conversation contents**
+
+![Entry retains Parts. TextPart, ToolCallPart, ToolResultPart, OpaquePart, BlobPart, SkillPart, RecallPart, HandoffPart and RedactedPart are variants of Part. Their stored references include provenance, blob locators, recall text and tool-result metadata. ToolResultPart can contain nested Parts.](figures/common-contents.svg){.context-map}<!-- Printed legend follows; retain descriptive alternative text. -->
+
+**Solid gray:** stored reference; outlined triangle means one, filled means many.<br />
+**Dashed purple:** subtype points to its base class; no multiplicity meaning.
+
+Metadata boxes represent recorded facts, not live Jobs or download permissions.
+This sheet shows the payload boundary; metadata's internal helper records and
+primitive fields are outside this view.
+
+</div>
+
+### The names on the contents sheet
+
+<!-- common-contents-classes:start -->
+
+- **Entry**: One contribution whose Parts form its recorded content.
+- **Part**: The base vocabulary for the concrete content variants shown here.
+- **TextPart**: Text with optional provider provenance and opaque continuation metadata.
+- **ToolCallPart**: A requested operation with its call identity, name, arguments and provider provenance.
+- **ToolResultPart**: A correlated tool result containing Parts, an error flag and optional recorded metadata.
+- **OpaquePart**: Provider-owned JSON retained with provenance rather than interpreted as ordinary text.
+- **BlobPart**: A media reference with its MIME type and locator, not embedded live file ownership.
+- **SkillPart**: Recorded skill instructions, tool names and primary/pending grant state.
+- **RecallPart**: Retrieved context carried by a RecallAttachment.
+- **HandoffPart**: The retained continuation note from a context handoff.
+- **RedactedPart**: A stub describing removed content, its reason, original size and optional blob locator.
+- **Provenance**: The provider/model/wire-surface identity needed to interpret and safely replay content.
+- **BlobRef**: The kind and locator of referenced media, not authority to read arbitrary files.
+- **RecallAttachment**: The actual attached recall text and its source hashes.
+- **JobInfo**: A recorded observation of a Job, not the live running Job object.
+- **WorkProductInfo**: A recorded offered-file description, not a live download grant.
+- **DirectoryListing**: Bounded directory facts captured when the tool ran.
+- **FileEvidence**: Bounded file-operation facts used to display the actual read or change.
+- **SearchEvidence**: Bounded search matches and locations captured by the search operation.
+
+<!-- common-contents-classes:end -->
+
+The **model's context window** is a token budget, not another payload container.
+`WorkingContextLimit` stores the chosen per-model working limit and optional
+capacity ceiling. `WorkingContextStatus` reports the effective limits and latest
+accepted request's input measurement; unknown measurements stay unknown. These
+policy/status values are separate from the Context shown above. Context's Usage
+is accumulated recorded usage, not current window occupancy. Engine renders the
+conversation with configuration and request instructions into a provider request;
+the serialized request, rather than a mutable live Context, goes to transport.
+
 The repository keeps this map reproducible in `scripts/common-diagram/`.
 Roslyn extracts stored declarations from `agent/Common`; a reviewed relationship
 map supplies the cascade-delete semantics that field types alone cannot prove.
@@ -822,7 +939,7 @@ The generator checks both ends of those relationships and refuses changed
 lifecycle evidence until it is reviewed. This is a design aid, not a substitute
 for testing destruction. The [companion diagrams](../docs/common-diagrams/README.md)
 include the complete stored-data graph, subsystem views and a searchable browser;
-the printed map and class guide above stand on their own.
+the printed maps and class guides above stand on their own.
 
 ## Working through this edition
 

@@ -29,17 +29,22 @@ const path = require('node:path');
     await page.locator('#plus').click();
     const after=await page.locator('#diagram svg').evaluate(e=>e.getBoundingClientRect().width);
     assert.ok(after>before);
-    for (const name of ['history','models','memory','tools','ownership']) {
+    for (const name of ['history','models','memory','tools','ownership','context','contents']) {
       await page.locator('#view').selectOption(name);
       assert.ok(await page.locator('g.node').count()>0);
     }
+    await page.locator('#view').selectOption('context');
+    await page.locator('#search').fill('Context');
+    await page.locator('#focus').click();
+    assert.match(await page.locator('#details').innerText(), /Dialogue/);
+    assert.match(await page.locator('#details').innerText(), /History/);
     await page.locator('#fit').click();
     await page.screenshot({path:path.join(evidence,'viewer-desktop.png')});
     await page.setViewportSize({width:430,height:900});
     await page.locator('#fit').click();
     await page.screenshot({path:path.join(evidence,'viewer-phone.png')});
     assert.deepEqual(errors,[]);
-    console.log('PASS: six diagrams, type focus and source details, 156 full-graph nodes, zoom, desktop and phone rendering; no network or application connection.');
+    console.log('PASS: eight diagrams, type focus and source details, 156 full-graph nodes, zoom, desktop and phone rendering; no network or application connection.');
   } finally {
     await browser.close();
   }

@@ -2,8 +2,9 @@
 
 Start with the map and the one-line class guide in
 [Chapter 0: Learn the system’s vocabulary](../../book/chapter-00.md#learn-the-systems-vocabulary).
-The printed chapter contains the full-page map and all 28 lifecycle-type
-descriptions; these companion files are not required to understand the print copy.
+The printed chapter contains three full-page maps with matching class guides:
+lifecycle ownership, context state, and conversation contents. These companion
+files are not required to understand the print copy.
 
 ![Ensemble lifecycle ownership, showing strong and weak relationships and one-versus-many child slots.](ownership.svg)
 
@@ -12,6 +13,8 @@ descriptions; these companion files are not required to understand the print cop
 - Open `index.html` locally for the self-contained searchable viewer. GitHub shows
   HTML source rather than running the viewer; clone/download it and open the file.
 - [Lifecycle overview: SVG](ownership.svg) · [PDF](ownership.pdf)
+- [Context and recorded changes: SVG](context.svg) · [PDF](context.pdf)
+- [Conversation contents: SVG](contents.svg) · [PDF](contents.pdf)
 - [History and recorded data: SVG](history.svg) · [PDF](history.pdf)
 - [Models and authentication: SVG](models.svg) · [PDF](models.pdf)
 - [Memory and recall: SVG](memory.svg) · [PDF](memory.pdf)
@@ -35,7 +38,9 @@ Arrows run from parent/holder to child/value. Back-references appear in the
 textual details instead of duplicate reverse arrows. Multiple parents point to
 the same child box; the Agent self-edge means nested Agents, not self-ownership.
 Transport boundaries are owned/disposed without invented model back-pointers.
-Base classes and interfaces are labels, not containment arrows.
+Base classes and interfaces are labels in the ordinary views. The contents sheet
+adds dashed purple subtype-to-base arrows with no multiplicity meaning; these
+are not stored-reference or ownership arrows.
 
 The inventory is broader than the lifecycle map: immutable values, snapshots
 and supporting structures are included. “Stored” means an instance field or
@@ -53,4 +58,4 @@ inspection, not merely a regenerated picture.
 
 Run `make common-diagram DOTNET=/path/to/dotnet` from the repository root using
 existing .NET 10, Python 3 and Graphviz installations. This updates these files
-and the Chapter 0 vector figure, but never builds, installs or runs Ensemble.
+and the Chapter 0 vector figures, but never builds, installs or runs Ensemble.

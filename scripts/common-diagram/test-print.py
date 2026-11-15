@@ -5,6 +5,7 @@ Requires existing pandoc, Python PyMuPDF, Node, Chrome and Playwright. This neve
 replaces release PDFs/EPUBs or installs tooling. Outputs remain in ignored .build.
 """
 import argparse
+from collections import Counter
 import html
 import json
 from pathlib import Path
@@ -14,6 +15,7 @@ import xml.etree.ElementTree as ET
 import zipfile
 
 import pymupdf
+import generate
 
 parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument("playwright", help="Absolute path to an existing Playwright module")
@@ -40,8 +42,10 @@ subprocess.run(["pandoc", str(book / "chapter-00.md"), "--from=markdown", "--to=
 with zipfile.ZipFile(epub) as archive:
     assert archive.testzip() is None
     images = [name for name in archive.namelist() if name.endswith(".svg")]
-    assert len(images) == 1
-    assert archive.read(images[0]) == (book / "figures/common-ownership.svg").read_bytes()
+    assert len(images) == 3
+    actual_images = {archive.read(name) for name in images}
+    assert actual_images == {(book / f"figures/common-{key}.svg").read_bytes()
+                             for key in ("ownership", "context", "contents")}
     for name in archive.namelist():
         if name.endswith((".xhtml", ".opf", ".svg")):
             ET.fromstring(archive.read(name))
@@ -85,3 +89,43 @@ with pymupdf.open(pdf) as document:
         assert x0 >= 35 and x1 <= 469 and y0 >= 53 and y1 <= 673, f"Text outside print area: {span['text']}"
     map_page.get_pixmap(matrix=pymupdf.Matrix(2, 2)).save(output / "ownership-print-proof.png")
     print(f"PASS: EPUB embeds exact SVG with valid XML; {len(expected)} class bullets match the map; {len(relationships)} edges; dedicated 7x10 page {map_page.number + 1}; minimum label {minimum:.2f}pt; labels and legend remain inside margins. Proof: {pdf}")
+
+# Supplemental sheets derive their expected node and edge sets from the source
+# inventory, not from whatever happened to render successfully.
+inventory = json.loads((repo / "docs/common-diagrams/inventory.json").read_text())
+reviewed = json.loads((tool / "relationships.json").read_text())
+types, edges = generate.build_graph(inventory, reviewed)
+views = json.loads((tool / "context-views.json").read_text())
+for key, view in views.items():
+    names = set(view["types"])
+    guide = chapter.split(f"<!-- common-{key}-classes:start -->", 1)[1].split(f"<!-- common-{key}-classes:end -->", 1)[0]
+    bullets = re.findall(r"^- \*\*([^*]+)\*\*: .+$", guide, re.MULTILINE)
+    assert set(bullets) == names and len(bullets) == len(names)
+    figure = ET.parse(book / f"figures/common-{key}.svg")
+    nodes = {n.find("s:title", namespace).text for n in figure.findall('.//s:g[@class="node"]', namespace)}
+    assert nodes == names
+    expected_edges = [(e["owner"], e["child"]) for e in edges if e["owner"] in names and e["child"] in names]
+    if view["inheritance"]:
+        expected_edges.extend((name, base) for name in names for base in types[name]["bases"] if base in names)
+    actual_edges = [tuple(n.find("s:title", namespace).text.split("->")) for n in figure.findall('.//s:g[@class="edge"]', namespace)]
+    assert Counter(actual_edges) == Counter(expected_edges), key
+    with pymupdf.open(pdf) as document:
+        pages = [p for p in document if view["title"] in p.get_text()]
+        assert len(pages) == 1, f"Dedicated {key} page"
+        page = pages[0]
+        text = page.get_text()
+        assert "The names on" not in text
+        legend = "Arrows describe stored relationships" if key == "context" else "Metadata boxes represent recorded facts"
+        assert legend in text
+        compact = re.sub(r"\s+", "", text)
+        for name in names:
+            assert name in compact, f"Missing {key} printed label: {name}"
+        spans = [s for b in page.get_text("dict")["blocks"] for l in b.get("lines", []) for s in l["spans"] if s["text"].strip()]
+        labels = [s for s in spans if "Helvetica" in s["font"] or "Arial" in s["font"]]
+        minimum = min(s["size"] for s in labels)
+        assert minimum >= 9.9, (key, minimum)
+        for span in spans:
+            x0, y0, x1, y1 = span["bbox"]
+            assert x0 >= 35 and x1 <= 469 and y0 >= 53 and y1 <= 673, (key, span["text"], span["bbox"])
+        page.get_pixmap(matrix=pymupdf.Matrix(2, 2)).save(output / f"{key}-print-proof.png")
+        print(f"PASS: {key}: {len(names)} types and matching bullets; {len(expected_edges)} arrows; page {page.number + 1}; minimum {minimum:.2f}pt; printed legend and margins intact.")

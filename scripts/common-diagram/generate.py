@@ -97,11 +97,11 @@ def dot_graph(title, names, edges, types, lifecycle):
     return "\n".join(lines) + "\n"
 
 
-def print_graph(types, relationships):
-    """Wrap labels and omit field labels; preserve every lifecycle edge for print."""
-    names = {e[key] for e in relationships for key in ("owner", "child")}
+def print_graph(types, relationships, selected_names=None, inheritance=False, rankdir="LR"):
+    """Wrap labels for print, preserving all supplied edges and optional subtypes."""
+    names = set(selected_names) if selected_names is not None else {e[key] for e in relationships for key in ("owner", "child")}
     lines = ["digraph Print {",
-             'graph [rankdir=LR, pad=0.05, nodesep=0.12, ranksep=0.22, splines=spline, outputorder=edgesfirst];',
+             f'graph [rankdir={rankdir}, pad=0.05, nodesep=0.12, ranksep=0.22, splines=spline, outputorder=edgesfirst];',
              'node [shape=box, style="rounded,filled", fillcolor="white", color="black", fontname="Helvetica", fontsize=20, margin="0.07,0.05"];',
              'edge [arrowsize=1.1];']
     for name in sorted(names):
@@ -126,6 +126,13 @@ def print_graph(types, relationships):
         constraint = "false" if e["kind"] == "weak" else "true"
         color = COLORS[e["kind"]]
         lines.append(f'{quote(e["owner"])} -> {quote(e["child"])} [penwidth={width}, color={quote(color)}, arrowhead={arrow}, constraint={constraint}];')
+    if inheritance:
+        # Generalization is not containment: keep it visually distinct and
+        # derive it from declarations, never from an invented ownership edge.
+        for name in sorted(names):
+            for base in types[name]["bases"]:
+                if base in names:
+                    lines.append(f'{quote(name)} -> {quote(base)} [style=dashed, color="#704090", arrowhead=empty, constraint=false];')
     lines.append("}")
     return "\n".join(lines) + "\n"
 
@@ -186,6 +193,22 @@ def main():
     figure = args.repository / "book/figures/common-ownership.svg"
     figure.parent.mkdir(parents=True, exist_ok=True)
     subprocess.run(["dot", "-Tsvg", str(out / "ownership-print.dot"), "-o", str(figure)], check=True)
+    # These are focused printed sheets, not a second relationship authority.
+    # All stored links between selected types come from the same graph above.
+    context_views = json.loads((source / "context-views.json").read_text())
+    for key, view in context_views.items():
+        names = set(view["types"])
+        if not names <= types.keys():
+            raise ValueError(f"Unknown type in {key} sheet: {names - types.keys()}")
+        selected = [e for e in edges if e["owner"] in names and e["child"] in names]
+        diagram = print_graph(types, selected, names, view["inheritance"], view["rankdir"])
+        dot_path = out / f"{key}-print.dot"
+        dot_path.write_text(diagram)
+        for extension in ("svg", "pdf"):
+            subprocess.run(["dot", f"-T{extension}", str(dot_path), "-o", str(out / f"{key}.{extension}")], check=True)
+        (args.repository / f"book/figures/common-{key}.svg").write_bytes((out / f"{key}.svg").read_bytes())
+        svg = (out / f"{key}.svg").read_text()
+        svgs[key] = svg[svg.index("<svg"):]
     table = ["# Ensemble Common relationships", "", "Generated from source declarations plus reviewed lifecycle semantics.", "", "One means one slot, possibly null; many means a collection. Gray data links do not assert destruction ownership. Reverse memberships are not drawn twice.", "", "| Parent / holder | Field | Child / value | Kind | Multiplicity | Reverse field | Declaration |", "|---|---|---|---|---|---|---|"]
     for e in edges:
         loc = e["source"]
@@ -196,7 +219,7 @@ def main():
     # Prevent a source comment from ending the JSON script element.
     encoded = json.dumps(payload).replace("<", "\\u003c").replace(">", "\\u003e").replace("&", "\\u0026")
     (out / "index.html").write_text(template.replace("__GRAPH_DATA__", encoded))
-    print(f"Generated {len(views)} SVG/PDF views; {len(types)} nonstatic types, {len(edges)} arrows, {len(reviewed['relationships'])} reviewed lifecycle relationships.")
+    print(f"Generated {len(svgs)} SVG/PDF views; {len(types)} nonstatic types, {len(edges)} arrows, {len(reviewed['relationships'])} reviewed lifecycle relationships.")
 
 
 if __name__ == "__main__":

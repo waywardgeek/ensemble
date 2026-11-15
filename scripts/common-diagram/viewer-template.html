@@ -6,7 +6,7 @@
 <header><h1>Ensemble Common: data relationships</h1>
 <p class="legend"><span class="strong">Heavy blue = cascade-delete</span> · <span class="weak">Thin orange = weak</span> · <span class="data">Gray = stored data, not an ownership claim</span><br>Open triangle = one slot, possibly null · Filled triangle = potentially many · Parent/holder → child/value</p>
 <div class="controls">
-<label>Diagram<select id="view"><option value="ownership">Lifecycle overview</option><option value="history">History and recorded data</option><option value="models">Models and authentication</option><option value="memory">Memory and recall</option><option value="tools">Tools, jobs and MCP</option><option value="all">All Common structures</option></select></label>
+<label>Diagram<select id="view"><option value="ownership">Lifecycle overview</option><option value="context">Context and recorded changes</option><option value="contents">Conversation contents (dashed = subtype)</option><option value="history">History and recorded data</option><option value="models">Models and authentication</option><option value="memory">Memory and recall</option><option value="tools">Tools, jobs and MCP</option><option value="all">All Common structures</option></select></label>
 <label>Find a type<input id="search" list="types" placeholder="Agent, History, Model…" autocomplete="off"><datalist id="types"></datalist></label>
 <button id="focus">Focus type</button><button id="clear">Clear focus</button><button id="minus" aria-label="Zoom out">−</button><button id="plus" aria-label="Zoom in">+</button><button id="fit">Fit width</button><button id="actual">100%</button>
 </div><p id="status" aria-live="polite"></p></header>
