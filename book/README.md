@@ -141,8 +141,8 @@ because the command-line renderer wrote a PDF but exited nonzero on teardown.
 Outputs are the assembled Markdown, EPUB, coverless **Print Interior.pdf**, and
 **The Art of Building AI Coding Agents.pdf** with the cover for free reading.
 `interior-print.html` is the intermediate print input. Existing cover artwork is
-reused as requested. The current coverless interior is **555 pages at 7 × 10
-inches**; the covered reading PDF is **556 pages**. The bottom body margin is 47 points,
+reused as requested. The current coverless interior is **545 pages at 7 × 10
+inches**; the covered reading PDF is **546 pages**. The bottom body margin is 47 points,
 reclaiming half a 14-point line from
 the former footer space; page-number baselines remain 24 points above the edge.
 The Preface uses lowercase Roman page numbers. Chapter 0 starts on a right-hand

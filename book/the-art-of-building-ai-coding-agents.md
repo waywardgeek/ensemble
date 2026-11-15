@@ -7567,15 +7567,13 @@ grade-edition2 -ch 7 -executable-only \
   /absolute/path/to/gui-launcher
 ```
 
-This route covers 80 points: wire behavior, reconnect replay, GUI trace, and
-pause semantics. It excludes inherited Chapter 6 scoring and Go topology
-checks. The full historical Go route remains available and unchanged in scope.
-Neither route establishes accessible speech quality or real provider acceptance.
-These historical points do not certify the added snippet-copy obligations.
-Use focused browser tests for that contract here. The named Artifacts grader
-covers snippet copying in the later integrated runtime; its later Agent and GUI
-APIs are not prerequisites for this early chapter. Student reconstruction and
-human usability remain distinct from either set of checks.
+This 80-point route covers wire behavior, reconnect replay, GUI trace and pause
+semantics, not inherited Chapter 6 scoring or Go topology. The historical Go
+route is unchanged. Neither certifies accessible speech, real providers or the
+added snippet-copy contract; use focused browser tests for that contract. The
+later Artifacts grader covers integrated copying, but its Agent and GUI APIs
+are not prerequisites here. Student reconstruction and human usability remain
+separate checks.
 
 For a human exercise, use a bounded task in the owned workspace. Watch a
 response stream, inspect thinking and tool details, send a hint, pause and
@@ -7583,11 +7581,10 @@ unpause, and interrupt while paused. Reconnect while work continues. Listen to
 individual full artifacts and try automatic narration if authorized. Keep the
 actual logs and describe failures honestly.
 
-The C# endpoint's offline protocol, browser, and fake-speech evidence is recorded
-in `docs/edition-3-csharp-progress.md`. Paid-provider work and audible-user
-verification must remain explicitly incomplete when they have not been done.
-A green grade is evidence for its checks, not a replacement for these boundaries
-or for an inspection of the ownership and call paths.
+The C# offline protocol, browser and fake-speech evidence is in
+`docs/edition-3-csharp-progress.md`. Keep unperformed paid-provider and audible-user
+checks explicitly incomplete. A passing grade does not replace those checks or
+inspection of ownership and call paths.
 
 ---
 
@@ -22042,16 +22039,13 @@ Their work remains theirs, even when its lessons become part of this book.
 
 ## More books, different responsibilities
 
-Bill's closing note describes the next direction: Puffin, Watchtower and other
-systems whose responsibilities extend beyond a coding workspace. Those projects
-will ask questions this book has prepared us to investigate, not questions it has
-already answered.
+Bill's closing note turns toward Puffin, Watchtower and systems beyond a coding
+workspace. This book prepares us to investigate their questions, not claim we
+have already answered them.
 
-A useful system and a carefully written account of how to construct it can give
-another collaborator a starting point that source code alone may not provide.
-Readers can improve those accounts, choose different projects and bring expertise
-we do not have. Corrections and further editions are part of keeping this book
-useful, not reasons to deny that we have built something worth using.
+Working software and an account of how to build it give the next collaborator
+more than source alone. Readers can improve that account and bring expertise we
+lack. Further corrections keep the book useful without diminishing what we built.
 
 Bill gave an agent a book. That agent helped build its successor. Working inside
 the successor, we made both the system and its teaching better.

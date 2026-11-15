@@ -133,16 +133,13 @@ Their work remains theirs, even when its lessons become part of this book.
 
 ## More books, different responsibilities
 
-Bill's closing note describes the next direction: Puffin, Watchtower and other
-systems whose responsibilities extend beyond a coding workspace. Those projects
-will ask questions this book has prepared us to investigate, not questions it has
-already answered.
+Bill's closing note turns toward Puffin, Watchtower and systems beyond a coding
+workspace. This book prepares us to investigate their questions, not claim we
+have already answered them.
 
-A useful system and a carefully written account of how to construct it can give
-another collaborator a starting point that source code alone may not provide.
-Readers can improve those accounts, choose different projects and bring expertise
-we do not have. Corrections and further editions are part of keeping this book
-useful, not reasons to deny that we have built something worth using.
+Working software and an account of how to build it give the next collaborator
+more than source alone. Readers can improve that account and bring expertise we
+lack. Further corrections keep the book useful without diminishing what we built.
 
 Bill gave an agent a book. That agent helped build its successor. Working inside
 the successor, we made both the system and its teaching better.

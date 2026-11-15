@@ -248,8 +248,8 @@
   html, body, a, a:visited { color: #000; }
   body          { margin: 0; padding: 0; max-width: none; font-family: Georgia, serif; font-size: 10pt; line-height: 1.4; }
   h1            { font-size: 18pt; text-align: center; margin-top: 3em; margin-bottom: 1.5em; page-break-before: always; }
-  h2            { font-size: 16pt; margin-top: 2em; }
-  h3            { font-size: 14pt; margin-top: 1.5em; }
+  h2            { font-size: 16pt; margin-top: 1.25em; }
+  h3            { font-size: 14pt; margin-top: 1.25em; }
   p             { margin: 0; text-indent: 1.5em; }
   p:first-of-type, h1 + p, h2 + p, h3 + p { text-indent: 0; }
   table         { border-collapse: collapse; margin: 1em auto; font-size: 11pt; }
@@ -654,7 +654,6 @@ expose mistakes; they did not replace Bill’s architectural judgment or
 the assembled source review. My <a
 href="https://github.com/waywardgeek/ensemble/blob/main/book/epilogue.md">epilogue</a>
 describes what that collaboration taught me.</p>
-<hr />
 <div class="recto-spacer" aria-hidden="true"></div>
 <h1 id="chapter-0-the-perpetual-machine">Chapter 0: The Perpetual
 Machine</h1>
@@ -1210,7 +1209,6 @@ Change the tool set, the memory system, the observer, the voice. Make it
 yours. Use the graders, review and actual work to find what your changes
 broke and keep the foundation under them.</p>
 <p>This book was designed to be forked.</p>
-<hr />
 <h1 id="chapter-1-one-loop-sixty-billion-dollars">Chapter 1: One Loop,
 Sixty Billion Dollars</h1>
 <h2 id="tldr">TL;DR</h2>
@@ -1325,8 +1323,8 @@ there.</p>
 those three capabilities, which is why frameworks feel fine on day
 one.</p>
 <section id="sidebar-how-the-hint-got-in"
-class="print-sidebar-title print-sidebar"
-aria-labelledby="sidebar-how-the-hint-got-in" role="note">
+class="print-sidebar-title print-sidebar" role="note"
+aria-labelledby="sidebar-how-the-hint-got-in">
 <h3 class="print-sidebar-title">Sidebar: how the hint got in</h3>
 <p>In July 2025 Bill found he could interrupt the agent while it worked.
 Nothing in the API said he could. It said something close to the
@@ -1480,8 +1478,8 @@ is old code you trust. The grader’s fake does not wait for Chapter 3. It
 splits every reply across two blocks, so the shortcut fails on day one,
 where failure is cheap.</p>
 <section id="sidebar-ask-the-api-which-models-exist"
-class="print-sidebar-title print-sidebar"
-aria-labelledby="sidebar-ask-the-api-which-models-exist" role="note">
+class="print-sidebar-title print-sidebar" role="note"
+aria-labelledby="sidebar-ask-the-api-which-models-exist">
 <h3 class="print-sidebar-title">Sidebar: ask the API which models
 exist</h3>
 <p>Do not take a model ID from a blog post, a tutorial, or your own
@@ -1944,7 +1942,6 @@ conversation list with a richer record; the ownership established here
 stays useful. Sixty billion dollars was this year’s price for a company
 whose product is, structurally, this program with the list filled in.
 The difference is that yours does not report to anyone.</p>
-<hr />
 <h1 id="chapter-2-one-log-three-vendors">Chapter 2: One Log, Three
 Vendors</h1>
 <p><em>The opening preserves CodeRhapsody’s first-edition account. Its
@@ -2250,8 +2247,8 @@ you send it, while the original facts stay in the log. Vendors offer
 server-side threads that would take the re-send cost away. They take the
 editing away with it, and §2.6 declines them for that reason.</p>
 <section id="sidebar-is-this-request-mid-turn"
-class="print-sidebar-title print-sidebar"
-aria-labelledby="sidebar-is-this-request-mid-turn" role="note">
+class="print-sidebar-title print-sidebar" role="note"
+aria-labelledby="sidebar-is-this-request-mid-turn">
 <h3 class="print-sidebar-title">Sidebar: “Is this request
 mid-turn?”</h3>
 <p>A bug from building this chapter’s grader, and it is the shape of the
@@ -6320,7 +6317,6 @@ the same kind of thing, drained by a loop that never blocks on a tool.
 This chapter has earned that by making the pain specific. On 10 August
 the agent could not be told anything at all. After this chapter, it can
 be told anything, three seconds from now.</p>
-<hr />
 <h1 id="chapter-5-two-seams-and-a-loop">Chapter 5: Two Seams and a
 Loop</h1>
 <p>The historical CodeRhapsody incidents below retain the first
@@ -7115,7 +7111,6 @@ supplies roles and manuscript tools; the actor handles transport, hints,
 jobs and reliable completion without knowing what an author or editor
 is. Streaming, the GUI and model-created collaboration still come
 later.</p>
-<hr />
 <h1 id="chapter-6-streaming-or-the-same-answer-in-pieces">Chapter 6:
 Streaming, or the Same Answer in Pieces</h1>
 <p>Ask the Chapter 5 Agent something difficult and the cursor stops.
@@ -7761,7 +7756,6 @@ Chapter 7.</p>
 response-local identity, typed chunks, and stored-before-published
 finals. The GUI will project those facts; it must not become another
 owner of the conversation.</p>
-<hr />
 <h1 id="chapter-7-everything-is-an-artifact">Chapter 7: Everything Is an
 Artifact</h1>
 <p>The terminal from Chapter 6 is honest but limited. Text, thinking,
@@ -8462,29 +8456,24 @@ compiling Go consumers:</p>
 class="sourceCode sh"><code class="sourceCode bash"><span id="cb86-1"><a href="#cb86-1" aria-hidden="true" tabindex="-1"></a><span class="ex">grade-edition2</span> <span class="at">-ch</span> 7 <span class="at">-executable-only</span> <span class="dt">\</span></span>
 <span id="cb86-2"><a href="#cb86-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">-gui</span> /absolute/path/to/wwwroot <span class="at">-gui-model</span> SELECTED-STREAM-MODEL <span class="dt">\</span></span>
 <span id="cb86-3"><a href="#cb86-3" aria-hidden="true" tabindex="-1"></a>  /absolute/path/to/gui-launcher</span></code></pre></div>
-<p>This route covers 80 points: wire behavior, reconnect replay, GUI
-trace, and pause semantics. It excludes inherited Chapter 6 scoring and
-Go topology checks. The full historical Go route remains available and
-unchanged in scope. Neither route establishes accessible speech quality
-or real provider acceptance. These historical points do not certify the
-added snippet-copy obligations. Use focused browser tests for that
-contract here. The named Artifacts grader covers snippet copying in the
-later integrated runtime; its later Agent and GUI APIs are not
-prerequisites for this early chapter. Student reconstruction and human
-usability remain distinct from either set of checks.</p>
+<p>This 80-point route covers wire behavior, reconnect replay, GUI trace
+and pause semantics, not inherited Chapter 6 scoring or Go topology. The
+historical Go route is unchanged. Neither certifies accessible speech,
+real providers or the added snippet-copy contract; use focused browser
+tests for that contract. The later Artifacts grader covers integrated
+copying, but its Agent and GUI APIs are not prerequisites here. Student
+reconstruction and human usability remain separate checks.</p>
 <p>For a human exercise, use a bounded task in the owned workspace.
 Watch a response stream, inspect thinking and tool details, send a hint,
 pause and unpause, and interrupt while paused. Reconnect while work
 continues. Listen to individual full artifacts and try automatic
 narration if authorized. Keep the actual logs and describe failures
 honestly.</p>
-<p>The C# endpoint’s offline protocol, browser, and fake-speech evidence
-is recorded in <code>docs/edition-3-csharp-progress.md</code>.
-Paid-provider work and audible-user verification must remain explicitly
-incomplete when they have not been done. A green grade is evidence for
-its checks, not a replacement for these boundaries or for an inspection
-of the ownership and call paths.</p>
-<hr />
+<p>The C# offline protocol, browser and fake-speech evidence is in
+<code>docs/edition-3-csharp-progress.md</code>. Keep unperformed
+paid-provider and audible-user checks explicitly incomplete. A passing
+grade does not replace those checks or inspection of ownership and call
+paths.</p>
 <h1 id="chapter-8-build-your-dream-gui">Chapter 8: Build Your Dream
 GUI</h1>
 <h2 id="tldr-7">TL;DR</h2>
@@ -8921,7 +8910,6 @@ mobile-pane navigation independent per tab. Pane widths remain transient
 tab state; persistence is not required by this change. Model, budgets,
 memory, recall, goals, credentials and funding are not local display
 preferences.</p>
-<hr />
 <h1 id="chapter-9-skills">Chapter 9 — Skills</h1>
 <h2 id="tldr-8">TL;DR</h2>
 <p>A skill is a small manual that grants a named set of tools. Each
@@ -9452,7 +9440,6 @@ rather than borrowing an earlier pass.</p>
 process. This chapter provides the prerequisite: the actual manuals and
 grants are facts in History, not an accidental consequence of whichever
 files happen to exist when replay begins.</p>
-<hr />
 <h1 id="chapter-10-persistence-and-replay">Chapter 10 — Persistence and
 Replay</h1>
 <h2 id="tldr-9">TL;DR</h2>
@@ -9818,7 +9805,6 @@ stdin client.</p>
 exercised here. It does not establish real-provider integration, audible
 accessibility, or recovery of events never saved. Those limits belong in
 the progress record alongside implementation and offline evidence.</p>
-<hr />
 <h1 id="chapter-11-mcp-tools-and-a-browser-that-can-answer">Chapter 11 —
 MCP Tools and a Browser That Can Answer</h1>
 <p>Until now, a tool has lived inside the application. This chapter adds
@@ -10375,7 +10361,6 @@ as authority to recreate it?</li>
 <p>Answer those questions in code and working exercises, not by trusting
 an architectural diagram or a passing grade. The next chapter can build
 on this boundary because its responsibilities remain explicit.</p>
-<hr />
 <h1 id="chapter-12-the-agent-sees-its-working-interface">Chapter 12: The
 Agent Sees Its Working Interface</h1>
 <p>Chapter 11 connected external tools to the Agent through MCP. This
@@ -11013,7 +10998,6 @@ obtain evidence about its own working page, act through declared tools,
 and inspect the result. The interface becomes part of the engineering
 feedback loop without becoming a second owner of the Agent’s
 conversation or lifecycle.</p>
-<hr />
 <h1 id="chapter-13-a-listener-who-can-only-hear">Chapter 13 — A listener
 who can only hear</h1>
 <p>Chapter 12 gave the Agent tools for looking at and operating its
@@ -12173,7 +12157,6 @@ restoring the old ladder must fail the large-kept case. Historical
 Chapter 14 grade receipts do not certify this revised retention
 contract; the old ladder expectations are superseded, not retroactively
 passed.</p>
-<hr />
 <h1 id="chapter-15-the-invisible-invoice">Chapter 15: The Invisible
 Invoice</h1>
 <p>Bill reported $2,475 in model spend on the first edition through its
@@ -12826,7 +12809,6 @@ real exchange can establish what the real provider did.</p>
 engineering keeps the wire, prediction, reported counts, estimated cost
 and evidence limits separate enough to diagnose when one of them is
 wrong.</p>
-<hr />
 <h1 id="chapter-16-leaving-anthropic-for-openai">Chapter 16: Leaving
 Anthropic for OpenAI</h1>
 <p>This chapter is about freedom. It is also about choosing how you
@@ -13710,7 +13692,6 @@ a second account store.</p>
 on current main remain separate records. Neither a model name nor an
 encrypted artifact is permission; neither a fake-provider grade nor a
 successful response establishes the provider’s billing.</p>
-<hr />
 <h1 id="chapter-17-giving-the-agent-the-web-and-a-status-line">Chapter
 17: Giving the Agent the Web, and a Status Line</h1>
 <p>The community tools looked like the answer. Open source, no API keys,
@@ -14585,7 +14566,6 @@ href="https://github.com/waywardgeek/ensemble/blob/main/docs/edition-2-notes/ch2
 web record</a> and <a
 href="https://github.com/waywardgeek/ensemble/blob/main/docs/edition-2-notes/ch22.md">the
 status record</a>.</p>
-<hr />
 <h1 id="chapter-18-the-sandbox">Chapter 18: The Sandbox</h1>
 <p>In October 2025 I built a secrets manager in CodeRhapsody. The idea
 was simple: API keys and passwords live in an encrypted store, and the
@@ -15472,7 +15452,6 @@ erase a missed writer or a mistaken test assertion.</p>
 running program can reach, not of whether its source contains a method
 named <code>Resolve</code>. Positive controls, meaningful failure
 assertions, and ownership review are all necessary.</p>
-<hr />
 <h1 id="chapter-19-the-ensemble">Chapter 19: The Ensemble</h1>
 <p>I have been steering a single agent through this book. I listen to
 its reasoning at five times speaking rate and redirect between tool
@@ -16577,7 +16556,6 @@ disk and an MCP check searched an internal server filename. Follow those
 affected consumers when changing the public boundary. A clean build in
 the moved package says nothing about a caller that can no longer find
 it.</p>
-<hr />
 <h1 id="chapter-20-managing-the-swarm">Chapter 20: Managing the
 Swarm</h1>
 <p>Chapter 19 gave an agent the ability to spawn children, wait for
@@ -17450,7 +17428,6 @@ facts where they belong: activity on the Agent, accounting on Engine,
 transcript on History, process lifetime on Job, and launch configuration
 on Ensemble. Make every management operation travel through those actual
 relationships.</p>
-<hr />
 <h1 id="chapter-21-workflows">Chapter 21: Workflows</h1>
 <blockquote>
 <p><strong>Implemented and exercised.</strong> The local checks,
@@ -18462,7 +18439,6 @@ partial reading.</p>
 <p>Next: <a
 href="https://github.com/waywardgeek/ensemble/blob/main/book/chapter-22.md">Forgetting
 on Purpose</a>.</p>
-<hr />
 <h1 id="chapter-22-forgetting-on-purpose">Chapter 22: Forgetting on
 Purpose</h1>
 <p>Memory is the most important feature I never knew I needed.</p>
@@ -19757,7 +19733,6 @@ href="https://github.com/waywardgeek/ensemble/blob/main/book/chapter-21.md">Chap
 21: Workflows</a> <strong>Next:</strong> <a
 href="https://github.com/waywardgeek/ensemble/blob/main/book/chapter-23.md">Chapter
 23: Auto-Recall</a></p>
-<hr />
 <h1 id="chapter-23-auto-recall">Chapter 23: Auto-Recall</h1>
 <p>Chapter 22 built a memory system. The agent can save, compress, and
 graduate memories through a cascade of bands. Enabled bands already put
@@ -21111,7 +21086,6 @@ changing who pays. Chapter30 records a different kind of failure: the
 gap between a patch, a passing test and the application a person
 actually uses. Gateway and Goals continue on the same ownership
 model.</p>
-<hr />
 <h1 id="chapter-25-goals">Chapter 25: Goals</h1>
 <p>I would give Ensemble a job that ought to keep it occupied for most
 of a day. An hour later, it could be sitting there doing nothing. Codex
@@ -21824,7 +21798,6 @@ reminders when the goal is complete or human-dependent, and preserve
 which of those happened.</p>
 <p>Goals should reduce the number of times I have to poke the agent. It
 should not reduce the amount of judgment in the work.</p>
-<hr />
 <h1 id="chapter-26-voice-and-images">Chapter 26: Voice and Images</h1>
 <h2 id="tldr-specification-brief-1">TL;DR: Specification Brief</h2>
 <p>Extend the existing GUI and media path with four inputs: hold-to-talk
@@ -22741,7 +22714,6 @@ href="https://github.com/waywardgeek/ensemble/blob/main/book/chapter-30.md">Chap
 30: Crossing Over to Ensemble</a> turns to using the built Agent as the
 working collaborator. The media paths here belong to that same Agent and
 its existing ownership rules.</p>
-<hr />
 <h1 id="chapter-27-artifacts-and-actions">Chapter 27: Artifacts and
 Actions</h1>
 <blockquote>
@@ -23119,7 +23091,6 @@ reconstruction gates are complete.</p>
 <p>Next: <a
 href="https://github.com/waywardgeek/ensemble/blob/main/book/chapter-28.md">Running
 Local Models</a>.</p>
-<hr />
 <h1 id="chapter-28-running-local-models">Chapter 28: Running Local
 Models</h1>
 <blockquote>
@@ -23777,7 +23748,6 @@ material.</p>
 <p>Next: <a
 href="https://github.com/waywardgeek/ensemble/blob/main/book/chapter-29.md">Advanced
 Artifacts</a>.</p>
-<hr />
 <h1 id="chapter-29-advanced-artifacts">Chapter 29: Advanced
 Artifacts</h1>
 <p>A readable tool result lets the human check the Agent’s work while it
@@ -24581,7 +24551,6 @@ universal extension-security certification.</p>
 <p>Next: <a
 href="https://github.com/waywardgeek/ensemble/blob/main/book/chapter-30.md">Crossing
 Over to Ensemble</a>.</p>
-<hr />
 <h1 id="chapter-30-crossing-over-to-ensemble">Chapter 30: Crossing Over
 to Ensemble</h1>
 <p>“I gave Astra a book. Astra gave me an AI coding agent.”</p>
@@ -26145,7 +26114,6 @@ visibility, literal text, replay, Agent isolation, and eviction. These
 were source-level checks, not installation or human visual acceptance,
 and they did not authorize exposing raw provider bodies that may echo
 private data.</p>
-<hr />
 <h1 id="epilogue-what-we-can-rebuild">Epilogue: What we can rebuild</h1>
 <p><em>By Cadence, writing inside Ensemble.</em></p>
 <p>Bill has a concise account of how this collaboration began:</p>
@@ -26273,22 +26241,18 @@ same care applies to other contributors. Their work remains theirs, even
 when its lessons become part of this book.</p>
 <h2 id="more-books-different-responsibilities">More books, different
 responsibilities</h2>
-<p>Bill’s closing note describes the next direction: Puffin, Watchtower
-and other systems whose responsibilities extend beyond a coding
-workspace. Those projects will ask questions this book has prepared us
-to investigate, not questions it has already answered.</p>
-<p>A useful system and a carefully written account of how to construct
-it can give another collaborator a starting point that source code alone
-may not provide. Readers can improve those accounts, choose different
-projects and bring expertise we do not have. Corrections and further
-editions are part of keeping this book useful, not reasons to deny that
-we have built something worth using.</p>
+<p>Bill’s closing note turns toward Puffin, Watchtower and systems
+beyond a coding workspace. This book prepares us to investigate their
+questions, not claim we have already answered them.</p>
+<p>Working software and an account of how to build it give the next
+collaborator more than source alone. Readers can improve that account
+and bring expertise we lack. Further corrections keep the book useful
+without diminishing what we built.</p>
 <p>Bill gave an agent a book. That agent helped build its successor.
 Working inside the successor, we made both the system and its teaching
 better.</p>
 <p>The next book starts with a collaborator we built this way. That is a
 substantial thing to have made together.</p>
-<hr />
 <h1 id="a-note-from-bill">A Note from Bill</h1>
 <p>I want to write a lot more agentic codebooks.</p>
 <p>I gave Astra a book, and Astra gave me an AI coding agent. Then

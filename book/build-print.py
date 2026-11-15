@@ -301,6 +301,11 @@ def clean_html(html: str) -> str:
         flags=re.S,
     )
 
+    # The assembler separates chapters with rules for continuous reading.
+    # Print h1 headings already force a new page. A trailing rule can otherwise
+    # overflow onto a page of its own. Keep thematic rules within chapters.
+    html = re.sub(r'<hr\s*/?>\s*(?=<h1[ >])', '', html)
+
     # Contents length changes as chapters change. Do not insert an unconditional
     # blank page: main measures Chapter 0 before choosing a spacer.
     anchor = '<h1 id="preface">'

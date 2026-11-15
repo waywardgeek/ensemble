@@ -643,15 +643,13 @@ grade-edition2 -ch 7 -executable-only \
   /absolute/path/to/gui-launcher
 ```
 
-This route covers 80 points: wire behavior, reconnect replay, GUI trace, and
-pause semantics. It excludes inherited Chapter 6 scoring and Go topology
-checks. The full historical Go route remains available and unchanged in scope.
-Neither route establishes accessible speech quality or real provider acceptance.
-These historical points do not certify the added snippet-copy obligations.
-Use focused browser tests for that contract here. The named Artifacts grader
-covers snippet copying in the later integrated runtime; its later Agent and GUI
-APIs are not prerequisites for this early chapter. Student reconstruction and
-human usability remain distinct from either set of checks.
+This 80-point route covers wire behavior, reconnect replay, GUI trace and pause
+semantics, not inherited Chapter 6 scoring or Go topology. The historical Go
+route is unchanged. Neither certifies accessible speech, real providers or the
+added snippet-copy contract; use focused browser tests for that contract. The
+later Artifacts grader covers integrated copying, but its Agent and GUI APIs
+are not prerequisites here. Student reconstruction and human usability remain
+separate checks.
 
 For a human exercise, use a bounded task in the owned workspace. Watch a
 response stream, inspect thinking and tool details, send a hint, pause and
@@ -659,8 +657,7 @@ unpause, and interrupt while paused. Reconnect while work continues. Listen to
 individual full artifacts and try automatic narration if authorized. Keep the
 actual logs and describe failures honestly.
 
-The C# endpoint's offline protocol, browser, and fake-speech evidence is recorded
-in `docs/edition-3-csharp-progress.md`. Paid-provider work and audible-user
-verification must remain explicitly incomplete when they have not been done.
-A green grade is evidence for its checks, not a replacement for these boundaries
-or for an inspection of the ownership and call paths.
+The C# offline protocol, browser and fake-speech evidence is in
+`docs/edition-3-csharp-progress.md`. Keep unperformed paid-provider and audible-user
+checks explicitly incomplete. A passing grade does not replace those checks or
+inspection of ownership and call paths.

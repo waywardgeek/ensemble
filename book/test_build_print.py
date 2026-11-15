@@ -52,6 +52,15 @@ class PrintBuildTests(unittest.TestCase):
         self.assertNotIn('class="recto-spacer"', clean)
         self.assertIn('Actual prose', clean)
 
+    def test_chapter_separator_cannot_create_a_print_only_page(self):
+        html = ('<h1 id="preface">Preface</h1><p>Front prose</p>'
+                '<hr />\n<h1 id="chapter-0">Chapter 0</h1>'
+                '<p>First thought</p><hr /><p>Second thought</p>')
+        clean = build.clean_html(html)
+        self.assertNotIn('<hr />\n<h1', clean)
+        self.assertIn('<p>First thought</p><hr /><p>Second thought</p>', clean)
+        self.assertIn('<h1 id="chapter-0">Chapter 0</h1>', clean)
+
     def test_measured_recto_spacer_preserves_already_correct_layout(self):
         html = '<h1 id="chapter-0-introduction">Chapter 0: Introduction</h1><p>Unchanged prose</p>'
         self.assertEqual(build.recto_chapter_html(html, 5, "chapter-0-introduction"), html)
