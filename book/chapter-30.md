@@ -1225,6 +1225,104 @@ recorded an authorized installed-page check. Cadence's subsequent source review
 was not a second live test. A display bound is neither journal deletion nor a
 fixed total-memory guarantee for an indefinitely running Agent.
 
+### Lessons reserved for the next edition: bounded lifetime and communication
+
+Bill subsequently described a more serious failure during the novel work:
+Ensemble exhausted available memory and the whole machine became unresponsive.
+He had to hold the power button to turn it off; reboot took longer while, in his
+account, the system repaired disk state. This is his report of the failure, not
+a heap-profile diagnosis of one proven allocation site. A host-wide failure is
+a safety boundary, not merely an inconvenient slow GUI. Bill expects Ensemble
+to manage a swarm potentially containing one hundred Agents.
+
+The current source still cannot promise bounded resident memory over an Agent's
+lifetime. Removing duplicated logs and introducing a state-only saved checkpoint
+were useful repairs, but they did not finish that job. The important distinctions
+are these:
+
+- History retains an event collection separately from its current Context.
+  When a handoff is recorded, it removes events older than the preceding
+  handoff. Before the second handoff, nothing is removed by this rule. Neither
+  the interval nor the payload bytes have a fixed bound.
+- Handoff reduction removes tool traffic, opaque reasoning, media and older
+  checkpoint notes from active Context. Ordinary conversation prose remains.
+  Memory compression is a separate mechanism; a token-pressure reminder is
+  not a process-memory budget.
+- HistorySnapshot is a consistent in-memory read, not the saved checkpoint.
+  It copies event references and shares the immutable Context. Readers can
+  keep removed events and their payloads reachable after History evicts them.
+  Garbage collection preserves those references correctly; it does not supply
+  a retention policy or guarantee immediate reclamation.
+- Saving writes a state-only SaveDocument. The disk journal has its own
+  retention boundary, preserving recovery from the validated backup; audit
+  mode suppresses disk trimming. Disk retention does not require retaining
+  the same event population in RAM.
+- Child-output observation currently snapshots the child's retained events
+  and constructs output text from them. A monitoring path reconstructs text
+  from cursor zero on repeated checks. Bounding the browser display does not
+  bound these server-side arrays, strings or retained payloads.
+
+These findings came from the append/reduction, snapshot, journal, persistence,
+pressure and child-output implementations. They establish mechanisms and missing
+bounds, not the measured contribution of each to the reported crash. The earlier
+passing tests did not establish safe one-hundred-Agent, indefinite-lifetime use.
+
+Bill chose to leave this technical debt in V3 rather than start another runtime
+refactor. Preserve the lessons for the next reconstruction. His intended recent
+GUI history is a few hundred events, independent of when a model calls
+micro_handoff. A count limit alone is insufficient because one event may carry a
+large result. Context, active work, communication buffers, snapshots and temporary
+copies also need explicit lifetime and size reasoning. A future synthetic swarm
+check should demonstrate a memory plateau under sustained activity, including
+large results and slow readers, without risking the working host or spending
+provider inference to generate load.
+
+The communication boundary needs its own correction. An Event is a recorded fact
+used to update state and support recovery; it should not double as the mechanism
+by which another Agent receives information. V3 returns an explicit ChildOutput
+value, but constructs it by scanning internal history. That wrapper does not
+remove the dependency. The next design should use explicit communication types
+and operations with clear ownership, delivery and retention semantics. Reuse the
+actual questions, answers, submissions and status vocabulary where appropriate;
+do not replace the history scan with a second unlimited message transcript.
+Recording communication for recovery is distinct from delivering it.
+
+Several decisions remain open: which communications require durable delivery,
+what consuming or acknowledging them means, how a slow receiver is handled,
+where large output belongs, and what count, byte and aggregate swarm budgets
+apply. Explicit expiry of old observation output was proposed but not accepted
+as a contract. Do not silently lose unread output, retain everything forever,
+or claim that a new channel guarantees exactly-once effects. Those choices need
+human judgment before implementation and exercises can be specified.
+
+The architecture diagrams in Chapter 0 exposed this debt by making the objects
+and their relationships discussable. A lifecycle-only map omitted Context and
+its value types, even though those names are essential to a new engineer's
+vocabulary. The printed context and content sheets now accompany that map.
+Immutable Context values do not mean the Agent's state never changes: reduction
+creates a replacement and History publishes it. Nor does immutability imply a
+deep copy of all text. V3 shares payload objects but copies collection references
+and reorders memories during reduction. In-place mutation was discussed and
+deliberately left unchanged; snapshot isolation and journal-before-publication
+would need explicit replacements if a later design chooses mutation.
+
+### V4 is a design discussion, not an execution order
+
+Bill does not plan another book execution for several weeks. V4's language is
+undecided, including whether to use an existing language or develop one such as
+Lyric. C# partial declarations, garbage collection and the current library stack
+are V3 choices, not proof that the next edition should keep them. Conversely,
+changing languages does not decide ownership, retention or communication for us.
+Evaluate candidates against those requirements and the practical cost of mature
+protocol libraries, tooling, interoperability and teaching a fresh builder.
+
+Before the next execution, return these lessons to the chapters that introduce
+Context/events, persistence, context reduction and Agent communication. Resolve
+the open contracts, then update their explanations, exercises and meaningful
+checks together. Record where each crossover lesson was incorporated. This
+section is a durable record of debt and design questions, not an implemented V4
+specification, a new V3 acceptance gate, or permission to begin a language project.
+
 ### A wait should not produce another copy of the same output
 
 After the workflows resumed, Bill saw a new card roughly every three seconds.
