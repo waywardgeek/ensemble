@@ -50,3 +50,14 @@ pre code,
 pre > code.sourceCode {
   line-height: 1.15 !important;
 }
+
+/* Raster diagram companions avoid reader-specific SVG scaling failures.
+   Never retain a natural pixel height when fitting the reading column. */
+.ownership-plate p { text-indent: 0; }
+.ownership-plate img {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  height: auto;
+  margin: 0 auto;
+}

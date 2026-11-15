@@ -81,3 +81,13 @@ sheets. Stored arrows are derived from the same declaration graph; subtype arrow
 are derived from parsed base classes. This selection is not another ownership
 registry. Context state and its Part vocabulary belong in the printed onboarding
 material even though value-like records have no explicit destruction lifecycle.
+
+EPUB uses generated 240-DPI PNG companions for the three print diagrams. Bill's
+reader displayed the SVG contents sheet enormously enlarged and cropped despite
+valid packaging. `scripts/ebook-diagrams.lua` selects PNGs only during EPUB
+conversion; proportional sizing lives in `book/epub.css`. Print retains SVGs.
+Package checks establish selection and integrity, not compatibility with every
+reader: check the resulting ebook in the target reader before publishing.
+
+Bill confirmed the PNG EPUB displayed correctly in Amazon preview and reported
+publishing it. This is target-reader acceptance, not universal reader coverage.

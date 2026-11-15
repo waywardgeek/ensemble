@@ -93,6 +93,7 @@ pandoc "$FRONT" "$DERIVED" \
     --from=markdown --to=epub \
     --toc-depth=1 \
     --lua-filter="$REPO_ROOT/scripts/publication-links.lua" \
+    --lua-filter="$REPO_ROOT/scripts/ebook-diagrams.lua" \
     -M publication-directory="$PUBLICATION_DIRECTORY" \
     --resource-path="$BOOK_DIR" \
     --css="$CSS" \

@@ -37,14 +37,15 @@ assert set(listed) == expected and len(listed) == len(expected), "Every map type
 # a browser-accepted <br> is not sufficient: use the XML-closed <br /> form.
 epub = output / "chapter-00-proof.epub"
 subprocess.run(["pandoc", str(book / "chapter-00.md"), "--from=markdown", "--to=epub3",
-                "--resource-path=" + str(book), "-M", "title=Chapter 0 diagram proof",
+                "--resource-path=" + str(book),
+                "--lua-filter=" + str(repo / "scripts/ebook-diagrams.lua"), "-M", "title=Chapter 0 diagram proof",
                 "-o", str(epub)], check=True)
 with zipfile.ZipFile(epub) as archive:
     assert archive.testzip() is None
-    images = [name for name in archive.namelist() if name.endswith(".svg")]
+    images = [name for name in archive.namelist() if name.endswith(".png")]
     assert len(images) == 3
     actual_images = {archive.read(name) for name in images}
-    assert actual_images == {(book / f"figures/common-{key}.svg").read_bytes()
+    assert actual_images == {(book / f"figures/common-{key}.png").read_bytes()
                              for key in ("ownership", "context", "contents")}
     for name in archive.namelist():
         if name.endswith((".xhtml", ".opf", ".svg")):
@@ -88,7 +89,7 @@ with pymupdf.open(pdf) as document:
         x0, y0, x1, y1 = span["bbox"]
         assert x0 >= 35 and x1 <= 469 and y0 >= 53 and y1 <= 673, f"Text outside print area: {span['text']}"
     map_page.get_pixmap(matrix=pymupdf.Matrix(2, 2)).save(output / "ownership-print-proof.png")
-    print(f"PASS: EPUB embeds exact SVG with valid XML; {len(expected)} class bullets match the map; {len(relationships)} edges; dedicated 7x10 page {map_page.number + 1}; minimum label {minimum:.2f}pt; labels and legend remain inside margins. Proof: {pdf}")
+    print(f"PASS: EPUB embeds exact PNG companions with valid XML; {len(expected)} class bullets match the map; {len(relationships)} edges; dedicated 7x10 page {map_page.number + 1}; minimum label {minimum:.2f}pt; labels and legend remain inside margins. Proof: {pdf}")
 
 # Supplemental sheets derive their expected node and edge sets from the source
 # inventory, not from whatever happened to render successfully.

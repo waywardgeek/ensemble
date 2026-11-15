@@ -209,6 +209,14 @@ def main():
         (args.repository / f"book/figures/common-{key}.svg").write_bytes((out / f"{key}.svg").read_bytes())
         svg = (out / f"{key}.svg").read_text()
         svgs[key] = svg[svg.index("<svg"):]
+    # EPUB readers can mis-scale SVG viewports. Raster companions share exactly
+    # the printed DOT layout; 240 DPI provides detail for reader zoom.
+    for key in ("ownership", "context", "contents"):
+        subprocess.run([
+            "dot", "-Tpng", "-Gdpi=240", str(out / f"{key}-print.dot"),
+            "-o", str(args.repository / f"book/figures/common-{key}.png"),
+        ], check=True)
+
     table = ["# Ensemble Common relationships", "", "Generated from source declarations plus reviewed lifecycle semantics.", "", "One means one slot, possibly null; many means a collection. Gray data links do not assert destruction ownership. Reverse memberships are not drawn twice.", "", "| Parent / holder | Field | Child / value | Kind | Multiplicity | Reverse field | Declaration |", "|---|---|---|---|---|---|---|"]
     for e in edges:
         loc = e["source"]

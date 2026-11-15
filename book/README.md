@@ -147,6 +147,9 @@ reclaiming half a 14-point line from
 the former footer space; page-number baselines remain 24 points above the edge.
 The Preface uses lowercase Roman page numbers. Chapter 0 starts on a right-hand
 page numbered 1; contents references and PDF page labels use the same numbering.
+The EPUB uses generated high-resolution PNG companions for the three architecture
+diagrams; print retains SVGs. Amazon preview cropped the SVG versions, while Bill
+confirmed the PNG version displayed correctly and published it.
 The reading PDF is for the website, not the KDP interior upload. A print cover
 wrap is separate and must be
 sized for the final interior and selected paper.
