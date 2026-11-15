@@ -32,7 +32,7 @@ public sealed partial class Engine
         {
             if (config.Vendor == Vendor.Anthropic)
             {
-                request["max_tokens"] = 16384;
+                request["max_tokens"] = Math.Max(config.MaxOutputTokens ?? 16384, 16384);
             }
             else if (config.Surface != Surface.Responses)
             {
@@ -508,7 +508,7 @@ public sealed partial class Engine
         {
             ["model"] = config.Model,
             // Thinking consumes this allowance too; leave room to finish an answer or tool call.
-            ["max_tokens"] = 16384,
+            ["max_tokens"] = config.MaxOutputTokens ?? 16384,
             ["system"] = config.PrimaryInstructions,
             ["messages"] = messages
         };
@@ -606,7 +606,7 @@ public sealed partial class Engine
         {
             ["model"] = config.Model,
             // Reasoning and visible completion share this output allowance, not the input window.
-            ["max_completion_tokens"] = 16384,
+            ["max_completion_tokens"] = config.MaxOutputTokens ?? 16384,
             ["messages"] = messages
         };
     }

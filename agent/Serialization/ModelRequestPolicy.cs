@@ -4,12 +4,15 @@ public sealed partial record ModelRequestPolicy
 {
     public partial ModelRequestPolicy(bool disableStreaming, bool requireToolExplanation,
         bool deferredTools, bool stubsToolResults, bool cacheBreakpoints,
-        string promptCacheKey, string reasoningEffort, string reasoningSummary, ToolSchemaPolicy toolSchemas)
+        string promptCacheKey, string reasoningEffort, string reasoningSummary, ToolSchemaPolicy toolSchemas,
+        long? maxOutputTokens)
     {
         ArgumentNullException.ThrowIfNull(promptCacheKey);
         ArgumentNullException.ThrowIfNull(reasoningEffort);
         ArgumentNullException.ThrowIfNull(reasoningSummary);
         if (!Enum.IsDefined(toolSchemas)) throw new ArgumentOutOfRangeException(nameof(toolSchemas));
+        if (maxOutputTokens is <= 0) throw new ArgumentOutOfRangeException(nameof(maxOutputTokens));
+        MaxOutputTokens = maxOutputTokens;
         ToolSchemas = toolSchemas;
         DisableStreaming = disableStreaming;
         RequireToolExplanation = requireToolExplanation;
@@ -32,6 +35,10 @@ public sealed partial record ModelRequestPolicy
         {
             throw new ArgumentException("Prompt cache keys require an OpenAI-compatible surface.");
         }
+        if (MaxOutputTokens is not null && surface is not (Surface.Messages or Surface.ChatCompletions))
+        {
+            throw new ArgumentException("Output-token policy currently requires Messages or Chat Completions.");
+        }
         bool supportsReasoning = surface == Surface.Responses
             && !features.ReasoningEfforts.IsDefaultOrEmpty;
         if (!supportsReasoning && (ReasoningEffort.Length != 0 || ReasoningSummary.Length != 0))
@@ -51,6 +58,6 @@ public sealed partial record ModelRequestPolicy
         }
         return new ModelRequestPolicy(DisableStreaming,
             RequireToolExplanation || features.RequireToolExplanation, DeferredTools,
-            StubsToolResults, CacheBreakpoints, PromptCacheKey, effort, summary, ToolSchemas);
+            StubsToolResults, CacheBreakpoints, PromptCacheKey, effort, summary, ToolSchemas, MaxOutputTokens);
     }
 }

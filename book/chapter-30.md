@@ -1435,8 +1435,24 @@ that the model lacks multi-step planning ability.
 The Messages and Chat Completions defaults now allow 16,384 output tokens.
 Reasoning and visible completion share that ceiling; it does not require a long
 response, but it permits one and can increase usage. Other protocols retain their
-existing behavior. There is no saved output-budget setting; working-context
-settings govern input, and reasoning effort is not an output ceiling.
+existing behavior. Working-context settings govern input, and reasoning effort
+is not an output ceiling.
+
+[Flint's model card](https://huggingface.co/RecursiveSI/flint) recommends at least
+32,768 output tokens for hard problems, including reasoning. Its registered
+model policy therefore selects 32,768 rather than the general default. A host
+model document can set a positive whole `request_policy.max_output_tokens` for
+Messages or Chat Completions; other surfaces refuse this option. The selected
+model owns this policy, which is frozen into each request configuration and
+preserved by configuration copies. It is not a per-Agent GUI setting.
+
+The model card also requires preserving `reasoning_content`. Ensemble's current
+OpenRouter Messages route instead returns native `thinking` blocks unchanged.
+That establishes outgoing preservation, not the gateway's translation into
+Flint's template. A Chat Completions switch would require correct top-level
+reasoning replay, including OpenRouter's structured `reasoning_details`, rather
+than treating reasoning as ordinary content blocks. No protocol switch or live
+provider verification is implied by the output-budget repair.
 
 Actual loopback request assertions failed against the old defaults and passed
 after the repair, alongside the existing thinking/tool continuation checks. Those

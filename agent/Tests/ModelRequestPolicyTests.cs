@@ -86,6 +86,34 @@ internal static class ModelRequestPolicyTests
             catch (ArgumentException) { unsupported = true; }
             Check(unsupported && responses.Models().Length == 2,
                 "Reasoning validation uses this offering's capabilities.");
+            foreach (long invalid in new long[] { 0, -1 })
+            {
+                bool refused = false;
+                try { _ = new ModelRequestPolicy(maxOutputTokens: invalid); }
+                catch (ArgumentOutOfRangeException) { refused = true; }
+                Check(refused, "Nonpositive output ceilings must refuse.");
+            }
+            bool unsupportedOutput = false;
+            try
+            {
+                _ = new Model(responses, "bad-output", "wire", "Invalid", features,
+                    requestPolicy: new ModelRequestPolicy(maxOutputTokens: 32768));
+            }
+            catch (ArgumentException) { unsupportedOutput = true; }
+            Check(unsupportedOutput && responses.Models().Length == 2,
+                "Unsupported output policy must refuse before attaching the model.");
+            var larger = new Model(chat, "larger", "wire", "Larger output", new ModelFeatures(Media.None),
+                requestPolicy: new ModelRequestPolicy(maxOutputTokens: 32768));
+            var largerConfig = new Configuration(agentPolicy, larger);
+            var ordinaryConfig = new Configuration(largerConfig, local);
+            Check(largerConfig.MaxOutputTokens == 32768 && ordinaryConfig.MaxOutputTokens is null,
+                "Output ceilings belong to the selected offering, not the previous selection.");
+            Check(largerConfig.ForMemoryCompressor().MaxOutputTokens == 32768,
+                "Copied worker configuration preserves the selected output ceiling.");
+            var outputAgent = new Agent(app, largerConfig);
+            Check(outputAgent.Engine().Render(outputAgent.History().View())["max_completion_tokens"]!.GetValue<long>() == 32768,
+                "Chat Completions emits the configured output ceiling.");
+
         }
         finally { app.Destroy(); }
     }

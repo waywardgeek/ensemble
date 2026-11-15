@@ -103,7 +103,7 @@ internal static partial class ModelConfigurationDocument
         {
             if (!value.TryGetProperty(name, out var field) || field.ValueKind == JsonValueKind.Null) return null;
             if (field.ValueKind != JsonValueKind.Number || !field.TryGetInt64(out long count) || count <= 0)
-                throw new InvalidDataException("Context capacity must be positive whole tokens or null.");
+                throw new InvalidDataException("Token count must be positive whole tokens or null.");
             return count;
         }
 
@@ -126,10 +126,11 @@ internal static partial class ModelConfigurationDocument
         static ModelRequestPolicy Policy(JsonElement value)
         {
             Fields(value, [], ["disable_streaming", "require_tool_explanation", "deferred_tools",
-                "stub_tool_results", "cache_breakpoints", "prompt_cache_key", "reasoning_effort", "reasoning_summary"]);
+                "stub_tool_results", "cache_breakpoints", "prompt_cache_key", "reasoning_effort", "reasoning_summary", "max_output_tokens"]);
             return new ModelRequestPolicy(Flag(value, "disable_streaming"), Flag(value, "require_tool_explanation"),
                 Flag(value, "deferred_tools"), Flag(value, "stub_tool_results"), Flag(value, "cache_breakpoints"),
-                Option(value, "prompt_cache_key"), Option(value, "reasoning_effort"), Option(value, "reasoning_summary"));
+                Option(value, "prompt_cache_key"), Option(value, "reasoning_effort"), Option(value, "reasoning_summary"),
+                maxOutputTokens: Tokens(value, "max_output_tokens"));
         }
 
         static string Option(JsonElement value, string name)

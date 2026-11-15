@@ -20,7 +20,8 @@ internal static partial class MeterTests
             var key = new ModelAuthentication(app, "router-key", "synthetic-router-key", ApiKeyHeader.Bearer);
             var endpoint = new ModelEndpoint(vendor, "api", listener.Prefixes.Single(), Surface.Messages, key);
             var model = new Model(endpoint, "flint-v1_0-free", "recursive/flint-v1.0:free", "Flint",
-                new ModelFeatures(Media.None, Stream: true, ContextWindow: 262144));
+                new ModelFeatures(Media.None, Stream: true, ContextWindow: 262144),
+                requestPolicy: new ModelRequestPolicy(maxOutputTokens: 32768));
             agent = new Agent(app, new Configuration(Vendor.OpenAI, "legacy", "http://127.0.0.1:1"));
             await agent.SetModelAsync(model);
             using var schema = JsonDocument.Parse("""
@@ -40,8 +41,8 @@ internal static partial class MeterTests
                 {
                     using var reader = new StreamReader(incoming.Request.InputStream);
                     using var body = JsonDocument.Parse(await reader.ReadToEndAsync(deadline.Token));
-                    Check(body.RootElement.GetProperty("max_tokens").GetInt32() == 16384,
-                        "Ordinary output must allow 16384 tokens for thinking and completion.");
+                    Check(body.RootElement.GetProperty("max_tokens").GetInt32() == 32768,
+                        "Flint must allow its recommended 32768 tokens for thinking and completion.");
                     Check(body.RootElement.GetProperty("model").GetString() == "recursive/flint-v1.0:free"
                         && body.RootElement.GetProperty("stream").GetBoolean()
                         && incoming.Request.Headers["Authorization"] == "Bearer synthetic-router-key"

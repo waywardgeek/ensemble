@@ -60,6 +60,9 @@ internal static class ModelConfigurationTests
                 Document.Replace("\"stream\":true", "\"stream\":true,\"media\":[\"image\",\"image\"]"),
                 Document.Replace("\"stream\":true", "\"stream\":true,\"media\":[\"magic\"]"),
                 Document.Replace("4096", "0"),
+                Document.Replace("\"serving_context_tokens\":4096", "\"request_policy\":{\"max_output_tokens\":0}"),
+                Document.Replace("\"serving_context_tokens\":4096", "\"request_policy\":{\"max_output_tokens\":1.5}"),
+
                 Document.Replace("\"serving_context_tokens\":4096", "\"request_policy\":null"),
                 Document.Replace("\"serving_context_tokens\":4096", "\"request_policy\":{\"unknown\":true}"),
                 Document.Replace("\"serving_context_tokens\":4096", "\"request_policy\":{\"disable_streaming\":1}"),
@@ -119,13 +122,14 @@ internal static class ModelConfigurationTests
             configured["vendors"]![0]!["endpoints"]![0]!["models"]![0]!["request_policy"] = new JsonObject
             {
                 ["disable_streaming"] = true, ["require_tool_explanation"] = true,
-                ["stub_tool_results"] = true, ["prompt_cache_key"] = "local-cache"
+                ["stub_tool_results"] = true, ["prompt_cache_key"] = "local-cache",
+                ["max_output_tokens"] = 32768
             };
             root.LoadModelConfiguration(Encoding.UTF8.GetBytes(configured.ToJsonString()));
             Model withPolicy = root.ResolveModel(new ModelIdentity("policy", "ollama", "small"));
             var projected = new Configuration(original, withPolicy);
             Check(projected.DisableStreaming && projected.RequireToolExplanation && projected.StubsToolResults
-                && projected.PromptCacheKey == "local-cache",
+                && projected.PromptCacheKey == "local-cache" && projected.MaxOutputTokens == 32768,
                 "Host document policy reaches the configured request projection.");
             Check(agent.History().Events().All(item => item.Kind != EventKind.RequestSent),
                 "Configuration loading must not initiate inference.");

@@ -180,6 +180,7 @@ public sealed partial class Configuration
         DeferredTools = source.DeferredTools;
         StubsToolResults = source.StubsToolResults;
         ToolSchemas = source.ToolSchemas;
+        MaxOutputTokens = source.MaxOutputTokens;
         CacheBreakpoints = source.CacheBreakpoints;
         PromptCacheKey = source.PromptCacheKey;
         Surface = source.Surface;

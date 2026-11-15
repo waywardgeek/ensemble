@@ -8,6 +8,8 @@ public enum ToolSchemaPolicy { Unchanged, PatternLengthCompatibility }
 public sealed partial record ModelRequestPolicy
 {
     public readonly ToolSchemaPolicy ToolSchemas;
+    // Combined reasoning and completion ceiling; null keeps the surface default.
+    public readonly long? MaxOutputTokens;
     public readonly bool DisableStreaming;
     public readonly bool RequireToolExplanation;
     public readonly bool DeferredTools;
@@ -22,6 +24,6 @@ public sealed partial record ModelRequestPolicy
         bool requireToolExplanation = false, bool deferredTools = false,
         bool stubsToolResults = false, bool cacheBreakpoints = false,
         string promptCacheKey = "", string reasoningEffort = "", string reasoningSummary = "",
-        ToolSchemaPolicy toolSchemas = ToolSchemaPolicy.Unchanged);
+        ToolSchemaPolicy toolSchemas = ToolSchemaPolicy.Unchanged, long? maxOutputTokens = null);
     internal partial ModelRequestPolicy ForModel(Surface surface, ModelFeatures features);
 }

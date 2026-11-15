@@ -58,6 +58,7 @@ public sealed partial class Configuration
         DeferredTools = requestPolicy.DeferredTools;
         StubsToolResults = requestPolicy.StubsToolResults;
         ToolSchemas = requestPolicy.ToolSchemas;
+        MaxOutputTokens = requestPolicy.MaxOutputTokens;
         CacheBreakpoints = requestPolicy.CacheBreakpoints;
         PromptCacheKey = requestPolicy.PromptCacheKey;
         ReasoningEffort = requestPolicy.ReasoningEffort;
