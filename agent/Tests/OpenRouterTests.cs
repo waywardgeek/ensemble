@@ -40,6 +40,8 @@ internal static partial class MeterTests
                 {
                     using var reader = new StreamReader(incoming.Request.InputStream);
                     using var body = JsonDocument.Parse(await reader.ReadToEndAsync(deadline.Token));
+                    Check(body.RootElement.GetProperty("max_tokens").GetInt32() == 16384,
+                        "Ordinary output must allow 16384 tokens for thinking and completion.");
                     Check(body.RootElement.GetProperty("model").GetString() == "recursive/flint-v1.0:free"
                         && body.RootElement.GetProperty("stream").GetBoolean()
                         && incoming.Request.Headers["Authorization"] == "Bearer synthetic-router-key"

@@ -21902,6 +21902,31 @@ covered identity, visibility, literal text, replay, Agent isolation, and evictio
 These were source-level checks, not installation or human visual acceptance, and
 they did not authorize exposing raw provider bodies that may echo private data.
 
+### Retained thinking still needs room to finish
+
+Bill reported that Flint appeared to forget its plan between tool round trips.
+The Agent's API log established a different immediate failure: all four recorded
+tool continuations included the preceding thinking text exactly, together with
+the call and result. The latest request retained ten thinking blocks. This proved
+what Ensemble sent, not how the gateway forwarded it or how well the model used it.
+
+The outgoing Messages requests capped output at 1,024 tokens. Two main responses
+ended with `max_tokens`, exactly 1,024 output tokens, and thinking but no answer or
+tool call. Reasoning had exhausted the allowance before producing an action.
+This is an output-token limit, not a byte limit, input-context capacity, or proof
+that the model lacks multi-step planning ability.
+
+The Messages and Chat Completions defaults now allow 16,384 output tokens.
+Reasoning and visible completion share that ceiling; it does not require a long
+response, but it permits one and can increase usage. Other protocols retain their
+existing behavior. There is no saved output-budget setting; working-context
+settings govern input, and reasoning effort is not an output ceiling.
+
+Actual loopback request assertions failed against the old defaults and passed
+after the repair, alongside the existing thinking/tool continuation checks. Those
+checks do not establish live Flint improvement. Installation, restart and another
+human trial remain separate from the source correction.
+
 ---
 
 # Epilogue: What we can rebuild

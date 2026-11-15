@@ -63,6 +63,8 @@ internal static partial class MeterTests
                             "Local stream inherited credentials.");
                         using var reader = new StreamReader(incoming.Request.InputStream);
                         using var body = JsonDocument.Parse(await reader.ReadToEndAsync(deadline.Token));
+                        Check(body.RootElement.GetProperty("max_completion_tokens").GetInt32() == 16384,
+                            "Ordinary output must allow 16384 tokens for thinking and completion.");
                         Check(body.RootElement.GetProperty("model").GetString() == wireName
                             && body.RootElement.GetProperty("stream").GetBoolean(),
                             "Configured unknown model did not request its declared stream.");

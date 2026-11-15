@@ -507,7 +507,8 @@ public sealed partial class Engine
         return new JsonObject
         {
             ["model"] = config.Model,
-            ["max_tokens"] = 1024,
+            // Thinking consumes this allowance too; leave room to finish an answer or tool call.
+            ["max_tokens"] = 16384,
             ["system"] = config.PrimaryInstructions,
             ["messages"] = messages
         };
@@ -604,7 +605,8 @@ public sealed partial class Engine
         return new JsonObject
         {
             ["model"] = config.Model,
-            ["max_completion_tokens"] = 1024,
+            // Reasoning and visible completion share this output allowance, not the input window.
+            ["max_completion_tokens"] = 16384,
             ["messages"] = messages
         };
     }
