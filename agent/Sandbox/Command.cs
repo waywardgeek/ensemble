@@ -11,7 +11,25 @@ public sealed partial class Sandbox
         return PrepareProcess("/bin/sh", directory);
     }
 
-    internal partial ProcessStartInfo PrepareProcess(string executable, string? directory)
+    public partial ProcessStartInfo PrepareGradedProcess(string executable,
+        string directory, Uri provider)
+    {
+        ArgumentNullException.ThrowIfNull(provider);
+        if (root.Length == 0 || !provider.IsAbsoluteUri || provider.Scheme != "http"
+            || provider.Host is not ("127.0.0.1" or "[::1]") || provider.Port <= 0
+            || provider.UserInfo.Length != 0 || provider.AbsolutePath != "/"
+            || provider.Query.Length != 0 || provider.Fragment.Length != 0)
+        {
+            throw new ArgumentException("Grading requires confinement and a literal loopback HTTP origin.");
+        }
+        // Resolve the candidate through this Sandbox before preparing its launch.
+        // The OS policy still checks actual file access after path resolution.
+        string candidate = Resolve(executable);
+        return PrepareProcess(candidate, directory, provider.Port);
+    }
+
+    internal partial ProcessStartInfo PrepareProcess(string executable, string? directory,
+        int? gradingPort)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(executable);
         string working = Resolve(string.IsNullOrEmpty(directory) ? "." : directory);
@@ -115,6 +133,14 @@ public sealed partial class Sandbox
               (literal "/usr") (literal "/Library") (literal "/private/var/db")
               (literal "/private") (literal "/private/var") (literal "/private/var/select"))
             """);
+        if (gradingPort is { } port)
+        {
+            // macOS's localhost selector means host-local, not one interface.
+            // The trusted grader owns this port and binds its fake to loopback.
+            // Do not grant inbound/bind: a candidate must never become a server.
+            profile.Append("\n(allow network-outbound (remote tcp \"localhost:")
+                .Append(port).Append("\"))\n");
+        }
         profile.Append("\n(allow file-read* file-write* (subpath ").Append(ProfileLiteral(root)).Append(") )\n");
         foreach (var grant in processReads)
         {

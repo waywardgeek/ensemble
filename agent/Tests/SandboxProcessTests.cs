@@ -5,6 +5,52 @@ using Application = Ensemble.Ensemble;
 
 internal static class SandboxProcessTests
 {
+    // The public preparation API is host-only and must refuse before any launch.
+    // Actual socket/descendant enforcement is also exercised by the external
+    // GradedCandidate test; ordinary Boundary below retains network denial.
+    public static async Task GradingPreparation()
+    {
+        await InWorkspace((agent, inside, outside) =>
+        {
+            string executable = Path.Combine(inside, "candidate");
+            var start = agent.Sandbox().PrepareGradedProcess(executable, inside,
+                new Uri("http://127.0.0.1:34567"));
+            Check(start.FileName == "/usr/bin/sandbox-exec"
+                && start.WorkingDirectory == agent.Sandbox().Root(),
+                "Grading preparation did not retain the ordinary sandbox launcher.");
+            foreach (string address in new[] { "http://localhost:1234", "http://192.0.2.1:1234",
+                "https://127.0.0.1:1234", "http://user@127.0.0.1:1234",
+                "http://127.0.0.1:1234/path", "http://127.0.0.1:1234/?q",
+                "http://127.0.0.1:1234/#fragment" })
+            {
+                bool refused = false;
+                try
+                {
+                    agent.Sandbox().PrepareGradedProcess(executable, inside, new Uri(address));
+                }
+                catch (ArgumentException) { refused = true; }
+                Check(refused, "Grading accepted a nonliteral origin or additional URL authority.");
+            }
+            var app = new Application(TextWriter.Null);
+            try
+            {
+                var unconfined = new Agent(app,
+                    new Configuration(Vendor.Anthropic, "unused", "http://127.0.0.1:1"),
+                    dataDirectory: outside);
+                bool refused = false;
+                try
+                {
+                    unconfined.Sandbox().PrepareGradedProcess(executable, inside,
+                        new Uri("http://127.0.0.1:34567"));
+                }
+                catch (ArgumentException) { refused = true; }
+                Check(refused, "Grading preparation silently allowed an unconfined candidate.");
+            }
+            finally { app.Destroy(); }
+            return Task.CompletedTask;
+        });
+    }
+
     public static async Task Boundary()
     {
         await InWorkspace(async (agent, inside, outside) =>

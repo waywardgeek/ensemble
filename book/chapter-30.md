@@ -321,6 +321,27 @@ not. A provider error prevented the original submission, and a separate closeout
 request obtained it. Compiler success, instruction compliance and completed
 submission are distinct evidence, even in a tiny smoke test.
 
+The chapter grader introduced a different boundary: its HTTP fake could not run
+under command-wide network denial. Native probes rejected numeric-address sandbox
+predicates; `localhost` also matched the host's non-loopback interface. Requiring
+a remote peer in the inbound rule prevented listening, which has no peer yet.
+Instead of broadening every child command, a trusted launcher prepares the
+candidate with outbound access only to the unchanged grader's assigned local
+port. The wrapper stays outside student write authority and replaces itself,
+preserving the grader's process identity and protocol streams.
+
+Python socket checks passed, but the first real C# grade received no requests.
+A diagnostic probe traced permission denial to IPv4-mapped IPv6 sockets: the same
+native rule allowed IPv4 and rejected the mapped form. For an IPv4 fake URL the
+launcher sets `DOTNET_SYSTEM_NET_DISABLEIPV6=1`, without changing student source
+or widening the port rule. Record that adaptation. A passing socket probe is not
+a passing runtime test, and a passing runtime test is not the chapter's real
+grader or live exercise. The host-local port rule is not a private network
+namespace or resource quota. With the IPv4 adaptation, the unchanged Chapter 1
+grader passed against a preserved reference executable, including both
+62-second delay checks. That verifies the harness against the reference, not
+a student implementation or the separate live-provider exercise.
+
 Create Agent must make filesystem authority explicit, independently of model and
 primary skill. Offer inherited access with its actual scope, or confinement to a
 required workspace. Browse server directories through the mounted Agent's Sandbox,

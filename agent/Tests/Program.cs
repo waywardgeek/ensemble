@@ -777,6 +777,7 @@ try
     }
     if (args is ["--process-files-tests"] || args.Length == 0)
     {
+        await AsyncCase("Trusted grading preparation boundaries", SandboxProcessTests.GradingPreparation);
         await AsyncCase("Chapter 19 confined process boundary", SandboxProcessTests.Boundary);
         await AsyncCase("Chapter 19 confined process useful work", SandboxProcessTests.UsefulWork);
         if (args.Length != 0)

@@ -55,7 +55,14 @@ public sealed partial class Sandbox
     internal partial ProcessStartInfo PrepareCommand(string? directory);
     // Prepare a literal executable under the same policy. The caller appends
     // arguments and owns the process; this operation starts no running work.
-    internal partial ProcessStartInfo PrepareProcess(string executable, string? directory);
+    internal partial ProcessStartInfo PrepareProcess(string executable, string? directory,
+        int? gradingPort = null);
+    // Trusted grading-host API, not an Agent tool or inherited capability. The
+    // caller owns the launch. Requires a confined root and a literal loopback
+    // HTTP origin; permits outbound TCP only to that origin's port, never listen.
+    // Reuses the ordinary filesystem/environment policy and does not start work.
+    public partial ProcessStartInfo PrepareGradedProcess(string executable,
+        string directory, Uri provider);
     private static partial string ProfileLiteral(string value);
     private static partial ImmutableArray<ProcessReadPath> ResolveProcessReads(
         ImmutableArray<string> paths, string writableRoot);

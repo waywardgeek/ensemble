@@ -13614,6 +13614,19 @@ silently inherit the creator's route. Public shutdown retires automatic restart,
 not the saved launch policy. Explicit reuse preserves that policy while starting
 a new assignment; prepared files alone do not imply a previous Agent.
 
+A confined compiler process can still be unable to run a grader: the default
+network denial includes local HTTP fakes. Do not solve that by running student
+code unrestricted. A trusted host can run the unchanged grader and prepare each
+candidate through the same Sandbox, granting outbound TCP only to the grader's
+assigned host-local port. Validate the numeric loopback HTTP origin and keep the
+launcher, wrapper and runtime outside student write authority. The candidate
+gets neither listening permission nor a general local-service grant; ordinary
+Agent commands remain network-denied. Replace the wrapper process so the grader
+retains its candidate PID, stdio and exit status. See the
+[confined grading harness](../scripts/confined-grading/README.md) for the narrow
+Chapter 1 adapter and its platform limits. Parent-mediated grading is not an
+autonomous model-facing tool, and a fake grade does not replace the live exercise.
+
 A schema is
 validated and copied before construction effects. Descendants without an
 explicit schema get the default contract, not their parent's answer format.
@@ -20869,6 +20882,27 @@ setup sequence. The child later called that compliant; the recorded calls did
 not. A provider error prevented the original submission, and a separate closeout
 request obtained it. Compiler success, instruction compliance and completed
 submission are distinct evidence, even in a tiny smoke test.
+
+The chapter grader introduced a different boundary: its HTTP fake could not run
+under command-wide network denial. Native probes rejected numeric-address sandbox
+predicates; `localhost` also matched the host's non-loopback interface. Requiring
+a remote peer in the inbound rule prevented listening, which has no peer yet.
+Instead of broadening every child command, a trusted launcher prepares the
+candidate with outbound access only to the unchanged grader's assigned local
+port. The wrapper stays outside student write authority and replaces itself,
+preserving the grader's process identity and protocol streams.
+
+Python socket checks passed, but the first real C# grade received no requests.
+A diagnostic probe traced permission denial to IPv4-mapped IPv6 sockets: the same
+native rule allowed IPv4 and rejected the mapped form. For an IPv4 fake URL the
+launcher sets `DOTNET_SYSTEM_NET_DISABLEIPV6=1`, without changing student source
+or widening the port rule. Record that adaptation. A passing socket probe is not
+a passing runtime test, and a passing runtime test is not the chapter's real
+grader or live exercise. The host-local port rule is not a private network
+namespace or resource quota. With the IPv4 adaptation, the unchanged Chapter 1
+grader passed against a preserved reference executable, including both
+62-second delay checks. That verifies the harness against the reference, not
+a student implementation or the separate live-provider exercise.
 
 Create Agent must make filesystem authority explicit, independently of model and
 primary skill. Offer inherited access with its actual scope, or confinement to a

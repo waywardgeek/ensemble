@@ -326,6 +326,19 @@ silently inherit the creator's route. Public shutdown retires automatic restart,
 not the saved launch policy. Explicit reuse preserves that policy while starting
 a new assignment; prepared files alone do not imply a previous Agent.
 
+A confined compiler process can still be unable to run a grader: the default
+network denial includes local HTTP fakes. Do not solve that by running student
+code unrestricted. A trusted host can run the unchanged grader and prepare each
+candidate through the same Sandbox, granting outbound TCP only to the grader's
+assigned host-local port. Validate the numeric loopback HTTP origin and keep the
+launcher, wrapper and runtime outside student write authority. The candidate
+gets neither listening permission nor a general local-service grant; ordinary
+Agent commands remain network-denied. Replace the wrapper process so the grader
+retains its candidate PID, stdio and exit status. See the
+[confined grading harness](../scripts/confined-grading/README.md) for the narrow
+Chapter 1 adapter and its platform limits. Parent-mediated grading is not an
+autonomous model-facing tool, and a fake grade does not replace the live exercise.
+
 A schema is
 validated and copied before construction effects. Descendants without an
 explicit schema get the default contract, not their parent's answer format.
