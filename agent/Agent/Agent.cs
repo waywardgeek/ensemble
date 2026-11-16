@@ -13,7 +13,7 @@ public sealed partial class Agent
         Name = name;
         this.configuration = configuration;
         nextTurnToolLimit = configuration.ToolRoundLimit;
-        string? namedHome = parent.AgentDirectory(name);
+        string? namedHome = parent.AgentDirectory(name, configuration.SandboxRoot);
         if (namedHome is not null && dataDirectory is not null)
         {
             throw new ArgumentException(

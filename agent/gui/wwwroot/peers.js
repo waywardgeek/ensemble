@@ -11,6 +11,47 @@
     const cancel = document.querySelector("#peer-cancel");
     const notice = document.querySelector("#peer-notice");
     const choiceNotice = document.querySelector("#peer-choice-status");
+    const access = document.querySelector("#peer-access");
+    const accessMode = document.querySelector("#peer-access-mode");
+    const workspace = document.querySelector("#peer-workspace");
+    const browser = document.querySelector("#peer-directory-browser");
+    const folders = document.querySelector("#peer-directories");
+    const directoryStatus = document.querySelector("#peer-directory-status");
+    const up = document.querySelector("#peer-directory-up");
+    const use = document.querySelector("#peer-directory-use");
+    let directoryPath = "", parentPath = null, directoryGeneration = 0;
+    accessMode.onchange = () => {
+        const confined = accessMode.value === "workspace";
+        document.querySelector("#peer-workspace-controls").hidden = !confined;
+        workspace.required = confined && !recovering;
+    };
+    async function browse(path = "") {
+        const generation = ++directoryGeneration;
+        browser.hidden = false;
+        directoryStatus.textContent = "Loading server folders…";
+        folders.replaceChildren(); up.disabled = use.disabled = true;
+        try {
+            const response = await fetch(`./peers/directories?path=${encodeURIComponent(path)}`, {
+                credentials: "same-origin", redirect: "error", cache: "no-store",
+                headers: { "X-Ensemble-Peers": "1" }, signal: AbortSignal.timeout(10000)
+            });
+            if (!response.ok) throw new Error("directory unavailable");
+            const result = await response.json();
+            if (generation !== directoryGeneration) return;
+            directoryPath = result.path; parentPath = result.parent;
+            for (const folder of result.directories) folders.add(new Option(folder, folder));
+            directoryStatus.textContent = result.path + (result.truncated ? " — first 200 folders; enter a path for others." : "");
+            up.disabled = !parentPath; use.disabled = false;
+        } catch (_) {
+            if (generation === directoryGeneration) directoryStatus.textContent = "Folder unavailable. Choose another path or retry.";
+        }
+    }
+    document.querySelector("#peer-browse").onclick = () => browse();
+    up.onclick = () => { if (parentPath) void browse(parentPath); };
+    document.querySelector("#peer-directory-open").onclick = () => {
+        if (folders.value) void browse(directoryPath.replace(/\/$/, "") + "/" + folders.value);
+    };
+    use.onclick = () => { workspace.value = directoryPath; browser.hidden = true; workspace.focus(); };
     let pending = null;
     let recovering = null;
     let choicesPending = false;
@@ -22,7 +63,13 @@
         const body = { name: operation === "create" || operation === "restore" ? name.value : address };
         if (operation === "create" || operation === "restore") {
             if (choicesPending || create.disabled) return;
-            if (operation === "create") body.skill = skill.value;
+            if (operation === "create") {
+                body.skill = skill.value;
+                if (accessMode.value === "workspace") {
+                    if (!workspace.reportValidity()) return;
+                    body.sandbox_root = workspace.value;
+                }
+            }
             const offering = offerings.get(model.selectedOptions[0]?.dataset.offeringKey);
             const preference = preferences.get(model.selectedOptions[0]?.dataset.preferenceKey);
             if (offering) body.offering = offering;
@@ -64,6 +111,10 @@
     async function openDialog(saved = null) {
         if (pending || choicesPending) return;
         recovering = saved;
+        access.hidden = !!saved;
+        workspace.required = !saved && accessMode.value === "workspace";
+        browser.hidden = true;
+        ++directoryGeneration;
         name.readOnly = !!saved;
         if (saved) name.value = saved.name;
         document.querySelector("#peer-dialog-title").textContent = saved ? "Restore Agent" : "Create Agent";
@@ -85,6 +136,9 @@
             });
             if (!response.ok) throw new Error("choices unavailable");
             const choices = await response.json();
+            document.querySelector("#peer-inherited-access").textContent = choices.sandbox_root
+                ? `Inherited workspace: ${choices.sandbox_root}`
+                : "Inherited access is unrestricted. Choose a workspace to confine this Agent.";
 
             const groups = new Map();
             for (const choice of choices.preferred_models || []) {

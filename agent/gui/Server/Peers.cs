@@ -47,7 +47,43 @@ public static partial class Gui
                 {
                     ["name"] = value.Name, ["description"] = value.Description
                 }).ToArray());
+            frame["sandbox_root"] = source.Sandbox().Root();
             return Results.Json(frame);
+        }
+
+        IResult Directories(HttpContext context)
+        {
+            if (!Guard(context)) return Results.StatusCode(StatusCodes.Status403Forbidden);
+            try
+            {
+                var sandbox = source.Sandbox();
+                string requested = context.Request.Query["path"].ToString();
+                if (requested.Length > 4096) return Results.BadRequest();
+                if (requested.Length == 0) requested = sandbox.Root().Length == 0 ? Path.GetTempPath() : sandbox.Root();
+                if (!Path.IsPathFullyQualified(requested)) return Results.BadRequest();
+                string path = sandbox.Resolve(requested);
+                string? parent = Path.GetDirectoryName(path);
+                if (parent is not null)
+                {
+                    try { parent = sandbox.Resolve(parent); }
+                    catch (IOException) { parent = null; }
+                }
+                var folders = new List<string>();
+                foreach (string name in sandbox.ReadDirectory(path))
+                {
+                    try
+                    {
+                        if (sandbox.IsDirectory(Path.Combine(path, name))) folders.Add(name);
+                    }
+                    catch (Exception error) when (error is IOException or UnauthorizedAccessException) { }
+                    if (folders.Count == 201) break;
+                }
+                return Results.Json(new { path, parent, directories = folders.Take(200), truncated = folders.Count > 200 });
+            }
+            catch (Exception error) when (error is IOException or UnauthorizedAccessException or ArgumentException)
+            {
+                return Results.BadRequest(new { error = "Directory is unavailable or outside the permitted boundary." });
+            }
         }
 
         async Task<IResult> Change(HttpContext context, string operationName)
@@ -83,7 +119,7 @@ public static partial class Gui
                 foreach (var property in body.EnumerateObject())
                 {
                     bool offering = (create || restore || funding) && property.Name is "offering" or "preference";
-                    bool allowed = offering || (!funding && property.Name == "name") || (create && property.Name is "model" or "skill");
+                    bool allowed = offering || (!funding && property.Name == "name") || (create && property.Name is "model" or "skill" or "sandbox_root");
                     if (!allowed || !seen.Add(property.Name)
                         || property.Value.ValueKind != (offering ? JsonValueKind.Object : JsonValueKind.String))
                     {
@@ -121,7 +157,8 @@ public static partial class Gui
                     var peer = restore
                         ? await ensemble.RestorePeerAsync(source, name, offering, token, waitForBrowser: true)
                         : await ensemble.CreatePeerAsync(source, name, model, skill, token,
-                            waitForBrowser: true, offering: offering);
+                            waitForBrowser: true, offering: offering,
+                            sandboxRoot: body.TryGetProperty("sandbox_root", out var workspace) ? workspace.GetString() : null);
                     return Results.Json(new { name, address = peer.Address(), created = create, restored = restore });
                 }
                 // A borrowed mount cannot destroy the Agent its caller promised
@@ -183,6 +220,7 @@ public static partial class Gui
             }
         }
 
+        routes.MapGet("/peers/directories", (Func<HttpContext, IResult>)Directories);
         routes.MapGet("/peers/saved", (Func<HttpContext, IResult>)Saved);
         routes.MapPost("/peers/restore", (Func<HttpContext, Task<IResult>>)(context => Change(context, "restore")));
         routes.MapPost("/models/funding", (Func<HttpContext, Task<IResult>>)(context => Change(context, "funding")));

@@ -8,8 +8,9 @@ public sealed partial class Ensemble
     private readonly string? dataDirectory;
     public partial string DataDirectory();
     // No filesystem effects or second Agent registry: derive a named home from
-    // this parent's configured container. Unnamed transient Agents get no home.
-    internal partial string? AgentDirectory(string? name);
+    // this parent's configured container, or inside a confined workspace when
+    // the container is outside it. Unnamed transient Agents get no home.
+    internal partial string? AgentDirectory(string? name, string sandboxRoot = "");
 }
 
 public sealed partial class Agent

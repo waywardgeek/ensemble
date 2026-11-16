@@ -270,6 +270,22 @@ subtree before logical destruction; it does not edit the top-level registry or
 delete saved files. Test confirmation cancellation, server-side protection, view
 recovery after deletion, and actual retention of saved submission files.
 
+Create Agent must make filesystem authority explicit, independently of model and
+primary skill. Offer inherited access with its actual scope, or confinement to a
+required workspace. Browse server directories through the mounted Agent's Sandbox,
+not a browser-local folder picker: a phone's folders are not the server's folders.
+Keep an editable absolute path for a new child directory. The primary skill grants
+tools; it does not grant arbitrary filesystem paths or compiler installations.
+
+Canonicalize the selected root and reuse sandbox narrowing checks before startup.
+Persist that root with the peer launch record and validate it on restore; never
+silently restore a confined peer as unrestricted. When the host-assigned Agent home
+lies outside the workspace, derive its home as `.ensemble/agents/<name>` inside the
+workspace instead. Deletion leaves workspace files intact; deleting a temporary
+workspace externally also deletes those Agent records. Existing peers are not
+retroactively confined. Test the actual creation request, outside-path refusal,
+workspace-local saving, and restored confinement, not just the dialog controls.
+
 Submission is result publication, not a request to stop or remove a child. Keep
 submitted children selectable and show their submitted status alongside activity.
 A status-tool query and a GUI snapshot must not hide them merely because their

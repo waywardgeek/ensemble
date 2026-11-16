@@ -3,9 +3,10 @@ using System.Collections.Immutable;
 namespace Ensemble;
 
 /// <summary>Value-like durable launch choices. These are not the running Agent's
-/// mutable model selection, credentials, authority, or conversation.</summary>
+/// mutable model selection, credentials, or conversation. SandboxRoot retains
+/// the creation-time confinement boundary; restoration must not widen it.</summary>
 public sealed record PeerLaunch(string Name, string Model, string Skill, DateTimeOffset Created,
-    ModelIdentity? Offering = null);
+    ModelIdentity? Offering = null, string? SandboxRoot = null);
 
 public sealed partial class Ensemble
 {
@@ -24,7 +25,7 @@ public sealed partial class Ensemble
     /// refusal. Cancelling an opted-in wait joins cleanup and removes the pending peer.</summary>
     public partial Task<Agent> CreatePeerAsync(Agent source, string name, string? model = null,
         string? skill = null, CancellationToken cancellation = default, bool waitForBrowser = false,
-        ModelIdentity? offering = null);
+        ModelIdentity? offering = null, string? sandboxRoot = null);
 
     /// <summary>Restore all registry peers, not delegated children. The host's
     /// initial Agent is already constructed and is not a registry entry. Validate
@@ -55,6 +56,7 @@ public sealed partial class Ensemble
     private partial CancellationTokenSource BeginPeerOperation(Agent source, CancellationToken cancellation);
     private partial ImmutableArray<PeerLaunch> ReadPeerLaunches(Agent source);
     private partial void SavePeerLaunches(Agent source, ImmutableArray<PeerLaunch> entries);
+    private partial Configuration PeerSandboxPolicy(PeerLaunch entry, Configuration policy, Sandbox sandbox);
     private partial Configuration PeerConfiguration(PeerLaunch entry, Configuration policy, Sandbox sandbox);
     private partial Task<Agent> ConstructPeerAsync(PeerLaunch entry, Configuration configuration,
         SkillBootstrap? bootstrap, CancellationToken cancellation, bool waitForBrowser, Sandbox sandbox);

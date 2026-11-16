@@ -130,6 +130,28 @@ static class PeerControlsTests
             using (var get = await http.GetAsync(url + "/assistant/peers/create", token))
                 Check(get.StatusCode == HttpStatusCode.MethodNotAllowed, "Mutation accepted GET");
 
+            using (var denied = await http.GetAsync(url + "/assistant/peers/directories", token))
+                Check(denied.StatusCode == HttpStatusCode.Forbidden, "Directory browser lacked its guard.");
+            using (var request = new HttpRequestMessage(HttpMethod.Get,
+                url + "/assistant/peers/directories?path=" + Uri.EscapeDataString(work)))
+            {
+                request.Headers.Add("X-Ensemble-Peers", "1");
+                using var response = await http.SendAsync(request, token);
+                Check(response.StatusCode == HttpStatusCode.OK, "Directory browser failed.");
+                using var folders = JsonDocument.Parse(await response.Content.ReadAsStringAsync(token));
+                Check(folders.RootElement.GetProperty("directories").EnumerateArray()
+                    .Any(value => value.GetString() == "skills"), "Directory browser omitted a folder.");
+                Check(!folders.RootElement.GetProperty("directories").EnumerateArray()
+                    .Any(value => value.GetString() == "global.json"), "Directory browser included files.");
+            }
+            string workspace = Path.Combine(work, "confined-workspace");
+            await Expect("create", JsonSerializer.Serialize(new { name = "confined-peer", skill = "plain", sandbox_root = workspace }),
+                HttpStatusCode.OK);
+            var confined = root.FindAgent("confined-peer")!;
+            Check(confined.Sandbox().Root().Length != 0 && confined.DataDirectory().StartsWith(confined.Sandbox().Root() + "/", StringComparison.Ordinal),
+                "HTTP workspace creation lost confinement or storage.");
+            await Expect("delete", "{\"name\":\"confined-peer\"}", HttpStatusCode.OK);
+            Check(Directory.Exists(workspace), "Deletion removed workspace files.");
             string offeringJson = JsonCodec.WriteModelIdentity(localModel.Identity()).ToJsonString();
             await Expect("create", "{\"name\":\"local-peer\",\"offering\":" + offeringJson
                 + ",\"skill\":\"plain\"}", HttpStatusCode.OK, origin: url);

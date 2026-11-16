@@ -20,6 +20,13 @@ const creations = [];
             if (request.headers['x-ensemble-peers'] !== '1') { response.writeHead(403).end(); return; }
             response.setHeader('Content-Type', 'application/json');
             if (url.pathname === '/peers/saved') { response.end('[]'); return; }
+            if (url.pathname === '/peers/directories') {
+                const selected = url.searchParams.get('path');
+                response.end(JSON.stringify(selected === '/private/tmp/flint4_workspace'
+                    ? { path: selected, parent: '/private/tmp', directories: [], truncated: false }
+                    : { path: '/private/tmp', parent: '/private', directories: ['flint4_workspace'], truncated: false }));
+                return;
+            }
             if (url.pathname === '/peers/choices') {
                 if (failChoices) { response.writeHead(503).end('{}'); return; }
                 if (flintChoices) {
@@ -121,9 +128,17 @@ const creations = [];
                 'Ambiguous grouped funding must not hide explicit protocol choices');
             await page.locator('#peer-name').fill(`flint-${width}`);
             await page.locator('#peer-model').selectOption({ label: 'Flint Chat' });
+            await page.locator('#peer-access-mode').selectOption('workspace');
+            await page.locator('#peer-browse').click();
+            await page.locator('#peer-directories option').waitFor();
+            await page.locator('#peer-directories').selectOption('flint4_workspace');
+            await page.locator('#peer-directory-open').click();
+            await page.locator('#peer-directory-status').filter({ hasText: '/private/tmp/flint4_workspace' }).waitFor();
+            await page.locator('#peer-directory-use').click();
+            assert.equal(await page.locator('#peer-workspace').inputValue(), '/private/tmp/flint4_workspace');
             await page.locator('#peer-create').click();
             await page.locator('#peer-notice').filter({ hasText: `Created Agent flint-${width}` }).waitFor();
-            assert.deepEqual(creations.at(-1), { name: `flint-${width}`, skill: '', offering: flint('chat') });
+            assert.deepEqual(creations.at(-1), { name: `flint-${width}`, skill: '', offering: flint('chat'), sandbox_root: '/private/tmp/flint4_workspace' });
         }
         // Exercise the shipped picker projection independently of usage counters
         // and the conversation socket; creation above uses the full peers script.

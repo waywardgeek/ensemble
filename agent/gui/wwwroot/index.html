@@ -65,6 +65,22 @@
  <label class="form-label" for="peer-name">Name</label><input class="form-control" id="peer-name" required pattern=".*\S.*" title="Enter an Agent name." autocomplete="off">
  <label class="form-label" for="peer-model">Model</label><select class="form-select" id="peer-model"><option value="">Inherit mounted Agent’s model</option></select>
  <label class="form-label" for="peer-skill">Primary skill</label><select class="form-select" id="peer-skill"><option value="">Inherit mounted Agent’s primary skill</option></select>
+ <fieldset id="peer-access"><legend>Agent filesystem access</legend>
+ <label class="form-label" for="peer-access-mode">Sandbox</label>
+ <select class="form-select" id="peer-access-mode"><option value="inherit">Inherit mounted Agent’s access</option><option value="workspace">Confine to workspace</option></select>
+ <p id="peer-inherited-access"></p>
+ <div id="peer-workspace-controls" hidden>
+ <label class="form-label" for="peer-workspace">Server workspace directory</label>
+ <input class="form-control" id="peer-workspace" placeholder="/private/tmp/flint4_workspace" autocomplete="off">
+ <button class="btn btn-secondary" id="peer-browse" type="button">Choose server folder…</button>
+ <p>Choose a folder, or append a new folder name to its path. Agent records live inside the workspace when host storage is outside it. Primary skill determines tools; sandboxed commands have no network access.</p>
+ <div id="peer-directory-browser" hidden>
+ <p id="peer-directory-status" role="status"></p>
+ <button class="btn btn-secondary" id="peer-directory-up" type="button">Parent folder</button>
+ <label class="form-label" for="peer-directories">Server folders</label><select class="form-select" id="peer-directories" size="6"></select>
+ <button class="btn btn-secondary" id="peer-directory-open" type="button">Open folder</button>
+ <button class="btn btn-secondary" id="peer-directory-use" type="button">Use this folder</button>
+ </div></div></fieldset>
  <p id="peer-choice-status" role="status"></p>
  <div class="dialog-actions"><button class="btn btn-quiet" id="peer-close" type="button">Cancel</button><button class="btn btn-primary" id="peer-create" type="submit">Create</button></div>
  </form></dialog>

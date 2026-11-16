@@ -64,7 +64,7 @@ public sealed partial class Sandbox
 
     public partial void Destroy();
 
-    private static partial string CanonicalPath(string path);
+    internal static partial string CanonicalPath(string path);
     private partial string RelativePath(string path);
     private partial SafeFileHandle OpenDirectory(string relative, bool create);
     private static partial SafeFileHandle OpenDirectoryAt(SafeFileHandle root, string relative, bool create);

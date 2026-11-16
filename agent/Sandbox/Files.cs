@@ -84,7 +84,7 @@ public sealed partial class Sandbox
         return Path.GetRelativePath(root, Resolve(path));
     }
 
-    private static partial string CanonicalPath(string path)
+    internal static partial string CanonicalPath(string path)
     {
         // realpath resolves every existing ancestor, including absolute inward
         // symlinks. New files/directories retain the unresolved final suffix.

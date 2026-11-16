@@ -23,14 +23,14 @@ public sealed partial class Ensemble
                 ?? throw new ArgumentException("No saved peer has that name.");
             if (FindAgent(name) is not null)
                 throw new InvalidOperationException("That peer is already running.");
-            var policy = source.Configuration();
+            var policy = PeerSandboxPolicy(entry, source.Configuration(), source.Sandbox());
             if (offering is not null)
             {
                 // Explicit human recovery chooses a complete route. Never guess
                 // funding from an old wire name or the mounted Agent's selection.
                 _ = new Configuration(policy, ResolveModel(offering));
                 var sandbox = source.Sandbox();
-                string path = Path.Combine(AgentDirectory(name)!, "settings.json");
+                string path = Path.Combine(AgentDirectory(name, policy.SandboxRoot)!, "settings.json");
                 var saved = AgentSettings.Read(sandbox, path)
                     ?? new AgentSettings(new MemorySettings(), new RecallSettings());
                 operation.Token.ThrowIfCancellationRequested();
@@ -60,7 +60,7 @@ public sealed partial class Ensemble
     }
 
     public partial async Task<Agent> CreatePeerAsync(Agent source, string name, string? model,
-        string? skill, CancellationToken cancellation, bool waitForBrowser, ModelIdentity? offering)
+        string? skill, CancellationToken cancellation, bool waitForBrowser, ModelIdentity? offering, string? sandboxRoot)
     {
         using var operation = BeginPeerOperation(source, cancellation);
         await peerOperations.WaitAsync(operation.Token).ConfigureAwait(false);
@@ -86,7 +86,15 @@ public sealed partial class Ensemble
                 ? configuration.WithModel(string.IsNullOrEmpty(model) ? configuration.Model : model)
                 : new Configuration(configuration, ResolveModel(offering));
             string selectedSkill = string.IsNullOrEmpty(skill) ? bootstrap?.Primary ?? "" : skill;
-            var entry = new PeerLaunch(name, selection.Model, selectedSkill, DateTimeOffset.UtcNow, selection.Offering);
+            if (sandboxRoot is not null && (!Path.IsPathFullyQualified(sandboxRoot) || sandboxRoot.Length == 0))
+                throw new ArgumentException("A workspace must be an absolute directory path.");
+            var entry = new PeerLaunch(name, selection.Model, selectedSkill, DateTimeOffset.UtcNow,
+                selection.Offering, sandboxRoot ?? source.Sandbox().Root());
+            var effective = PeerSandboxPolicy(entry, configuration, source.Sandbox());
+            entry = entry with { SandboxRoot = effective.SandboxRoot };
+            // Create only the selected workspace, through the source authority.
+            // Failed startup preserves files; never recursively erase a workspace.
+            if (entry.SandboxRoot.Length != 0) source.Sandbox().CreateDirectory(entry.SandboxRoot);
             peer = await ConstructPeerAsync(entry, configuration, bootstrap, operation.Token, waitForBrowser, source.Sandbox()).ConfigureAwait(false);
             operation.Token.ThrowIfCancellationRequested();
             // This replacement is the commit point. Do not throw cancellation
@@ -200,9 +208,23 @@ public sealed partial class Ensemble
         }
     }
 
+    private partial Configuration PeerSandboxPolicy(PeerLaunch entry, Configuration policy, Sandbox sandbox)
+    {
+        if (entry.SandboxRoot is null) return policy; // Legacy registry inherits.
+        if (entry.SandboxRoot.Length == 0 && sandbox.Root().Length != 0)
+            throw new InvalidDataException("An unrestricted peer cannot restore under a confined source.");
+        if (entry.SandboxRoot.Length != 0 && !Path.IsPathFullyQualified(entry.SandboxRoot))
+            throw new InvalidDataException("A saved workspace must be absolute.");
+        var requested = new Configuration(policy, policy.SafeMode, policy.EnableWebSearch, entry.SandboxRoot);
+        var (effective, refusal) = sandbox.DeriveChild(requested);
+        if (refusal is not null) throw new InvalidOperationException(refusal);
+        return effective;
+    }
+
     private partial Configuration PeerConfiguration(PeerLaunch entry, Configuration policy, Sandbox sandbox)
     {
-        var saved = AgentSettings.Read(sandbox, Path.Combine(AgentDirectory(entry.Name)!, "settings.json"));
+        policy = PeerSandboxPolicy(entry, policy, sandbox);
+        var saved = AgentSettings.Read(sandbox, Path.Combine(AgentDirectory(entry.Name, policy.SandboxRoot)!, "settings.json"));
         if (saved?.SelectedOffering is { } selected)
         {
             return new Configuration(policy, ResolveModel(selected));
@@ -316,7 +338,7 @@ public sealed partial class Ensemble
                 var fields = new HashSet<string>(StringComparer.Ordinal);
                 foreach (var property in row.EnumerateObject())
                 {
-                    bool known = property.Name is "name" or "model" or "skill" or "created" or "offering";
+                    bool known = property.Name is "name" or "model" or "skill" or "created" or "offering" or "sandbox_root";
                     bool validKind = property.Name == "offering"
                         ? property.Value.ValueKind == JsonValueKind.Object
                         : property.Value.ValueKind == JsonValueKind.String;
@@ -341,7 +363,8 @@ public sealed partial class Ensemble
                 }
                 ModelIdentity? offering = row.TryGetProperty("offering", out var savedOffering)
                     ? JsonCodec.ReadModelIdentity(savedOffering) : null;
-                entries.Add(new PeerLaunch(name, model, skill, created, offering));
+                string? workspace = row.TryGetProperty("sandbox_root", out var savedRoot) ? savedRoot.GetString() : null;
+                entries.Add(new PeerLaunch(name, model, skill, created, offering, workspace));
             }
             return entries.ToImmutable();
         }
@@ -367,6 +390,7 @@ public sealed partial class Ensemble
             {
                 row["offering"] = JsonCodec.WriteModelIdentity(offering);
             }
+            if (entry.SandboxRoot is not null) row["sandbox_root"] = entry.SandboxRoot;
             rows.Add(row);
         }
         // The supplied owner's Sandbox enforces the same host policy as its
