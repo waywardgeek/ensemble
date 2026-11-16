@@ -62,11 +62,11 @@ internal static class FileEvidenceTests
             var appended = await Call("write_file", new { path, content = "!\nnext", append = true, ai_callback_delay = 3 });
             Check(appended.FileEvidence is { Operation: FileOperation.Append, StartLine: 2, StartColumn: 7 }, "append position incorrect");
             Check(JsonCodec.Text(appended.Parts).Contains("Lines 2–3"), "model lost written range");
-            var read = await Call("read_file", new { path, start_line = 2, max_bytes = 5, ai_callback_delay = 3 });
+            var read = await Call("read_file", new { path, start_line = 2, max_bytes = 5, ai_callback_delay = 3, max_output_bytes = 1024 });
             Check(read.FileEvidence is { Operation: FileOperation.Read, StartLine: 2, StartColumn: 1 }
                 && read.FileEvidence.Content.Text == "😀t" && !read.FileEvidence.Content.Complete,
                 "read cap/offset evidence incorrect");
-            Check(JsonCodec.Text(read.Parts).Contains("2: 😀t\n[truncated]"),
+            Check(JsonCodec.Text(read.Parts).Contains("2: 😀t") && JsonCodec.Text(read.Parts).Contains("source truncated"),
                 "model receives numbered source while evidence remains unnumbered");
             var edited = await Call("edit_file", new { path, old_text = "tail!", new_text = "new\nvalue", ai_callback_delay = 3 });
             Check(edited.FileEvidence is { Operation: FileOperation.Edit, StartLine: 2, StartColumn: 3 }

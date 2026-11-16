@@ -117,20 +117,30 @@ internal static class ToolTests
             File.WriteAllText(numberedPath, "first\r\n\r\n\t  indented\r\n😀tail");
             Check(Text(await Call("read_file", new { path = numberedPath, start_line = 2 }))
                 == "2: \r\n3: \t  indented\r\n4: 😀tail", "actual numbers preserve blank lines, indentation, CRLF and final line");
-            Check(Text(await Call("read_file", new { path = numberedPath, start_line = 4, max_bytes = 3 }))
-                == "\n[truncated]\n", "UTF-8 cap cannot invent partial character or numbered source");
-            Check(Text(await Call("read_file", new { path = numberedPath, start_line = 4, max_bytes = 5 }))
-                == "4: 😀t\n[truncated]\n", "source cap precedes number prefix");
-            Check(Text(await Call("read_file", new { path = numberedPath, start_line = 9 })) == "", "past EOF is empty");
+            var tinyRead = Text(await Call("read_file", new { path = numberedPath, start_line = 4, max_bytes = 3 }));
+            Check(tinyRead.Contains("source truncated") && tinyRead.Contains("start_line=4")
+                && tinyRead.Contains("larger max_bytes") && !tinyRead.Contains("4: "),
+                "UTF-8 boundary must explain how to recover without inventing source");
+            var partialRead = Text(await Call("read_file", new { path = numberedPath, start_line = 4, max_bytes = 5 }));
+            Check(partialRead.StartsWith("[source truncated") && partialRead.EndsWith("4: 😀t")
+                && partialRead.Contains("start_line=4") && partialRead.Contains("max_output_bytes"),
+                "partial-line recovery must reread that line and distinguish report clipping");
+            Check(Text(await Call("read_file", new { path = numberedPath, start_line = 9 }))
+                .Contains("start_line=9; file has 4 lines"), "past EOF explains actual extent");
             File.WriteAllText(numberedPath, "");
-            Check(Text(await Call("read_file", new { path = numberedPath })) == "", "empty file has no invented line");
+            Check(Text(await Call("read_file", new { path = numberedPath })) == "[empty file; 0 lines]\n",
+                "empty file has explicit status but no invented source line");
+            File.WriteAllText(numberedPath, "last\nnext");
+            var boundaryRead = Text(await Call("read_file", new { path = numberedPath, max_bytes = 5 }));
+            Check(boundaryRead.Contains("Continue with start_line=2") && boundaryRead.EndsWith("1: last\n"),
+                "complete-line clipping resumes at the next line");
             File.WriteAllText(numberedPath, "last\n");
             Check(Text(await Call("read_file", new { path = numberedPath })) == "1: last\n", "trailing newline has no extra numbered line");
             File.WriteAllText(numberedPath, new string('x', 32769));
-            var expectedDefault = "1: " + new string('x', 32768) + "\n[truncated]\n";
-            Check(Text(await Call("read_file", new { path = numberedPath, max_output_bytes = 65536 })) == expectedDefault,
+            var defaultRead = Text(await Call("read_file", new { path = numberedPath, max_output_bytes = 65536 }));
+            Check(defaultRead.Contains("max_bytes=32768") && defaultRead.EndsWith("1: " + new string('x', 32768)),
                 "omitted source cap matches advertised default");
-            Check(Text(await Call("read_file", new { path = numberedPath, max_bytes = 0, max_output_bytes = 65536 })) == expectedDefault,
+            Check(Text(await Call("read_file", new { path = numberedPath, max_bytes = 0, max_output_bytes = 65536 })) == defaultRead,
                 "zero source cap matches advertised default");
             Check(Text(await Call("read_file", new { path = numberedPath, max_bytes = 40000, max_output_bytes = 65536 }))
                 == "1: " + new string('x', 32769), "explicit larger source cap honored");
@@ -240,7 +250,7 @@ internal static class ToolTests
                     end_line = 0,
                     max_bytes = 3
                 });
-                Check(!capped.IsError && Text(capped).StartsWith("1: one") && JsonCodec.Text(capped.Parts).Contains("truncated"), "read cap follows line selection and reports truncation");
+                Check(!capped.IsError && Text(capped).EndsWith("1: one") && JsonCodec.Text(capped.Parts).Contains("source truncated"), "read cap follows line selection and reports truncation");
                 var command = await Call("run_command", new
                 {
                     command = "printf '%s' \"${ANTHROPIC_API_KEY-unset}\"; printf err >&2; exit 7",

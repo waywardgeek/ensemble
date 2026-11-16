@@ -1688,3 +1688,34 @@ continuation note. Larger memory budgets do not change that rule or reconstruct
 detail already summarized away. Configure both policies before a comparison, and
 record mid-trial changes as interventions rather than attributing the outcome to
 the experimental skill alone.
+
+
+### Recovering from a clipped read requires a location, not another guess
+
+A confined student's review repeatedly restarted a chapter at line1 while changing
+only its end line. Two recovery attempts returned byte-identical capped prefixes.
+The file text also said `[truncated]` while the enclosing Job could truthfully say
+`truncated:false`: source selection and report delivery had different limits.
+Knowing both settings existed did not make the recovery obvious.
+
+The reader now puts an explicit source-truncation notice before the excerpt,
+separates it from report clipping, and gives a safe continuation line. A byte cap
+inside a line requires rereading that line with a larger cap; advancing to the next
+line would lose text. Empty files and starts beyond EOF get explicit diagnostics.
+Original source evidence remains unnumbered and free of diagnostic text. Missing
+in-root paths now say “not found” at the failed native operation boundary instead
+of making errno2 sound like a sandbox escape. The permissions and no-follow
+acquisition rules are unchanged.
+
+Regressions first failed on the old continuation and missing-path messages, while
+existing sandbox-race checks still passed. After the correction, an older test had
+to stop assuming source text preceded the new notice. The broader suite also caught
+the active workflow package's exact read-file schema description; its declaration
+was synchronized without weakening the equality check or changing archived graders.
+The GUI regression also exposed an older assertion expecting public child deletion
+to erase its launch record. It now checks the retained record's retired flag and
+still checks that automatic restoration leaves the child absent; saved authority
+and restart eligibility remain distinct. No lifecycle implementation changed in
+that test correction. These are diagnostic and compatibility lessons, not evidence that a future model
+will recover correctly. Chapter3 and Chapter18 teach the revised behavior at its
+construction points; Flint-specific teaching and setup stay in the separate book.

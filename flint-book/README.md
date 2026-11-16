@@ -20,8 +20,12 @@ Do not add Flint-specific instructions to every user's primary skill.
   trial. Behavioral grade passed; architecture did not satisfy the requirements.
 - [Working increment](chapter-01.md): build and evaluate a smaller student primary.
   This is a TL;DR and exercises, not a completed or accepted chapter.
-- [Experimental primary](skills/flint-student/SKILL.md): first candidate, real-loader
-  verified and installed with Bill's approval for trial 02.
+- [Experimental primary](skills/flint-student/SKILL.md): the current prepared candidate
+  adds a compiled ownership example and operational reading/recovery guidance. It is
+  real-loader verified but not yet installed or student-tested. The previous candidate
+  was installed with Bill's approval for trial02; its bytes remain in that evidence.
+- [Next-trial setup](setup/next-trial.md): fixed context/memory policy, verified offline
+  environment and grading handoff. Bill requires the idle-message wake fix before launch.
 - [Trial 02 evidence](evidence/trial-02.md): first-grade offline 100/100 with unchanged
   candidate hashes; architecture still fails. Context and memory-policy interventions
   are disclosed, not attributed to the primary as a single-variable improvement.

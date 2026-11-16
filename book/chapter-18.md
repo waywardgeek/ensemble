@@ -273,7 +273,12 @@ repeated the same unflagged write after seeing only `errno 17`; the permission
 boundary was working, but its diagnostic did not teach recovery. Translate the
 actual failed open, without an existence precheck or resolved-path disclosure,
 and test that refusal preserves bytes while explicit overwrite replaces them.
-Other access failures must not be mislabeled as existing files. Native
+Other access failures must not be mislabeled as existing files. Likewise,
+`ENOENT` from the failed native operation means “File or directory not found,”
+with a reminder to check the requested path and parent directories, not a generic
+sandbox-escape refusal. Preserve the FileNotFoundException category and include
+only the caller's requested path, never a resolved symlink target. No existence
+precheck or authority change is needed to improve either diagnostic. Native
 creation permissions are private, and append initializes the managed stream
 position at the end. The Apple ARM64 variadic ABI required special handling for
 `openat`'s creation mode; compiling a declaration was not evidence that the mode

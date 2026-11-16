@@ -52,6 +52,18 @@ public sealed partial class Tool
             offset = limit;
             line++;
         }
+        // An empty selection needs an explanation, not an invented source line.
+        // If start is beyond EOF the loop traversed the whole file, so line - 1
+        // is its actual line count (a terminal newline does not add an empty line).
+        if (result.Length == 0)
+        {
+            string notice = text.Length == 0
+                ? "[empty file; 0 lines]\n"
+                : $"[end of file: requested start_line={start}; file has {line - 1} lines]\n";
+            return new ToolResultPart(call.CallID, [new TextPart(notice)],
+                fileEvidence: new FileEvidence(FileOperation.Read, String(args, "path"), start, 1,
+                    FileExcerpt.Capture(string.Empty)));
+        }
         var bytes = Encoding.UTF8.GetBytes(result.ToString());
         if (bytes.Length <= maximum)
         {
@@ -68,7 +80,25 @@ public sealed partial class Tool
         }
         var captured = Encoding.UTF8.GetString(bytes, 0, boundary);
         var excerpt = FileExcerpt.Capture(captured);
-        return new ToolResultPart(call.CallID, [new TextPart(NumberReadLines(captured, start) + "\n[truncated]\n")],
+        // Only fully captured newlines advance the safe continuation line. A
+        // partial line must be reread: this tool has no start-column argument.
+        long resumeLine = start;
+        foreach (char character in captured)
+        {
+            if (character == '\n')
+            {
+                resumeLine++;
+            }
+        }
+        string continuation = captured.EndsWith('\n')
+            ? $"Continue with start_line={resumeLine}."
+            : $"Reread with start_line={resumeLine} and a larger max_bytes; that line is incomplete.";
+        // Put the warning first so report clipping is less likely to hide it.
+        // Structured evidence below remains unnumbered, diagnostic-free source.
+        string sourceNotice = $"[source truncated: max_bytes={maximum}; captured {boundary} of {bytes.LongLength} selected UTF-8 bytes. "
+            + continuation
+            + " Set both start_line and end_line for a bounded range. This is separate from max_output_bytes report clipping.]\n";
+        return new ToolResultPart(call.CallID, [new TextPart(sourceNotice + NumberReadLines(captured, start))],
             fileEvidence: new FileEvidence(FileOperation.Read, String(args, "path"), start, 1,
                 new FileExcerpt(excerpt.Text, bytes.LongLength)));
     }

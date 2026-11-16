@@ -128,7 +128,7 @@ public sealed partial class Tool
                 Field("path", "string", "File path.", true);
                 Field("start_line", "integer", "First line, default or zero means 1.");
                 Field("end_line", "integer", "Last line, default or zero means end of file.");
-                Field("max_bytes", "integer", "Source UTF-8 byte cap after line selection, before line-number prefixes; default or zero means 32768. Truncation is reported; prefixes are not file content.");
+                Field("max_bytes", "integer", "Source UTF-8 byte cap after line selection, before line-number prefixes; default or zero means 32768. Source truncation gives a safe continuation line, separately from report clipping. Prefixes/notices are not file content.");
                 break;
             case ToolKind.ListDirectory:
                 name = "list_directory";

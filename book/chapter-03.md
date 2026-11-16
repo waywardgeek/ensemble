@@ -405,10 +405,19 @@ navigate and explain an edit; matching the original text makes the edit apply
 only where that text still exists.
 
 Apply `max_bytes` to the selected source's UTF-8 bytes before adding prefixes.
-Back up to a complete UTF-8 character when clipping, and append an unnumbered
-`[truncated]` notice rather than implying the last shown line is complete.
-Number prefixes and that notice are additional presentation bytes. Chapter 4's
-Job observation cap separately bounds the overall report. Any structured source
+Back up to a complete UTF-8 character when clipping. Prepend an unnumbered
+`[source truncated: ...]` notice with the source cap and captured/selected byte
+counts. If the captured prefix ends at a newline, give the following line as the
+continuation; otherwise tell the caller to reread the incomplete line with a larger
+`max_bytes`. Never skip a missing suffix by advancing past a partial line. State
+that `max_output_bytes` is a separate report cap, and recommend both line bounds
+for a bounded range. Putting the notice first helps preserve it when the report
+itself clips. Number prefixes and notices are additional presentation bytes.
+
+Report an empty file explicitly as zero lines. A start beyond EOF reports the
+requested start and actual file line count; a trailing newline does not create an
+extra source line. Chapter 4's Job observation cap separately bounds the overall
+report: its `truncated:false` does not negate a source-truncation notice. Any structured source
 evidence for a later renderer retains the unnumbered captured text and its actual
 starting line, so the GUI does not number the same source twice.
 

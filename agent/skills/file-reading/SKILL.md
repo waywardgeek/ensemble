@@ -11,7 +11,13 @@ renderers:
 Directory listings show immediate entries, not recursive contents. Preserve file
 line offsets and reported truncation when explaining file reads or search results.
 File reads prefix source lines with `N: ` using actual one-based file numbers.
-These prefixes are not file content; omit them from exact edit anchors.
+These prefixes and diagnostic notices are not file content; omit them from exact
+edit anchors. For chapter-sized reads, give both start_line and end_line. A source
+truncation notice reports the safe continuation line: reread a partial line with a
+larger max_bytes rather than skipping its suffix. Job/report truncated:false only
+means the report was not clipped; it does not mean the selected source was complete.
+max_output_bytes controls report delivery separately. Empty files and starts beyond
+EOF have explicit notices, not invented source lines.
 Search `exclude` optionally lists case-sensitive globs, for example
 `[".git/", "node_modules/", "*.min.js"]`. Omitted/empty means no exclusions;
 `.gitignore` is not read. Names match at any depth, paths containing `/` are

@@ -46,3 +46,39 @@ fixture guessed `agent/skills/coding`; the packaged canonical dependency is
 Disposable candidate mutations adding `spawn_sub_agent` and removing `coding`
 were each rejected for the intended reason. The candidate itself was not changed
 by those mutations. These checks prove loader behavior, not student performance.
+
+
+## Verify the worked example and environment recipe
+
+Using the same repository working directory and SDK/ASSEMBLY/CHECK variables above,
+set `SDK_ROOT` to the directory containing that SDK executable and `GO_EXE` to the
+existing absolute Go executable. This check requires macOS command confinement.
+It creates a disposable workspace, imports only those toolchains read-only, and
+runs self-authored example code through actual `run_command`/`wait_for_job` tools.
+No provider, external network, real credential or student implementation is used.
+
+```sh
+SDK_ROOT=$(dirname "$SDK")
+GO_EXE=/absolute/go/bin/go
+"$SDK" build flint-book/checks/Preparation/Preparation.csproj \
+  --artifacts-path "$CHECK/preparation-artifacts" --configfile "$CHECK/NuGet.Config" \
+  -p:NuGetAudit=false -p:EnsembleAssembly="$ASSEMBLY"
+"$SDK" "$CHECK/preparation-artifacts/bin/Preparation/debug/Preparation.dll" \
+  "$REPO" "$SDK_ROOT" "$GO_EXE"
+```
+
+Require exit0 and `PASS: compiled skill example, confined offline SDK/Go PATH,
+quiet build, fail-fast recipe`. The checker extracts the single C# block from the
+candidate primary, compiles it, tests constructor/remove/direct-destroy/cascade and
+second-parent refusal, and confirms refusal leaves memberships unchanged. It also
+checks SDK/Go lookup, offline execution, absence of cursor-updating build output,
+and failure propagation. The example is not a second student assignment.
+
+During preparation these checks passed against the candidate runtime. Disposable
+mutations replacing constructor registration with a back-reference assignment and
+removing direct-destruction detachment were both rejected at their intended
+postcondition assertions. The real-loader check also passed with unchanged tool
+authority. These checks establish teaching/setup behavior, not Flint learning or
+future architecture acceptance. The public input-copy recipe in
+[the next-trial plan](../setup/next-trial.md) was executed in a disposable directory;
+chapter bytes and pre-admission memory policy matched its stated configuration.

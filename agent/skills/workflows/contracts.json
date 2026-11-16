@@ -16,7 +16,7 @@
       },
       "max_bytes": {
         "type": "integer",
-        "description": "Source UTF-8 byte cap after line selection, before line-number prefixes; default or zero means 32768. Truncation is reported; prefixes are not file content."
+        "description": "Source UTF-8 byte cap after line selection, before line-number prefixes; default or zero means 32768. Source truncation gives a safe continuation line, separately from report clipping. Prefixes/notices are not file content."
       },
       "ai_callback_delay": {
         "type": "number",

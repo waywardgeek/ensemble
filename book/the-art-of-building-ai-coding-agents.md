@@ -3757,10 +3757,19 @@ navigate and explain an edit; matching the original text makes the edit apply
 only where that text still exists.
 
 Apply `max_bytes` to the selected source's UTF-8 bytes before adding prefixes.
-Back up to a complete UTF-8 character when clipping, and append an unnumbered
-`[truncated]` notice rather than implying the last shown line is complete.
-Number prefixes and that notice are additional presentation bytes. Chapter 4's
-Job observation cap separately bounds the overall report. Any structured source
+Back up to a complete UTF-8 character when clipping. Prepend an unnumbered
+`[source truncated: ...]` notice with the source cap and captured/selected byte
+counts. If the captured prefix ends at a newline, give the following line as the
+continuation; otherwise tell the caller to reread the incomplete line with a larger
+`max_bytes`. Never skip a missing suffix by advancing past a partial line. State
+that `max_output_bytes` is a separate report cap, and recommend both line bounds
+for a bounded range. Putting the notice first helps preserve it when the report
+itself clips. Number prefixes and notices are additional presentation bytes.
+
+Report an empty file explicitly as zero lines. A start beyond EOF reports the
+requested start and actual file line count; a trailing newline does not create an
+extra source line. Chapter 4's Job observation cap separately bounds the overall
+report: its `truncated:false` does not negate a source-truncation notice. Any structured source
 evidence for a later renderer retains the unnumbered captured text and its actual
 starting line, so the GUI does not number the same source twice.
 
@@ -12712,7 +12721,12 @@ repeated the same unflagged write after seeing only `errno 17`; the permission
 boundary was working, but its diagnostic did not teach recovery. Translate the
 actual failed open, without an existence precheck or resolved-path disclosure,
 and test that refusal preserves bytes while explicit overwrite replaces them.
-Other access failures must not be mislabeled as existing files. Native
+Other access failures must not be mislabeled as existing files. Likewise,
+`ENOENT` from the failed native operation means “File or directory not found,”
+with a reminder to check the requested path and parent directories, not a generic
+sandbox-escape refusal. Preserve the FileNotFoundException category and include
+only the caller's requested path, never a resolved symlink target. No existence
+precheck or authority change is needed to improve either diagnostic. Native
 creation permissions are private, and append initializes the managed stream
 position at the end. The Apple ARM64 variadic ABI required special handling for
 `openat`'s creation mode; compiling a declaration was not evidence that the mode
@@ -22259,6 +22273,37 @@ continuation note. Larger memory budgets do not change that rule or reconstruct
 detail already summarized away. Configure both policies before a comparison, and
 record mid-trial changes as interventions rather than attributing the outcome to
 the experimental skill alone.
+
+
+### Recovering from a clipped read requires a location, not another guess
+
+A confined student's review repeatedly restarted a chapter at line1 while changing
+only its end line. Two recovery attempts returned byte-identical capped prefixes.
+The file text also said `[truncated]` while the enclosing Job could truthfully say
+`truncated:false`: source selection and report delivery had different limits.
+Knowing both settings existed did not make the recovery obvious.
+
+The reader now puts an explicit source-truncation notice before the excerpt,
+separates it from report clipping, and gives a safe continuation line. A byte cap
+inside a line requires rereading that line with a larger cap; advancing to the next
+line would lose text. Empty files and starts beyond EOF get explicit diagnostics.
+Original source evidence remains unnumbered and free of diagnostic text. Missing
+in-root paths now say “not found” at the failed native operation boundary instead
+of making errno2 sound like a sandbox escape. The permissions and no-follow
+acquisition rules are unchanged.
+
+Regressions first failed on the old continuation and missing-path messages, while
+existing sandbox-race checks still passed. After the correction, an older test had
+to stop assuming source text preceded the new notice. The broader suite also caught
+the active workflow package's exact read-file schema description; its declaration
+was synchronized without weakening the equality check or changing archived graders.
+The GUI regression also exposed an older assertion expecting public child deletion
+to erase its launch record. It now checks the retained record's retired flag and
+still checks that automatic restoration leaves the child absent; saved authority
+and restart eligibility remain distinct. No lifecycle implementation changed in
+that test correction. These are diagnostic and compatibility lessons, not evidence that a future model
+will recover correctly. Chapter3 and Chapter18 teach the revised behavior at its
+construction points; Flint-specific teaching and setup stay in the separate book.
 
 ---
 

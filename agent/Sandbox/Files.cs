@@ -155,8 +155,12 @@ public sealed partial class Sandbox
         int error = Marshal.GetLastPInvokeError();
         // Never include a resolved target or native exception text. A hostile
         // symlink must not turn a refusal into a disclosure of its target path.
-        string message = $"Sandbox filesystem operation refused: {requestedPath} (errno {error})";
-        return error == 2 ? new FileNotFoundException(message) : new IOException(message);
+        if (error == 2) // ENOENT on Darwin and Linux; no existence precheck.
+        {
+            return new FileNotFoundException(
+                $"File or directory not found: {requestedPath}. Check the path and its parent directories (errno 2).");
+        }
+        return new IOException($"Sandbox filesystem operation refused: {requestedPath} (errno {error})");
     }
 
     private static partial SafeFileHandle CheckedHandle(int descriptor, string requestedPath)

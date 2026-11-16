@@ -63,3 +63,19 @@ byte policies separately from the working token limit before admission, and chec
 ownership operations when called directly—not just source locations or the normal
 CLI path. Do not rerun this passing behavioral candidate merely to test these
 lessons; discuss the next experimental configuration with Bill first.
+
+
+## Prepared next configuration
+
+The next candidate adds an executable Graph/Node teaching example and operation-level
+postcondition checks to the primary, explicit two-bound chapter reads, and milestone
+progress notes before handoffs. The [environment recipe](setup/env.sh) provides
+approved compiler lookup, quiet .NET builds, offline workspace caches and fail-fast
+commands. Its [provider-free checks](checks/README.md) exercise the exact example
+and recipe under real confinement. No student result is claimed for this candidate.
+
+Follow the [frozen next-trial plan](setup/next-trial.md). It fixes memory byte budgets
+and working tokens before admission, hashes the inputs, and returns the actual grade
+through the child's pending question. Bill subsequently required the idle-message
+wake fix before launch; that implementation and installed-host verification remain
+separate from the completed setup checks. Do not launch from a source-only success.

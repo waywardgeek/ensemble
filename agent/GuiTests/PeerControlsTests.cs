@@ -238,7 +238,13 @@ static class PeerControlsTests
             await Expect("delete", JsonSerializer.Serialize(new { name = child.Address() }), HttpStatusCode.OK);
             Check(plain.FindChild("worker") is null, "Deleted child retained live membership");
             Check(File.Exists(Path.Combine(childHome, "save.json")), "Child deletion removed saved History");
-            Check(!File.Exists(Path.Combine(childHome, "child.json")), "Deleted child retained restart registration");
+            // Public deletion retires restart eligibility but must preserve the
+            // launch policy: otherwise same-ID reuse could inherit wider access.
+            using (var retired = JsonDocument.Parse(File.ReadAllText(Path.Combine(childHome, "child.json"))))
+            {
+                Check(retired.RootElement.GetProperty("Retired").GetBoolean(),
+                    "Deleted child retained automatic restart eligibility");
+            }
             await plain.RestoreChildrenAsync(token);
             Check(plain.FindChild("worker") is null, "Deleted child returned during restoration");
             string retainedHome = plain.DataDirectory();

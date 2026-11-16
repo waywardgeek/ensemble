@@ -45,6 +45,18 @@ internal static class SandboxTests
             Check(configuration.WithModel("gpt-4.1-mini").SandboxRoot == inside,
                 "Model selection must preserve the requested boundary");
             Check(files.Root() == files.Resolve("."), "Root must be canonical");
+            // A missing in-root path is not an attempted sandbox escape.
+            try
+            {
+                files.ReadFile("missing-file.txt");
+                throw new Exception("Missing file unexpectedly opened");
+            }
+            catch (FileNotFoundException error)
+            {
+                Check(error.Message.Contains("not found", StringComparison.OrdinalIgnoreCase)
+                    && !error.Message.Contains("operation refused", StringComparison.OrdinalIgnoreCase),
+                    "Missing path needs a not-found diagnostic, not a sandbox-refusal label");
+            }
             files.CreateDirectory("nested/deep");
             files.WriteFile("nested/deep/note", "rooted"u8);
             if (!OperatingSystem.IsWindows())
