@@ -170,8 +170,30 @@ internal static class SandboxTests
 
             Check(!(await Call("write_file", new { path = "work/note.txt", content = "one\nneedle\n" })).IsError,
                 "tool creates rooted parents and file");
-            Check((await Call("write_file", new { path = "work/note.txt", content = "bad" })).IsError,
-                "tool no-overwrite refusal");
+            // A failed exclusive creation is recoverable tool feedback, not a
+            // sandbox escape. Explain the remedy without touching existing bytes.
+            var duplicate = await Call("write_file", new { path = "work/note.txt", content = "bad" });
+            Check(duplicate.IsError && Text(duplicate).Contains("File already exists")
+                && Text(duplicate).Contains("overwrite:true")
+                && Text(duplicate).Contains("edit_file")
+                && !Text(duplicate).Contains(inside),
+                "tool no-overwrite refusal explains recovery without revealing root");
+            Check(File.ReadAllText(Path.Combine(inside, "work/note.txt")) == "one\nneedle\n",
+                "exclusive creation refusal preserves original bytes");
+            Check(!(await Call("write_file", new
+            {
+                path = "work/note.txt",
+                content = "replacement",
+                overwrite = true
+            })).IsError, "explicit overwrite remains supported");
+            Check(File.ReadAllText(Path.Combine(inside, "work/note.txt")) == "replacement",
+                "explicit overwrite replaces actual bytes");
+            Check(!(await Call("write_file", new
+            {
+                path = "work/note.txt",
+                content = "one\nneedle\n",
+                overwrite = true
+            })).IsError, "restore fixture for append and edit checks");
             var appended = await Call("write_file", new { path = "work/note.txt", content = "tail\n", append = true });
             Check(!appended.IsError && Text(appended).Contains("Lines 3–3; starting column 1"),
                 "rooted append reports positions through same descriptor");

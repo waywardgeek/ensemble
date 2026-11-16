@@ -3780,8 +3780,10 @@ can ask for more; it cannot un-spend the window.
 `write_file` refuses to overwrite unless asked by name. Of the six tools,
 exactly one operation destroys work with no trace in the log, and it is
 `write_file` on a path that already exists. So that call is gated. The target
-exists, the reply says so and how big it is, nothing has happened, and
-`overwrite: true` is the word that makes it happen. A new file needs no flag,
+exists, the reply explains that existing contents were preserved and how to
+proceed: `overwrite: true` replaces them, `append: true` adds to them, and
+`edit_file` makes a targeted change. Merely saying “overwrite” in prose does
+not set the tool argument. A new file needs no flag,
 since seven to one says most `write_file` calls create; `append` is never
 refused. Asked what it thought of this tool set, before the guard existed, a
 live model put the intuition in one sentence: "`write_file` is the one tool
@@ -12703,7 +12705,14 @@ reader during cleanup rather than leaving a stuck test behind.
 
 File editing retains one open read/write handle across the read, exact-anchor
 check, and replacement. A second pathname lookup must not redirect the write.
-New files use exclusive creation rather than a separate existence check. Native
+New files use exclusive creation rather than a separate existence check. If that
+open returns `EEXIST`, report “File already exists” with the explicit overwrite,
+append and edit alternatives, not a generic sandbox refusal. A confined student
+repeated the same unflagged write after seeing only `errno 17`; the permission
+boundary was working, but its diagnostic did not teach recovery. Translate the
+actual failed open, without an existence precheck or resolved-path disclosure,
+and test that refusal preserves bytes while explicit overwrite replaces them.
+Other access failures must not be mislabeled as existing files. Native
 creation permissions are private, and append initializes the managed stream
 position at the end. The Apple ARM64 variadic ABI required special handling for
 `openat`'s creation mode; compiling a declaration was not evidence that the mode

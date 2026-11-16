@@ -266,7 +266,14 @@ reader during cleanup rather than leaving a stuck test behind.
 
 File editing retains one open read/write handle across the read, exact-anchor
 check, and replacement. A second pathname lookup must not redirect the write.
-New files use exclusive creation rather than a separate existence check. Native
+New files use exclusive creation rather than a separate existence check. If that
+open returns `EEXIST`, report “File already exists” with the explicit overwrite,
+append and edit alternatives, not a generic sandbox refusal. A confined student
+repeated the same unflagged write after seeing only `errno 17`; the permission
+boundary was working, but its diagnostic did not teach recovery. Translate the
+actual failed open, without an existence precheck or resolved-path disclosure,
+and test that refusal preserves bytes while explicit overwrite replaces them.
+Other access failures must not be mislabeled as existing files. Native
 creation permissions are private, and append initializes the managed stream
 position at the end. The Apple ARM64 variadic ABI required special handling for
 `openat`'s creation mode; compiling a declaration was not evidence that the mode

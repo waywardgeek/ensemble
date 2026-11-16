@@ -246,7 +246,17 @@ public sealed partial class Sandbox
             {
                 flags |= mac ? 0x8 : 0x400; // O_APPEND
             }
-            var handle = CheckedHandle(NativeOpenAt(directory, Path.GetFileName(relative), flags, 0x180), path);
+            int descriptor = NativeOpenAt(directory, Path.GetFileName(relative), flags, 0x180);
+            if (descriptor < 0 && mode == FileMode.CreateNew
+                && Marshal.GetLastPInvokeError() == 17) // EEXIST on Darwin and Linux.
+            {
+                // Diagnose the actual exclusive-open failure, not a racy existence
+                // precheck. Report only the requested path, never a resolved target.
+                throw new IOException($"File already exists: {path}. "
+                    + "For write_file, use overwrite:true to replace it or append:true to append; "
+                    + "use edit_file for a targeted change. Existing contents were not changed.");
+            }
+            var handle = CheckedHandle(descriptor, path);
             try
             {
                 var stream = new FileStream(handle, access);
