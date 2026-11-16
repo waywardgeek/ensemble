@@ -15789,7 +15789,7 @@ The names `bucket-0` and `bucket-1` are storage conventions, not new owners. The
 
 ### A budget is a trigger and a writing target
 
-Memory policies are immutable values declared in Common. Negative budgets and values whose doubled threshold would overflow refuse before changing policy. The default conversation budget is 3,000 UTF-8 bytes; SOUL, MEMORY, archive64, archive8 and session each default to 1,500. A zero budget selects the applicable default, rather than disabling a band. High and low watermarks are always twice and once the resolved budget; they are internal derived thresholds, not additional settings. Disabling is a separate boolean, so “off” cannot be confused with “use the default.”
+Memory policies are immutable values declared in Common. Negative budgets and values whose doubled threshold would overflow refuse before changing policy. The default budgets, in UTF-8 bytes, are Conversation 100,000, Session 40,000, archive8 and archive64 10,000 each, MEMORY 10,000, and SOUL 5,000. All bands are enabled by default. These retain useful engineering context without tying memory policy to a particular model’s token capacity. Explicit saved budgets remain authoritative: changing application defaults does not migrate an existing Agent’s policy. A zero budget selects the applicable default, rather than disabling a band. High and low watermarks are always twice and once the resolved budget; they are internal derived thresholds, not additional settings. Disabling is a separate boolean, so “off” cannot be confused with “use the default.”
 
 These are byte budgets, not token windows. The earlier Chapter 14 target and tool-result policies remain distinct. A main request can have substantial overhead from instructions, tool declarations and provider formatting; counting memory bytes alone cannot predict its token occupancy.
 
@@ -22230,6 +22230,35 @@ fails. Valid retired identities continue to reserve numbers. Strict transaction
 validation, overlapping valid archive detection, and I/O failures retain their
 existing behavior. Regression checks cover startup status and an actual request
 to a local fake provider, as well as scanning, allocation and escaped diagnostics.
+
+
+### Working context and memory budgets are separate policies
+
+A Flint chapter trial had a 200,000-token working-context limit but retained the
+application’s small memory defaults: 3,000 bytes for Conversation and 1,500 for
+each corpus band. Raising the token limit had not changed those byte policies.
+Bill noticed the mismatch after a handoff. Applying a handoff also checks whether
+to start conversation compression, so the small byte budget can trigger a second
+reduction immediately after tool traffic is removed. The observation establishes
+a policy mismatch, not a measured loss of particular facts or a diagnosis of the
+model’s later decisions.
+
+We changed the defaults to the larger engineering policy described in Chapter 22,
+using Cadence’s current settings as the starting point and rounding its terminal
+MEMORY budget from 9,994 to 10,000 bytes. New defaults must preserve explicit saved
+budgets and disabled flags; existing Agents need an intentional settings update.
+The regression checks all six resolved defaults, explicit old budgets, zero-budget
+fallback and disabled flags. All 400 native tests passed, and the GUI host built
+without warnings or errors. These are source checks, not installation or live
+policy-update evidence. The legacy codec fixture uses explicit historical
+values rather than deriving its supposed old policy from current defaults.
+
+A handoff still removes tool traffic, opaque replay, media and older checkpoint
+notes from active context while retaining ordinary prose, skills and the new
+continuation note. Larger memory budgets do not change that rule or reconstruct
+detail already summarized away. Configure both policies before a comparison, and
+record mid-trial changes as interventions rather than attributing the outcome to
+the experimental skill alone.
 
 ---
 

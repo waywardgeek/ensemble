@@ -27,12 +27,14 @@ public sealed partial class MemorySettings
         MemoryBandSettings? memory, MemoryBandSettings? archive64, MemoryBandSettings? archive8,
         MemoryBandSettings? session)
     {
-        Conversation = (conversation ?? new()).Effective(3000);
-        Soul = (soul ?? new()).Effective(1500);
-        Memory = (memory ?? new()).Effective(1500);
-        Archive64 = (archive64 ?? new()).Effective(1500);
-        Archive8 = (archive8 ?? new()).Effective(1500);
-        Session = (session ?? new()).Effective(1500);
+        // Byte budgets preserve useful engineering context by default. Explicit
+        // saved budgets still win; changing defaults is not a policy migration.
+        Conversation = (conversation ?? new()).Effective(100_000);
+        Soul = (soul ?? new()).Effective(5_000);
+        Memory = (memory ?? new()).Effective(10_000);
+        Archive64 = (archive64 ?? new()).Effective(10_000);
+        Archive8 = (archive8 ?? new()).Effective(10_000);
+        Session = (session ?? new()).Effective(40_000);
     }
 
     internal partial MemoryBandSettings For(MemoryBand? band)

@@ -77,7 +77,14 @@ internal static partial class MeterTests
             string home = Path.Combine(directory, "memory-settings-codec");
             var agent = MemoryAgent(app, home, "http://127.0.0.1:1");
             string path = Path.Combine(home, "settings.json");
-            string policy = JsonCodec.WriteMemorySettings(new MemorySettings()).ToJsonString();
+            // Pin historical saved values: a default change must not migrate
+            // explicit old policies or invalidate the malformed-input mutations.
+            var oldBand = new MemoryBandSettings(1500);
+            var savedPolicy = new MemorySettings(
+                conversation: new MemoryBandSettings(3000),
+                soul: oldBand, memory: oldBand, archive64: oldBand,
+                archive8: oldBand, session: oldBand);
+            string policy = JsonCodec.WriteMemorySettings(savedPolicy).ToJsonString();
             Check(!policy.Contains("watermark", StringComparison.Ordinal),
                 "Writer still exposes independently configurable watermarks");
             string valid = new JsonObject { ["version"] = 1, ["memory"] = JsonNode.Parse(policy) }.ToJsonString();
