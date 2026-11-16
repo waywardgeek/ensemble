@@ -22,9 +22,9 @@ const creations = [];
             if (url.pathname === '/peers/saved') { response.end('[]'); return; }
             if (url.pathname === '/peers/directories') {
                 const selected = url.searchParams.get('path');
-                response.end(JSON.stringify(selected === '/private/tmp/flint4_workspace'
+                response.end(JSON.stringify(['/private/tmp/flint4_workspace', '/private/tmp/toolchain'].includes(selected)
                     ? { path: selected, parent: '/private/tmp', directories: [], truncated: false }
-                    : { path: '/private/tmp', parent: '/private', directories: ['flint4_workspace'], truncated: false }));
+                    : { path: '/private/tmp', parent: '/private', directories: ['flint4_workspace', 'toolchain'], truncated: false }));
                 return;
             }
             if (url.pathname === '/peers/choices') {
@@ -35,7 +35,10 @@ const creations = [];
                         { vendor: 'OpenRouter', label: 'Flint Chat', model: 'recursive/flint-v1.0:free', offering: flint('chat'), enabled: true }
                     ], preferred_models: [
                         { vendor: 'OpenRouter', label: 'Flint default unavailable', preference: { vendor: 'openrouter', model: 'recursive/flint-v1.0:free' }, enabled: false }
-                    ], primary_skills: [] })); return;
+                    ], primary_skills: [], process_read_suggestions: [
+                        { label: 'Go toolchain', path: '/usr/local/go', available: true, selected: false },
+                        { label: 'Unavailable fixture', path: '/missing/toolchain', available: false, selected: false }
+                    ] })); return;
                 }
                 response.end(JSON.stringify({ model_choices: ['astra'], configured_models: [
                     { vendor: 'Ollama', label: 'MiMo', model: 'fixture-mimo', offering, funding: 'No authentication', enabled: true },
@@ -129,16 +132,33 @@ const creations = [];
             await page.locator('#peer-name').fill(`flint-${width}`);
             await page.locator('#peer-model').selectOption({ label: 'Flint Chat' });
             await page.locator('#peer-access-mode').selectOption('workspace');
+            const go = page.locator('#peer-imports input[value="/usr/local/go"]');
+            assert.equal(await go.isChecked(), false, 'Suggestions must not silently grant access');
+            assert.equal(await page.locator('#peer-imports input[value="/missing/toolchain"]').isDisabled(), true);
+            await go.check();
+            await page.locator('#peer-import-path').fill('/opt/fixture');
+            await page.locator('#peer-import-add').click();
+            await page.locator('#peer-imports input[value="/opt/fixture"]').uncheck();
             await page.locator('#peer-browse').click();
-            await page.locator('#peer-directories option').waitFor();
+            await page.locator('#peer-directories option[value="flint4_workspace"]').waitFor();
             await page.locator('#peer-directories').selectOption('flint4_workspace');
             await page.locator('#peer-directory-open').click();
             await page.locator('#peer-directory-status').filter({ hasText: '/private/tmp/flint4_workspace' }).waitFor();
             await page.locator('#peer-directory-use').click();
             assert.equal(await page.locator('#peer-workspace').inputValue(), '/private/tmp/flint4_workspace');
+            await page.locator('#peer-import-browse').click();
+            await page.locator('#peer-directories option[value="toolchain"]').waitFor();
+            await page.locator('#peer-directories').selectOption('toolchain');
+            await page.locator('#peer-directory-open').click();
+            await page.locator('#peer-directory-status').filter({ hasText: '/private/tmp/toolchain' }).waitFor();
+            await page.locator('#peer-directory-use').click();
+            const customImport = page.locator('#peer-imports input[value="/private/tmp/toolchain"]');
+            assert.equal(await customImport.isChecked(), true);
+            assert.equal(await page.locator('#peer-workspace').inputValue(), '/private/tmp/flint4_workspace', 'Import selection changed writable workspace');
+            await customImport.uncheck();
             await page.locator('#peer-create').click();
             await page.locator('#peer-notice').filter({ hasText: `Created Agent flint-${width}` }).waitFor();
-            assert.deepEqual(creations.at(-1), { name: `flint-${width}`, skill: '', offering: flint('chat'), sandbox_root: '/private/tmp/flint4_workspace' });
+            assert.deepEqual(creations.at(-1), { name: `flint-${width}`, skill: '', offering: flint('chat'), sandbox_root: '/private/tmp/flint4_workspace', process_read_paths: ['/usr/local/go'] });
         }
         // Exercise the shipped picker projection independently of usage counters
         // and the conversation socket; creation above uses the full peers script.

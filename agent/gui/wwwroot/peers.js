@@ -19,6 +19,30 @@
     const directoryStatus = document.querySelector("#peer-directory-status");
     const up = document.querySelector("#peer-directory-up");
     const use = document.querySelector("#peer-directory-use");
+    const imports = document.querySelector("#peer-imports");
+    const importPath = document.querySelector("#peer-import-path");
+    const importStatus = document.querySelector("#peer-import-status");
+    let browseTarget = "workspace";
+    function addImport(path, label = "Read-only import", available = true, selected = true) {
+        const existing = [...imports.querySelectorAll("input")].find(input => input.value === path);
+        if (existing) { if (!existing.disabled) existing.checked = selected; return; }
+        const row = document.createElement("label"); row.className = "d-block";
+        const input = document.createElement("input"); input.type = "checkbox"; input.value = path;
+        input.checked = selected && available; input.disabled = !available;
+        row.append(input, document.createTextNode(` ${label}: ${path}${available ? "" : " (unavailable)"}`));
+        imports.append(row);
+    }
+    document.querySelector("#peer-import-add").onclick = () => {
+        const path = importPath.value.trim();
+        if (!path.startsWith("/") || path.length > 4096 || /[\x00-\x1f\x7f]/.test(path)) {
+            importStatus.textContent = "Enter an absolute server directory path."; return;
+        }
+        if (imports.querySelectorAll("input").length >= 64) {
+            importStatus.textContent = "At most 64 imports are supported."; return;
+        }
+        addImport(path); importPath.value = "";
+        importStatus.textContent = "Selected. Access is validated when the Agent is created.";
+    };
     let directoryPath = "", parentPath = null, directoryGeneration = 0;
     accessMode.onchange = () => {
         const confined = accessMode.value === "workspace";
@@ -46,12 +70,19 @@
             if (generation === directoryGeneration) directoryStatus.textContent = "Folder unavailable. Choose another path or retry.";
         }
     }
-    document.querySelector("#peer-browse").onclick = () => browse();
+    document.querySelector("#peer-browse").onclick = () => { browseTarget = "workspace"; void browse(); };
+    document.querySelector("#peer-import-browse").onclick = () => { browseTarget = "import"; void browse(); };
     up.onclick = () => { if (parentPath) void browse(parentPath); };
     document.querySelector("#peer-directory-open").onclick = () => {
         if (folders.value) void browse(directoryPath.replace(/\/$/, "") + "/" + folders.value);
     };
-    use.onclick = () => { workspace.value = directoryPath; browser.hidden = true; workspace.focus(); };
+    use.onclick = () => {
+        if (browseTarget === "import") {
+            addImport(directoryPath); importStatus.textContent = "Selected. Access is validated when the Agent is created.";
+            importPath.focus();
+        } else { workspace.value = directoryPath; workspace.focus(); }
+        browser.hidden = true;
+    };
     let pending = null;
     let recovering = null;
     let choicesPending = false;
@@ -68,6 +99,7 @@
                 if (accessMode.value === "workspace") {
                     if (!workspace.reportValidity()) return;
                     body.sandbox_root = workspace.value;
+                    body.process_read_paths = [...imports.querySelectorAll("input:checked")].map(input => input.value);
                 }
             }
             const offering = offerings.get(model.selectedOptions[0]?.dataset.offeringKey);
@@ -139,6 +171,10 @@
             document.querySelector("#peer-inherited-access").textContent = choices.sandbox_root
                 ? `Inherited workspace: ${choices.sandbox_root}`
                 : "Inherited access is unrestricted. Choose a workspace to confine this Agent.";
+
+            imports.replaceChildren(); importStatus.textContent = ""; importPath.value = "";
+            for (const suggestion of choices.process_read_suggestions || [])
+                addImport(suggestion.path, suggestion.label, suggestion.available, suggestion.selected);
 
             const groups = new Map();
             for (const choice of choices.preferred_models || []) {

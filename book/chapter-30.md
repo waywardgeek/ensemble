@@ -286,6 +286,30 @@ workspace externally also deletes those Agent records. Existing peers are not
 retroactively confined. Test the actual creation request, outside-path refusal,
 workspace-local saving, and restored confinement, not just the dialog controls.
 
+Offer read-only command imports separately from the writable workspace. Suggestions
+such as the installed Go toolchain at `/usr/local/go` are unchecked choices, not
+automatic grants. Mark unavailable suggestions explicitly. Show inherited imports
+as selected, allow deselection, and provide a server folder chooser and absolute
+path entry for other imports. Do not scan or suggest arbitrary external directories
+from a confined creator. Folder selection alone grants nothing.
+
+Pass the selected paths through the existing sandbox policy, not a GUI-specific
+permission system. Canonicalize and validate existing targets, reject duplicates
+and overlap with the writable root, and allow a confined creator only to retain,
+narrow or drop its own imports. Save the effective paths in the peer launch record;
+omission inherits for older records, while an explicit empty array means no imports.
+Revalidate on restore and refuse missing or unauthorized paths rather than silently
+changing the policy. A model switch must preserve these Agent-owned permissions.
+
+Imports permit command reads, not writes or network access, and do not widen built-in
+file tools. Executable discovery is another necessary step: append only an approved
+directory's existing, physically contained `bin` directory to the minimal command
+PATH, after system directories. Never inherit the host's whole PATH or shell startup
+files. Compilers still need workspace-local caches and available dependencies;
+selecting Go is not permission to download modules. Test real executable lookup and
+descendant access, denied external writes and network, exact GUI selections, saved
+imports and refusal on restore—not only a generated sandbox-profile string.
+
 Submission is result publication, not a request to stop or remove a child. Keep
 submitted children selectable and show their submitted status alongside activity.
 A status-tool query and a GUI snapshot must not hide them merely because their

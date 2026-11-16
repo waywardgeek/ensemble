@@ -50,7 +50,15 @@ public sealed partial class Sandbox
             }
         }
         start.Environment["TERM"] = "xterm-256color";
-        start.Environment["PATH"] = "/usr/bin:/bin:/usr/sbin:/sbin";
+        // Only approved directory imports contribute executable lookup, and only
+        // their contained bin directories. Never inherit host shell startup/PATH.
+        var bins = new List<string> { "/usr/bin", "/bin", "/usr/sbin", "/sbin" };
+        foreach (var grant in processReads.Where(value => value.Directory))
+        {
+            string bin = CanonicalPath(Path.Combine(grant.Path, "bin"));
+            if (!bin.Contains(':') && ContainsPath(grant.Path, bin) && Directory.Exists(bin)) bins.Add(bin);
+        }
+        start.Environment["PATH"] = string.Join(":", bins.Distinct(StringComparer.Ordinal));
         start.Environment["HOME"] = root;
         start.Environment["TMPDIR"] = root;
         start.Environment["GIT_CONFIG_GLOBAL"] = Path.Combine(root, ".ensemble-gitconfig");

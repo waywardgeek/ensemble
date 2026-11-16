@@ -74,6 +74,15 @@
  <input class="form-control" id="peer-workspace" placeholder="/private/tmp/flint4_workspace" autocomplete="off">
  <button class="btn btn-secondary" id="peer-browse" type="button">Choose server folder…</button>
  <p>Choose a folder, or append a new folder name to its path. Agent records live inside the workspace when host storage is outside it. Primary skill determines tools; sandboxed commands have no network access.</p>
+ <fieldset><legend>Read-only command imports</legend>
+ <p>Selected directories are readable by commands, not copied or writable. Built-in file tools stay inside the workspace. Existing contained bin folders join command PATH. Imports do not allow network access.</p>
+ <div id="peer-imports"></div>
+ <label class="form-label" for="peer-import-path">Other server directory to import</label>
+ <input class="form-control" id="peer-import-path" autocomplete="off" placeholder="Absolute server directory">
+ <button class="btn btn-secondary" id="peer-import-add" type="button">Add read-only import</button>
+ <button class="btn btn-secondary" id="peer-import-browse" type="button">Choose import folder…</button>
+ <p id="peer-import-status" role="status"></p>
+ </fieldset>
  <div id="peer-directory-browser" hidden>
  <p id="peer-directory-status" role="status"></p>
  <button class="btn btn-secondary" id="peer-directory-up" type="button">Parent folder</button>

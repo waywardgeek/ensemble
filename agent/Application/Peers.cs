@@ -60,7 +60,8 @@ public sealed partial class Ensemble
     }
 
     public partial async Task<Agent> CreatePeerAsync(Agent source, string name, string? model,
-        string? skill, CancellationToken cancellation, bool waitForBrowser, ModelIdentity? offering, string? sandboxRoot)
+        string? skill, CancellationToken cancellation, bool waitForBrowser, ModelIdentity? offering,
+        string? sandboxRoot, ImmutableArray<string>? processReadPaths)
     {
         using var operation = BeginPeerOperation(source, cancellation);
         await peerOperations.WaitAsync(operation.Token).ConfigureAwait(false);
@@ -89,9 +90,9 @@ public sealed partial class Ensemble
             if (sandboxRoot is not null && (!Path.IsPathFullyQualified(sandboxRoot) || sandboxRoot.Length == 0))
                 throw new ArgumentException("A workspace must be an absolute directory path.");
             var entry = new PeerLaunch(name, selection.Model, selectedSkill, DateTimeOffset.UtcNow,
-                selection.Offering, sandboxRoot ?? source.Sandbox().Root());
+                selection.Offering, sandboxRoot ?? source.Sandbox().Root(), processReadPaths);
             var effective = PeerSandboxPolicy(entry, configuration, source.Sandbox());
-            entry = entry with { SandboxRoot = effective.SandboxRoot };
+            entry = entry with { SandboxRoot = effective.SandboxRoot, ProcessReadPaths = effective.ProcessReadPaths };
             // Create only the selected workspace, through the source authority.
             // Failed startup preserves files; never recursively erase a workspace.
             if (entry.SandboxRoot.Length != 0) source.Sandbox().CreateDirectory(entry.SandboxRoot);
@@ -210,12 +211,13 @@ public sealed partial class Ensemble
 
     private partial Configuration PeerSandboxPolicy(PeerLaunch entry, Configuration policy, Sandbox sandbox)
     {
-        if (entry.SandboxRoot is null) return policy; // Legacy registry inherits.
-        if (entry.SandboxRoot.Length == 0 && sandbox.Root().Length != 0)
+        if (entry.SandboxRoot is null && entry.ProcessReadPaths is null) return policy; // Legacy registry inherits.
+        if (entry.SandboxRoot == "" && sandbox.Root().Length != 0)
             throw new InvalidDataException("An unrestricted peer cannot restore under a confined source.");
-        if (entry.SandboxRoot.Length != 0 && !Path.IsPathFullyQualified(entry.SandboxRoot))
+        if (entry.SandboxRoot is { Length: > 0 } && !Path.IsPathFullyQualified(entry.SandboxRoot))
             throw new InvalidDataException("A saved workspace must be absolute.");
-        var requested = new Configuration(policy, policy.SafeMode, policy.EnableWebSearch, entry.SandboxRoot);
+        var requested = new Configuration(policy, policy.SafeMode, policy.EnableWebSearch,
+            entry.SandboxRoot ?? policy.SandboxRoot, entry.ProcessReadPaths);
         var (effective, refusal) = sandbox.DeriveChild(requested);
         if (refusal is not null) throw new InvalidOperationException(refusal);
         return effective;
@@ -338,9 +340,10 @@ public sealed partial class Ensemble
                 var fields = new HashSet<string>(StringComparer.Ordinal);
                 foreach (var property in row.EnumerateObject())
                 {
-                    bool known = property.Name is "name" or "model" or "skill" or "created" or "offering" or "sandbox_root";
+                    bool known = property.Name is "name" or "model" or "skill" or "created" or "offering" or "sandbox_root" or "process_read_paths";
                     bool validKind = property.Name == "offering"
                         ? property.Value.ValueKind == JsonValueKind.Object
+                        : property.Name == "process_read_paths" ? property.Value.ValueKind == JsonValueKind.Array
                         : property.Value.ValueKind == JsonValueKind.String;
                     if (!known || !validKind || !fields.Add(property.Name))
                     {
@@ -364,7 +367,14 @@ public sealed partial class Ensemble
                 ModelIdentity? offering = row.TryGetProperty("offering", out var savedOffering)
                     ? JsonCodec.ReadModelIdentity(savedOffering) : null;
                 string? workspace = row.TryGetProperty("sandbox_root", out var savedRoot) ? savedRoot.GetString() : null;
-                entries.Add(new PeerLaunch(name, model, skill, created, offering, workspace));
+                ImmutableArray<string>? reads = null;
+                if (row.TryGetProperty("process_read_paths", out var savedReads))
+                {
+                    if (savedReads.GetArrayLength() > 64 || savedReads.EnumerateArray().Any(value => value.ValueKind != JsonValueKind.String))
+                        throw new InvalidDataException("Invalid peer process read paths.");
+                    reads = savedReads.EnumerateArray().Select(value => value.GetString()!).ToImmutableArray();
+                }
+                entries.Add(new PeerLaunch(name, model, skill, created, offering, workspace, reads));
             }
             return entries.ToImmutable();
         }
@@ -391,6 +401,8 @@ public sealed partial class Ensemble
                 row["offering"] = JsonCodec.WriteModelIdentity(offering);
             }
             if (entry.SandboxRoot is not null) row["sandbox_root"] = entry.SandboxRoot;
+            if (entry.ProcessReadPaths is { } reads)
+                row["process_read_paths"] = new JsonArray(reads.Select(path => (JsonNode?)JsonValue.Create(path)).ToArray());
             rows.Add(row);
         }
         // The supplied owner's Sandbox enforces the same host policy as its

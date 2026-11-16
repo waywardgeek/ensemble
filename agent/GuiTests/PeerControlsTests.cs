@@ -145,9 +145,11 @@ static class PeerControlsTests
                     .Any(value => value.GetString() == "global.json"), "Directory browser included files.");
             }
             string workspace = Path.Combine(work, "confined-workspace");
-            await Expect("create", JsonSerializer.Serialize(new { name = "confined-peer", skill = "plain", sandbox_root = workspace }),
+            await Expect("create", JsonSerializer.Serialize(new { name = "confined-peer", skill = "plain", sandbox_root = workspace, process_read_paths = new[] { Path.Combine(work, "skills") } }),
                 HttpStatusCode.OK);
             var confined = root.FindAgent("confined-peer")!;
+            Check(confined.Configuration().ProcessReadPaths is { Length: 1 }, "HTTP creation lost imports.");
+            await Expect("create", "{\"name\":\"bad-imports\",\"process_read_paths\":[42]}", HttpStatusCode.BadRequest);
             Check(confined.Sandbox().Root().Length != 0 && confined.DataDirectory().StartsWith(confined.Sandbox().Root() + "/", StringComparison.Ordinal),
                 "HTTP workspace creation lost confinement or storage.");
             await Expect("delete", "{\"name\":\"confined-peer\"}", HttpStatusCode.OK);

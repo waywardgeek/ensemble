@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using System.Net;
 using System.Text.Json;
 using Ensemble;
@@ -48,6 +49,22 @@ public static partial class Gui
                     ["name"] = value.Name, ["description"] = value.Description
                 }).ToArray());
             frame["sandbox_root"] = source.Sandbox().Root();
+            var imports = new System.Text.Json.Nodes.JsonArray();
+            var inherited = source.Configuration().ProcessReadPaths ?? [];
+            foreach (string path in inherited)
+                imports.Add(new System.Text.Json.Nodes.JsonObject {
+                    ["label"] = "Inherited import", ["path"] = path, ["available"] = true, ["selected"] = true });
+            // No filesystem discovery outside a confined source. Its existing
+            // grants are the only suggestions; creation still validates subsets.
+            if (source.Sandbox().Root().Length == 0)
+            {
+                bool available;
+                try { available = source.Sandbox().IsDirectory("/usr/local/go"); }
+                catch (Exception error) when (error is IOException or UnauthorizedAccessException) { available = false; }
+                imports.Add(new System.Text.Json.Nodes.JsonObject {
+                    ["label"] = "Go toolchain", ["path"] = "/usr/local/go", ["available"] = available, ["selected"] = false });
+            }
+            frame["process_read_suggestions"] = imports;
             return Results.Json(frame);
         }
 
@@ -119,9 +136,9 @@ public static partial class Gui
                 foreach (var property in body.EnumerateObject())
                 {
                     bool offering = (create || restore || funding) && property.Name is "offering" or "preference";
-                    bool allowed = offering || (!funding && property.Name == "name") || (create && property.Name is "model" or "skill" or "sandbox_root");
+                    bool allowed = offering || (!funding && property.Name == "name") || (create && property.Name is "model" or "skill" or "sandbox_root" or "process_read_paths");
                     if (!allowed || !seen.Add(property.Name)
-                        || property.Value.ValueKind != (offering ? JsonValueKind.Object : JsonValueKind.String))
+                        || property.Value.ValueKind != (offering ? JsonValueKind.Object : property.Name == "process_read_paths" ? JsonValueKind.Array : JsonValueKind.String))
                     {
                         throw new InvalidDataException();
                     }
@@ -154,11 +171,19 @@ public static partial class Gui
                             throw new ArgumentException("Conflicting model selection forms.");
                         offering = ResolvePreferredModel(source, preference).Identity();
                     }
+                    ImmutableArray<string>? reads = null;
+                    if (body.TryGetProperty("process_read_paths", out var imports))
+                    {
+                        if (imports.GetArrayLength() > 64 || imports.EnumerateArray().Any(value => value.ValueKind != JsonValueKind.String))
+                            throw new InvalidDataException();
+                        reads = imports.EnumerateArray().Select(value => value.GetString()!).ToImmutableArray();
+                    }
                     var peer = restore
                         ? await ensemble.RestorePeerAsync(source, name, offering, token, waitForBrowser: true)
                         : await ensemble.CreatePeerAsync(source, name, model, skill, token,
                             waitForBrowser: true, offering: offering,
-                            sandboxRoot: body.TryGetProperty("sandbox_root", out var workspace) ? workspace.GetString() : null);
+                            sandboxRoot: body.TryGetProperty("sandbox_root", out var workspace) ? workspace.GetString() : null,
+                            processReadPaths: reads);
                     return Results.Json(new { name, address = peer.Address(), created = create, restored = restore });
                 }
                 // A borrowed mount cannot destroy the Agent its caller promised

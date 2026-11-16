@@ -16,6 +16,11 @@ static partial class McpTests
         string shared = Path.Combine(tree, "shared");
         Directory.CreateDirectory(inside);
         Directory.CreateDirectory(shared);
+        string bin = Path.Combine(shared, "bin");
+        Directory.CreateDirectory(bin);
+        string executable = Path.Combine(bin, "ensemble-import-fixture");
+        File.WriteAllText(executable, "#!/bin/sh\nprintf import-found\n");
+        if (!OperatingSystem.IsWindows()) File.SetUnixFileMode(executable, UnixFileMode.UserRead | UnixFileMode.UserWrite | UnixFileMode.UserExecute);
         string module = Path.Combine(shared, "lesson.py");
         string single = Path.Combine(tree, "approved.txt");
         string sibling = Path.Combine(tree, "private.txt");
@@ -39,6 +44,7 @@ static partial class McpTests
                 sys.path.insert(0, 'shared')
                 import lesson
                 checks = {'import': lesson.VALUE == 42}
+                checks['path_lookup'] = subprocess.check_output(['ensemble-import-fixture'], text=True) == 'import-found'
                 with open(args['single']) as source:
                     checks['single_read'] = source.read() == 'approved'
                 def write(path):
