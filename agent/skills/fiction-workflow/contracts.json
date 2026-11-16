@@ -12,7 +12,7 @@
       },
       "model": {
         "type": "string",
-        "description": "Optional compatible same-provider model."
+        "description": "Optional compatible same-provider model; mutually exclusive with offering."
       },
       "submit_schema": {
         "type": "object",
@@ -33,6 +33,42 @@
       "working_context_tokens": {
         "type": "integer",
         "description": "Optional positive working input-token limit; saved before the first task, bounded by known model capacity."
+      },
+      "offering": {
+        "type": "object",
+        "description": "Exact registered route. Mutually exclusive with model; never changes credentials or falls back.",
+        "properties": {
+          "vendor": {
+            "type": "string"
+          },
+          "endpoint": {
+            "type": "string"
+          },
+          "model": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "vendor",
+          "endpoint",
+          "model"
+        ],
+        "additionalProperties": false
+      },
+      "primary_skill": {
+        "type": "string",
+        "description": "Exact primary skill from the creator's catalog. Starts with that primary's dependencies, not inherited startup selections."
+      },
+      "confined": {
+        "type": "boolean",
+        "description": "Confine a fresh child's commands and file tools to its assigned child directory. Project files and writable caches belong there."
+      },
+      "process_read_paths": {
+        "type": "array",
+        "description": "Explicit read-only command imports. Omitted inherits; empty drops imports. A confined creator cannot widen access. New launch options require a fresh child ID.",
+        "items": {
+          "type": "string"
+        }
       }
     },
     "required": [

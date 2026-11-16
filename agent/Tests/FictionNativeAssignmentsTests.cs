@@ -85,7 +85,17 @@ internal static partial class MeterTests
             }));
             for (int turn = 1; turn <= 2; turn++)
             {
-                var request = await listener.GetContextAsync().WaitAsync(TimeSpan.FromSeconds(15));
+                // Contract refusal finishes the workflow before any provider
+                // request. Report that result instead of disguising it as a timeout.
+                var incoming = listener.GetContextAsync();
+                Task first = await Task.WhenAny(incoming, invocation)
+                    .WaitAsync(TimeSpan.FromSeconds(15));
+                if (first == invocation)
+                {
+                    JsonElement early = await invocation;
+                    throw new InvalidOperationException("Workflow ended before child request: " + early);
+                }
+                var request = await incoming;
                 using var reader = new StreamReader(request.Request.InputStream);
                 string wire = await reader.ReadToEndAsync();
                 using var ledger = JsonDocument.Parse(File.ReadAllText(Path.Combine(run, "state.json")));

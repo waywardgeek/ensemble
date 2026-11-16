@@ -170,7 +170,21 @@ tools:
   - write_file
   - edit_file
   - run_command
+  - wait_for_job
 ```
+
+A coding skill that starts commands must also grant observation of their running
+Jobs. `run_command` does not implicitly grant `wait_for_job`. Teach the Agent to
+retain the returned handle and collect its result instead of rerunning a command
+or treating an observation delay as failure. Test the actual enabled tool set;
+a sentence asking the Agent to wait cannot supply missing authority.
+
+A small coding primary may also serve delegated assignments. Declare `submit`
+and `send_message_to_parent` explicitly for that use, as `local-coding` does.
+Teach it to finish owned command Jobs before submitting the required result,
+and to ask its parent when a consequential decision is missing. A direct human
+conversation ends with an ordinary reply; delegated completion requires submission.
+These reporting grants do not add filesystem access or permission to spawn workers.
 
 This is a small documented subset, not a general YAML implementation. Unknown
 fields, duplicate fields, malformed identifiers, and missing boundaries are

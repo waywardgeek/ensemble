@@ -55,21 +55,45 @@ internal static partial class ActorTests
         var app = new Application(TextWriter.Null);
         try
         {
+            string address = "http://127.0.0.1:" + ((IPEndPoint)listener.LocalEndpoint).Port;
+            var authentication = new ModelAuthentication(app, "local");
+            var vendor = new ModelVendor(app, "worker-provider", "Worker provider");
+            var endpoint = new ModelEndpoint(vendor, "messages", address,
+                Surface.Messages, authentication);
+            var offering = new Model(endpoint, "worker-model", "child-model", "Worker model",
+                new ModelFeatures(Media.None));
+            string manuals = Path.Combine(work, "manuals");
+            McpTests.Manual(manuals, "primary",
+                "type: primary\ntools: spawn_sub_agent agents_status shutdown_agent\nloadable-skills: extra\n", "Parent primary");
+            McpTests.Manual(manuals, "extra", "type: loadable\ntools: list_directory\n", "Parent startup");
+            McpTests.Manual(manuals, "worker", "type: primary\ntools: submit wait_for_job\n", "Worker primary");
             var parent = new Agent(app, new Configuration(Vendor.Anthropic, "fixture",
-                "http://127.0.0.1:" + ((IPEndPoint)listener.LocalEndpoint).Port, "local", sandboxRoot: work), dataDirectory: work);
-            parent.InstallTools();
+                address, "local", sandboxRoot: work), dataDirectory: work,
+                skillSpec: new SkillSpec(manuals, "primary", StartupSkills: ["extra"]));
             parent.StartPersistence(new PersistenceOptions(Path.Combine(work, "save.json")));
+            await parent.SkillManager()!.InitializeAsync();
             var schema = JsonSerializer.Deserialize<JsonElement>("""
                 {"type":"object","properties":{"count":{"type":"integer"}},"required":["count"],"additionalProperties":false}
                 """);
             ToolResultPart early = await ChildCall(parent, "spawn_sub_agent", new {
-                agent_id = "worker", task = "CHILD_ONLY_TASK", model = "child-model", submit_schema = schema,
+                agent_id = "worker", task = "CHILD_ONLY_TASK", submit_schema = schema,
+                offering = new { vendor = "worker-provider", endpoint = "messages", model = "worker-model" },
+                primary_skill = "worker",
                 working_context_tokens = 700_000,
+                confined = true, process_read_paths = Array.Empty<string>(),
                 ai_callback_delay = 120, ai_callback_pattern = "never-match-this"
             }, deadline.Token);
             Check(!early.IsError && early.Job?.Status == "running" && JsonCodec.Text(early.Parts).Contains("worker"),
                 "Spawn did not urgently yield its child ID while retaining the task.");
             Agent child = parent.FindChild("worker")!;
+            // Tool arguments must reach construction before the first request.
+            Check(child.Sandbox().Root() == child.DataDirectory()
+                && child.Configuration().ProcessReadPaths!.Value.IsEmpty,
+                "Spawn lost explicit confinement or empty import selection.");
+            Check(child.Configuration().Offering == offering.Identity()
+                && child.ToolEnabled("submit") && child.ToolEnabled("wait_for_job")
+                && !child.ToolEnabled("list_directory"),
+                "Spawn lost exact offering or inherited unrelated startup tools.");
             Job spawn = parent.Jobs().Find(early.Job!.Handle);
             await entered.Task.WaitAsync(deadline.Token);
             Check(child.WorkingContextStatus().WorkingTokens == 700_000
@@ -147,6 +171,12 @@ internal static partial class ActorTests
             parent.StartPersistence(new PersistenceOptions(Path.Combine(work, "save.json")));
             foreach (object invalid in new object[] {
                 new { agent_id = "bad-task", task = " " },
+                new { agent_id = "bad-offering", task = "work", offering = "route" },
+                new { agent_id = "incomplete-offering", task = "work", offering = new { vendor = "test", model = "model" } },
+                new { agent_id = "bad-primary", task = "work", primary_skill = 42 },
+                new { agent_id = "bad-confinement", task = "work", confined = "true" },
+                new { agent_id = "bad-imports", task = "work", process_read_paths = "/tmp" },
+                new { agent_id = "bad-import-entry", task = "work", process_read_paths = new object[] { 42 } },
                 new { agent_id = "zero-context", task = "work", working_context_tokens = 0 },
                 new { agent_id = "negative-context", task = "work", working_context_tokens = -1 },
                 new { agent_id = "fraction-context", task = "work", working_context_tokens = 1.5 },

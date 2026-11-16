@@ -125,8 +125,58 @@ public sealed partial class Tool
                         }
                         workingTokens = tokens;
                     }
+                    ChildLaunchOptions? launch = null;
+                    bool hasOffering = args.TryGetProperty("offering", out JsonElement route);
+                    bool hasPrimary = args.TryGetProperty("primary_skill", out JsonElement primary);
+                    bool hasConfinement = args.TryGetProperty("confined", out JsonElement confined);
+                    bool hasImports = args.TryGetProperty("process_read_paths", out JsonElement readPaths);
+                    if (hasOffering || hasPrimary || hasConfinement || hasImports)
+                    {
+                        ModelIdentity? offering = null;
+                        if (route.ValueKind != JsonValueKind.Undefined)
+                        {
+                            if (route.ValueKind != JsonValueKind.Object
+                                || route.EnumerateObject().Count() != 3)
+                            {
+                                throw new ArgumentException("offering requires exactly vendor, endpoint, and model.");
+                            }
+                            offering = new ModelIdentity(String(route, "vendor"),
+                                String(route, "endpoint"), String(route, "model"));
+                        }
+                        if (primary.ValueKind != JsonValueKind.Undefined
+                            && primary.ValueKind != JsonValueKind.String)
+                        {
+                            throw new ArgumentException("primary_skill must be a string.");
+                        }
+                        if (confined.ValueKind is not (JsonValueKind.Undefined
+                            or JsonValueKind.True or JsonValueKind.False))
+                        {
+                            throw new ArgumentException("confined must be a boolean.");
+                        }
+                        System.Collections.Immutable.ImmutableArray<string>? imports = null;
+                        if (readPaths.ValueKind != JsonValueKind.Undefined)
+                        {
+                            if (readPaths.ValueKind != JsonValueKind.Array)
+                            {
+                                throw new ArgumentException("process_read_paths must be an array of strings.");
+                            }
+                            var paths = System.Collections.Immutable.ImmutableArray.CreateBuilder<string>();
+                            foreach (JsonElement path in readPaths.EnumerateArray())
+                            {
+                                if (path.ValueKind != JsonValueKind.String)
+                                {
+                                    throw new ArgumentException("process_read_paths must contain only strings.");
+                                }
+                                paths.Add(path.GetString()!);
+                            }
+                            imports = paths.ToImmutable();
+                        }
+                        launch = new ChildLaunchOptions(offering,
+                            primary.ValueKind == JsonValueKind.String ? primary.GetString() : null,
+                            confined.ValueKind == JsonValueKind.True, imports);
+                    }
                     Agent spawned = await owner.CreateChildAsync(String(args, "agent_id"), model, schema,
-                        cancellation, workingTokens);
+                        cancellation, workingTokens, launch);
                     // Creation owns rollback until it returns a ready child.
                     // Thereafter the parent owns the child independently of this
                     // Job. Keep its reliable task reply here; never use a detached

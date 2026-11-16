@@ -151,8 +151,10 @@ internal static partial class ActorTests
         byte[] original = File.ReadAllBytes(registration);
         foreach (string malformed in new[] { "{", "{}",
             System.Text.Encoding.UTF8.GetString(original).Replace("\"ID\":\"paused\"", "\"ID\":\"foreign\""),
-            System.Text.Encoding.UTF8.GetString(original).Replace("\"Version\":1", "\"Version\":1,\"Version\":1") })
+            System.Text.Encoding.UTF8.GetString(original).Replace("\"ID\":\"paused\"", "\"ID\":\"paused\",\"ID\":\"paused\"") })
         {
+            Check(malformed != System.Text.Encoding.UTF8.GetString(original),
+                "Malformed registration fixture must change the original record.");
             File.WriteAllText(registration, malformed);
             var refusedApp = new Application(TextWriter.Null);
             try

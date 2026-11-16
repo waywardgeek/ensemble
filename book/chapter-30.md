@@ -270,6 +270,25 @@ subtree before logical destruction; it does not edit the top-level registry or
 delete saved files. Test confirmation cancellation, server-side protection, view
 recovery after deletion, and actual retention of saved submission files.
 
+The Flint harness exposed a separate gap in native child creation: the GUI could
+select a confined peer, but `spawn_sub_agent` could not select an exact offering,
+primary skill or child-specific sandbox. Extend the existing parent-owned path,
+not a separate harness service. Keep a confined trial in its assigned child home,
+resolve registered offerings without copying credentials, and persist the effective
+policy before admitting work. Explicit primary selection starts from that primary's
+dependencies rather than the creator's unrelated startup selections. Chapters 19
+and 20 specify construction and restoration; Chapter 9 grants observation alongside
+command execution so a coding Agent can collect its running Jobs.
+
+The first full regression exposed an exact workflow-schema mismatch: adding
+optional spawn fields made the packaged workflow refuse before it launched a
+child. Its native test reported a provider timeout because it awaited a request
+instead of the workflow's early error. Update the active package's declared
+contract without relaxing structural comparison, and race that test's incoming
+request against workflow completion to report the actual failure. Preserve frozen
+external grader contracts as historical targets. Fake-provider and local policy
+tests establish these boundaries; they do not establish Flint's coding ability.
+
 Create Agent must make filesystem authority explicit, independently of model and
 primary skill. Offer inherited access with its actual scope, or confinement to a
 required workspace. Browse server directories through the mounted Agent's Sandbox,
@@ -309,6 +328,40 @@ files. Compilers still need workspace-local caches and available dependencies;
 selecting Go is not permission to download modules. Test real executable lookup and
 descendant access, denied external writes and network, exact GUI selections, saved
 imports and refusal on restore—not only a generated sandbox-profile string.
+
+Verify compiler access through the actual child command tool before evaluating a
+model. The harness compiled and ran a Go program and a standard .NET 10 console
+program, and ran Python with workspace file access, inside a confined child.
+Only the installed Go and .NET toolchain directories were imported read-only;
+system Python used the existing runtime reads. Keep project files and caches in
+a project subdirectory: the assigned child home also contains its saved History,
+settings and restart record, and is not disposable compiler output.
+
+For an offline smoke check, set these variables in each fresh command shell, with
+`DOTNET_ROOT` pointing to the explicitly imported SDK directory:
+
+```sh
+export GOTOOLCHAIN=local GOPROXY=off GOSUMDB=off CGO_ENABLED=0
+export GOCACHE="$PWD/go-build" GOMODCACHE="$PWD/go-mod"
+export DOTNET_CLI_HOME="$PWD/dotnet-home" NUGET_PACKAGES="$PWD/packages"
+export DOTNET_SKIP_FIRST_TIME_EXPERIENCE=1 DOTNET_CLI_TELEMETRY_OPTOUT=1
+export DOTNET_GENERATE_ASPNET_CERTIFICATE=false
+go run hello.go
+/usr/bin/python3 script.py
+"$DOTNET_ROOT/dotnet" build Hello.csproj --configfile NuGet.Config \
+  -p:NuGetAudit=false --disable-build-servers --tl:off
+"$DOTNET_ROOT/dotnet" bin/Debug/net10.0/Hello.dll
+```
+
+Use a `NuGet.Config` containing
+`<configuration><packageSources><clear /></packageSources></configuration>` and
+programs without third-party dependencies. This proves the installed toolchains
+work under confinement, not that arbitrary packages or workloads are available.
+The .NET first-use workload-verification advice did not prevent the console build;
+it was not permission to run a workload update. Collect running commands through
+`wait_for_job`. A delegated coding primary must also explicitly grant parent
+questions and submission; `local-coding` now teaches both without adding worker
+creation or external filesystem authority.
 
 Submission is result publication, not a request to stop or remove a child. Keep
 submitted children selectable and show their submitted status alongside activity.

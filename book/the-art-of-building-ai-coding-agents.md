@@ -8166,7 +8166,21 @@ tools:
   - write_file
   - edit_file
   - run_command
+  - wait_for_job
 ```
+
+A coding skill that starts commands must also grant observation of their running
+Jobs. `run_command` does not implicitly grant `wait_for_job`. Teach the Agent to
+retain the returned handle and collect its result instead of rerunning a command
+or treating an observation delay as failure. Test the actual enabled tool set;
+a sentence asking the Agent to wait cannot supply missing authority.
+
+A small coding primary may also serve delegated assignments. Declare `submit`
+and `send_message_to_parent` explicitly for that use, as `local-coding` does.
+Teach it to finish owned command Jobs before submitting the required result,
+and to ask its parent when a consequential decision is missing. A direct human
+conversation ends with an ordinary reply; delegated completion requires submission.
+These reporting grants do not add filesystem access or permission to spawn workers.
 
 This is a small documented subset, not a general YAML implementation. Unknown
 fields, duplicate fields, malformed identifiers, and missing boundaries are
@@ -13572,7 +13586,30 @@ might need in reverse order. Sandbox policy derivation must not hold its gate
 while reaching back into Agent ingress. Recheck admission after preparation;
 shutdown racing with creation must not attach a half-live child.
 
-A new optional model keeps the parent's provider and billing route. A schema is
+A new optional `model` keeps the parent's provider and billing route. Alternatively,
+`offering` selects an exact registered vendor/endpoint/model identity; supplying
+both refuses. Resolve that identity through the owning application's model graph,
+not by copying credentials or falling back to a different offering.
+
+Keep these choices in a value-like `ChildLaunchOptions` declaration in Common.
+An explicit `primary_skill` selects a primary from the creator's parsed catalog.
+Initialize its dependencies, but do not inherit unrelated parent startup
+selections. Without that override, preserve ordinary skill inheritance.
+The selected primary must grant the operations its assignment requires, including
+`submit` for delegated completion and `wait_for_job` for command observation.
+Selecting a primary does not silently add either tool.
+
+For a fresh child, `confined: true` selects `children/<id>` as its writable root.
+This keeps project files, caches, records and Jobs within the existing child home
+and preserves restart discovery without a second registry. Validate identity,
+submission schema and sandbox narrowing before creating the directory through
+the parent's Sandbox; open the child Sandbox only after its root exists.
+`process_read_paths` supplies read-only command imports: omission inherits,
+an empty array drops them, and a confined parent cannot grant broader access.
+These imports do not enlarge built-in file-tool access. Verify launch arguments
+through actual tool dispatch, not only direct construction calls.
+
+A schema is
 validated and copied before construction effects. Descendants without an
 explicit schema get the default contract, not their parent's answer format.
 Configuration and templates may be immutable values; live clients, activation
@@ -13658,7 +13695,7 @@ The tool arguments are small:
 
 | Tool | Arguments |
 | --- | --- |
-| `spawn_sub_agent` | `agent_id`, `task`, optional `model`, `submit_schema`, and `working_context_tokens` |
+| `spawn_sub_agent` | `agent_id`, `task`, optional `model` or `offering`, `primary_skill`, `confined`, `process_read_paths`, `submit_schema`, and `working_context_tokens` |
 | `join_agents` | optional `agent_ids`; omitted means all current children |
 | `agents_status` | none |
 | `shutdown_agent` | `agent_id` |
@@ -14358,6 +14395,20 @@ Restoration also reconstructs registered ordinary descendants under each restore
 A host restart used to remove every live child from the tree even though its files survived. In our Measure X reconstruction, the child had made useful progress, but restarting the screenshot build made it disappear from the GUI and stopped its reminders. Manually spawning the same ID recovered the conversation; that was recovery work the application should handle.
 
 I require ordinary children to carry their restart registration in their own home. There is no second global child registry. `child.json` records a version, local identity, model, submission schema and accepted-work generation, current submission and pause flags, an acknowledged submission checksum, and goal configuration. It contains no credentials, provider endpoint, transcript copy, process handle, or copied service bag. Common owns this vocabulary and the real Agent fields; the functional Agent partial implements persistence and reconstruction through its Sandbox.
+
+Version three also records the effective canonical sandbox root and read-only
+imports, plus an explicit primary-skill override when selected. Root and imports
+are mandatory in this version: an empty root means unrestricted, not inheritance.
+Continue reading older versions under their original inheritance rules; reject
+unknown fields and malformed policy instead of silently reverting to defaults.
+Restore through the current parent's narrowing policy and refuse missing imports
+or roots rather than recreating an apparently restored workspace.
+
+A new assignment reusing an ID retains its saved launch policy without reviving
+old submission or pause state. Refuse replacement launch options for that ID;
+choose a fresh ID for a different trial. Persist the primary override on the
+Agent so later settings writes cannot erase it. Test creation, reuse and host
+restoration separately, including outside-path refusal and startup-skill isolation.
 
 Save changed restart settings before acknowledging them. New accepted work invalidates prior completion in the restart record even while the historical `submit.md` remains available. A restored submitted flag is usable only with the matching generation, payload checksum and a valid existing submission artifact. These are separate file replacements, not a multi-file transaction; a mismatch refuses restoration rather than inventing acceptance. In particular, reading an arbitrary old answer still cannot complete newer work. Model choices remain subject to the current parent's provider and sandbox policy.
 
@@ -20754,6 +20805,25 @@ subtree before logical destruction; it does not edit the top-level registry or
 delete saved files. Test confirmation cancellation, server-side protection, view
 recovery after deletion, and actual retention of saved submission files.
 
+The Flint harness exposed a separate gap in native child creation: the GUI could
+select a confined peer, but `spawn_sub_agent` could not select an exact offering,
+primary skill or child-specific sandbox. Extend the existing parent-owned path,
+not a separate harness service. Keep a confined trial in its assigned child home,
+resolve registered offerings without copying credentials, and persist the effective
+policy before admitting work. Explicit primary selection starts from that primary's
+dependencies rather than the creator's unrelated startup selections. Chapters 19
+and 20 specify construction and restoration; Chapter 9 grants observation alongside
+command execution so a coding Agent can collect its running Jobs.
+
+The first full regression exposed an exact workflow-schema mismatch: adding
+optional spawn fields made the packaged workflow refuse before it launched a
+child. Its native test reported a provider timeout because it awaited a request
+instead of the workflow's early error. Update the active package's declared
+contract without relaxing structural comparison, and race that test's incoming
+request against workflow completion to report the actual failure. Preserve frozen
+external grader contracts as historical targets. Fake-provider and local policy
+tests establish these boundaries; they do not establish Flint's coding ability.
+
 Create Agent must make filesystem authority explicit, independently of model and
 primary skill. Offer inherited access with its actual scope, or confinement to a
 required workspace. Browse server directories through the mounted Agent's Sandbox,
@@ -20793,6 +20863,40 @@ files. Compilers still need workspace-local caches and available dependencies;
 selecting Go is not permission to download modules. Test real executable lookup and
 descendant access, denied external writes and network, exact GUI selections, saved
 imports and refusal on restore—not only a generated sandbox-profile string.
+
+Verify compiler access through the actual child command tool before evaluating a
+model. The harness compiled and ran a Go program and a standard .NET 10 console
+program, and ran Python with workspace file access, inside a confined child.
+Only the installed Go and .NET toolchain directories were imported read-only;
+system Python used the existing runtime reads. Keep project files and caches in
+a project subdirectory: the assigned child home also contains its saved History,
+settings and restart record, and is not disposable compiler output.
+
+For an offline smoke check, set these variables in each fresh command shell, with
+`DOTNET_ROOT` pointing to the explicitly imported SDK directory:
+
+```sh
+export GOTOOLCHAIN=local GOPROXY=off GOSUMDB=off CGO_ENABLED=0
+export GOCACHE="$PWD/go-build" GOMODCACHE="$PWD/go-mod"
+export DOTNET_CLI_HOME="$PWD/dotnet-home" NUGET_PACKAGES="$PWD/packages"
+export DOTNET_SKIP_FIRST_TIME_EXPERIENCE=1 DOTNET_CLI_TELEMETRY_OPTOUT=1
+export DOTNET_GENERATE_ASPNET_CERTIFICATE=false
+go run hello.go
+/usr/bin/python3 script.py
+"$DOTNET_ROOT/dotnet" build Hello.csproj --configfile NuGet.Config \
+  -p:NuGetAudit=false --disable-build-servers --tl:off
+"$DOTNET_ROOT/dotnet" bin/Debug/net10.0/Hello.dll
+```
+
+Use a `NuGet.Config` containing
+`<configuration><packageSources><clear /></packageSources></configuration>` and
+programs without third-party dependencies. This proves the installed toolchains
+work under confinement, not that arbitrary packages or workloads are available.
+The .NET first-use workload-verification advice did not prevent the console build;
+it was not permission to run a workload update. Collect running commands through
+`wait_for_job`. A delegated coding primary must also explicitly grant parent
+questions and submission; `local-coding` now teaches both without adding worker
+creation or external filesystem authority.
 
 Submission is result publication, not a request to stop or remove a child. Keep
 submitted children selectable and show their submitted status alongside activity.

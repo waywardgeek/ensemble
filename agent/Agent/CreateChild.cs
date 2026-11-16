@@ -3,14 +3,20 @@ namespace Ensemble;
 public sealed partial class Agent
 {
     public partial Task<Agent> CreateChildAsync(string childID, string? model,
-        System.Text.Json.JsonElement? submitSchema, CancellationToken cancellation, long? workingContextTokens)
+        System.Text.Json.JsonElement? submitSchema, CancellationToken cancellation, long? workingContextTokens, ChildLaunchOptions? launch)
         => CreateChildCoreAsync(childID, model, submitSchema, null, cancellation,
-            workingContextTokens: workingContextTokens);
+            workingContextTokens: workingContextTokens, launch: launch);
 
     private partial async Task<Agent> CreateChildCoreAsync(string childID, string? model,
-        System.Text.Json.JsonElement? submitSchema, ChildRestartState? restart, CancellationToken cancellation, bool waitForBrowser, long? workingContextTokens)
+        System.Text.Json.JsonElement? submitSchema, ChildRestartState? restart, CancellationToken cancellation, bool waitForBrowser, long? workingContextTokens, ChildLaunchOptions? launch)
     {
         cancellation.ThrowIfCancellationRequested();
+        ValidateChildID(childID);
+        if (launch?.Offering is not null && model is not null)
+        {
+            throw new ArgumentException("Choose an exact offering or a legacy model, not both.");
+        }
+        string childDirectory = Path.Combine(DataDirectory(), "children", childID);
         // Snapshot values before admission: no Skills -> Agent lock-order reversal.
         // The child constructor still revalidates policy and both live parents.
         var inherited = Configuration();
@@ -28,9 +34,44 @@ public sealed partial class Agent
                 throw new InvalidDataException("Saved model name differs from its configured offering.");
             }
         }
+        else if (launch?.Offering is { } selectedOffering)
+        {
+            inherited = new Configuration(inherited, Parent().ResolveModel(selectedOffering));
+        }
         else if (model is not null)
         {
             inherited = inherited.WithModel(model);
+        }
+        // Saved policy is explicit. An unrestricted saved launch cannot silently
+        // become an inherited launch under a newly confined creator.
+        // A new assignment may reuse history, but must not widen the authority
+        // under which that history and workspace were created. Completion and
+        // pause state still come only from an explicit restoration.
+        ChildRestartState? savedLaunch = restart ?? ReadChildRestart(childID);
+        if (restart is null && savedLaunch?.Version == 3 && launch is not null)
+        {
+            throw new ArgumentException("Use a fresh child ID to select new launch options.");
+        }
+        string? requestedRoot = savedLaunch?.SandboxRoot;
+        if (requestedRoot == "" && Sandbox().Root().Length != 0)
+        {
+            throw new InvalidDataException("An unrestricted child cannot restore under a confined parent.");
+        }
+        if (launch?.Confined == true)
+        {
+            requestedRoot = childDirectory;
+        }
+        var imports = savedLaunch?.ProcessReadPaths ?? launch?.ProcessReadPaths;
+        if (requestedRoot is not null || imports is not null)
+        {
+            var requested = new Configuration(inherited, inherited.SafeMode,
+                inherited.EnableWebSearch, requestedRoot ?? inherited.SandboxRoot, imports);
+            var derived = Sandbox().DeriveChild(requested);
+            if (derived.Refusal is not null)
+            {
+                throw new ArgumentException(derived.Refusal);
+            }
+            inherited = derived.Effective;
         }
         // Validate against the actual child route before creating files or membership.
         // This is a working-input policy, not a change of model or funding.
@@ -39,6 +80,18 @@ public sealed partial class Agent
                 inherited.ServingContextTokens ?? inherited.Features.ContextWindow, inherited.Offering)
             : null;
         var bootstrap = SkillManager()?.CaptureBootstrap();
+        string? primary = savedLaunch?.PrimarySkill ?? launch?.PrimarySkill;
+        if (primary is not null)
+        {
+            if (bootstrap is null || !bootstrap.Definitions.TryGetValue(primary, out var definition)
+                || definition.Type != SkillType.Primary)
+            {
+                throw new ArgumentException("Child primary skill is missing or has the wrong type.");
+            }
+            // A selected primary is a complete starting contract. Do not attach
+            // unrelated startup selections inherited from the creator.
+            bootstrap = bootstrap with { Primary = primary, Startup = [] };
+        }
         Agent? child = null;
         try
         {
@@ -46,12 +99,22 @@ public sealed partial class Agent
             {
                 ObjectDisposedException.ThrowIf(destroyed || destroying || admissionClosed, this);
                 cancellation.ThrowIfCancellationRequested();
-                string directory = DataDirectory();
-                // Constructor validates schema and ID before creating any output.
-                // Its registration refuses duplicate sibling IDs before file work.
-                string childDirectory = Path.Combine(directory, "children", childID);
+                // Fresh confinement needs its root before Sandbox opens it.
+                // Validate schema and duplicate ownership before any filesystem
+                // effect. Restoration never recreates a missing saved root.
+                if (launch?.Confined == true)
+                {
+                    _ = new SubmissionContract(submitSchema);
+                    if (FindChild(childID) is not null)
+                    {
+                        throw new InvalidOperationException("Duplicate child Agent ID.");
+                    }
+                    Sandbox().CreateDirectory(childDirectory);
+                }
+                // Constructor revalidates schema, policy and both owners.
                 child = new Agent(Parent(), this, childID, inherited,
                     outputDirectory: Path.Combine(childDirectory, "jobs"), submitSchema: submitSchema);
+                child.childPrimarySkill = primary;
                 child.childRestoring = restart is not null;
                 if (restart is not null)
                 {

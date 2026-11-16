@@ -193,7 +193,7 @@ internal static class SkillTests
         {
             ["ensemble"] = reads + " wait_for_job agent_status spawn_sub_agent agents_status get_sub_agent_status get_submission interrupt_agent join_agents submit send_message_to_parent respond_to_parent_message shutdown_agent kill_agent send_message ask_agent wait_for_agent wait_for_agent_change",
             ["full"] = reads + " write_file edit_file run_command wait_for_job send_input kill_job tool_limits",
-            ["local-coding"] = reads + " write_file edit_file run_command"
+            ["local-coding"] = reads + " write_file edit_file run_command wait_for_job submit send_message_to_parent"
         };
         var app = new Application(TextWriter.Null);
         try

@@ -644,6 +644,7 @@ try
     {
         await AsyncCase("ordinary child restart ownership and completion", () => ActorTests.ChildRestart(temp));
         await AsyncCase("configured child restart preserves route identity", () => ConfiguredChildTests.Restart(temp));
+        await AsyncCase("selected child launch preserves authority", () => ConfiguredChildTests.Launch(temp));
         await AsyncCase("restored child goal resumes through real actor", () => ActorTests.ChildRestartReminder(temp));
         if (args.Length != 0)
         {

@@ -298,7 +298,30 @@ might need in reverse order. Sandbox policy derivation must not hold its gate
 while reaching back into Agent ingress. Recheck admission after preparation;
 shutdown racing with creation must not attach a half-live child.
 
-A new optional model keeps the parent's provider and billing route. A schema is
+A new optional `model` keeps the parent's provider and billing route. Alternatively,
+`offering` selects an exact registered vendor/endpoint/model identity; supplying
+both refuses. Resolve that identity through the owning application's model graph,
+not by copying credentials or falling back to a different offering.
+
+Keep these choices in a value-like `ChildLaunchOptions` declaration in Common.
+An explicit `primary_skill` selects a primary from the creator's parsed catalog.
+Initialize its dependencies, but do not inherit unrelated parent startup
+selections. Without that override, preserve ordinary skill inheritance.
+The selected primary must grant the operations its assignment requires, including
+`submit` for delegated completion and `wait_for_job` for command observation.
+Selecting a primary does not silently add either tool.
+
+For a fresh child, `confined: true` selects `children/<id>` as its writable root.
+This keeps project files, caches, records and Jobs within the existing child home
+and preserves restart discovery without a second registry. Validate identity,
+submission schema and sandbox narrowing before creating the directory through
+the parent's Sandbox; open the child Sandbox only after its root exists.
+`process_read_paths` supplies read-only command imports: omission inherits,
+an empty array drops them, and a confined parent cannot grant broader access.
+These imports do not enlarge built-in file-tool access. Verify launch arguments
+through actual tool dispatch, not only direct construction calls.
+
+A schema is
 validated and copied before construction effects. Descendants without an
 explicit schema get the default contract, not their parent's answer format.
 Configuration and templates may be immutable values; live clients, activation
@@ -384,7 +407,7 @@ The tool arguments are small:
 
 | Tool | Arguments |
 | --- | --- |
-| `spawn_sub_agent` | `agent_id`, `task`, optional `model`, `submit_schema`, and `working_context_tokens` |
+| `spawn_sub_agent` | `agent_id`, `task`, optional `model` or `offering`, `primary_skill`, `confined`, `process_read_paths`, `submit_schema`, and `working_context_tokens` |
 | `join_agents` | optional `agent_ids`; omitted means all current children |
 | `agents_status` | none |
 | `shutdown_agent` | `agent_id` |

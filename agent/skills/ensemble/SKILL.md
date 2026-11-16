@@ -41,6 +41,16 @@ $SKILLS
 Delegated work has explicit ownership and completion:
 - `spawn_sub_agent` creates a direct child and admits its task. Save its ID and
   running Job handle; cancelling observation does not cancel the child.
+  For an exact registered route, use `offering` with vendor, endpoint and model
+  IDs instead of the same-provider `model` override. Never substitute a paid route.
+  `primary_skill` starts that primary and its dependencies, not your startup skills.
+  Choose a primary whose grants support the assignment, including `submit` for
+  delegated completion and `wait_for_job` for running commands.
+  For an isolated trial, use a fresh ID and `confined: true`; its assigned child
+  directory contains project files, caches and saved state. `process_read_paths`
+  grants read-only command imports, not built-in file access. Omitted inherits;
+  an empty list drops imports. A confined creator cannot widen its own grants.
+  Reused IDs retain saved launch policy; different options require a fresh ID.
 - `agents_status` distinguishes activity, submission and failure. Idle is not done.
 - `get_sub_agent_status` inspects one direct child’s phase and measured usage.
   Costs are estimates; unknown counts or prices stay unknown. A busy or expensive

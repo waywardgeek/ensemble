@@ -2,6 +2,18 @@ using System.Collections.Immutable;
 
 namespace Ensemble;
 
+/// <summary>Value-like optional child launch choices. An exact offering is mutually
+/// exclusive with the legacy model argument. An explicit primary starts with only
+/// its declared dependencies, not the creator's startup selections. Confined uses
+/// the child's parent-assigned data directory as its writable workspace. Null
+/// process imports inherit; an empty array drops imports. Parent policy still bounds
+/// every choice, and these options never contain credentials.</summary>
+public sealed record ChildLaunchOptions(
+    ModelIdentity? Offering = null,
+    string? PrimarySkill = null,
+    bool Confined = false,
+    ImmutableArray<string>? ProcessReadPaths = null);
+
 public sealed partial class Agent
 {
     // Ensemble owns every Agent. A delegated Agent also belongs to one Agent
@@ -25,12 +37,16 @@ public sealed partial class Agent
     /// not submit a task. An optional positive workingContextTokens policy is validated
     /// against the selected route's known capacity and saved before returning the child;
     /// omission preserves ordinary settings. Invalid policy refuses creation.
+    /// Launch may select an exact offering, primary and narrowed sandbox policy.
+    /// Explicit primary selection drops inherited startup selections. A reused ID
+    /// retains saved launch policy; replacement options require a fresh ID.
     /// Successful ordinary creation records restart registration.
     /// Failed/cancelled creation destroys the child, retaining
     /// its files; callers may retry the same ID after cleanup has completed.</summary>
     public partial Task<Agent> CreateChildAsync(string childID, string? model = null,
         System.Text.Json.JsonElement? submitSchema = null,
-        CancellationToken cancellation = default, long? workingContextTokens = null);
+        CancellationToken cancellation = default, long? workingContextTokens = null,
+        ChildLaunchOptions? launch = null);
     /// <summary>Retire an owned child's restart registration, cancel and join its
     /// work, then detach it. Saved History and artifacts remain available. Once
     /// teardown begins it is joined even if the observing caller cancels.</summary>
