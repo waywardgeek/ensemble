@@ -50,7 +50,9 @@ Delegated work has explicit ownership and completion:
   directory contains project files, caches and saved state. `process_read_paths`
   grants read-only command imports, not built-in file access. Omitted inherits;
   an empty list drops imports. A confined creator cannot widen its own grants.
-  Reused IDs retain saved launch policy; different options require a fresh ID.
+  Registered reused IDs retain saved launch policy; different options require a fresh ID.
+  Public shutdown/kill retires automatic restart but preserves the launch policy
+  for explicit reuse. Use fresh IDs for independent trials.
 - `agents_status` distinguishes activity, submission and failure. Idle is not done.
 - `get_sub_agent_status` inspects one direct child’s phase and measured usage.
   Costs are estimates; unknown counts or prices stay unknown. A busy or expensive

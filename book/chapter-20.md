@@ -163,6 +163,15 @@ choose a fresh ID for a different trial. Persist the primary override on the
 Agent so later settings writes cannot erase it. Test creation, reuse and host
 restoration separately, including outside-path refusal and startup-skill isolation.
 
+Public `shutdown_agent` and `kill_agent` retire automatic restart through explicit
+child deletion, unlike host teardown or direct lifetime destruction. Version four
+adds a required boolean `Retired` field to the same launch record. Save it before
+teardown; do not delete the policy. Automatic restoration skips retired records.
+Explicit reuse reads their model, primary and sandbox policy, clears old completion,
+and saves an active record for the new assignment. Older records remain readable.
+Test actual public shutdown, automatic-restore exclusion and explicit safe reuse.
+Prepared role files and cancelled startup must still permit ordinary creation.
+
 Save changed restart settings before acknowledging them. New accepted work invalidates prior completion in the restart record even while the historical `submit.md` remains available. A restored submitted flag is usable only with the matching generation, payload checksum and a valid existing submission artifact. These are separate file replacements, not a multi-file transaction; a mismatch refuses restoration rather than inventing acceptance. In particular, reading an arbitrary old answer still cannot complete newer work. Model choices remain subject to the current parent's provider and sandbox policy.
 
 The host composition root calls `RestoreChildrenAsync`. Enumerate and validate ordinary child registrations, construct through the actual parent, restore each child's own History, initialize current skills, and reconstruct descendants. Refuse malformed or identity-mismatched records rather than treating corruption as an empty fleet. A failed restoration joins and removes the children it just constructed. An already-live child is not duplicated. Borrowed GUI mounts do not become startup owners.

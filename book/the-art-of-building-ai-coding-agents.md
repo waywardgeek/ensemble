@@ -13608,6 +13608,11 @@ the parent's Sandbox; open the child Sandbox only after its root exists.
 an empty array drops them, and a confined parent cannot grant broader access.
 These imports do not enlarge built-in file-tool access. Verify launch arguments
 through actual tool dispatch, not only direct construction calls.
+Read registered launch policy before resolving the model for a reused ID. Preserve
+its exact offering as well as its sandbox and primary; a new assignment must not
+silently inherit the creator's route. Public shutdown retires automatic restart,
+not the saved launch policy. Explicit reuse preserves that policy while starting
+a new assignment; prepared files alone do not imply a previous Agent.
 
 A schema is
 validated and copied before construction effects. Descendants without an
@@ -14409,6 +14414,15 @@ old submission or pause state. Refuse replacement launch options for that ID;
 choose a fresh ID for a different trial. Persist the primary override on the
 Agent so later settings writes cannot erase it. Test creation, reuse and host
 restoration separately, including outside-path refusal and startup-skill isolation.
+
+Public `shutdown_agent` and `kill_agent` retire automatic restart through explicit
+child deletion, unlike host teardown or direct lifetime destruction. Version four
+adds a required boolean `Retired` field to the same launch record. Save it before
+teardown; do not delete the policy. Automatic restoration skips retired records.
+Explicit reuse reads their model, primary and sandbox policy, clears old completion,
+and saves an active record for the new assignment. Older records remain readable.
+Test actual public shutdown, automatic-restore exclusion and explicit safe reuse.
+Prepared role files and cancelled startup must still permit ordinary creation.
 
 Save changed restart settings before acknowledging them. New accepted work invalidates prior completion in the restart record even while the historical `submit.md` remains available. A restored submitted flag is usable only with the matching generation, payload checksum and a valid existing submission artifact. These are separate file replacements, not a multi-file transaction; a mismatch refuses restoration rather than inventing acceptance. In particular, reading an arbitrary old answer still cannot complete newer work. Model choices remain subject to the current parent's provider and sandbox policy.
 
@@ -20823,6 +20837,28 @@ contract without relaxing structural comparison, and race that test's incoming
 request against workflow completion to report the actual failure. Preserve frozen
 external grader contracts as historical targets. Fake-provider and local policy
 tests establish these boundaries; they do not establish Flint's coding ability.
+
+The first live confined Flint smoke ran Go, Python and C# successfully, but exceeded
+its correction budget while fixing working-directory and SDK executable-path
+errors. Compiler availability was established, not a clean autonomous task pass.
+Its submission abbreviated the errors; retain tool output as evidence rather
+than replacing it with the final success story.
+
+Reopening that child after public shutdown exposed a more serious harness gap.
+Shutdown retired `child.json`, so reuse inherited the creator's model and
+unrestricted sandbox. The parent cancelled the unintended child. Earlier tests
+used direct destruction, which kept the registration, and omitted a route
+assertion on reuse. Even registered reuse selected the model before reading its
+saved policy. Resolve the registered route before model selection. Preserve the
+launch policy on public deletion, marking the same record retired instead of
+removing it. Automatic restore skips retired records; explicit reuse retains the
+policy and starts a new assignment without accepting the old completion.
+
+An initial repair refused every nonempty home without registration. Full regression
+tests rejected that shortcut: workflows legitimately prepare role memories before
+creation, and cancelled startup leaves retryable files. Restart eligibility and
+launch authority are separate facts; preserve both explicitly rather than infer
+them from directory contents. Add route-identity and public-shutdown reuse tests.
 
 Create Agent must make filesystem authority explicit, independently of model and
 primary skill. Offer inherited access with its actual scope, or confinement to a

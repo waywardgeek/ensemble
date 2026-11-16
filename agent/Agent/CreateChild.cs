@@ -17,19 +17,24 @@ public sealed partial class Agent
             throw new ArgumentException("Choose an exact offering or a legacy model, not both.");
         }
         string childDirectory = Path.Combine(DataDirectory(), "children", childID);
+        ChildRestartState? savedLaunch = restart ?? ReadChildRestart(childID);
+        if (restart is null && savedLaunch?.Version >= 3 && (launch is not null || model is not null))
+        {
+            throw new ArgumentException("Use a fresh child ID to select new launch options.");
+        }
         // Snapshot values before admission: no Skills -> Agent lock-order reversal.
         // The child constructor still revalidates policy and both live parents.
         var inherited = Configuration();
-        ModelIdentity? savedOffering = restart is null ? null
-            : AgentSettings.Read(Sandbox(), Path.Combine(DataDirectory(), "children", restart.ID, "settings.json"))?.SelectedOffering;
+        ModelIdentity? savedOffering = savedLaunch is null ? null
+            : AgentSettings.Read(Sandbox(), Path.Combine(childDirectory, "settings.json"))?.SelectedOffering;
         if (savedOffering is not null)
         {
             inherited = new Configuration(inherited, Parent().ResolveModel(savedOffering));
         }
-        else if (restart?.Offering is { } identity)
+        else if (savedLaunch?.Offering is { } identity)
         {
             inherited = new Configuration(inherited, Parent().ResolveModel(identity));
-            if (inherited.Model != restart.Model)
+            if (inherited.Model != savedLaunch.Model)
             {
                 throw new InvalidDataException("Saved model name differs from its configured offering.");
             }
@@ -47,11 +52,6 @@ public sealed partial class Agent
         // A new assignment may reuse history, but must not widen the authority
         // under which that history and workspace were created. Completion and
         // pause state still come only from an explicit restoration.
-        ChildRestartState? savedLaunch = restart ?? ReadChildRestart(childID);
-        if (restart is null && savedLaunch?.Version == 3 && launch is not null)
-        {
-            throw new ArgumentException("Use a fresh child ID to select new launch options.");
-        }
         string? requestedRoot = savedLaunch?.SandboxRoot;
         if (requestedRoot == "" && Sandbox().Root().Length != 0)
         {

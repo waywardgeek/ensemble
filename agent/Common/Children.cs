@@ -39,10 +39,11 @@ public sealed partial class Agent
     /// omission preserves ordinary settings. Invalid policy refuses creation.
     /// Launch may select an exact offering, primary and narrowed sandbox policy.
     /// Explicit primary selection drops inherited startup selections. A reused ID
-    /// retains saved launch policy; replacement options require a fresh ID.
+    /// retains registered launch policy; replacement options require a fresh ID.
+    /// Public deletion retires automatic restart but preserves launch policy.
     /// Successful ordinary creation records restart registration.
     /// Failed/cancelled creation destroys the child, retaining
-    /// its files; callers may retry the same ID after cleanup has completed.</summary>
+    /// its files; callers may retry after cleanup has completed.</summary>
     public partial Task<Agent> CreateChildAsync(string childID, string? model = null,
         System.Text.Json.JsonElement? submitSchema = null,
         CancellationToken cancellation = default, long? workingContextTokens = null,

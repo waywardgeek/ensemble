@@ -320,6 +320,11 @@ the parent's Sandbox; open the child Sandbox only after its root exists.
 an empty array drops them, and a confined parent cannot grant broader access.
 These imports do not enlarge built-in file-tool access. Verify launch arguments
 through actual tool dispatch, not only direct construction calls.
+Read registered launch policy before resolving the model for a reused ID. Preserve
+its exact offering as well as its sandbox and primary; a new assignment must not
+silently inherit the creator's route. Public shutdown retires automatic restart,
+not the saved launch policy. Explicit reuse preserves that policy while starting
+a new assignment; prepared files alone do not imply a previous Agent.
 
 A schema is
 validated and copied before construction effects. Descendants without an

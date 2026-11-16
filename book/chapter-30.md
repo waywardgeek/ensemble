@@ -289,6 +289,28 @@ request against workflow completion to report the actual failure. Preserve froze
 external grader contracts as historical targets. Fake-provider and local policy
 tests establish these boundaries; they do not establish Flint's coding ability.
 
+The first live confined Flint smoke ran Go, Python and C# successfully, but exceeded
+its correction budget while fixing working-directory and SDK executable-path
+errors. Compiler availability was established, not a clean autonomous task pass.
+Its submission abbreviated the errors; retain tool output as evidence rather
+than replacing it with the final success story.
+
+Reopening that child after public shutdown exposed a more serious harness gap.
+Shutdown retired `child.json`, so reuse inherited the creator's model and
+unrestricted sandbox. The parent cancelled the unintended child. Earlier tests
+used direct destruction, which kept the registration, and omitted a route
+assertion on reuse. Even registered reuse selected the model before reading its
+saved policy. Resolve the registered route before model selection. Preserve the
+launch policy on public deletion, marking the same record retired instead of
+removing it. Automatic restore skips retired records; explicit reuse retains the
+policy and starts a new assignment without accepting the old completion.
+
+An initial repair refused every nonempty home without registration. Full regression
+tests rejected that shortcut: workflows legitimately prepare role memories before
+creation, and cancelled startup leaves retryable files. Restart eligibility and
+launch authority are separate facts; preserve both explicitly rather than infer
+them from directory contents. Add route-identity and public-shutdown reuse tests.
+
 Create Agent must make filesystem authority explicit, independently of model and
 primary skill. Offer inherited access with its actual scope, or confinement to a
 required workspace. Browse server directories through the mounted Agent's Sandbox,

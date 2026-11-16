@@ -61,6 +61,7 @@ internal static class ConfiguredChildTests
             child.Destroy();
             child = await parent.CreateChildAsync("trial");
             Check(child.Sandbox().Root() == root && child.ToolEnabled("wait_for_job")
+                && child.Configuration().Offering == model.Identity()
                 && !child.ToolEnabled("list_directory") && child.Submission() is null,
                 "Reused child ID lost launch policy or revived old completion.");
             child.Destroy();
@@ -121,7 +122,7 @@ internal static class ConfiguredChildTests
         string path = Path.Combine(home, "children", "local", "child.json");
         string original = File.ReadAllText(path);
         JsonObject record = JsonNode.Parse(original)!.AsObject();
-        Check(record["Version"]!.GetValue<int>() == 3
+        Check(record["Version"]!.GetValue<int>() == 4
             && record["Offering"]!["VendorID"]!.GetValue<string>() == "ollama"
             && !original.Contains("synthetic-old-key"),
             "Configured child saves qualified identity, not inherited credentials.");
@@ -161,35 +162,41 @@ internal static class ConfiguredChildTests
         settingsDocument.Remove("selected_offering");
         File.WriteAllText(settingsPath, settingsDocument.ToJsonString());
 
-        // Version two predates persisted sandbox/primary choices. Its existing
-        // exact offering must still restore under the parent's inherited policy.
-        JsonObject legacy = JsonNode.Parse(original)!.AsObject();
-        legacy["Version"] = 2;
-        legacy.Remove("SandboxRoot");
-        legacy.Remove("ProcessReadPaths");
-        legacy.Remove("PrimarySkill");
-        File.WriteAllText(path, legacy.ToJsonString());
-        app = new Application(TextWriter.Null);
-        try
+        // Versions two and three predate explicit retirement. Both remain active;
+        // version three additionally retains its persisted sandbox/primary policy.
+        foreach (int version in new[] { 2, 3 })
         {
-            Model model = Configure(app);
-            var parent = new Agent(app, policy, dataDirectory: home);
-            await parent.RestoreChildrenAsync(deadline.Token);
-            Check(parent.FindChild("local")!.Configuration().Offering == model.Identity(),
-                "Valid version-two registration lost its exact offering.");
-        }
-        finally
-        {
-            app.Destroy();
+            JsonObject legacy = JsonNode.Parse(original)!.AsObject();
+            legacy["Version"] = version;
+            legacy.Remove("Retired");
+            if (version == 2)
+            {
+                legacy.Remove("SandboxRoot");
+                legacy.Remove("ProcessReadPaths");
+                legacy.Remove("PrimarySkill");
+            }
+            File.WriteAllText(path, legacy.ToJsonString());
+            app = new Application(TextWriter.Null);
+            try
+            {
+                Model model = Configure(app);
+                var parent = new Agent(app, policy, dataDirectory: home);
+                await parent.RestoreChildrenAsync(deadline.Token);
+                Check(parent.FindChild("local")!.Configuration().Offering == model.Identity(),
+                    $"Valid version-{version} registration lost its exact offering.");
+            }
+            finally { app.Destroy(); }
         }
 
         // Each damaged registration gets a new root and no existing child that
         // could hide a refusal. No mutation is repaired by the reader.
         foreach (string variant in new[] { "missing-configuration", "wrong-wire-name", "null-identity",
             "missing-identity-field", "duplicate-identity-field", "legacy-under-configured-parent",
-            "missing-sandbox-root", "missing-process-read-paths" })
+            "missing-sandbox-root", "missing-process-read-paths", "missing-retired", "invalid-retired" })
         {
             record = JsonNode.Parse(original)!.AsObject();
+            if (variant == "invalid-retired") record["Retired"] = "false";
+            if (variant == "missing-retired") Check(record.Remove("Retired"), "Retirement fixture must remove the field.");
             if (variant == "missing-sandbox-root") record.Remove("SandboxRoot");
             if (variant == "missing-process-read-paths") record.Remove("ProcessReadPaths");
             if (variant == "wrong-wire-name") record["Model"] = "another-wire-name";
@@ -202,6 +209,7 @@ internal static class ConfiguredChildTests
                 record.Remove("SandboxRoot");
                 record.Remove("ProcessReadPaths");
                 record.Remove("PrimarySkill");
+                record.Remove("Retired");
             }
             string damaged = record.ToJsonString();
             if (variant == "duplicate-identity-field")

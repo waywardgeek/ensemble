@@ -126,11 +126,21 @@ internal static partial class ActorTests
             Check(child.DataDirectory() != parent.DataDirectory()
                 && File.ReadAllText(Path.Combine(child.DataDirectory(), "save.json.journal.jsonl")).Contains("CHILD_ONLY_TASK"),
                 "Spawned task did not reach its distinct durable conversation journal.");
+            var expectedOffering = child.Configuration().Offering;
+            string expectedRoot = child.Sandbox().Root();
             await ChildCall(parent, "shutdown_agent", new { agent_id = "worker" }, deadline.Token);
             Check((await child.WorkStatusAsync(deadline.Token)).Activity == AgentActivity.Stopped,
                 "Destroyed child did not report stopped lifetime.");
             ToolResultPart after = await ChildCall(parent, "agents_status", new { }, deadline.Token);
             Check(!JsonCodec.Text(after.Parts).Contains("worker"), "Status retained a removed child.");
+            await parent.RestoreChildrenAsync(deadline.Token);
+            Check(parent.FindChild("worker") is null, "Retired child automatically restarted.");
+            Agent reused = await parent.CreateChildAsync("worker", cancellation: deadline.Token);
+            Check(reused.Configuration().Offering == expectedOffering
+                && reused.Sandbox().Root() == expectedRoot
+                && reused.ToolEnabled("submit") && !reused.ToolEnabled("list_directory")
+                && reused.Submission() is null,
+                "Explicit retired-child reuse lost launch policy or revived completion.");
         }
         finally
         {

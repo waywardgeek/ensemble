@@ -7,7 +7,7 @@ namespace Ensemble;
 public sealed partial class Agent
 {
     private partial void SaveChildRestart(GoalConfiguration? goal, bool? pause,
-        long? generation, bool? submitted, Configuration? selection, JsonElement? completion)
+        long? generation, bool? submitted, Configuration? selection, JsonElement? completion, bool retired)
     {
         lock (ingress)
         {
@@ -22,10 +22,10 @@ public sealed partial class Agent
             // A selector supplies its complete candidate before publication. Never
             // combine the new wire name with the old offering's route identity.
             Configuration selected = selection ?? configuration;
-            var state = new ChildRestartState(3, childID!, selected.Model,
+            var state = new ChildRestartState(4, childID!, selected.Model,
                 submissionContract.Schema(), generation ?? admittedWorkGeneration,
                 isSubmitted, submissionHash, pause ?? paused, goal ?? goalConfiguration, selected.Offering,
-                childPrimarySkill, Sandbox().Root(), selected.ProcessReadPaths ?? []);
+                childPrimarySkill, Sandbox().Root(), selected.ProcessReadPaths ?? [], retired);
             Sandbox().ReplaceFile(Path.Combine(DataDirectory(), "child.json"),
                 JsonSerializer.SerializeToUtf8Bytes(state, new JsonSerializerOptions { IncludeFields = true }));
         }
@@ -36,7 +36,7 @@ public sealed partial class Agent
         lock (ingress)
         {
             if (!childRestartEnabled) { return; }
-            Sandbox().DeleteFile(Path.Combine(DataDirectory(), "child.json"));
+            SaveChildRestart(retired: true);
             childRestartEnabled = false;
         }
     }
@@ -87,7 +87,7 @@ public sealed partial class Agent
             }
             var state = JsonSerializer.Deserialize<ChildRestartState>(bytes,
                 new JsonSerializerOptions { IncludeFields = true, UnmappedMemberHandling = JsonUnmappedMemberHandling.Disallow });
-            if (state is null || state.Version is not (1 or 2 or 3) || state.ID != id
+            if (state is null || state.Version is not (1 or 2 or 3 or 4) || state.ID != id
                 || string.IsNullOrWhiteSpace(state.Model) || state.Generation < 0 || state.Goal is null
                 || state.Goal.File is null || state.Goal.LastError is null
                 || !double.IsFinite(state.Goal.IdleSeconds) || state.Goal.IdleSeconds < .001
@@ -96,15 +96,17 @@ public sealed partial class Agent
                 || (state.Submitted ? state.SubmissionHash is null || state.SubmissionHash.Length != 64
                     || !state.SubmissionHash.All(char.IsAsciiHexDigit) : state.SubmissionHash is not null)
                 || (state.Offering is not null && root.GetProperty("Offering").EnumerateObject().Count() != 3)
+                || (state.Version < 4 && state.Retired is not null)
+                || (state.Version == 4 && state.Retired is null)
                 || (state.Version < 3 && (state.PrimarySkill is not null || state.SandboxRoot is not null
                     || state.ProcessReadPaths is not null))
                 || (state.Version == 1 && (state.Offering is not null || root.EnumerateObject().Count() != 9))
                 || (state.Version == 2 && (state.Offering is null || root.EnumerateObject().Count() != 10))
-                || (state.Version == 3 && (state.SandboxRoot is null || state.ProcessReadPaths is null
+                || (state.Version >= 3 && (state.SandboxRoot is null || state.ProcessReadPaths is null
                     || (state.SandboxRoot.Length != 0 && !Path.IsPathFullyQualified(state.SandboxRoot))
                     || (state.PrimarySkill is not null && string.IsNullOrWhiteSpace(state.PrimarySkill))
                     || root.EnumerateObject().Count() != 11 + (state.Offering is null ? 0 : 1)
-                        + (state.PrimarySkill is null ? 0 : 1)))
+                        + (state.PrimarySkill is null ? 0 : 1) + (state.Version == 4 ? 1 : 0)))
                 || root.GetProperty("Goal").EnumerateObject().Count() != 4)
             {
                 throw new InvalidDataException("Invalid child restart identity or settings.");
@@ -134,7 +136,7 @@ public sealed partial class Agent
             cancellation.ThrowIfCancellationRequested();
             if (!Sandbox().IsDirectory(Path.Combine(directory, name))) { continue; }
             ChildRestartState? state = ReadChildRestart(name);
-            if (state is not null && FindChild(name) is null)
+            if (state is not null && state.Retired != true && FindChild(name) is null)
             {
                 // Resolve every configured route before any child's startup has
                 // effects. A missing offering is never a legacy wire-name hint.
