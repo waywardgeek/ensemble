@@ -16,10 +16,40 @@ type: loadable
   books, manifests or evidence to accommodate current changes.
 - Root `cmd/` and `internal/`: Go grading/support tools, not the runtime.
 
-Read the top of `docs/edition-3-csharp-progress.md` for the current boundary and
+When working in the main repository, read the top of
+`docs/edition-3-csharp-progress.md` for the current boundary and
 `docs/edition-3-csharp-procedure.md` for the implementation method. Historical
 phase instructions and source paths are records, not authority to resume work.
 The promotion and known verification limits are in `docs/edition-3-promotion.md`.
+
+## Explicitly assigned isolated chapter exercises
+
+Use the assigned absolute project path, supplied chapter, and environment recipe.
+The main repository paths above are not prerequisites in an isolated workspace.
+Do not search outside it for missing procedure documents or reference solutions;
+ask the parent once if a required input is absent. A successful `load_skill`
+activates its instructions; locating or reading its source directory is not a
+second activation step.
+
+Read the supplied chapter completely, recovering only omitted ranges after a
+truncated read. Record a concise plan and verified progress in the project so a
+context checkpoint can resume implementation rather than repeat setup. A
+host-provided automatic checkpoint need not originate in a model tool call;
+check existing files and pending work before replaying actions.
+
+Before requesting grading, inspect the source as well as its output:
+- Common contains shared state and explicit partial member declarations;
+  functional modules contain their implementations, not additional shared state.
+- Constructors register both relationship ends through parent operations. Callers
+  must not remember a separate attachment step.
+- Destruction clears both ends, releases strong children and owned resources,
+  and is reached from the application's cleanup path.
+- Verify the final request URL and failure-state behavior, not only successful
+  replies. A passing grader covers its assertions, not every chapter requirement.
+
+Use the supplied offline build recipe rather than a missing repository Makefile.
+Keep parent-provided grading, source review, and any authorized live exercise
+separate in the result; report interventions and unverified requirements plainly.
 
 ## Working with Bill
 
@@ -60,7 +90,7 @@ Do not rewrite historical endpoints or imply ungraded obligations were certified
 
 ## Build and verification
 
-Use the root README/Makefile. `make DOTNET=/path/to/dotnet` builds C# and writes
+In the main repository, use the root README/Makefile. `make DOTNET=/path/to/dotnet` builds C# and writes
 the local root launcher; it does not launch or install it. `make cli` builds the
 JSON CLI. `make test` runs current C# and shared V3 grading checks.
 `make test-legacy-go` retains broader historical tests with known obsolete layout
