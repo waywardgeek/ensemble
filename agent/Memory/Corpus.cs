@@ -1,6 +1,7 @@
 using System.Collections.Immutable;
 using System.Globalization;
 using System.Text;
+using System.Text.Json;
 
 namespace Ensemble;
 
@@ -83,6 +84,24 @@ public sealed partial class Memory
             throw new FormatException("Reversed corpus range");
         }
         return (start, end);
+    }
+
+    private partial bool IsDiscoveredIdentity(MemoryBand band, string id)
+    {
+        // An ordinary file tool or human may leave unrelated Markdown here.
+        // Be tolerant only at directory discovery; recorded transaction identities
+        // and overlapping valid coverage still require strict validation.
+        try
+        {
+            _ = Coverage(band, id);
+            return true;
+        }
+        catch (FormatException)
+        {
+            // Quote filename text so embedded newlines cannot forge log entries.
+            Parent().Log($"Skipping memory file with invalid {band} identity: {JsonSerializer.Serialize(id)}");
+            return false;
+        }
     }
 
     private static partial DateTimeOffset FileTimestamp(MemoryBand band, string id)
@@ -198,6 +217,7 @@ public sealed partial class Memory
                     continue; // .retired, temporary files and traces are not active input.
                 }
                 string id = name[..^3];
+                if (!IsDiscoveredIdentity(band, id)) continue;
                 string? text = ReadOptional(CorpusPath(band, id));
                 if (text is null)
                 {
@@ -243,6 +263,7 @@ public sealed partial class Memory
             {
                 continue;
             }
+            if (!IsDiscoveredIdentity(MemoryBand.Session, stem)) continue;
             var point = ParsePoint(stem);
             if (stem.StartsWith(day + "-", StringComparison.Ordinal))
             {

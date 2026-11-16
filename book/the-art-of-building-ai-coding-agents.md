@@ -15999,7 +15999,7 @@ Chapter 20 established sibling homes for true top-level Agents and nested homes 
 
 This is an illustrative layout, not a claim that those source and destination files are all simultaneously active. Promoted sources become `.retired` files. Hidden staging receipts are implementation-owned and excluded from corpus scans.
 
-Session names have a date and positive number. Archive names contain both dated endpoints of a first/last session range, separated by `--`. Parsing rejects malformed dates, inverted ranges and overlapping active coverage. Ordering is by parsed identity, not lexicographic filename order: session 10 must not precede session 2. Retired session identities also reserve their numbers so new work does not reuse an old identity.
+Session names have a date and positive number. Archive names contain both dated endpoints of a first/last session range, separated by `--`. Directory scans skip and diagnose filenames with malformed dates, missing or invalid numbers, or inverted ranges, leaving those files untouched. A human or file-writing tool can leave unrelated Markdown in a memory directory; that must not stop the Agent at startup. New session-number allocation applies the same rule to active and retired filenames. Recorded transaction identities remain strict, and overlapping valid active coverage still refuses. Ordering is by parsed identity, not lexicographic filename order: session 10 must not precede session 2. Valid retired session identities reserve their numbers so new work does not reuse an old identity.
 
 Stable files may be absent; invalid UTF-8, unreadable files and confinement failures are not treated as empty content. Memory reads bytes freshly, rather than keeping a second mutable file-content cache. It performs no network fetches.
 
@@ -22124,6 +22124,23 @@ content, tool fragments, conflicting finishes, and frames after `[DONE]` still
 refuse. The test checks both the unchanged reply and final token counts.
 Content completion and transport completion are different boundaries. A passing
 constructed stream is not evidence that every live provider frame shape matches it.
+
+### A misplaced memory note must not stop the Agent
+
+Cadence wrote a continuity note as `memory/2026-11-16.md` through an ordinary
+file-writing tool. Session identities require a positive numbered suffix, such
+as `2026-11-16-3.md`. The next startup's corpus scan threw a format exception,
+closing Cadence's actor. The HTTP server continued serving the page, but the
+initial WebSocket failed, so the browser showed neither Agents nor conversation.
+
+Treat filenames discovered on disk as untrusted input. Skip and diagnose invalid
+session and archive names before reading their contents, preserving the files
+for correction. Apply the same policy when allocating a session number, including
+retired filenames; otherwise startup succeeds but the next compression still
+fails. Valid retired identities continue to reserve numbers. Strict transaction
+validation, overlapping valid archive detection, and I/O failures retain their
+existing behavior. Regression checks cover startup status and an actual request
+to a local fake provider, as well as scanning, allocation and escaped diagnostics.
 
 ---
 

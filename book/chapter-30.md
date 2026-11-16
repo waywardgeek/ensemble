@@ -1589,3 +1589,20 @@ content, tool fragments, conflicting finishes, and frames after `[DONE]` still
 refuse. The test checks both the unchanged reply and final token counts.
 Content completion and transport completion are different boundaries. A passing
 constructed stream is not evidence that every live provider frame shape matches it.
+
+### A misplaced memory note must not stop the Agent
+
+Cadence wrote a continuity note as `memory/2026-11-16.md` through an ordinary
+file-writing tool. Session identities require a positive numbered suffix, such
+as `2026-11-16-3.md`. The next startup's corpus scan threw a format exception,
+closing Cadence's actor. The HTTP server continued serving the page, but the
+initial WebSocket failed, so the browser showed neither Agents nor conversation.
+
+Treat filenames discovered on disk as untrusted input. Skip and diagnose invalid
+session and archive names before reading their contents, preserving the files
+for correction. Apply the same policy when allocating a session number, including
+retired filenames; otherwise startup succeeds but the next compression still
+fails. Valid retired identities continue to reserve numbers. Strict transaction
+validation, overlapping valid archive detection, and I/O failures retain their
+existing behavior. Regression checks cover startup status and an actual request
+to a local fake provider, as well as scanning, allocation and escaped diagnostics.

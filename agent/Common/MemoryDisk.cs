@@ -45,6 +45,7 @@ public sealed partial class Memory
     private static partial string BandDirectory(MemoryBand band);
     private static partial (DateOnly Day, int Number) ParsePoint(string value);
     private static partial ((DateOnly Day, int Number) Start, (DateOnly Day, int Number) End) Coverage(MemoryBand band, string id);
+    private partial bool IsDiscoveredIdentity(MemoryBand band, string id);
     private static partial DateTimeOffset FileTimestamp(MemoryBand band, string id);
     private partial string? ReadOptional(string path);
     private partial void RequireRecovered(Context context);

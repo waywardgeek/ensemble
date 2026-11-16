@@ -412,6 +412,8 @@ try
     if (args is ["--memory-disk-tests"] || args.Length == 0)
     {
         CheckCase("memory disk ownership and fresh scan", MemoryDiskTests.OwnershipAndScan);
+        CheckCase("memory malformed filenames and allocation", MemoryDiskTests.MalformedNames);
+        await AsyncCase("memory malformed filename startup", () => MeterTests.MemoryMalformedNameStartup(temp));
         CheckCase("memory conversation staging", MemoryDiskTests.ConversationStaging);
         CheckCase("memory graduation crash recovery", MemoryDiskTests.GraduationRecovery);
         CheckCase("memory stale corrupt and confined inputs", MemoryDiskTests.RefusalAndConfinement);

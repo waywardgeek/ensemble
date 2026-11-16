@@ -135,7 +135,8 @@ internal static class MemoryDiskTests
             Refuses(() => memory.Scan(new Context(), MemoryBand.Archive8));
             File.Delete(Path.Combine(home, "bucket-0/2026-10-28-3--2026-10-28-4.md"));
             Write(home, "memory/2026-10-28-01.md", "ambiguous number");
-            Refuses(() => memory.Scan(new Context(), MemoryBand.Session));
+            Check(memory.Scan(new Context(), MemoryBand.Session).Length == 2,
+                "Malformed filename blocked valid corpus entries");
             File.Delete(Path.Combine(home, "memory/2026-10-28-01.md"));
             memory.Destroy();
             Refuses(() => memory.Parent());
@@ -154,6 +155,48 @@ internal static class MemoryDiskTests
             Refuses(() => memory.Parent());
         }
         finally { app.Destroy(); }
+    }
+
+    public static void MalformedNames()
+    {
+        InHome((agent, home) =>
+        {
+            using var diagnostics = new StringWriter();
+            agent.AttachDiagnostics(diagnostics);
+            string[] invalid = ["2026-10-28", "2026-02-30-1", "2026-10-28-0",
+                "2026-10-28-01", "notes\nnot-a-log-entry"];
+            foreach (string id in invalid)
+                Write(home, "memory/" + id + ".md", "ignored session");
+            // An ignored name must be rejected before opening or decoding its bytes.
+            File.WriteAllBytes(Path.Combine(home, "memory/2026-10-28.md"), [0xff]);
+            Write(home, "memory/2026-10-28-2.md", "valid session");
+            Write(home, "memory/2026-10-28-10.md.retired", "reserved identity");
+            Write(home, "memory/notes.md.retired", "ignored retired file");
+            Check(agent.Memory().Scan(new Context(), MemoryBand.Session).Single().Text == "valid session",
+                "Malformed session names blocked or entered the corpus");
+            foreach (var (band, directory) in new[] { (MemoryBand.Archive8, "bucket-0"),
+                (MemoryBand.Archive64, "bucket-1") })
+            {
+                Write(home, directory + "/notes.md", "ignored archive");
+                Write(home, directory + "/2026-10-28-3--2026-10-28-1.md", "reversed range");
+                Write(home, directory + "/2026-10-28-1--2026-10-28-2.md", "valid archive");
+                Check(agent.Memory().Scan(new Context(), band).Single().Text == "valid archive",
+                    "Malformed archive names blocked or entered the corpus");
+            }
+            Conversation(agent);
+            var capture = agent.Memory().CaptureConversation(agent.History().View(), 1, Now);
+            Check(capture?.Launch.ID == "2026-10-28-11",
+                "Malformed active/retired names blocked allocation or a valid retired number was reused");
+            Check(File.ReadAllBytes(Path.Combine(home, "memory/2026-10-28.md")).SequenceEqual(new byte[] { 0xff })
+                && File.ReadAllText(Path.Combine(home, "memory/notes.md.retired")) == "ignored retired file",
+                "Ignoring a filename modified its file");
+            string log = diagnostics.ToString();
+            Check(log.Contains("2026-10-28", StringComparison.Ordinal)
+                && log.Contains("notes", StringComparison.Ordinal)
+                && !log.Contains("\nnot-a-log-entry", StringComparison.Ordinal)
+                && !log.Contains("ignored session", StringComparison.Ordinal),
+                "Skipped filenames were not diagnosed safely without file contents");
+        });
     }
 
     public static void ConversationStaging()

@@ -69,6 +69,25 @@ internal static partial class MeterTests
         }
     }
 
+    public static async Task MemoryMalformedNameStartup(string directory)
+    {
+        string home = Path.Combine(directory, "memory-malformed-name");
+        using var listener = Listen();
+        var app = new Application(TextWriter.Null);
+        try
+        {
+            var agent = MemoryAgent(app, home, listener.Prefixes.Single());
+            Directory.CreateDirectory(Path.Combine(home, "memory"));
+            File.WriteAllText(Path.Combine(home, "memory/2026-11-16.md"), "INVALID_NAME_SENTINEL");
+            File.WriteAllText(Path.Combine(home, "memory/2026-11-16-1.md"), "VALID_MEMORY_SENTINEL");
+            // The GUI's initial status request must not kill the actor during its disk scan.
+            var status = await agent.WorkStatusAsync().WaitAsync(TimeSpan.FromSeconds(10));
+            Check(status.Activity == AgentActivity.Idle, "Malformed memory filename stopped the actor");
+            await MemoryTurn(agent, listener, "VALID_MEMORY_SENTINEL", "INVALID_NAME_SENTINEL");
+        }
+        finally { app.Destroy(); }
+    }
+
     public static async Task MemoryPolicyRefusal(string directory)
     {
         string home = Path.Combine(directory, "memory-policy-refusal");
