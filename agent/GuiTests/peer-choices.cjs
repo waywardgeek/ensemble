@@ -8,6 +8,8 @@ const assert = require('node:assert/strict');
 const root = path.resolve(__dirname, '../gui/wwwroot');
 const offering = { vendor: 'ollama', endpoint: 'et', model: 'mimo' };
 const preference = { vendor: 'ollama', model: 'fixture-mimo' };
+const flint = endpoint => ({ vendor: 'openrouter', endpoint, model: 'flint-v1_0-free' });
+let flintChoices = false;
 let failChoices = false;
 const creations = [];
 
@@ -20,6 +22,14 @@ const creations = [];
             if (url.pathname === '/peers/saved') { response.end('[]'); return; }
             if (url.pathname === '/peers/choices') {
                 if (failChoices) { response.writeHead(503).end('{}'); return; }
+                if (flintChoices) {
+                    response.end(JSON.stringify({ configured_models: [
+                        { vendor: 'OpenRouter', label: 'Flint legacy Messages', model: 'recursive/flint-v1.0:free', offering: flint('api'), enabled: true },
+                        { vendor: 'OpenRouter', label: 'Flint Chat', model: 'recursive/flint-v1.0:free', offering: flint('chat'), enabled: true }
+                    ], preferred_models: [
+                        { vendor: 'OpenRouter', label: 'Flint default unavailable', preference: { vendor: 'openrouter', model: 'recursive/flint-v1.0:free' }, enabled: false }
+                    ], primary_skills: [] })); return;
+                }
                 response.end(JSON.stringify({ model_choices: ['astra'], configured_models: [
                     { vendor: 'Ollama', label: 'MiMo', model: 'fixture-mimo', offering, funding: 'No authentication', enabled: true },
                     { vendor: 'Ollama', label: 'Unavailable', model: 'gone', offering: { ...offering, model: 'gone' }, funding: 'Unavailable', enabled: false }
@@ -52,16 +62,19 @@ const creations = [];
         browser = await chromium.launch({ headless: true,
             executablePath: process.env.CHROME_PATH || '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' });
         const page = await browser.newPage();
-        await page.route('**/*.js', route => route.request().url().endsWith('/peers.js') ? route.continue() : route.abort());
+        await page.route('**/*.js', route => ['/peers.js', '/layout.js'].some(file => route.request().url().endsWith(file)) ? route.continue() : route.abort());
         await page.goto(`http://127.0.0.1:${server.address().port}/`);
         for (const width of [1200, 390]) {
             await page.setViewportSize({ width, height: 850 });
+            await page.waitForFunction(() => document.body.classList.contains('compact') === (innerWidth < 62 * parseFloat(getComputedStyle(document.documentElement).fontSize)));
+            if (await page.locator('body').evaluate(el => el.classList.contains('compact')))
+                await page.locator('button[data-pane=agents]').click();
             await page.locator('#peer-open').click();
             await page.waitForFunction(() => !document.querySelector('#peer-create').disabled);
             assert.equal(await page.locator('#peer-model').evaluate(e => e.tagName), 'SELECT');
             assert.equal(await page.locator('#peer-skill').evaluate(e => e.tagName), 'SELECT');
             assert.equal(await page.locator('#peer-model optgroup').getAttribute('label'), 'Ollama');
-            assert.equal(await page.locator('#peer-model option[data-offering-key]').count(), 0);
+            assert.equal(await page.locator('#peer-model option[data-offering-key]:enabled').count(), 0);
             assert.equal(await page.locator('#peer-model option').filter({ hasText: /^MiMo$/ }).count(), 1);
             await page.locator('#peer-name').fill(`small-${width}`);
             await page.locator('#peer-model').selectOption({ label: 'MiMo' });
@@ -95,7 +108,47 @@ const creations = [];
         failChoices = false;
         await page.locator('#peer-open').click();
         await page.waitForFunction(() => !document.querySelector('#peer-create').disabled);
-        console.log('PASS peer dropdowns: desktop/mobile, grouped qualified offering, primary skill, inheritance, refusal/retry');
+        await page.locator('#peer-close').click();
+        flintChoices = true;
+        for (const width of [1200, 390]) {
+            await page.setViewportSize({ width, height: 850 });
+            await page.waitForFunction(() => document.body.classList.contains('compact') === (innerWidth < 62 * parseFloat(getComputedStyle(document.documentElement).fontSize)));
+            if (await page.locator('body').evaluate(el => el.classList.contains('compact')))
+                await page.locator('button[data-pane=agents]').click();
+            await page.locator('#peer-open').click();
+            await page.waitForFunction(() => !document.querySelector('#peer-create').disabled);
+            assert.equal(await page.locator('#peer-model option[data-offering-key]:enabled').count(), 2,
+                'Ambiguous grouped funding must not hide explicit protocol choices');
+            await page.locator('#peer-name').fill(`flint-${width}`);
+            await page.locator('#peer-model').selectOption({ label: 'Flint Chat' });
+            await page.locator('#peer-create').click();
+            await page.locator('#peer-notice').filter({ hasText: `Created Agent flint-${width}` }).waitFor();
+            assert.deepEqual(creations.at(-1), { name: `flint-${width}`, skill: '', offering: flint('chat') });
+        }
+        // Exercise the shipped picker projection independently of usage counters
+        // and the conversation socket; creation above uses the full peers script.
+        const appSource = fs.readFileSync(path.join(root, 'app.js'), 'utf8');
+        const start = appSource.indexOf('function showUsage(frame) {');
+        const end = appSource.indexOf('    renderControls();', start);
+        assert(start >= 0 && end > start);
+        const pickerBody = appSource.slice(start + 'function showUsage(frame) {'.length, end);
+        for (const endpoint of ['api', 'chat']) {
+            const result = await page.evaluate(({ body, endpoint }) => {
+                const offering = endpoint => ({ vendor: 'openrouter', endpoint, model: 'flint-v1_0-free' });
+                const frame = {
+                    selected_model: 'recursive/flint-v1.0:free', selected_offering: offering(endpoint), selection_available: true,
+                    preferred_models: [{ vendor: 'OpenRouter', label: 'Unresolved Flint', model: 'recursive/flint-v1.0:free',
+                        preference: { vendor: 'openrouter', model: 'recursive/flint-v1.0:free' }, selected: true, enabled: false }],
+                    configured_models: ['api', 'chat'].map(endpoint => ({ vendor: 'OpenRouter', label: endpoint,
+                        model: 'recursive/flint-v1.0:free', offering: offering(endpoint), enabled: true }))
+                };
+                new Function('frame', body)(frame);
+                const picker = document.querySelector('#model-choice');
+                return { selected: JSON.parse(picker.value), enabled: [...picker.options].filter(option => !option.disabled).length };
+            }, { body: pickerBody, endpoint });
+            assert.deepEqual(result, { selected: flint(endpoint), enabled: 2 });
+        }
+        console.log('PASS peer dropdowns: desktop/mobile, grouped preferences, explicit protocol recovery, exact selected endpoint, primary skill, inheritance, refusal/retry');
     } finally {
         try { if (browser) await browser.close(); }
         finally { await new Promise(resolve => server.close(resolve)); }

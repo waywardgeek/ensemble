@@ -100,18 +100,17 @@
                 option.disabled = !choice.enabled;
                 group.append(option);
             }
-            const shown = new Set((choices.preferred_models || []).map(choice =>
+            const shown = new Set((choices.preferred_models || []).filter(choice => choice.enabled).map(choice =>
                 `${choice.vendor}:${choice.model || choice.preference.model}`));
             for (const choice of choices.configured_models || []) {
                 const identity = `${choice.vendor}:${choice.model}`;
                 if (shown.has(identity)) continue;
-                shown.add(identity);
-                const matches = choices.configured_models.filter(value => `${value.vendor}:${value.model}` === identity);
+                // An unresolved group must leave exact routes available for recovery.
                 const key = `offering:${offerings.size}`;
                 offerings.set(key, choice.offering);
                 const option = new Option(choice.label, key);
                 option.dataset.offeringKey = key;
-                option.disabled = matches.length !== 1 || !choice.enabled;
+                option.disabled = !choice.enabled;
                 model.add(option);
             }
             if (!saved) for (const value of choices.model_choices || []) {

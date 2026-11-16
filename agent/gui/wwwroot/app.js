@@ -906,7 +906,7 @@ function showUsage(frame) {
         option.textContent = label;
         option.disabled = !enabled;
         if (!enabled) option.title = preference
-            ? "Default funding is unavailable or ambiguous. Choose funding in Settings → AI."
+            ? "Default route is unavailable or ambiguous. Choose an explicit offering or funding in Settings → AI."
             : offering ? "Configured offering unavailable under this Agent's current policy."
             : "Unavailable legacy choice for this Agent's current route.";
         groups.get(vendor).append(option);
@@ -919,20 +919,21 @@ function showUsage(frame) {
     for (const model of preferred) {
         const id = "preference:" + JSON.stringify(model.preference);
         add(model.vendor, id, model.label + (model.selected && frame.selection_available === false ? " (unavailable)" : ""), model.enabled, null, model.preference);
-        shown.add(key(model.vendor, model.model || model.preference.model));
+        if (model.enabled) shown.add(key(model.vendor, model.model || model.preference.model));
         if (model.selected) selected = id;
     }
-    // Embedded callers may have no global funding store. A sole explicit route
-    // still works; ambiguous routes require the host's funding configuration.
+    // Unresolved groups and hosts without funding defaults expose exact routes.
+    // Never guess a protocol from a shared vendor/wire-model name.
     for (const model of configured) {
         const identity = key(model.vendor, model.model);
         if (shown.has(identity)) continue;
-        shown.add(identity);
-        const matches = configured.filter(value => key(value.vendor, value.model) === identity);
+
         const id = JSON.stringify(model.offering);
-        add(model.vendor, id, model.label, matches.length === 1 && model.enabled, model.offering);
-        if (frame.selected_model === model.model && frame.selected_offering?.vendor === model.offering.vendor) selected = id;
+        add(model.vendor, id, model.label, model.enabled, model.offering);
+        const current = frame.selected_offering;
+        if (current && ['vendor', 'endpoint', 'model'].every(field => current[field] === model.offering[field])) selected = id;
     }
+    for (const model of configured) shown.add(key(model.vendor, model.model));
     for (const model of frame.recommended_models || []) {
         if (shown.has(key(model.vendor, model.id))) continue;
         add(model.vendor, model.id, model.label, model.enabled);
