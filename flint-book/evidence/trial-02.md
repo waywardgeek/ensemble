@@ -97,3 +97,29 @@ runtime improvement, not an implemented change or a student defect.
 Graceful shutdown job 389 completed with `stopped:true`; original spawn job 48
 was collected. Candidate hashes still matched after closeout. No owned trial work
 was intentionally left running.
+
+
+## Bill-authorized follow-up interview
+
+After the trial was closed, Bill explicitly requested a second interview about
+architectural confusion. The same child was reopened on its retained free route,
+primary, sandbox and compiler imports; all were reverified after admission.
+This was interview-only, not a candidate rerun or repair. Original interview
+job 407 returned a typed submission, and graceful shutdown completed. All 11
+captured source/output hashes remained unchanged afterward.
+
+The parent supplied the four concrete mismatches listed above and asked the
+student to distinguish actual guarantees from required guarantees, evidence from
+retrospective guesses, and useful teaching changes. The student agreed with all
+four findings. Its useful review diagnosis was that it "checked requested source
+locations but did not fully trace constructor/destroy postconditions." It said
+"exact reasoning remains partly unrecoverable" and treated narrow interpretation
+and compressed review as possible contributors, not established causes.
+
+It recommended an "operation-level postcondition checklist," with a worked
+example/counterexample as possible support. It correctly described registration
+at constructor return and detachment on direct destruction after this feedback.
+These answers demonstrate recognition after supplied diagnoses, not independent
+error discovery or proof that abstract wording caused the original mistakes.
+A future teaching experiment may test that recommendation; this interview alone
+does not establish its effectiveness. No skill or candidate changes followed.
