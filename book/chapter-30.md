@@ -311,6 +311,16 @@ creation, and cancelled startup leaves retryable files. Restart eligibility and
 launch authority are separate facts; preserve both explicitly rather than infer
 them from directory contents. Add route-identity and public-shutdown reuse tests.
 
+A follow-up smoke supplied a project-local environment script with explicit Go
+and .NET executable paths, offline settings and workspace-local caches. All three
+programs ran; C# needed one namespace qualification. Supply the absolute project
+path in the assignment as well: this trial first probed `/`, which the sandbox
+refused, then discovered its home with a shell command outside the prescribed
+setup sequence. The child later called that compliant; the recorded calls did
+not. A provider error prevented the original submission, and a separate closeout
+request obtained it. Compiler success, instruction compliance and completed
+submission are distinct evidence, even in a tiny smoke test.
+
 Create Agent must make filesystem authority explicit, independently of model and
 primary skill. Offer inherited access with its actual scope, or confinement to a
 required workspace. Browse server directories through the mounted Agent's Sandbox,
