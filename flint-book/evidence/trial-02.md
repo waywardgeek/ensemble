@@ -123,3 +123,7 @@ These answers demonstrate recognition after supplied diagnoses, not independent
 error discovery or proof that abstract wording caused the original mistakes.
 A future teaching experiment may test that recommendation; this interview alone
 does not establish its effectiveness. No skill or candidate changes followed.
+
+A subsequent [bounded history review](trial-02-history-review.md) examined retained
+events480–1099 and identified additional clipping, partial-file placement, recovery
+and parent-question protocol friction not fully captured by the interviews.
