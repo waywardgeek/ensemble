@@ -470,13 +470,32 @@ public sealed partial class Agent
                     });
                 Record(new Event(EventKind.HintReceived, actor: Actor.Tool,
                     parts: [new TextPart(notice)]));
-                if (active is not null)
+                if (active is null)
                 {
+                    // History already contains the notice. Queue only a turn
+                    // trigger, coalescing notices behind an existing model turn.
+                    // Advance owns pause enforcement; no timer or observer is
+                    // required to start this work when scheduling is allowed.
+                    if (!requests.Any(request => request.Kind == MailKind.Submit))
+                    {
+                        requests.Enqueue(new Mail(MailKind.Submit,
+                            WorkGeneration: AdmitChildWork()));
+                    }
+                }
+                else
+                {
+                    // A nested parent must not advertise an old submission as
+                    // completion of newly received work. This changes scheduling,
+                    // not the child notice's Tool authority in History.
+                    if (!requests.Any(request => request.WorkGeneration != 0))
+                    {
+                        StartChildWork(AdmitChildWork());
+                    }
                     hintPending = true;
                 }
                 Jobs().WakeObservers();
             }
-            return; // An idle parent records data but admits no new model task.
+            return;
         }
         if (message.Kind == MailKind.WorkStatus)
         {

@@ -18,7 +18,8 @@ internal static partial class MeterTests
         string run = Path.Combine(home, "run");
         Directory.CreateDirectory(run);
         // Auxiliary recall is outside this dispatch fixture. Seed its policy
-        // before spawn so only the two main child requests reach the fake.
+        // before spawn. The fake serves two child requests and the parent's
+        // separate idle wake when the first child asks a question.
         string childHome = Path.Combine(home, "children", "writer");
         Directory.CreateDirectory(childHome);
         var settings = new System.Text.Json.Nodes.JsonObject
@@ -121,6 +122,22 @@ internal static partial class MeterTests
                     Check(!invocation.IsCompleted, "Question prematurely completed workflow");
                     parent.RespondToQuestion("Use the supplied voice guide.", "writer", questions.Single().MessageID);
                     Check((await answer).Response == "Use the supplied voice guide.", "Workflow answer was lost");
+                    // The MCP invocation is independently owned work, not an
+                    // active parent model turn. Question delivery must therefore
+                    // start the parent without replaying the child assignment.
+                    var supervisor = await listener.GetContextAsync()
+                        .WaitAsync(questionDeadline.Token);
+                    using var supervisorReader = new StreamReader(supervisor.Request.InputStream);
+                    string supervisorWire = await supervisorReader.ReadToEndAsync();
+                    Check(supervisorWire.Contains("Which voice should I use?", StringComparison.Ordinal),
+                        "Idle workflow supervisor did not receive the question.");
+                    Check(supervisorWire.Contains("Child question (data", StringComparison.Ordinal),
+                        "Supervisor request lost the child-data label.");
+                    await Reply(supervisor, JsonSerializer.Serialize(new
+                    {
+                        choices = new[] { new { message = new { content = "Question handled" }, finish_reason = "stop" } }
+                    }));
+                    await parent.FlushAsync(questionDeadline.Token);
                 }
                 child.PublishSubmission(JsonSerializer.SerializeToElement(new { assignment_id = assignment }));
                 await Reply(request, JsonSerializer.Serialize(new

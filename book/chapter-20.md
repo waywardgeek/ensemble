@@ -270,6 +270,12 @@ This illustrates the output shape, not a promise that idle implies submitted. Th
 
 `send_message` admits `Message` through the actor, so it becomes steering during active work or a new turn when idle. An incoming message wakes current Job observations without killing the Jobs and without creating a sticky interrupt for future observers, as established in Chapter 19.
 
+The same scheduling principle applies upward: a child's question records labeled
+Tool-authority data and starts an idle parent, or reaches its active turn as a
+hint. A human pause defers the turn until resume. Recording the question and
+waking a Job observer are not substitutes for this idle-turn admission; neither
+requires goal reminders. Root questions addressed to a human do not self-wake.
+
 `ask_agent` instead uses a separate `SubmitAsync` admission and waits for that turn's reliable reply. It does not consume an older assistant final from a shared cursor. It has no cursor parameter and does not automatically fetch the structured submission payload. Use `get_submission` for historical typed data and `join_agents` for current selected-child completion.
 
 `wait_for_agent` waits for new finalized text or a nonbusy status. It is not a submission wait and not a quiescence guarantee. Two independent output observers can read the same committed events. Observer cancellation leaves the child's work alive. If destruction clears the live History, an already-running observer retains its last immutable snapshot long enough to report the observed output and closed status; that local readback is not another persistent transcript.

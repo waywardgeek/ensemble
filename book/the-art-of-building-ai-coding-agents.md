@@ -13840,8 +13840,30 @@ remain separate. A wake returns the same running handle, not a cancelled task.
 
 The actor records human hints before pulsing. Child notices use `HintReceived`
 with `Actor.Tool` and labeled question data, never system/developer instructions.
-An idle parent records that notice without starting inference; root-human
-questions stay in the human inbox rather than waking the root to answer itself.
+Recording is not scheduling. If the parent is idle, enqueue an empty model-turn
+trigger after recording the notice. Do not copy the notice into a second human
+message. If a model turn is already queued, it will see the recorded notices;
+coalesce the wake rather than queue redundant turns. During an active turn, mark
+the hint pending so the next request includes it after completed tool outcomes.
+A nested parent's prior submission must not stand for newly admitted work.
+
+The ordinary actor scheduler enforces pause: record incoming messages while paused,
+but defer inference until resume. Shutdown cancels queued work and unresolved
+questions instead of dispatching a wake. No goal reminder, observer, or polling
+loop is required for an idle recipient to run. Root-human questions remain the
+exception: they are addressed to the human, not to the root model, and must never
+wake that model to answer itself. Waking changes scheduling, not authority.
+
+Verify this at the actual provider boundary with a local fake: a question to an
+idle parent must cause one request containing the notice once, outside system
+instructions. Two questions received while paused must cause no request until
+resume, then share one turn. Busy delivery must reach the next request without
+cancelling its independent Job. Paused delivery followed by shutdown must produce
+no request and must settle the pending question. The runtime regression entry
+point is `dotnet run --project agent/Tests/Tests.csproj -- --message-wake-tests`
+from the repository root with the .NET 10 SDK. These source regressions supplement
+the chapter's historical grader; its score alone does not certify idle wake.
+
 Chat input uses actor-decided turn-or-hint admission. JSON `prompt` and `hint`
 retain their separate meanings. Displaying a human question observes the inbox;
 it does not consume it or create another pending-question store.
@@ -14557,6 +14579,12 @@ Output polling must not consume the GUI's shared lossy observation queue. Use ca
 This illustrates the output shape, not a promise that idle implies submitted. They are independent fields.
 
 `send_message` admits `Message` through the actor, so it becomes steering during active work or a new turn when idle. An incoming message wakes current Job observations without killing the Jobs and without creating a sticky interrupt for future observers, as established in Chapter 19.
+
+The same scheduling principle applies upward: a child's question records labeled
+Tool-authority data and starts an idle parent, or reaches its active turn as a
+hint. A human pause defers the turn until resume. Recording the question and
+waking a Job observer are not substitutes for this idle-turn admission; neither
+requires goal reminders. Root questions addressed to a human do not self-wake.
 
 `ask_agent` instead uses a separate `SubmitAsync` admission and waits for that turn's reliable reply. It does not consume an older assistant final from a shared cursor. It has no cursor parameter and does not automatically fetch the structured submission payload. Use `get_submission` for historical typed data and `join_agents` for current selected-child completion.
 
@@ -22304,6 +22332,35 @@ and restart eligibility remain distinct. No lifecycle implementation changed in
 that test correction. These are diagnostic and compatibility lessons, not evidence that a future model
 will recover correctly. Chapter3 and Chapter18 teach the revised behavior at its
 construction points; Flint-specific teaching and setup stay in the separate book.
+
+### Child questions must reach an idle supervisor
+
+During Flint's second chapter trial, the student requested grading after its
+parent had ended its turn. The question appeared in History, but the parent did
+not run until Bill intervened. The actor recorded child notices and pulsed current
+Job observers; it explicitly did not schedule inference for an idle parent.
+Recording, observer wake, and idle-turn admission are separate responsibilities.
+
+The correction reuses the actor's existing empty turn trigger after recording the
+notice once. An already queued model turn absorbs additional notices; an active
+turn receives a pending hint. Pause still defers inference, shutdown cancels queued
+work, and a root question for the human cannot wake the root to answer itself.
+Child text remains Tool-authority data, not a human or system instruction. Nested
+parents invalidate prior completion when new work is admitted. No timer, second
+inbox, or duplicated conversation is needed.
+
+The new idle-provider regression failed before the change because no request
+arrived. Focused checks cover idle delivery, coalesced paused delivery, busy hints,
+message placement, observer survival, and shutdown of a queued wake. Chapters 19
+and 20 teach the corrected scheduling contract at its construction points. Source
+checks do not establish that an installed host has the fix; installation and live
+child-message acceptance remain separate before the next Flint trial.
+
+The full native suite exposed a fixture assumption too: the workflow fake treated
+every provider request as a child assignment. The new parent wake was therefore
+mistaken for the second child turn. The corrected fake explicitly receives and
+checks the supervisor's question request before continuing the original two-child-
+assignment checks. It does not disable the wake or relax assignment identity.
 
 ---
 

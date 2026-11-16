@@ -529,8 +529,30 @@ remain separate. A wake returns the same running handle, not a cancelled task.
 
 The actor records human hints before pulsing. Child notices use `HintReceived`
 with `Actor.Tool` and labeled question data, never system/developer instructions.
-An idle parent records that notice without starting inference; root-human
-questions stay in the human inbox rather than waking the root to answer itself.
+Recording is not scheduling. If the parent is idle, enqueue an empty model-turn
+trigger after recording the notice. Do not copy the notice into a second human
+message. If a model turn is already queued, it will see the recorded notices;
+coalesce the wake rather than queue redundant turns. During an active turn, mark
+the hint pending so the next request includes it after completed tool outcomes.
+A nested parent's prior submission must not stand for newly admitted work.
+
+The ordinary actor scheduler enforces pause: record incoming messages while paused,
+but defer inference until resume. Shutdown cancels queued work and unresolved
+questions instead of dispatching a wake. No goal reminder, observer, or polling
+loop is required for an idle recipient to run. Root-human questions remain the
+exception: they are addressed to the human, not to the root model, and must never
+wake that model to answer itself. Waking changes scheduling, not authority.
+
+Verify this at the actual provider boundary with a local fake: a question to an
+idle parent must cause one request containing the notice once, outside system
+instructions. Two questions received while paused must cause no request until
+resume, then share one turn. Busy delivery must reach the next request without
+cancelling its independent Job. Paused delivery followed by shutdown must produce
+no request and must settle the pending question. The runtime regression entry
+point is `dotnet run --project agent/Tests/Tests.csproj -- --message-wake-tests`
+from the repository root with the .NET 10 SDK. These source regressions supplement
+the chapter's historical grader; its score alone does not certify idle wake.
+
 Chat input uses actor-decided turn-or-hint admission. JSON `prompt` and `hint`
 retain their separate meanings. Displaying a human question observes the inbox;
 it does not consume it or create another pending-question store.

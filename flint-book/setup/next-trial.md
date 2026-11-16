@@ -77,11 +77,14 @@ this preparation changes teaching/setup, not the passing standard.
 ## Observe, grade, close
 
 Keep an observation on the original child (or join) while waiting for its question.
-The currently inspected implementation wakes pending observations but does not
-start an idle parent model turn. Before this trial, verify the separately authorized
-message-wake fix and update this paragraph with its actual contract and evidence.
-Do not depend on a timer or claim source changes are installed. Respect a real user
-pause.
+The candidate actor now records a child notice once and queues an idle model turn;
+a queued model turn absorbs further notices, and active work receives a hint.
+Pause defers inference until resume; shutdown cancels queued work. Root questions
+for a human do not self-wake. Focused fake-provider checks demonstrate idle, busy,
+paused/coalesced and shutdown behavior without timers or elevated message authority.
+Before this trial, verify the installed host contains that change; source tests are
+not installation or live acceptance. Keep the original observation handle and
+respect a real user pause.
 
 When the student freezes and requests grading, do not answer with an acknowledgement
 and create a second result-delivery protocol. Keep the question open, hash the
@@ -110,4 +113,13 @@ still verifies no automatic restart. These test repairs did not weaken runtime
 safety or change historical graders. The example/recipe check and real skill loader
 passed; deliberately broken registration and detachment examples failed as intended.
 No runtime installation, host restart, primary catalogue overwrite or student launch
-was performed during preparation. Scheduler work remains the next authorized slice.
+was performed during preparation. Scheduler source work follows this preparation;
+installed-host verification remains a pre-launch boundary.
+
+Idle-message source verification:401 native tests passed after the workflow fake
+was updated to serve the newly awakened parent's request separately from its two
+child assignments. The9process/workflow checks passed, as did the full GUI suite
+and clean GUI host build. A final test-only late-question refusal assertion passed
+with all5focused message-wake checks after the full run. The initial idle-wake test
+failed against the old actor because no provider request arrived. No live provider,
+installation, restart, or student launch was part of this verification.

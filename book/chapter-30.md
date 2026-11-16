@@ -1719,3 +1719,32 @@ and restart eligibility remain distinct. No lifecycle implementation changed in
 that test correction. These are diagnostic and compatibility lessons, not evidence that a future model
 will recover correctly. Chapter3 and Chapter18 teach the revised behavior at its
 construction points; Flint-specific teaching and setup stay in the separate book.
+
+### Child questions must reach an idle supervisor
+
+During Flint's second chapter trial, the student requested grading after its
+parent had ended its turn. The question appeared in History, but the parent did
+not run until Bill intervened. The actor recorded child notices and pulsed current
+Job observers; it explicitly did not schedule inference for an idle parent.
+Recording, observer wake, and idle-turn admission are separate responsibilities.
+
+The correction reuses the actor's existing empty turn trigger after recording the
+notice once. An already queued model turn absorbs additional notices; an active
+turn receives a pending hint. Pause still defers inference, shutdown cancels queued
+work, and a root question for the human cannot wake the root to answer itself.
+Child text remains Tool-authority data, not a human or system instruction. Nested
+parents invalidate prior completion when new work is admitted. No timer, second
+inbox, or duplicated conversation is needed.
+
+The new idle-provider regression failed before the change because no request
+arrived. Focused checks cover idle delivery, coalesced paused delivery, busy hints,
+message placement, observer survival, and shutdown of a queued wake. Chapters 19
+and 20 teach the corrected scheduling contract at its construction points. Source
+checks do not establish that an installed host has the fix; installation and live
+child-message acceptance remain separate before the next Flint trial.
+
+The full native suite exposed a fixture assumption too: the workflow fake treated
+every provider request as a child assignment. The new parent wake was therefore
+mistaken for the second child turn. The corrected fake explicitly receives and
+checks the supervisor's question request before continuing the original two-child-
+assignment checks. It does not disable the wake or relax assignment identity.

@@ -94,12 +94,13 @@ internal static partial class ActorTests
             var parent = new Agent(app, new Configuration(Vendor.Anthropic, "fixture", "http://127.0.0.1:1"),
                 outputDirectory: Path.Combine(temp, "message-inbox"));
             Job job = await HeldMessageJob(parent, release, deadline.Token);
+            await parent.PostAsync(new AgentInput(InputKind.Pause)).WaitAsync(deadline.Token);
             var child = new Agent(app, parent, "asking", parent.Configuration());
             Task<ToolResultPart> waiting = job.ObserveAsync("child-wake", 120, "never-match", cancellation: deadline.Token);
             Task<QuestionReply> reply = child.SendMessageToParentAsync("child-data-not-instructions", deadline.Token);
             Check((await waiting.WaitAsync(deadline.Token)).Job?.Status == "running", "Question did not wake unrelated work.");
             AgentWorkStatus status = await parent.WorkStatusAsync(deadline.Token);
-            Check(status.Activity == AgentActivity.Idle, "An idle question admitted a model task.");
+            Check(status.Paused, "Question overrode the human pause.");
             Event notice = parent.History().Events().Single(e => e.Kind == EventKind.HintReceived);
             Check(notice.Actor == Actor.Tool, "Child question acquired human or system authority.");
             Check(parent.PendingQuestions().Length == 1 && !reply.IsCompleted, "Wake consumed the pending question.");
@@ -117,6 +118,107 @@ internal static partial class ActorTests
             await next.WaitAsync(deadline.Token);
         }
         finally { release.TrySetResult(); app.Destroy(); }
+    }
+
+    // Exercise the actual mailbox and HTTP boundary, without reminders or a
+    // parent observation holding a model turn open. Pause defers, not loses, mail.
+    public static async Task MessageIdleQuestion(string temp)
+    {
+        using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(15));
+        foreach (bool initiallyPaused in new[] { false, true })
+        {
+            var listener = new TcpListener(IPAddress.Loopback, 0);
+            listener.Start();
+            var app = new Application(TextWriter.Null);
+            try
+            {
+                int port = ((IPEndPoint)listener.LocalEndpoint).Port;
+                var parent = new Agent(app,
+                    new Configuration(Vendor.Anthropic, "fixture", "http://127.0.0.1:" + port),
+                    outputDirectory: Path.Combine(temp, "idle-question-" + initiallyPaused));
+                var child = new Agent(app, parent, "asking", parent.Configuration());
+                if (initiallyPaused)
+                {
+                    await parent.PostAsync(new AgentInput(InputKind.Pause)).WaitAsync(deadline.Token);
+                }
+                Task<QuestionReply> first = child.SendMessageToParentAsync("idle-question-one", deadline.Token);
+                await parent.WorkStatusAsync(deadline.Token);
+                Task<QuestionReply>? second = null;
+                if (initiallyPaused)
+                {
+                    second = child.SendMessageToParentAsync("idle-question-two", deadline.Token);
+                    await parent.WorkStatusAsync(deadline.Token);
+                    Check(!listener.Pending(), "Paused question started provider work.");
+                    await parent.PostAsync(new AgentInput(InputKind.Resume)).WaitAsync(deadline.Token);
+                }
+                using (var client = await listener.AcceptTcpClientAsync(deadline.Token))
+                using (var stream = client.GetStream())
+                {
+                    using var request = JsonDocument.Parse(await ReadRequest(stream, deadline.Token));
+                    JsonElement body = request.RootElement;
+                    string dialogue = body.GetProperty("messages").GetRawText();
+                    Check(dialogue.Split("idle-question-one").Length == 2,
+                        "Idle notice was missing or duplicated in the request.");
+                    if (initiallyPaused)
+                    {
+                        Check(dialogue.Split("idle-question-two").Length == 2,
+                            "Paused notice was missing or duplicated.");
+                    }
+                    Check(!body.TryGetProperty("system", out var system)
+                        || !system.GetRawText().Contains("idle-question-"),
+                        "Idle question acquired system authority.");
+                    await Reply(stream, "questions received", deadline.Token);
+                }
+                await parent.FlushAsync(deadline.Token);
+                Check(!listener.Pending(), "Coalesced questions started a redundant turn.");
+                Check(parent.History().Events().Count(e => e.Kind == EventKind.ResponseEnded) == 1,
+                    "Question wake did not produce exactly one response.");
+                Check(parent.History().Events().Where(e => e.Kind == EventKind.HintReceived)
+                    .All(e => e.Actor == Actor.Tool), "Question acquired human authority.");
+                foreach (QuestionInfo question in parent.PendingQuestions())
+                {
+                    parent.RespondToQuestion("resolved", "asking", question.MessageID);
+                }
+                Check((await first).Response == "resolved", "Wake consumed the question reply.");
+                if (second is not null)
+                {
+                    Check((await second).Response == "resolved", "Second reply was lost.");
+                }
+
+                // A queued wake does not bypass shutdown or resurrect the actor.
+                await parent.PostAsync(new AgentInput(InputKind.Pause)).WaitAsync(deadline.Token);
+                Task<QuestionReply> abandoned = child.SendMessageToParentAsync("shutdown-question", deadline.Token);
+                await parent.WorkStatusAsync(deadline.Token);
+                await parent.ShutdownAsync().WaitAsync(deadline.Token);
+                bool canceled = false;
+                try
+                {
+                    await abandoned;
+                }
+                catch (OperationCanceledException)
+                {
+                    canceled = true;
+                }
+                Check(canceled, "Shutdown retained an unresolved question.");
+                Check(!listener.Pending(), "Shutdown dispatched a queued message wake.");
+                bool refused = false;
+                try
+                {
+                    await child.SendMessageToParentAsync("too late", deadline.Token);
+                }
+                catch (ObjectDisposedException)
+                {
+                    refused = true;
+                }
+                Check(refused && parent.PendingQuestions().IsEmpty,
+                    "Closed owner admitted or retained a late question.");
+            }
+            finally
+            {
+                app.Destroy();
+                listener.Stop();
+            }
+        }
     }
 
     public static async Task MessageQuestionModel(string temp)
@@ -147,7 +249,8 @@ internal static partial class ActorTests
             {
                 using var request = JsonDocument.Parse(await ReadRequest(stream, deadline.Token));
                 JsonElement body = request.RootElement;
-                Check(body.GetProperty("messages").GetRawText().Contains("model-child-question"), "Next request omitted question data.");
+                Check(body.GetProperty("messages").GetRawText().Split("model-child-question").Length == 2,
+                    "Next request omitted or duplicated question data.");
                 Check(!body.TryGetProperty("system", out var system) || !system.GetRawText().Contains("model-child-question"),
                     "Question data was elevated into system instructions.");
                 Check(body.GetProperty("messages").GetRawText().Contains("message_id"), "Notice omitted reply identity.");
@@ -244,6 +347,7 @@ internal static partial class ActorTests
         {
             var agent = new Agent(app, new Configuration(Vendor.Anthropic, "fixture", "http://127.0.0.1:1"),
                 outputDirectory: Path.Combine(temp, "unseen-questions"));
+            await agent.PostAsync(new AgentInput(InputKind.Pause)).WaitAsync(deadline.Token);
             Task<QuestionReply> first = agent.SendMessageToParentAsync("first human question", deadline.Token);
             var initial = await agent.WaitForQuestionsAsync(true, deadline.Token);
             var excluded = new HashSet<long> { initial.Single().MessageID };

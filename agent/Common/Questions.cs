@@ -25,8 +25,11 @@ public sealed partial class Agent
     private TaskCompletionSource questionsChanged = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
     /// <summary>Ask the actual Agent parent, or this root's human inbox. The
-    /// question remains admitted if this caller stops waiting. Either owner's
-    /// shutdown cancels the unresolved reply and removes both relationships.</summary>
+    /// question remains admitted if this caller stops waiting. A child notice
+    /// wakes its idle parent or reaches the active turn as Tool-authority data;
+    /// pause defers inference. A root's human question never wakes itself.
+    /// Either owner's shutdown cancels the unresolved reply and removes both
+    /// relationships.</summary>
     public partial Task<QuestionReply> SendMessageToParentAsync(string content, CancellationToken cancellation = default);
     public partial ImmutableArray<QuestionInfo> PendingQuestions();
     /// <summary>Observe pending questions without consuming them. humanOnly is

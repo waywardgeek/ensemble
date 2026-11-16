@@ -635,6 +635,7 @@ try
         await AsyncCase("Chapter 20 non-sticky observation pulse", () => ActorTests.MessagePulse(temp));
         await AsyncCase("Chapter 20 human control observation wake", () => ActorTests.MessageControlWake(temp));
         await AsyncCase("Chapter 20 question wake and inbox isolation", () => ActorTests.MessageQuestionIsolation(temp));
+        await AsyncCase("Chapter 20 idle and paused question wake", () => ActorTests.MessageIdleQuestion(temp));
         await AsyncCase("Chapter 20 model-led question wake", () => ActorTests.MessageQuestionModel(temp));
         if (args.Length != 0)
         {
