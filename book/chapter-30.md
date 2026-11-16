@@ -1469,6 +1469,15 @@ silently switch protocols: opaque replay includes surface and offering provenanc
 Choose the new Chat offering deliberately, preferably in a fresh conversation;
 old Messages reasoning is not automatically converted into Chat history.
 
+A controlled tool-chain probe also recovered a secret supplied only in prior
+reasoning when a hint followed the tool result as a separate user message.
+The Chat renderer already uses this form: its disposable projection groups
+matching tool results before interleaved human hints, then emits each hint with
+the user role. A real Agent/HTTP regression verifies unchanged native reasoning,
+one separate user hint after the result, and unchanged chronological History.
+No Flint-specific hint policy is needed. The probe demonstrates a short successful
+continuation, not a reliability guarantee or trustworthy claims of secret memory.
+
 Actual loopback assertions verify the output budget and exact native reasoning in
 the next request after a tool result. The new codec tests fail against the earlier
 implementation; GUI projection checks exclude private replay metadata. These are

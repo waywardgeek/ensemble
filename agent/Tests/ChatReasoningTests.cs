@@ -26,10 +26,13 @@ internal static partial class MeterTests
                 {"type":"object","properties":{},"additionalProperties":false}
                 """);
             _ = new Tool(agent, "read_value", "Read the fixture value", schema.RootElement,
-                (job, arguments, cancellation) =>
+                async (job, arguments, cancellation) =>
                 {
                     effects++;
-                    return Task.FromResult("value-42");
+                    // Ordinary messages admitted during work become user hints.
+                    // Await admission so History records the hint before this result.
+                    await agent.PostAsync(new AgentInput(InputKind.Message, "Keep the plan; acknowledge this hint."));
+                    return "value-42";
                 });
             turn = agent.SendAsync("Read the fixture value using its tool.");
             for (int index = 0; index < 2; index++)
@@ -65,6 +68,15 @@ internal static partial class MeterTests
                         Check(result.GetProperty("tool_call_id").GetString() == "fixture-call"
                             && result.GetProperty("content").GetString() == "value-42" && effects == 1,
                             "Exactly one real tool result must reach the follow-up request.");
+                        int callIndex = Array.FindIndex(messages, message => message.TryGetProperty("tool_calls", out _));
+                        int resultIndex = Array.FindIndex(messages, message => message.GetProperty("role").GetString() == "tool");
+                        var hints = messages.Select((message, position) => (message, position))
+                            .Where(item => item.message.TryGetProperty("content", out var content)
+                                && content.ValueKind == JsonValueKind.String
+                                && content.GetString() == "Keep the plan; acknowledge this hint.").ToArray();
+                        Check(hints.Length == 1 && hints[0].message.GetProperty("role").GetString() == "user"
+                            && resultIndex == callIndex + 1 && hints[0].position == resultIndex + 1,
+                            "Busy hints must be separate user messages after the correlated tool result, exactly once.");
                     }
                     string[] frames = index == 0 ?
                     [
@@ -85,6 +97,13 @@ internal static partial class MeterTests
             }
             Check(await turn.WaitAsync(deadline.Token) == "The value is 42." && effects == 1,
                 "Chat tool round trip completes once with the final streamed answer.");
+            var dialogue = agent.History().View().Dialogue.ToArray();
+            int callPosition = Array.FindIndex(dialogue, entry => entry.Parts.OfType<ToolCallPart>().Any());
+            int hintPosition = Array.FindIndex(dialogue, entry => entry.Actor == Actor.Human
+                && entry.Parts.OfType<TextPart>().Any(part => part.Text == "Keep the plan; acknowledge this hint."));
+            int resultPosition = Array.FindIndex(dialogue, entry => entry.Parts.OfType<ToolResultPart>().Any());
+            Check(callPosition >= 0 && hintPosition > callPosition && resultPosition > hintPosition,
+                "Wire ordering must not rewrite chronological call, hint, result History.");
         }
         finally
         {
