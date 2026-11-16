@@ -15,10 +15,25 @@ description: Current Edition 3 C# architecture, ownership, KISS, teaching and ve
   books, manifests or evidence to accommodate current changes.
 - Root `cmd/` and `internal/`: Go grading/support tools, not the runtime.
 
-Read the top of `docs/edition-3-csharp-progress.md` for the current boundary and
+When working in the main repository, read the top of
+`docs/edition-3-csharp-progress.md` for the current boundary and
 `docs/edition-3-csharp-procedure.md` for the implementation method. Historical
 phase instructions and source paths are records, not authority to resume work.
 The promotion and known verification limits are in `docs/edition-3-promotion.md`.
+
+## Explicitly assigned isolated chapter exercises
+
+Use the assigned absolute project path, supplied chapter, and environment recipe.
+The main repository paths above are not prerequisites in an isolated workspace.
+Do not search outside it for missing procedure documents or reference solutions;
+ask the parent once if a required input is absent. A successful `load_skill`
+activates its instructions; locating or reading its source directory is not a
+second activation step.
+
+Use the supplied offline build recipe rather than a missing repository Makefile.
+Report parent assistance and unperformed requirements plainly. Model-specific
+trial procedures belong in the separately assigned experiment, not this general
+coding skill.
 
 ## Working with Bill
 
@@ -59,7 +74,7 @@ Do not rewrite historical endpoints or imply ungraded obligations were certified
 
 ## Build and verification
 
-Use the root README/Makefile. `make DOTNET=/path/to/dotnet` builds C# and writes
+In the main repository, use the root README/Makefile. `make DOTNET=/path/to/dotnet` builds C# and writes
 the local root launcher; it does not launch or install it. `make cli` builds the
 JSON CLI. `make test` runs current C# and shared V3 grading checks.
 `make test-legacy-go` retains broader historical tests with known obsolete layout

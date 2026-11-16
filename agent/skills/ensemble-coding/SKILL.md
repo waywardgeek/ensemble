@@ -31,25 +31,10 @@ ask the parent once if a required input is absent. A successful `load_skill`
 activates its instructions; locating or reading its source directory is not a
 second activation step.
 
-Read the supplied chapter completely, recovering only omitted ranges after a
-truncated read. Record a concise plan and verified progress in the project so a
-context checkpoint can resume implementation rather than repeat setup. A
-host-provided automatic checkpoint need not originate in a model tool call;
-check existing files and pending work before replaying actions.
-
-Before requesting grading, inspect the source as well as its output:
-- Common contains shared state and explicit partial member declarations;
-  functional modules contain their implementations, not additional shared state.
-- Constructors register both relationship ends through parent operations. Callers
-  must not remember a separate attachment step.
-- Destruction clears both ends, releases strong children and owned resources,
-  and is reached from the application's cleanup path.
-- Verify the final request URL and failure-state behavior, not only successful
-  replies. A passing grader covers its assertions, not every chapter requirement.
-
 Use the supplied offline build recipe rather than a missing repository Makefile.
-Keep parent-provided grading, source review, and any authorized live exercise
-separate in the result; report interventions and unverified requirements plainly.
+Report parent assistance and unperformed requirements plainly. Model-specific
+trial procedures belong in the separately assigned experiment, not this general
+coding skill.
 
 ## Working with Bill
 
