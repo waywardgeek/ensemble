@@ -502,12 +502,8 @@ static void RegisterOpenRouterOfferings(Application app, GlobalSettings settings
     var policy = new ModelRequestPolicy(toolSchemas: ToolSchemaPolicy.PatternLengthCompatibility,
         maxOutputTokens: 32768);
     var features = new ModelFeatures(Media.None, Stream: true, ContextWindow: 262144);
-    // Saved selections and opaque History bind to the exact offering and surface.
-    // Keep the old route available; never migrate its reasoning implicitly.
-    var legacy = new ModelEndpoint(vendor, "api", "https://openrouter.ai/api/v1/messages",
-        Surface.Messages, binding);
-    _ = new Model(legacy, "flint-v1_0-free", "recursive/flint-v1.0:free",
-        "Flint v1.0 (free, legacy Messages)", features, requestPolicy: policy);
+    // Keep the Chat identity stable. Retired Messages selections remain unavailable;
+    // never reinterpret their saved reasoning as Chat history.
     var chat = new ModelEndpoint(vendor, "chat", "https://openrouter.ai/api/v1/chat/completions",
         Surface.ChatCompletions, binding);
     _ = new Model(chat, "flint-v1_0-free", "recursive/flint-v1.0:free",

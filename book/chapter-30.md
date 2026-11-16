@@ -1503,11 +1503,13 @@ aliases do not produce duplicate thinking, and encrypted data and opaque identif
 remain replay-only. Contradictory or ambiguous fragments refuse the response.
 Legacy Chat reasoning wrappers remain readable without rewriting saved History.
 
-The host offers Flint through Chat Completions under a new endpoint identity,
-while retaining the existing identity as **legacy Messages**. Saved Agents do not
-silently switch protocols: opaque replay includes surface and offering provenance.
-Choose the new Chat offering deliberately, preferably in a fresh conversation;
-old Messages reasoning is not automatically converted into Chat history.
+The host offers Flint through Chat Completions under its own endpoint identity.
+The legacy Messages registration was retained during migration, then removed when
+it was no longer needed. Saved Agents do not silently switch protocols: opaque
+replay includes surface and offering provenance. A retired selection becomes
+unavailable; its conversation files are not deleted. Choose Chat deliberately,
+preferably in a fresh conversation; old Messages reasoning is not automatically
+converted into Chat history.
 
 A controlled tool-chain probe also recovered a secret supplied only in prior
 reasoning when a hint followed the tool result as a separate user message.
