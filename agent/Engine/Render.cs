@@ -566,8 +566,10 @@ public sealed partial class Engine
             {
                 message["tool_calls"] = calls;
             }
-            // Non-text content blocks retain their original shape only on their source model.
-            if (opaque.Length > 0 || hasMedia)
+            // Reasoning belongs on the assistant message, never in content[].
+            var contentOpaque = opaque.Where(part => !ReplayChatReasoning(part, message)).ToArray();
+            // Other non-text blocks retain their shape only on their source model.
+            if (contentOpaque.Length > 0 || hasMedia)
             {
                 var content = new JsonArray();
                 foreach (var p in entry.Parts)
@@ -592,7 +594,7 @@ public sealed partial class Engine
                     {
                         content.Add(OpenAIBlob(blob, budget));
                     }
-                    else if (p is OpaquePart o && o.From.Matches(target))
+                    else if (p is OpaquePart o && contentOpaque.Contains(o))
                     {
                         content.Add(JsonCodec.Canonical(o.Data));
                     }

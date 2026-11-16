@@ -394,23 +394,19 @@ public sealed partial class Engine
                 state.Root["finish_reason"] = choice["finish_reason"]!.DeepClone();
             }
             var delta = Required(choice, "delta").AsObject();
-            foreach (string field in new[] { "content", "reasoning_content" })
+            AccumulateChatReasoning(state, delta, emit);
+            if (delta["content"] is JsonNode textNode)
             {
-                if (delta[field] is not JsonNode textNode)
-                {
-                    continue;
-                }
                 string text = textNode.GetValue<string>();
-                int key = field == "content" ? -1 : -2;
-                if (!state.ToolIDs.TryGetValue(key, out int id))
+                if (!state.ToolIDs.TryGetValue(-1, out int id))
                 {
                     id = state.NextID++;
-                    state.ToolIDs.Add(key, id);
-                    state.Blocks.Add(id, new JsonObject { ["type"] = field, ["text"] = "" });
+                    state.ToolIDs.Add(-1, id);
+                    state.Blocks.Add(id, new JsonObject { ["type"] = "content", ["text"] = "" });
                 }
                 var block = state.Blocks[id];
                 block["text"] = String(block, "text") + text;
-                emit(new Chunk(id, field == "content" ? ChunkKind.Reply : ChunkKind.Thinking, Text: text));
+                emit(new Chunk(id, ChunkKind.Reply, Text: text));
             }
             if (delta["tool_calls"] is not JsonArray tools)
             {
@@ -547,11 +543,18 @@ public sealed partial class Engine
         var message = new JsonObject();
         // This is native OpenAI's completed-message order, not arrival order.
         // The independent ID list preserves the mapping across that projection.
-        foreach (string field in new[] { "content", "reasoning_content" })
+        foreach (string field in new[] { "content", "chat_reasoning" })
         {
             foreach (var (id, block) in state.Blocks.Where(pair => String(pair.Value, "type") == field))
             {
-                message[field] = block["text"]!.DeepClone();
+                if (field == "chat_reasoning")
+                {
+                    foreach (string nativeField in ChatReasoningFields)
+                    {
+                        if (block[nativeField] is JsonNode value) message[nativeField] = value.DeepClone();
+                    }
+                }
+                else message[field] = block["text"]!.DeepClone();
                 state.Order.Add(id);
             }
         }

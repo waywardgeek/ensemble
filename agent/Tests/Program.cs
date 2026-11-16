@@ -105,6 +105,8 @@ try
         await AsyncCase("Messages gateway and native authentication headers", MeterTests.MessagesAuthentication);
         await AsyncCase("Offering tool-schema projection and pre-effect validation", ToolSchemaPolicyTests.RunAsync);
         await AsyncCase("OpenRouter Messages thinking and tool continuation", MeterTests.OpenRouterMessagesRoundTrip);
+        await AsyncCase("OpenRouter Chat reasoning and tool continuation", MeterTests.OpenRouterChatRoundTrip);
+        await AsyncCase("Chat reasoning stream, replay and provenance", MeterTests.ChatReasoningCodec);
         await AsyncCase("Configured endpoint has no retained cookie authority", MeterTests.ModelEndpointCookies);
         await AsyncCase("Configured request projection and explicit authentication", MeterTests.ConfiguredProjection);
         await AsyncCase("Configured Chat SSE tool round trip", MeterTests.ConfiguredStreamingTools);

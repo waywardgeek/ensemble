@@ -14,6 +14,8 @@ public sealed record ParsedResponse(ImmutableArray<Event> Events,
 
 public sealed partial class Engine
 {
+    private static readonly string[] ChatReasoningFields = ["reasoning_content", "reasoning", "reasoning_details"];
+
     // One HTTP parsing seam for JSON and SSE. The callback is a transient output
     // sink for this invocation, never a stored service or a History writer.
     public partial Task<ParsedResponse> ParseAsync(HttpResponseMessage response,
@@ -52,5 +54,7 @@ public sealed partial class Engine
         public bool SeenText;
         public bool ToolBeforeText;
         public int? GeminiCurrent;
+        public string? ChatReasoningDisplayField;
+        public string ChatReasoningDisplayed = "";
     }
 }

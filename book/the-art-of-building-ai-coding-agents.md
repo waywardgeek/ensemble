@@ -21930,18 +21930,34 @@ Messages or Chat Completions; other surfaces refuse this option. The selected
 model owns this policy, which is frozen into each request configuration and
 preserved by configuration copies. It is not a per-Agent GUI setting.
 
-The model card also requires preserving `reasoning_content`. Ensemble's current
-OpenRouter Messages route instead returns native `thinking` blocks unchanged.
-That establishes outgoing preservation, not the gateway's translation into
-Flint's template. A Chat Completions switch would require correct top-level
-reasoning replay, including OpenRouter's structured `reasoning_details`, rather
-than treating reasoning as ordinary content blocks. No protocol switch or live
-provider verification is implied by the output-budget repair.
+The model card also requires preserving `reasoning_content`. A bounded synthetic
+probe compared the same marker across a tool boundary through both OpenRouter
+protocols. Messages recovered the marker from prior thinking but repeated itself
+until the 32,768-token ceiling; Chat Completions returned the exact marker and
+stopped normally. Ordinary-text and absent-marker controls behaved correctly.
+These single samples do not prove a deterministic gateway defect or model ranking,
+but they justify testing the documented Chat representation rather than blaming
+model size. Outgoing preservation alone does not establish gateway translation.
 
-Actual loopback request assertions failed against the old defaults and passed
-after the repair, alongside the existing thinking/tool continuation checks. Those
-checks do not establish live Flint improvement. Installation, restart and another
-human trial remain separate from the source correction.
+The Chat codec now retains `reasoning_content`, `reasoning`, and structured
+`reasoning_details` in one provenance-bound opaque Part. It assembles indexed or
+identified stream fragments and restores native fields at assistant-message level,
+not inside the content array. Readable reasoning is a separate display projection:
+aliases do not produce duplicate thinking, and encrypted data and opaque identifiers
+remain replay-only. Contradictory or ambiguous fragments refuse the response.
+Legacy Chat reasoning wrappers remain readable without rewriting saved History.
+
+The host offers Flint through Chat Completions under a new endpoint identity,
+while retaining the existing identity as **legacy Messages**. Saved Agents do not
+silently switch protocols: opaque replay includes surface and offering provenance.
+Choose the new Chat offering deliberately, preferably in a fresh conversation;
+old Messages reasoning is not automatically converted into Chat history.
+
+Actual loopback assertions verify the output budget and exact native reasoning in
+the next request after a tool result. The new codec tests fail against the earlier
+implementation; GUI projection checks exclude private replay metadata. These are
+local integration checks, separate from the synthetic provider probe. Installation,
+restart and human use of the new application route remain separate acceptance steps.
 
 ---
 

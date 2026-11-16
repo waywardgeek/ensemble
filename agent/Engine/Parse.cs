@@ -165,16 +165,10 @@ public sealed partial class Engine
                 throw new FormatException("Invalid OpenAI content");
             }
         }
-        // Compatible Chat Completions endpoints may expose readable reasoning.
-        // Keep its native field opaque and provenance-bound in canonical history.
-        if (message.TryGetProperty("reasoning_content", out var reasoning)
-            && reasoning.ValueKind != JsonValueKind.Null)
+        var reasoning = ChatReasoning(JsonNode.Parse(message.GetRawText())!.AsObject());
+        if (reasoning is not null)
         {
-            var native = new JsonObject
-            {
-                ["type"] = "reasoning_content", ["text"] = reasoning.GetString()
-            };
-            parts.Add(new OpaquePart(from, JsonSerializer.SerializeToElement(native)));
+            parts.Add(new OpaquePart(from, JsonSerializer.SerializeToElement(reasoning)));
         }
         if (message.TryGetProperty("tool_calls", out var calls))
         {

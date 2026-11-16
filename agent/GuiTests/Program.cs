@@ -62,6 +62,29 @@ static async Task<JsonElement> Frame(ClientWebSocket socket, string type, Cancel
             return json.RootElement.Clone();
     }
 }
+if (args.Length == 0 || args is ["--chat-reasoning-projection"])
+{
+    var reasoningRoot = new Ensemble.Ensemble(TextWriter.Null);
+    try
+    {
+        var reasoningAgent = new Agent(reasoningRoot, new Configuration(Vendor.OpenAI, "model-a", "http://127.0.0.1:1"));
+        var facts = reasoningAgent.Engine().Parse(200, """
+            {"model":"model-a","choices":[{"message":{"content":null,
+              "reasoning":"Readable once.","reasoning_details":[
+                {"type":"reasoning.text","text":"Readable once.","id":"PRIVATE-ID"},
+                {"type":"reasoning.encrypted","data":"PRIVATE-ENCRYPTED-DATA"}]}}]}
+            """);
+        var part = facts.Single(fact => fact.Kind == EventKind.ResponseEnded).Parts.Single();
+        var projected = Gui.PartFrame("fixture", "part-1", part, Actor.Agent, 1, null);
+        Check(projected["part"]!["type"]!.GetValue<string>() == "thinking"
+            && projected["part"]!["text"]!.GetValue<string>() == "Readable once."
+            && !projected.ToJsonString().Contains("PRIVATE-", StringComparison.Ordinal),
+            "Chat reasoning projection must show readable text once and exclude replay-only metadata.");
+        Console.WriteLine("PASS Chat reasoning display excludes native replay metadata");
+    }
+    finally { reasoningRoot.Destroy(); }
+    if (args.Length != 0) return;
+}
 if (args is ["--artifact-renderer-fixture", var rendererDirectory])
 {
     await ArtifactRendererFixture.RunAsync(rendererDirectory);
