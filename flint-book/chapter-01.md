@@ -51,6 +51,15 @@ trial, its graded and reviewed result, and incorporated evidence—not guarantee
 student success. Full Chapter 1 acceptance still needs the separately authorized
 live exercise and Bill's judgment. Chapter 2 is not part of this increment.
 
-The loader-check commands have been executed and are linked above. A fresh trial,
-its result, and the human walkthrough remain before this chapter can be called
-complete. This working page is not yet a finished construction chapter.
+The loader-check commands have been executed and are linked above.
+[Trial 02](evidence/trial-02.md) passed the unchanged offline grader on its first
+attempt but failed independent architectural review. Its mid-trial context and
+memory-policy changes preclude a single-variable comparison. The observed trial
+and its evidence are now available; the chapter body, reviews and human walkthrough
+remain unfinished. This working page is not yet a finished construction chapter.
+
+The trial adds two requirements to future setup and review: record resolved memory
+byte policies separately from the working token limit before admission, and check
+ownership operations when called directly—not just source locations or the normal
+CLI path. Do not rerun this passing behavioral candidate merely to test these
+lessons; discuss the next experimental configuration with Bill first.

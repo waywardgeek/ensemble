@@ -20,8 +20,11 @@ Do not add Flint-specific instructions to every user's primary skill.
   trial. Behavioral grade passed; architecture did not satisfy the requirements.
 - [Working increment](chapter-01.md): build and evaluate a smaller student primary.
   This is a TL;DR and exercises, not a completed or accepted chapter.
-- [Experimental primary](skills/flint-student/SKILL.md): first candidate, real-loader verified, but not yet
-  installed or evaluated by a fresh student.
+- [Experimental primary](skills/flint-student/SKILL.md): first candidate, real-loader
+  verified and installed with Bill's approval for trial 02.
+- [Trial 02 evidence](evidence/trial-02.md): first-grade offline 100/100 with unchanged
+  candidate hashes; architecture still fails. Context and memory-policy interventions
+  are disclosed, not attributed to the primary as a single-variable improvement.
 - [Provider-free skill check](checks/README.md): executable validation of the tool
   surface and required instruction activation.
 
