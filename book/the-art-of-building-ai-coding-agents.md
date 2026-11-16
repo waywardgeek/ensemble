@@ -21959,6 +21959,17 @@ implementation; GUI projection checks exclude private replay metadata. These are
 local integration checks, separate from the synthetic provider probe. Installation,
 restart and human use of the new application route remain separate acceptance steps.
 
+Bill's first new-Agent trial then exposed a stream boundary our loopback fixture
+had omitted. OpenRouter's final usage frame repeated `finish_reason: stop` with
+empty content after the first stop frame. The parser treated every subsequent
+choice as late output and rejected the completed response. A synthetic regression
+reproduced that refusal. The correction accepts only a matching finish reason
+with usage and an empty delta or empty content plus the assistant role; new
+content, tool fragments, conflicting finishes, and frames after `[DONE]` still
+refuse. The test checks both the unchanged reply and final token counts.
+Content completion and transport completion are different boundaries. A passing
+constructed stream is not evidence that every live provider frame shape matches it.
+
 ---
 
 # Epilogue: What we can rebuild

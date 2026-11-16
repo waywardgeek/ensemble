@@ -384,8 +384,20 @@ public sealed partial class Engine
             {
                 continue;
             }
+            var delta = Required(choice, "delta").AsObject();
             if (state.FinishSeen)
             {
+                // Some gateways repeat the terminal choice with final usage.
+                // Accept accounting, not a second response or late tool fragments.
+                bool accounting = frame["usage"] is JsonObject
+                    && JsonNode.DeepEquals(choice["finish_reason"], state.Root["finish_reason"])
+                    && delta.All(field => field.Key switch
+                    {
+                        "role" => field.Value?.GetValue<string>() == "assistant",
+                        "content" => field.Value is null || field.Value.GetValue<string>() == "",
+                        _ => false
+                    });
+                if (accounting) continue;
                 throw new FormatException("Content after OpenAI finish reason");
             }
             if (choice["finish_reason"] is not null)
@@ -393,7 +405,6 @@ public sealed partial class Engine
                 state.FinishSeen = true;
                 state.Root["finish_reason"] = choice["finish_reason"]!.DeepClone();
             }
-            var delta = Required(choice, "delta").AsObject();
             AccumulateChatReasoning(state, delta, emit);
             if (delta["content"] is JsonNode textNode)
             {

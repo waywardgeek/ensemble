@@ -169,6 +169,40 @@ internal static partial class MeterTests
                 Check((await agent.Engine().ParseAsync(broken)).Events.Single().Kind == EventKind.ErrorOccurred,
                     "Contradictory detail identities must refuse the response.");
             }
+            // OpenRouter repeats the finish reason in its final usage-only frame.
+            // Accounting may follow completion; new content must never do so.
+            foreach (var (tail, accepted) in new (string, bool)[]
+            {
+                ("""{"choices":[{"index":0,"delta":{"role":"assistant","content":""},"finish_reason":"stop"}],"usage":{"prompt_tokens":12,"completion_tokens":3,"total_tokens":15}}""", true),
+                ("""{"choices":[{"index":0,"delta":{"content":"late"},"finish_reason":"stop"}],"usage":{}}""", false),
+                ("""{"choices":[{"index":0,"delta":{"tool_calls":[]},"finish_reason":"stop"}],"usage":{}}""", false),
+                ("""{"choices":[{"index":0,"delta":{},"finish_reason":"length"}],"usage":{}}""", false),
+                ("""{"choices":[{"index":0,"delta":{},"finish_reason":"stop"}]}""", false)
+            })
+            {
+                string start = """data: {"model":"model-a","choices":[{"index":0,"delta":{"content":"Done."},"finish_reason":"stop"}]}""" + "\n\n";
+                foreach (bool afterTerminator in new[] { false, true })
+                {
+                    string stream = start + (afterTerminator ? "data: [DONE]\n\n" : "")
+                        + "data: " + tail + "\n\ndata: [DONE]\n\n";
+                    using var response = new HttpResponseMessage(System.Net.HttpStatusCode.OK)
+                    {
+                        Content = new StringContent(stream, System.Text.Encoding.UTF8, "text/event-stream")
+                    };
+                    var parsed = await agent.Engine().ParseAsync(response);
+                    bool completed = parsed.Events.Any(fact => fact.Kind == EventKind.ResponseEnded);
+                    Check(completed == (accepted && !afterTerminator),
+                        "Only identical, empty usage accounting before the terminator may follow a finish reason.");
+                    if (completed)
+                    {
+                        var ended = parsed.Events.Single(fact => fact.Kind == EventKind.ResponseEnded);
+                        Check(ended.Parts.OfType<TextPart>().Single().Text == "Done.",
+                            "Usage accounting must not duplicate or alter the completed reply.");
+                        Check(ended.Usage?.Input == 12 && ended.Usage.Output == 3,
+                            "The final accounting frame must supply the completed response usage.");
+                    }
+                }
+            }
             using var legacyData = JsonDocument.Parse("""{"type":"reasoning_content","text":"Legacy plan."}""");
             var legacy = new OpaquePart(agent.Configuration().Target(), legacyData.RootElement);
             var legacyWire = agent.Engine().Render(new Context([new Entry(1, Actor.Agent, [legacy])]));
