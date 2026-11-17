@@ -22256,6 +22256,32 @@ refuse. The test checks both the unchanged reply and final token counts.
 Content completion and transport completion are different boundaries. A passing
 constructed stream is not evidence that every live provider frame shape matches it.
 
+### HTTP failure recovery must not depend on goal reminders
+
+**Pending implementation.** During a Flint trial, Bill observed a provider-error
+card followed by an idle Agent instead of automatic recovery. A later status
+check found the Agent working again, but did not establish what resumed it.
+The generic error label alone identifies neither an HTTP status nor a retryable
+cause. Visible error reporting and recovery scheduling are separate capabilities.
+
+Goal reminders already back off after failed model turns: wait 1, 10, 100, then
+1,000 seconds, repeating the last interval until a successful turn resets the
+failure streak. Ordinary HTTP/provider failure recovery should use a similar
+policy without requiring a goal or enabling unrelated idle reminders. Classify
+retryable transport and transient service failures separately from authentication,
+invalid-request and other permanent failures; honor applicable server retry
+instructions. Show the pending retry and allow the human to stop it. Pause,
+interrupt, shutdown and completed submission must prevent stale retry admission.
+
+Resume from recorded state at a safe turn boundary. Do not blindly rerun commands,
+repeat completed tool effects, or execute incomplete streamed tool calls. An HTTP
+failure does not prove the provider never processed the request; retry can incur
+another generation and charge. Keep the selected offering and funding unchanged,
+with no paid fallback. Before calling this implemented, use local failing-provider
+tests to verify delay progression, success reset, permanent-error refusal, lifecycle
+cancellation and preservation of already completed work. No general HTTP retry
+implementation or live recovery verification is claimed by this note.
+
 ### A misplaced memory note must not stop the Agent
 
 Cadence wrote a continuity note as `memory/2026-11-16.md` through an ordinary
