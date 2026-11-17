@@ -20,10 +20,11 @@ Do not add Flint-specific instructions to every user's primary skill.
   trial. Behavioral grade passed; architecture did not satisfy the requirements.
 - [Working increment](chapter-01.md): build and evaluate a smaller student primary.
   This is a TL;DR and exercises, not a completed or accepted chapter.
-- [Experimental primary](skills/flint-student/SKILL.md): the current prepared candidate
-  adds a compiled ownership example and operational reading/recovery guidance. It was
-  installed with Bill's approval and tested in trial03: first-grade offline100/100,
-  but architecture still required corrections. See [trial03](evidence/trial-03.md).
+- [Experimental primary](skills/flint-student/SKILL.md): now shell-first, with eight
+  effective tools instead of thirteen. File work uses commands; coding rules and
+  the ownership example remain. See [shell-first setup](setup/shell-first.md).
+  The earlier file-tool version was tested in [trial03](evidence/trial-03.md):
+  first-grade offline100/100, but architecture still required corrections.
 - [Next-trial setup](setup/next-trial.md): fixed context/memory policy, verified offline
   environment and grading handoff. Installed-host diagnostics and the five wake
   checks passed before trial03; the recipe preserves that pre-launch boundary.

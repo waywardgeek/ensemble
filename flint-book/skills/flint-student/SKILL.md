@@ -2,9 +2,9 @@
 name: flint-student
 description: Implement one supplied offline chapter in an isolated project and report verified evidence.
 type: primary
-depends: file-reading coding
+depends: coding
 loadable-skills: ensemble-coding
-tools: write_file edit_file run_command wait_for_job agent_status send_message_to_parent submit
+tools: run_command wait_for_job agent_status send_message_to_parent submit
 ---
 # One isolated coding exercise
 
@@ -19,16 +19,14 @@ search for its source directory. Explain the next useful action briefly before t
 
 Activate `ensemble-coding` before implementing the supplied Ensemble chapter.
 
-Read the supplied chapter once in nonoverlapping bounded ranges. For example,
-`read_file(path=chapter, start_line=1, end_line=120, max_bytes=16000,
-max_output_bytes=20000)`, then `start_line=121, end_line=240` if all 120 lines
-were delivered. Always give BOTH line bounds when continuing a chapter.
-`max_bytes` caps source bytes; `max_output_bytes` caps the whole report. A source
-truncation notice gives a safe continuation line. If it stopped inside a line,
-reread that line with a larger source cap; do not skip its missing suffix.
-Report `truncated:false` does not negate a source-truncation notice. When the
-report itself clips, recover the missing range or raise the report cap; increasing
-only end_line while starting at1 will repeat the same capped prefix.
+Use `run_command` for file inspection, search, edits and builds. Each command has
+a fresh shell: source the supplied absolute `env.sh` every time; do not assume a
+previous `cd` or export persists. Files persist inside your assigned workspace.
+Read long files in bounded, nonoverlapping ranges, for example:
+`nl -ba chapter-02.md | sed -n '1,120p'`, then `'121,240p'` after the first range
+was delivered completely. Use `find` to locate files and `grep -n` to find text.
+If the tool report clips, request a smaller range; do not count unseen text as read.
+`max_output_bytes` controls report delivery, not how much the shell reads.
 
 Create `PROGRESS.md` early and update it at verified milestones: first implementation,
 successful build before review, and grade received. Keep it short: exact file paths
@@ -39,11 +37,13 @@ automatic checkpoint, read the existing note and resume its next action; check
 changed files as needed, not the whole chapter/setup again. A checkpoint is not a
 new assignment, and a directory listing reports names relative to that directory.
 
-For `write_file`, new-file creation is the default. Replacing an existing file
-requires `overwrite:true`; appending requires `append:true`. `edit_file` instead
-uses one exact unique old_text anchor and new_text, with no overwrite flag. After
-an anchor refusal, read the relevant lines and select a correct anchor. Do not
-repeat the same failed call without changing its cause. Preserve unrelated files.
+Create or deliberately replace a file with a quoted heredoc, such as
+`cat > filename <<'EOF'`, the exact contents, then `EOF` on its own line. Shell
+`>` replaces existing contents; inspect the target first and preserve unrelated
+work. Use `>>` only for intentional append. For targeted edits, a short Python
+script can read a file, assert that an exact old string occurs once, replace it,
+and write the result. If that assertion fails, inspect the actual source before
+retrying. Do not silently broaden a failed replacement. Verify changed files.
 
 Build without piping the compiler through `tail` or masking status with `|| true`.
 Use the tool report cap to limit displayed output; retain and observe running Job
@@ -198,7 +198,7 @@ when waiting for grading; a running report is not failure. The parent intends to
 answer this question with the actual grade. If it instead acknowledges receipt,
 that acknowledgement is NOT a grade: wait for the subsequent result or ask what
 to observe. Do not submit a successful closeout while the grade is pending. Never
-invent checks or treat offline grading as the live exercise. No Chapter 2 work.
+invent checks or treat offline grading as the live exercise. No work beyond the assigned chapter.
 
 Before submit, collect all owned command jobs. Use the required submission schema;
 ordinary final prose is not delegated completion. Report files, commands, actual

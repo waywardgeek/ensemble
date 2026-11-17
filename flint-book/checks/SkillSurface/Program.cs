@@ -35,7 +35,7 @@ try
         skillSpec: new SkillSpec(root, primary));
     var manager = agent.SkillManager()!;
     string expectedTools = primary == "flint-student"
-        ? "read_file list_directory search_files write_file edit_file run_command wait_for_job agent_status send_message_to_parent submit load_skill unload_skill micro_handoff"
+        ? "run_command wait_for_job agent_status send_message_to_parent submit load_skill unload_skill micro_handoff"
         : "read_file list_directory search_files agent_status send_message_to_parent submit load_skill unload_skill micro_handoff";
     string[] expected = expectedTools.Split(' ').Order(StringComparer.Ordinal).ToArray();
     string[] before = agent.Tools().Select(tool => tool.Name()).Where(agent.ToolEnabled)

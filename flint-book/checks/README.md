@@ -96,3 +96,10 @@ chapter bytes and pre-admission memory policy matched its stated configuration.
 Reviewer boundary check: a disposable copy adding `run_command` was rejected by
 the exact-surface assertion. The verifier exited nonzero at that deliberate
 assertion; installed and canonical skill bytes were unchanged.
+
+Shell-first student update: the real-loader check now requires exactly
+`run_command wait_for_job agent_status send_message_to_parent submit load_skill
+unload_skill micro_handoff`. Both student and unchanged reviewer modes passed
+against the installed-runtime copy, with a zero-warning/error verifier build.
+A disposable student mutation restoring the file-reading dependency was rejected
+by the exact-tool assertion. No model request or current-student retuning was used.
