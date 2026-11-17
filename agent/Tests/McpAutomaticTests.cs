@@ -176,7 +176,10 @@ internal static partial class ActorTests
                 catch (OperationCanceledException)
                 {
                 }
-                var running = agent.Jobs().Children().Single(job => job.Snapshot().Status == "running");
+                // Other automatic jobs may still be publishing completion. Select
+                // the held job by its recorded identity, not scheduler timing.
+                var running = agent.Jobs().Children().Single(job => job.Snapshot().OriginTool == "per_round_view");
+                Check(running.Snapshot().Status == "running", "Held automatic job did not survive interruption");
                 Check(!listener.Pending(), "Interrupted collector sent a request");
                 File.WriteAllText(Path.Combine(folder, "release"), "release");
                 ToolResultPart result;
@@ -327,16 +330,24 @@ internal static partial class ActorTests
             {
                 string body = await ReadRequest(connection.GetStream(), deadline.Token);
                 Check(body.Contains("per_round_view-VALUE-1"), "Snapshot missing before failed response");
+                await agent.PostAsync(new AgentInput(InputKind.Pause)).WaitAsync(deadline.Token);
                 // Close without an HTTP response: a real transport failure.
             }
+            while (!agent.History().Events().Any(fact => fact.Kind == EventKind.ErrorOccurred))
+            {
+                await Task.Delay(10, deadline.Token);
+            }
+            Check(!turn.IsCompleted, "Failed transport ended its retryable task");
+            await agent.PostAsync(new AgentInput(InputKind.InterruptNow)).WaitAsync(deadline.Token);
             try
             {
                 await turn.WaitAsync(deadline.Token);
-                throw new Exception("Failed HTTP transport reported success");
+                throw new Exception("Interrupted retry reported success");
             }
-            catch (InvalidOperationException error) when (error.Message.Contains("HTTP exchange failed"))
+            catch (OperationCanceledException) when (!deadline.IsCancellationRequested)
             {
             }
+            await agent.PostAsync(new AgentInput(InputKind.Resume)).WaitAsync(deadline.Token);
             Check(agent.History().View().Ephemeral.IsEmpty, "Failed send retained automatic ephemera");
             Check(agent.History().Events().Count(fact => fact.Kind == EventKind.RequestSent) == 1,
                 "Failed send lost or repeated its request attempt");

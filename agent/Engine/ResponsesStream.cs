@@ -13,14 +13,18 @@ public sealed partial class Engine
         var state = new ResponsesAssembly();
         try
         {
-            await using var stream = await response.Content.ReadAsStreamAsync(cancellation);
+            await using var stream = await ReadProviderAsync(() => response.Content.ReadAsStreamAsync(cancellation));
             using var reader = new StreamReader(stream, new UTF8Encoding(false, true));
             var data = new StringBuilder();
-            while (await reader.ReadLineAsync(cancellation) is string line)
+            while (await ReadProviderAsync(() => reader.ReadLineAsync(cancellation).AsTask()) is string line)
             {
                 if (line.Length == 0)
                 {
                     ConsumeResponsesFrame(data, state, callback, exchangeSecrets);
+                    if (state.ProviderFailure)
+                        return new ParsedResponse([new Event(EventKind.ErrorOccurred,
+                            error: "Provider reported an error.")], [], ProviderFailure: true,
+                            RetryAfter: HeaderRetryDelay(response));
                 }
                 else if (line.StartsWith("data:", StringComparison.Ordinal))
                 {
@@ -32,6 +36,10 @@ public sealed partial class Engine
                 }
             }
             ConsumeResponsesFrame(data, state, callback, exchangeSecrets);
+            if (state.ProviderFailure)
+                return new ParsedResponse([new Event(EventKind.ErrorOccurred,
+                    error: "Provider reported an error.")], [], ProviderFailure: true,
+                            RetryAfter: HeaderRetryDelay(response));
             if (state.Terminal is not JsonObject terminal)
             {
                 throw new InvalidDataException("Responses stream ended without terminal success");
@@ -112,7 +120,6 @@ public sealed partial class Engine
         }
         string payload = data.ToString();
         data.Clear();
-        Parent().Trace("frame", payload, exchangeSecrets);
         if (payload == "[DONE]")
         {
             if (state.Terminal is null)
@@ -129,10 +136,16 @@ public sealed partial class Engine
             ?? throw new InvalidDataException("Responses event must be an object");
         string type = frame["type"]?.GetValue<string>()
             ?? throw new InvalidDataException("Responses event type missing");
+        if (type is not "error" and not "response.failed")
+        {
+            Parent().Trace("frame", payload, exchangeSecrets);
+        }
         switch (type)
         {
             case "error":
             case "response.failed":
+                state.ProviderFailure = true;
+                return;
             case "response.incomplete":
                 throw new InvalidDataException("Responses stream did not succeed");
             case "response.completed":

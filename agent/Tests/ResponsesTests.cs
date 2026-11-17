@@ -683,10 +683,11 @@ internal static class ResponsesTests
             using (var reader = new StreamReader(first.Request.InputStream)) { await reader.ReadToEndAsync(timeout.Token); }
             // End with a failed terminal after a complete call. No effects allowed.
             await Reply(first, Item("done", 0, Call()) + Frame(new JsonObject { ["type"] = "response.failed" }), true);
-            try { await turn; } catch (InvalidOperationException) { }
-            Check(effects == 0, "failed terminal dispatched a call");
-            turn = agent.SendAsync("try again", timeout.Token);
+            // Recovery belongs to the original admission. The failed stream's
+            // completed-looking tool item must not escape the terminal gate.
             first = await server.GetContextAsync().WaitAsync(timeout.Token);
+            Check(!turn.IsCompleted && effects == 0,
+                "failed terminal finished the task or dispatched a call");
             using (var reader = new StreamReader(first.Request.InputStream)) { await reader.ReadToEndAsync(timeout.Token); }
             // Publish a complete tool item, but hold terminal success. Observe
             // the actual stream delivery before asserting that no effect ran.

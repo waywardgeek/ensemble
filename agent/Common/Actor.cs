@@ -117,7 +117,7 @@ public sealed partial class Agent
     // Transient immutable transfer envelope. Completion sources belong to the
     // caller's request, not the persistent object graph. Exactly one terminal
     // result is published; cancelling a caller's wait never cancels its work.
-    private enum MailKind { Submit, Input, DirectTool, ReverseTool, RegisterMcpTools, CommitSkill, InitializeSkills, Delta, HttpDone, ToolDone, AutomaticDone, ControlDone, Flush, Shutdown, Wake, SelectModel, WorkStatus, IncomingQuestion, MemorySettings, MemoryDone, RecallDone, RecallSettings, GoalControl, GoalWake, GoalRefresh, GoalClear, GoalReadFailed, GoalStatus, WorkingContextSettings, DisplayNameSettings }
+    private enum MailKind { Submit, Input, DirectTool, ReverseTool, RegisterMcpTools, CommitSkill, InitializeSkills, Delta, HttpDone, ToolDone, AutomaticDone, ControlDone, Flush, Shutdown, Wake, ProviderRetryWake, SelectModel, WorkStatus, IncomingQuestion, MemorySettings, MemoryDone, RecallDone, RecallSettings, GoalControl, GoalWake, GoalRefresh, GoalClear, GoalReadFailed, GoalStatus, WorkingContextSettings, DisplayNameSettings }
     private sealed record Mail(MailKind Kind, ImmutableArray<Part> Parts = default,
         AgentInput? Input = null, ToolCallPart? Call = null, string? Model = null,
         TaskCompletionSource<string>? Reply = null,

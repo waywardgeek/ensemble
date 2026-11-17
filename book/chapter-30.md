@@ -1645,29 +1645,35 @@ constructed stream is not evidence that every live provider frame shape matches 
 
 ### HTTP failure recovery must not depend on goal reminders
 
-**Pending implementation.** During a Flint trial, Bill observed a provider-error
-card followed by an idle Agent instead of automatic recovery. A later status
-check found the Agent working again, but did not establish what resumed it.
-The generic error label alone identifies neither an HTTP status nor a retryable
-cause. Visible error reporting and recovery scheduling are separate capabilities.
+During a Flint trial, Bill observed a provider-error card followed by an idle
+Agent instead of automatic recovery. A later status check found work continuing,
+but did not establish what resumed it. Reporting a failure, waking an observer
+and scheduling inference are separate capabilities.
 
-Goal reminders already back off after failed model turns: wait 1, 10, 100, then
-1,000 seconds, repeating the last interval until a successful turn resets the
-failure streak. Ordinary HTTP/provider failure recovery should use a similar
-policy without requiring a goal or enabling unrelated idle reminders. Classify
-retryable transport and transient service failures separately from authentication,
-invalid-request and other permanent failures; honor applicable server retry
-instructions. Show the pending retry and allow the human to stop it. Pause,
-interrupt, shutdown and completed submission must prevent stale retry admission.
+Ordinary requests now retain their admitted task while the actor backs off for
+1, 10, 100, then 1,000 seconds, indefinitely at the cap. Bill deliberately chose
+all HTTP failures and explicit provider errors, including unknown or apparently
+permanent categories, rather than a limited-attempt classification heuristic.
+Successful exchange resets the streak; pause suspends dispatch, and interrupt or
+shutdown clears the wait. Goals are neither required nor enabled. Goal-triggered
+turns keep their existing timer, sharing the schedule and valid provider advice
+without creating a competing retry loop.
 
-Resume from recorded state at a safe turn boundary. Do not blindly rerun commands,
-repeat completed tool effects, or execute incomplete streamed tool calls. An HTTP
-failure does not prove the provider never processed the request; retry can incur
-another generation and charge. Keep the selected offering and funding unchanged,
-with no paid fallback. Before calling this implemented, use local failing-provider
-tests to verify delay progression, success reset, permanent-error refusal, lifecycle
-cancellation and preservation of already completed work. No general HTTP retry
-implementation or live recovery verification is claimed by this note.
+The first local regression failed because no second request arrived. It passed
+after retaining the original admission instead of finishing it on remote error.
+Further fake-provider checks cover successful resume, reset, cancellation,
+HTTP-200 error envelopes, explicit Responses failure, bounded structured Gemini
+and HTTP header advice, and preservation of a completed tool result with one
+effect. A broken network stream is retryable; a broken local trace writer is not.
+An explicit error event with null detail remains an error, unlike an optional
+null error field on a successful response.
+
+Chapters 5, 6 and 25 teach the ownership, parsing and timer boundaries at their
+construction points. Free-form English vendor wait advice still needs a supplied,
+tested format; it is not guessed. These checks use local fakes, not live provider
+recovery. Retry does not prove the first request was unprocessed or free: preserve
+the selected offering and funding, retain recorded tool effects, and never execute
+unfinished streamed calls. Installation and live acceptance remain separate.
 
 ### A misplaced memory note must not stop the Agent
 

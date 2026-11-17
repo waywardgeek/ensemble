@@ -161,12 +161,14 @@ public sealed partial class Engine
                 break;
         }
         cancellation.ThrowIfCancellationRequested();
+        // A local diagnostic failure must precede both transport and its
+        // accounting lifetime; it is not a provider outage to retry.
+        Parent().Trace("request", requestBody, traceSecrets);
         CacheLens? lens = auxiliary ? null : Lens();
         CachePrediction? prediction = lens?.Begin(requestBody);
         Usage? completedUsage = null;
         try
         {
-            Parent().Trace("request", requestBody, traceSecrets);
             var response = await http.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellation);
             ParsedResponse parsed;
             try
@@ -223,11 +225,11 @@ public sealed partial class Engine
             }
             return parsed;
         }
-        catch (Exception ex) when (ex is HttpRequestException or IOException)
+        catch (HttpRequestException ex)
         {
             // Remote diagnostic strings and URLs are never conversation facts.
             return new ParsedResponse([new Event(EventKind.ErrorOccurred,
-                error: "HTTP exchange failed (" + ex.GetType().Name + ")")], []);
+                error: "HTTP exchange failed (" + ex.GetType().Name + ")")], [], ProviderFailure: true);
         }
         finally
         {

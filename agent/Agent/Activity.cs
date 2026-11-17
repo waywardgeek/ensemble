@@ -13,6 +13,11 @@ public sealed partial class Agent
                 return new WorkActivity(WorkPhase.Thinking, Detail: "Waiting for the model response");
             }
         }
+        if (providerRetryDue is DateTimeOffset retryDue)
+        {
+            return new WorkActivity(WorkPhase.Waiting, Detail:
+                $"Provider retry {providerFailureCount} due {retryDue:O}" + (paused ? " (paused)" : ""));
+        }
         if (automaticPending)
         {
             return new WorkActivity(WorkPhase.ToolCall, Detail: "Collecting automatic snapshots");

@@ -395,6 +395,51 @@ These are replayable facts, not a fabricated error used to force a state change.
 The Chapter 2 states remain Idle, InputPending, InFlight and ToolsPending.
 Scheduling flags are transient actor control, not another canonical transcript.
 
+### Retry the request without replacing the task
+
+An ordinary provider failure must not settle the admitted task and quietly create
+another one. Record the safe failure, retain the active request and its work
+generation, and expose a waiting status with the retry count and deadline. Keep
+retry state in the Agent, not Engine: Engine classifies one exchange; the actor
+owns when another exchange may begin.
+
+Retry all unsuccessful HTTP statuses and explicit provider error responses,
+including unknown categories, with delays of 1, 10, 100, then 1,000 seconds.
+Continue at the cap until recovery or an explicit stop. This deliberately includes
+authentication and invalid-request responses: a human may correct the service or
+configuration while the task waits. It is not a claim that every failure is
+transient. Successful provider exchange resets the streak. Keep the selected
+model, endpoint and funding; retry is never permission to select a paid fallback.
+
+Use the longer of that backoff and valid adapter-supplied retry advice. A timer
+only posts a wake message. Advance rechecks the deadline, pause and lifetime,
+so an early or stale callback cannot dispatch a request prematurely. Pause stops
+the timer but retains the deadline and original task; resume waits the remaining
+interval, or proceeds if it has elapsed. Interrupt and shutdown clear retry state
+and settle the original task through the normal cancellation path. New queued
+submissions do not replace the task already waiting.
+
+At recovery, build the next request from recorded state. Completed tool calls and
+results remain paired; do not replay their effects. Discard unfinished response
+assembly, including partial tool arguments. Retrying inference can still incur a
+second generation or charge: a failed exchange does not prove that the provider
+never processed the first request. This is not an exactly-once network protocol.
+
+Local authorization/setup failures, malformed responses, tool failures and
+cancellation retain their normal failure semantics. In particular, an I/O error
+from a diagnostic writer is not a provider outage. Translate I/O failure only at
+the actual network-read boundary, outside parsing, callbacks and local recording.
+Memory-compression workers retain their separately bounded lifetime rather than
+retrying indefinitely. Chapter 25 explains why goal-triggered turns retain their
+existing goal timer instead of adding a second retry loop.
+
+Verify with a local failing provider: the same task must remain pending through
+failure and return its eventual reply, with one human input and no enabled goal.
+Check pause/resume, interrupt/shutdown, success reset, capped delay selection, and
+a completed tool result present in both failed and retried continuation requests
+with exactly one effect. These additional requirements are not certification by
+the historical chapter grader.
+
 ### Reliable completion is not observation
 
 `SubmitAsync` creates a `TaskCompletionSource<string>` with asynchronous

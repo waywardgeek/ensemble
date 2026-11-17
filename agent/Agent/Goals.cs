@@ -114,6 +114,7 @@ public sealed partial class Agent
                 if (update.Enabled == true || update.File is not null)
                 {
                     goalFailureCount = 0;
+                    goalProviderRetryDelay = null;
                     goalRetryError = "";
                 }
                 // Retry-now bypasses one wait, not the failure streak. It does
@@ -271,6 +272,7 @@ public sealed partial class Agent
     {
         StopGoalTimer();
         goalFailureCount = 0;
+        goalProviderRetryDelay = null;
         goalRetryError = "";
         lock (ingress)
         {
@@ -290,14 +292,12 @@ public sealed partial class Agent
         }
     }
 
-    private static partial TimeSpan GoalRetryDelay(int failures) => TimeSpan.FromSeconds(
-        failures <= 1 ? 1 : failures == 2 ? 10 : failures == 3 ? 100 : 1000);
-
     private partial void ObserveGoalTurn(Exception? error)
     {
         if (error is null)
         {
             goalFailureCount = 0;
+            goalProviderRetryDelay = null;
             goalRetryError = "";
         }
         else if (error is not OperationCanceledException && !stopping)
@@ -327,7 +327,14 @@ public sealed partial class Agent
             mailbox.Writer.TryWrite(new Mail(MailKind.GoalWake, GoalGeneration: generation));
             return;
         }
-        TimeSpan delay = GoalRetryDelay(goalFailureCount);
+        TimeSpan delay = FailureRetryDelay(goalFailureCount);
+        // ParsedResponse is also constructible locally. Do not let invalid advice
+        // overflow the timestamp or exceed System.Threading.Timer's range.
+        if (goalProviderRetryDelay is TimeSpan advice && advice > delay
+            && advice.TotalMilliseconds <= uint.MaxValue - 1)
+        {
+            delay = advice;
+        }
         goalDue = DateTimeOffset.UtcNow + delay;
         goalTimer = new Timer(_ => mailbox.Writer.TryWrite(new Mail(MailKind.GoalWake,
             GoalGeneration: generation)), null, delay, Timeout.InfiniteTimeSpan);

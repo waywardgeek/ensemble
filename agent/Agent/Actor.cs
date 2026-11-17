@@ -358,6 +358,7 @@ public sealed partial class Agent
         }
         finally
         {
+            ClearProviderRetry();
             DisableGoal(persist: false);
             // The fault path may have bypassed Shutdown mail. Join before any
             // owner can destroy History, Memory or Sandbox; do not try to append
@@ -431,6 +432,12 @@ public sealed partial class Agent
         {
             ConfigureGoal(message);
             return;
+        }
+        if (message.Kind == MailKind.ProviderRetryWake)
+        {
+            providerRetryTimer?.Dispose();
+            providerRetryTimer = null;
+            return; // Advance rechecks pause, lifetime and the actual deadline.
         }
         if (message.Kind == MailKind.GoalWake)
         {
@@ -694,6 +701,8 @@ public sealed partial class Agent
                     case InputKind.Pause:
                         SaveChildRestart(pause: true);
                         StopGoalTimer();
+                        providerRetryTimer?.Dispose();
+                        providerRetryTimer = null;
                         if (!paused)
                         {
                             paused = true;
@@ -826,9 +835,15 @@ public sealed partial class Agent
             var failure = parsed.Events.FirstOrDefault(e => e.Kind == EventKind.ErrorOccurred);
             if (failure is not null)
             {
+                if (ScheduleProviderRetry(parsed))
+                {
+                    return;
+                }
+                goalProviderRetryDelay = parsed.ProviderFailure ? parsed.RetryAfter : null;
                 Finish(new InvalidOperationException(failure.Error));
                 return;
             }
+            ClearProviderRetry();
             var response = parsed.Events.Last(e => e.Kind == EventKind.ResponseEnded);
             ObserveMemoryPressure(response);
             calls = response.Parts.OfType<ToolCallPart>().ToImmutableArray();
@@ -944,6 +959,10 @@ public sealed partial class Agent
         {
             return;
         }
+        if (AwaitProviderRetry())
+        {
+            return;
+        }
         if (active is null)
         {
             if (!requests.TryDequeue(out active))
@@ -951,6 +970,7 @@ public sealed partial class Agent
                 return;
             }
             StopGoalTimer();
+            goalProviderRetryDelay = null;
             if (active.Kind == MailKind.Submit)
             {
                 StartChildWork(active.WorkGeneration);
@@ -1088,6 +1108,7 @@ public sealed partial class Agent
 
     private partial void Finish(Exception? error)
     {
+        ClearProviderRetry();
         if (active is not null)
         {
             // Direct host tool calls are not delegated model tasks. A correction

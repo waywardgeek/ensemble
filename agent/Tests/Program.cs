@@ -228,6 +228,18 @@ try
         }
     }
 
+    if (args is ["--provider-retry-tests"] || args.Length == 0)
+    {
+        await AsyncCase("provider retry retains original task", () => MeterTests.ProviderRetryKeepsTask(temp));
+        await AsyncCase("provider retry advice and classification", () => MeterTests.ProviderRetryAdvice(temp));
+        await AsyncCase("provider retry pause interrupt shutdown", () => MeterTests.ProviderRetryPauseAndStop(temp));
+        if (args is ["--provider-retry-tests"])
+        {
+            Console.WriteLine($"{passed} passed, {failures} failed");
+            return failures == 0 ? 0 : 1;
+        }
+    }
+
     if (args is ["--goal-idle-tests"] || args.Length == 0)
     {
         await AsyncCase("goals immediate idle and failure backoff", () => MeterTests.GoalsIdleBackoff(temp));
@@ -1427,18 +1439,13 @@ await AsyncCase("Chapter 3 tools and loop", () => ToolTests.Run(temp));
             {
                 var a = NewAgent(app, vendor, "http://127.0.0.1:" + port);
                 a.SetEphemeral("ONCE_ONLY");
-                try
-                {
-                    await a.SendAsync("first", deadline.Token);
-                    throw new Exception("Expected provider refusal");
-                }
-                catch (InvalidOperationException) { }
-                Check(a.History().View().Phase == Phase.Idle, "failure returns idle");
-                var text = await a.SendAsync("second", deadline.Token);
+                // One admission survives the refusal; request-local ephemera
+                // are consumed by the failed attempt, not restored for retry.
+                var text = await a.SendAsync("first", deadline.Token);
                 await server;
-                Check(text == "local reply" && requests.Count == 2, "actual response and no retry");
+                Check(text == "local reply" && requests.Count == 2, "original task recovered with exactly one retry");
                 Check(requests[0].Contains("ONCE_ONLY") && !requests[1].Contains("ONCE_ONLY"), "ephemera consumed across real failure");
-                Check(requests[1].Contains("first") && requests[1].Contains("second"), "recorded conversation retained");
+                Check(requests[1].Contains("first") && a.History().Events().Count(e => e.Kind == EventKind.MessageReceived && e.Actor == Actor.Human) == 1, "retry retained conversation without another human admission");
                 Check(a.History().View().Usage.Input == 3 && a.History().View().Usage.Output == 2, "real usage derived from events");
                 Check(a.History().Events().All(e => !JsonCodec.WriteEvent(e).Contains("dummy-local-only")), "credentials not recorded");
             }

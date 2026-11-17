@@ -68,6 +68,17 @@ The actor accepts the wake only if the token is current, the configuration is en
 
 Pause invalidates queued wakes and suspends retry waits. Resume reevaluates eligibility: ordinary idle continuation is immediate; an outstanding failure streak starts its current backoff interval again. Interrupt disables reminders, even when there is no active turn. Shutdown, actor failure, successful delegated submission, unload, and destruction must not leave a later automatic turn behind.
 
+### One retry owner per turn
+
+Ordinary provider recovery from Chapter 5 retains an active admission and does
+not enable goals. That active work prevents idle reminders. An automatic goal
+turn instead retains this chapter's existing finish-and-backoff lifecycle: use
+the shared 1/10/100/1,000-second schedule and honor longer valid provider advice
+in the goal timer. Do not arm an ordinary provider timer for the same goal turn.
+Clear old advice on a new turn, successful completion, or goal reset so it cannot
+delay unrelated later work. Goal retry-now bypasses one goal wait; it is not a
+control for an ordinary task's retry.
+
 ### The GUI
 
 Show the selected Agent's status, not the host actor's status by accident. Distinguish unloaded, unconfigured, working, continuation queued, waiting to retry, paused, reminders off, and file error. Show disconnected or switching state honestly rather than presenting an old observation as current.

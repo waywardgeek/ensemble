@@ -5978,6 +5978,51 @@ These are replayable facts, not a fabricated error used to force a state change.
 The Chapter 2 states remain Idle, InputPending, InFlight and ToolsPending.
 Scheduling flags are transient actor control, not another canonical transcript.
 
+### Retry the request without replacing the task
+
+An ordinary provider failure must not settle the admitted task and quietly create
+another one. Record the safe failure, retain the active request and its work
+generation, and expose a waiting status with the retry count and deadline. Keep
+retry state in the Agent, not Engine: Engine classifies one exchange; the actor
+owns when another exchange may begin.
+
+Retry all unsuccessful HTTP statuses and explicit provider error responses,
+including unknown categories, with delays of 1, 10, 100, then 1,000 seconds.
+Continue at the cap until recovery or an explicit stop. This deliberately includes
+authentication and invalid-request responses: a human may correct the service or
+configuration while the task waits. It is not a claim that every failure is
+transient. Successful provider exchange resets the streak. Keep the selected
+model, endpoint and funding; retry is never permission to select a paid fallback.
+
+Use the longer of that backoff and valid adapter-supplied retry advice. A timer
+only posts a wake message. Advance rechecks the deadline, pause and lifetime,
+so an early or stale callback cannot dispatch a request prematurely. Pause stops
+the timer but retains the deadline and original task; resume waits the remaining
+interval, or proceeds if it has elapsed. Interrupt and shutdown clear retry state
+and settle the original task through the normal cancellation path. New queued
+submissions do not replace the task already waiting.
+
+At recovery, build the next request from recorded state. Completed tool calls and
+results remain paired; do not replay their effects. Discard unfinished response
+assembly, including partial tool arguments. Retrying inference can still incur a
+second generation or charge: a failed exchange does not prove that the provider
+never processed the first request. This is not an exactly-once network protocol.
+
+Local authorization/setup failures, malformed responses, tool failures and
+cancellation retain their normal failure semantics. In particular, an I/O error
+from a diagnostic writer is not a provider outage. Translate I/O failure only at
+the actual network-read boundary, outside parsing, callbacks and local recording.
+Memory-compression workers retain their separately bounded lifetime rather than
+retrying indefinitely. Chapter 25 explains why goal-triggered turns retain their
+existing goal timer instead of adding a second retry loop.
+
+Verify with a local failing provider: the same task must remain pending through
+failure and return its eventual reply, with one human input and no enabled goal.
+Check pause/resume, interrupt/shutdown, success reset, capped delay selection, and
+a completed tool result present in both failed and retried continuation requests
+with exactly one effect. These additional requirements are not certification by
+the historical chapter grader.
+
 ### Reliable completion is not observation
 
 `SubmitAsync` creates a `TaskCompletionSource<string>` with asynchronous
@@ -6661,8 +6706,26 @@ authentication failure or rate limit; otherwise report a generic provider error.
 Never copy an arbitrary remote message into History or the GUI. Test both the
 safe classification and the effect boundary: rejection after a partial tool
 call must execute nothing, and a later fresh turn must not replay an orphan call.
-This distinction does not change the separate Responses terminal-completion
-rules or the non-streaming decoder.
+Carry that distinction in the immutable parse result, not by matching error-card
+English in the actor. Explicit errors in plain HTTP 200 JSON and SSE are remote
+failures; Responses `error` and `response.failed` events are too. A nullable
+`error: null` on an ordinary response is not a failure, but an explicit
+`type: error` event is still a failure with null or unfamiliar detail. Responses
+`response.incomplete`, malformed JSON and missing terminal success remain
+incomplete/protocol failures, not automatic retry authorization.
+
+Adapters extract only recognized duration data: HTTP `Retry-After` seconds or
+HTTP-date, and Gemini's `google.rpc.RetryInfo.retryDelay`. Use the longer valid
+value. Inspect at most 64 KiB of a Gemini unsuccessful-HTTP body for that metadata;
+do not trace or retain the error body. Recognized explicit error frames likewise
+bypass payload tracing. Unknown, negative, nonfinite or timer-out-of-range advice
+is ignored. Free-form vendor prose is not parsed as a duration without an explicit,
+tested grammar. An overloaded label is a remote failure, not by itself a wait time.
+
+Tests must distinguish network-read I/O from local diagnostic-write I/O, retain
+header advice on HTTP-200 errors and streams, and reject malformed advice without
+leaking payload text. Recovery scheduling belongs to Chapter 5's actor; parsing
+an error never executes a partial tool or starts its own retry timer.
 
 ### Arrival order is policy evidence
 
@@ -17652,6 +17715,17 @@ The actor accepts the wake only if the token is current, the configuration is en
 
 Pause invalidates queued wakes and suspends retry waits. Resume reevaluates eligibility: ordinary idle continuation is immediate; an outstanding failure streak starts its current backoff interval again. Interrupt disables reminders, even when there is no active turn. Shutdown, actor failure, successful delegated submission, unload, and destruction must not leave a later automatic turn behind.
 
+### One retry owner per turn
+
+Ordinary provider recovery from Chapter 5 retains an active admission and does
+not enable goals. That active work prevents idle reminders. An automatic goal
+turn instead retains this chapter's existing finish-and-backoff lifecycle: use
+the shared 1/10/100/1,000-second schedule and honor longer valid provider advice
+in the goal timer. Do not arm an ordinary provider timer for the same goal turn.
+Clear old advice on a new turn, successful completion, or goal reset so it cannot
+delay unrelated later work. Goal retry-now bypasses one goal wait; it is not a
+control for an ordinary task's retry.
+
 ### The GUI
 
 Show the selected Agent's status, not the host actor's status by accident. Distinguish unloaded, unconfigured, working, continuation queued, waiting to retry, paused, reminders off, and file error. Show disconnected or switching state honestly rather than presenting an old observation as current.
@@ -22258,29 +22332,35 @@ constructed stream is not evidence that every live provider frame shape matches 
 
 ### HTTP failure recovery must not depend on goal reminders
 
-**Pending implementation.** During a Flint trial, Bill observed a provider-error
-card followed by an idle Agent instead of automatic recovery. A later status
-check found the Agent working again, but did not establish what resumed it.
-The generic error label alone identifies neither an HTTP status nor a retryable
-cause. Visible error reporting and recovery scheduling are separate capabilities.
+During a Flint trial, Bill observed a provider-error card followed by an idle
+Agent instead of automatic recovery. A later status check found work continuing,
+but did not establish what resumed it. Reporting a failure, waking an observer
+and scheduling inference are separate capabilities.
 
-Goal reminders already back off after failed model turns: wait 1, 10, 100, then
-1,000 seconds, repeating the last interval until a successful turn resets the
-failure streak. Ordinary HTTP/provider failure recovery should use a similar
-policy without requiring a goal or enabling unrelated idle reminders. Classify
-retryable transport and transient service failures separately from authentication,
-invalid-request and other permanent failures; honor applicable server retry
-instructions. Show the pending retry and allow the human to stop it. Pause,
-interrupt, shutdown and completed submission must prevent stale retry admission.
+Ordinary requests now retain their admitted task while the actor backs off for
+1, 10, 100, then 1,000 seconds, indefinitely at the cap. Bill deliberately chose
+all HTTP failures and explicit provider errors, including unknown or apparently
+permanent categories, rather than a limited-attempt classification heuristic.
+Successful exchange resets the streak; pause suspends dispatch, and interrupt or
+shutdown clears the wait. Goals are neither required nor enabled. Goal-triggered
+turns keep their existing timer, sharing the schedule and valid provider advice
+without creating a competing retry loop.
 
-Resume from recorded state at a safe turn boundary. Do not blindly rerun commands,
-repeat completed tool effects, or execute incomplete streamed tool calls. An HTTP
-failure does not prove the provider never processed the request; retry can incur
-another generation and charge. Keep the selected offering and funding unchanged,
-with no paid fallback. Before calling this implemented, use local failing-provider
-tests to verify delay progression, success reset, permanent-error refusal, lifecycle
-cancellation and preservation of already completed work. No general HTTP retry
-implementation or live recovery verification is claimed by this note.
+The first local regression failed because no second request arrived. It passed
+after retaining the original admission instead of finishing it on remote error.
+Further fake-provider checks cover successful resume, reset, cancellation,
+HTTP-200 error envelopes, explicit Responses failure, bounded structured Gemini
+and HTTP header advice, and preservation of a completed tool result with one
+effect. A broken network stream is retryable; a broken local trace writer is not.
+An explicit error event with null detail remains an error, unlike an optional
+null error field on a successful response.
+
+Chapters 5, 6 and 25 teach the ownership, parsing and timer boundaries at their
+construction points. Free-form English vendor wait advice still needs a supplied,
+tested format; it is not guessed. These checks use local fakes, not live provider
+recovery. Retry does not prove the first request was unprocessed or free: preserve
+the selected offering and funding, retain recorded tool effects, and never execute
+unfinished streamed calls. Installation and live acceptance remain separate.
 
 ### A misplaced memory note must not stop the Agent
 

@@ -8,13 +8,23 @@ namespace Ensemble;
 public enum ChunkKind { Reply, Thinking, ToolCall, ReasoningSummary }
 public sealed record Chunk(int PartID, ChunkKind Kind, string Text = "",
     string ToolName = "", string ArgsText = "");
+// Value-like completed transport outcome. ProviderFailure distinguishes explicit
+// remote rejection/network failure from local or malformed-response failures.
+// RetryAfter is validated delay advice, not provider prose or scheduling authority.
 public sealed record ParsedResponse(ImmutableArray<Event> Events,
     ImmutableArray<int> PartIDs, bool ToolBeforeText = false, UsageIdentity? Billing = null,
-    bool IncompleteOutput = false);
+    bool IncompleteOutput = false, bool ProviderFailure = false, TimeSpan? RetryAfter = null);
 
 public sealed partial class Engine
 {
     private static readonly string[] ChatReasoningFields = ["reasoning_content", "reasoning", "reasoning_details"];
+
+    private static partial Task<T> ReadProviderAsync<T>(Func<Task<T>> read);
+
+    private static partial TimeSpan? HeaderRetryDelay(HttpResponseMessage response);
+    private static partial TimeSpan? GeminiRetryDelay(JsonObject frame);
+    private static partial Task<TimeSpan?> HttpRetryDelayAsync(Configuration config,
+        HttpResponseMessage response, CancellationToken cancellation);
 
     // One HTTP parsing seam for JSON and SSE. The callback is a transient output
     // sink for this invocation, never a stored service or a History writer.
@@ -34,6 +44,7 @@ public sealed partial class Engine
         public readonly Dictionary<(int Item, int Part), int> IDs = new();
         public readonly Dictionary<int, string> Displayed = new();
         public JsonObject? Terminal;
+        public bool ProviderFailure;
         public bool SeenText;
         public bool ToolBeforeText;
     }

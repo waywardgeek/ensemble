@@ -299,8 +299,26 @@ authentication failure or rate limit; otherwise report a generic provider error.
 Never copy an arbitrary remote message into History or the GUI. Test both the
 safe classification and the effect boundary: rejection after a partial tool
 call must execute nothing, and a later fresh turn must not replay an orphan call.
-This distinction does not change the separate Responses terminal-completion
-rules or the non-streaming decoder.
+Carry that distinction in the immutable parse result, not by matching error-card
+English in the actor. Explicit errors in plain HTTP 200 JSON and SSE are remote
+failures; Responses `error` and `response.failed` events are too. A nullable
+`error: null` on an ordinary response is not a failure, but an explicit
+`type: error` event is still a failure with null or unfamiliar detail. Responses
+`response.incomplete`, malformed JSON and missing terminal success remain
+incomplete/protocol failures, not automatic retry authorization.
+
+Adapters extract only recognized duration data: HTTP `Retry-After` seconds or
+HTTP-date, and Gemini's `google.rpc.RetryInfo.retryDelay`. Use the longer valid
+value. Inspect at most 64 KiB of a Gemini unsuccessful-HTTP body for that metadata;
+do not trace or retain the error body. Recognized explicit error frames likewise
+bypass payload tracing. Unknown, negative, nonfinite or timer-out-of-range advice
+is ignored. Free-form vendor prose is not parsed as a duration without an explicit,
+tested grammar. An overloaded label is a remote failure, not by itself a wait time.
+
+Tests must distinguish network-read I/O from local diagnostic-write I/O, retain
+header advice on HTTP-200 errors and streams, and reject malformed advice without
+leaking payload text. Recovery scheduling belongs to Chapter 5's actor; parsing
+an error never executes a partial tool or starts its own retry timer.
 
 ### Arrival order is policy evidence
 

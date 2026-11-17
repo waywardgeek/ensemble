@@ -40,9 +40,15 @@ internal static partial class MeterTests
             {
                 incoming = listener.GetContextAsync();
                 var elapsed = Stopwatch.StartNew();
+                // Advice extends the existing goal timer, not a second ordinary
+                // retry loop. Retry-now below bypasses this wait explicitly.
+                if (count == 2)
+                {
+                    request.Response.Headers["Retry-After"] = "20";
+                }
                 await Reply(request, "{\"error\":{\"message\":\"owned retry fixture\"}}", 503);
                 var status = await RetryStatus(count);
-                int seconds = count == 1 ? 1 : count == 2 ? 10 : count == 3 ? 100 : 1000;
+                int seconds = count == 1 ? 1 : count == 2 ? 20 : count == 3 ? 100 : 1000;
                 double remaining = (status.DueUtc!.Value - DateTimeOffset.UtcNow).TotalSeconds;
                 Check(remaining > seconds - 1 && remaining <= seconds,
                     "Wrong failure-backoff stage: " + count);

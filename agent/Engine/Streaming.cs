@@ -22,7 +22,8 @@ public sealed partial class Engine
         if (!response.IsSuccessStatusCode)
         {
             // Do not decode or retain a remote error body as a successful reply.
-            return new ParsedResponse(ParseResponse(config, status, "", out _), []);
+            return new ParsedResponse(ParseResponse(config, status, "", out _), [], ProviderFailure: true,
+                RetryAfter: await HttpRetryDelayAsync(config, response, cancellation));
         }
         string? mediaType = response.Content.Headers.ContentType?.MediaType;
         bool streaming = string.Equals(mediaType, "text/event-stream", StringComparison.OrdinalIgnoreCase);
@@ -37,7 +38,21 @@ public sealed partial class Engine
         }
         if (!streaming)
         {
-            string body = await response.Content.ReadAsStringAsync(cancellation);
+            string body = await ReadProviderAsync(() => response.Content.ReadAsStringAsync(cancellation));
+            // Explicit remote errors are protocol outcomes, not malformed successful replies.
+            try
+            {
+                if (JsonNode.Parse(body) is JsonObject failure
+                    && (String(failure, "type") == "error" || failure["error"] is not null))
+                {
+                    TimeSpan? delay = HeaderRetryDelay(response);
+                    if (config.Vendor == Vendor.Gemini && GeminiRetryDelay(failure) is TimeSpan advice
+                        && (delay is null || advice > delay)) delay = advice;
+                    return new ParsedResponse([new Event(EventKind.ErrorOccurred,
+                        error: ProviderStreamError(failure))], [], ProviderFailure: true, RetryAfter: delay);
+                }
+            }
+            catch (JsonException) { /* The ordinary decoder reports malformed JSON. */ }
             Parent().Trace("response", body, exchangeSecrets);
             var events = ParseResponse(config, status, body, out var billing);
             var ended = events.FirstOrDefault(fact => fact.Kind == EventKind.ResponseEnded);
@@ -77,7 +92,7 @@ public sealed partial class Engine
         }
         try
         {
-            await using var stream = await response.Content.ReadAsStreamAsync(cancellation);
+            await using var stream = await ReadProviderAsync(() => response.Content.ReadAsStreamAsync(cancellation));
             using var reader = new StreamReader(stream, Encoding.UTF8, true, 4096, leaveOpen: true);
             var data = new StringBuilder();
             bool hasData = false;
@@ -85,13 +100,12 @@ public sealed partial class Engine
             // comments, event names, retry and id fields are not JSON payloads.
             while (true)
             {
-                string? line = await reader.ReadLineAsync(cancellation);
+                string? line = await ReadProviderAsync(() => reader.ReadLineAsync(cancellation).AsTask());
                 if (line is null || line.Length == 0)
                 {
                     if (hasData)
                     {
                         string payload = data.ToString();
-                        Parent().Trace("frame", payload, exchangeSecrets);
                         data.Clear();
                         hasData = false;
                         if (payload == "[DONE]")
@@ -112,13 +126,21 @@ public sealed partial class Engine
                                 ?? throw new FormatException("Empty stream frame");
                             // An explicit remote failure is valid protocol, not corrupt JSON.
                             // Discard assembled parts: displayed tool fragments authorize no effects.
-                            bool providerError = vendor == Vendor.Anthropic
-                                ? String(frame, "type") == "error" : frame.ContainsKey("error");
+                            bool providerError = String(frame, "type") == "error"
+                                || frame["error"] is not null;
                             if (providerError)
                             {
+                                TimeSpan? delay = HeaderRetryDelay(response);
+                                if (vendor == Vendor.Gemini && GeminiRetryDelay(frame) is TimeSpan advice
+                                    && (delay is null || advice > delay))
+                                {
+                                    delay = advice;
+                                }
                                 return new ParsedResponse([new Event(EventKind.ErrorOccurred,
-                                    error: ProviderStreamError(frame))], []);
+                                    error: ProviderStreamError(frame))], [], ProviderFailure: true,
+                                    RetryAfter: delay);
                             }
+                            Parent().Trace("frame", payload, exchangeSecrets);
                             switch (vendor)
                             {
                                 case Vendor.Anthropic:

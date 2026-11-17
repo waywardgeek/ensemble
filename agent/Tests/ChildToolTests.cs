@@ -4,6 +4,23 @@ using Application = Ensemble.Ensemble;
 
 // Real ordinary-tool dispatch over owned Agents, Jobs and durable files. The
 // separate loopback case below the actor fixtures checks model-led submission.
+// Child questions wake parent inference. Inbox-only fixtures supply a real
+// protocol response rather than depending on a closed port ending that turn.
+internal sealed class QuestionWakeTransport : HttpMessageHandler
+{
+    protected override Task<HttpResponseMessage> SendAsync(
+        HttpRequestMessage request, CancellationToken cancellation)
+    {
+        cancellation.ThrowIfCancellationRequested();
+        return Task.FromResult(new HttpResponseMessage(System.Net.HttpStatusCode.OK)
+        {
+            Content = new StringContent("""
+                {"id":"question-wake","type":"message","role":"assistant","content":[{"type":"text","text":"Question recorded."}],"stop_reason":"end_turn","usage":{"input_tokens":1,"output_tokens":1}}
+                """, System.Text.Encoding.UTF8, "application/json")
+        });
+    }
+}
+
 internal static class ChildToolTests
 {
     private static void Check(bool value, string why)
@@ -108,6 +125,8 @@ internal static class ChildToolTests
         try
         {
             Agent parent = Parent(app, temp, "tool-questions");
+            parent.Engine().Destroy();
+            _ = new Engine(parent, new QuestionWakeTransport());
             Agent child = await parent.CreateChildAsync("worker", cancellation: deadline.Token);
             var announced = parent.WaitForQuestionsAsync(cancellation: deadline.Token);
             ToolResultPart asking = await Call(child, "send_message_to_parent",

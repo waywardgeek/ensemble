@@ -3,7 +3,7 @@ using Ensemble;
 using Application = Ensemble.Ensemble;
 
 // Real Agent/Jobs/question/persistence integration. There is no model boundary
-// in these tests: the later executable workflow must prove model-led tool use.
+// for tool selection: a local response only settles question-triggered wakes.
 internal static class ChildJoinTests
 {
     private static void Check(bool value, string why)
@@ -72,6 +72,8 @@ internal static class ChildJoinTests
         try
         {
             Agent parent = Parent(app, temp, "join-questions");
+            parent.Engine().Destroy();
+            _ = new Engine(parent, new QuestionWakeTransport());
             Agent child = await parent.CreateChildAsync("worker", cancellation: deadline.Token);
             Task<QuestionReply> answer = child.SendMessageToParentAsync("Which file?", deadline.Token);
             parent.Jobs().SetLimits(new JobLimits(120, "will-not-match"));
@@ -114,6 +116,8 @@ internal static class ChildJoinTests
         try
         {
             Agent parent = Parent(app, temp, "join-cancellation");
+            parent.Engine().Destroy();
+            _ = new Engine(parent, new QuestionWakeTransport());
             Agent child = await parent.CreateChildAsync("worker", cancellation: deadline.Token);
             using var observer = new CancellationTokenSource();
             await using (var stream = parent.JoinChildrenAsync(cancellation: observer.Token).GetAsyncEnumerator())

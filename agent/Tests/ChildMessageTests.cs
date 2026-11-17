@@ -198,6 +198,8 @@ internal static partial class ActorTests
         {
             var parent = new Agent(app, new Configuration(Vendor.Anthropic, "fixture", "http://127.0.0.1:1"),
                 dataDirectory: Path.Combine(temp, "change-waits"));
+            parent.Engine().Destroy();
+            _ = new Engine(parent, new QuestionWakeTransport());
             parent.InstallTools();
             Agent child = await parent.CreateChildAsync("worker", cancellation: deadline.Token);
             Agent other = await parent.CreateChildAsync("other", cancellation: deadline.Token);

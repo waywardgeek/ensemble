@@ -22,11 +22,11 @@ public sealed partial class Agent
     private Timer? goalTimer;                           // actor-owned
     private long goalGeneration;                       // actor-owned stale-mail guard
     private DateTimeOffset? goalDue;
+    private TimeSpan? goalProviderRetryDelay;
     private bool goalWakePending;                      // actor-owned, includes queued immediate wake
     private int goalFailureCount;                     // actor-owned, transient across restart
     private string goalRetryError = "";
     private partial void ObserveGoalTurn(Exception? error);
-    private static partial TimeSpan GoalRetryDelay(int failures);
     private const string GoalReminder = "[Automatic goal reminder] Assess the current goal and actual work state. "
         + "Inspect owned jobs, children and saved results before continuing authorized unfinished work. "
         + "Do not replay commands blindly or interrupt healthy work. If finished or genuinely blocked on the human, "

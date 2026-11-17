@@ -121,8 +121,28 @@ internal static partial class MeterTests
                 "An incomplete configured stream authorized an effect or canonical response.");
             if (mode == "interrupt")
                 await agent.PostAsync(new AgentInput(InputKind.InterruptNow)).WaitAsync(deadline.Token);
+            if (mode == "provider-error")
+            {
+                await agent.PostAsync(new AgentInput(InputKind.Pause)).WaitAsync(deadline.Token);
+            }
             release.TrySetResult();
-            if (mode != "success")
+            if (mode == "provider-error")
+            {
+                // Remote rejection retains this admission. A partial tool must
+                // never become an effect, even when its request will be retried.
+                while (!agent.History().Events().Any(fact => fact.Kind == EventKind.ErrorOccurred))
+                {
+                    await Task.Delay(10, deadline.Token);
+                }
+                Check(!turn.IsCompleted && effects == 0
+                    && !agent.History().Events().Any(fact => fact.Kind is EventKind.ToolCalled or EventKind.ResponseEnded),
+                    "Rejected partial stream completed its task or authorized an effect");
+                Check(agent.History().Events().Count(fact => fact.Kind == EventKind.ErrorOccurred
+                    && fact.Error == "Provider reported an error.") == 1,
+                    "Provider error did not produce one controlled canonical stream failure");
+                await agent.PostAsync(new AgentInput(InputKind.Resume)).WaitAsync(deadline.Token);
+            }
+            if (mode is not "success" and not "provider-error")
             {
                 Exception? failure = null;
                 try { await turn.WaitAsync(deadline.Token); }
@@ -132,13 +152,6 @@ internal static partial class MeterTests
                     "Interrupted or rejected stream must fail before the fixture deadline.");
                 if (mode == "interrupt")
                     Check(failure is OperationCanceledException, "Immediate interruption lost cancellation semantics.");
-                if (mode == "provider-error")
-                {
-                    Check(failure is InvalidOperationException
-                        && agent.History().Events().Count(fact => fact.Kind == EventKind.ErrorOccurred
-                            && fact.Error == "Provider reported an error.") == 1,
-                        "Provider error did not produce one controlled canonical stream failure.");
-                }
                 Check(effects == 0 && !agent.History().Events().Any(fact =>
                     fact.Kind is EventKind.ToolCalled or EventKind.ResponseEnded),
                     "An interrupted or failed partial stream became an executable response.");
