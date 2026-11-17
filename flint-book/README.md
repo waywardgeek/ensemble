@@ -21,14 +21,19 @@ Do not add Flint-specific instructions to every user's primary skill.
 - [Working increment](chapter-01.md): build and evaluate a smaller student primary.
   This is a TL;DR and exercises, not a completed or accepted chapter.
 - [Experimental primary](skills/flint-student/SKILL.md): the current prepared candidate
-  adds a compiled ownership example and operational reading/recovery guidance. It is
-  real-loader verified but not yet installed or student-tested. The previous candidate
-  was installed with Bill's approval for trial02; its bytes remain in that evidence.
+  adds a compiled ownership example and operational reading/recovery guidance. It was
+  installed with Bill's approval and tested in trial03: first-grade offline100/100,
+  but architecture still required corrections. See [trial03](evidence/trial-03.md).
 - [Next-trial setup](setup/next-trial.md): fixed context/memory policy, verified offline
-  environment and grading handoff. Bill requires the idle-message wake fix before launch.
+  environment and grading handoff. Installed-host diagnostics and the five wake
+  checks passed before trial03; the recipe preserves that pre-launch boundary.
 - [Trial 02 evidence](evidence/trial-02.md): first-grade offline 100/100 with unchanged
   candidate hashes; architecture still fails. Context and memory-policy interventions
   are disclosed, not attributed to the primary as a single-variable improvement.
+- [Independent Flint reviewer](skills/flint-reviewer/SKILL.md) and
+  [review setup](setup/independent-review.md): read-only review of frozen source,
+  excluding author commentary and parent diagnoses. The [first review](evidence/reviewer-01.md) found real defects but missed
+  major ownership and behavior failures; it is not an adequate acceptance gate.
 - [Provider-free skill check](checks/README.md): executable validation of the tool
   surface and required instruction activation.
 

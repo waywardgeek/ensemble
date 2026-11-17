@@ -1,6 +1,9 @@
 # Next trial: freeze the prepared configuration before launch
 
-Status: preparation recipe, not evidence of an installed host or a launched trial.
+Status: preserved preparation recipe, since executed for [trial03](../evidence/trial-03.md).
+The preparation-only statements below describe that earlier boundary, not current
+installation status. The host was subsequently installed and checked, and the
+primary installed with approval before trial03.
 Bill additionally requires the incoming-message idle-wake implementation and its
 book updates before launch; this is now authorized work, not merely a queue item.
 Use a fresh child ID. Trial02 is frozen and closed; never reuse it for another

@@ -1,4 +1,4 @@
-# Verify the student skill without a provider
+# Verify experimental skills without a provider
 
 Run from the Ensemble repository root. Prerequisites: an existing .NET 10 SDK,
 a compatible built Ensemble.dll, and the local framework/cache needed for offline
@@ -27,7 +27,17 @@ export NUGET_PACKAGES="$CACHE" DOTNET_SKIP_FIRST_TIME_EXPERIENCE=1 DOTNET_CLI_TE
 
 Require exit 0 and `PASS: real loader, exact tools, coding activation, no provider request`.
 The second program argument can name an independently supplied candidate directory
-containing SKILL.md. Its declared primary name must be `flint-student`.
+containing SKILL.md. The optional third argument selects `flint-student` (default)
+or `flint-reviewer`; the candidate must declare that name. To check the reviewer:
+
+```sh
+"$SDK" "$CHECK/artifacts/bin/SkillSurface/debug/SkillSurface.dll" \
+  "$REPO" "$REPO/flint-book/skills/flint-reviewer" flint-reviewer
+```
+
+The reviewer surface excludes command, write/edit, and delegation tools. Both
+modes were built and passed against a copy of the installed runtime before the
+first reviewer launch. This verifies grants and activation, not model behavior.
 
 The verifier assembles a disposable catalogue from the candidate and explicit
 repository dependencies, constructs a confined Agent, checks exact enabled tools,
@@ -82,3 +92,7 @@ authority. These checks establish teaching/setup behavior, not Flint learning or
 future architecture acceptance. The public input-copy recipe in
 [the next-trial plan](../setup/next-trial.md) was executed in a disposable directory;
 chapter bytes and pre-admission memory policy matched its stated configuration.
+
+Reviewer boundary check: a disposable copy adding `run_command` was rejected by
+the exact-surface assertion. The verifier exited nonzero at that deliberate
+assertion; installed and canonical skill bytes were unchanged.
