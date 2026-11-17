@@ -74,7 +74,13 @@ Ordinary provider recovery from Chapter 5 retains an active admission and does
 not enable goals. That active work prevents idle reminders. An automatic goal
 turn instead retains this chapter's existing finish-and-backoff lifecycle: use
 the shared 1/10/100/1,000-second schedule and honor longer valid provider advice
-in the goal timer. Do not arm an ordinary provider timer for the same goal turn.
+using one shared, generation-checked continuation timer. The wake reason selects
+goal continuation or recovery of the retained task; there is no competing timer
+and no temporary goal file. Recovery works with reminders off or the goals skill
+unloaded, without altering the configured goal. A marked provider error remains
+model-visible data in either path. Human input, child hints, completed tool results
+and successful responses reset failure backoff; synthetic reminders, automatic
+snapshots and recovery bookkeeping do not.
 Clear old advice on a new turn, successful completion, or goal reset so it cannot
 delay unrelated later work. Goal retry-now bypasses one goal wait; it is not a
 control for an ordinary task's retry.

@@ -468,7 +468,10 @@ public static partial class JsonCodec
                 };
                 break;
             case EventKind.ErrorOccurred:
-                o["error"] = new JsonObject { ["message"] = value.Error };
+                var error = new JsonObject { ["message"] = value.Error };
+                if (value.Reason.Length != 0) error["reason"] = value.Reason;
+                if (!value.Parts.IsEmpty) error["parts"] = Parts(value.Parts);
+                o["error"] = error;
                 break;
         }
         return o.ToJsonString();
@@ -582,7 +585,12 @@ public static partial class JsonCodec
                     level: level, reason: OptionalString(r, "reason"), taskID: taskID);
             default:
                 var err = root.GetProperty("error");
-                return new(kind, seq, time, error: err.ValueKind == JsonValueKind.String ? err.GetString()! : String(err, "message"));
+                if (err.ValueKind == JsonValueKind.String)
+                {
+                    return new(kind, seq, time, error: err.GetString()!);
+                }
+                return new(kind, seq, time, error: String(err, "message"),
+                    reason: OptionalString(err, "reason"), parts: Parts(err));
         }
     }
 

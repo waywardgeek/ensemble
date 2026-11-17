@@ -319,6 +319,13 @@ public sealed partial class History
                 dialogue = Redact(dialogue, value);
                 break;
             case EventKind.ErrorOccurred:
+                // A marked provider failure is one durable fact with two
+                // projections: the error card and runtime data for the model.
+                // Legacy/local errors remain diagnostics, not model authority.
+                if (value.Reason == "provider_failure" && !value.Parts.IsEmpty)
+                {
+                    dialogue.Add(new Entry(value.Seq, Actor.Tool, value.Parts, time: value.Time));
+                }
                 if (phase == Phase.InFlight)
                 {
                     phase = Phase.Idle;

@@ -19,8 +19,12 @@ internal sealed record GoalReadFailure(GoalConfiguration Configuration, string E
 public sealed partial class Agent
 {
     private GoalConfiguration goalConfiguration = new(); // protected by ingress
-    private Timer? goalTimer;                           // actor-owned
-    private long goalGeneration;                       // actor-owned stale-mail guard
+    // One actor-owned wake mechanism serves goal reminders and error recovery.
+    // The two reasons never compete: recovery retains active, goals require idle.
+    private Timer? continuationTimer;
+    private long continuationGeneration;
+    private partial void ArmContinuationTimer(MailKind kind, TimeSpan delay);
+    private partial void StopContinuationTimer();
     private DateTimeOffset? goalDue;
     private TimeSpan? goalProviderRetryDelay;
     private bool goalWakePending;                      // actor-owned, includes queued immediate wake

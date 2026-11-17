@@ -123,7 +123,7 @@ public sealed partial class Agent
                 {
                     goalWakePending = true;
                     mailbox.Writer.TryWrite(new Mail(MailKind.GoalWake,
-                        GoalGeneration: goalGeneration));
+                        GoalGeneration: continuationGeneration));
                 }
             }
             RefreshGoalTimer();
@@ -232,11 +232,24 @@ public sealed partial class Agent
         StopGoalTimer();
     }
 
+    private partial void ArmContinuationTimer(MailKind kind, TimeSpan delay)
+    {
+        StopContinuationTimer();
+        long generation = continuationGeneration;
+        continuationTimer = new Timer(_ => mailbox.Writer.TryWrite(new Mail(kind,
+            GoalGeneration: generation)), null, delay, Timeout.InfiniteTimeSpan);
+    }
+
+    private partial void StopContinuationTimer()
+    {
+        continuationGeneration++;
+        continuationTimer?.Dispose();
+        continuationTimer = null;
+    }
+
     private partial void StopGoalTimer()
     {
-        goalGeneration++;
-        goalTimer?.Dispose();
-        goalTimer = null;
+        StopContinuationTimer();
         goalDue = null;
         goalWakePending = false;
     }
@@ -319,7 +332,7 @@ public sealed partial class Agent
             return;
         }
         if (goalWakePending) return; // Observations cannot create another idle edge.
-        long generation = ++goalGeneration;
+        long generation = ++continuationGeneration;
         goalWakePending = true;
         if (goalFailureCount == 0)
         {
@@ -336,13 +349,12 @@ public sealed partial class Agent
             delay = advice;
         }
         goalDue = DateTimeOffset.UtcNow + delay;
-        goalTimer = new Timer(_ => mailbox.Writer.TryWrite(new Mail(MailKind.GoalWake,
-            GoalGeneration: generation)), null, delay, Timeout.InfiniteTimeSpan);
+        ArmContinuationTimer(MailKind.GoalWake, delay);
     }
 
     private partial void WakeGoal(Mail message)
     {
-        if (message.GoalGeneration != goalGeneration)
+        if (message.GoalGeneration != continuationGeneration)
         {
             return;
         }

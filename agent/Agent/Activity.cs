@@ -16,7 +16,7 @@ public sealed partial class Agent
         if (providerRetryDue is DateTimeOffset retryDue)
         {
             return new WorkActivity(WorkPhase.Waiting, Detail:
-                $"Provider retry {providerFailureCount} due {retryDue:O}" + (paused ? " (paused)" : ""));
+                $"Error continuation after {providerFailureCount} failures due {retryDue:O}" + (paused ? " (paused)" : ""));
         }
         if (automaticPending)
         {

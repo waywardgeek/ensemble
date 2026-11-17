@@ -1655,9 +1655,19 @@ Ordinary requests now retain their admitted task while the actor backs off for
 all HTTP failures and explicit provider errors, including unknown or apparently
 permanent categories, rather than a limited-attempt classification heuristic.
 Successful exchange resets the streak; pause suspends dispatch, and interrupt or
-shutdown clears the wait. Goals are neither required nor enabled. Goal-triggered
-turns keep their existing timer, sharing the schedule and valid provider advice
-without creating a competing retry loop.
+shutdown clears the wait. A later human Wi-Fi-disconnect test produced several
+minutes of silence and required a host restart. It did not establish whether the
+transport stalled or reached backoff, but exposed two design gaps: errors were
+not in model dialogue, and incoming hints did not release the recovery wait.
+
+Recovery now records one marked error event for both the visible card and a
+labelled runtime-data contribution to model input. New human or child input and
+completed tool results reset the wait; errors and request-preparation bookkeeping
+do not. The next ordinary inference can reason about the error rather than merely
+resending an unchanged conversation. Bill suggested reusing goal reminders;
+one shared continuation timer and stale-wake generation now serve both reasons,
+without replacing a goal file or enabling reminders. The retained task still owns
+its reply. Success clears recovery, not the configured human goal.
 
 The first local regression failed because no second request arrived. It passed
 after retaining the original admission instead of finishing it on remote error.

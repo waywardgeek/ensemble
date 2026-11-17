@@ -48,6 +48,34 @@ internal static partial class MeterTests
             var second = await listener.GetContextAsync().WaitAsync(TimeSpan.FromSeconds(4));
             Check(!task.IsCompleted, "Provider failure prematurely completed the original task");
             Check(elapsed.Elapsed.TotalSeconds >= .85, "Provider retry bypassed backoff");
+            using (var reader = new StreamReader(second.Request.InputStream))
+            {
+                string wire = await reader.ReadToEndAsync();
+                Check(wire.Contains("Provider failure (runtime data)") && wire.Contains("503"),
+                    "Recovery request omitted the recorded provider error");
+            }
+            await Reply(second, "{}", 503);
+            using (var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(3)))
+            {
+                while (agent.History().Events().Count(e => e.Kind == EventKind.ErrorOccurred) < 2)
+                    await Task.Delay(10, deadline.Token);
+            }
+            await agent.GoalStatusAsync();
+            // A status query is not progress and must not release the ten-second wait.
+            var afterHint = listener.GetContextAsync();
+            await Task.Delay(150);
+            Check(!afterHint.IsCompleted, "Recovery bookkeeping reset its own backoff");
+            await agent.PostAsync(new AgentInput(InputKind.Message, "Network is available again."));
+            second = await afterHint.WaitAsync(TimeSpan.FromSeconds(3));
+            Check(!task.IsCompleted, "Human input replaced the original task during recovery");
+            using (var reader = new StreamReader(second.Request.InputStream))
+            {
+                string wire = await reader.ReadToEndAsync();
+                Check(wire.Contains("Network is available again."), "Recovery omitted new human input");
+            }
+            // Human progress resets the streak, not merely the current timer.
+            await Reply(second, "{}", 503);
+            second = await listener.GetContextAsync().WaitAsync(TimeSpan.FromSeconds(4));
             await Reply(second, "{\"choices\":[{\"message\":{\"role\":\"assistant\",\"content\":\"recovered\"},\"finish_reason\":\"stop\"}]}");
             Check(await task.WaitAsync(TimeSpan.FromSeconds(5)) == "recovered", "Retry lost task reply");
             Check(agent.History().Events().Count(e => e.Kind == EventKind.MessageReceived && e.Actor == Actor.Human) == 1,
@@ -113,6 +141,15 @@ internal static partial class MeterTests
         try
         {
             var agent = new Agent(app, new Configuration(Vendor.Gemini, "advice-test", "http://localhost"));
+            var marked = new Event(EventKind.ErrorOccurred, seq: 1, error: "HTTP 503",
+                reason: "provider_failure", parts: [new TextPart("Provider failure (runtime data): HTTP 503")]);
+            var replayed = History.Reduce(agent.History().View(),
+                JsonCodec.ReadEvent(JsonCodec.WriteEvent(marked)));
+            Check(replayed.Dialogue.Length == 1 && replayed.Dialogue[0].Actor == Actor.Tool,
+                "Replayed provider error lost its data role or duplicated its notice");
+            var localError = new Event(EventKind.ErrorOccurred, seq: 2, error: "local failure");
+            Check(History.Reduce(replayed, JsonCodec.ReadEvent(JsonCodec.WriteEvent(localError)))
+                .Dialogue.Length == 1, "Local error unexpectedly entered model dialogue");
             async Task<ParsedResponse> Parse(string body, int code = 503, string? header = null,
                 string media = "application/json")
             {
@@ -190,6 +227,7 @@ internal static partial class MeterTests
                 var first = await listener.GetContextAsync().WaitAsync(TimeSpan.FromSeconds(5));
                 await agent.PostAsync(new AgentInput(InputKind.Pause));
                 await Reply(first, "{}", 503);
+                await agent.PostAsync(new AgentInput(InputKind.Message, "Remain paused despite new input."));
                 var next = listener.GetContextAsync();
                 await Task.Delay(1250);
                 Check(!next.IsCompleted && !task.IsCompleted, "Paused retry made progress");

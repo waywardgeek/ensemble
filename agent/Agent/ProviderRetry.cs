@@ -2,6 +2,7 @@ namespace Ensemble;
 
 public sealed partial class Agent
 {
+    // Back off the next error-informed model continuation, not an Engine send.
     // Shared with goal reminder failures: unlimited attempts, capped delay.
     private static partial TimeSpan FailureRetryDelay(int failures) => TimeSpan.FromSeconds(
         failures <= 1 ? 1 : failures == 2 ? 10 : failures == 3 ? 100 : 1000);
@@ -43,20 +44,23 @@ public sealed partial class Agent
         TimeSpan remaining = due - DateTimeOffset.UtcNow;
         if (remaining <= TimeSpan.Zero)
         {
-            providerRetryTimer?.Dispose();
-            providerRetryTimer = null;
+            StopContinuationTimer();
             providerRetryDue = null;
             return false;
         }
-        providerRetryTimer ??= new Timer(_ => mailbox.Writer.TryWrite(new Mail(MailKind.ProviderRetryWake)),
-            null, remaining, Timeout.InfiniteTimeSpan);
+        if (continuationTimer is null)
+        {
+            ArmContinuationTimer(MailKind.ProviderRetryWake, remaining);
+        }
         return true;
     }
 
     private partial void ClearProviderRetry()
     {
-        providerRetryTimer?.Dispose();
-        providerRetryTimer = null;
+        if (providerFailureCount != 0)
+        {
+            StopContinuationTimer();
+        }
         providerRetryDue = null;
         providerFailureCount = 0;
     }

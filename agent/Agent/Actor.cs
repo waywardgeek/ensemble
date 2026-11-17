@@ -174,6 +174,22 @@ public sealed partial class Agent
             fact = fact.WithDisplay(responseID, partIDs);
         }
         var saved = History().Append(fact);
+        // Only durable work/progress resets recovery. Request starts, errors,
+        // timers and status observations cannot reset their own failure streak.
+        if ((fact.Kind == EventKind.MessageReceived && fact.Actor == Actor.Human
+                && active?.AutomaticGoal != true)
+            || fact.Kind is EventKind.HintReceived or EventKind.ResponseEnded
+                or EventKind.ToolReturned)
+        {
+            ClearProviderRetry();
+            if (goalFailureCount != 0)
+            {
+                StopGoalTimer();
+                goalFailureCount = 0;
+                goalProviderRetryDelay = null;
+                goalRetryError = "";
+            }
+        }
         var after = History().View().Phase;
         if (before != after)
         {
@@ -435,8 +451,10 @@ public sealed partial class Agent
         }
         if (message.Kind == MailKind.ProviderRetryWake)
         {
-            providerRetryTimer?.Dispose();
-            providerRetryTimer = null;
+            if (message.GoalGeneration == continuationGeneration)
+            {
+                StopContinuationTimer();
+            }
             return; // Advance rechecks pause, lifetime and the actual deadline.
         }
         if (message.Kind == MailKind.GoalWake)
@@ -701,8 +719,6 @@ public sealed partial class Agent
                     case InputKind.Pause:
                         SaveChildRestart(pause: true);
                         StopGoalTimer();
-                        providerRetryTimer?.Dispose();
-                        providerRetryTimer = null;
                         if (!paused)
                         {
                             paused = true;
@@ -830,7 +846,13 @@ public sealed partial class Agent
                 : [];
             foreach (var fact in parsed.Events)
             {
-                Record(fact, fact.Kind == EventKind.ResponseEnded ? parsed.PartIDs : default);
+                // One durable error serves the card and model continuation.
+                // The label is runtime data, never a new system instruction.
+                var recorded = parsed.ProviderFailure && fact.Kind == EventKind.ErrorOccurred
+                    ? new Event(EventKind.ErrorOccurred, error: fact.Error, reason: "provider_failure",
+                        parts: [new TextPart("Provider failure (runtime data): " + fact.Error)])
+                    : fact;
+                Record(recorded, fact.Kind == EventKind.ResponseEnded ? parsed.PartIDs : default);
             }
             var failure = parsed.Events.FirstOrDefault(e => e.Kind == EventKind.ErrorOccurred);
             if (failure is not null)
