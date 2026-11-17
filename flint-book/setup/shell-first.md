@@ -16,10 +16,10 @@ shell and sources the supplied environment recipe. Unlike Terminus's persistent
 tmux session, this is still Ensemble's run_command/Job protocol, not a replica of
 that harness. Retain and observe running jobs. Shell redirection can overwrite
 files: the smaller vocabulary trades explicit file-tool guards for deliberate
-target inspection and checked replacement scripts. Do not relax confinement.
+the model's own shell technique. Do not relax confinement.
 
 The old skill was backed up and the tested copy installed with Bill's approval.
-SHA256: cde27337e6387c586276a7e3f2ceeb2c8b728bf244b2d2f11cf7917731a9e299.
+SHA256: b4328e6e871c0bd2d49b58351e5a79ad08461f08554922984e35bde284591498.
 Both real-loader modes passed; adding file-reading back to a disposable copy was
 rejected. These checks establish the tool surface, not improved Flint performance.
 No fresh student was launched and no running student's active skills/settings
@@ -30,3 +30,13 @@ primary supplied to that trial. It conflicted with its explicit Chapter2 task.
 The new text says “No work beyond the assigned chapter.” The conflict is a setup
 confound; do not attribute possible effects to model capability alone. It was not
 silently corrected in the active trial.
+
+Bill subsequently requested removal of shell-usage coaching, including the warning
+against tail. Removed command recipes for reading/searching, heredoc/append/edit
+instructions, report-cap technique and build-pipeline advice. Retained assignment
+boundaries, required environment setup, fresh-shell semantics, evidence honesty,
+Job lifecycle, handoff and completion contracts, and the coding methodology.
+The same eight-tool loader check passed. The earlier installed version was backed
+up; the new installed copy was hash-verified. Running Chapter2 student02 was not
+retuned or restarted. This is instruction simplification, not evidence of improved
+model performance or permission to misreport command outcomes.

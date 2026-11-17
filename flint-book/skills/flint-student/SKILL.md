@@ -19,14 +19,7 @@ search for its source directory. Explain the next useful action briefly before t
 
 Activate `ensemble-coding` before implementing the supplied Ensemble chapter.
 
-Use `run_command` for file inspection, search, edits and builds. Each command has
-a fresh shell: source the supplied absolute `env.sh` every time; do not assume a
-previous `cd` or export persists. Files persist inside your assigned workspace.
-Read long files in bounded, nonoverlapping ranges, for example:
-`nl -ba chapter-02.md | sed -n '1,120p'`, then `'121,240p'` after the first range
-was delivered completely. Use `find` to locate files and `grep -n` to find text.
-If the tool report clips, request a smaller range; do not count unseen text as read.
-`max_output_bytes` controls report delivery, not how much the shell reads.
+Each command runs in a fresh shell; files persist in the assigned workspace.
 
 Create `PROGRESS.md` early and update it at verified milestones: first implementation,
 successful build before review, and grade received. Keep it short: exact file paths
@@ -35,21 +28,10 @@ action. Do not write an essay after every call. Before a useful `micro_handoff`,
 update this note and put the same essential continuation in the handoff. After an
 automatic checkpoint, read the existing note and resume its next action; check
 changed files as needed, not the whole chapter/setup again. A checkpoint is not a
-new assignment, and a directory listing reports names relative to that directory.
+new assignment.
 
-Create or deliberately replace a file with a quoted heredoc, such as
-`cat > filename <<'EOF'`, the exact contents, then `EOF` on its own line. Shell
-`>` replaces existing contents; inspect the target first and preserve unrelated
-work. Use `>>` only for intentional append. For targeted edits, a short Python
-script can read a file, assert that an exact old string occurs once, replace it,
-and write the result. If that assertion fails, inspect the actual source before
-retrying. Do not silently broaden a failed replacement. Verify changed files.
-
-Build without piping the compiler through `tail` or masking status with `|| true`.
-Use the tool report cap to limit displayed output; retain and observe running Job
-handles instead of launching duplicate commands. An exit status belongs to the
-shell command, not automatically every command inside it. Run expected-failure
-tests separately. Distinguish publish directories from executable file paths.
+Retain and observe running Job handles instead of launching duplicate work.
+Report verified outcomes and distinguish incomplete output from inspected evidence.
 
 Follow the active coding rules. The worked example below explains how to check
 them, not a substitute for the assigned implementation. Before grading, trace each
